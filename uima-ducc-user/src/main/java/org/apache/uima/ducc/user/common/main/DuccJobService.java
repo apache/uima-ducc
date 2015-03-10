@@ -84,78 +84,85 @@ public class DuccJobService {
 	}
 
 	public void start(String[] args) throws Exception {
-		String log4jConfigurationFile = System.getProperty("log4j.configuration");
-		// if user provided log4j configuration file via -D, save it for later
-		// under a different property name. Remove "log4j.configuration" from System
-		// properties to prevent Ducc from using it to configure its logger. 
-		// The user's log4j configuration property will be restored before crossing
-		// class loader boundary from ducc to user.
-		if ( log4jConfigurationFile != null ) {
-			System.setProperty("ducc.user.log4j.saved.configuration",log4jConfigurationFile);
-			System.getProperties().remove("log4j.configuration");
-		}
-        investment = new Investment();
-        
-        // cache current context classloader
-		ClassLoader sysCL = Thread.currentThread().getContextClassLoader();
-		// Fetch a classpath for the fenced Ducc container
-		String duccContainerClasspath = System
-				.getProperty("ducc.deploy.DuccClasspath");//"ducc.deploy.JpDuccClasspath");
-		URLClassLoader ucl = create(duccContainerClasspath);
-		if ( System.getProperty("DEBUG") != null ) {
-			DEBUG = true;
-		}
-		if (DEBUG) {
-			dump(ucl, 4);
-		}
-
- 		System.out.println("DuccJobService.start() >>>>>>>>> Crossing from User Container to Ducc Container");
-		Thread.currentThread().setContextClassLoader(ucl);
-
-		// Create DuccService instance
-		Class<?> classToLaunch = ucl.loadClass("org.apache.uima.ducc.common.main.DuccService");
-		Object duccContainerInstance = classToLaunch.newInstance();
-
-		// initialize Ducc fenced container. It calls component's Configuration class
-		Method bootMethod = classToLaunch.getMethod("boot", String[].class);
 		try {
-			bootMethod.invoke(duccContainerInstance, (Object) args);
-		} catch( Exception e) {
-			e.printStackTrace();
+			String log4jConfigurationFile = System.getProperty("log4j.configuration");
+			// if user provided log4j configuration file via -D, save it for later
+			// under a different property name. Remove "log4j.configuration" from System
+			// properties to prevent Ducc from using it to configure its logger. 
+			// The user's log4j configuration property will be restored before crossing
+			// class loader boundary from ducc to user.
+			if ( log4jConfigurationFile != null ) {
+				System.setProperty("ducc.user.log4j.saved.configuration",log4jConfigurationFile);
+				System.getProperties().remove("log4j.configuration");
+			}
+	        investment = new Investment();
+	        
+	        // cache current context classloader
+			ClassLoader sysCL = Thread.currentThread().getContextClassLoader();
+			// Fetch a classpath for the fenced Ducc container
+			String duccContainerClasspath = System
+					.getProperty("ducc.deploy.DuccClasspath");//"ducc.deploy.JpDuccClasspath");
+			URLClassLoader ucl = create(duccContainerClasspath);
+			if ( System.getProperty("DEBUG") != null ) {
+				DEBUG = true;
+			}
+			if (DEBUG) {
+				dump(ucl, 4);
+			}
+
+	 		System.out.println("DuccJobService.start() >>>>>>>>> Crossing from User Container to Ducc Container");
+			Thread.currentThread().setContextClassLoader(ucl);
+
+			// Create DuccService instance
+			Class<?> classToLaunch = ucl.loadClass("org.apache.uima.ducc.common.main.DuccService");
+			Object duccContainerInstance = classToLaunch.newInstance();
+
+			// initialize Ducc fenced container. It calls component's Configuration class
+			Method bootMethod = classToLaunch.getMethod("boot", String[].class);
+			try {
+				bootMethod.invoke(duccContainerInstance, (Object) args);
+			} catch( Exception e) {
+				e.printStackTrace();
+			}
+
+			// below property is set by component's Configuration class. It can also
+			// be provided on the command line in case a custom processor is needed.
+			String processorClass = System
+					.getProperty("ducc.deploy.JpProcessorClass");
+
+			// Instantiate process container where the actual analysis will be done.
+			// Currently there are three containers:
+			// 1 - UimaProcessContainer - used for pieces parts (UIMA only)
+			// 2 - UimaASProcessContainer - used for DD jobs
+			// 3 - UimaASServiceContainer - used for UIMA-AS based services
+			//
+			// NOTE: the container class is loaded by the main System classloader
+			//       and requires uima-ducc-user jar to be in the System classpath.
+			// --------------------------------------------------------------------
+			// load the process container class using the initial system class loader
+			Class<?> processorClz = sysCL.loadClass(processorClass);
+			IProcessContainer pc = (IProcessContainer) processorClz.newInstance();
+
+			// Call DuccService.setProcessor() to hand-off instance of the 
+			// process container to the component along with this process args
+			Method setProcessorMethod = classToLaunch.getMethod("setProcessor",
+					Object.class, String[].class);
+			setProcessorMethod.invoke(duccContainerInstance, pc, args);
+
+			Method registerInvestmentInstanceMethod = classToLaunch.getMethod("registerInvestmentInstance",
+					Object.class);
+			registerInvestmentInstanceMethod.invoke(duccContainerInstance, investment);
+			
+	        // Call DuccService.start() to initialize the process
+			// and begin processing
+			Method startMethod = classToLaunch.getMethod("start");// ,
+			startMethod.invoke(duccContainerInstance);
+			
+		} catch( Throwable t) {
+			t.printStackTrace();
+			System.out.println("Exiting Process Due to Unrecoverable Error");
+			Runtime.getRuntime().halt(99);   // User Error
 		}
-
-		// below property is set by component's Configuration class. It can also
-		// be provided on the command line in case a custom processor is needed.
-		String processorClass = System
-				.getProperty("ducc.deploy.JpProcessorClass");
-
-		// Instantiate process container where the actual analysis will be done.
-		// Currently there are three containers:
-		// 1 - UimaProcessContainer - used for pieces parts (UIMA only)
-		// 2 - UimaASProcessContainer - used for DD jobs
-		// 3 - UimaASServiceContainer - used for UIMA-AS based services
-		//
-		// NOTE: the container class is loaded by the main System classloader
-		//       and requires uima-ducc-user jar to be in the System classpath.
-		// --------------------------------------------------------------------
-		// load the process container class using the initial system class loader
-		Class<?> processorClz = sysCL.loadClass(processorClass);
-		IProcessContainer pc = (IProcessContainer) processorClz.newInstance();
-
-		// Call DuccService.setProcessor() to hand-off instance of the 
-		// process container to the component along with this process args
-		Method setProcessorMethod = classToLaunch.getMethod("setProcessor",
-				Object.class, String[].class);
-		setProcessorMethod.invoke(duccContainerInstance, pc, args);
-
-		Method registerInvestmentInstanceMethod = classToLaunch.getMethod("registerInvestmentInstance",
-				Object.class);
-		registerInvestmentInstanceMethod.invoke(duccContainerInstance, investment);
-		
-        // Call DuccService.start() to initialize the process
-		// and begin processing
-		Method startMethod = classToLaunch.getMethod("start");// ,
-		startMethod.invoke(duccContainerInstance);
 
 	}
 
