@@ -119,11 +119,7 @@ public class DuccJobService {
 
 			// initialize Ducc fenced container. It calls component's Configuration class
 			Method bootMethod = classToLaunch.getMethod("boot", String[].class);
-			try {
-				bootMethod.invoke(duccContainerInstance, (Object) args);
-			} catch( Exception e) {
-				e.printStackTrace();
-			}
+			bootMethod.invoke(duccContainerInstance, (Object) args);
 
 			// below property is set by component's Configuration class. It can also
 			// be provided on the command line in case a custom processor is needed.
