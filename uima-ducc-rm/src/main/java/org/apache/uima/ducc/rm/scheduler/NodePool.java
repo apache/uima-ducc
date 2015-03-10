@@ -1655,6 +1655,7 @@ class NodePool
         sb.append(getId());
         sb.append(" Expansions in this order: ");
         for ( IRmJob j : jobs ) {
+            j.undefer();
             sb.append(j.getId());
             sb.append(":");
             if ( findShares(j) > 0 ) {
