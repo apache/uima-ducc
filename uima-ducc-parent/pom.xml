@@ -132,7 +132,7 @@
 		<org.springframework.version>3.0.7.RELEASE</org.springframework.version>
 		<org.apache.activemq.version>5.7.0</org.apache.activemq.version>
 		<org.apache.camel.version>2.10.1</org.apache.camel.version>
-		<org.apache.uima.version>2.6.0</org.apache.uima.version>
+		<!-- org.apache.uima.version>2.6.0</org.apache.uima.version Same as uima-as-->
 		<org.apache.uima.as.version>2.6.0</org.apache.uima.as.version>
 		<com.google.guava.version>r09</com.google.guava.version>
 		<commons.cli.version>1.2</commons.cli.version>
@@ -207,8 +207,7 @@ ${uimaDUCCNoticeText}
 	</properties>
 
 	<!-- dependencyManagement is a declaration section naming each artifact 
-		the ducc components -->
-	<!-- depends on. -->
+		and version the ducc components depend on. -->
 	<dependencyManagement>
 		<dependencies>
 
@@ -388,7 +387,7 @@ ${uimaDUCCNoticeText}
 			<dependency>
 				<groupId>org.apache.uima</groupId>
 				<artifactId>uimaj-core</artifactId>
-				<version>${org.apache.uima.version}</version>
+				<version>${org.apache.uima.as.version}</version>
 			</dependency>
 
 			<dependency>
@@ -561,7 +560,11 @@ ${uimaDUCCNoticeText}
 				<version>${commons.httpclient.version}</version>
 			</dependency -->
 
-		    
+			<dependency>
+			  <groupId>org.springframework</groupId>
+			  <artifactId>spring-core</artifactId>
+			  <version>${org.springframework.version}</version>
+			</dependency>
 		
 		</dependencies>
 	</dependencyManagement>

@@ -152,7 +152,6 @@
                           <artifactItem>
 							<groupId>org.springframework</groupId>
 							<artifactId>spring-core</artifactId>
-							<version>${org.springframework.version}</version>
                             <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
                           </artifactItem>
                           <artifactItem>
