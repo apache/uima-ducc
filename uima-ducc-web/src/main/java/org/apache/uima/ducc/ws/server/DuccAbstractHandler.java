@@ -947,6 +947,10 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
+
+	protected String getMonitor(DuccId duccId, DuccType type) {
+		return getMonitor(duccId, type, false);
+	}
 	
 	protected String getMonitor(DuccId duccId, DuccType type, boolean multi) {
 		StringBuffer sb = new StringBuffer();
@@ -1013,26 +1017,22 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 				DuccId duccId = job.getDuccId();
 				sb = new StringBuffer();
 				if(job.isOperational()) {
-					boolean multi = false;
-					/*
-					sb.append("<span>");
-					if(pagingObserver.isPaging(job)) {
-						multi = true;
-						String title = "a page-in operation occurred for at least one process during the past "+PagingObserver.intervalInSeconds+" seconds";
-						sb.append("<span class=\"health_red\" title=\""+title+"\">");
-						sb.append("Paging");
-						sb.append("</span>");
-					}
-					sb.append("</span>");
-					*/
-					//
-					String monitor = getMonitor(duccId, type, multi);
-					if(monitor.length() > 0) {
-						if(multi) {
-							sb.append(" ");
+					switch(job.getJobState()) {
+					case WaitingForResources:
+						String rmReason = job.getRmReason();
+						if(rmReason != null) {
+							sb.append("<span>");
+							sb.append(rmReason);
+							sb.append("</span>");
+							
 						}
-						multi = true;
-						sb.append(monitor);
+						break;
+					default:
+						String monitor = getMonitor(duccId, type);
+						if(monitor.length() > 0) {
+							sb.append(monitor);
+						}
+						break;
 					}
 				}
 				else if(job.isCompleted()) {
