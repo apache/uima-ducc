@@ -43,6 +43,7 @@ public abstract class ADuccWork implements IDuccWork {
     private String serviceId = null;
     private boolean cancelOnInterrupt = false;
 	
+    private String rmReason = null;
 	
 	public DuccId getDuccId() {
 		return duccId;
@@ -169,9 +170,16 @@ public abstract class ADuccWork implements IDuccWork {
 		throw new RuntimeException("subclass must override: should never be here!");
 	}
 
-	
 	public boolean isOperational() {
 		throw new RuntimeException("subclass must override: should never be here!");
+	}
+	
+	public void setRmReason(String value) {
+		rmReason = value;
+	}
+	
+	public String getRmReason() {
+		return rmReason;
 	}
 	
 	// **********

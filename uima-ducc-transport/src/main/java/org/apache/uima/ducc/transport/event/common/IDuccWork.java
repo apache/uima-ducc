@@ -58,4 +58,7 @@ public interface IDuccWork extends Identifiable, Serializable {
 	public boolean isOperational();
 	
 	public boolean isCancelOnInterrupt();
+	
+	public void setRmReason(String value);
+	public String getRmReason();
 }
