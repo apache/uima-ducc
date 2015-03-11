@@ -111,7 +111,7 @@ public class ActionEnd extends Action implements IAction {
 		updateStatistics(actionData, wi);
 		updatePerformanceMetrics(actionData, wi);
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		logger.info(location, ILogger.null_id, mb.toString());
+		logger.debug(location, ILogger.null_id, mb.toString());
 		checkEnded(actionData, cm);
 	}
 	

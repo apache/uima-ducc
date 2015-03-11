@@ -179,6 +179,6 @@ public class WiFsm extends Fsm {
 		mb.append(Standardize.Label.curr.get()+getStateCurrent().getName());
 		mb.append(Standardize.Label.prev.get()+getStatePrevious().getName());
 		mb.append(Standardize.Label.event.get()+event.getName());
-		logger.info(location, ILogger.null_id, mb.toString());
+		logger.debug(location, ILogger.null_id, mb.toString());
 	}
 }

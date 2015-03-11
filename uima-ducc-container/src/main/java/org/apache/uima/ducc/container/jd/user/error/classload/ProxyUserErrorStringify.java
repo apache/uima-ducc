@@ -91,7 +91,7 @@ public class ProxyUserErrorStringify {
 			sb.append(File.separator);
 			sb.append("*");
 			String retVal = sb.toString();
-			logger.info(location, ILogger.null_id, retVal);
+			logger.debug(location, ILogger.null_id, retVal);
 			return retVal;
 		}
 		catch(Exception e) {
@@ -112,7 +112,7 @@ public class ProxyUserErrorStringify {
 			}
 			sb.append(getUimaAsDirectory());
 			String retVal = sb.toString();
-			logger.info(location, ILogger.null_id, retVal);
+			logger.debug(location, ILogger.null_id, retVal);
 			return retVal;
 		}
 		catch(Exception e) {

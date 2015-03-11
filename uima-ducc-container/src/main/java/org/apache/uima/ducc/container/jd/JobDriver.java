@@ -80,7 +80,7 @@ public class JobDriver {
 	private IWorkItemStateKeeper wisk = null;
 	private IWorkItemPerformanceKeeper wipk = null;
 	
-	private JdState jdState = null;
+	private JdState jdState = JdState.Prelaunch;
 	
 	private boolean killJob = false;
 	private CompletionType completionType = CompletionType.Normal;
@@ -93,7 +93,7 @@ public class JobDriver {
 	private void initialize() throws JobDriverException {
 		String location = "initialize";
 		try {
-			jdState = JdState.Initializing;
+			advanceJdState(JdState.Initializing);
 			FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
 			jobId = feh.getJobId();
 			logDir = feh.getLogDirectory();
@@ -207,6 +207,13 @@ public class JobDriver {
 					break;
 				}
 				break;
+			case Prelaunch:
+				switch(value) {
+				case Initializing:
+					jdState = value;
+					break;
+				}
+				break;
 			}
 			result = jdState.name();
 		}
@@ -214,7 +221,12 @@ public class JobDriver {
 		mb.append(Standardize.Label.current.get()+current);
 		mb.append(Standardize.Label.request.get()+request);
 		mb.append(Standardize.Label.result.get()+result);
-		logger.trace(location, ILogger.null_id, mb.toString());
+		if(current.equals(result)) {
+			logger.trace(location, ILogger.null_id, mb.toString());
+		}
+		else {
+			logger.info(location, ILogger.null_id, mb.toString());
+		}
 	}
 	
 	public void killJob(CompletionType value) {

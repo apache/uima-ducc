@@ -40,6 +40,6 @@ public class ActionIgnore implements IAction {
 		logger.trace(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		logger.info(location, ILogger.null_id, mb.toString());
+		logger.debug(location, ILogger.null_id, mb.toString());
 	}
 }

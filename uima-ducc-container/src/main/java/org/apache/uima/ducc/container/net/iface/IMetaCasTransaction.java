@@ -55,7 +55,7 @@ public interface IMetaCasTransaction extends IMetaCasProvider, IMetaCasRequester
 	 * Active - driver is ready or delivering work items
 	 * Ended - driver is finished delivering work items
 	 */
-	public enum JdState { Initializing, Active, Ended };
+	public enum JdState { Prelaunch, Initializing, Active, Ended };
 	
 	public JdState getJdState();
 	public void setJdState(JdState value);

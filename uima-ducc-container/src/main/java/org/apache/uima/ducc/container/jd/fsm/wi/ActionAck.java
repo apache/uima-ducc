@@ -64,7 +64,7 @@ public class ActionAck implements IAction {
 					wi.setTodAck();
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 					JobDriver.getInstance().getMessageHandler().incAcks();
-					logger.info(location, ILogger.null_id, mb.toString());
+					logger.debug(location, ILogger.null_id, mb.toString());
 				}
 				else {
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);

@@ -135,14 +135,14 @@ public class ActionGet implements IAction {
 					event = WiFsm.CAS_Unavailable;
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 					mb.append("No CAS found for processing");
-					logger.info(location, ILogger.null_id, mb.toString());
+					logger.debug(location, ILogger.null_id, mb.toString());
 					if(cm.getCasManagerStats().isExhausted()) {
 						if(!warnedExhausted.containsKey(rwp)) {
 							MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
 							mbx.append(Standardize.Label.node.get()+rwp.getNodeName());
 							mbx.append(Standardize.Label.pid.get()+rwp.getPid());
 							mbx.append(Standardize.Label.text.get()+"all CASes processed");
-							logger.info(location, ILogger.null_id, mbx.toString());
+							logger.debug(location, ILogger.null_id, mbx.toString());
 							warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
 						}
 						TransactionHelper.addResponseHint(trans, Hint.Exhausted);

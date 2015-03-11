@@ -53,7 +53,7 @@ public class ActionSend implements IAction {
 				TimeoutManager toMgr = TimeoutManager.getInstance();
 				toMgr.pendingAck(actionData);
 				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-				logger.info(location, ILogger.null_id, mb.toString());
+				logger.debug(location, ILogger.null_id, mb.toString());
 			}
 			else {
 				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
