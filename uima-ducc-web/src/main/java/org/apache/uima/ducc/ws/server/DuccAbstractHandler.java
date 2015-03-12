@@ -1024,7 +1024,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 							sb.append("<span>");
 							sb.append(rmReason);
 							sb.append("</span>");
-							
 						}
 						break;
 					default:
