@@ -102,7 +102,9 @@ class RegService(DuccUtil):
             description = "Test Service "+svcid
             
         self.examples_classpath = self.DUCC_HOME + '/lib/uima-ducc/examples/*'
-        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/lib/uima/*'
+        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/apache-uima/lib/*'
+        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/apache-uima/apache-activemq/lib/*'
+        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/apache-uima/apache-activemq/lib/optional/*'
         self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/examples/simple/resources/service'
 
         plain_broker_url = self.broker_protocol + '://' + self.broker_host + ':' + self.broker_port
