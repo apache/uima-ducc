@@ -82,16 +82,15 @@ public class PrivateClassLoader {
 			return;
 		}
 		URLClassLoader pcl = create(args[0]);
-		Class<?> cl;
 		try {
-			cl = pcl.loadClass(args[1]);
+			pcl.loadClass(args[1]);
 			System.out.println("loadClass OK");
 		} catch (ClassNotFoundException e) {
 			System.out.println("loadClass failed");
 		}
 
 		try {
-			cl = Class.forName(args[1], false, pcl);
+			Class.forName(args[1], false, pcl);
 			System.out.println("forName OK");
 		} catch (ClassNotFoundException e) {
 			System.out.println("forName failed");
