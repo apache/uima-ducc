@@ -458,7 +458,18 @@ public class DuccHandler extends DuccAbstractHandler {
 		return sb.toString();
 	}
 	
-	private String getReasonScheduler(IDuccWorkJob job, IDuccProcess process) {
+	private String getRmReason(IDuccWorkJob job) {
+		StringBuffer sb = new StringBuffer();
+		String rmReason = job.getRmReason();
+		if(rmReason != null) {
+			sb.append("<span>");
+			sb.append(rmReason);
+			sb.append("</span>");
+		}
+		return sb.toString();
+	}
+	
+	private String getProcessReason(IDuccProcess process) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
 			switch(process.getProcessState()) {
@@ -477,6 +488,23 @@ public class DuccHandler extends DuccAbstractHandler {
 				}
 				break;
 			}
+		}
+		return sb.toString();
+	}
+	private String getReasonScheduler(IDuccWorkJob job, IDuccProcess process) {
+		StringBuffer sb = new StringBuffer();
+		if(job.isOperational()) {
+			switch(job.getJobState()) {
+			case WaitingForResources:
+				sb.append(getRmReason(job));
+				break;
+			default:
+				getProcessReason(process);
+				break;
+			}
+		}
+		else {
+			getProcessReason(process);
 		}
 		return sb.toString();
 	}
