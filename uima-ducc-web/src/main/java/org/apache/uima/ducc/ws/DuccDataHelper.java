@@ -25,21 +25,14 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.uima.ducc.common.NodeIdentity;
-import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
-import org.apache.uima.ducc.ws.registry.ServicesRegistry;
-import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
-import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 
 public class DuccDataHelper {
-	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccDataHelper.class.getName());
 	
 	private static DuccDataHelper duccDataHelper = new DuccDataHelper();
 	
@@ -72,7 +65,7 @@ public class DuccDataHelper {
 		return map;
 	}
 
-    // UIMA-4258 Common coe to parse meta.implementors	
+    // UIMA-4258 Common code to parse meta.implementors	
     public static String[] parseServiceIds(Properties meta)
     {
         String implementors = meta.getProperty(IServicesRegistry.implementors);
