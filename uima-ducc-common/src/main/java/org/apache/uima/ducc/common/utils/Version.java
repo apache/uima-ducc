@@ -35,6 +35,9 @@ package org.apache.uima.ducc.common.utils;
  * 2013-02-03  0.7.3  First floor system from Apache distro.
  * 2013-02-25  0.8.0  Second floor system from Apache distro. RM defrag, lots of SM updates,
  *                      completed AP support in WS. CLI update, API creation.
+ * ...                     
+ * 2015-03-13  2.0.0  [beta] improved user code classpath isolation, switch to JD-JP 
+ *                    direct communication via pull-model.  ld
  */
 public class Version
 {
