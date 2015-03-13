@@ -171,7 +171,7 @@ public class AlienTextFile extends AlienAbstract {
 			retVal = Integer.parseInt(value);
 		}
 		catch(Throwable t) {
-			duccLogger.debug(methodName, duccId, t);
+			duccLogger.trace(methodName, duccId, t);
 		}
 		return retVal;
 	}
