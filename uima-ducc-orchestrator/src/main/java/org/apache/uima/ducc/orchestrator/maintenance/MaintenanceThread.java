@@ -101,14 +101,6 @@ public class MaintenanceThread extends Thread {
 				if(isTime()) {
 					stateManager.prune(workMap);
 					healthMonitor.ajudicate();
-					try {
-						MqReaper mqReaper = MqReaper.getInstance();
-						mqReaper.removeUnusedJdQueues(workMap);
-					}
-					catch(Exception e) {
-						MqReaper.resetInstance();
-					}
-					
 				}
 			}
 			catch(Throwable t) {
