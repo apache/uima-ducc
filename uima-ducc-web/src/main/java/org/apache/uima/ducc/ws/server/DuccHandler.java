@@ -492,12 +492,12 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append(getRmReason(job));
 				break;
 			default:
-				getProcessReason(process);
+				sb.append(getProcessReason(process));
 				break;
 			}
 		}
 		else {
-			getProcessReason(process);
+			sb.append(getProcessReason(process));
 		}
 		return sb.toString();
 	}
