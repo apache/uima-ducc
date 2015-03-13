@@ -269,13 +269,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		String version = Version.version();
 		sb.append(version);
-		int comm = VersionCommunicationsJdJp.get();
-		if(comm == 2) {
-			sb.append("<sup title=\"pull-model\">+</sup>");
-		}
-		else if(comm == 1) {
-			sb.append("<sup title=\"push-model\">*</sup>");
-		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
