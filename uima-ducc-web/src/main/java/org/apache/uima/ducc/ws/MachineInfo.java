@@ -457,7 +457,13 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	}
 */
 	private int compareIp(MachineInfo m1, MachineInfo m2) {
-		return m1.ip.compareTo(m2.ip);
+		int retVal = 0;
+		if(m1.ip.trim().length() > 0) {
+			if(m2.ip.trim().length() > 0) {
+				retVal = m1.ip.compareTo(m2.ip);
+			}
+		}
+		return retVal;
 	}
 	
 	private int compareName(MachineInfo m1, MachineInfo m2) {
