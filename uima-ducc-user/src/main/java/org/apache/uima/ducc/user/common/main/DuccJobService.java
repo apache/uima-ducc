@@ -99,32 +99,37 @@ public class DuccJobService {
 	        
 	        // cache current context classloader
 			ClassLoader sysCL = Thread.currentThread().getContextClassLoader();
+
 			// Fetch a classpath for the fenced Ducc container
-			String duccContainerClasspath = System
-					.getProperty("ducc.deploy.DuccClasspath");//"ducc.deploy.JpDuccClasspath");
+			String duccContainerClasspath = System.getProperty("ducc.deploy.DuccClasspath");
 			URLClassLoader ucl = create(duccContainerClasspath);
-			if ( System.getProperty("DEBUG") != null ) {
+			if (System.getProperty("ducc.debug") != null) {
 				DEBUG = true;
 			}
 			if (DEBUG) {
 				dump(ucl, 4);
 			}
 
-	 		System.out.println("DuccJobService.start() >>>>>>>>> Crossing from User Container to Ducc Container");
+			// Load the DuccService class and find its methods of interest
+			Class<?> duccServiceClass = ucl.loadClass("org.apache.uima.ducc.common.main.DuccService");
+			Method bootMethod = duccServiceClass.getMethod("boot", String[].class);
+			Method setProcessorMethod = duccServiceClass.getMethod("setProcessor", Object.class, String[].class);
+			Method registerInvestmentInstanceMethod = duccServiceClass.getMethod("registerInvestmentInstance", Object.class);
+			Method startMethod = duccServiceClass.getMethod("start");
+
+			System.out.println("DuccJobService.boot() >>>>>>>>> booting Ducc Container");
+
+			// Construct & initialize Ducc fenced container. 
+			// It calls component's Configuration class
 			Thread.currentThread().setContextClassLoader(ucl);
-
-			// Create DuccService instance
-			Class<?> classToLaunch = ucl.loadClass("org.apache.uima.ducc.common.main.DuccService");
-			Object duccContainerInstance = classToLaunch.newInstance();
-
-			// initialize Ducc fenced container. It calls component's Configuration class
-			Method bootMethod = classToLaunch.getMethod("boot", String[].class);
+			Object duccContainerInstance = duccServiceClass.newInstance();
 			bootMethod.invoke(duccContainerInstance, (Object) args);
+
+			System.out.println("DuccJobService.boot()  <<<<<<<< Ducc Container initialized");
 
 			// below property is set by component's Configuration class. It can also
 			// be provided on the command line in case a custom processor is needed.
-			String processorClass = System
-					.getProperty("ducc.deploy.JpProcessorClass");
+			String processorClass = System.getProperty("ducc.deploy.JpProcessorClass");
 
 			// Instantiate process container where the actual analysis will be done.
 			// Currently there are three containers:
@@ -139,20 +144,19 @@ public class DuccJobService {
 			Class<?> processorClz = sysCL.loadClass(processorClass);
 			IProcessContainer pc = (IProcessContainer) processorClz.newInstance();
 
+			System.out.println("DuccJobService.start() >>>>>>>>> Starting Ducc Container");
+ 
 			// Call DuccService.setProcessor() to hand-off instance of the 
 			// process container to the component along with this process args
-			Method setProcessorMethod = classToLaunch.getMethod("setProcessor",
-					Object.class, String[].class);
 			setProcessorMethod.invoke(duccContainerInstance, pc, args);
 
-			Method registerInvestmentInstanceMethod = classToLaunch.getMethod("registerInvestmentInstance",
-					Object.class);
+			// Hand-off investment object
 			registerInvestmentInstanceMethod.invoke(duccContainerInstance, investment);
 			
-	        // Call DuccService.start() to initialize the process
-			// and begin processing
-			Method startMethod = classToLaunch.getMethod("start");// ,
+	        // Call DuccService.start() to initialize the process and begin processing
 			startMethod.invoke(duccContainerInstance);
+
+			System.out.println("DuccJobService.start()  <<<<<<<< Ducc Container ended");
 			
 		} catch( Throwable t) {
 			t.printStackTrace();

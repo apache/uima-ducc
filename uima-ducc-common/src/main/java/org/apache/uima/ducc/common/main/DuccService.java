@@ -35,7 +35,6 @@ import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
-import org.apache.uima.ducc.user.common.investment.Investment;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
