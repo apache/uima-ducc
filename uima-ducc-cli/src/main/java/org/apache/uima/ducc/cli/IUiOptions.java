@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.cli;
 
-import org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler;
+import org.apache.uima.ducc.IErrorHandler;
 import org.apache.uima.ducc.transport.event.cli.JobReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
@@ -147,7 +147,7 @@ public interface IUiOptions
 
         DriverExceptionHandler { 
             public String pname()       { return JobSpecificationProperties.key_driver_exception_handler; }
-            public String description() { return "Driver Exception handler class.  Must implement "+IJdProcessExceptionHandler.class.getName(); }
+            public String description() { return "Driver Exception handler class.  Must implement "+IErrorHandler.class.getName(); }
             public String argname()     { return "classname"; }
             public String example()     { return "org.bob.myProject.MyDriverExceptionHandler"; }
         },  

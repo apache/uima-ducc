@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.cli;
 
-import org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler;
+import org.apache.uima.ducc.IErrorHandler;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
@@ -227,7 +227,7 @@ public class DuccUiConstants {
 	
 	public static final String name_driver_exception_handler = JobSpecificationProperties.key_driver_exception_handler;
 	public static final String parm_driver_exception_handler = "path.Classname";
-	public static final String desc_driver_exception_handler = "Driver Exception handler class.  Must implement "+IJdProcessExceptionHandler.class.getName();
+	public static final String desc_driver_exception_handler = "Driver Exception handler class.  Must implement "+IErrorHandler.class.getName();
 	public static final String labl_driver_exception_handler = "Driver Exception handler.";
 	public static final String exmp_driver_exception_handler = "org.apache.uima.ducc.myProject.MyDriverExceptionHandler";
 	public static final String dval_driver_exception_handler = "org.apache.uima.ducc.common.jd.plugin.JdProcessExceptionHandler";
