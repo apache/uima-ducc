@@ -104,7 +104,6 @@ public class NodeConfiguration
         defaultFairShareClass.put("use-prediction", ""+SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true));
         defaultFairShareClass.put("prediction-fudge", ""+SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 60000));
         defaultFairShareClass.put("max-processes", "<optional>");
-        defaultFairShareClass.put("max-allotment", Integer.toString(Integer.MAX_VALUE));
         defaultFairShareClass.put("nodepool", "<required>");
         defaultFairShareClass.put("users", "<optional>");
         defaultFairShareClass.put("debug", "fixed");
@@ -124,7 +123,7 @@ public class NodeConfiguration
         defaultFixedShareClass.put("priority", "5");
         defaultFixedShareClass.put("default", "<optional>");
         defaultFixedShareClass.put("max-processes", "<optional>");
-        defaultFixedShareClass.put("max-allotment", Integer.toString(Integer.MAX_VALUE));
+        defaultFixedShareClass.put("max-allotment", "<optional>");
         defaultFixedShareClass.put("cap", "<optional>");
         defaultFixedShareClass.put("nodepool", "<required>");
         defaultFixedShareClass.put("users", "<optional>");
@@ -138,7 +137,7 @@ public class NodeConfiguration
         defaultReserveClass.put("priority", "1");
         defaultReserveClass.put("default", "<optional>");
         defaultReserveClass.put("max-machines", "<optional>");
-        defaultReserveClass.put("max-allotment", Integer.toString(Integer.MAX_VALUE));
+        defaultReserveClass.put("max-allotment", "<optional>");
         defaultReserveClass.put("cap", "<optional>");
         defaultReserveClass.put("nodepool", "<required>");
         defaultReserveClass.put("users", "<optional>");
@@ -152,6 +151,7 @@ public class NodeConfiguration
 
         defaultUser.put("type", "user");
         defaultUser.put("name", "<optional>");
+        defaultUser.put("max-allotment", Integer.toString(Integer.MAX_VALUE));
      }
 
     /**
@@ -1172,7 +1172,7 @@ public class NodeConfiguration
 
         for (Object o : cl.keySet() ) {
         		String k = (String) o;
-            if ( k.startsWith("max-allotment.") ) {
+            if ( k.startsWith("max-allotment") ) {
                 printProperty(k, cl.get(k));
             }
         }

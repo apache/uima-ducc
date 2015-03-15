@@ -367,11 +367,14 @@ public class JobManagerConverter
             j.setNQuestions(total_work, remaining_work, arith_mean);
 
             // formatSchedulingInfo(job.getDuccId(), si, remaining_work);
-
             if ( job instanceof IDuccWorkJob ) {
                 if ( j.setInitWait( ((IDuccWorkJob) job).isRunnable()) ) {
                     logger.info(methodName, jobid, "Set Initialized.");
                     scheduler.signalInitialized(j);
+                }
+                // UIMA-4275 Avoid race so we don't keep trying to give out new processes
+                if ( ((IDuccWorkJob) job).isCompleting() ) {
+                    j.markComplete();
                 }
             } else {
                 j.setInitWait(true);                           // pop is always ready to go
@@ -505,7 +508,7 @@ public class JobManagerConverter
         if ( name == null ) {
             name = "A Job With No Name.";
         }
-        String user_name  = sti.getUser();
+        String user_name  = sti.getUser().trim();
         j.setUserName(user_name);
         j.setJobName(name);
 
@@ -622,46 +625,49 @@ public class JobManagerConverter
 //         }
 
         switch ( job.getDuccType() ) {
+          // UIMA-4275, must enforce max allocations as 1 for Service and Pop/
           case Service:
           case Pop:
-          case Job:              
-              // instance and share count are a function of the class
               switch ( rescl.getPolicy() ) {
                   case FAIR_SHARE:
-                      max_processes    = toInt(si.getSharesMax(), DEFAULT_PROCESSES);
-                      // max_processes    = Math.min(rescl.getMaxProcesses(), max_processes);
-                      j.setMaxShares(max_processes);
-                      j.setNInstances(-1);
+                      refuse(j, "Services and managed reservations are not allowed to be FAIR_SHARE");
                       break;
                       
                   case FIXED_SHARE:
-                      max_processes   = toInt(si.getSharesMax(), DEFAULT_INSTANCES);
+                      j.setMaxShares(1);
+                      break;
+                      
+                  case RESERVE:
+                      j.setMaxShares(1);
+                      break;
+              }
+              status = receiveExecutable(j, job, mustRecover); // UIMA-4142, add mustRecover flag
+              logger.trace(methodName, j.getId(), "Serivce, or Pop arrives, accepted:", status);
+              break;
+          case Job:              
+              // instance and share count are a function of the class
+              max_processes    = toInt(si.getSharesMax(), DEFAULT_PROCESSES);
+              switch ( rescl.getPolicy() ) {
+                  case FAIR_SHARE:
                       j.setMaxShares(max_processes);
-                      j.setNInstances(max_processes);
+                      break;
+                      
+                  case FIXED_SHARE:
+                      j.setMaxShares(max_processes);
                       break;
                       
                   case RESERVE:
                       max_machines   = toInt(si.getSharesMax(), DEFAULT_INSTANCES);
-                      j.setMaxShares(max_machines);
-                      j.setNInstances(max_machines);
+                      j.setMaxShares(max_processes);
                       break;
               }
               
               status = receiveExecutable(j, job, mustRecover); // UIMA-4142, add mustRecover flag
-              logger.trace(methodName, j.getId(), "Serivce, Pop, or Job arrives, accepted:", status);
+              logger.trace(methodName, j.getId(), "Job arrives, accepted:", status);
               break;
           case Reservation:
-              switch ( rescl.getPolicy() ) {
-                  case FIXED_SHARE:
-                      max_machines   = toInt(si.getInstancesCount(), DEFAULT_INSTANCES);
-                      break;
-                  case RESERVE:
-                      max_machines   = toInt(si.getInstancesCount(), DEFAULT_INSTANCES);
-                      break;
-              }
-                            
-              j.setMaxShares(-1);
-              j.setNInstances(max_machines);
+              // UIMA-4275. non-jobs restricted to exactly one allocation per request 
+              j.setMaxShares(1);
 
               status = receiveReservation(j, job, mustRecover);  // UIMA-4142, add mustRecover flag
               logger.trace(methodName, j.getId(), "Reservation arrives, accepted:", status);
@@ -1005,37 +1011,38 @@ public class JobManagerConverter
         return ret;
     }
 
-    boolean isPendingNonPreemptable(IRmJob j) 
-    {
-    	String methodName = "isPendingNonPreemptable";
-        // If fair share it definitely isn't any kind of preemptable
-        if ( j.getResourceClass().getPolicy() == Policy.FAIR_SHARE) return false;
+    // No longer needed after UIMA-4275
+    // boolean isPendingNonPreemptable(IRmJob j) 
+    // {
+    // 	String methodName = "isPendingNonPreemptable";
+    //     // If fair share it definitely isn't any kind of preemptable
+    //     if ( j.getResourceClass().getPolicy() == Policy.FAIR_SHARE) return false;
 
-        // otherwise, if the shares it has allocated is < the number it wants, it is in fact
-        // pending but not complete.
-        logger.trace(methodName, j.getId(), "countNShares", j.countNShares(), "countInstances", j.countInstances(), "isComplete", j.isCompleted());
+    //     // otherwise, if the shares it has allocated is < the number it wants, it is in fact
+    //     // pending but not complete.
+    //     logger.trace(methodName, j.getId(), "countNShares", j.countNShares(), "countInstances", j.getMaxShares(), "isComplete", j.isCompleted());
 
-        if ( j.isCompleted() ) {
-            return false;
-        }
+    //     if ( j.isCompleted() ) {
+    //         return false;
+    //     }
 
-        // 2014-02-18 - countTotalAssignments is the total nodes this job ever got - we're not allowed to
-        //              add more.  But if a node dies and the share is canceled, countNShares() CAN return 
-        //              0, preventing this cutoff check from working, and the job looks "refused" when in
-        //              fact it's just hungy.  Hence, the change from countNShares to countTotalAssignments. 
-        //                
-        //              Note: The NodePool code that detects dead nodes is responsible for removing dead shares
-        //              from jobs and should not remove shares from reservations, but it can remove shares
-        //              from non-preemptables that aren't reservations.        
-        //              UIMA-3613 jrc
-        //if ( j.countNShares() == j.countInstances() ) {
-        if ( j.countTotalAssignments() == j.countInstances() ) {
-            j.markComplete();                  // non-preemptable, remember it finally got it's max
-            return false;
-        }
+    //     // 2014-02-18 - countTotalAssignments is the total nodes this job ever got - we're not allowed to
+    //     //              add more.  But if a node dies and the share is canceled, countNShares() CAN return 
+    //     //              0, preventing this cutoff check from working, and the job looks "refused" when in
+    //     //              fact it's just hungy.  Hence, the change from countNShares to countTotalAssignments. 
+    //     //                
+    //     //              Note: The NodePool code that detects dead nodes is responsible for removing dead shares
+    //     //              from jobs and should not remove shares from reservations, but it can remove shares
+    //     //              from non-preemptables that aren't reservations.        
+    //     //              UIMA-3613 jrc
+    //     //if ( j.countNShares() == j.countInstances() ) {
+    //     if ( j.countTotalAssignments() == j.getMaxShares() ) {
+    //         j.markComplete();                  // non-preemptable, remember it finally got it's max
+    //         return false;
+    //     }
 
-        return (j.countNShares() < j.countInstances());
-    }
+    //     return (j.countNShares() < j.getMaxShares());
+    // }
 
     /**
      * If no state has changed, we just resend that last one.
@@ -1098,41 +1105,37 @@ public class JobManagerConverter
                 Map<Share, Share> shares = null;
                 Map<Share, Share> redrive = null;
 
-                if (isPendingNonPreemptable(j) ) {                
-                    logger.info(methodName, j.getId(), "Delaying publication of expansion because it's not yet complete.");
-                } else {
-                    shares = j.getAssignedShares();
-                    if ( shares != null ) {
-                        ArrayList<Share> sorted = new ArrayList<Share>(shares.values());
-                        Collections.sort(sorted, new RmJob.ShareByInvestmentSorter());
-                        for ( Share s : sorted ) {
-                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), s.getInitializationTime());
-                            all_shares.put(s.getId(), r);
-                        }
-                        redrive = sanityCheckForOrchestrator(j, shares, expanded.get(j.getId()));
+                shares = j.getAssignedShares();
+                if ( shares != null ) {
+                    ArrayList<Share> sorted = new ArrayList<Share>(shares.values());
+                    Collections.sort(sorted, new RmJob.ShareByInvestmentSorter());
+                    for ( Share s : sorted ) {
+                        Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), s.getInitializationTime());
+                        all_shares.put(s.getId(), r);
                     }
+                    redrive = sanityCheckForOrchestrator(j, shares, expanded.get(j.getId()));
+                }
                     
-                    shares = shrunken.get(j.getId());
-                    if ( shares != null ) {
-                        for ( Share s : shares.values() ) {
-                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), 0);
-                            shrunken_shares.put(s.getId(), r);
-                        }
-                    }                                        
-                    
-                    shares = expanded.get(j.getId());
-                    if ( shares != null ) {                    
-                        for ( Share s : shares.values() ) {
-                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), 0);
-                            expanded_shares.put(s.getId(), r);
-                        }
+                shares = shrunken.get(j.getId());
+                if ( shares != null ) {
+                    for ( Share s : shares.values() ) {
+                        Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), 0);
+                        shrunken_shares.put(s.getId(), r);
                     }
+                }                                        
                     
-                    if ( redrive != null ) {
-                        for ( Share s : redrive.values() ) {
-                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), 0);
-                            expanded_shares.put(s.getId(), r);
-                        }
+                shares = expanded.get(j.getId());
+                if ( shares != null ) {                    
+                    for ( Share s : shares.values() ) {
+                        Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), 0);
+                        expanded_shares.put(s.getId(), r);
+                    }
+                }
+                    
+                if ( redrive != null ) {
+                    for ( Share s : redrive.values() ) {
+                        Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), 0);
+                        expanded_shares.put(s.getId(), r);
                     }
                 }
                 

@@ -81,7 +81,6 @@ class NodePool
     int nSharesByOrder[];         // shares of each size for each share order                         [ 0 21 9 5  4 ] - collective N Shares for each order
     //int nFreeSharesByOrder[];     // for each order, the theoretical number of shares to give away  [ 0  1 0 3 16 ] - free Q shares per order
 
-    int machinesToPreempt[];     // number of full machines to preempt for reservations, by order
     int nPendingByOrder[];        // number of N-shares with pending evictinos
 
     //int neededByOrder[];         // for each order, how many N-shares do I want to add?
@@ -271,17 +270,12 @@ class NodePool
     /**
      * Counts just local, for reservations.
      */
-    int countFreeMachines(int order, boolean enforce)
+    int countFreeMachines(int order)
     {
         int cnt = 0;
 
         HashMap<Node, Machine> mlist = null;
-        if ( enforce ) {
-            mlist = machinesByOrder.get(order);
-        } else {
-            mlist = allMachines;
-        }
-
+        mlist = machinesByOrder.get(order);
         if ( mlist == null ) return 0;
 
         for ( Machine m : mlist.values() ) {
@@ -297,7 +291,7 @@ class NodePool
      */
     int countAllFreeMachines()
     {
-        int count = countFreeMachines(0, false);  // don't care about the order
+        int count = countFreeMachines(0);  // don't care about the order
         for ( NodePool np : children.values() ) {
             count += np.countAllFreeMachines();
         }
@@ -719,12 +713,13 @@ class NodePool
 
     void accountForShares(HashMap<Share, Share> shares)
     {
+        if ( shares == null ) return;
+
         for ( Share s : shares.values() ) {
             int order = s.getShareOrder();
             Machine m = s.getMachine();
             rearrangeVirtual(m, order);
         }
-        //calcNSharesByOrder();
     }
 
     /**
@@ -749,8 +744,6 @@ class NodePool
         //neededByOrder      = new int[maxorder + 1];
 
         nPendingByOrder = new int[maxorder + 1];
-
-        machinesToPreempt  = new int[maxorder + 1];
 
         // UIMA-4142 Must set vMachinesByOrder and virtualMachinesByOrder independently of
         //           machinesByOrder because blacklisting can cause v_order != r_order
@@ -1119,8 +1112,18 @@ class NodePool
      */
 
     /**
+     * A quick check to see if there are any machines of the right size. We make a more
+     * comprehensive check to see if they're usable in countFreeableMachines later.
+     */
+    int countReservables(IRmJob j)
+    {
+        int order = j.getShareOrder();
+        if ( ! machinesByOrder.containsKey(order) ) return 0;
+        return machinesByOrder.get(order).size();
+    }
+
+    /**
      * Adjust counts for something that takes full machines, like a reservation.
-     * If "enforce" is set the machine order must match, otherwise we just do best effort to match.
      *
      * This is intended for use by reservations only; as such it does NOT recurse into child nodepools.
      *
@@ -1129,24 +1132,20 @@ class NodePool
      *
      * @returns number of machines given
      */
-    int countFreeableMachines(IRmJob j, boolean enforce)
+    int countOutMachinesByOrder(IRmJob j, int needed)
     {
-        String methodName = "countFreeableMachines";
-
-        logger.info(methodName, j.getId(), "Enter nodepool", id, "with enforce", enforce, "preemptables.size() =", preemptables.size());
-        int needed = j.countInstances();
+        String methodName = "countOutMachinesByOrder";
+        
         int order = j.getShareOrder();
+        int given = 0;       
 
         ArrayList<Machine>  machs = new ArrayList<Machine>();
-        if ( enforce ) {
-        	if ( machinesByOrder.containsKey(order) ) {
-        		machs.addAll(machinesByOrder.get(order).values());
-        	} else {
-        		return 0;
-        	}
+        if ( machinesByOrder.containsKey(order) ) {
+            machs.addAll(machinesByOrder.get(order).values());
         } else {
-            machs.addAll(allMachines.values());
+            return 0;    // oops, nothing here
         }
+
         StringBuffer sb = new StringBuffer("Machines to search:");
         for ( Machine m : machs ) {
             sb.append(" ");
@@ -1156,7 +1155,6 @@ class NodePool
 
         Collections.sort(machs, new MachineByAscendingOrderSorter());
 
-        int given = 0;           // total to give, free or freeable
         Iterator<Machine> iter = machs.iterator();
         ArrayList<Machine> pables = new ArrayList<Machine>();
         
@@ -1174,37 +1172,22 @@ class NodePool
             }
 
             if ( m.isFree() ) {
-                logger.info(methodName, j.getId(), "Giving", m.getId(), "because it is free");
+                logger.info(methodName, j.getId(), m.getId(), "is free for reservations.");
+                nMachinesByOrder[m.getShareOrder()]--;
                 given++;
                 continue;
             }
 
             if ( m.isFreeable() ) {
-                logger.info(methodName, j.getId(), "Giving", m.getId(), "because it is freeable");
+                logger.info(methodName, j.getId(), "Setting up", m.getId(), "to clear for reservation");
+                nMachinesByOrder[m.getShareOrder()]--;
                 given++;
-                pables.add(m);
+                preemptables.put(m.key(), m);
+                continue;
             } else {
                 logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is not freeable");
             }
         }
-
-        if ( given < needed ) {
-            return 0;
-        }
-
-        // Remember how many full machines we need to free up when we get to preemption stage.
-        if ( enforce ) {
-            machinesToPreempt[0] += preemptables.size();
-        } else {
-            machinesToPreempt[order] += preemptables.size();
-        }
-
-        for ( Machine m : pables ) {
-            logger.info(methodName, j.getId(), "Setting up", m.getId(), "to clear for reservation");
-            preemptables.put(m.key(), m);
-            nMachinesByOrder[m.getShareOrder()]--;
-        }
-
         calcNSharesByOrder();
         return given;
     }
@@ -1276,13 +1259,12 @@ class NodePool
     }
 
     /**
-     * We need to make enough space for 'cnt' full machines.  If enforce is true the machines need
-     * to be of the indicated order; otherwise we just nuke any old thing.
+     * We need to make enough space for 'cnt' full machines.
      *
      * Returns number of machines that are freeable, up to 'needed', or 0, if we can't get enough.
      * If we return 0, we must refuse the reservation.
      */
-    protected int setupPreemptions(int needed, int order, boolean enforce)
+    protected int setupPreemptions(int needed, int order)
     {
         String methodName = "setupPreemptions";
         int given = 0;
@@ -1292,9 +1274,10 @@ class NodePool
         while ( iter.hasNext() && (given < needed) ) {
             Machine m = iter.next();
             int o = m.getShareOrder();
-            if ( enforce && ( order != o) ) {
+            if ( order != o ) {
                 continue;
             }
+            logger.info(methodName, null, "Clearing", m.getId(), "from preemptable list for reservations.");
             HashMap<Share, Share> shares = m.getActiveShares();
             for ( Share s : shares.values() ) {
                 if ( s.isPreemptable() ) {
@@ -1306,36 +1289,35 @@ class NodePool
                     // log its state to try to figure out why it didn't evict
                     if ( ! (s.isEvicted() || s.isPurged() ) ) {
                         IRmJob j = s.getJob();                    
-                        logger.warn(methodName, j.getId(), "Found non-preemptable share", s.getId(), "fixed:", s.isFixed(), "j.NShares", j.countNShares(), "j.NSharesGiven", j.countNSharesGiven());
+                        logger.info(methodName, j.getId(), "Found non-preemptable share", s.getId(), "fixed:", s.isFixed(), 
+                                    "j.NShares", j.countNShares(), "j.NSharesGiven", j.countNSharesGiven());
                     }
                 }
             }
             given++;
             iter.remove();
-            logger.info(methodName, null, "Remove", m.getId(), "from preemptables list");
         }
        
         return given;
     }
 
     /**
-     * Here we have to dig around and find either a fully free machine, or a machine that we
+     * Here we have to dig around and find either fully free machines, or machines that we
      * can preempt to fully free it.
-     *
-     * If 'enforce' is set memory must match, otherwise we can pick anything from the pool.
-     *
-     * This routine should NEVER fail because we already counted to be sure we had enough. The
-     * caller should probably throw if it does not get exactly what it wants.
      */
-    void  allocateForReservation(IRmJob job, ResourceClass rc)
+    void  findMachines(IRmJob job, ResourceClass rc)
     {
-    	String methodName = "allocateForReservation";
-        ArrayList<Machine> answer = new ArrayList<Machine>();
+    	String methodName = "findMachines";        
         ArrayList<Machine> machs;
 
         int order = job.getShareOrder();
-        int needed = job.countInstances();
-        boolean enforce = rc.enforceMemory();
+
+        int counted = job.countNSharesGiven();      // allotment from the counter
+        int current = job.countNShares();           // currently allocated, plus pending, less those removed by earlier preemption
+        int needed = (counted - current);
+
+        logger.info(methodName, job.getId(), "counted", counted, "current", current, "needed", needed, "order", order);
+        if ( needed <= 0 ) return;
 
         //
         // Build up 'machs' array, containing all candidate machines, sorted by 
@@ -1345,56 +1327,27 @@ class NodePool
         // Free machines always sort to the front of the list of course.
         //
 
-        int cnt = countFreeMachines(order, enforce);
+        int cnt = countFreeMachines(order);
         if ( cnt < needed ) {
-            logger.info(methodName, job.getId(), "Reservation waiting on evictions.  Have", cnt, "free, needed", needed);
-            setupPreemptions(needed-cnt, order, enforce);  // if returns 0, must refuse the job
-            return;
+            // Get the preemptions started
+            logger.info(methodName, job.getId(), "Setup preemptions.  Have", cnt, "free machines, needed", needed);
+            setupPreemptions(needed-cnt, order);  // if returns 0, must refuse the job
         }
 
-        // 
-        // If we get here we MUST have enough machines because we would have refused the job otherwise, or else
-        // started preemptions.
-        //
-        if ( enforce ) {                               // enforcing order, only look in the right subset of machines
-            if ( ! machinesByOrder.containsKey(order) ) {       // hosed if this happens
-                throw new SchedInternalError(job.getId(), "Scheduling counts are wrong - machinesByOrder does not match nMachinesByOrder");
-            }
-            machs = sortedForReservation(machinesByOrder.get(order));
-        } else {                                       // no enforcement - anything in the pool is fair game
-            machs = sortedForReservation(allMachines);
+        // something awful happened if we throw here.
+        if ( ! machinesByOrder.containsKey(order) ) {       // hosed if this happens
+            throw new SchedInternalError(job.getId(), "Scheduling counts are wrong - machinesByOrder does not match nMachinesByOrder");
         }
+        machs = sortedForReservation(machinesByOrder.get(order));
 
-        if ( machs.size() < needed ) {                // totally completely hosed if this happens. but let's do the sanity check.
-            throw new SchedInternalError(job.getId(), "Scheduling counts are wrong - can't schedule reservation");
-        }
-
-        // machs is all candidate machines, ordered by empty, then most preferable, according to the eviction policy.
-        // We don't have to preempt explicitly, the counting should have worked this out.  Only thing to watch is that
-        // when we do preemption in fair-share that we free up sufficient machines fully.
-        for ( Machine m : machs ) {
-            if ( m.isFree() ) {
-                answer.add(m);
-                needed--;
-            } 
-
-            if ( needed == 0 ) {
-                break;
-            }
-        }
-
-        if ( needed == 0 ) {               // all-or-nothing - don't return anything if we're waiting for preemption
-            for ( Machine mm : answer ) {
+        // Machs is all candidate machines, ordered by empty, then most preferable, according to the eviction policy.
+        for ( Machine mm : machs ) {
+            if ( mm.isFree() ) {
                 Share s = new Share(mm, job, mm.getShareOrder());
                 s.setFixed();
                 connectShare(s, mm, job, mm.getShareOrder());
-                //job.assignShare(s);
-                //mm.assignShare(s);
-                //allShares.put(s, s);
-                //rearrangeVirtual(mm, order);
+                if ( --needed == 0 ) break;
             }
-        } else {
-            throw new SchedInternalError(job.getId(), "Thought we had enough machines for reservation, but we don't");
         }
 
     }
@@ -1584,7 +1537,7 @@ class NodePool
         int order = j.getShareOrder();
         int given = 0;        
 
-        logger.trace(methodName, j.getId(), "counted", counted, "current", current, "needed", needed, "order", order, "given", given);
+        logger.info(methodName, j.getId(), "counted", counted, "current", current, "needed", needed, "order", order, "given", given);
 
         if ( needed > 0 ) {
             whatof: {
@@ -1655,6 +1608,8 @@ class NodePool
         sb.append(getId());
         sb.append(" Expansions in this order: ");
         for ( IRmJob j : jobs ) {
+            if ( j.isCompleted() ) continue;  // deal with races while job is completing
+
             j.undefer();
             sb.append(j.getId());
             sb.append(":");

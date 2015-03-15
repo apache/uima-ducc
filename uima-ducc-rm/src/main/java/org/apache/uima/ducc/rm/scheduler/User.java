@@ -22,6 +22,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.uima.ducc.rm.scheduler.SchedConstants.Policy;
+
 public class User
     implements IEntity
 {
@@ -32,6 +34,7 @@ public class User
     private Map<Integer, Map<IRmJob, IRmJob>> jobsByOrder = new HashMap<Integer, Map<IRmJob, IRmJob>>();
 
     private Map<ResourceClass, Integer> classLimits = new HashMap<ResourceClass, Integer>(); // UIMA-4275
+    private int globalLimit = -1;  // use global limit by default;
 
     //private int user_shares;       // number of shares to apportion to jobs in this user in current epoch
     private int pure_fair_share;   // uncapped un-bonused counts
@@ -51,10 +54,39 @@ public class User
         return 0;
     }
 
-    // UIMA-4275
+    // UIMA-4275, class-based limit
     void overrideLimit(ResourceClass rc, int lim)
     {
         classLimits.put(rc, lim);
+    }
+
+    // UIMA-4275 Global NPshare limit override from registry
+    void overrideGlobalLimit(int lim)
+    {
+        globalLimit = lim;
+    }
+    
+    // UIMA-4275 Get the override on the global limit
+    int getOverrideLimit()
+    {
+        return globalLimit;
+    }
+
+
+    // UIMA-4275, count all Non-Preemptable shares for this user, quantum shares
+    int countNPShares()
+    {
+        int occupancy = 0;
+        for ( IRmJob j : jobs.values() ) {
+            if ( j.getSchedulingPolicy() != Policy.FAIR_SHARE ) {
+                // nshares_given is shares counted out for the job but maybe not assigned
+                // nshares       is shares given
+                // share_order   is used to convert nshares to qshares so
+                // so ( nshares_give + nshares ) * share_order is the current potential occupancy of the job
+                occupancy += ( j.countOccupancy() );
+            }
+        }
+        return occupancy;
     }
 
     int getClassLimit(ResourceClass rc)

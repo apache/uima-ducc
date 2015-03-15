@@ -50,7 +50,9 @@ public class RmJob
     protected ResourceClass resource_class;           // The actual class, assigned as job is received in scheduler.
     protected int    user_priority;                   // user "priority", really apportionment 
 
-    protected int n_machines;                         // RESERVE:     minimum machines to allocate
+    // @deprecated
+    // protected int n_machines;                         // RESERVE:     minimum machines to allocate
+
     protected int max_shares;                         // FAIR_SHARE:  maximum N shares to allocate
     protected boolean is_reservation = false;
 
@@ -267,7 +269,7 @@ public class RmJob
     public int queryDemand()
     {
         if ( getSchedulingPolicy() == Policy.FAIR_SHARE ) return getJobCap();
-        return countInstances();
+        return max_shares;
     }
 
     /**
@@ -336,6 +338,18 @@ public class RmJob
         return Integer.MAX_VALUE;  // no cap for jobs
     }
 
+
+    // UIMA-4275
+    public int countOccupancy()
+    {
+        if ( (given_by_order == null) || (given_by_order[share_order] == 0) ) {
+            // must use current allocation because we haven't been counted yet
+            return countNShares() * share_order;
+        } else {
+            // new allocation may not match current, so we use that one
+            return given_by_order[share_order] * share_order;
+        }
+    }
 
     public int countNSharesGiven()
     {
@@ -813,13 +827,13 @@ public class RmJob
      *
      * @Deprecated.  Keeping until I can nuke or update the simple fair share code.
      */
-    public void shrinkTo(int k)
-    {	
+    //public void shrinkTo(int k)
+    //{	
 //         int count = assignedShares.size() - k;
 //         for ( int i = 0; i < count; i++ ) {
 //             pendingRemoves.add(assignedShares.get(i));
 //         }
-    }
+    //}
 
     /**
      * Waiting for somebody to deal with my shrinkage?
@@ -1022,7 +1036,14 @@ public class RmJob
             return;
         }
 
-        if ( getSchedulingPolicy() != Policy.FAIR_SHARE ) return;
+        if ( isCompleted() ) {
+            // job is finishing up and will relinquish all shares soon, let's avoid complicating the
+            // world and just wait for it to happen.
+            job_cap = countNShares();
+            return;
+        }
+
+        // if ( getSchedulingPolicy() != Policy.FAIR_SHARE ) return;
 
         int c = nquestions_remaining / threads;
 
@@ -1166,14 +1187,16 @@ public class RmJob
     	return resource_class;
     }
     
-    public int countInstances() {
-        return n_machines;
-    }
+    // @deprecated
+    //public int countInstances() {
+    //    return n_machines;
+    //}
 
-    public void setNInstances(int m)
-    {
-        this.n_machines = m;
-    }
+    // @deprecated
+    // public void setNInstances(int m)
+    // {
+    //    this.n_machines = m;
+    // }
 
     public int nThreads() {
         return threads;
@@ -1268,7 +1291,7 @@ public class RmJob
         return buf.toString();
     }
 
-    String getShortType()
+    public String getShortType()
     {
         String st = "?";
         switch ( ducc_type ) {
@@ -1313,7 +1336,7 @@ public class RmJob
                                  shares, share_order, (shares * share_order),      // 5 6 7
                                  0, memory,                                        // 8 9
                                  0, 0, 0,                                          // 10 11 12
-                                 n_machines);                                      // 13
+                                 max_shares);                                      // 13
             
                                  
         } else {   

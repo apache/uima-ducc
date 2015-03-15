@@ -614,14 +614,21 @@ public class Scheduler
                 String val = ((String) dp.get(l)).trim();
 
                 int lim = Integer.parseInt( val ); // verified parsable int during parsing
-                String[] tmp = ((String)l).split("\\.");                // max_allotment.classname
+
+
                 User user = users.get(n);
                 if (user == null) {
                     user = new User(n);
                     users.put(n, user);
                 }
-                ResourceClass rc = resourceClassesByName.get(tmp[1]);
-                user.overrideLimit(rc, lim);   // constrain allotment for this class to value in l
+
+                if ( val.contains(".") ) {
+                    String[] tmp = ((String)l).split("\\.");                // max_allotment.classname
+                    ResourceClass rc = resourceClassesByName.get(tmp[1]);
+                    user.overrideLimit(rc, lim);   // constrain allotment for this class to value in l
+                } else {
+                    user.overrideGlobalLimit(lim);
+                }
             }
         }
 
@@ -735,9 +742,9 @@ public class Scheduler
             HashMap<Share, Share> sharesE = j.getAssignedShares();
             HashMap<Share, Share> sharesN = j.getPendingShares();        	
 
-            if ( sharesE.size() == j.countInstances() ) {
+            if ( sharesE.size() == j.getMaxShares() ) {
                 logger.trace(methodName, j.getId(), "reserve_stable", sharesE.size(), "machines");
-            } else  if ( sharesN.size() == j.countInstances() ) {           // reservation is complete but not yet confirmed?
+            } else  if ( sharesN.size() == j.getMaxShares() ) {           // reservation is complete but not yet confirmed?
                 logger.trace(methodName, j.getId(), "reserve_adding", sharesN.size(), "machines");
                 for ( Share s : sharesN.values()) {
                     logger.trace(methodName, j.getId(), "    reserve_expanding ", s.toString());
@@ -745,7 +752,7 @@ public class Scheduler
                 jmu.addShares(j, sharesN);                
                 j.promoteShares();
             } else {
-                logger.trace(methodName, j.getId(), "reserve_pending", j.countInstances(), "machines");
+                logger.trace(methodName, j.getId(), "reserve_pending", j.getMaxShares(), "machines");
             }
             logger.trace(methodName, j.getId(), "<<<<<<<<<<");
         }
@@ -1201,7 +1208,7 @@ public class Scheduler
             np.getOnlineByOrder(onlineMachines);
 
             for ( int i = 1; i < freeMachines.length; i++ ) {
-                freeMachines[i] += np.countFreeMachines(i, true);
+                freeMachines[i] += np.countFreeMachines(i);
             }
             
             int[] t = np.cloneVMachinesByOrder();
@@ -1486,8 +1493,6 @@ public class Scheduler
                     logger.info(methodName, j.getId(), "Set fixed bit for FIXED job");
                     s.setShareOrder(share_order);
                     s.setFixed();
-                    j.markComplete();            // in recovery: if there are any shares at all for this job
-                                                 // we know it once had all its shares so its allocation is complete
                     if ( !compatibleNodepool(s, j) ) {            // UIMA-4142
                         if ( j.isService() ) {
                             sharesToShrink.add(s);   // nodepool reconfig snafu, SM will reallocate the process
@@ -1499,8 +1504,6 @@ public class Scheduler
                 case RESERVE:
                     logger.info(methodName, j.getId(), "Set fixed bit for RESERVE job");
                     s.setFixed();
-                    j.markComplete();            // in recovery: if there are any shares at all for this job
-                                                 // we know it once had all its shares so its allocation is complete
                     if ( j.isService() && !compatibleNodepool(s, j) ) {       // UIMA-4142
                         sharesToShrink.add(s);   // nodepool reconfig snafu, SM will reallocate the process
                     }

@@ -41,6 +41,8 @@ public interface IRmJob
 
     public DuccId getId();
     
+    public String getShortType();  // S, R, M, J - service reservation managed-reservation, job
+
     public long getFriendlyId();
 
     public String getName();
@@ -244,8 +246,8 @@ public interface IRmJob
 
     public ResourceClass getResourceClass();
     
-    public int countInstances();
-    public void setNInstances(int m);
+    //public int countInstances();
+    //public void setNInstances(int m);
 
     public int  nThreads();
     public void setThreads(int threads);
@@ -273,4 +275,9 @@ public interface IRmJob
     public boolean isService();                   // UIMA-4142
 
     public boolean isInitialized();
+    
+    // Total number of shares to account to me - either actually assigned, or
+    // counted afresh in the current scheduling cycle, for allotments
+    public int countOccupancy();                  // UIMA-4275
+
 }

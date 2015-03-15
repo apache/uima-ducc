@@ -288,6 +288,10 @@ public class ResourceClass
      * See if the total memory for job 'j' plus the occupancy of the 'jobs' exceeds 'max'
      * Returns 'true' if occupancy is exceeded, else returns 'false'
      * UIMA-4275
+     *
+     * NOTE: After discussion this may not be the ideal place for this, in favor of a global
+     *       cap on all NPShares, but I suspect it will come back to haunt us that we need
+     *       the finer granularity of class-based caps, so the logic is staying here for now
      */
     private boolean occupancyExceeded(int max, IRmJob j, Map<IRmJob, IRmJob> jobs)
     {
@@ -302,7 +306,7 @@ public class ResourceClass
             // Then multiply by the scheduling quantum to convert to GB
             occupancy += ( job.countNSharesGiven()  * job.getShareOrder() * share_quantum ); // convert to GB
         }
-        int requested = j.getMemory() * j.countInstances();
+        int requested = j.getMemory() * j.getMaxShares();
         
         if ( max - ( occupancy + requested ) < 0 ) {
             return true;
