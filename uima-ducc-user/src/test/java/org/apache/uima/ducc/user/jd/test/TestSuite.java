@@ -481,7 +481,7 @@ public class TestSuite {
 		}
 		catch(Exception e) {
 			String message = e.getMessage();
-			System.out.println(message);
+			//System.out.println(message);
 			if(message.startsWith("java.lang.RuntimeException")) {
 				// as expected!
 			}
