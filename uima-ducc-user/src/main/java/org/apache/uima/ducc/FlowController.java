@@ -144,11 +144,17 @@ public class FlowController extends JCasFlowController_ImplBase {
             throw new IllegalStateException("More than one instance of Workitem type");
           }
           if (wi.getSendToAll()) {
-        	// send WI-CAS to all delegates 
+        	// send WI-CAS to any remaining delegates 
           }
           else if (wi.getSendToLast()) {
-        	// send to last delegate only
-        	currentStep = mSequence.size() - 1;
+          	// send WI-CAS to last delegate, unless the only delegate is the initial CM
+          	if (currentStep < (mSequence.size() - 1)) {
+          	  currentStep = mSequence.size() - 1;
+          	}
+          }
+          else {
+        	// send WI-CAS back to JD
+          	return new FinalStep();
           }
         }
         // No Workitem FS in CAS, WI-CAS is at end of flow
