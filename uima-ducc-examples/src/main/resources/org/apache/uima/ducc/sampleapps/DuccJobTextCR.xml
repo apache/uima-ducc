@@ -96,7 +96,7 @@
     </configurationParameterSettings>
     <typeSystemDescription>
       <imports>
-        <import name="org.apache.uima.ducc.common.uima.DuccJobFlowControlTS"/>
+        <import name="org.apache.uima.ducc.FlowControllerTS"/>
       </imports>
     </typeSystemDescription>
     <typePriorities/>
