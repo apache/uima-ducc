@@ -43,7 +43,7 @@
 	        <casMultiplier poolSize="5"/> 
           </analysisEngine>
 
-          <analysisEngine key="AnalysisEngine">
+          <analysisEngine key="SleepAe">
             <scaleout numberOfInstances="4" />
           </analysisEngine>
 

@@ -332,8 +332,9 @@ class ServiceStarter(DuccUtil):
 
         props = Properties()
         props.put('description', 'Test Service ' + svcid)
-        props.put('process_DD', self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + svcid + '.xml')
+        props.put('process_descriptor_DD', self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + svcid + '.xml')
         props.put('process_memory_size', '15')
+        props.put('service_linger', '60000')
 
         props.put('classpath', self.runner.examples_classpath);
         props.put('process_jvm_args', '-Xmx100M -DdefaultBrokerURL=' + plain_broker_url)

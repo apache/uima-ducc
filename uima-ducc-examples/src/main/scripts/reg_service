@@ -109,7 +109,7 @@ class RegService(DuccUtil):
 
         plain_broker_url = self.broker_protocol + '://' + self.broker_host + ':' + self.broker_port
         props.put('description', description)
-        props.put('process_DD', self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + svcid + '.xml')
+        props.put('process_descriptor_DD', self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + svcid + '.xml')
         props.put('process_memory_size', '15')
         props.put('classpath', self.examples_classpath);
         props.put('process_jvm_args', '-DdefaultBrokerURL=' + plain_broker_url)

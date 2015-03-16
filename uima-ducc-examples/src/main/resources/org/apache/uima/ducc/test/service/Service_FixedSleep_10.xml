@@ -25,7 +25,7 @@
   <version/>
   <vendor/>
   <deployment protocol="jms" provider="activemq">
-    <casPool numberOfCASes="1" initialFsHeapSize="2000000"/>
+    <casPool numberOfCASes="25" initialFsHeapSize="2000000"/>
     <service>
       <inputQueue endpoint="FixedSleepAE_10" brokerURL="${defaultBrokerURL}" prefetch="0"/>
       <topDescriptor>
