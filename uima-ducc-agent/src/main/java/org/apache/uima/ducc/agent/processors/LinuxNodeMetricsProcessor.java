@@ -28,7 +28,6 @@ import java.util.concurrent.Future;
 import org.apache.camel.Exchange;
 import org.apache.uima.ducc.agent.Agent;
 import org.apache.uima.ducc.agent.NodeAgent;
-import org.apache.uima.ducc.agent.metrics.collectors.NodeCpuCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeLoadAverageCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeMemInfoCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeUsersCollector;

@@ -28,7 +28,6 @@ import org.apache.uima.ducc.agent.Agent;
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.metrics.collectors.DefaultNodeLoadAverageCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.DefaultNodeMemoryCollector;
-import org.apache.uima.ducc.agent.metrics.collectors.NodeCpuCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeUsersCollector;
 import org.apache.uima.ducc.common.DuccNode;
 import org.apache.uima.ducc.common.Node;

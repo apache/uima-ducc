@@ -154,7 +154,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
             || process.getProcessState().equals(ProcessState.Running))
       try {
 
-        String DUCC_HOME = Utils.findDuccHome();
         // executes script DUCC_HOME/admin/ducc_get_process_swap_usage.sh which sums up swap used by
         // a process
         long totalSwapUsage = 0;
