@@ -26,7 +26,6 @@ import org.apache.uima.analysis_engine.AnalysisEngine;
 
 
 public class UimaAnalysisEngineInstancePoolWithThreadAffinity {
-	  private static final Class<?> CLASS_NAME = UimaAnalysisEngineInstancePoolWithThreadAffinity.class;
 
 	  private volatile boolean destroyAEInstanceIfFree=false;
 	  private Semaphore lock = new Semaphore(1);

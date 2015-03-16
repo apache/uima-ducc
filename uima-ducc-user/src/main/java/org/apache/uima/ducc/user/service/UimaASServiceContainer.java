@@ -33,7 +33,6 @@ import org.springframework.context.ApplicationListener;
  */
 public class UimaASServiceContainer  extends DuccAbstractProcessContainer 
 implements ApplicationListener<ApplicationEvent> {
-	private static final Class<?> CLASS_NAME = UimaASServiceContainer.class;
     // command line args   
 	private String[] args = null;
     // UIMA-AS service deployer
