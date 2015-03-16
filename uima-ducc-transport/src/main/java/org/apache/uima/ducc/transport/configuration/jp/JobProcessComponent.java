@@ -238,9 +238,9 @@ implements IJobProcessor{
 				// Setup Thread Factory 
 				UimaServiceThreadFactory tf = new UimaServiceThreadFactory(Thread
 						.currentThread().getThreadGroup());
-				workerThreadCount = new CountDownLatch(scaleout); //uimaProcessor.getScaleout());
+				workerThreadCount = new CountDownLatch(scaleout); 
 				// Setup Thread pool with thread count = scaleout
-				tpe = Executors.newFixedThreadPool(scaleout, tf); //uimaProcessor.getScaleout(), tf);
+				tpe = Executors.newFixedThreadPool(scaleout, tf);
 
 				// initialize http client's timeout
 				httpClient.setTimeout(timeout);
@@ -262,6 +262,13 @@ implements IJobProcessor{
 					// Update agent with the most up-to-date state of the pipeline
 					// all is well, so notify agent that this process is in Running state
 					agent.notify(currentState, processJmxUrl);
+					// Stop polling for AE state. All AEs have initialized. No need
+					// to poll. 
+					try {
+						executor.shutdown();
+					} catch( Exception ee) {
+						ee.printStackTrace();
+					}
 				}
 				for( Future<?> future : threadHandles ) {
 					future.get();   // wait for each worker thread to exit run()
