@@ -45,9 +45,6 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class JobProcessComponent extends AbstractDuccComponent 
 implements IJobProcessor{
-
-	
-	private JobProcessConfiguration configuration=null;
 	private String jmxConnectString="";
 	private AgentSession agent = null;
 	protected ProcessState currentState = ProcessState.Undefined;
@@ -71,7 +68,6 @@ implements IJobProcessor{
     private Object processorInstance=null;
 	public JobProcessComponent(String componentName, CamelContext ctx,JobProcessConfiguration jpc) {
 		super(componentName,ctx);
-		this.configuration = jpc;
 		jmxConnectString = super.getProcessJmxUrl();
 		
 	}

@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class UimaServiceThreadFactory implements ThreadFactory {
   
-  private static final Class<?> CLASS_NAME = UimaServiceThreadFactory.class;
   private static final String THREAD_POOL = "[UimaServiceThreadPool ";
 
  

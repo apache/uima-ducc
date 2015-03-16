@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.component.IJobProcessor;
-import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.transport.configuration.jp.AgentSession;
@@ -38,7 +37,6 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 public class ServiceComponent extends AbstractDuccComponent implements
 		IJobProcessor {
 
-	private ServiceConfiguration configuration;
 	private AgentSession agent = null;
 	ScheduledThreadPoolExecutor executor = null;
 
@@ -55,7 +53,6 @@ public class ServiceComponent extends AbstractDuccComponent implements
 	public ServiceComponent(String componentName, CamelContext ctx,
 			ServiceConfiguration jpc) {
 		super(componentName, ctx);
-		this.configuration = jpc;
 		jmxConnectString = super.getProcessJmxUrl();
 
 	}
@@ -138,11 +135,6 @@ public class ServiceComponent extends AbstractDuccComponent implements
 			 * initialization status of AE deployed in UIMA AS.
 			 */
 			executor.scheduleAtFixedRate(monitor, 20, 30, TimeUnit.SECONDS);
-			// the JobProcessConfiguration class already checked for
-			// existence of -DDucc.Job.Type
-			String jobType = System
-					.getProperty(FlagsHelper.Name.JpType.pname());
-
 			String[] jpArgs;
 			jpArgs = new String[] { "-dd", args[0], "-saxonURL", saxonJarPath,
 					"-xslt", dd2SpringXslPath };
