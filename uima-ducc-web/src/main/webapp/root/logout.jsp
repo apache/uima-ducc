@@ -66,8 +66,8 @@ under the License.
           <span class="authenticationtitle">authentication status: </span><span class="authenticationtitle" id="authentication_area"></span>
       </h5>
     </span>
-    <span>
-      <img src="opensources/images/120px-Tracks_duck.gif" style="border:3px solid #ffff7a" alt="logo">
+     <span>
+      <%@ include file="$banner/c3-image-logout.jsp" %>
     </span>
     <br>
     

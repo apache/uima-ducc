@@ -2368,12 +2368,16 @@ public class DuccHandler extends DuccAbstractHandler {
 					case Textual:
 						break;
 					case Visual:
-						if(job.getSchedulingInfo().getLongSharesMax() < 0) {
-							data.append("<tr>");
-							data.append("<td>");
-							sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
-							sb.append("<img src=\"/opensources/images/propeller_hat_large.svg.png\">");
-							sb.append("</span>");
+						String key = "cap.large";
+						String capFile = DuccWebServerHelper.getImageFileName(key);
+						if(capFile != null) {
+							if(job.getSchedulingInfo().getLongSharesMax() < 0) {
+								data.append("<tr>");
+								data.append("<td>");
+								sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
+								sb.append("<img src=\""+capFile+"\">");
+								sb.append("</span>");
+							}
 						}
 						break;
 					default:

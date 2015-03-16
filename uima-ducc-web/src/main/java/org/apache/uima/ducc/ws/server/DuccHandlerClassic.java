@@ -80,6 +80,7 @@ import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
+import org.apache.uima.ducc.ws.server.DuccCookies.DisplayStyle;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
@@ -186,6 +187,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			break;
 		case Visual:
 			// Below
+			String key = "bug";
+			String bugFile = DuccWebServerHelper.getImageFileName(key);
 			sb.append(schedulingClass);
 			if((debugPortDriver >= 0) || (debugPortProcess >= 0)) {
 				sb.append("<br>");
@@ -195,34 +198,14 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				else {
 					sb.append("<span class=\"health_green\""+">");
 				}
-				sb.append("<div title=\""+title+"\"><img src=\"./opensources/images/Delena-cancerides-huntsman-spider.jpg\"></div>");
+				if(bugFile != null) {
+					sb.append("<div title=\""+title+"\"><img src=\""+bugFile+"\"></div>");
+				}
 				sb.append("</span>");
 			}
-			/*
-			// On the right
-			sb.append("<table width=\"100%\">");
-			sb.append("<tr>");
-			sb.append("<td align=\"left\">");
-			sb.append(schedulingClass);
-			sb.append("</td>");
-			sb.append("<td align=\"right\">");
-			if((debugPortDriver >= 0) || (debugPortProcess >= 0)) {
-				sb.append("<span title=\""+title+"\">");
-				sb.append("<img src=\"./opensources/images/Delena-cancerides-huntsman-spider.jpg\">");
-				sb.append("</span>");
-			}
-			sb.append("</td>");
-			sb.append("</tr>");
-			sb.append("</table>");
-			*/
 			break;
 		}	
 		sb.append("</td>");
-		/*
-		sb.append("<td align=\"right\">");
-		sb.append(stringNormalize(duccWorkJob.getSchedulingInfo().getSchedulingPriority(),messages.fetch("default")));
-		sb.append("</td>");
-		*/
 		// State
 		sb.append("<td valign=\"bottom\">");
 		if(duccData.isLive(duccId)) {
@@ -264,7 +247,17 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		long initFails = job.getProcessInitFailureCount();
 		if(initFails > 0) {
 			if(job.getSchedulingInfo().getLongSharesMax() < 0) {
-				switch(DuccCookies.getDisplayStyle(request)) {
+				DisplayStyle style = DuccCookies.getDisplayStyle(request);
+				String key = "cap.small";
+				String capFile = DuccWebServerHelper.getImageFileName(key);
+				switch(style) {
+					case Visual:
+						if(capFile == null) {
+							style = DisplayStyle.Textual;
+						}
+						break;
+				}
+				switch(style) {
 				case Textual:
 				default:
 					sb.append(buildInitializeFailuresLink(job));
@@ -279,7 +272,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					break;
 				case Visual:
 					sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
-					sb.append("<img src=\"./opensources/images/propeller_hat_small.svg.png\">");
+					sb.append("<img src=\""+capFile+"\">");
 					sb.append("</span>");
 					sb.append("<br>");
 					sb.append(buildInitializeFailuresLink(job));

@@ -55,41 +55,36 @@
 11. image........ 800px-Leg_Of_White_Duck.2x1.6.jpg
    source........ http://commons.wikimedia.org/wiki/File:Leg_Of_White_Duck.jpg
    license....... http://creativecommons.org/licenses/by-sa/3.0/deed.en
-   attribution... © User:Ezhuttukari / Wikimedia Commons / CC-BY-SA-3.0  
-      
-12. image........ 90px-Mallards_nest_Culwatty_-_geograph.org.uk_-_813413.jpg
-   source........ http://commons.wikimedia.org/wiki/File:Mallard%27s_nest,_Culwatty_-_geograph.org.uk_-_813413.jpg
-   license....... http://creativecommons.org/licenses/by-sa/2.0/deed.en
-   attribution... © Author:wfmillar / Wikimedia Commons / CC-BY-SA-2.0        
+   attribution... © User:Ezhuttukari / Wikimedia Commons / CC-BY-SA-3.0         
             
-13. image........ 90px-Swimming_white_domesticated_ducks.jpg
+12. image........ 90px-Swimming_white_domesticated_ducks.jpg
    source........ http://commons.wikimedia.org/wiki/File:Swimming_white_domesticated_ducks.jpg
    license....... http://creativecommons.org/licenses/by-sa/2.0/deed.en
    attribution... © Ernst Vikne / Wikimedia Commons / CC-BY-SA-2.0
          
-14. image........ Ducklings_in_Shaw_Creek.jpg
+13. image........ Ducklings_in_Shaw_Creek.jpg
    source........ http://commons.wikimedia.org/wiki/File:Ducklings_in_Shaw_Creek.jpg
    license....... http://creativecommons.org/licenses/by/2.0/deed.en
    attribution... © Author:Peggy2012CREATIVELENZ / Wikimedia Commons / CC-BY-2.0   
          
-15. image........ Flying_mallard_duck_-_female_2.0x1.4.jpg
+14. image........ Flying_mallard_duck_-_female_2.0x1.4.jpg
    source........ http://commons.wikimedia.org/wiki/File:Flying_mallard_duck_-_female.jpg
    license....... http://creativecommons.org/licenses/by-sa/3.0/deed.en
    attribution... © Author:Martin Correns / Wikimedia Commons / CC-BY-SA-3.0   
 
-16. image........ indicator.gif
+15. image........ indicator.gif
    source........ http://commons.wikimedia.org/wiki/File:Birdleft.gif
    license....... I, the copyright holder of this work, release this work into the public domain. This applies worldwide.
                   In some countries this may not be legally possible; if so:
                   I grant anyone the right to use this work for any purpose, without any conditions, unless such conditions are required by law.
    attribution... User:Pigpen
     
-17. image........ propeller_hat_large.svg.png, propeller_hat_small.svg.png
+16. image........ propeller_hat_large.svg.png, propeller_hat_small.svg.png
    source........ http://commons.wikimedia.org/wiki/File:Propeller.svg
    license....... http://creativecommons.org/publicdomain/zero/1.0/deed.en
    attribution... N/A 
 
-18. image........ RCA_Indian_Head_test_pattern.JPG
+17. image........ RCA_Indian_Head_test_pattern.JPG
    source........ http://commons.wikimedia.org/wiki/File:RCA_Indian_Head_test_pattern.JPG
    license....... This work is in the public domain in that it was published in the United States between 1923 and 1977 and without a copyright notice. 
                   Unless its author has been dead for several years, it is copyrighted in jurisdictions that do not apply the rule of the shorter term 
@@ -97,25 +92,25 @@
                   Switzerland (70 p.m.a.), and other countries with individual treaties.
    attribution... N/A
    
-19. image........ ts-2.0x1.3.jpeg
+18. image........ ts-2.0x1.3.jpeg
    source........ http://commons.wikimedia.org/wiki/File:Mallard_close-up.jpg
    license....... This work has been released into the public domain by its author, Frankyboy5 at the wikipedia project. This applies worldwide.
                   In case this is not legally possible: Frankyboy5 grants anyone the right to use this work for any purpose, without any conditions, unless
                   such conditions are required by law.
    attribution... N/A
       
-20. image........ Delena-cancerides-huntsman-spider.jpg
+19. image........ Delena-cancerides-huntsman-spider.jpg
    source........ http://commons.wikimedia.org/wiki/File:Delena-cancerides-huntsman-spider.jpg
    license....... http://creativecommons.org/licenses/by-sa/2.0/deed.en
    attribution... © Bryce McQuillan / Wikimedia Commons / CC-BY-SA-2.0
       
-21. image........ 120px-BURROUGH_AUDUBON_SOCIETY_MEMBERS_USE_BINOCULARS_TO_IDENTIFY_MIGRATORY_SHORE_BIRDS_DURING_A_SCHEDULED_OUTING_AT_THE..._-_NARA_-_557179.jpg
+20. image........ 120px-BURROUGH_AUDUBON_SOCIETY_MEMBERS_USE_BINOCULARS_TO_IDENTIFY_MIGRATORY_SHORE_BIRDS_DURING_A_SCHEDULED_OUTING_AT_THE..._-_NARA_-_557179.jpg
    source........ http://commons.wikimedia.org/wiki/File:BURROUGH_AUDUBON_SOCIETY_MEMBERS_USE_BINOCULARS_TO_IDENTIFY_MIGRATORY_SHORE_BIRDS_DURING_A_SCHEDULED_OUTING_AT_THE..._-_NARA_-_557179.jpg
    license....... This work is in the public domain in the United States because it is a work prepared by an officer or employee of the United States Government as part of that person's official 
                   duties under the terms of Title 17, Chapter 1, Section 105 of the US Code. See Copyright.
    attribution... Duncan, Patricia D.
       
-22. image........ Cygnet_in_Hyde_Park.jpg
+21. image........ Cygnet_in_Hyde_Park.jpg
    source........ http://commons.wikimedia.org/wiki/File:Cygnet_in_Hyde_Park.jpg
    license....... http://creativecommons.org/licenses/by-sa/2.0/deed.en
    attribution... Files from Keven Law Flickr stream

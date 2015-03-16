@@ -71,8 +71,8 @@ boolean role = true;
       <h3><span class="subtitle">Preferences<span></h3>
       
     </span>
-    <span>
-      <img src="opensources/images/144x144Stick_figure_-_choosing.jpg" style="border:3px solid #ffff7a" alt="logo">
+     <span>
+      <%@ include file="$banner/c3-image-preferences.jsp" %>
     </span>
     <br>
     

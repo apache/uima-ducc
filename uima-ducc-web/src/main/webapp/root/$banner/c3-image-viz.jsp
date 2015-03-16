@@ -16,8 +16,9 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
+<%@ include file="$image.jsp" %>
 <div>
 <b><big><span class="subtitle">Viz</span></big></b>
 <br>
-<img src="opensources/images/120px-BURROUGH_AUDUBON_SOCIETY_MEMBERS_USE_BINOCULARS_TO_IDENTIFY_MIGRATORY_SHORE_BIRDS_DURING_A_SCHEDULED_OUTING_AT_THE..._-_NARA_-_557179.jpg" height="64" style="border:3px solid #ffff7a" alt="logo">
+<img src="<%=image%>" height="64" style="border:3px solid #ffff7a" alt="logo">
 </div> 

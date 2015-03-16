@@ -64,7 +64,7 @@ under the License.
       </h5>
     </span>
     <span>
-      <img src="opensources/images/2x1.33in-Bariken_kid.JPG" style="border:3px solid #ffff7a" alt="logo">
+      <%@ include file="$banner/c3-image-submit-reservation.jsp" %>
     </span>
     <br>
     

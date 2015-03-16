@@ -57,13 +57,6 @@ public class DuccWebServer {
 	private DuccId jobid = null;
 	
 	/**
-	 * DUCC_WEB should be set as an environment variable.  This is the webserver's
-	 * base directory where it will find web pages to serve from sub-directory root, 
-	 * and SSL data in sub-directory etc.
-	 */
-	private String ducc_web =".";
-	
-	/**
 	 * The default port can be overridden in ducc.proerties file, for example:
 	 * 		ducc.ws.port = 41233
 	 */
@@ -151,16 +144,7 @@ public class DuccWebServer {
 		catch(Exception e) {
 			logger.error(methodName, jobid, e);
 		}
-		String ducc_web_property = System.getProperty("DUCC_WEB");
-		String ducc_web_env = System.getenv("DUCC_WEB");
-		if(ducc_web_property != null) {
-			ducc_web = ducc_web_property;
-			logger.info(methodName, null, messages.fetchLabel("DUCC_WEB")+ducc_web);
-		}
-		else if(ducc_web_env != null) {
-			ducc_web = ducc_web_env;
-			logger.info(methodName, null, messages.fetchLabel("DUCC_WEB (default)")+ducc_web);
-		}
+		
 		server = new Server();
 		SelectChannelConnector connector0 = new SelectChannelConnector();
         connector0.setPort(port);
@@ -177,7 +161,7 @@ public class DuccWebServer {
             	ssl_connector.setHost(ipaddress);
             }
         	SslContextFactory cf = ssl_connector.getSslContextFactory();
-        	String keystore = ducc_web+File.separator+"etc"+File.separator+"keystore";
+        	String keystore = DuccWebServerHelper.getDuccWebKeyStore();
         	logger.info(methodName, null, "keystore:"+keystore);
         	cf.setKeyStore(keystore);
         	cf.setKeyStorePassword(portSslPw);
@@ -195,7 +179,7 @@ public class DuccWebServer {
 		ResourceHandler resourceHandler = new ResourceHandler();
 		resourceHandler.setDirectoriesListed(true);
 		resourceHandler.setWelcomeFiles(new String[]{ "index.html" });
-		rootDir = ducc_web+File.separator+"root";
+		rootDir = DuccWebServerHelper.getDuccWebRoot();
 		resourceHandler.setResourceBase(rootDir);
 		//
 		try {

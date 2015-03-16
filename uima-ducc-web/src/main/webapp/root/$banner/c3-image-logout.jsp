@@ -17,8 +17,4 @@ specific language governing permissions and limitations
 under the License.
 -->
 <%@ include file="$image.jsp" %>
-<div>
-<b><big><span class="subtitle">Service Details</span></big></b>
-<br>
-<img src="<%=image%>" height="80" style="border:3px solid #ffff7a" alt="logo">
-</div> 
+<img src="<%=image%>" height="64" style="border:3px solid #ffff7a" alt="logo">
