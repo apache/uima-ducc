@@ -206,7 +206,7 @@ public class TestClassLoading extends ATest {
 		}
 	}
 
-	@Test
+	//@Test
 	public void test_06() {
 		if(isDisabled(this.getClass().getName())) {
 			return;
