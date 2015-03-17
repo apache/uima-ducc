@@ -28,8 +28,9 @@ process_jvm_args        -Xmx1G -XX:+UseCompressedOops
 scheduling_class        normal
 working_directory       ${MyAppDir}
 log_directory           ${MyAppDir}/logs
-classpath               ${MyAppDir}/lib/*:${MyAppDir}/opennlp.uima.OpenNlpTextAnalyzer
+classpath               ${MyAppDir}/lib/*:${UIMA_HOME}/lib/*:${OPENNLP_HOME}
 process_per_item_time_max       10
 driver_descriptor_CR_overrides  SendToLast=true InputSpec=${MyInputDir} OutputDirectory=${MyOutputDir}
 process_descriptor_CC_overrides UseBinaryCompression=true
 wait_for_completion
+cancel_on_interrupt
