@@ -301,8 +301,10 @@ with descriptors in \ducchome/examples/sampleapps/descriptors.
 
 \section{Download and Install OpenNLP}
 Download the OpenNLP source distribution from http://opennlp.apache.org and follow the directions in the
-{\em UIMA Integration} section of the included documentation to build the UIMA pear file.
-Then {\em install} the UIMA pear file in the working directory 
+{\em UIMA Integration} section of the included documentation 
+(http://opennlp.apache.org/documentation/manual/opennlp.html#org.apche.opennlp.uima) 
+to build the UIMA pear file.
+Then {\em install} the UIMA pear file in a directory (which we will refer to below as $OPENNLP_HOME) 
 with the {\em runPearInstaller} script and
 test it with the UIMA Cas Visual Debugger application.
 
@@ -327,6 +329,11 @@ a subdirectory `Books', and removing all 'CR' characters (0xD) as well as extran
 The job specification, DuccRawTextSpec.job, uses placeholders to reference the working directory
 and various operational components located there. As run below the placeholders are resolved
 from environmental variables.
+
+	\begin{description}
+    \item[Note:] The classpath for the application, defined in DuccRawTextSpec.job, requires that environmental parameters 
+    $UIMA_HOME and $OPENNLP_HOME are pointing at a valid UIMA SDK and the installed OpenNLP PEAR file, respectively. 
+	\end{description}
 
 The job is submitted from the command line with the following:
 \begin{verbatim}
@@ -419,6 +426,11 @@ The CAS Consumer is the DuccCasCC and has the following configuration parameters
 The job specification, DuccCasInputSpec.job, uses placeholders to reference the working directory
 and various operational components located there. As run below the placeholders will be resolved
 from environmental variables. 
+
+	\begin{description}
+    \item[Note:] The classpath for the application, defined in DuccCasInputSpec.job, requires that environmental parameters 
+    $UIMA_HOME and $OPENNLP_HOME are pointing at a valid UIMA SDK and the installed OpenNLP PEAR file, respectively. 
+	\end{description}
 
 The job is submitted from the command line with the following:
 \begin{verbatim}
