@@ -983,7 +983,8 @@ public class StateManager {
 							logger.debug(methodName, duccId, messages.fetchLabel("unexpected state")+jobState);
 							break;
 						case WaitingForResources:
-							duccWork.setRmReason(rmResourceState.getReason());
+							String rmReason = rmResourceState.getReason();
+							logger.trace(methodName, duccId, messages.fetchLabel("rmReason")+rmReason);
 							if(rmResourceState.isRefused()) {
 								duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 								duccWorkJob.setCompletionType(JobCompletionType.ResourcesUnavailable);
@@ -1029,7 +1030,9 @@ public class StateManager {
 							logger.warn(methodName, duccId, messages.fetchLabel("unexpected state")+reservationState);
 							break;
 						case WaitingForResources:
-							duccWork.setRmReason(rmResourceState.getReason());
+							String rmReason = rmResourceState.getReason();
+							logger.trace(methodName, duccId, messages.fetchLabel("rmReason")+rmReason);
+							duccWork.setRmReason(rmReason);
 							if(rmResourceState.isRefused()) {
 								String schedulingClass = duccWorkReservation.getSchedulingInfo().getSchedulingClass().trim();
 								if(schedulingClass.equals(DuccSchedulerClasses.JobDriver)) {
@@ -1093,7 +1096,9 @@ public class StateManager {
 							logger.debug(methodName, duccId, messages.fetchLabel("unexpected state")+serviceState);
 							break;
 						case WaitingForResources:
-							duccWork.setRmReason(rmResourceState.getReason());
+							String rmReason = rmResourceState.getReason();
+							logger.trace(methodName, duccId, messages.fetchLabel("rmReason")+rmReason);
+							duccWork.setRmReason(rmReason);
 							if(rmResourceState.isRefused()) {
 								duccWorkService.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 								duccWorkService.setCompletionType(JobCompletionType.ResourcesUnavailable);
