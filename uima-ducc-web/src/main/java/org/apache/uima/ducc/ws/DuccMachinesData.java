@@ -77,6 +77,8 @@ public class DuccMachinesData {
 
 	private String domain = "";
 	
+	private static String defined = "defined";
+	
 	private static DuccMachinesData duccMachinesData = new DuccMachinesData();
 	
 	private static ConcurrentSkipListMap<String,String> ipToNameMap = new ConcurrentSkipListMap<String,String>();
@@ -596,5 +598,32 @@ public class DuccMachinesData {
 			factsList.add(facts);
 		}
 		return factsList;
+	}
+	
+	public List<Long> getMachineSizes() {
+		String location = "getMachineSizes";
+		ArrayList<Long> machineSizes = new ArrayList<Long>();
+		ConcurrentSkipListMap<MachineInfo,String> sortedMachines = getSortedMachines();
+		Iterator<MachineInfo> iterator;
+		iterator = sortedMachines.keySet().iterator();
+		while(iterator.hasNext()) {
+			try {
+				MachineInfo machineInfo = iterator.next();
+				String status = machineInfo.getStatus();
+				if(status != null) {
+					if(!status.equals(defined)) {
+						String text = getReserveSize(machineInfo);
+						Long reserveSize = new Long(text);
+						if(!machineSizes.contains(reserveSize)) {
+							machineSizes.add(reserveSize);
+						}
+					}
+				}
+			}
+			catch(Exception e) {
+				logger.trace(location, jobid, e);
+			}
+		}
+		return machineSizes;
 	}
 }
