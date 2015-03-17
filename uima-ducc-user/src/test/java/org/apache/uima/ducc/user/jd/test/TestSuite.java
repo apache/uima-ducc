@@ -66,7 +66,7 @@ public class TestSuite {
 	public void tearDown() throws Exception {
 	}
 	
-	private boolean debug = true;
+	private boolean debug = false;
 	
 	private void out_println(String message) {
 		System.out.println(message);
@@ -157,7 +157,9 @@ public class TestSuite {
 			int counter = 0;
 			JdUserMetaCas jdUserMetaCas = jdcr.getJdUserMetaCas();
 			while(jdUserMetaCas != null) {
-				jdUserMetaCas.printMe();
+				if(debug) {
+					jdUserMetaCas.printMe();
+				}
 				counter++;
 				if(counter > 100) {
 					fail("Too many CASes: "+counter);
@@ -334,7 +336,9 @@ public class TestSuite {
 			assertTrue(serializedCas.equals(jdUserMetaCas.getSerializedCas()));
 			assertTrue(documentText.equals(jdUserMetaCas.getDocumentText()));
 			assertTrue(userException.equals(jdUserMetaCas.getUserException()));
-			jdUserMetaCas.printMe();
+			if(debug) {
+				jdUserMetaCas.printMe();
+			}
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -374,7 +378,7 @@ public class TestSuite {
 		return configuration;
 	}
 	
-	private void show(String name) {
+	protected void show(String name) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(name));
 			String line = null;
@@ -405,7 +409,7 @@ public class TestSuite {
 			String jobId = "12345";
 			String ae = aeGenerator.generate(configuration, jobId);
 			debug(ae);
-			show(ae);
+			//show(ae);
 			delete(working);
 		}
 		catch(Exception e) {
@@ -459,7 +463,7 @@ public class TestSuite {
 					ccOverrides);
 			
 			debug(ae);
-			show(ae);
+			//show(ae);
 			delete(working);
 		}
 		catch(Exception e) {
