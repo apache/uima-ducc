@@ -162,7 +162,25 @@ public class DuccSchedulerClasses {
         for ( DuccProperties p : allClasses.values() ) {
             String pol = p.getProperty("policy");
             String name = p.getProperty("name");
-            if ( (pol.equals(RESERVE) || pol.equals(FIXED_SHARE)) && ( !name.equals(JobDriver) ) ) {
+            if ( (pol.equals(RESERVE)) && (!name.equals(JobDriver)) ) {
+                classList.add(p.getProperty("name"));
+            }
+        }
+
+		String[] retVal = classList.toArray(new String[0]);
+		return retVal;
+	}
+	
+	public String[] getFixedClasses()
+        throws Exception
+    {
+        readConfiguration();
+        Map<String, DuccProperties> allClasses = nodeConfiguration.getClasses();
+        ArrayList<String> classList = new ArrayList<String>();
+        for ( DuccProperties p : allClasses.values() ) {
+            String pol = p.getProperty("policy");
+            String name = p.getProperty("name");
+            if ( (pol.equals(FIXED_SHARE)) && (!name.equals(JobDriver)) ) {
                 classList.add(p.getProperty("name"));
             }
         }
