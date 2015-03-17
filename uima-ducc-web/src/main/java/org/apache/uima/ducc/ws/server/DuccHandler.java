@@ -3654,16 +3654,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		sb.append("<select id=\"instance_memory_size\">");
-		int shareSize = DuccConstants.defaultShareSize;
-		try {
-			shareSize = Integer.parseInt(DuccWebProperties.getProperty(DuccWebProperties.key_ducc_rm_share_quantum, DuccWebProperties.val_ducc_rm_share_quantum));
-		}
-		catch(Throwable t) {
-			duccLogger.warn(methodName, jobid, t);
-		}
-		for(int i=0; i<DuccConstants.memorySizes.length; i++) {
-			int memorySize = DuccConstants.memorySizes[i]*shareSize;
-			sb.append("<option value=\""+memorySize+"\">"+memorySize+"</option>");
+		List<Long> machineSizes = DuccMachinesData.getInstance().getMachineSizes();
+		for(Long machineSize : machineSizes) {
+			sb.append("<option value=\""+machineSize+"\">"+machineSize+"</option>");
 		}
 		sb.append("</select>");
 		response.getWriter().println(sb);
@@ -4170,8 +4163,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			duccLogger.debug(methodName, null, "instance_memory_size:"+instance_memory_size);
 			String instance_memory_units = request.getParameter("instance_memory_units");
 			duccLogger.debug(methodName, null, "instance_memory_units:"+instance_memory_units);
+			/*
 			String number_of_instances = request.getParameter("number_of_instances");
 			duccLogger.debug(methodName, null, "number_of_instances:"+number_of_instances);
+			*/
 			String description = request.getParameter("description");
 			duccLogger.debug(methodName, null, "description:"+description);
 			String arg1 = "";
@@ -4191,12 +4186,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					arg4 = instance_memory_size;
 				}
 			}
+			/*
 			String arg5 = "";
 			String arg6 = "";
 			if(number_of_instances != null) {
 				arg5 = "--number_of_instances";
 				arg6 = number_of_instances;
 			}
+			*/
 			String arg7 = "";
 			String arg8 = "";
 			if(description != null) {
@@ -4209,7 +4206,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				String java = "/bin/java";
 				String jclass = "org.apache.uima.ducc.cli.DuccReservationSubmit";
 				String jhome = System.getProperty("java.home");
-				String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 };
+				String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, /*arg5, arg6,*/ arg7, arg8 };
 				String result = DuccAsUser.duckling(userId, arglist);
 				response.getWriter().println(result);
 			} catch (Exception e) {

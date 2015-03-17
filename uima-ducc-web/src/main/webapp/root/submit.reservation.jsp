@@ -117,11 +117,11 @@ under the License.
         <td align="right">
         <td align="left" ><span id="instance_memory_units_area">
                           </span>
-        <tr>
+        <tr style="visibility: hidden;">
         <td align="right">number of instances
         <td align="right">
         <td align="left" ><span id="number_of_instances_area">
-                          </span>
+                          </span>        
         <tr>
         <td align="right">wait for result
         <td align="right">

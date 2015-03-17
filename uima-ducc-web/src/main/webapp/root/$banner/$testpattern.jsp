@@ -82,7 +82,7 @@ img#spin {
 </table>
 <td>&nbsp
 <td>
-<img id="spin" src="<%=testpattern_image%>" >
+<img id="pixelate" src="<%=testpattern_image%>" >
 <td>&nbsp
 <td>
 <table>
