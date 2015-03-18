@@ -3575,7 +3575,7 @@ function ducc_submit_reservation() {
         var e = document.getElementById("scheduling_class");
         var scheduling_class = e.options[e.selectedIndex].value;
         var e = document.getElementById("instance_memory_size");
-        var instance_memory_size = e.options[e.selectedIndex].value;
+        var instance_memory_size = e.value;
         var e = document.getElementById("instance_memory_units");
         var instance_memory_units = e.options[e.selectedIndex].value;
         var e = document.getElementById("number_of_instances");

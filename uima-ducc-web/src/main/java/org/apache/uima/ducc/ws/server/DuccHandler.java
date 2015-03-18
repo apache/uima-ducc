@@ -3626,7 +3626,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private void handleDuccServletReservationSchedulingClasses(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws Exception
 	{
-		String methodName = "handleDuccServletReservationSchedulingCLasses";
+		String methodName = "handleDuccServletReservationSchedulingClasses";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		sb.append("<select id=\"scheduling_class\">");
@@ -3653,12 +3653,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletReservationInstanceMemorySizes";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		sb.append("<select id=\"instance_memory_size\">");
 		List<Long> machineSizes = DuccMachinesData.getInstance().getMachineSizes();
 		for(Long machineSize : machineSizes) {
-			sb.append("<option value=\""+machineSize+"\">"+machineSize+"</option>");
+			sb.append("<option value=\""+machineSize+"\">");
 		}
-		sb.append("</select>");
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	

@@ -108,12 +108,15 @@ under the License.
         <td align="left" ><span id="scheduling_class_area">
                           </span>
         <tr>
-        <td align="right">instance memory size
+        <td align="right">memory size
         <td align="right">
-        <td align="left" ><span id="instance_memory_sizes_area">
+        <td align="left" ><input id="instance_memory_size" type="text" list="sizes">
+						  <datalist id="sizes">
+        				  <span id="instance_memory_sizes_area">
                           </span>
+                          </datalist>
         <tr>
-        <td align="right">instance memory units
+        <td align="right">memory units
         <td align="right">
         <td align="left" ><span id="instance_memory_units_area">
                           </span>
@@ -122,14 +125,14 @@ under the License.
         <td align="right">
         <td align="left" ><span id="number_of_instances_area">
                           </span>        
-        <tr>
+        <tr style="visibility: hidden;">
         <td align="right">wait for result
         <td align="right">
         <td align="left" ><span id="wait_for_result_area">
                           <table>
                           <tr>
-                          <td align="left"><input type="radio"  id="wait_for_result_yes" name="wait_for_result" value="yes" checked /> Yes
-                          <td align="left"><input type="radio"  id="wait_for_result_no"  name="wait_for_result" value="no" /> No
+                          <td align="left"><input type="radio"  id="wait_for_result_yes" name="wait_for_result" value="yes" /> Yes
+                          <td align="left"><input type="radio"  id="wait_for_result_no"  name="wait_for_result" value="no" checked /> No
                           </table>
                           </span>
         <tr>
