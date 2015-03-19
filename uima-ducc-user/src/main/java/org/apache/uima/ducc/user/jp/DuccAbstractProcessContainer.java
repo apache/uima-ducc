@@ -50,7 +50,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     // Map to store DuccUimaSerializer instances. Each has affinity to a thread
 	protected static Map<Long, DuccUimaSerializer> serializerMap =
 			new HashMap<Long, DuccUimaSerializer>();
-	
+
 	protected final boolean debug = System.getProperty("ducc.debug") != null;
 
 	/**
@@ -90,26 +90,17 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     	return serializerMap.get(Thread.currentThread().getId());
     }
 
-    private void restoreLog4j() {
-		String log4jConfigurationFile="";
-		if ( (log4jConfigurationFile = System.getProperty("ducc.user.log4j.saved.configuration")) != null ) {
-			System.setProperty("log4j.configuration", log4jConfigurationFile);
-		}
-    }
     public int initialize(Properties p, String[] arg) throws Exception {
     	System.out.println("DuccAbstractProcessContainer.initialize() >>>>>>>>> Initializing User Container");
 		// save current context cl and inject System classloader as
 		// a context cl before calling user code. This is done in 
 		// user code needs to load resources 
-    	// Restore user's log4j setting (was hidden from ducc-side logger)
 		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
-		restoreLog4j();
 		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 		try {
     		return doInitialize(p, arg);
         }finally {
 			Thread.currentThread().setContextClassLoader(savedCL);
-			System.getProperties().remove("log4j.configuration");
  	 		System.out.println("DuccAbstractProcessContainer.initialize() <<<<<<<< User Container initialized");
         }
     }
@@ -118,9 +109,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     	System.out.println("DuccAbstractProcessContainer.deploy() >>>>>>>>> Deploying User Container");
     	// save current context cl and inject System classloader as
  		// a context cl before calling user code. 
-    	// Restore user's log4j setting (was hidden from ducc-side logger)
  		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
- 		restoreLog4j();
  		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
          try {
      		doDeploy();
@@ -128,8 +117,6 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
  			Thread.currentThread().setContextClassLoader(savedCL);
  			//	Pin thread to its own CAS serializer instance
  			serializerMap.put( Thread.currentThread().getId(), new DuccUimaSerializer());
- 			// remove log4j configuration property after calling user code
- 			System.getProperties().remove("log4j.configuration");
 			System.out.println("DuccAbstractProcessContainer.deploy() <<<<<<<< User Container deployed");
          }
      }
@@ -137,7 +124,6 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     	if (debug) System.out.println("DuccAbstractProcessContainer.process() >>>>>>>>> Processing User Container");
  		// save current context cl and inject System classloader as
  		// a context cl before calling user code. 
-    	// No need to restore log4j properties here
  		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
  		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
          try {
@@ -175,4 +161,5 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 			throw e;
 		}
 	}
+    
 }

@@ -24,6 +24,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.uima.ducc.user.common.investment.Investment;
 import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
@@ -35,6 +38,7 @@ import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 public class DuccJobService {
 	boolean DEBUG = false;
 	private Investment investment = null;
+	private HashMap<String, String> savedPropsMap;
 	
 	public static URLClassLoader create(String classPath)
 			throws MalformedURLException {
@@ -85,16 +89,6 @@ public class DuccJobService {
 
 	public void start(String[] args) throws Exception {
 		try {
-			String log4jConfigurationFile = System.getProperty("log4j.configuration");
-			// if user provided log4j configuration file via -D, save it for later
-			// under a different property name. Remove "log4j.configuration" from System
-			// properties to prevent Ducc from using it to configure its logger. 
-			// The user's log4j configuration property will be restored before crossing
-			// class loader boundary from ducc to user.
-			if ( log4jConfigurationFile != null ) {
-				System.setProperty("ducc.user.log4j.saved.configuration",log4jConfigurationFile);
-				System.getProperties().remove("log4j.configuration");
-			}
 	        investment = new Investment();
 	        
 	        // cache current context classloader
@@ -117,16 +111,21 @@ public class DuccJobService {
 			Method registerInvestmentInstanceMethod = duccServiceClass.getMethod("registerInvestmentInstance", Object.class);
 			Method startMethod = duccServiceClass.getMethod("start");
 
-			System.out.println("DuccJobService.boot() >>>>>>>>> booting Ducc Container");
+			// Establish user's logger early to prevent the DUCC code from accidentally doing so
+			Logger logger = Logger.getLogger(DuccJobService.class.getName());
+			logger.log(Level.INFO, ">>>>>>>>> Booting Ducc Container");
 
+			hideLoggingProperties();  // Ensure DUCC doesn't try to use the user's logging setup
+			
 			// Construct & initialize Ducc fenced container. 
 			// It calls component's Configuration class
 			Thread.currentThread().setContextClassLoader(ucl);
 			Object duccContainerInstance = duccServiceClass.newInstance();
 			bootMethod.invoke(duccContainerInstance, (Object) args);
 
-			System.out.println("DuccJobService.boot()  <<<<<<<< Ducc Container initialized");
-
+			logger.log(Level.INFO, "<<<<<<<< Ducc Container booted");
+			restoreLoggingProperties();  // May not be necessary as user's logger has been established
+			
 			// below property is set by component's Configuration class. It can also
 			// be provided on the command line in case a custom processor is needed.
 			String processorClass = System.getProperty("ducc.deploy.JpProcessorClass");
@@ -144,7 +143,7 @@ public class DuccJobService {
 			Class<?> processorClz = sysCL.loadClass(processorClass);
 			IProcessContainer pc = (IProcessContainer) processorClz.newInstance();
 
-			System.out.println("DuccJobService.start() >>>>>>>>> Starting Ducc Container");
+			logger.log(Level.INFO, ">>>>>>>>> Running Ducc Container");
  
 			// Call DuccService.setProcessor() to hand-off instance of the 
 			// process container to the component along with this process args
@@ -156,7 +155,7 @@ public class DuccJobService {
 	        // Call DuccService.start() to initialize the process and begin processing
 			startMethod.invoke(duccContainerInstance);
 
-			System.out.println("DuccJobService.start()  <<<<<<<< Ducc Container ended");
+			logger.log(Level.INFO, "<<<<<<<< Ducc Container ended");
 			
 		} catch( Throwable t) {
 			t.printStackTrace();
@@ -165,7 +164,31 @@ public class DuccJobService {
 		}
 
 	}
+	
+	private void hideLoggingProperties() {
+		String[] propsToSave = { "log4j.configuration", 
+				                 "java.util.logging.config.file",
+							     "java.util.logging.config.class",
+							     "org.apache.uima.logger.class"};
+		savedPropsMap = new HashMap<String,String>();
+		for (String prop : propsToSave) {
+			String val = System.getProperty(prop);
+			if (val != null) {
+				savedPropsMap.put(prop,  val);
+				System.getProperties().remove(prop);
+				//System.out.println("!!!! Saved prop " + prop + " = " + val);
+			}
+		}
 
+	}
+	
+	private void restoreLoggingProperties() {
+		for (String prop : savedPropsMap.keySet()) {
+			System.setProperty(prop, savedPropsMap.get(prop));
+			//System.out.println("!!!! Restored prop " + prop + " = " + System.getProperty(prop));
+		}
+	}
+	
 	public static void main(String[] args) {
 		try {
 			DuccJobService service = new DuccJobService();
