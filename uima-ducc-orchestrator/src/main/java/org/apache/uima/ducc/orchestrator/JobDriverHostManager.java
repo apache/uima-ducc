@@ -20,7 +20,7 @@ package org.apache.uima.ducc.orchestrator;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
@@ -37,7 +37,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
 
-
 public class JobDriverHostManager {
 	
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(JobDriverHostManager.class.getName());
@@ -52,23 +51,15 @@ public class JobDriverHostManager {
 		return hostManager;
 	}
 	
+	private DuccId jobid = null;
+	
 	private ArrayList<String> keyList = new ArrayList<String>();
 	private TreeMap<String,NodeIdentity> nodeMap = new TreeMap<String,NodeIdentity>();
 	
-	private AtomicBoolean assigned = new AtomicBoolean(false);
-	
-	private DuccWorkReservation duccWorkReservation = null;
+	ConcurrentLinkedQueue<DuccWorkReservation> mapJdPending = new ConcurrentLinkedQueue<DuccWorkReservation>();
+	ConcurrentLinkedQueue<DuccWorkReservation> mapJdAssigned = new ConcurrentLinkedQueue<DuccWorkReservation>();
 	
 	public JobDriverHostManager() {
-	}
-	
-	private void updateAssigned() {
-		if(keyList.isEmpty()) {
-			assigned.set(false);
-		}
-		else {
-			assigned.set(true);
-		}
 	}
 	
 	public void addNode(NodeIdentity node) {
@@ -78,7 +69,6 @@ public class JobDriverHostManager {
 				nodeMap.put(key, node);
 				keyList.add(key);
 			}
-			updateAssigned();
 		}
 	}
 	
@@ -89,12 +79,11 @@ public class JobDriverHostManager {
 				nodeMap.remove(key);
 				keyList.remove(key);
 			}
-			updateAssigned();
 		}
 	}
 	
 	public int nodes() {
-		if(!assigned.get()) {
+		if(!mapJdPending.isEmpty()) {
 			tryAssignment();
 		}
 		return nodeMap.size();
@@ -102,7 +91,7 @@ public class JobDriverHostManager {
 	
 	public NodeIdentity getNode() {
 		NodeIdentity retVal = null;
-		if(!assigned.get()) {
+		if(!mapJdPending.isEmpty()) {
 			tryAssignment();
 		}
 		synchronized(nodeMap) {
@@ -118,7 +107,7 @@ public class JobDriverHostManager {
 	private void tryAssignment() {
 		String methodName = "tryAssignment";
 		synchronized(nodeMap) {
-			if(duccWorkReservation != null) {
+			for(DuccWorkReservation duccWorkReservation : mapJdPending) {
 				if(duccWorkReservation.isDispatchable()) {
 					if(!duccWorkReservation.getReservationMap().isEmpty()) {
 						IDuccReservationMap map = duccWorkReservation.getReservationMap();
@@ -129,6 +118,8 @@ public class JobDriverHostManager {
 								IDuccReservation value = duccWorkReservation.getReservationMap().get(key);
 								NodeIdentity node = value.getNodeIdentity();
 								addNode(node);
+								mapJdPending.remove(duccWorkReservation);
+								mapJdAssigned.add(duccWorkReservation);
 								logger.info(methodName, null, messages.fetchLabel("assigned")+node.getName()+" "+node.getIp());
 							}
 						}
@@ -151,18 +142,27 @@ public class JobDriverHostManager {
 		ReservationRequestProperties reservationRequestProperties = new ReservationRequestProperties();
 		reservationRequestProperties.put(ReservationSpecificationProperties.key_scheduling_class, jdHostClass);
 		reservationRequestProperties.put(ReservationSpecificationProperties.key_description, jdHostDescription);			
-		reservationRequestProperties.put(ReservationSpecificationProperties.key_instance_memory_size, jdHostMemorySize);
-		reservationRequestProperties.put(ReservationSpecificationProperties.key_number_of_instances, jdHostumberOfMachines);
+		reservationRequestProperties.put(ReservationSpecificationProperties.key_memory_size, jdHostMemorySize);
 		reservationRequestProperties.put(ReservationSpecificationProperties.key_user, jdHostUser);
-		duccWorkReservation = ReservationFactory.getInstance().create(commonConfiguration, reservationRequestProperties);
-		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
-		WorkMapHelper.addDuccWork(workMap, duccWorkReservation, this, methodName);
-		// state: Received
-		duccWorkReservation.stateChange(ReservationState.Received);
-		OrchestratorCheckpoint.getInstance().saveState();
-		// state: WaitingForResources
-		duccWorkReservation.stateChange(ReservationState.WaitingForResources);
-		OrchestratorCheckpoint.getInstance().saveState();
+		int jd_host_number_of_machines = 1;
+		try {
+			jd_host_number_of_machines = Integer.parseInt(jdHostumberOfMachines.trim());
+		}
+		catch(Exception e) {
+			logger.error(methodName, jobid, e);
+		}
+		for(int i=0; i < jd_host_number_of_machines; i++) {
+			DuccWorkReservation duccWorkReservation = ReservationFactory.getInstance().create(commonConfiguration, reservationRequestProperties);
+			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
+			WorkMapHelper.addDuccWork(workMap, duccWorkReservation, this, methodName);
+			// state: Received
+			duccWorkReservation.stateChange(ReservationState.Received);
+			OrchestratorCheckpoint.getInstance().saveState();
+			// state: WaitingForResources
+			duccWorkReservation.stateChange(ReservationState.WaitingForResources);
+			OrchestratorCheckpoint.getInstance().saveState();
+			mapJdPending.add(duccWorkReservation);
+		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return;
 	}

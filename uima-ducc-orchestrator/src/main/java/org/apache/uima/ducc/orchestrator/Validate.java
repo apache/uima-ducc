@@ -160,18 +160,10 @@ public class Validate {
 		String key;
 		String value;
 		// memory size
-		key = ReservationRequestProperties.key_number_of_instances;
+		key = ReservationRequestProperties.key_memory_size;
 		String memorySize = (String) properties.get(key);
 		MemorySpecification memorySpecification = new MemorySpecification(memorySize);
 		value = memorySpecification.getSize();
-		if(value == null) {
-			String reason = createReason("invalid", key, value);
-			addError(properties,reason);
-			retVal = false;
-		}
-		// number of machines
-		key = ReservationRequestProperties.key_number_of_instances;
-		value = (String) properties.get(key);
 		if(value == null) {
 			String reason = createReason("invalid", key, value);
 			addError(properties,reason);

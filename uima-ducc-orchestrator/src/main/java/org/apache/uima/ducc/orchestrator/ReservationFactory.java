@@ -64,11 +64,10 @@ public class ReservationFactory {
 		DuccSchedulingInfo schedulingInfo = new DuccSchedulingInfo();
 		duccWorkReservation.setSchedulingInfo(schedulingInfo);
 		schedulingInfo.setSchedulingClass(reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_scheduling_class));
-		String memorySize = reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_instance_memory_size);
+		String memorySize = reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_memory_size);
 		MemorySpecification memorySpecification = new MemorySpecification(memorySize);
 		schedulingInfo.setShareMemorySize(memorySpecification.getSize());
 		schedulingInfo.setShareMemoryUnits(memorySpecification.getMemoryUnits());
-		schedulingInfo.setInstancesCount(reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_number_of_instances));
 		logger.info(methodName, duccWorkReservation.getDuccId(), messages.fetchLabel("user")+standardInfo.getUser());
 		logger.info(methodName, duccWorkReservation.getDuccId(), messages.fetchLabel("description")+standardInfo.getDescription());
 		logger.info(methodName, duccWorkReservation.getDuccId(), messages.fetchLabel("class")+schedulingInfo.getSchedulingClass());
