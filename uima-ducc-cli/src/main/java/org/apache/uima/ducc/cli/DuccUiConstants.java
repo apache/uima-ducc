@@ -430,21 +430,14 @@ public class DuccUiConstants {
 	/* 
 	 * submit Reservation
 	 */
-	
-	public static final String name_instance_memory_size = ReservationSpecificationProperties.key_instance_memory_size;
-	public static final String parm_instance_memory_size = "size[KB|MB|GB|TB]";
-	public static final String desc_instance_memory_size = "Size of instance's memory, defaults to GB if units omitted.";
-	public static final String labl_instance_memory_size = "instance Memory Size";
-	public static final String exmp_instance_memory_size = "64GB";
-	public static final String dval_instance_memory_size = "";
-	
-	public static final String name_number_of_instances = ReservationSpecificationProperties.key_number_of_instances;
-	public static final String parm_number_of_instances = "integer";
-	public static final String desc_number_of_instances = "Number of instances to reserve.";
-	public static final String labl_number_of_instances = "Number of instances";
-	public static final String exmp_number_of_instances = "1";
-	public static final String dval_number_of_instances = "1";
 
+	public static final String name_memory_size = ReservationSpecificationProperties.key_memory_size;
+	public static final String parm_memory_size = "size[KB|MB|GB|TB]";
+	public static final String desc_memory_size = "Size of instance's memory, defaults to GB if units omitted.";
+	public static final String labl_memory_size = "instance Memory Size";
+	public static final String exmp_memory_size = "64GB";
+	public static final String dval_memory_size = "";
+	
 	public static final String name_service_dependency = JobSpecificationProperties.key_service_dependency;;
 	public static final String parm_service_dependency = "list";
 	public static final String desc_service_dependency = "Comma-delimeted list of service descriptor strings.";

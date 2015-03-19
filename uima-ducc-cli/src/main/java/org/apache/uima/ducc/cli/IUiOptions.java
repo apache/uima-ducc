@@ -244,6 +244,8 @@ public interface IUiOptions
              public boolean required()   { return true; }
         },
 
+        /*
+		@Deprecated
         NumberOfInstances { 
             public String pname()       { return ReservationSpecificationProperties.key_number_of_instances; }
             public String argname()     { return "integer"; }
@@ -251,6 +253,7 @@ public interface IUiOptions
             public String example()     { return "1"; }
             public String deflt()       { return "1"; }
         },  
+        */
         
         Quiet { 
             public String pname()       { return "quiet"; }
@@ -526,14 +529,25 @@ public interface IUiOptions
             public String example()     { return "Back to the drawing board"; }
         },            
 
-        ReservationMemorySize { 
+        /*
+        @Deprecated
+        ReservationInstanceMemorySize { 
             public String pname()       { return ReservationSpecificationProperties.key_instance_memory_size; }
             public String argname()     { return "size-in-GB"; }
             public String description() { return "Size of instance's memory, in GB."; }
             public String example()     { return "64"; }
             public boolean required()   { return true; }
         },            
-
+		*/
+        
+        ReservationMemorySize { 
+            public String pname()       { return ReservationSpecificationProperties.key_memory_size; }
+            public String argname()     { return "size-in-GB"; }
+            public String description() { return "Size of instance's memory, in GB."; }
+            public String example()     { return "64"; }
+            public boolean required()   { return true; }
+        },        
+        
         ReservationNodeList { 
             // generated, not public
             public String pname()       { return ReservationRequestProperties.key_node_list; }

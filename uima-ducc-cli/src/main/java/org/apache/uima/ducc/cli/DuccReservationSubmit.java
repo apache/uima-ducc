@@ -76,7 +76,6 @@ public class DuccReservationSubmit
 
         UiOption.Description,
         UiOption.SchedulingClass,
-        UiOption.NumberOfInstances,
         UiOption.Specification,
         UiOption.ReservationMemorySize,
     };
