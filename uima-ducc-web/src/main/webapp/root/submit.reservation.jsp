@@ -110,22 +110,17 @@ under the License.
         <tr>
         <td align="right">memory size
         <td align="right">
-        <td align="left" ><input id="instance_memory_size" type="text" list="sizes">
+        <td align="left" ><input id="memory_size" type="text" list="sizes">
 						  <datalist id="sizes">
-        				  <span id="instance_memory_sizes_area">
+        				  <span id="memory_sizes_area">
                           </span>
                           </datalist>
         <tr>
         <td align="right">memory units
         <td align="right">
-        <td align="left" ><span id="instance_memory_units_area">
-                          </span>
-        <tr style="visibility: hidden;">
-        <td align="right">number of instances
-        <td align="right">
-        <td align="left" ><span id="number_of_instances_area">
-                          </span>        
-        <tr style="visibility: hidden;">
+        <td align="left" ><span id="memory_units_area">
+                          </span> 
+        <tr>
         <td align="right">wait for result
         <td align="right">
         <td align="left" ><span id="wait_for_result_area">

@@ -1884,95 +1884,64 @@ function ducc_load_reservation_scheduling_classes() {
     }
 }
 
-var wip_reservation_instance_memory_sizes = false;
+var wip_reservation_memory_sizes = false;
 
-function ducc_load_reservation_instance_memory_sizes() {
-    var fname = "ducc_load_reservation_instance_memory_sizes";
+function ducc_load_reservation_memory_sizes() {
+    var fname = "ducc_load_reservation_memory_sizes";
     var data = null;
-    if(wip_reservation_instance_memory_sizes) {
+    if(wip_reservation_memory_sizes) {
         ducc_console_warn(fname+" already in progress...")
         return;
     }
-    wip_reservation_instance_memory_sizes = true;
+    wip_reservation_memory_sizes = true;
     try {
-        var servlet = "/ducc-servlet/reservation-instance-memory-sizes";
+        var servlet = "/ducc-servlet/reservation-memory-sizes";
         var tomsecs = ms_timeout;
         $.ajax({
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
-            wip_reservation_instance_memory_sizes = false;
-            $("#instance_memory_sizes_area").html(data);
+            wip_reservation_memory_sizes = false;
+            $("#memory_sizes_area").html(data);
             data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
-            wip_reservation_instance_memory_sizes = false;
+            wip_reservation_memory_sizes = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
-        wip_reservation_instance_memory_sizes = false;
+        wip_reservation_memory_sizes = false;
         ducc_error(fname, err);
     }
 }
 
-var wip_reservation_instance_memory_units = false;
+var wip_reservation_memory_units = false;
 
-function ducc_load_reservation_instance_memory_units() {
-    var fname = "ducc_load_reservation_instance_memory_units";
+function ducc_load_reservation_memory_units() {
+    var fname = "ducc_load_reservation_memory_units";
     var data = null;
-    if(wip_reservation_instance_memory_units) {
+    if(wip_reservation_memory_units) {
         ducc_console_warn(fname+" already in progress...")
         return;
     }
-    wip_reservation_instance_memory_units = true;
+    wip_reservation_memory_units = true;
     try {
-        var servlet = "/ducc-servlet/reservation-instance-memory-units";
+        var servlet = "/ducc-servlet/reservation-memory-units";
         var tomsecs = ms_timeout;
         $.ajax({
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
-            wip_reservation_instance_memory_units = false;
-            $("#instance_memory_units_area").html(data);
+            wip_reservation_memory_units = false;
+            $("#memory_units_area").html(data);
             data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
-            wip_reservation_instance_memory_units = false;
+            wip_reservation_memory_units = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
-        wip_reservation_instance_memory_units = false;
-        ducc_error(fname, err);
-    }
-}
-
-var wip_reservation_number_of_instances = false;
-
-function ducc_load_reservation_number_of_instances() {
-    var fname = "ducc_load_reservation_number_of_instances";
-    var data = null;
-    if(wip_reservation_number_of_instances) {
-        ducc_console_warn(fname+" already in progress...")
-        return;
-    }
-    wip_reservation_number_of_instances = true;
-    try {
-        var servlet = "/ducc-servlet/reservation-number-of-instances";
-        var tomsecs = ms_timeout;
-        $.ajax({
-            url: servlet,
-            timeout: tomsecs
-        }).done(function(data) {
-            wip_reservation_number_of_instances = false;
-            $("#number_of_instances_area").html(data);
-            data = null;
-            ducc_console_success(fname);
-        }).fail(function(jqXHR, textStatus) {
-            wip_reservation_number_of_instances = false;
-            ducc_console_fail(fname, textStatus);
-        });                     
-    } catch (err) {
-        wip_reservation_number_of_instances = false;
+        wip_reservation_memory_units = false;
         ducc_error(fname, err);
     }
 }
@@ -2012,9 +1981,8 @@ function ducc_load_submit_reservation_data() {
     var fname = "ducc_load_submit_reservation_data";
     try {
         ducc_load_reservation_scheduling_classes();
-        ducc_load_reservation_instance_memory_sizes();
-        ducc_load_reservation_instance_memory_units();
-        ducc_load_reservation_number_of_instances();
+        ducc_load_reservation_memory_sizes();
+        ducc_load_reservation_memory_units();
         ducc_load_reservation_submit_button();
         ducc_load_common();
     } catch (err) {
@@ -3574,12 +3542,10 @@ function ducc_submit_reservation() {
     try {
         var e = document.getElementById("scheduling_class");
         var scheduling_class = e.options[e.selectedIndex].value;
-        var e = document.getElementById("instance_memory_size");
-        var instance_memory_size = e.value;
-        var e = document.getElementById("instance_memory_units");
-        var instance_memory_units = e.options[e.selectedIndex].value;
-        var e = document.getElementById("number_of_instances");
-        var number_of_instances = e.options[e.selectedIndex].value;
+        var e = document.getElementById("memory_size");
+        var memory_size = e.value;
+        var e = document.getElementById("memory_units");
+        var memory_units = e.options[e.selectedIndex].value;
         var e = document.getElementById("description");
         var description = e.value;
         var e = document.getElementById("wait_for_result_yes");
@@ -3592,11 +3558,9 @@ function ducc_submit_reservation() {
                 type: 'POST',
                 async: false,
                 url: "/ducc-servlet/reservation-submit-request",
-                //data: {'scheduling_class':scheduling_class,'instance_memory_size':instance_memory_size,'instance_memory_units':instance_memory_units,'number_of_instances':number_of_instances,'description':description},
                 data: {
                     'scheduling_class': scheduling_class,
-                    'instance_memory_size': instance_memory_size,
-                    'number_of_instances': number_of_instances,
+                    'memory_size': memory_size,
                     'description': description
                 },
                 success: function(data) {
@@ -3618,11 +3582,9 @@ function ducc_submit_reservation() {
             $.ajax({
                 type: 'POST',
                 url: "/ducc-servlet/reservation-submit-request",
-                //data: {'scheduling_class':scheduling_class,'instance_memory_size':instance_memory_size,'instance_memory_units':instance_memory_units,'number_of_instances':number_of_instances,'description':description},
                 data: {
                     'scheduling_class': scheduling_class,
-                    'instance_memory_size': instance_memory_size,
-                    'number_of_instances': number_of_instances,
+                    'memory_size': memory_size,
                     'description': description
                 },
                 success: function(data) {

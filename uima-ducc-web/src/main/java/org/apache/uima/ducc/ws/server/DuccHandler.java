@@ -192,9 +192,8 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccServiceUpdateFormButton  	= duccContext+"/service-update-get-form-button";
 	
 	private String duccReservationSchedulingClasses     = duccContext+"/reservation-scheduling-classes";
-	private String duccReservationInstanceMemorySizes   = duccContext+"/reservation-instance-memory-sizes";
-	private String duccReservationInstanceMemoryUnits   = duccContext+"/reservation-instance-memory-units";
-	private String duccReservationNumberOfInstances	    = duccContext+"/reservation-number-of-instances";
+	private String duccReservationInstanceMemorySizes   = duccContext+"/reservation-memory-sizes";
+	private String duccReservationInstanceMemoryUnits   = duccContext+"/reservation-memory-units";
 	
 	protected String headProvider = "Provider";
 	
@@ -3667,26 +3666,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletReservationInstanceMemoryUnits";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		sb.append("<select id=\"instance_memory_units\">");
+		sb.append("<select id=\"memory_units\">");
 		sb.append("<option value=\"GB\" selected=\"selected\">GB</option>");
-		sb.append("</select>");
-		response.getWriter().println(sb);
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletReservationNumberOfInstances(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleDuccServletReservationNumberOfInstances";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		StringBuffer sb = new StringBuffer();
-		sb.append("<select id=\"number_of_instances\">");
-		sb.append("<option value=\"1\" selected=\"selected\">1</option>");
-		int min = 1;
-		int max = 9;
-		for(int i=min+1;i<max+1;i++) {
-			sb.append("<option value=\""+i+"\">"+i+"</option>");
-		}
 		sb.append("</select>");
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
@@ -4157,14 +4138,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(isAuthenticated(request,response)) {
 			String scheduling_class = request.getParameter("scheduling_class");
 			duccLogger.debug(methodName, null, "scheduling_class:"+scheduling_class);
-			String instance_memory_size = request.getParameter("instance_memory_size");
-			duccLogger.debug(methodName, null, "instance_memory_size:"+instance_memory_size);
-			String instance_memory_units = request.getParameter("instance_memory_units");
-			duccLogger.debug(methodName, null, "instance_memory_units:"+instance_memory_units);
-			/*
-			String number_of_instances = request.getParameter("number_of_instances");
-			duccLogger.debug(methodName, null, "number_of_instances:"+number_of_instances);
-			*/
+			String memory_size = request.getParameter("memory_size");
+			duccLogger.debug(methodName, null, "memory_size:"+memory_size);
+			String memory_units = request.getParameter("memory_units");
+			duccLogger.debug(methodName, null, "memory_units:"+memory_units);
 			String description = request.getParameter("description");
 			duccLogger.debug(methodName, null, "description:"+description);
 			String arg1 = "";
@@ -4175,23 +4152,15 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			String arg3 = "";
 			String arg4 = "";
-			if(instance_memory_size != null) {
-				arg3 = "--instance_memory_size";
-				if(instance_memory_units != null) {
-					arg4 = instance_memory_size+instance_memory_units;
+			if(memory_size != null) {
+				arg3 = "--memory_size";
+				if(memory_units != null) {
+					arg4 = memory_size+memory_units;
 				}
 				else {
-					arg4 = instance_memory_size;
+					arg4 = memory_size;
 				}
 			}
-			/*
-			String arg5 = "";
-			String arg6 = "";
-			if(number_of_instances != null) {
-				arg5 = "--number_of_instances";
-				arg6 = number_of_instances;
-			}
-			*/
 			String arg7 = "";
 			String arg8 = "";
 			if(description != null) {
@@ -4828,10 +4797,6 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else if(reqURI.startsWith(duccReservationInstanceMemorySizes)) {
 				handleDuccServletReservationInstanceMemorySizes(target, baseRequest, request, response);
-				DuccWebUtil.noCache(response);
-			}
-			else if(reqURI.startsWith(duccReservationNumberOfInstances)) {
-				handleDuccServletReservationNumberOfInstances(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccReservationInstanceMemoryUnits)) {
