@@ -19,8 +19,10 @@
 package org.apache.uima.ducc.cli;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.ReservationReplyProperties;
@@ -85,12 +87,21 @@ public class DuccReservationSubmit
      * Execute collects the parameters for the reservation and sends them to the DUCC Orchestrator
      * to schedule the reservation.  This method blocks until either the reservation is 
      * granted, or it fails.  Failure is always do to lack of resources, in some form or another.
-     * Reservations are granted all-or-nothing: you get everything you ask for, or you get nothing.
+     * Reservations must be from one of the 'reserve' classes i.e for a whole machine.
      *
      * @return True if the DUCC grants the reservation. 
+     * @throws Exception 
      */
-	public boolean execute()
+	public boolean execute() throws Exception
     {		
+        String pname = UiOption.SchedulingClass.pname();
+        String scheduling_class = requestProperties.getProperty(pname);
+        if (scheduling_class != null) {
+            String[] reserveClasses = DuccSchedulerClasses.getInstance().getReserveClasses();
+            if (!Arrays.asList(reserveClasses).contains(scheduling_class)) {
+            	throw new IllegalArgumentException("Invalid value for scheduling_class - must be one of the reserve classes");
+            }
+        }
         SubmitReservationDuccEvent      ev    = new SubmitReservationDuccEvent(requestProperties, CliVersion.getVersion());
         SubmitReservationReplyDuccEvent reply = null;
         
