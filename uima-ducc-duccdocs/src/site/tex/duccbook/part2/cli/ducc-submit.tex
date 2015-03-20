@@ -59,12 +59,6 @@
              for both the Job Driver and each Job Process. If not specified the CLASSPATH found by the underlying
              {\tt DuccJobSubmit.main()} method is used.
 
-           \begin{sloppypar}
-           \item[$--$classpath\_order {[user-before-ducc $|$ ducc-before-user]} ]
-             When DUCC deploys a process, set the user-supplied CLASSPATH before DUCC-supplied
-             CLASSPATH, or the reverse. The default is ducc-before-user.
-           \end{sloppypar}
-           
            \item[$--$debug] Enable debugging messages. This is primarily for debugging DUCC itself.
 
            \item[$--$description {[text]}] The text is any string used to describe the job. It is
@@ -87,26 +81,6 @@
 --driver_descriptor_CR_overrides name1=value1 name2=value2...
              \end{verbatim}
              
-             
-%           \item[$--$driver\_environment {[list]} ]
-%
-%             This specifies environment parameters for the Job Driver. If present, they are added to the 
-%             Job Driver's environment as the process is spawned. It must be a quoted, blank-delimited 
-%             lsit of name-value pairs. For example: 
-%             \begin{verbatim}
-%"TERM=xterm DISPLAY=:1.0" 
-%             \end{verbatim}
-%             
-%             Note: On Secure Linux systems, the environment variable 
-%             LD\_LIBRARY\_PATH may not be passed to the user's program. If it is 
-%             necessary to pass LD\_LIBRARY\_PATH to the JP or JD processes, it must be 
-%             specified as DUCC\_LD\_LIBRARY\_PATH. Ducc (securely) passes this as 
-%             LD\_LIBRARY\_PATH, after the JP or JD has assumed the user's identity. For 
-%             example: 
-%             \begin{verbatim}
-%"--process\_environment TERM=xterm DISPLAY=:1.0 DUCC\_LD\_LIBRARY\_PATH=/my/own/
-%            \end{verbatim}
-
            \begin{sloppypar}
            \item[$--$driver\_exception\_handler {[classname]}] This specifies a developer-supplied
              exception handler for the Job Driver.  It must
@@ -140,9 +114,12 @@
              quoted to protect it from the shell.
 
            \item[$--$environment {[env vars]}] Blank-delimited list of environment variable
-             assignments. If specified, this is used for all DUCC processes in the job. Example:
+             assignments. 
+             Entries may be copied from the user's environment if just the variable name is
+             specified, optionally with a final '*' for those with the same prefix.
+             If specified, this is used for all DUCC processes in the job. Example:
 \begin{verbatim}
---environment TERM=xterm DISPLAY=:1.0
+--environment TERM=xterm DISPLAY=:1.0 LANG UIMA_*
 \end{verbatim}
              
              Additional entries may be copied from the user's environment based on the setting of
@@ -271,11 +248,10 @@ ducc.submit.environment.propagated
              \end{verbatim}
 
            \item[$--$process\_failures\_limit {[integer]} ]
-
              This specifies the maximum number of individual Job Process (JP) failures allowed
              before killing the job. The default is twenty(20). If this limit is exceeded over the lifetime 
              of a job DUCC terminates the entire job. 
-             \begin{verbatim}
+\begin{verbatim}
 --process_failures_limit 23
 \end{verbatim}
                           
@@ -326,12 +302,13 @@ ducc.submit.environment.propagated
              
            \item[$--$scheduling\_class {[classname]} ] This specifies the name of the scheduling class
              the RM will use to determine the resource allocation for each process. The names of the
-             classes are installation dependent. If not specified, the default is taken from the
-             global DUCC configuration ducc.properties.  Example:
+             classes are installation dependent. 
+             If not specified, the FAIR\_SHARE default is taken from the site class definitions file
+             described \hyperref[subsubsec:class.configuration]{here.} 
+             Example:
              \begin{verbatim}
 --scheduling_class normal 
              \end{verbatim}
-          
 
            \begin{sloppypar}             
            \item[$--$service\_dependency{[list]}] This specifies a blank-delimited list of services the job
@@ -359,7 +336,7 @@ ducc_submit -f job.props
 working_directory                   = /home/bob/projects/ducc/ducc_test/test/bin 
 process_failures_limit              = 20 
 driver_descriptor_CR                = org.apache.uima.ducc.test.randomsleep.FixedSleepCR 
-environment                         = AE_INIT_TIME=10000 LD_LIBRARY_PATH=/a/bogus/path 
+environment                         = AE_INIT_TIME=10000 UIMA LD_LIBRARY_PATH=/a/bogus/path
 log_directory                       = /home/bob/ducc/logs/ 
 process_thread_count                = 1 
 driver_descriptor_CR_overrides      = jobfile:../simple/jobs/1.job compression:10 

@@ -53,18 +53,15 @@
             \item[$--$help ]             
               Prints the usage text to the console. 
                             
-            \item[$--$instance\_memory\_size {[integer]}]               
-              This specifies the amount of memory the reserved machine must support. For full machine 
-              reservations, this is the total memory on the machine. For partial reservations, the machine 
-              may have more memory, but not less than is specified. 
+            \item[$--$_memory\_size {[integer]}]               
+              This specifies the amount of memory the reserved machine must support. After rounding
+              up it must match the total usable memory on the machine. 
 
-            \item[$--$number\_of\_instances {[integer]}]               
-              This specifies the number of full or partial machine reservations to schedule. 
-                            
             \item[$--$scheduling\_class {[classname]}]               
-              This specifies the name of the scheuling class the RM will use to determine the resource 
-              allocation for each process. The default DUCC distribution provides class "reserve" for full 
-              machine reservations, and "fixed" for partial machine reservations. 
+              This specifies the name of the scheduling class the RM will use to determine the resource 
+              allocation for each process. It must be one implementing the RESERVE policy.
+              If not specified, the RESERVE default is taken from the site class definitions file
+              described \hyperref[subsubsec:class.configuration]{here.} 
               
             \item[$-$f, $--$specification {[file]}]               
               All the parameters used to request a reservation may be placed in a standard Java 
@@ -74,11 +71,8 @@
         \end{description}
             
     \paragraph{Notes:}
-    Reservations may be for full machines, or partial machines based on memory. The mechanism for
-    distinguishing which type of reservation is the job class. A job class implementing the RESERVE
-    scheduling policy results in a full machine being reserved. A job clas simplementing the FIXED
-    scheduling policy results in a partial machine being reserved. The default DUCC distribution
-    configures class {\em reserve} for full machine reservations, and class {\em fixed} for partial
-    machine reservations.
+    Reservations must be for full machines, in a job class implementing the RESERVE scheduling
+    policy. The default DUCC distribution configures class {\em reserve} for full machine
+    reservations. 
 
 

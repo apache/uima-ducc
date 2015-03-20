@@ -118,8 +118,8 @@ public interface IUiOptions
         DriverDebug { 
             public String pname()       { return "driver_debug"; }
             public String argname()     { return "debugger-port-number"; }
-            public String description() { return "Append JVM debug flags to the jvm arguments to start the JobDriver in remote debug mode."; }
-            public String example()     { return "driver_debug 8001"; }
+            public String description() { return "Listening port number the remote driver process is to connect to."; }
+            public String example()     { return "8001"; }
         },            
 
         Description { 
@@ -142,7 +142,7 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_driver_descriptor_CR_overrides; }
             public String argname()     { return "list of overrides"; }
             public String description() { return "Driver Collection Reader configuration parameter name/value pair overrides. Parameters must already be defined in the CR descriptor."; }
-            public String example()     { return "name1=value1,name2=\"value2a value2b value2c\",name3=value3..."; }
+            public String example()     { return "name1=value1 name2=\"value2a value2b value2c\" name3=value3..."; }
         },            
 
         DriverExceptionHandler { 
@@ -170,7 +170,7 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_environment; }
             public String argname()     { return "env vars"; }
             public String description() { return "Blank-delimited list of environment variables."; }
-            public String example()     { return "TERM=xterm DISPLAY=me.org.net:1.0"; }
+            public String example()     { return "TERM=xterm DISPLAY=me.org.net:1.0 LANG UIMA*"; }
         },   
         
         Help { 
@@ -303,7 +303,7 @@ public interface IUiOptions
             public String pname()       { return "service_ping_jvm_args"; }
             public String argname()     { return "java-system-property-assignments"; }
             public String description() { return "-D jvm system property assignments to pass to jvm"; }
-            public String example()     { return "-DxmX=3"; }
+            public String example()     { return "-DxmX=3G -DxnS=1M"; }
         },            
 
         ServicePingTimeout { 
@@ -401,7 +401,7 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_process_descriptor_AE_overrides; }
             public String argname()     { return "list of overrides"; }
             public String description() { return "Process Analysis Engine configuration parameter name/value pair overrides. Parameters must already be defined in the AE descriptor."; }
-            public String example()     { return "name1=value1,name2=\"value2a value2b value2c\",name3=value3..."; }
+            public String example()     { return "name1=value1 name2=\"value2a value2b value2c\" name3=value3..."; }
         },            
 
         ProcessDescriptorCC { 
@@ -415,7 +415,7 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_process_descriptor_CC_overrides; }
             public String argname()     { return "list of overrides"; }
             public String description() { return "Process CAS Consumer configuration parameter name/value pair overrides. Parameters must already be defined in the CC descriptor."; }
-            public String example()     { return "name1=value1,name2=\"value2a value2b value2c\",name3=value3..."; }
+            public String example()     { return "name1=value1 name2=\"value2a value2b value2c\" name3=value3..."; }
         },            
 
         ProcessDescriptorCM { 
@@ -429,7 +429,7 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_process_descriptor_CM_overrides; }
             public String argname()     { return "list of overrides"; }
             public String description() { return "Process CAS Multiplier configuration parameter name/value pair overrides. Parameters must already be defined in the CM descriptor."; }
-            public String example()     { return "name1=value1,name2=\"value2a value2b value2c\",name3=value3..."; }
+            public String example()     { return "name1=value1 name2=\"value2a value2b value2c\" name3=value3..."; }
         },            
 
         ProcessDD { 
@@ -529,17 +529,6 @@ public interface IUiOptions
             public String example()     { return "Back to the drawing board"; }
         },            
 
-        /*
-        @Deprecated
-        ReservationInstanceMemorySize { 
-            public String pname()       { return ReservationSpecificationProperties.key_instance_memory_size; }
-            public String argname()     { return "size-in-GB"; }
-            public String description() { return "Size of instance's memory, in GB."; }
-            public String example()     { return "64"; }
-            public boolean required()   { return true; }
-        },            
-		*/
-        
         ReservationMemorySize { 
             public String pname()       { return ReservationSpecificationProperties.key_memory_size; }
             public String argname()     { return "size-in-GB"; }
@@ -566,7 +555,7 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_scheduling_class; }
             public String argname()     { return "scheduling class name"; }
             public String description() { return "The class to run the job in."; }
-            public String example()     { return "normal"; }
+            public String example()     { return "normal (or fixed or reserve)"; }
         },            
 
         ServiceLinger { 

@@ -117,13 +117,6 @@
           \hyperref[sec:services.types]{UIMA-AS services}.  If not specified, the CLASSPATH used
           by the {\em ducc\_services} command is used.
 
-        \begin{sloppypar}
-        \item[$--$classpath\_order {[user-before-ducc $|$ ducc-before-user]} ] When DUCC deploys a service,
-          set the user-supplied CLASSPATH before DUCC-supplied CLASSPATH, or the reverse. 
-          The default is ducc-before-user. This is
-          only valid for  \hyperref[sec:services.types]{UIMA-AS services}.
-        \end{sloppypar}
-        
         \item[$--$debug ]
           Enable debugging messages. This is primarily for debugging DUCC itself. 
           
@@ -134,15 +127,18 @@
           it from the shell.
     
         \item[$--$environment {[env vars]}] Blank-delimited list of environment variable
-          assignments for the service. Example:
+          assignments for the service.
+          Entries may be copied from the user's environment if just the variable name is
+          specified, optionally with a final '*' for those with the same prefix. Example:
           \begin{verbatim}
---environment TERM=xterm DISPLAY=:1.0
+--environment TERM=xterm DISPLAY=:1.0 LANG UIMA_*
           \end{verbatim}
 
-          \begin{sloppypar}
           Additional entries may be copied from the user's environment based on the setting of
-          ducc.submit.environment.propagated in the global DUCC configuration ducc.properties.
-        \end{sloppypar}
+\begin{verbatim}
+ducc.submit.environment.propagated
+\end{verbatim}
+          in the global DUCC configuration ducc.properties.
         
           Note: When used as a CLI option, the environment string must usually be
           quoted to protect it from the shell.
@@ -151,6 +147,9 @@
 
          \item[$--$instances {[n]}] This specifies the number of instances to start when the service
            is started.  If not specified, the default is 1.
+           Each instance has the DUCC_SERVICE_INSTANCE environment variable set to a unique sequence
+           number, starting from 0.
+           If an instabce is restarted it will be assigned the same number.
 
         \item[$--$instance\_failures\_window {[time-in-minutes]}]
           This specifies the time in minutes that service instance failures are tracked.   If
@@ -246,8 +245,8 @@
 
       \item[$--$scheduling\_class {[classname]}] This specifies the name of the scheuling class the RM
         will use to determine the resource allocation for each process. The names of the classes are
-        installation dependent. If not specified, the default is taken from the global DUCC
-        configuration \hyperref[sec:ducc.properties]{ducc.properties.}
+        installation dependent. If not specified, the FIXED\_SHARE default is taken from the site class
+        definitions file described \hyperref[subsubsec:class.configuration]{here.}
 
       \item[$--$service\_dependency{[list]}] This specifies a blank-delimited list of services the job
         processes are dependent upon. Service dependencies are discussed in detail

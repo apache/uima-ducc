@@ -107,8 +107,9 @@
 
         \item[$--$scheduling\_class {[classname]} ] This specifies the name of the scheduling class the
           RM will use to determine the resource allocation for each process. The names of the
-          classes are installation dependent. If not specified, the default is taken from the global
-          DUCC configuration ducc.properties.
+          classes are installation dependent.
+          If not specified, the FIXED\_SHARE default is taken from the site class definitions file
+          described \hyperref[subsubsec:class.configuration]{here.} 
 
         \item[$--$specification, $-$f {[file]} ] All the parameters used to submit a process may be placed
           in a standard Java properties file.  This file may then be used to submit the process
