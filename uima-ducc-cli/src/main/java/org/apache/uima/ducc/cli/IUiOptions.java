@@ -156,7 +156,7 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_driver_exception_handler_arguments; }
             public String argname()     { return "string"; }
             public String description() { return "Any arguments to be passed to the default or custom exception handler."; }
-            public String example()     { return "max_job_errors=15,max_process_errors=3,max_cas_timeouts=2"; }
+            public String example()     { return "max_job_errors=15"; }
         },  
 
         DriverJvmArgs { 
