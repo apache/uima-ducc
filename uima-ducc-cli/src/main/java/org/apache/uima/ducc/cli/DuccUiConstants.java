@@ -373,17 +373,6 @@ public class DuccUiConstants {
 	public static final String exmp_submit_cancel_on_interrupt = null;
 	public static final String dval_submit_cancel_on_interrupt = null;
 	
-	public static final String classpath_order_user_before_ducc = "user-before-ducc";
-	public static final String classpath_order_ducc_before_user = "ducc-before-user";
-	public static final String classpath_order_default = classpath_order_user_before_ducc;
-	
-	public static final String name_classpath_order = JobSpecificationProperties.key_classpath_order;
-	public static final String parm_classpath_order = classpath_order_user_before_ducc+"|"+classpath_order_ducc_before_user;
-	public static final String desc_classpath_order = "Classpath order.  Default is configured by administrator, normally "+classpath_order_default+".";
-	public static final String labl_classpath_order = null;
-	public static final String exmp_classpath_order = null;
-	public static final String dval_classpath_order = null;
-	
 	/* 
 	 * monitor Job
 	 */

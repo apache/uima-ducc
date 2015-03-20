@@ -21,20 +21,34 @@ package org.apache.uima.ducc.cli;
 
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.utils.Utils;
+
 /*
  * Sites that have old code built against a pre-release version of DUCC may replace this class
  * by one that corrects any deprecated options, e.g. changing --process_environment to --environment
  * 
- * DUCC 2.0 changed --process_DD to --process_descriptor_DD to match the other descriptor options.
+ * For DUCC 2.0 the following 1.x options have been modified:
+ * Changed:
+ *   process_DD             ->  process_descriptor_DD
+ *   instance_memory_size   ->  memory_size
+ * Removed:
+ *   classpath_order
+ *   number_of_instances	
+ *   
+ * Additionally since services registered under DUCC 1.x may be relying on UIMA jars that are no longer supplied,
+ * their classpath will be augmented ... triggered by the deprecated classpath_order option. 
  */
 
 public class CliFixups {
-
+	
     static void cleanupArgs(String[] args, String className) {
         for (int i = 0; i < args.length; ++i) {
             String arg = args[i];
             if (arg.equals("--process_DD")) {
                 args[i] = "--process_descriptor_DD";
+                System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
+            } else if (arg.equals("--instance_memory_size")) {
+                args[i] = "--memory_size";
                 System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
             } else if (arg.equals("--classpath_order")) {
                 System.out.println("CLI ignored deprecated option: " + arg);
@@ -49,18 +63,42 @@ public class CliFixups {
     }
     
     static void cleanupProps(Properties props, String className) {
-        for (String key : props.stringPropertyNames()) {
-            if (key.equals("process_DD")) {
-                props.put("process_descriptor_DD", props.get(key));
-                props.remove(key);
-                System.out.println("CLI replaced deprecated option: " + key + " with: process_descriptor_DD");
-            } else if (key.equals("classpath_order")) {
-                props.remove(key);
-                System.out.println("CLI ignored deprecated option: " + key);
-            } else if (key.equals("number_of_instances")) {
-                props.remove(key);
-                System.out.println("CLI ignored deprecated option: " + key);
-            }
-        }
+		// Augment CP if the SM issues a DuccServiceSubmit with the classpath_order option
+    	// (Always invoked with a service properties file)
+		if (className.equals(DuccServiceSubmit.class.getName())) {
+			String cpOrder = props.getProperty("classpath_order");
+			String cp = props.getProperty("classpath");
+			if (cpOrder != null && cp != null) {
+				String duccHome = Utils.findDuccHome();
+				String uimaCp = duccHome + "/apache-uima/lib/*:" + duccHome + "/apache-uima/apache-activemq/lib/*:"
+						+ duccHome + "/apache-uima/apache=activemq/lib/optional/*";
+				if (cpOrder.equals("ducc-before-user")) {
+					cp = uimaCp + ":" + cp;
+				} else {
+					cp = cp + ":" + uimaCp;
+				}
+				props.put("classpath", cp);
+				System.out.println("CLI added UIMA jars to classpath of pre-2.0 service");
+			}
+		}
+		
+    	changeOption("process_DD", "process_descriptor_DD", props);
+    	changeOption("instance_memory_size", "memory_size", props);
+    	changeOption("classpath_order", null, props);
+    	changeOption("number_of_instances", null, props);
     }
+    
+	static private void changeOption(String oldKey, String newKey, Properties props) {
+		String val = props.getProperty(oldKey);
+		if (val != null) {
+			props.remove(oldKey);
+			if (newKey == null) {
+				System.out.println("CLI ignored deprecated option: " + oldKey);
+			} else {
+				props.put(newKey, val);
+				System.out.println("CLI replaced deprecated option: " + oldKey + " with: " + newKey);
+			}
+		}
+	}
+    
 }
