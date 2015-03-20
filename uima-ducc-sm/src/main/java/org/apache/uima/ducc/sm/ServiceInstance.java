@@ -264,10 +264,11 @@ class ServiceInstance
                 continue;
             }
 
+            // e.g. Service instance 18803 submitted
             if ( s.startsWith("Service") && s.endsWith("submitted") ) {
                 String[] toks = s.split("\\s");
                 try {
-                    numeric_id = Long.parseLong(toks[1]);
+                    numeric_id = Long.parseLong(toks[2]);
                     started = true;
                     logger.info(methodName, null, "Request to start service " + sset.getId().toString() + " accepted as service instance ", numeric_id);
                 } catch ( NumberFormatException e ) {

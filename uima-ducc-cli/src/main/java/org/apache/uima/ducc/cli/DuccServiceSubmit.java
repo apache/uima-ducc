@@ -251,7 +251,7 @@ public class DuccServiceSubmit
         try {
             reply = (SubmitServiceReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(ev);
         } catch (Exception e) {
-            message("Process not submitted:", e.getMessage());
+            message("Service instance not submitted:", e.getMessage());
             return false;
         } finally {
             dispatcher.close();
@@ -286,7 +286,7 @@ public class DuccServiceSubmit
             if ( rc ) {
                 
                 // Fetch the Ducc ID
-                System.out.println("Service " + ds.getDuccId() + " submitted");
+                System.out.println("Service instance " + ds.getDuccId() + " submitted");
                 System.exit(0);
             } else {
                 System.out.println("Could not submit Service");
