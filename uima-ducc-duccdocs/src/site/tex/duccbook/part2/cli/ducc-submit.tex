@@ -42,7 +42,7 @@
            \item[$--$all\_in\_one $<$local $|$ remote $>$]
                Run driver and pipeline in single process.  If {\em local} is specified, the
                process is executed on the local machine, for example, in the current Eclipse session.
-               If {\em remote} is specified, the jobs is submitted to DUCC as a {\em manged reservation}
+               If {\em remote} is specified, the jobs is submitted to DUCC as a {\em managed reservation}
                and run on some (presumably larger) machine allocated by DUCC.
 
            \item[$--$attach\_console] If specified, redirect remote stdout and stderr
@@ -97,7 +97,7 @@
 %"TERM=xterm DISPLAY=:1.0" 
 %             \end{verbatim}
 %             
-%             Note: On Secure Linux systems, the environemnt variable 
+%             Note: On Secure Linux systems, the environment variable 
 %             LD\_LIBRARY\_PATH may not be passed to the user's program. If it is 
 %             necessary to pass LD\_LIBRARY\_PATH to the JP or JD processes, it must be 
 %             specified as DUCC\_LD\_LIBRARY\_PATH. Ducc (securely) passes this as 
@@ -110,9 +110,8 @@
            \begin{sloppypar}
            \item[$--$driver\_exception\_handler {[classname]}] This specifies a developer-supplied
              exception handler for the Job Driver.  It must
-             implement org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler or extend
-             org.apache.uima.ducc.common.jd.plugin.AbstractJdProcessExceptionHandler.  A default
-             handler is provided.
+             implement org.apache.uima.ducc.IErrorHandler or extend
+             org.apache.uima.ducc.ErrorHandler.  A default handler is provided.
            \end{sloppypar}
            
            \item[$--$driver\_exception\_handler\_arguments {[argument-string]}] This is a string
@@ -126,7 +125,7 @@
              The built-in default exception handler supports an argument string of the following form
              (with NO embedded blanks):
 \begin{verbatim}
-     max_job_errors=15,max_process_errors=3,max_cas_timeouts=2
+     max_job_errors=15
 \end{verbatim}
 
            \item[$--$driver\_jvm\_args {[list]} ]
