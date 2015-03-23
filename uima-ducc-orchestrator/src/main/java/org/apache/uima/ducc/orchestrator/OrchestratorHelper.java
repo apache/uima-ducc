@@ -120,7 +120,6 @@ public class OrchestratorHelper {
 		}
 	}
 	
-	/*
 	private static String getDefaultReserveClass() {
 		String location = "getDefaultReserveClass";
 		String defaultReserveName = null;
@@ -149,7 +148,6 @@ public class OrchestratorHelper {
 			logger.error(location, jobid, t);
 		}
 	}
-	*/
 	
 	public static void assignDefaults(SubmitJobDuccEvent duccEvent) {
 		Properties properties = duccEvent.getProperties();
@@ -160,7 +158,7 @@ public class OrchestratorHelper {
 	public static void assignDefaults(SubmitReservationDuccEvent duccEvent) {
 		Properties properties = duccEvent.getProperties();
 		String key = ReservationRequestProperties.key_scheduling_class;
-		assignDefaultFixedClass(properties, key);
+		assignDefaultReserveClass(properties, key);
 	}
 	
 	public static void assignDefaults(SubmitServiceDuccEvent duccEvent) {
