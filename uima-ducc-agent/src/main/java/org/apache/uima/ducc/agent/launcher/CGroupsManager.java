@@ -354,7 +354,12 @@ public class CGroupsManager {
 					cgroupSubsystems + ":ducc/" + containerId };
 			int retCode = launchCommand(command, useDuccSpawn, "ducc",
 					containerId);
-			if (retCode == 0) {
+			// Starting with libcgroup v.0.38, the cgcreate fails
+			// with exit code = 96 even though the cgroup gets
+			// created! The following code treats such return code
+			// as success. In case there is an error, subsequent
+			// cgset or cgexec will fail.
+			if (retCode == 0 || retCode == 96) {
 				containerIds.add(containerId);
 				agentLogger.info("createContainer", null, ">>>>"
 						+ "SUCCESS - Created CGroup Container:" + containerId);
