@@ -2234,8 +2234,8 @@ public class NodepoolScheduler
         }
 
         boolean must_defrag = false;
-        String headerfmt = "%12s %10s %6s %4s %7s %6s %2s";
-        String datafmt   = "%12s %10s %6d %4d %7d %6d %2d";
+        String headerfmt = "%14s %20s %6s %4s %7s %6s %2s";
+        String datafmt   = "%14s %20s %6d %4d %7d %6d %2d";
 
         for ( ResourceClass rc : resourceClasses.values() ) {
             // Next: Look at every job and work out its "need".  Collect jobs by nodepool into the jobmaps.
