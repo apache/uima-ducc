@@ -49,14 +49,14 @@ public class DuccWebServerHelper {
 		String ducc_web_env = System.getenv("DUCC_WEB");
 		if(ducc_web_property != null) {
 			ducc_web = ducc_web_property;
-			logger.info(location, jobid, WsStandardize.Label.DUCC_WEB_PROPERTY.get()+ducc_web);
+			logger.debug(location, jobid, WsStandardize.Label.DUCC_WEB_PROPERTY.get()+ducc_web);
 		}
 		else if(ducc_web_env != null) {
 			ducc_web = ducc_web_env;
-			logger.info(location, jobid, WsStandardize.Label.DUCC_WEB_ENV.get()+ducc_web);
+			logger.debug(location, jobid, WsStandardize.Label.DUCC_WEB_ENV.get()+ducc_web);
 		}
 		else {
-			logger.info(location, jobid, WsStandardize.Label.DUCC_WEB.get()+ducc_web);
+			logger.debug(location, jobid, WsStandardize.Label.DUCC_WEB.get()+ducc_web);
 		}
 		return ducc_web;
 	}
