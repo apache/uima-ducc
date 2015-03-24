@@ -60,7 +60,7 @@ class StopDucc(DuccUtil):
         # If despite all that we can't find the pid, we need to run check_ducc
         #        
         if ( not self.pids.has_key(component) ):
-            print "Cannot find PID for component", component, ". Run check_ducc to refresh PIDS and then rerun stop_ducc."
+            print "Cannot find PID for component", component, ". Run check_ducc -p to refresh PIDS and then rerun stop_ducc."
             return
 
         pid = self.pids.get(component)
