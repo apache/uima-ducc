@@ -268,6 +268,14 @@ public class ServiceSet
         String ids = meta_props.getProperty(implementors_key);
         if ( ids == null ) return;
 
+        // UIMA-4258 Conversion: if no . then there is no instance, and it is an old service format service.
+        //           Must remove the implementors from the meta and return.
+        //
+        if ( ids.indexOf(".") <= 0 ) {
+            meta_props.remove(implementors_key);
+            return;
+        }
+
         String[] tmp = ids.split("\\s+");
         for (String s : tmp) {
             String[] id_inst = s.split("\\.");
