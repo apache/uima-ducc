@@ -33,9 +33,7 @@ public class DuccWorkPopDriver extends DuccWorkPop {
 		private String wiTimeout = null;
 		private String processExceptionHandler = null;
 		
-		private long processStatusMaxWaitMillis = (5*60*1000)+(1*1000);
-		
-		public DuccWorkPopDriver(String serverUri, String endPoint, String cr, String crConfig, String metaTimeout, String lostTimeout, String wiTimeout, String processExceptionHandler, long processStatusMaxWaitMillis) {
+		public DuccWorkPopDriver(String serverUri, String endPoint, String cr, String crConfig, String metaTimeout, String lostTimeout, String wiTimeout, String processExceptionHandler) {
 			this.serverUri = serverUri;
 			this.endPoint = endPoint;
 			this.cr = cr;
@@ -44,9 +42,6 @@ public class DuccWorkPopDriver extends DuccWorkPop {
 			this.lostTimeout = lostTimeout;
 			this.wiTimeout = wiTimeout;
 			this.processExceptionHandler = processExceptionHandler;
-			if(processStatusMaxWaitMillis >= 0) {
-				this.processStatusMaxWaitMillis = processStatusMaxWaitMillis;
-			}
 		}
 		
 		public String getServerUri() {
@@ -79,9 +74,5 @@ public class DuccWorkPopDriver extends DuccWorkPop {
 		
 		public String getProcessExceptionHandler() {
 			return processExceptionHandler;
-		}
-		
-		public long getProcessStatusMaxWaitMillis() {
-			return processStatusMaxWaitMillis;
 		}
 }

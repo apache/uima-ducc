@@ -381,13 +381,6 @@ public class JobFactory implements IJobFactory {
 		addDashD(jcl, flagName, flagValue);
 	}
 	
-	private String getDuccFileProperty(String key) {
-		String location = "getDuccFileProperty";
-		String value = DuccPropertiesResolver.getInstance().getFileProperty(key);
-		logger.trace(location, null, key+"="+value);
-		return value;
-	}
-	
 	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
 		String methodName = "createDriver";
 		DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
@@ -408,26 +401,8 @@ public class JobFactory implements IJobFactory {
 		}
 		// Exception handler
 		String processExceptionHandler = jobRequestProperties.getProperty(JobRequestProperties.key_driver_exception_handler);
-		// ProcessStatusMaxWaitMillis
-		long processStatusMaxWaitMillis = -1;
-		try {
-			String ducc_orchestrator_abbreviated_state_publish_rate = getDuccFileProperty(DuccPropertiesResolver.ducc_orchestrator_abbreviated_state_publish_rate);
-			String ducc_rm_state_publish_rate = getDuccFileProperty(DuccPropertiesResolver.ducc_rm_state_publish_rate);
-			String ducc_agent_node_metrics_publish_rate = getDuccFileProperty(DuccPropertiesResolver.ducc_agent_node_metrics_publish_rate);
-			String ducc_rm_node_stability = getDuccFileProperty(DuccPropertiesResolver.ducc_rm_node_stability);
-			long orMillisRate = Long.parseLong(ducc_orchestrator_abbreviated_state_publish_rate);
-			long rmMillisRate = Long.parseLong(ducc_rm_state_publish_rate);
-			long metricsMillisRate = Long.parseLong(ducc_agent_node_metrics_publish_rate);
-			long stabilityCount = Long.parseLong(ducc_rm_node_stability);
-			long fudgeMillis = 10 * 1000;
-			processStatusMaxWaitMillis = metricsMillisRate*stabilityCount+(orMillisRate+rmMillisRate+fudgeMillis);
-			logger.debug(methodName, job.getDuccId(), "driver:processStatusMaxWaitMillis="+processStatusMaxWaitMillis);
-		}
-		catch(Exception e) {
-			logger.error(methodName, job.getDuccId(), e);
-		}
 		// Command line
-		DuccWorkPopDriver driver = new DuccWorkPopDriver(job.getjobBroker(), job.getjobQueue(), crxml, crcfg, meta_time, lost_time, wi_time, processExceptionHandler, processStatusMaxWaitMillis);
+		DuccWorkPopDriver driver = new DuccWorkPopDriver(job.getjobBroker(), job.getjobQueue(), crxml, crcfg, meta_time, lost_time, wi_time, processExceptionHandler);
 		JavaCommandLine driverCommandLine = buildJobDriverCommandLine(jobRequestProperties, job.getDuccId());
 		// Environment
 		String driverEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
