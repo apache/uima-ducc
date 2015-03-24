@@ -129,35 +129,74 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 	}
 	@Override
 	public long getMillisAvg() {
-		return doneMillisAvg.get();
+		long retVal = 0;
+		try {
+			retVal = doneMillisAvg.get();
+		}
+		catch(Exception e) {
+			// oh well
+		}
+		return retVal;
 	}
 
 	@Override
 	public long getMillisMax() {
-		return doneMillisMax.get();
+		long retVal = 0;
+		try {
+			retVal = doneMillisMax.get();
+		}
+		catch(Exception e) {
+			// oh well
+		}
+		return retVal;
 	}
 
 	@Override
 	public long getMillisMin() {
-		return doneMillisMin.get();
+		long retVal = 0;
+		try {
+			retVal = doneMillisMin.get();
+		}
+		catch(Exception e) {
+			// oh well
+		}
+		return retVal;
 	}
 
 	@Override
 	public long getSecsAvg() {
-		double value = doneMillisAvg.get()/1000.0;
-		return (long) value;
+		double retVal = 0;
+		try {
+			retVal = doneMillisAvg.get()/1000.0;
+		}
+		catch(Exception e) {
+			// oh well
+		}
+		return (long) retVal;
 	}
 
 	@Override
 	public long getSecsMax() {
-		double value = doneMillisMax.get()/1000.0;
-		return (long) value;
+		double retVal = 0;
+		try {
+			retVal = doneMillisMax.get()/1000.0;
+		}
+		catch(Exception e) {
+			// oh well
+		}
+		return (long) retVal;
 	}
 
 	@Override
 	public long getSecsMin() {
-		double value = doneMillisMin.get()/1000.0;
-		return (long) value;
+		double retVal = 0;
+		try {
+			retVal = doneMillisMin.get()/1000.0;
+		}
+		catch(Exception e) {
+			// oh well
+		}
+		return (long) retVal;
 	}
 
 }
