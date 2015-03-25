@@ -174,6 +174,7 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract implements IWorkI
 			Long key = new Long(seqNo);
 			IWorkItemState wis = activeMap.get(key);
 			wis.investmentReset();
+			record(wis);
 			State state = wis.getState();
 			logger.debug(location, jobid, "seqNo:"+seqNo+" "+state.name());
 		}
