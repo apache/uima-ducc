@@ -401,16 +401,23 @@ public class MessageHandler implements IMessageHandler {
 				logger.info(location, ILogger.null_id, mb.toString());
 				if(!isKillJob) {
 					if(failedCount >= failedLimit) {
-						String text = "startup initialization error limit exceeded";
-						jd.killJob(CompletionType.Exception, text);
-						mb = new MessageBuffer();
-						mb.append(Standardize.Label.node.get()+nodeName);
-						mb.append(Standardize.Label.ip.get()+nodeAddress);
-						mb.append(Standardize.Label.pid.get()+pid);
-						mb.append(Standardize.Label.isKillJob.get()+jd.isKillJob());
-						mb.append(Standardize.Label.type.get()+jd.getCompletionType().toString());
-						mb.append(Standardize.Label.reason.get()+jd.getCompletionText());
-						logger.info(location, ILogger.null_id, mb.toString());
+						JdState jdState = jd.getJdState();
+						switch(jdState) {
+						case Initializing:
+							String text = "startup initialization error limit exceeded";
+							jd.killJob(CompletionType.Exception, text);
+							mb = new MessageBuffer();
+							mb.append(Standardize.Label.node.get()+nodeName);
+							mb.append(Standardize.Label.ip.get()+nodeAddress);
+							mb.append(Standardize.Label.pid.get()+pid);
+							mb.append(Standardize.Label.isKillJob.get()+jd.isKillJob());
+							mb.append(Standardize.Label.type.get()+jd.getCompletionType().toString());
+							mb.append(Standardize.Label.reason.get()+jd.getCompletionText());
+							logger.info(location, ILogger.null_id, mb.toString());
+							break;
+						default:
+							break;
+						}
 					}
 				}
 			}
