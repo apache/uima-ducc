@@ -34,7 +34,6 @@ import org.apache.uima.ducc.cli.DuccServiceApi;
 import org.apache.uima.ducc.cli.IDuccCallback;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.utils.DuccProperties;
-import org.apache.uima.ducc.common.utils.id.ADuccId;
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
 import org.apache.uima.ducc.transport.event.sm.IServiceReply;
 
@@ -138,10 +137,10 @@ public class ServiceTester
         sb.append("\n");
 
         sb.append("   Implementors      : ");
-        List<ADuccId> implementors = desc.getImplementors();
-        if ( implementors.size() > 0 ) {
-            for (ADuccId id : implementors) {
-                sb.append(id.getFriendly());
+        Long[] implementors = desc.getImplementors();
+        if ( implementors.length > 0 ) {
+            for (Long id : implementors) {
+                sb.append(id);
                 sb.append(" ");
             }
         } else {
@@ -150,10 +149,10 @@ public class ServiceTester
         sb.append("\n");
          
         sb.append("   References        : ");
-        List<ADuccId> references = desc.getReferences();
-        if ( references.size() > 0 ) {
-            for ( ADuccId id : references ) {
-                sb.append(id.getFriendly());
+        Long[] references = desc.getReferences();
+        if ( references.length > 0 ) {
+            for ( Long id : references ) {
+                sb.append(id);
                 sb.append(" ");
             }
         } else {
@@ -191,7 +190,7 @@ public class ServiceTester
         if ( autostart )            { sb.append("autostart"); }
         else if ( reference_start ) { sb.append("reference"); }
         else {
-            if ( implementors.size() > 0 ) { 
+            if ( implementors.length > 0 ) { 
                 sb.append("manual"); 
             } else {
                 sb.append("stopped");
@@ -336,21 +335,21 @@ public class ServiceTester
 
             do {
                 IServiceDescription desc = getServiceDescription(id);
-                List<ADuccId> implementors = desc.getImplementors();
+                Long[] implementors = desc.getImplementors();
 
                 if ( desc.isAutostart()      && desired_state.equals("autostart") ) return true;
                 if ( desc.isReferenceStart() && desired_state.equals("reference") ) return true;
 
                 if ( !desc.isAutostart() && (!desc.isReferenceStart()) ) {
-                    if ( implementors.size() >  0 && desired_state.equals("manual") ) return true;
-                    if ( implementors.size() == 0 && desired_state.equals("stopped") ) return true;
+                    if ( implementors.length >  0 && desired_state.equals("manual") ) return true;
+                    if ( implementors.length == 0 && desired_state.equals("stopped") ) return true;
                 }
                 
                 if ( ++count > default_timeout ) {
                     System.out.println("Query times out after " + count + " tries.");
                     return false;                    
                 }
-                System.out.println(" ... autostart " + desc.isAutostart() + " reference " + desc.isReferenceStart() + " n_implementors " + implementors.size());
+                System.out.println(" ... autostart " + desc.isAutostart() + " reference " + desc.isReferenceStart() + " n_implementors " + implementors.length);
 			    Thread.sleep(5000);
 			} while ( true );
 		} catch (Exception e) {

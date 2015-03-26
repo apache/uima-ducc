@@ -43,7 +43,6 @@ import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
-import org.apache.uima.ducc.common.utils.id.ADuccId;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
@@ -123,6 +122,12 @@ public class ServiceSet
 
     // Date of last known use of the service.  0 means "I don't know"
     long last_use = 0;
+
+    // Date of last known succesful ping of the service.  0 means never.  UIMA-4309
+    long last_ping = 0;
+
+    // Date of last known time any instance made it to Running state.  0 means never. UIMA-4309
+    long last_runnable = 0;
 
     // The number of instances to maintain live.
     int instances = 1;
@@ -232,11 +237,9 @@ public class ServiceSet
         meta_props.put("service-statistics", "N/A");
         setReferenced(this.reference_start);
 
-        last_use = meta_props.getLongProperty("last-use", 0L);
-        if ( last_use == 0 ) {
-            meta_props.put("last-use", "0");
-            meta_props.put("last-use-readable", "Unknown");
-        }
+        setLastUse(meta_props.getLongProperty("last-use", 0L));
+        setLastPing(meta_props.getLongProperty("last-ping", 0L));
+        setLastRunnable(meta_props.getLongProperty("last-runnable", 0L));
 
         if ( (!job_props.containsKey(UiOption.ProcessExecutable.pname())) && (service_type != ServiceType.UimaAs) ) {
             meta_props.put("ping-only", "true");
@@ -610,12 +613,50 @@ public class ServiceSet
         return last_use;
     }
 
+    // UIMA-4309
+    long getLastPing()
+    {
+        return last_ping;
+    }
+
+    // UIMA-4309
+    long getLastRunnable()
+    {
+        return last_runnable;
+    }
+
     synchronized void setLastUse(long lu)
     {
         this.last_use = lu;
         meta_props.put("last-use", Long.toString(lu));
-        if ( last_use != 0 ) {
+        if ( last_use == 0 ) {
+            meta_props.put("last-use-readable", "Unknown");
+        } else {
             meta_props.put("last-use-readable", (new Date(lu)).toString());
+        }
+    }
+
+    // UIMA-4309
+    synchronized void setLastPing(long lp)
+    {
+        this.last_ping = lp;
+        meta_props.put("last-ping", Long.toString(lp));
+        if ( last_ping == 0 ) {
+            meta_props.put("last-ping-readable", "Unknown");
+        } else {
+            meta_props.put("last-ping-readable", (new Date(lp)).toString());
+        }
+    }
+
+    // UIMA-4309
+    synchronized void setLastRunnable(long lr)
+    {
+        this.last_runnable = lr;
+        meta_props.put("last-runnable", Long.toString(lr));
+        if ( last_runnable == 0 ) {
+            meta_props.put("last-runnable-readable", "Unknown");
+        } else {
+            meta_props.put("last-runnable-readable", (new Date(lr)).toString());
         }
     }
 
@@ -887,6 +928,10 @@ public class ServiceSet
                 meta_props.put("service-alive",      "" + ss.isAlive());
                 meta_props.put("service-healthy",    "" + ss.isHealthy());
                 meta_props.put("service-statistics", "" + ss.getInfo());
+
+                if ( ss.isAlive() ) {                    // UIMA-4309
+                    setLastPing(System.currentTimeMillis());
+                }
             }
         }
 
@@ -1412,6 +1457,7 @@ public class ServiceSet
         // These are all idempotent actions, call them as often as you want and no harm.
         switch(new_state) {            
             case Available: 
+                setLastRunnable(System.currentTimeMillis());
                 startPingThread();
                 break;
             case Initializing:
@@ -1419,6 +1465,7 @@ public class ServiceSet
             case Starting:
                 break;
             case Waiting:
+                setLastRunnable(System.currentTimeMillis());
                 startPingThread();
                 break;
             case Stopping:
@@ -2055,18 +2102,20 @@ public class ServiceSet
     {
         IServiceDescription sd = new ServiceDescription();
         
-        ArrayList<ADuccId> imp = new ArrayList<ADuccId>();
+        ArrayList<Long> impls = new ArrayList<Long>();
+        ArrayList<Integer> instids = new ArrayList<Integer>();
         for ( Long id : implementors.keySet() ) {
-            // Note: For compatibility with earliver version, we'll send these out as DuccIds, not Longs
-            DuccId di = new DuccId(id); 
-            imp.add(di);
+            // UIMA-4258 Add instance id to ducc id when saving
+            ServiceInstance inst = implementors.get(id);            
+            impls.add(id);
+            instids.add(inst.getInstanceId());
         }
-        sd.setImplementors(imp);
+        sd.setImplementors(impls, instids);
 
-        ArrayList<ADuccId> ref = new ArrayList<ADuccId>();
+        ArrayList<Long> ref = new ArrayList<Long>();
         ref.clear();
         for ( DuccId id : references.keySet() ) {
-            ref.add(id);
+            ref.add(id.getFriendly());
         }
         sd.setReferences(ref);
 
@@ -2081,10 +2130,12 @@ public class ServiceSet
         sd.setEnabled(enabled());
         sd.setAutostart(isAutostart());
         sd.setLinger(linger_time);
-        sd.setId(id);
+        sd.setId(id.getFriendly());
         sd.setUser(user);
         sd.setDisableReason(meta_props.getStringProperty("disable-reason", null));
         sd.setLastUse(last_use);
+        sd.setLastPing(last_ping);            // UIMA-4309
+        sd.setLastRunnable(last_runnable);    // UIMA-4309
         sd.setRegistrationDate(meta_props.getStringProperty("registration-date", ""));
         sd.setReferenceStart(reference_start);
         sd.setErrorString(meta_props.getStringProperty("submit-error", null));

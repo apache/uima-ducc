@@ -125,7 +125,8 @@ public class ServiceManagerComponent
     //    1.1.3 - added shutdown hook, pinger last-use, pinger disable autostart
     //    1.1.4 - dynamic mod of all registration parms.  Add debug and max-init-time parms.
     //    1.1.0 - resync with release, sigh.
-    String version = "1.1.0";
+    //    2.0.0 - Update for new release.
+    String version = "2.0.0";
 
 	public ServiceManagerComponent(CamelContext context) 
     {

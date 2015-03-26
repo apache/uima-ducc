@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.IServiceStatistics;
-import org.apache.uima.ducc.common.utils.id.ADuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 
 
@@ -38,10 +37,11 @@ public class ServiceDescription
 	private static final long serialVersionUID = 1L;
 
 	// For submitted and registered services
-    private ArrayList<ADuccId> implementors;
+    private Long[] implementors;
+    private Integer[] instance_ids;
 
     // key is job/service id, value is same.  it's a map for fast existence check
-    private ArrayList<ADuccId> references;
+    private Long[] references;
 
     // UIMA-AS or CUSTOM
     private ServiceType type;
@@ -70,7 +70,7 @@ public class ServiceDescription
     private String  disable_reason = null;
 
     // for submitted service, the registered service id
-    private ADuccId id;
+    private Long id;
     private String  user;                 // the owner of the service
     private boolean deregistered;         // still known but trying to shutdown
 
@@ -84,15 +84,17 @@ public class ServiceDescription
 
     private String error_string = null;
     private long last_use = 0;
+    private long last_ping = 0;                // UIMA-4309
+    private long last_runnable = 0;            // UIMA-4309
 
     private String registration_date = null;
     private boolean reference_start = true;
 
-	public ADuccId getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(ADuccId id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
@@ -106,20 +108,25 @@ public class ServiceDescription
         this.user = user;
     }
 
-	public ArrayList<ADuccId> getImplementors() {
+	public Long[] getImplementors() {
 		return implementors;
 	}
 
-	public void setImplementors(ArrayList<ADuccId> implementors) {
-		this.implementors = implementors;
+	public Integer[] getInstanceIds() {
+		return instance_ids;
 	}
 
-	public ArrayList<ADuccId> getReferences() {
+	public void setImplementors(ArrayList<Long> implementors, ArrayList<Integer> instance_ids) {
+		this.implementors = implementors.toArray(new Long[implementors.size()]);
+        this.instance_ids = instance_ids.toArray(new Integer[instance_ids.size()]);
+	}
+
+	public Long[] getReferences() {
 		return references;
 	}
 
-	public void setReferences(ArrayList<ADuccId> references) {
-		this.references = references;
+	public void setReferences(ArrayList<Long> references) {
+		this.references = references.toArray(new Long[references.size()]);
 	}
 
 	public ServiceType getType() {
@@ -249,6 +256,50 @@ public class ServiceDescription
         }
     }
 
+    // UIMA-4309
+    public void setLastPing(long l)
+    {
+        this.last_ping = l;
+    }
+
+    // UIMA-4309
+    public long getLastPing()
+    {
+        return this.last_ping;
+    }
+
+    // UIMA-4309
+    public String getLastPingString()
+    {
+        if ( last_ping == 0) {
+            return "N/A";
+        }  else {
+            return (new Date(last_ping)).toString();
+        }
+    }
+
+    // UIMA-4309
+    public void setLastRunnable(long l)
+    {
+        this.last_runnable = l;
+    }
+
+    // UIMA-4309
+    public long getLastRunnable()
+    {
+        return this.last_runnable;
+    }
+
+    // UIMA-4309
+    public String getLastRunnableString()
+    {
+        if ( last_runnable == 0) {
+            return "N/A";
+        }  else {
+            return (new Date(last_runnable)).toString();
+        }
+    }
+
     public void setRegistrationDate(String s)
     {
         this.registration_date = s;
@@ -349,9 +400,11 @@ public class ServiceDescription
         sb.append("\n");
 
         sb.append("   Implementors      : ");
-        if ( implementors.size() > 0 ) {
-            for (ADuccId id : implementors) {
-                sb.append(id);
+        if ( implementors.length > 0 ) {
+            for ( int i = 0; i < implementors.length; i++ ) {
+                sb.append(implementors[i]);
+                sb.append(".");
+                sb.append(instance_ids[i]);
                 sb.append(" ");
             }
         } else {
@@ -360,8 +413,8 @@ public class ServiceDescription
         sb.append("\n");
 
         sb.append("   References        : ");
-        if ( references.size() > 0 ) {
-            for ( ADuccId id : references ) {
+        if ( references.length > 0 ) {
+            for ( Long id : references ) {
                 sb.append(id);
                 sb.append(" ");
             }
@@ -396,7 +449,7 @@ public class ServiceDescription
         if ( autostart )            { sb.append("autostart"); }
         else if ( reference_start ) { sb.append("reference"); }
         else {
-            if ( implementors.size() > 0 ) {
+            if ( implementors.length > 0 ) {
                 sb.append("manual"); 
             } else {
                 sb.append("stopped");
@@ -413,6 +466,16 @@ public class ServiceDescription
 
         sb.append("   Last Use          : ");
         sb.append(getLastUseString());
+        sb.append("\n");
+
+        // UIMA-4309
+        sb.append("   Last Ping         : ");
+        sb.append(getLastPingString());
+        sb.append("\n");
+
+        // UIMA-4309
+        sb.append("   Last Runnable     : ");
+        sb.append(getLastRunnableString());
         sb.append("\n");
 
         sb.append("   Registration Date : ");

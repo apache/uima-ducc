@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.IServiceStatistics;
-import org.apache.uima.ducc.common.utils.id.ADuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 
 /**
@@ -40,11 +39,11 @@ public interface IServiceDescription
     /**
      * This returns the Unique ID of the service as assigned by DUCC.
      */
-	public ADuccId getId();
+	public Long getId();
     /**
      * Internal to DUCC.
      */
-	public void setId(ADuccId id);
+	public void setId(Long id);
 
     /**
      * Get the owner of the service
@@ -60,19 +59,27 @@ public interface IServiceDescription
      * implement this service.  If the list is empty, no known implementors of the service
      * are being managed by DUCC.
      *
-     * @return List of DUCC Ids of service implementors.
+     * @return List of DUCC Ids of service implementors.  Parallel array with getInstanceIds().
      */
-	public ArrayList<ADuccId> getImplementors();
-    /**
-     * Internal to DUCC.
-     */
-	public void setImplementors(ArrayList<ADuccId> implementors);
+	public Long[] getImplementors();
 
-	public ArrayList<ADuccId> getReferences();
+    /**
+     * This returns the list of contant instance ids for multi-instance services.
+     *
+     * @return List of service instance ids.  Parallel array with getImplementors().
+     */
+	public Integer[] getInstanceIds();
+
     /**
      * Internal to DUCC.
      */
-	public void setReferences(ArrayList<ADuccId> references);
+	public void setImplementors(ArrayList<Long> implementors, ArrayList<Integer> instancids);
+
+	public Long[] getReferences();
+    /**
+     * Internal to DUCC.
+     */
+	public void setReferences(ArrayList<Long> references);
 
 	public ServiceType getType();
     /**
@@ -139,6 +146,16 @@ public interface IServiceDescription
     public void setLastUse(long last_use);
     public long getLastUse();
     public String getLastUseString();
+
+    // UIMA-4309
+    public void setLastPing(long last_ping);
+    public long getLastPing();
+    public String getLastPingString();
+
+    // UIMA-4309
+    public void setLastRunnable(long last_runnable);
+    public long getLastRunnable();
+    public String getLastRunnableString();
 
     public void setRegistrationDate(String d);
     public String getRegistrationDate();
