@@ -76,7 +76,8 @@ public class ClassSeparation
         }
 
         try {
-            XStream xs = new XStream(dd);
+            @SuppressWarnings("unused")
+			XStream xs = new XStream(dd);
         } catch ( IllegalStateException e ) {
             String msg = e.getMessage();
             if ( msg.equals("I am not XStream.") ) {

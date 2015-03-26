@@ -589,7 +589,7 @@ public class JobManagerConverter
         boolean status = true;        
         
         int max_processes = 0;
-       	int max_machines = 0;	
+       	// int max_machines = 0;	
         ResourceClass rescl = scheduler.getResourceClass(className);
 
         if ( rescl == null ) {
@@ -657,7 +657,7 @@ public class JobManagerConverter
                       break;
                       
                   case RESERVE:
-                      max_machines   = toInt(si.getSharesMax(), DEFAULT_INSTANCES);
+                      // max_machines   = toInt(si.getSharesMax(), DEFAULT_INSTANCES);
                       j.setMaxShares(max_processes);
                       break;
               }

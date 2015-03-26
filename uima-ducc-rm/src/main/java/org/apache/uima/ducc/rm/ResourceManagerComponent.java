@@ -165,7 +165,6 @@ public class ResourceManagerComponent
                     if ( ! validateAdministrator(dae) ) {
                         reply = new RmAdminReply("Not authorized");
                     } else {
-                        RmAdminReconfigure rc = (RmAdminReconfigure) body;            	 
                         reply = new RmAdminReply(scheduler.reconfigure());
                     }
                 } else

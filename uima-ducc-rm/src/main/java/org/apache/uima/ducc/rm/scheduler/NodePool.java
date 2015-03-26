@@ -1156,7 +1156,6 @@ class NodePool
         Collections.sort(machs, new MachineByAscendingOrderSorter());
 
         Iterator<Machine> iter = machs.iterator();
-        ArrayList<Machine> pables = new ArrayList<Machine>();
         
         while ( iter.hasNext() && (given < needed) ) {
             Machine m = iter.next();
