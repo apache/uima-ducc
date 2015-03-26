@@ -22,8 +22,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
+import java.io.PrintStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +52,9 @@ import org.junit.Test;
 
 public class TestSuite {
 
+	private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+	private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
@@ -60,10 +65,16 @@ public class TestSuite {
 
 	@Before
 	public void setUp() throws Exception {
+		if(!debug) {
+			System.setOut(new PrintStream(outContent));
+			System.setErr(new PrintStream(errContent));
+		}
 	}
 
 	@After
 	public void tearDown() throws Exception {
+		System.setOut(null);
+	    System.setErr(null);
 	}
 	
 	private boolean debug = false;
