@@ -20,7 +20,9 @@ package org.apache.uima.ducc.container.jd.test;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.net.URL;
 import java.util.Map;
 
@@ -38,6 +40,9 @@ public abstract class ATest {
 	private boolean verbose = false;
 	private boolean warned = false;
 	private boolean debug = false;
+
+	private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+	private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
 	
 	public void clear() {
 		for(Name name : FlagsHelper.Name.values()) {
@@ -112,6 +117,10 @@ public abstract class ATest {
 
 	@Before
 	public void setUp() throws Exception {
+		if(!debug) {
+			System.setOut(new PrintStream(outContent));
+			System.setErr(new PrintStream(errContent));
+		}
 		ducc_home();
 		environment();
 		clear();
@@ -119,6 +128,8 @@ public abstract class ATest {
 
 	@After
 	public void tearDown() throws Exception {
+		System.setOut(null);
+	    System.setErr(null);
 	}
 	
 	public void disabler() {
