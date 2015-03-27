@@ -119,10 +119,18 @@ public class JobDriver {
 		try {
 			FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
 			String workItemTimeout = feh.getWorkItemTimeout();
-			workItemTimeoutMillis = Long.parseLong(workItemTimeout)*(60*1000);
-			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.value.get()+workItemTimeoutMillis);
-			logger.trace(location, ILogger.null_id, mb.toString());
+			String value = workItemTimeout;
+			if(value != null) {
+				workItemTimeoutMillis = Long.parseLong(workItemTimeout)*(60*1000);
+				MessageBuffer mb = new MessageBuffer();
+				mb.append(Standardize.Label.value.get()+workItemTimeoutMillis);
+				logger.trace(location, ILogger.null_id, mb.toString());
+			}
+			else {
+				MessageBuffer mb = new MessageBuffer();
+				mb.append(Standardize.Label.value.get()+workItemTimeoutMillis);
+				logger.trace(location, ILogger.null_id, mb.toString());
+			}
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
