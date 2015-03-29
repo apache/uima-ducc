@@ -34,6 +34,7 @@ import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
+import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
@@ -56,6 +57,7 @@ public class ActionProcessFailure extends Action implements IAction {
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
 		//
+		TimeoutManager.getInstance().cancelTimer(actionData);
 		cm.putMetaCas(metaCas, RetryReason.ProcessDown);
 		cm.getCasManagerStats().incEndRetry();
 		JobDriver jd = JobDriver.getInstance();

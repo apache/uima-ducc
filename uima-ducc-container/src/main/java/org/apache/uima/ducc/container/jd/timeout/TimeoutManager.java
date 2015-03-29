@@ -125,6 +125,21 @@ public class TimeoutManager implements ITimeoutManager {
 		}
 	}
 
+	@Override
+	public void cancelTimer(IActionData actionData) {
+		String location = "cancelTimer";
+		try {
+			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+			logger.debug(location, ILogger.null_id, mb.toString());
+			IWorkItem wi = actionData.getWorkItem();
+			IFsm fsm = wi.getFsm();
+			unregister(fsm);
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+	}
+	
 	private void register(IFsm fsm, ITimeoutTask timeoutTask) {
 		String location = "register";
 		try {
@@ -137,6 +152,8 @@ public class TimeoutManager implements ITimeoutManager {
 			//
 			IActionData actionData = timeoutTask.getActionData();
 			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+			mb.append(Standardize.Label.futures.get()+mapFuture.size());
+			mb.append(Standardize.Label.tasks.get()+mapTask.size());
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		catch(Exception e) {
@@ -155,7 +172,15 @@ public class TimeoutManager implements ITimeoutManager {
 			if(timeoutTask != null) {
 				IActionData actionData = timeoutTask.getActionData();
 				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+				mb.append(Standardize.Label.futures.get()+mapFuture.size());
+				mb.append(Standardize.Label.tasks.get()+mapTask.size());
 				logger.debug(location, ILogger.null_id, mb.toString());
+			}
+			else {
+				MessageBuffer mb = new MessageBuffer();
+				mb.append(Standardize.Label.futures.get()+mapFuture.size());
+				mb.append(Standardize.Label.tasks.get()+mapTask.size());
+				logger.trace(location, ILogger.null_id, mb.toString());
 			}
 		}	
 		catch(Exception e) {

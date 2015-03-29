@@ -90,17 +90,19 @@ public class ActionEnd extends Action implements IAction {
 	
 	private void retryWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas) {
 		String location = "retryWorkItem";
-		cm.putMetaCas(metaCas, RetryReason.UserErrorRetry);
-		cm.getCasManagerStats().incEndRetry();
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
+		TimeoutManager.getInstance().cancelTimer(actionData);
+		cm.putMetaCas(metaCas, RetryReason.UserErrorRetry);
+		cm.getCasManagerStats().incEndRetry();
 	}
 	
 	private void killWorkItem(IActionData actionData, CasManager cm) {
 		String location = "killWorkItem";
-		cm.getCasManagerStats().incEndFailure();
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
+		TimeoutManager.getInstance().cancelTimer(actionData);
+		cm.getCasManagerStats().incEndFailure();
 		checkEnded(actionData, cm);
 	}
 	

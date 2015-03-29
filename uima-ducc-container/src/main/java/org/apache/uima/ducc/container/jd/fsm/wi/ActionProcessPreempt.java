@@ -31,6 +31,7 @@ import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
+import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
@@ -46,10 +47,11 @@ public class ActionProcessPreempt extends Action implements IAction {
 	
 	private void preemptWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas) {
 		String location = "preemptWorkItem";
-		cm.putMetaCas(metaCas, RetryReason.ProcessPreempt);
-		cm.getCasManagerStats().incEndRetry();
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
+		TimeoutManager.getInstance().cancelTimer(actionData);
+		cm.putMetaCas(metaCas, RetryReason.ProcessPreempt);
+		cm.getCasManagerStats().incEndRetry();
 	}
 	
 	@Override
