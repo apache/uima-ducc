@@ -106,8 +106,18 @@ public class WorkItemStateReader extends WorkItemStateAbstract implements IWorkI
 			try {
 				fetchZipped(map, lastRecordNo, maxRecords);
 				if(map.isEmpty()) {
-					fetchActive(map);
-					fetchCompleted(map, lastRecordNo, maxRecords);
+					try {
+						fetchActive(map);
+					}
+					catch(Exception e) {
+						logger.debug(location, jobid, e);
+					}
+					try {
+						fetchCompleted(map, lastRecordNo, maxRecords);
+					}
+					catch(Exception e) {
+						logger.debug(location, jobid, e);
+					}
 				}
 			}
 			catch(Exception e) {
