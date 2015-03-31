@@ -39,43 +39,43 @@ public class WiFsm extends Fsm {
 
 	private static Logger logger = Logger.getLogger(WiFsm.class, IComponent.Id.JD.name());
 	
-	public static IState Start 					= new State("Start");
-	public static IState Get_Pending 			= new State("Get_Pending");
-	public static IState CAS_Send 				= new State("CAS_Send");
-	public static IState CAS_Active 			= new State("CAS_Active");
+	public static IState Start 						= new State("Start");
+	public static IState Get_Pending 				= new State("Get_Pending");
+	public static IState CAS_Send 					= new State("CAS_Send");
+	public static IState CAS_Active 				= new State("CAS_Active");
 	
-	public static IEvent Get_Request 			= new Event("Get_Request");
-	public static IEvent CAS_Available			= new Event("CAS_Available");
-	public static IEvent CAS_Unavailable		= new Event("CAS_Unavailable");
-	public static IEvent Ack_Request 			= new Event("Ack_Request");
-	public static IEvent Send_Failure 			= new Event("Send_Failure");
-	public static IEvent Ack_Timer_Pop			= new Event("Ack_Timer_Pop");
-	public static IEvent End_Request 			= new Event("End_Request");
-	public static IEvent End_Timer_Pop			= new Event("End_Timer_Pop");
-	public static IEvent Host_Failure			= new Event("Host_Failure");
-	public static IEvent Process_Failure		= new Event("Process_Failure");
-	public static IEvent Process_Preempt		= new Event("Process_Premept");
-	public static IEvent Process_Volunteered	= new Event("Process_Volunteered");
-	public static IEvent Investment_Reset		= new Event("Investment_Reset");
+	public static IEvent Get_Request 				= new Event("Get_Request");
+	public static IEvent CAS_Available				= new Event("CAS_Available");
+	public static IEvent CAS_Unavailable			= new Event("CAS_Unavailable");
+	public static IEvent Ack_Request 				= new Event("Ack_Request");
+	public static IEvent Send_Failure 				= new Event("Send_Failure");
+	public static IEvent Ack_Timer_Pop				= new Event("Ack_Timer_Pop");
+	public static IEvent End_Request 				= new Event("End_Request");
+	public static IEvent End_Timer_Pop				= new Event("End_Timer_Pop");
+	public static IEvent Host_Failure				= new Event("Host_Failure");
+	public static IEvent Process_Failure			= new Event("Process_Failure");
+	public static IEvent Process_Preempt			= new Event("Process_Premept");
+	public static IEvent Process_Volunteered		= new Event("Process_Volunteered");
+	public static IEvent Investment_Reset			= new Event("Investment_Reset");
 	
-	public IAction ActionGet					= new ActionGet();
-	public IAction ActionGetRedux				= new ActionGetRedux();
-	public IAction ActionSend					= new ActionSend();
-	public IAction ActionAck					= new ActionAck();
-	public IAction ActionAckRedux				= new ActionAckRedux();
-	public IAction ActionEnd					= new ActionEnd();
+	public static IAction ActionGet					= new ActionGet();
+	public static IAction ActionGetRedux			= new ActionGetRedux();
+	public static IAction ActionSend				= new ActionSend();
+	public static IAction ActionAck					= new ActionAck();
+	public static IAction ActionAckRedux			= new ActionAckRedux();
+	public static IAction ActionEnd					= new ActionEnd();
 	
-	public IAction ActionProcessFailure			= new ActionProcessFailure();
-	public IAction ActionProcessPreempt			= new ActionProcessPreempt();
-	public IAction ActionProcessVolunteered		= new ActionProcessVolunteered();
+	public static IAction ActionProcessFailure		= new ActionProcessFailure();
+	public static IAction ActionProcessPreempt		= new ActionProcessPreempt();
+	public static IAction ActionProcessVolunteered	= new ActionProcessVolunteered();
 	
-	public IAction ActionInvestmentReset		= new ActionInvestmentReset();
+	public static IAction ActionInvestmentReset		= new ActionInvestmentReset();
 	
-	public IAction ActionAckTimeout				= new ActionAckTimeout();
-	public IAction ActionEndTimeout				= new ActionEndTimeout();
+	public static IAction ActionAckTimeout			= new ActionAckTimeout();
+	public static IAction ActionEndTimeout			= new ActionEndTimeout();
 	
-	public IAction ActionIgnore 				= new ActionIgnore();
-	public IAction ActionError					= new ActionError();
+	public static IAction ActionIgnore 				= new ActionIgnore();
+	public static IAction ActionError				= new ActionError();
 	
 	public WiFsm() throws FsmException {
 		super();
