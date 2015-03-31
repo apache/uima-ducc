@@ -21,7 +21,7 @@ package org.apache.uima.ducc.container.jd.wi;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
-public interface IWorkItem {
+public interface IWorkItem extends Comparable<Object> {
 	
 	public void setMetaCas(IMetaCas value);
 	public IMetaCas getMetaCas();

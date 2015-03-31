@@ -139,12 +139,12 @@ public class LoggerHelper {
 		return mb;
 	}
 	
-	public static MessageBuffer getMessageBuffer(IRemoteWorkerThread rwt, IWorkItem wi) {
+	public static MessageBuffer getMessageBuffer(IWorkItem wi, IRemoteWorkerThread rwt) {
 		String location = "getMessageBuffer";
 		MessageBuffer mb = new MessageBuffer();
 		try {
 			mb.append(Standardize.Label.seqNo.get()+getSeqNo(wi));
-			mb.append(Standardize.Label.id.get()+getSeqNo(wi));
+			mb.append(Standardize.Label.id.get()+getId(wi));
 			mb.append(Standardize.Label.remote.get()+rwt.toString());
 		}
 		catch(Exception e) {

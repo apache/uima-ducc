@@ -115,7 +115,7 @@ public class ActionGet implements IAction {
 				IEvent event = null;
 				//
 				if(metaCas != null) {
-					WiTracker.getInstance().assign(rwt, wi);
+					WiTracker.getInstance().assign(wi, rwt);
 					int seqNo = metaCasHelper.getSystemKey();
 					String wiId = metaCas.getUserKey();
 					String node = rwt.getNodeAddress();

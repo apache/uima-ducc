@@ -31,8 +31,8 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 
 public class WiTracker {
 
-	private ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = new ConcurrentHashMap<IRemoteWorkerThread, IWorkItem>();
-
+	private ConcurrentHashMap<IWorkItem, IRemoteWorkerThread> map = new ConcurrentHashMap<IWorkItem, IRemoteWorkerThread>();
+	
 	private static Logger logger = Logger.getLogger(WiTracker.class, IComponent.Id.JD.name());
 	
 	private static WiTracker instance = new WiTracker();
@@ -41,10 +41,10 @@ public class WiTracker {
 		return instance;
 	}
 	
-	public void assign(IRemoteWorkerThread rwt, IWorkItem wi) {
+	public void assign(IWorkItem wi, IRemoteWorkerThread rwt) {
 		String location = "assign";
 		try {
-			map.put(rwt, wi);
+			map.put(wi, rwt);
 			report();
 		}
 		catch(Exception e) {
@@ -52,45 +52,22 @@ public class WiTracker {
 		}	
 	}
 	
-	public void unassign(IRemoteWorkerThread rwt) {
-		String location = "unassign";
-		try {
-			map.remove(rwt);
-			report();
-		}
-		catch(Exception e) {
-			logger.error(location, ILogger.null_id, e);
-		}
-	}
-	
-	private IRemoteWorkerThread find(IWorkItem wi) {
-		IRemoteWorkerThread rwt = null;
-		for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
-			if(wi.getSeqNo() == entry.getValue().getSeqNo()) {
-				rwt = entry.getKey();
-				break;
-			}
-		}
-		return rwt;
-	}
-	
-	public void unassign(IWorkItem value) {
-		IRemoteWorkerThread rwt = find(value);
-		if(rwt != null) {
-			map.remove(rwt);
+	public void unassign(IWorkItem wi) {
+		if(wi != null) {
+			map.remove(wi);
 			report();
 		}
 	}
-	
+
 	private void report() {
 		String location = "report";
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.size.get()+map.size());
 		logger.trace(location, ILogger.null_id, mb.toString());
-		for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
-			IRemoteWorkerThread rwt = entry.getKey();
-			IWorkItem wi = entry.getValue();
-			MessageBuffer mb1 = LoggerHelper.getMessageBuffer(rwt, wi);
+		for(Entry<IWorkItem, IRemoteWorkerThread> entry : map.entrySet()) {
+			IWorkItem wi = entry.getKey();
+			IRemoteWorkerThread rwt = entry.getValue();
+			MessageBuffer mb1 = LoggerHelper.getMessageBuffer(wi, rwt);
 			logger.trace(location, ILogger.null_id, mb1.toString());
 		}
 	}

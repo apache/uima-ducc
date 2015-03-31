@@ -21,11 +21,16 @@ package org.apache.uima.ducc.container.jd.wi;
 import org.apache.uima.ducc.container.common.Assertion;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.fsm.iface.IState;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class WorkItem implements IWorkItem {
 
+	private static Logger logger = Logger.getLogger(WorkItem.class, IComponent.Id.JD.name());
+	
 	private IMetaCas metaCas = null;
 	private IFsm fsm = null;
 	
@@ -185,4 +190,54 @@ public class WorkItem implements IWorkItem {
 		return retVal;
 	}
 
+	// Comparable
+	
+	@Override
+	public int compareTo(Object o) {
+		String location = "compareTo";
+		int retVal = 0;
+		try {
+			if(o != null) {
+				if(o instanceof IWorkItem) {
+					IWorkItem that = (IWorkItem) o;
+					Integer iThis = new Integer(this.getSeqNo());
+					Integer iThat = new Integer(that.getSeqNo());
+					retVal = iThis.compareTo(iThat);
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+		return retVal;
+	}
+	
+	@Override
+	public int hashCode() {
+		return this.getSeqNo();
+	}
+	
+	
+	@Override
+	public boolean equals(Object obj) {
+		String location = "equals";
+		boolean retVal = false;
+		try {
+			if(obj != null) {
+				if(this == obj) {
+					retVal = true;
+				}
+				else {
+					IWorkItem that = (IWorkItem) obj;
+					if(this.compareTo(that) == 0) {
+						retVal = true;
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+		return retVal;
+	}
 }

@@ -40,9 +40,7 @@ import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
 import org.apache.uima.ducc.container.jd.log.ErrorLogger;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
-import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.user.error.classload.ProxyUserErrorException;
 import org.apache.uima.ducc.container.jd.user.error.classload.ProxyUserErrorStringify;
@@ -269,7 +267,6 @@ public class ActionEnd extends Action implements IAction {
 			if(actionData != null) {
 				IWorkItem wi = actionData.getWorkItem();
 				IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-				IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
 				IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
 				IMetaCas metaCas = wi.getMetaCas();
 				JobDriver jd = JobDriver.getInstance();
@@ -281,7 +278,7 @@ public class ActionEnd extends Action implements IAction {
 				IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 				//
 				if(metaCas != null) {
-					WiTracker.getInstance().unassign(rwt);
+					WiTracker.getInstance().unassign(wi);
 					//
 					TimeoutManager toMgr = TimeoutManager.getInstance();
 					toMgr.receivedAck(actionData);
