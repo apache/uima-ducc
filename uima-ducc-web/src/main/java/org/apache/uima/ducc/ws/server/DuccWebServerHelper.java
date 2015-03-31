@@ -97,13 +97,19 @@ public class DuccWebServerHelper {
 				Properties properties = new Properties();
 				properties.load(fis);
 				fis.close();
-				String value = properties.getProperty(key);
-				if(exists(value)) {
-					retVal = value;
+				String relativeFilePath = properties.getProperty(key);
+				String rootFilePath = relativeFilePath;
+				if(rootFilePath != null) {
+					if(rootFilePath.trim().length() > 0) {
+						rootFilePath = getDuccWebRoot()+File.separator+rootFilePath;
+					}
+				}
+				if(exists(rootFilePath)) {
+					retVal = relativeFilePath;
 					logger.debug(location, jobid, key+"="+retVal);
 				}
 				else {
-					logger.debug(location, jobid, value+" not found");
+					logger.debug(location, jobid, relativeFilePath+" not found");
 				}
 			}
 			catch (FileNotFoundException e) {
