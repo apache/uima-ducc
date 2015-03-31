@@ -59,6 +59,10 @@ public class WiTracker {
 		}
 	}
 
+	public int getSize() {
+		return map.size();
+	}
+	
 	private void report() {
 		String location = "report";
 		MessageBuffer mb = new MessageBuffer();
