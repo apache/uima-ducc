@@ -34,6 +34,7 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
+import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class ActionProcessVolunteered extends Action implements IAction {
@@ -45,10 +46,11 @@ public class ActionProcessVolunteered extends Action implements IAction {
 		return ActionProcessVolunteered.class.getName();
 	}
 	
-	private void preemptWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas) {
-		String location = "preemptWorkItem";
+	private void recallWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi) {
+		String location = "recallWorkItem";
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
+		WiTracker.getInstance().unassign(wi);
 		TimeoutManager.getInstance().cancelTimer(actionData);
 		cm.putMetaCas(metaCas, RetryReason.ProcessVolunteered);
 		cm.getCasManagerStats().incEndRetry();
@@ -69,7 +71,7 @@ public class ActionProcessVolunteered extends Action implements IAction {
 				IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
 				if(rwp != null) {
 					if(metaCas != null) {
-						preemptWorkItem(actionData, cm, metaCas);
+						recallWorkItem(actionData, cm, metaCas, wi);
 						IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 						MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
 						IProcessStatistics pStats = jdh.getProcessStatistics(rwp);

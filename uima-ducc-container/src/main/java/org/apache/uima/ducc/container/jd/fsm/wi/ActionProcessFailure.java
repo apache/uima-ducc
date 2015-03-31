@@ -37,6 +37,7 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
+import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class ActionProcessFailure extends Action implements IAction {
@@ -57,6 +58,7 @@ public class ActionProcessFailure extends Action implements IAction {
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
 		//
+		WiTracker.getInstance().unassign(wi);
 		TimeoutManager.getInstance().cancelTimer(actionData);
 		cm.putMetaCas(metaCas, RetryReason.ProcessDown);
 		cm.getCasManagerStats().incEndRetry();

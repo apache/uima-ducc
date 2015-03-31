@@ -46,10 +46,11 @@ public class ActionAckTimeout extends Action implements IAction {
 		return ActionAckTimeout.class.getName();
 	}
 	
-	private void preemptWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas) {
-		String location = "preemptWorkItem";
+	private void recallWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi) {
+		String location = "recallWorkItem";
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
+		WiTracker.getInstance().unassign(wi);
 		TimeoutManager.getInstance().cancelTimer(actionData);
 		cm.putMetaCas(metaCas, RetryReason.TimeoutRetry);
 		cm.getCasManagerStats().incEndRetry();
@@ -70,8 +71,7 @@ public class ActionAckTimeout extends Action implements IAction {
 				IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
 				if(rwp != null) {
 					if(metaCas != null) {
-						WiTracker.getInstance().unassign(wi);
-						preemptWorkItem(actionData, cm, metaCas);
+						recallWorkItem(actionData, cm, metaCas, wi);
 						IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 						MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
 						IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
