@@ -26,7 +26,9 @@ import java.io.OutputStreamWriter;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -359,6 +361,15 @@ public abstract class CliBase
     void setOptions(IUiOption[] uiOpts) 
         throws Exception 
     {
+        // Find the environment variables that are always propagated
+        List<String> envNameList;
+        String envNames = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_environment_propagated);
+        if (envNames != null) {
+        	envNameList = Arrays.asList(envNames.split("\\s+"));
+        } else {
+        	envNameList = new ArrayList<String>(0);
+        }
+    	
     	Map<IUiOption, String> parsed = commandLine.allOptions();
         for (IUiOption opt : parsed.keySet() ) {
             String val = parsed.get(opt);
@@ -366,7 +377,7 @@ public abstract class CliBase
                 val = "";                        
             } else {
                 if (val.contains("${")) {
-                    val = resolvePlaceholders(val);
+                    val = resolvePlaceholders(val, envNameList);
                 }
             }
             val = val.trim();
@@ -418,8 +429,9 @@ public abstract class CliBase
     
     /*
      * Resolve any ${..} placeholders against user's system properties and environment
+     * 2.0: Leave unresolved entries as is & warn if not one of the always-propagated ones 
      */
-    private String resolvePlaceholders(String contents) {
+    private String resolvePlaceholders(String contents, List<String> envNameList) {
         //  Placeholders syntax ${<placeholder>} 
         Pattern pattern = Pattern.compile("\\$\\{(.*?)\\}");  // Stops on first '}'
         Matcher matcher = pattern.matcher(contents); 
@@ -437,7 +449,9 @@ public abstract class CliBase
             	matcher.appendReplacement(sb, "");   // Can't include the value as it looks like a group specification
             	value = "${" + key + "}";
             	sb.append(value);
-            	message("WARN: undefined placeholder", value, "not replaced");
+            	if (!envNameList.contains(key)) {
+            		message("WARN: undefined placeholder", value, "not replaced");
+            	}
             }
         }
         matcher.appendTail(sb);

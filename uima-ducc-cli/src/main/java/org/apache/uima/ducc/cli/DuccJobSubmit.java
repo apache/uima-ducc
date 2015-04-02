@@ -369,8 +369,10 @@ public class DuccJobSubmit
             }
         }
         catch(Exception e) {
-            System.out.println("Cannot initialize: ");
-            e.printStackTrace();
+            System.out.println("Cannot initialize: " + e.getMessage());
+            if (!(e instanceof IllegalArgumentException)) {
+            	e.printStackTrace();
+            }
             System.exit(1);
         }
     }
