@@ -56,14 +56,18 @@ public class JobDriver {
 	}
 	
 	public static JobDriver createInstance() throws JobDriverException {
-		if(instance == null) {
-			instance = new JobDriver();
+		synchronized(JobDriver.class) {
+			if(instance == null) {
+				instance = new JobDriver();
+			}
 		}
 		return getInstance();
 	}
 	
 	public static void destroyInstance() {
-		instance = null;
+		synchronized(JobDriver.class) {
+			instance = null;
+		}
 	}
 	
 	private String jobId = null;
