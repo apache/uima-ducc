@@ -70,6 +70,13 @@ public interface IDuccWorkJob extends Identifiable, IDuccWorkService, IDuccWorkE
 	
 	public long getWorkItemCapacity();
 	
+	public long getWiTotal();
+	public void setWiTotal(long value);
+	public long getWiDone();
+	public void setWiDone(long value);
+	public long getWiError();
+	public void setWiError(long value);
+	
 	public long getProcessInitFailureCap();
 	public void setProcessInitFailureCap(long cap);
 	

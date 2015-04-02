@@ -63,6 +63,10 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	
 	private long completingTOD = 0;
 	
+	private long wiTotal;
+	private long wiDone;
+	private long wiError;
+	
 	public DuccWorkJob() {
 		init(null);
 	}
@@ -619,5 +623,37 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 			completingTOD = System.currentTimeMillis();
 		}
 	}
+
+	@Override
+	public long getWiTotal() {
+		return wiTotal;
+	}
+
+	@Override
+	public void setWiTotal(long value) {
+		wiTotal = value;
+	}
+
+	@Override
+	public long getWiDone() {
+		return wiDone;
+	}
+
+	@Override
+	public void setWiDone(long value) {
+		wiDone = value;
+	}
+
+	@Override
+	public long getWiError() {
+		return wiError;
+	}
+
+	@Override
+	public void setWiError(long value) {
+		wiError = value;
+	}
+
+	
 
 }
