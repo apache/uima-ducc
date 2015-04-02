@@ -106,7 +106,6 @@ public class StateManager {
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private Messages messages = orchestratorCommonArea.getSystemMessages();
 	private DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
-	private ConcurrentHashMap<DuccId,IDriverStatusReport> driverStatusReportMap = orchestratorCommonArea.getDriverStatusReportMap();
 	private StateJobAccounting stateJobAccounting = StateJobAccounting.getInstance();
 	
 	HistoryPersistenceManager hpm = orchestratorCommonArea.getHistoryPersistencemanager();
@@ -262,7 +261,6 @@ public class StateManager {
 					}
 					if(duccWorkJob.isCompleted() && allProcessesTerminated(duccWorkJob) && isSaved(duccWorkJob) && isAgedOut(duccWorkJob)) {
 						WorkMapHelper.removeDuccWork(workMap, duccWorkJob, this, methodName);
-						driverStatusReportMap.remove(duccId);
 						logger.info(methodName, duccId, messages.fetch("removed job"));
 						changes ++;
 						IDuccProcessMap processMap = duccWorkJob.getProcessMap();
@@ -605,7 +603,9 @@ public class StateManager {
 					break;
 				case Completing:
 				default:
-					driverStatusReportMap.put(duccId, jdStatusReport);
+					duccWorkJob.setWiTotal(jdStatusReport.getWorkItemsTotal());
+					duccWorkJob.setWiDone(jdStatusReport.getWorkItemsProcessingCompleted());
+					duccWorkJob.setWiError(jdStatusReport.getWorkItemsProcessingError());
 					break;
 				}
 				//
@@ -745,20 +745,16 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	public boolean isExcessCapacity(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
+	public boolean isExcessCapacity(DuccWorkJob job) {
 		String methodName = "isExcessCapacity";
 		boolean retVal = false;
-		if(jdStatusReport != null) {
+		long total = job.getWiTotal();
+		long done = job.getWiDone();
+		long error = job.getWiDone();
+		long sum = total + done + error;
+		if(sum > 0) {
 			long capacity = job.getWorkItemCapacity();
-			long total = jdStatusReport.getWorkItemsTotal();
-			long done = jdStatusReport.getWorkItemsProcessingCompleted();
-			long error = jdStatusReport.getWorkItemsProcessingError();
 			long todo = total - (done + error);
-			if(jdStatusReport instanceof IDriverStatusReportV1) {
-				IDriverStatusReportV1 jdStatusReportV1 = (IDriverStatusReportV1) jdStatusReport;
-				long lost = jdStatusReportV1.getWorkItemsLost();
-				todo = todo - lost;
-			}
 			long tps = job.getSchedulingInfo().getIntThreadsPerShare();
 			long numShares = 0;
 			if(todo%tps > 0) {
@@ -803,7 +799,7 @@ public class StateManager {
 			if(isDeallocatable(jdStatusReport)) {
 				IDuccProcessMap processMap = job.getProcessMap();
 				Iterator<DuccId> iterator = processMap.keySet().iterator();
-				boolean excessCapacity = isExcessCapacity(job, jdStatusReport);
+				boolean excessCapacity = isExcessCapacity(job);
 				int count = 0;
 				while(iterator.hasNext() && excessCapacity) {
 					count++;
@@ -817,7 +813,7 @@ public class StateManager {
 							process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
 							logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
 							retVal = true;
-							excessCapacity = isExcessCapacity(job, jdStatusReport);
+							excessCapacity = isExcessCapacity(job);
 						}
 						else {
 							logger.debug(methodName, job.getDuccId(), process.getDuccId(), "operating");
@@ -1249,7 +1245,7 @@ public class StateManager {
 						break;
 					default:
 						// allocation unnecessary if job has excess capacity
-						if(isExcessCapacity(duccWorkJob,driverStatusReportMap.get(duccId))) {
+						if(isExcessCapacity(duccWorkJob)) {
 							OrUtil.setResourceState(duccWorkJob, process, ResourceState.Deallocated);
 							process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
 							process.advanceProcessState(ProcessState.Stopped);
