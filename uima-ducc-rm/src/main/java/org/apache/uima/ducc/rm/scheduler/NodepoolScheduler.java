@@ -1141,6 +1141,13 @@ public class NodepoolScheduler
         // HashMap<String, NodePool> subpools = np.getChildren();
         List<NodePool> subpools = np.getChildrenAscending();
 
+        StringBuffer sb = new StringBuffer();
+        for ( NodePool sp : subpools ) {
+            sb.append(sp.getId());
+            sb.append(" ");
+        }
+        logger.info(methodName, null, np.getId(), "Doing expansions in this order:", sb.toString());
+
         for ( NodePool subpool : subpools ) {
             traverseNodepoolsForExpansion(subpool, rcs);
         }

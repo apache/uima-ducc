@@ -148,6 +148,7 @@ public class NodeConfiguration
         defaultNodepool.put("nodefile", "<optional>");
         defaultNodepool.put("parent", "<optional>");
         defaultNodepool.put("domain", "<optional>");
+        defaultNodepool.put("search-order", "100");    // temporary.  UIMA-4324
 
         defaultUser.put("type", "user");
         defaultUser.put("name", "<optional>");
@@ -776,6 +777,8 @@ public class NodeConfiguration
             throw new IllegalConfigurationException("Cannot open NodePool file \"" + nodefile + "\": file not found.");
         } catch (IOException e) {
             throw new IllegalConfigurationException("Cannot read NodePool file \"" + nodefile + "\": I/O Error.");
+        } catch (IllegalConfigurationException e) {
+            throw e;
         } catch ( Exception e ) {
         		e.printStackTrace();
         } finally {

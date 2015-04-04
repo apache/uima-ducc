@@ -480,7 +480,8 @@ public class Scheduler
             String id = dp.getStringProperty("name");
             @SuppressWarnings("unchecked")
 			Map<String, String> nodes = (Map<String, String>) dp.get("nodes");
-            NodePool child = parent.createSubpool(id, nodes, 0);
+            int search_order = dp.getIntProperty("search-order", 100);
+            NodePool child = parent.createSubpool(id, nodes, search_order);
             mapNodesToNodepool(nodes, child);
 
             @SuppressWarnings("unchecked")
@@ -578,7 +579,8 @@ public class Scheduler
             String id = np.getStringProperty("name");
             @SuppressWarnings("unchecked")
 			Map<String, String> nodes = (Map<String, String>) np.get("nodes");
-            nodepools[i] = new NodePool(null, id, nodes, evictionPolicy, 0, 0);
+            int search_order = np.getIntProperty("search-order", 100);
+            nodepools[i] = new NodePool(null, id, nodes, evictionPolicy, 0, search_order);
             schedulers[i].setNodePool(nodepools[i]);                    // set its top-level nodepool
 
             mapNodesToNodepool(nodes, nodepools[i]);

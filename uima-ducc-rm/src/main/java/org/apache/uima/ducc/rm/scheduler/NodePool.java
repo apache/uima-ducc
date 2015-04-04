@@ -42,7 +42,7 @@ class NodePool
 
     int depth;
     int updated = 0;
-    int order = 100;
+    int search_order = 100;
 
     EvictionPolicy evictionPolicy = EvictionPolicy.SHRINK_BY_MACHINE;
 
@@ -101,7 +101,7 @@ class NodePool
 //         this.order = order;
 //     }
 
-    NodePool(NodePool parent, String id, Map<String, String> nodes, EvictionPolicy ep, int depth, int order)
+    NodePool(NodePool parent, String id, Map<String, String> nodes, EvictionPolicy ep, int depth, int search_order)
     {
     	String methodName = "NodePool.<init>";
         this.parent = parent;
@@ -113,7 +113,7 @@ class NodePool
         } 
         this.evictionPolicy = ep;
         this.depth = depth;
-        this.order = order;
+        this.search_order = search_order;
     }
 
     void addResourceClass(ResourceClass cl)
@@ -466,9 +466,9 @@ class NodePool
                                            // same for parent and children
     }
 
-    int getOrder()
+    int getSearchOrder()
     {
-        return this.order;
+        return this.search_order;
     }
 
     public Machine getMachine(Node n)
@@ -1576,6 +1576,14 @@ class NodePool
 
         if ( needed > 0 ) {
             for ( NodePool np : getChildrenAscending() ) {
+
+                StringBuffer sb = new StringBuffer();
+                for ( NodePool sp : getChildrenAscending() ) {
+                    sb.append(sp.getId());
+                    sb.append(" ");
+                }
+                logger.info(methodName, null, np.getId(), "Doing expansions in this order:", sb.toString());
+
                 int g = np.findShares(j);
                 given += g;
                 needed -= g;
@@ -1763,7 +1771,7 @@ class NodePool
     {
         public int compare(NodePool n1, NodePool n2)
         {
-            return (n1.getOrder() - n2.getOrder());
+            return (n1.getSearchOrder() - n2.getSearchOrder());
         }
     }
 
@@ -1772,7 +1780,7 @@ class NodePool
     {
         public int compare(NodePool n1, NodePool n2)
         {
-            return (n2.getOrder() - n1.getOrder());
+            return (n2.getSearchOrder() - n1.getSearchOrder());
         }
     }
 

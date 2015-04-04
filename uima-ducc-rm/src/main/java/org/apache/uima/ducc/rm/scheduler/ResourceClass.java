@@ -41,6 +41,8 @@ public class ResourceClass
     private String id;
     private Policy policy;
     private int priority;           // orders evaluation of the class
+    private int search_priority;    // temporary, undocumented way to order the descent into
+                                    // subpools when searching for resources
 
     private int share_weight;       // for fair-share, the share weight to use
 
@@ -151,6 +153,7 @@ public class ResourceClass
             } else {
                 this.prediction_fudge  = SystemPropertyResolver.getLongProperty("ducc.rm.prediction.fudge", 60000);
             }
+              
         }
 
         this.nodepoolName = props.getStringProperty("nodepool");
