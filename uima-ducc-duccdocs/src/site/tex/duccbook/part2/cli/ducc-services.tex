@@ -113,9 +113,9 @@
         \item[$--$autostart {[true or false]}] This indicates whether to register the service as
           an autostarted service.  If not specified, the default is {\em false}.
 
-        \item[$--$classpath] The CLASSPATH used for the service, if the service is a
-          \hyperref[sec:services.types]{UIMA-AS services}.  If not specified, the CLASSPATH used
-          by the {\em ducc\_services} command is used.
+        \item[$--$classpath {[path-string]}] The CLASSPATH used for the service, if the service is a
+          \hyperref[sec:services.types]{UIMA-AS services}.  If not specified, the CLASSPATH of the
+          process invoking this request is used.
 
         \item[$--$debug ]
           Enable debugging messages. This is primarily for debugging DUCC itself. 
@@ -126,9 +126,9 @@
           Note: When used as a CLI option, the description string must usually be quoted to protect
           it from the shell.
     
-        \item[$--$environment {[env vars]}] Blank-delimited list of environment variable
+        \item[$--$environment {[env vars]}] Blank-delimited list of environment variables and variable
           assignments for the service.
-          Entries may be copied from the user's environment if just the variable name is
+          Entries will be copied from the user's environment if just the variable name is
           specified, optionally with a final '*' for those with the same prefix. Example:
           \begin{verbatim}
 --environment TERM=xterm DISPLAY=:1.0 LANG UIMA_*
@@ -147,7 +147,7 @@ ducc.submit.environment.propagated
 
          \item[$--$instances {[n]}] This specifies the number of instances to start when the service
            is started.  If not specified, the default is 1.
-           Each instance has the DUCC_SERVICE_INSTANCE environment variable set to a unique sequence
+           Each instance has the DUCC\_SERVICE\_INSTANCE environment variable set to a unique sequence
            number, starting from 0.
            If an instabce is restarted it will be assigned the same number.
 
@@ -298,7 +298,7 @@ ducc.submit.environment.propagated
         specified, the Agent's classpath is used (which will generally be incorrect.)
       \end{sloppypar}
       
-      \item[$--$service\_ping\_dolog {[boolean]}] If specified, write pinger stdout and stderr
+      \item[$--$service\_ping\_dolog {[true or false]}] If specified, write pinger stdout and stderr
         messages to a log, else suppress the log. See \hyperref[sec:service.pingers]{Service Pingers}
         for details.
 
@@ -469,7 +469,7 @@ ducc_services --ignore_references UIMA-AS:Service23:tcp://bob.com:12345
     \subsection{ducc\_services --modify options}
     The modify function dynamically updates some of the attributes of a registered service.  All
     service options as described under {\em $--$register} other than the {\em service\_endpoint} 
-    and {\em process\_DD} may be modified wihtout re-registering the service.  In most cases the
+    and {\em process\_descriptor\_DD} may be modified wihtout re-registering the service.  In most cases the
     service will need to be stopped and restarted for the update to apply. 
     
     The modify option is of the following form:
@@ -507,7 +507,7 @@ ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --intances 2
       \item service\_ping\_dolog
     \end{itemize}
     
-    \subsection{ducc\_services --query Options}
+    \subsection{ducc\_services --query options}
     The query function returns details about all known services of all types and classes, including 
     the DUCC ids of the service instances (for submitted and registered services), the DUCC ids of 
     the jobs using each service, and a summary of each service's queue and performance statistics, 

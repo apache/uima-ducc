@@ -47,7 +47,7 @@ public class DuccManagedReservationSubmit
         UiOption.Environment,
         UiOption.LogDirectory,
         UiOption.AttachConsole,
-        UiOption.ProcessExecutable,
+        UiOption.ProcessExecutableRequired,
         UiOption.ProcessExecutableArgs,
         UiOption.ProcessMemorySize,
         UiOption.SchedulingClass,

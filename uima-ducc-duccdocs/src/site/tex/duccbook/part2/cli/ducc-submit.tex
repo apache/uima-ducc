@@ -55,9 +55,9 @@
 
              If $--$wait\_for\_completion is not specified this option is ignored. 
 
-           \item[$--$classpath] The CLASSPATH used for the job.  If specified, this is used
-             for both the Job Driver and each Job Process. If not specified the CLASSPATH found by the underlying
-             {\tt DuccJobSubmit.main()} method is used.
+           \item[$--$classpath {[path-string]}] The CLASSPATH used for the job.  If specified, this is used
+             for both the Job Driver and each Job Process. If not specified, the CLASSPATH of the
+             process invoking this request is used.
 
            \item[$--$debug] Enable debugging messages. This is primarily for debugging DUCC itself.
 
@@ -72,7 +72,7 @@
            \item[$--$driver\_descriptor\_CR {[descriptor.xml]} ] This is the XML descriptor for the
              Collection Reader.  This 
              descriptor is a resource that is searched for in the filesystem or Java classpath as described 
-             in the ~\hyperref[par:cli.submit.notes]{notes below}.
+             in the ~\hyperref[par:cli.submit.notes]{notes below}. (Required)
 
            \item[$--$driver\_descriptor\_CR\_overrides {[list]} ]             
              This is the Job Driver collection reader configuration overrides. They are specified as 
@@ -113,9 +113,9 @@
              Note: When used as a CLI option, the list must usually be
              quoted to protect it from the shell.
 
-           \item[$--$environment {[env vars]}] Blank-delimited list of environment variable
-             assignments. 
-             Entries may be copied from the user's environment if just the variable name is
+           \item[$--$environment {[env vars]}] Blank-delimited list of environment variables and
+             variable assignments. 
+             Entries will be copied from the user's environment if just the variable name is
              specified, optionally with a final '*' for those with the same prefix.
              If specified, this is used for all DUCC processes in the job. Example:
 \begin{verbatim}

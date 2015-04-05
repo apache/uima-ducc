@@ -60,11 +60,14 @@
         \item[$--$debug ] Prints internal debugging information, intended for DUCC developers or
           extended problem determination.
 
-        \item[$--$environment {[env vars]}] Blank-delimited list of environment variable
-          assignments for the process. Example:
-          \begin{verbatim}
---environment TERM=xterm DISPLAY=:1.0
-          \end{verbatim}
+        \item[$--$environment {[env vars]}] Blank-delimited list of environment variables and variable
+          assignments. 
+          Entries will be copied from the user's environment if just the variable name is
+          specified, optionally with a final '*' for those with the same prefix.
+          If specified, this is used for all DUCC processes in the job. Example:
+\begin{verbatim}
+--environment TERM=xterm DISPLAY=:1.0 LANG UIMA_*
+\end{verbatim}
 
           \begin{sloppypar}
             Additional entries may be copied from the user's environment based on the setting of
@@ -94,7 +97,7 @@
           not be directly specified. 
 
         \item[$--$process\_executable {[program name]}] This is the full path to a program to be
-          executed.
+          executed. (Required)
 
         \item[$--$process\_executable\_args {[argument list]}] This is a list of arguments for
           {\em process\_executable}, if any.   When specified on a command-line the text usually must be

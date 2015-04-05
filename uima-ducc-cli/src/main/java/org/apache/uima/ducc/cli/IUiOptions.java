@@ -450,8 +450,16 @@ public interface IUiOptions
             public String argname()     { return "program name"; }
             public String description() { return "The full path to a program to be executed."; }
             public String example()     { return "/bin/ls"; }
-        },            
-
+        },
+        
+        ProcessExecutableRequired { 
+            public String pname()       { return JobSpecificationProperties.key_process_executable; }
+            public String argname()     { return "program name"; }
+            public String description() { return "The full path to a program to be executed."; }
+            public String example()     { return "/bin/ls"; }
+            public boolean required()   { return true; }
+        },  
+        
         ProcessExecutableArgs { 
             public String pname()       { return JobSpecificationProperties.key_process_executable_args; }
             public String argname()     { return "argument list"; }
