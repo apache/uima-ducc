@@ -56,6 +56,7 @@ public class HttpWorkerThread implements Runnable {
     private Map<String, IMetaCasTransaction> transactionMap =
     		new ConcurrentHashMap<String, IMetaCasTransaction>();
     static AtomicInteger maxFrameworkFailures;
+    private int maxFrameworkErrors = 2;   // default
 	public HttpWorkerThread(JobProcessComponent component, DuccHttpClient httpClient,
 			Object processorInstance, CountDownLatch workerThreadCount,
 			CountDownLatch threadReadyCount, Map<String, IMetaCasTransaction> transactionMap,
@@ -66,8 +67,9 @@ public class HttpWorkerThread implements Runnable {
 		this.workerThreadCount = workerThreadCount;
 		this.threadReadyCount = threadReadyCount;
 		this.transactionMap = transactionMap;
-		this.maxFrameworkFailures = maxFrameworkFailures;
-	}
+		HttpWorkerThread.maxFrameworkFailures = maxFrameworkFailures;
+		maxFrameworkErrors = maxFrameworkFailures.get();
+	}   
 	@SuppressWarnings("unchecked")
 	public void run() {
 		String command="";
@@ -304,6 +306,7 @@ public class HttpWorkerThread implements Runnable {
 
                         	break;
                         }
+	                    maxFrameworkFailures.set(maxFrameworkErrors);   // reset framework failures on success
 					}
 				} catch( SocketTimeoutException e) {
 					logger.warn("run", null, "Timed Out While Awaiting Response from JD for "+command+" Request - Retrying ...");
@@ -311,11 +314,13 @@ public class HttpWorkerThread implements Runnable {
 				}
 				catch (Exception e ) {
 					logger.error("run", null, e);
-					logger.error("run", null, "The Job Process Terminating Due To Framework Error");
 					e.printStackTrace();
 					// If max framework error count has been reached 
 					// just exit the process
 					if ( maxFrameworkFailures.decrementAndGet() <= 0 ) {
+						System.out.println("Exiting Process Due to a Framework error");
+						System.out.flush();
+						logger.error("run", null, "The Job Process Terminating Due To a Framework Error");
 						Runtime.getRuntime().halt(-1);
 					}
 				} finally {
