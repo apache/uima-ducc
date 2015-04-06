@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.camel.CamelContext;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -57,6 +58,7 @@ implements IJobProcessor{
 	private int threadSleepTime = 5000; // time to sleep between GET requests if JD sends null CAS
 	private CountDownLatch workerThreadCount = null;
 	private CountDownLatch threadReadyCount=null;
+	private AtomicInteger maxFrameworkFailures = null;
 	ScheduledThreadPoolExecutor executor = null;
 	ExecutorService tpe = null;
     private volatile boolean uimaASJob=false;
@@ -87,6 +89,9 @@ implements IJobProcessor{
 	}
     public void setThreadSleepTime(int sleepTime) {
     	threadSleepTime = sleepTime;
+    }
+    public void setMaxFrameworkFailures(int limit) throws Exception {
+    	maxFrameworkFailures = new AtomicInteger(limit);
     }
     public int getThreadSleepTime() {
     	return threadSleepTime;
@@ -251,7 +256,7 @@ implements IJobProcessor{
 		    	// Create and start worker threads that pull Work Items from the JD
 		    	Future<?>[] threadHandles = new Future<?>[scaleout];
 				for (int j = 0; j < scaleout; j++) {
-					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, httpClient, processorInstance, workerThreadCount, threadReadyCount, transactionMap));
+					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, httpClient, processorInstance, workerThreadCount, threadReadyCount, transactionMap, maxFrameworkFailures));
 				}
 				// wait until all process threads initialize
 				threadReadyCount.await();

@@ -55,16 +55,18 @@ public class HttpWorkerThread implements Runnable {
     		new AtomicInteger();
     private Map<String, IMetaCasTransaction> transactionMap =
     		new ConcurrentHashMap<String, IMetaCasTransaction>();
-
+    static AtomicInteger maxFrameworkFailures;
 	public HttpWorkerThread(JobProcessComponent component, DuccHttpClient httpClient,
 			Object processorInstance, CountDownLatch workerThreadCount,
-			CountDownLatch threadReadyCount, Map<String, IMetaCasTransaction> transactionMap) {
+			CountDownLatch threadReadyCount, Map<String, IMetaCasTransaction> transactionMap,
+			AtomicInteger maxFrameworkFailures ) {
 		this.duccComponent = component;
 		this.httpClient = httpClient;
 		this.processorInstance = processorInstance;
 		this.workerThreadCount = workerThreadCount;
 		this.threadReadyCount = threadReadyCount;
 		this.transactionMap = transactionMap;
+		this.maxFrameworkFailures = maxFrameworkFailures;
 	}
 	@SuppressWarnings("unchecked")
 	public void run() {
@@ -309,9 +311,13 @@ public class HttpWorkerThread implements Runnable {
 				}
 				catch (Exception e ) {
 					logger.error("run", null, e);
-					logger.error("run", null, "Caught Unexpected Exception - Exiting Thread "+Thread.currentThread().getId() );
+					logger.error("run", null, "The Job Process Terminating Due To Framework Error");
 					e.printStackTrace();
-					break; 
+					// If max framework error count has been reached 
+					// just exit the process
+					if ( maxFrameworkFailures.decrementAndGet() <= 0 ) {
+						Runtime.getRuntime().halt(-1);
+					}
 				} finally {
 
 				}

@@ -226,7 +226,12 @@ public class JobProcessConfiguration {
 				common.managedServiceEndpoint = AGENT_ENDPOINT
 						+ serviceSocketPort + jpSocketParams;
 			}
-
+			if ( common.jpFrameworkErrorLimit != null ) {
+				int limit = Integer.parseInt(common.jpFrameworkErrorLimit);
+				duccComponent.setMaxFrameworkFailures(limit);
+			} else {
+				duccComponent.setMaxFrameworkFailures(2);
+			}
 			DuccEventDispatcher eventDispatcher = transport
 					.duccEventDispatcher(
 							common.managedProcessStateUpdateEndpoint,

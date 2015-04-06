@@ -204,6 +204,10 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.process.uima.container.class'] }")
 	public String uimaProcessContainerClass;
 
+	// Fetch the JP framework error threshold
+	@Value("#{ systemProperties['ducc.process.framework.error.limit'] }")
+	public String jpFrameworkErrorLimit;
+
 	// Fetch the container class
 	@Value("#{ systemProperties['ducc.process.thread.sleep.time'] }")
 	public String processThreadSleepTime;
