@@ -54,7 +54,6 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
-import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.Constants;
 import org.apache.uima.ducc.transport.event.DbComponentPropertiesHelper;
@@ -1782,7 +1781,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			String heartbeat = "*";
 			String heartmax = "*";
 			Properties properties = DuccDaemonRuntimeProperties.getInstance().get(daemonName);
-			if(Version.version().startsWith(version110)) {
+			if(db) {
 				switch(daemonName) {
 				case DbManager:
 					continue daemons;
