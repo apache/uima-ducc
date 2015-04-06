@@ -839,12 +839,14 @@ public class ServiceSet
     {
         return registered_instances;
     }
-
-    private void saveProperties(DuccProperties props, File pfile, File pfile_tmp, String type)
+    
+    private boolean writeProperties(DuccProperties props, File pfile, File pfile_tmp, String type)
     {
     	
     	String methodName = "saveProperties";
         FileOutputStream fos = null;
+
+        long original_size = pfile.length();
         try {
             if ( (!pfile.exists()) || pfile.renameTo(pfile_tmp) ) {
                 fos = new FileOutputStream(pfile);
@@ -861,14 +863,44 @@ public class ServiceSet
             logger.warn(methodName, id, "Cannot save", type, "properties, file does not exist.");
 		} catch (IOException e) {
             logger.warn(methodName, id, "I/O Error saving", type, "service properties:", e);
+		} catch (Throwable t) {
+            logger.warn(methodName, id, "Unexpected Error saving", type, "service properties:", t);
 		} finally {
             try {
 				if ( fos != null ) fos.close();
-                pfile_tmp.delete();
-			} catch (IOException e) {
-                logger.error(methodName, id, "Cannot close", type, "properties:", e);
+                long updated_size = pfile.length();
+                long tmp_size = pfile_tmp.length();
+
+                logger.info(methodName, id, "-----> original size", original_size, "updated size", updated_size, "tmp size", tmp_size, "<-----");
+                // updated size must be > 0 and tmp_size must match original size
+                if ( (updated_size > 0) && (original_size == tmp_size) ) {
+                    pfile_tmp.delete();
+                } else {
+                    logger.error(methodName, id, "Update of", pfile.toString(), "failed.  Original size:", original_size, "updated size", updated_size, "temp file size", tmp_size);
+                    logger.error(methodName, id, "The updated size must be > 0 and the temp size must match the original size for sucess.");
+                    logger.error(methodName, id, "Attempting to restore", pfile.toString(), "from", pfile_tmp.toString());
+                    if ( !pfile.exists() && pfile_tmp.exists() ) {
+                        pfile_tmp.renameTo(pfile);
+                    }
+                    return false;
+                }
+			} catch (Throwable t) {
+                logger.error(methodName, id, "Cannot close", type, "properties:", t);
+                return false;
 			}
         }
+        return true;
+    }
+
+    private void saveProperties(DuccProperties props, File pfile, File pfile_tmp, String type)
+    {
+    	
+    	String methodName = "saveProperties";
+        int max = 5;
+        for ( int i = 0; i < max; i++ ) {
+            if ( writeProperties(props, pfile, pfile_tmp, type) ) return;
+        }
+        logger.error(methodName, id, "Cannot write", pfile, "after", max, "tries.  The service may not be viable after restart or in web server status.");
     }
 
     synchronized void saveMetaProperties()
