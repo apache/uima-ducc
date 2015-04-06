@@ -1247,7 +1247,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			String heartbeat = "*";
 			String heartmax = "*";
 			Properties properties = DuccDaemonRuntimeProperties.getInstance().get(daemonName);
-			if(db) {
+			if(!db) {
 				switch(daemonName) {
 				case DbManager:
 					continue daemons;
