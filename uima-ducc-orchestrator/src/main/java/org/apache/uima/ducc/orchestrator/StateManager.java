@@ -745,12 +745,12 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	public boolean isExcessCapacity(DuccWorkJob job) {
+	private boolean isExcessCapacity(DuccWorkJob job) {
 		String methodName = "isExcessCapacity";
 		boolean retVal = false;
 		long total = job.getWiTotal();
 		long done = job.getWiDone();
-		long error = job.getWiDone();
+		long error = job.getWiError();
 		long sum = total + done + error;
 		if(sum > 0) {
 			long capacity = job.getWorkItemCapacity();
