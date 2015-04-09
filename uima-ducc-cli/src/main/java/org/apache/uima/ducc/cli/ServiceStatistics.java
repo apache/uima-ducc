@@ -55,6 +55,11 @@ public class  ServiceStatistics
         this.info = info;
     }
 
+    // UIMA-4336 Seems to help the oracle class loader.
+    public ServiceStatistics()
+    {
+    }
+
     /**
      * Query whether the service is alive.
      * @return "true" if the service is responsive, "false" otherwise.

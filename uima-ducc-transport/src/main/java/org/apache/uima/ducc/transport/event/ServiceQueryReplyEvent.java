@@ -33,7 +33,7 @@ public class ServiceQueryReplyEvent
     List<IServiceDescription> services = new ArrayList<IServiceDescription>();
     public ServiceQueryReplyEvent()
     {
-        super(true, "Query Reply", "No Endpoint", -1);
+        super();           // UIMA-4336 Enforce beany construction
     }
 
     public void addService(IServiceDescription s)

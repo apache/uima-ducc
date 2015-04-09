@@ -798,10 +798,16 @@ public class DuccServiceApi
 
     static boolean format_reply(UiOption verb, IServiceReply reply)
     {
-        // Note
-        String ep = reply.getEndpoint()!=null ? reply.getEndpoint() : "";
+        //String ep = reply.getEndpoint()!=null ? reply.getEndpoint() : "";
+        //String id = reply.getId()!=-1 ? " ID["+String.valueOf(reply.getId())+"]" : "";
+        //String result = (reply.getReturnCode()) ? " succeeded - " : " failed - ";
+        //String msg = "Service " + verb + result + reply.getMessage() + " - " + ep + id;
+
+        // UIMA-4336 Slight rework because different JREs return different results.
+        String ep = (reply.getEndpoint() == null) ? "N/A" : reply.getEndpoint();
         String id = reply.getId()!=-1 ? " ID["+String.valueOf(reply.getId())+"]" : "";
-        String result = (reply.getReturnCode()) ? " succeeded - " : " failed - ";
+        boolean rc = reply.getReturnCode();
+        String result = rc ? " succeeded - " : " failed - ";
         String msg = "Service " + verb + result + reply.getMessage() + " - " + ep + id;
         switch ( verb ) {
            case Register:
@@ -816,7 +822,7 @@ public class DuccServiceApi
                System.out.println(msg);
                break;
            case Query:
-               if (reply.getReturnCode()) {
+               if (rc) {
                    System.out.println(reply.toString());
                } else {
                    System.out.println(msg);
@@ -824,7 +830,7 @@ public class DuccServiceApi
                break;
         }
 
-        return reply.getReturnCode();
+        return rc;
     }
 
     static boolean Register(String[] args)
@@ -990,6 +996,10 @@ public class DuccServiceApi
      */
 	public static void main(String[] args) 
     {        
+        System.out.println(System.getProperty("java.vendor"));
+        System.out.println(System.getProperty("java.version"));
+        System.out.println(System.getProperty("java.home"));
+
         boolean rc = false;
         try {
             switch ( getVerb(args) ) {

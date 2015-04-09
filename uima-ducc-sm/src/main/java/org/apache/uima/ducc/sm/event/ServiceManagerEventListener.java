@@ -74,7 +74,12 @@ public class ServiceManagerEventListener
 
     private ServiceReplyEvent failureEvent(String message)
     {
-        return new ServiceReplyEvent(false, message, "no.endpoint", -1);
+        ServiceReplyEvent ret = new ServiceReplyEvent();       // UIMA-4336 construct the response beanily
+        ret.setReturnCode(false);
+        ret.setMessage(message);
+        ret.setEndpoint("no.endpoint");
+        ret.setId(-1);
+        return ret;
     }
 
     private ServiceReplyEvent failureEvent()

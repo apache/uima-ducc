@@ -55,7 +55,6 @@ import org.apache.uima.ducc.transport.event.ServiceIgnoreEvent;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
 import org.apache.uima.ducc.transport.event.ServiceObserveEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryEvent;
-import org.apache.uima.ducc.transport.event.ServiceQueryReplyEvent;
 import org.apache.uima.ducc.transport.event.ServiceRegisterEvent;
 import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
 import org.apache.uima.ducc.transport.event.ServiceStartEvent;
@@ -235,6 +234,17 @@ public class ServiceManagerComponent
         synchronized(this) {
             initialized = true;
         }
+    }
+
+    // UIMA-4336 Construct the response as a beany thing.
+    static ServiceReplyEvent makeResponse(boolean rc, String message, String endpoint, long id)
+    {
+        ServiceReplyEvent ret = new ServiceReplyEvent();
+        ret.setReturnCode(rc);
+        ret.setMessage(message);
+        ret.setEndpoint(endpoint);
+        ret.setId(id);
+        return ret;
     }
 
     void readAdministrators()
@@ -714,7 +724,7 @@ public class ServiceManagerComponent
             String reason = "Incompatible CLI request using version " + req.getCliVersion()
                             + " while DUCC expects version " + CliVersion.getVersion();
             logger.warn(methodName, null, action + " rejected. " + reason);
-            req.setReply(new ServiceReplyEvent(false, reason, action, -1));
+            req.setReply(makeResponse(false, reason, action, -1));
             return false;
         }
         
@@ -732,7 +742,7 @@ public class ServiceManagerComponent
 
         if ( ! validated ) {
             logger.warn(methodName, null, "User", user, "cannot be validated.", action, "rejected.");
-            req.setReply(new ServiceReplyEvent(false, "User " + user + " cannot be validated. " + action + " rejected.", action, -1));
+            req.setReply(makeResponse(false, "User " + user + " cannot be validated. " + action + " rejected.", action, -1));
             return false;
         }
         return true;
@@ -744,7 +754,7 @@ public class ServiceManagerComponent
         if (  orchestrator_alive ) return true;
 
         logger.warn(methodName, null, action, "rejected: orchestrator is not yet active");
-        req.setReply(new ServiceReplyEvent(false, action + " rejected, DUCC is still initializing.", action, -1));
+        req.setReply(makeResponse(false, action + " rejected, DUCC is still initializing.", action, -1));
         return false;
     }
 
@@ -767,7 +777,7 @@ public class ServiceManagerComponent
             id = newId();
         } catch ( Exception e ) {
             logger.error(methodName, null, e);
-            ev.setReply(new ServiceReplyEvent(false, "Internal error; unable to generate id", endpoint, -1));
+            ev.setReply(makeResponse(false, "Internal error; unable to generate id", endpoint, -1));
             return;
         }
         logger.debug(methodName, id, "Unique:", id.getUnique());
@@ -906,7 +916,7 @@ public class ServiceManagerComponent
         if ( ! orchestratorAlive("Query", ev) ) return;
 
         logger.info(methodName, null, "Query", ev.toString());
-        ServiceQueryReplyEvent reply = handler.query(ev);
+        ServiceReplyEvent reply = handler.query(ev);
         ev.setReply(reply);
         //ev.setReply(ServiceCode.OK, "Service not implemented.", "no-endpoint", null);
     }

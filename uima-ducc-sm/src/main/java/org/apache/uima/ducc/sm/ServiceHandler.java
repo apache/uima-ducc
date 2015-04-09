@@ -645,7 +645,7 @@ public class ServiceHandler
         }
     }
 
-    ServiceQueryReplyEvent query(ServiceQueryEvent ev)
+    ServiceReplyEvent query(ServiceQueryEvent ev)      // UIMA-4336 Redeclare return type
     {
     	//String methodName = "query";
         long   id     = ev.getFriendly();
@@ -657,9 +657,12 @@ public class ServiceHandler
                 IServiceDescription sd = sset.query();
                 updateServiceQuery(sd, sset);
                 reply.addService(sd);
+                reply.setReturnCode(true);
             }
         } else {
             ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
+            reply.setEndpoint(url);
+            reply.setId(id);
             if ( sset == null ) {
                 reply.setMessage("Unknown service");
                 reply.setEndpoint(url);
@@ -668,6 +671,7 @@ public class ServiceHandler
                 IServiceDescription sd = sset.query();
                 updateServiceQuery(sd, sset);
                 reply.addService(sd);
+                reply.setReturnCode(true);
             }
         } 
 
@@ -708,11 +712,11 @@ public class ServiceHandler
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Unknown service", url, id);
+            return ServiceManagerComponent.makeResponse(false, "Unknown service", url, id);
         }
 
         if ( ! authorized("start", sset, ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
 
 
@@ -722,12 +726,12 @@ public class ServiceHandler
         if ( (instances == -1) && !sset.enabled() ) {    // no args always enables
             sset.enable();
         } else if ( ! sset.enabled() ) {
-            return new ServiceReplyEvent(false, "Service is disabled, cannot start (" + sset.getDisableReason() + ")", url, sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Service is disabled, cannot start (" + sset.getDisableReason() + ")", url, sset.getId().getFriendly());
         }
 
         if ( sset.isDebug() ) {
             if ( sset.countImplementors() > 0 ) {
-                return new ServiceReplyEvent(true, 
+                return ServiceManagerComponent.makeResponse(true, 
                                              "Already has instances[" + running + "] and service has process_debug set - no additional instances started", 
                                              sset.getKey(), 
                                              sset.getId().getFriendly());
@@ -744,7 +748,7 @@ public class ServiceHandler
         }
         
         if ( wanted == 0 ) {
-            return new ServiceReplyEvent(true, 
+            return ServiceManagerComponent.makeResponse(true, 
                                          "Already has instances[" + running + "] - no additional instances started", 
                                          sset.getKey(), 
                                          sset.getId().getFriendly());
@@ -753,12 +757,12 @@ public class ServiceHandler
         pendingRequests.add(new ApiHandler(ev, this));
 
         if ( sset.isDebug() && (wanted > 1) ) {
-            return new ServiceReplyEvent(true, 
+            return ServiceManagerComponent.makeResponse(true, 
                                          "Instances adjusted to [1] because process_debug is set",
                                          sset.getKey(), 
                                          sset.getId().getFriendly());
         } else {
-            return new ServiceReplyEvent(true, 
+            return ServiceManagerComponent.makeResponse(true, 
                                          "New instances[" + wanted + "]", 
                                          sset.getKey(), 
                                          sset.getId().getFriendly());
@@ -816,15 +820,15 @@ public class ServiceHandler
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Unknown service", url, id);
+            return ServiceManagerComponent.makeResponse(false, "Unknown service", url, id);
         }
 
         if ( ! authorized("stop", sset, ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
 
         if ( sset.isStopped() ) {
-            return new ServiceReplyEvent(false, "Already stopped", sset.getKey(), sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Already stopped", sset.getKey(), sset.getId().getFriendly());
         }
 
         int running    = sset.countImplementors();
@@ -842,7 +846,7 @@ public class ServiceHandler
 
         logger.info(methodName, sset.getId(), msg);
         pendingRequests.add(new ApiHandler(ev, this));
-        return new ServiceReplyEvent(true, msg, sset.getKey(), sset.getId().getFriendly());
+        return ServiceManagerComponent.makeResponse(true, msg, sset.getKey(), sset.getId().getFriendly());
     }
 
     //
@@ -881,20 +885,20 @@ public class ServiceHandler
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Unknown service", url, id);
+            return ServiceManagerComponent.makeResponse(false, "Unknown service", url, id);
         }
 
         if ( ! authorized("disable", sset, ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
 
         if ( !sset.enabled() ) {
-            return new ServiceReplyEvent(true, "Service is already disabled", sset.getKey(), sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(true, "Service is already disabled", sset.getKey(), sset.getId().getFriendly());
         }
 
         sset.disable("Disabled by owner or administrator " + ev.getUser());
         sset.saveMetaProperties();
-        return new ServiceReplyEvent(true, "Disabled", sset.getKey(), sset.getId().getFriendly());
+        return ServiceManagerComponent.makeResponse(true, "Disabled", sset.getKey(), sset.getId().getFriendly());
     }
 
     ServiceReplyEvent enable(ServiceEnableEvent ev)
@@ -903,20 +907,20 @@ public class ServiceHandler
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Unknown service", url, id);
+            return ServiceManagerComponent.makeResponse(false, "Unknown service", url, id);
         }
 
         if ( ! authorized("enable", sset, ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
 
         if ( sset.enabled() ) {
-            return new ServiceReplyEvent(true, "Service is already enabled", sset.getKey(), sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(true, "Service is already enabled", sset.getKey(), sset.getId().getFriendly());
         }
 
         sset.enable();
         sset.saveMetaProperties();
-        return new ServiceReplyEvent(true, "Enabled.", sset.getKey(), sset.getId().getFriendly());
+        return ServiceManagerComponent.makeResponse(true, "Enabled.", sset.getKey(), sset.getId().getFriendly());
     }
 
 
@@ -926,27 +930,27 @@ public class ServiceHandler
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Unknown service", url, id);
+            return ServiceManagerComponent.makeResponse(false, "Unknown service", url, id);
         }
 
         if ( ! authorized("ignore", sset, ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
 
         if ( sset.isAutostart() ) {
-            return new ServiceReplyEvent(false, "Service is autostarted, ignore-references not applied.", sset.getKey(), sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Service is autostarted, ignore-references not applied.", sset.getKey(), sset.getId().getFriendly());
         }
 
         if ( !sset.isReferencedStart() ) {
-            return new ServiceReplyEvent(true, "Service is already ignoring references", sset.getKey(), sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(true, "Service is already ignoring references", sset.getKey(), sset.getId().getFriendly());
         }
 
         if ( sset.countImplementors() == 0 ) {
-            return new ServiceReplyEvent(false, "Cannot ignore references, service is not running.", sset.getKey(), sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Cannot ignore references, service is not running.", sset.getKey(), sset.getId().getFriendly());
         }
         
         sset.ignoreReferences();
-        return new ServiceReplyEvent(true, "References now being ignored.", sset.getKey(), sset.getId().getFriendly());
+        return ServiceManagerComponent.makeResponse(true, "References now being ignored.", sset.getKey(), sset.getId().getFriendly());
     }
 
     ServiceReplyEvent observe(ServiceObserveEvent ev)
@@ -955,23 +959,23 @@ public class ServiceHandler
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Unknown service", url, id);
+            return ServiceManagerComponent.makeResponse(false, "Unknown service", url, id);
         }
 
         if ( ! authorized("observe", sset, ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
 
         if ( sset.isAutostart() ) {
-            return new ServiceReplyEvent(false, "Must set autostart off before enabling reference-starts.", sset.getKey(), sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Must set autostart off before enabling reference-starts.", sset.getKey(), sset.getId().getFriendly());
         }
         
         if ( sset.countImplementors() == 0 ) {
-            return new ServiceReplyEvent(false, "Cannot observe references, service is not running.", sset.getKey(), sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Cannot observe references, service is not running.", sset.getKey(), sset.getId().getFriendly());
         }
 
         sset.observeReferences();
-        return new ServiceReplyEvent(true, "Observing references.", sset.getKey(), sset.getId().getFriendly());
+        return ServiceManagerComponent.makeResponse(true, "Observing references.", sset.getKey(), sset.getId().getFriendly());
     }
 
     ServiceReplyEvent register(DuccId id, String props_filename, String meta_filename, DuccProperties props, DuccProperties meta)
@@ -985,7 +989,7 @@ public class ServiceHandler
         ServiceSet sset = serviceStateHandler.getServiceByUrl(url);
         if (sset != null ) {
             error = "Duplicate registered by " + sset.getUser();
-            return new ServiceReplyEvent(false, error, url, sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, error, url, sset.getId().getFriendly());
         }
 
         try {
@@ -993,7 +997,7 @@ public class ServiceHandler
         } catch (Throwable t) {
             // throws because endpoint is not parsable
             error = t.getMessage();
-            return new ServiceReplyEvent(false, error, url, id.getFriendly());            
+            return ServiceManagerComponent.makeResponse(false, error, url, id.getFriendly());            
         }
 
         try {
@@ -1027,14 +1031,14 @@ public class ServiceHandler
 
         if ( error == null ) {
             serviceStateHandler.registerService(id.getFriendly(), url, sset);
-            return new ServiceReplyEvent(true, "Registered", url, id.getFriendly());
+            return ServiceManagerComponent.makeResponse(true, "Registered", url, id.getFriendly());
         } else {
             File mf = new File(meta_filename);
             mf.delete();
             
             File pf = new File(props_filename);
             pf.delete();
-            return new ServiceReplyEvent(false, error, url, id.getFriendly());
+            return ServiceManagerComponent.makeResponse(false, error, url, id.getFriendly());
         }
     }
 
@@ -1044,15 +1048,15 @@ public class ServiceHandler
         String url = ev.getEndpoint();
     	ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Unknown service", url, id);
+            return ServiceManagerComponent.makeResponse(false, "Unknown service", url, id);
         }
 
         if ( ! authorized("modify", sset, ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
         
         pendingRequests.add(new ApiHandler(ev, this));
-        return new ServiceReplyEvent(true, "Modifying", sset.getKey(), sset.getId().getFriendly());
+        return ServiceManagerComponent.makeResponse(true, "Modifying", sset.getKey(), sset.getId().getFriendly());
     }
 
     boolean restart_pinger = false;
@@ -1200,7 +1204,7 @@ public class ServiceHandler
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Unknown service",  url, id);
+            return ServiceManagerComponent.makeResponse(false, "Unknown service",  url, id);
         }
 
         id = sset.getId().getFriendly();           // must insure the ev has the numeric id because we work entirely with that from now ow
@@ -1209,13 +1213,13 @@ public class ServiceHandler
         ev.setFriendly(id);
 
         if ( ! authorized("unregister", sset, ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+            return ServiceManagerComponent.makeResponse(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
         
         serviceStateHandler.unregister(sset);
         sset.deregister();          // just sets a flag so we know how to handle it when it starts to die
         pendingRequests.add(new ApiHandler(ev, this));
-        return new ServiceReplyEvent(true, "Shutting down implementors", sset.getKey(), sset.getId().getFriendly());
+        return ServiceManagerComponent.makeResponse(true, "Shutting down implementors", sset.getKey(), sset.getId().getFriendly());
     }
 
     //

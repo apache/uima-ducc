@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.transport.event;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
@@ -29,20 +30,31 @@ public class ServiceReplyEvent
     extends AbstractDuccEvent
     implements IServiceReply
 {
-    private boolean return_code;
+    /**
+	 * 
+	 */
+	//private static final long serialVersionUID = -7049634721774766694L;
+	private boolean return_code;
     private String message = "N/A";
-    private String endpoint;
-    private long id;
-    
-	public ServiceReplyEvent(boolean rc, String message, String endpoint, long id)
-    {
-		super(EventType.SERVICE_REPLY);
-        this.return_code = rc;
-        this.message = message;
-        this.endpoint = endpoint;
-        this.id = id;
-	}
+    private String endpoint = "N/A";
+    private long id = -1l;
 
+	//List<IServiceDescription> services = new ArrayList<IServiceDescription>();
+
+    public ServiceReplyEvent()
+    {
+        super(EventType.SERVICE_REPLY);
+    }
+
+	// public ServiceReplyEvent(boolean rc, String message, String endpoint, long id)
+    // {
+	// 	super(EventType.SERVICE_REPLY);
+    //     this.return_code = rc;
+    //     this.message = message;
+    //     this.endpoint = endpoint;
+    //     this.id = id;
+	// }
+    
 	public boolean getReturnCode() {
 		return return_code;
 	}
@@ -80,6 +92,11 @@ public class ServiceReplyEvent
     {
         return null;
     }
+
+    //public void addService(IServiceDescription s)
+    //{
+    //    this.services.add(s);
+    //}
 
 	@Override
 	public String toString() {
