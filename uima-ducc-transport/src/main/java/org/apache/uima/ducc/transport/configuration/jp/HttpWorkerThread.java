@@ -175,7 +175,7 @@ public class HttpWorkerThread implements Runnable {
 					transaction.setTransactionId(tid);
 					httpClient.execute(transaction, postMethod); 
 					
-                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Sent ACK");
+                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" ACK reply recv'd");
                     
 					// if the JD did not provide a Work Item, most likely the CR is
 					// done. In such case, reduce frequency of Get requests
