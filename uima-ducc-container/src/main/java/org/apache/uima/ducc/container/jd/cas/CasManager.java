@@ -84,7 +84,7 @@ public class CasManager {
 			mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 			mb.append(Standardize.Label.puts.get()+casManagerStats.getRetryQueuePuts());
 			mb.append(Standardize.Label.gets.get()+casManagerStats.getRetryQueueGets());
-			logger.info(location, ILogger.null_id, mb);
+			logger.debug(location, ILogger.null_id, mb);
 		}
 		return metaCas;
 	}
@@ -103,7 +103,7 @@ public class CasManager {
 		mb.append(Standardize.Label.puts.get()+casManagerStats.getRetryQueuePuts());
 		mb.append(Standardize.Label.gets.get()+casManagerStats.getRetryQueueGets());
 		mb.append(Standardize.Label.reason.get()+retryReason.name());
-		logger.info(location, ILogger.null_id, mb);
+		logger.debug(location, ILogger.null_id, mb);
 	}
 	
 	public CasManagerStats getCasManagerStats() {
