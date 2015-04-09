@@ -1333,6 +1333,10 @@ public class NodepoolScheduler
         logger.info(methodName, j.getId(), "Counting shares for", j.getShortType() + "." + j.getId(), "in class", rc.getName());
         NodePool np = rc.getNodepool();
 
+        if ( j.isCompleted() ) {
+            return;
+        }
+
         if ( j.countNShares() > 0 ) {                  // only 1 allowed, UIMA-4275
             // already accounted for as well, since it is a non-preemptable share
             logger.info(methodName, j.getId(), "[stable]", "assigned", j.countNShares(), "processes, ", 
@@ -1392,6 +1396,10 @@ public class NodepoolScheduler
                 }
 
                 if ( j.isDeferred() ) {                     // UIMA-4275 - still waiting for an allocation
+                    continue;
+                }
+
+                if ( j.isCompleted() ) {                    // UIMA-4327 - reinstated, if this gets set we aren't allowed to expand any more
                     continue;
                 }
 
@@ -1568,6 +1576,10 @@ public class NodepoolScheduler
                 }
 
                 if ( j.isDeferred() ) {                  // counts don't work, we can't do this yet
+                    continue;
+                }
+
+                if ( j.isCompleted() ) {                 // UIMA-4327 - reinstated, if this gets set we aren't allowed to expand any more
                     continue;
                 }
 

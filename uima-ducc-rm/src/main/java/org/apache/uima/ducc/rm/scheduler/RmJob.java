@@ -180,11 +180,8 @@ public class RmJob
     }
 
     /**
-     * For non-preemptable, remember max alloc has been reached, so we don't try to expand if 
-     * used for a job-job.
-     * 
-     * For preemptable, must remember the job completed for defrag, because it could stick 
-     * around a while after completion.
+     * For preemptable, must remember the job completed so we don't accidentally reexpand it.  Can
+     * happen in defrag and maybe various races with OR state.
      */
     public void markComplete()
     {

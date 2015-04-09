@@ -743,6 +743,14 @@ public class JobManagerConverter
                 throw new SchedulingException(jobid, "Process completion arrives for share " + s.toString() +
                                               " but job " + jobid + "cannot be found.");
             }
+
+            switch ( l.getDuccType() ) {        // UIMA-4326, if not a jobjob, the job must not get reallocations
+                case Job:
+                    break;
+                default:
+                    j.markComplete();
+            }
+
             scheduler.signalCompletion(j, s);
             logger.info(methodName, jobid, 
                          String.format("Process %5s", p.getPID()),
@@ -786,7 +794,7 @@ public class JobManagerConverter
                              );
             } else {
                 if ( (pr.getPID() == null) && (pl.getPID() != null) ) {
-                    logger.trace(methodName, jobid, 
+                      logger.trace(methodName, jobid, 
                                 String.format("Process %5s", pl.getPID()),
                                 "PID assignement for share", shareL);
                 }
@@ -826,11 +834,19 @@ public class JobManagerConverter
                 // logger.debug(methodName, jobid, "Process update to process ", pid, "mem", mem, "state", state, "is assigned for share", s.toString());
 
             } else if ( pl.isComplete() ) {
+                IRmJob j = scheduler.getJob(jobid);
                 if ( s != null ) {              // in some final states the share is already gone, not an error (e.g. Stopped)
-                    IRmJob j = scheduler.getJob(jobid);
-                    scheduler.signalCompletion(j, s);
+                    scheduler.signalCompletion(j, s);          // signal the **process** (not job) is complete
                     logger.info(methodName, jobid, "Process", pl.getPID(), " completed due to state", state);
                 }
+
+                switch ( l.getDuccType() ) {        // UIMA-4326, if not a jobjob, the job must not get reallocations
+                    case Job:
+                        break;
+                    default:
+                        j.markComplete();
+                }
+                
             } else {
                 logger.info(methodName, jobid, "Process", pl.getPID(), "ignoring update because of state", state);
             }

@@ -54,6 +54,9 @@ class NodePool
     HashMap<Node, Machine> offlineMachines                   = new HashMap<Node, Machine>();
     HashMap<Integer, HashMap<Node, Machine>> machinesByOrder = new HashMap<Integer, HashMap<Node, Machine>>(); // All schedulable machines, not necessarily free
     HashMap<String, Machine>                 machinesByName  = new HashMap<String, Machine>();                 // by name, for nodepool support
+    HashMap<String, Machine>                 deadByName      = new HashMap<String, Machine>();                 // anything we move to offline or unresponsive,
+                                                                                                               // but with the same name we used, because
+                                                                                                               // sometimes stupid domain gets in the way
     HashMap<String, Machine>                 machinesByIp    = new HashMap<String, Machine>();                 // by IP, for nodepool support
 
     HashMap<Share, Share>                    allShares       = new HashMap<Share, Share>();
@@ -1004,6 +1007,22 @@ class NodePool
                     break;
                 }
 
+                switch ( j.getDuccType() ) {
+                    case Reservation:
+                    // UIMA-3614.  Only actual reservation is left intact
+                    logger.info(methodName, null, "Nodepool:", id, "Host dead/offline:", m.getId(), "Not purging", j.getDuccType());
+                    break;
+
+                    case Service:                        
+                    case Pop:
+                        j.markComplete();      // UIMA-4327 Must avoid reallocation, these guys are toast if they get purged.
+                        logger.info(methodName, null, "Nodepool:", id, "Host dead/offline:", m.getId(), "Mark service/pop completed.");
+                        // NO BREAK, must fall through
+                    case Job:
+                    default:
+                        break;
+                }
+
                 logger.info(methodName, j.getId(), "Nodepool:", id, "Purge", j.getDuccType(), "on dead/offline:", m.getId());
                 j.shrinkByOne(s);
                 nPendingByOrder[order]++;
@@ -1041,7 +1060,17 @@ class NodePool
     // name?  see resolve() in Scheduler.java.
     boolean hasNode(String n)
     {
-        return machinesByName.containsKey(n);
+        if ( machinesByName.containsKey(n) ) return true;
+
+        // If not we have to search the offline machines and the unresponsive machines which are
+        // keyed differently.  This is really ugly but hard to fix at this point, so cope.
+        for ( Node node : offlineMachines.keySet() ) {
+            if ( node.getNodeIdentity().getName().equals(n) ) return true;
+        }
+        for ( Node node : unresponsiveMachines.keySet() ) {
+            if ( node.getNodeIdentity().getName().equals(n) ) return true;
+        }
+        return false;
     }
 
     String varyoff(String node)
