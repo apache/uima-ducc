@@ -76,8 +76,8 @@ public class ActionAckTimeout extends Action implements IAction {
 						MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
 						IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 						int seqNo = metaCasHelper.getSystemKey();
-						wisk.preempt(seqNo);
-						pStats.preempt(wi);
+						wisk.retry(seqNo);
+						pStats.retry(wi);
 						displayProcessStatistics(logger, actionData, wi, pStats);
 						wi.reset();
 					}
