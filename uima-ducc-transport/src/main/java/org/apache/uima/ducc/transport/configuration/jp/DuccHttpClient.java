@@ -308,8 +308,10 @@ public class DuccHttpClient {
 	            addCommonHeaders(postMethod);
 	    
 	            postMethod.setRequestHeader("Content-Length", String.valueOf(body.length()));
+	            logger.debug("execute",null, "calling httpClient.executeMethod()");
 	            // wait for a reply
 	            httpClient.executeMethod(postMethod);
+	            logger.debug("execute",null, "httpClient.executeMethod() returned");
                 
                 String content = new String(postMethod.getResponseBody());
                 

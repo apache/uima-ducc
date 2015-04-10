@@ -173,6 +173,7 @@ public class HttpWorkerThread implements Runnable {
 					command = Type.Ack.name();
 					tid = new TransactionId(major, minor++);
 					transaction.setTransactionId(tid);
+					logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Sending ACK request - WI:"+transaction.getMetaCas().getSystemKey());
 					httpClient.execute(transaction, postMethod); 
 					
                     logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" ACK reply recv'd");
