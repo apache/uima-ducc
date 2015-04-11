@@ -45,6 +45,10 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract implements IWorkI
 	
 	private DuccLogger logger = DuccLogger.getLogger(WorkItemStateKeeper.class, null);
 	
+	private ConcurrentHashMap<Long, IWorkItemState> persist_map = new ConcurrentHashMap<Long, IWorkItemState>();
+	
+	private enum RecordingType { Memory, Disk };
+	
 	public WorkItemStateKeeper(String component, String directory) {
 		logger = DuccLogger.getLogger(WorkItemStateKeeper.class, component);
 		activeMap = new ActiveMap(component);
@@ -230,6 +234,10 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract implements IWorkI
 	}
 
 	private synchronized void record(IWorkItemState wis) {
+		record(wis, RecordingType.Memory);
+	}
+	
+	private synchronized void record(IWorkItemState wis, RecordingType rType) {
 		String location = "record";
 		try {
 			State state = wis.getState();
@@ -239,15 +247,28 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract implements IWorkI
 			switch(state) {
 			case ended:
 			case error:
-				activeMap.remove(key);
-				recordFinal(wis);
-				updateStatistics(wis);
+				switch(rType) {
+				case Memory:
+					activeMap.remove(key);
+					updateStatistics(wis);
+					break;
+				case Disk:
+					recordFinal(wis);
+					break;
+				}
 				break;
 			default:
 				activeMap.put(key, wis);
 				break;
 			}
-			recordActive();
+			switch(rType) {
+			case Memory:
+				persist_map.put(key, wis);
+				break;
+			case Disk:
+				recordActive();
+				break;
+			}
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
@@ -398,6 +419,20 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract implements IWorkI
 				stats.millisCompletedMost = 0;
 				break;
 			}
+		}
+	}
+
+	@Override
+	public void persist() {
+		String location = "persist";
+		if(logger!= null) {
+			logger.trace(location, jobid, "size: "+persist_map.size());
+		}
+		for(Entry<Long, IWorkItemState> entry : persist_map.entrySet()) {
+			Long key = entry.getKey();
+			persist_map.remove(key);
+			IWorkItemState wis = entry.getValue();
+			record(wis, RecordingType.Disk);
 		}
 	}
 
