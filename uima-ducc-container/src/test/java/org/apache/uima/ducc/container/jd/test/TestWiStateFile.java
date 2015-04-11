@@ -69,6 +69,8 @@ public class TestWiStateFile extends ATest {
 			wisk.operating(5);
 			wisk.retry(5);
 			//
+			wisk.persist();
+			//
 			String user = "self";
 			long version = 1;
 			IWorkItemStateReader wisr = new WorkItemStateReader(component, directory, user, version);		
