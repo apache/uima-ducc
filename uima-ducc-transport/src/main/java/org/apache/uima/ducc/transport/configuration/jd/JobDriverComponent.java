@@ -29,6 +29,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.container.FlagsHelper.Name;
+import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -169,6 +170,8 @@ implements IJobDriverComponent {
 				DuccWorkMap dwMap = duccEvent.getWorkMap();
 				DuccWorkJob dwj = (DuccWorkJob) dwMap.findDuccWork(duccId);
 				if(dwj != null) {
+					IWorkItemStateKeeper wisk = JobDriver.getInstance().getWorkItemStateKeeper();
+					wisk.persist();
 					IDuccProcessMap pMap = dwj.getProcessMap();
 					dpMap = pMap;
 					for(Entry<DuccId, IDuccProcess> entry : pMap.entrySet()) {
