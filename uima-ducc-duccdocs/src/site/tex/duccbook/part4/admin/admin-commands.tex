@@ -294,6 +294,70 @@ check_ducc -n nlist1 -n nlist2
               
 
            \end{description}               
+
+\subsection{rm\_reconfigure}
+\label{subsec:admin.rm-reconfigure}
+
+    \subsubsection{{\em Description:}}
+    Rm\_reconfigure is used to force the Resource Manager (RM) to reread all its configuration
+    files and reconfigure itself accordingly, without the need to fully stop and restart RM.
+    This is generally much faster than RM restart and avoids losing most state messages from
+    the other DUCC processes.
+    
+    The {\em rm\_reconfigure} command first performs a 
+    \hyperref[sec:admin.properties-merge]{properties merge.}
+
+    RM then validates the new
+    configuration, and if no errors are found, saves certain information such as current node
+    online-offline status.  It then rereads the following configuration files and rebuilds its
+    internal structures accordingly:
+    \begin{itemize}
+      \item ducc.properties (after merging default.ducc.properties and site.ducc.properties,
+      \item ducc.classes,
+      \item log4j.xml.
+    \end{itemize}
+    The saved configuration is then restored into the newly configured structures.
+    On receipt of the next Orchestrator state, the RM fully rebuilds its state from the current
+    DUCC load and scheduling restarts.
+
+    Depending on the nature of the new configuration, the current load may be adjusted; for
+    example, if the weight of a fair-share class is changed, preemptions or extra allocations
+    may be performed.
+
+    If the new configuration is not consistent with the current load, a number of more drastic
+    adjustments will be performed:
+    \begin{itemize}
+      \item If a fair-share class is deleted, all existing jobs for that class are preempted
+        and a {\em refusal} message is sent to the Orchestrator for each affected job.
+      \item If a fair-share class is redefined over a different nodepool such that existing
+        work are no longer legally scheduled, any shares allocated over inappropriate
+        hosts are {\em preempted}.  As soon as the preemptions are acknowledged, the RM
+        will reschedule the shares over the differently-configured resources.
+      \item If a non-preemptable class is deleted or reconfigured so existing non-preempt able
+        work is no longer allocated correctly, the following will occur:
+        \begin{itemize}
+            \item If the shares are for services, they are deallocated and a {\em refusal} is
+              sent to the Orchestrator.  The Service Manager will observe this and restart the
+              processes, causing them to be reallocated over the changed configuration.
+            \item Otherwise, the RM leaves the allocation in place, but places the hosts on an
+              internal {\em blacklist}, preventing subsequent scheduling to those hosts. Once
+              the (now) incorrectly placed shares are freed (e.g. by canceling a reservation or
+              exit of a managed reservation), the hosts are again white listed and made available
+              for scheduling.
+        \end{itemize}
+     \end{itemize}
+        
+    In short, the RM makes every effort to avoid disturbing existing allocations, and blacklists
+    hosts that are no longer consistently configured for the current load, until such time as
+    the allocations on those hosts are released.
+
+    \subsubsection{\em Usage:}
+
+    \begin{description}
+      \item[rm\_reconfigure] \hfill \\ 
+        This command has no options.
+      \end{description}
+             
        
 \subsection{vary\_off}
 \label{subsec:admin.vary-off}

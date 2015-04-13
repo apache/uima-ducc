@@ -28,6 +28,7 @@
     ducc\_runtime/resources/private.
 
 \section{Properties merging}
+\label{sec:admin.properties-merge}
     
     With DUCC 2.0.0 the shipped DUCC properties file is designed to be read-only.  Installations
     create a local properties file which is automatically merged with the default properties file
@@ -40,7 +41,13 @@
     normal Java properties file containing override and additional properties.  An initial
     {\em site.ducc.properties} is created on installation of DUCC 2.0.0 by {\em ducc\_post\_install}.
 
-    On startup ({\em start\_ducc}) or verification ({\em check\_ducc}) the two properties files are
+    On startup 
+    (\hyperref[subsec:admin.start-ducc]{\em start\_ducc}), 
+    verification 
+    (\hyperref[subsec:admin.check-ducc]{\em check\_ducc}),     
+    and RM reconfiguration
+    (\hyperref[subsec:admin.rm-reconfigure]{\em rm\_reconfigure}),     
+    the two properties files are
     merged, with {\em site.ducc.properties} taking preference, to create the operational file,
     {\em ducc.properties}, which is used by all DUCC compononts.  This file should not be
     edited as it will be over-written whenever {\em start\_ducc} or {\em check\_ducc} is run.
