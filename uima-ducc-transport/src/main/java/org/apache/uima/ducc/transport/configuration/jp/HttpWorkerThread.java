@@ -164,19 +164,19 @@ public class HttpWorkerThread implements Runnable {
                     // The JD may not provide a Work Item to process.
 			    	if ( transaction.getMetaCas()!= null) {
     					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaCas().getSystemKey());
+    					// Confirm receipt of the CAS. 
+    					transaction.setType(Type.Ack);
+    					command = Type.Ack.name();
+    					tid = new TransactionId(major, minor++);
+    					transaction.setTransactionId(tid);
+    					logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Sending ACK request - WI:"+transaction.getMetaCas().getSystemKey());
+    					httpClient.execute(transaction, postMethod); 
+    					
+                        logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" ACK reply recv'd");
                     } else {
     					logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd JD Response, however there is no MetaCas. Sleeping for "+duccComponent.getThreadSleepTime());
                     }
 
-					// Confirm receipt of the CAS. 
-					transaction.setType(Type.Ack);
-					command = Type.Ack.name();
-					tid = new TransactionId(major, minor++);
-					transaction.setTransactionId(tid);
-					logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Sending ACK request - WI:"+transaction.getMetaCas().getSystemKey());
-					httpClient.execute(transaction, postMethod); 
-					
-                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" ACK reply recv'd");
                     
 					// if the JD did not provide a Work Item, most likely the CR is
 					// done. In such case, reduce frequency of Get requests
