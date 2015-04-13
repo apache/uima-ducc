@@ -29,6 +29,10 @@
         DUCC_HOME/resources/log4j.xml
 \end{verbatim}
 
+    The DUCC logger is configured to check for updates to the log4j.xml
+    configuration file and automatically update without the need to restart any of
+    the DUCC processes.  The update may take up to 60 seconds to take effect.
+
     The logs are set to roll after some reaching a given size and the number of generations
     is limited to prevent overrunning disk space.  In general the log level is set to
     provide sufficient diagnostic output to resolve most issues.
