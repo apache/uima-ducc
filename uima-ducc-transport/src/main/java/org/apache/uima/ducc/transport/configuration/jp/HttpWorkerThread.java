@@ -171,7 +171,11 @@ public class HttpWorkerThread implements Runnable {
     					transaction.setTransactionId(tid);
     					logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Sending ACK request - WI:"+transaction.getMetaCas().getSystemKey());
     					httpClient.execute(transaction, postMethod); 
-    					
+    					if ( transaction.getMetaCas() == null) {
+    						// this can be the case when a JD receives ACK late 
+        					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" ACK reply recv'd, however there is no MetaCas. The JD Cancelled the transaction");
+        					continue; // ask for more
+    					}
                         logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" ACK reply recv'd");
                     } else {
     					logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd JD Response, however there is no MetaCas. Sleeping for "+duccComponent.getThreadSleepTime());
