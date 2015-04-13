@@ -25,6 +25,8 @@ import sys
 from ducc_util  import DuccUtil
 
 class DuccRmReconfigure(DuccUtil):
+    def __init__(self):
+        DuccUtil.__init__(self, True)
 
     def usage(self, msg):
         if ( msg != None ):
