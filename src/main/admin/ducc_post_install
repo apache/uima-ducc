@@ -155,11 +155,12 @@ class PostInstall():
 
             self.path_to_java = which('java')
             if ( self.path_to_java == None ):
+                reply = ''
                 while ( reply == '' ):
-                    reply = raw_input('Enter full path to the Java binary directory: ')
+                    reply = raw_input('Enter full path to the Java executable: ')
             else:
                 prompt = '[' + self.path_to_java + ']'
-                reply = raw_input('Enter full path to the Java binary directory: ' + prompt)
+                reply = raw_input('Enter full path to the Java executable: ' + prompt)
 
             if ( reply != '' ):       
                 self.path_to_java = reply
