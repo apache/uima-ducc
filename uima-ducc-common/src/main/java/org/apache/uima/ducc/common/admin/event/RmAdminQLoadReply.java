@@ -18,152 +18,33 @@
 */
 package org.apache.uima.ducc.common.admin.event;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RmAdminQLoadReply
     extends RmAdminReply
 {
 	private static final long serialVersionUID = -8101741014979144426L;
 
-    int nodesOnline;      // number of schedulable nodes
-    int nodesDead;        // number of nodes marked dead
-    int nodesOffline;     // number of nodes varied off
-    int nodesFree;        // number of nodes with nothing on them
-
-    int sharesAvailable;  // total shares available for scheduling (busy plus empty)
-    int sharesFree;       // total shares unused
-    int[] sharesDemanded; // shares that would be used in an infinite-share system
-    int[] sharesAwarded;  // shares assigned, less pending preemptions, plus pending expansions
-    int[] machinesOnline;   // machines available for scheduling
-    int[] machinesFree; // machines with no assignments
-    int[] machinesVirtual; // machines after carving out space
-    int pendingEvictions;  // number of evictions started but not confirmed
-    int pendingExpansions; // number of expansions started but not confirmed
+    private long shareQuantum;
+    private List<RmQueriedNodepool> nodepools = new ArrayList<RmQueriedNodepool>();
+    private List<RmQueriedClass>    classes   = new ArrayList<RmQueriedClass>();
 
     public RmAdminQLoadReply()
     {
     	super(null);
     }
 
-    public int getNodesOnline() {
-		return nodesOnline;
-	}
 
-	public void setNodesOnline(int nodes_online) {
-		this.nodesOnline = nodes_online;
-	}
+    public void setShareQuantum(long q)               { this.shareQuantum = q / ( 1024*1024); }
+    public void addNodepool    (RmQueriedNodepool np) { nodepools.add(np); }
+    public void addClass       (RmQueriedClass    cl) { classes.add(cl); }
 
-	public int getNodesFree() {
-		return nodesFree;
-	}
+    public long getShareQuantum()                 { return shareQuantum; }
+    public List<RmQueriedNodepool> getNodepools() { return nodepools; }
+    public List<RmQueriedClass>    getClasses()   { return classes; }
 
-	public void setNodesFree(int nodes_free) {
-		this.nodesFree = nodes_free;
-	}
-
-	public int getNodesDead() {
-		return nodesDead;
-	}
-
-	public void setNodesDead(int nodes_dead) {
-		this.nodesDead = nodes_dead;
-	}
-
-
-	public int getNodesOffline() {
-		return nodesOffline;
-	}
-
-	public void setNodesOffline(int nodes_offline) {
-		this.nodesOffline = nodes_offline;
-	}
-
-	public int getSharesAvailable() {
-		return sharesAvailable;
-	}
-
-	public void setSharesAvailable(int shares_available) {
-		this.sharesAvailable = shares_available;
-	}
-
-	public int getSharesFree() {
-		return sharesFree;
-	}
-
-	public void setSharesFree(int shares_free) {
-		this.sharesFree = shares_free;
-	}
-
-	public int getPendingEvictions() {
-		return pendingEvictions;
-	}
-
-	public void setPendingEvictions(int pending_evictions) {
-		this.pendingEvictions = pending_evictions;
-	}
-
-	public int getPendingExpansions() {
-		return pendingExpansions;
-	}
-
-	public void setPendingExpansions(int pending_expansions) {
-		this.pendingExpansions = pending_expansions;
-	}
-
-	public int[] getSharesDemanded() {
-		return sharesDemanded;
-	}
-
-	public void setSharesDemanded(int[] shares_demanded) {
-		this.sharesDemanded = shares_demanded;
-	}
-
-	public int[] getSharesAwarded() {
-		return sharesAwarded;
-	}
-
-	public void setSharesAwarded(int[] shares_awarded) {
-		this.sharesAwarded = shares_awarded;
-	}
-
-	public int[] getMachinesOnline() {
-		return machinesOnline;
-	}
-
-	public void setMachinesOnline(int[] machines_online) {
-		this.machinesOnline = machines_online;
-	}
-
-	public int[] getMachinesFree() {
-		return machinesFree;
-	}
-
-	public void setMachinesFree(int[] machines_free) {
-		this.machinesFree = machines_free;
-	}
-
-	public int[] getVirtualMachinesFree() {
-        int[] vm = machinesVirtual.clone();
-        int len = vm.length;
-        for ( int o = 1; o < len; o++ ) {                     // counting by share order
-            //nFreeSharesByOrder[o] = nMachinesByOrder[o] * o;
-            for ( int p = o+1; p < len; p++ ) {
-                if ( vm[p] != 0 ) {
-                    vm[o] += (p / o) * vm[p];
-                }
-            }
-        }
-
-		return vm;
-	}
-
-	public int[] getMachinesVirtual() {
-		return this.machinesVirtual;
-	}
-
-	public void setMachinesVirtual(int[] machines_virtual) {
-		this.machinesVirtual = machines_virtual;
-	}
-
-    private String fmtArray(int[] array)
+    public static String fmtArray(int[] array)
     {
         Object[] vals = new Object[array.length];
         StringBuffer sb = new StringBuffer();
@@ -178,25 +59,6 @@ public class RmAdminQLoadReply
     public String toCompact()
     {
         StringBuffer sb = new StringBuffer();
-
-        sb.append("OnlineHosts ");
-        sb.append(fmtArray(machinesOnline));
-
-        sb.append("\nFreeHosts ");
-        sb.append(fmtArray(machinesFree));
-
-        sb.append("\nFreeShares ");
-        sb.append(fmtArray(machinesVirtual));
-
-        sb.append("\nVirtualShares ");
-        sb.append(fmtArray(getVirtualMachinesFree()));
-
-        sb.append("\nWantedShares ");
-        sb.append(fmtArray(sharesDemanded));
-
-        sb.append("\nGivenShares ");
-        sb.append(fmtArray(sharesAwarded));
-        
         return sb.toString();
     }
 
@@ -204,33 +66,20 @@ public class RmAdminQLoadReply
     {
         StringBuffer sb = new StringBuffer();
 
-        String hdr = "%10s %9s %12s %9s %16s %10s %16s %17s";
-        String fmt = "%10d %9d %12d %9d %16d %10d %16d %17d";
-        sb.append(String.format(hdr, "TotalNodes", "DeadNOdes", "OfflineNodes", "FreeNodes",
-                                         "SharesAvailable", "SharesFree", 
-                                "PendingEvictions", "PendingExpansions"));
-        sb.append("\n");
-        sb.append(String.format(fmt, nodesOnline, nodesDead, nodesOffline, nodesFree,
-                  sharesAvailable, sharesFree, 
-                  pendingEvictions, pendingExpansions));
+        sb.append("Query Load - scheduling quantum ");
+        sb.append(Long.toString(shareQuantum));
+        sb.append(":\n");
 
-        sb.append("\nOnline Hosts:\n");
-        sb.append(fmtArray(machinesOnline));
+        for ( RmQueriedClass cl : classes ) {
+            sb.append(cl.toConsole());
+            sb.append("\n");
+        }
 
-        sb.append("\nFree Hosts:\n");
-        sb.append(fmtArray(machinesFree));
+        for ( RmQueriedNodepool np : nodepools ) {
+            sb.append(np.toConsole());
+            sb.append("\n");
+        }
 
-        sb.append("\nFree Shares:\n");
-        sb.append(fmtArray(machinesVirtual));
-
-        sb.append("\nVirtual Shares:\n");
-        sb.append(fmtArray(getVirtualMachinesFree()));
-
-        sb.append("\nWanted Shares:\n");
-        sb.append(fmtArray(sharesDemanded));
-
-        sb.append("\nGiven Shares:\n");
-        sb.append(fmtArray(sharesAwarded));
         return sb.toString();
     }
 

@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;

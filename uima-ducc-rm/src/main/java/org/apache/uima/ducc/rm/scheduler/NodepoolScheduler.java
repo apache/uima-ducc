@@ -1136,7 +1136,6 @@ public class NodepoolScheduler
     // private static int stop_here_dx = 0;
     protected void traverseNodepoolsForExpansion(NodePool np, ArrayList<ResourceClass> rcs)
     {
-    	    @SuppressWarnings("unused")
 		String methodName = "traverseNodepoolsForExpansion";
         // HashMap<String, NodePool> subpools = np.getChildren();
         List<NodePool> subpools = np.getChildrenAscending();

@@ -214,6 +214,14 @@ class NodePool
         return count;
     }
 
+     /**
+     * How many do I have, just me.
+     */
+    int countLocalUnresponsiveMachines()
+    {
+        return unresponsiveMachines.size();
+    }
+
     /**
      * How many do I have, including recusring down the children?
      */
@@ -224,6 +232,14 @@ class NodePool
             count += np.countOfflineMachines();
         }
         return count;
+    }
+
+    /**
+     * How many do I have, just me.
+     */
+    int countLocalOfflineMachines()
+    {
+        return offlineMachines.size();
     }
 
     /**
@@ -290,15 +306,11 @@ class NodePool
     }
 
     /**
-     * Counts all known machines, for queries.
+     * Counts all known machines, just me.
      */
-    int countAllFreeMachines()
+    int[] countLocalFreeMachines()
     {
-        int count = countFreeMachines(0);  // don't care about the order
-        for ( NodePool np : children.values() ) {
-            count += np.countAllFreeMachines();
-        }
-        return count;
+        return nMachinesByOrder.clone();
     }
 
     int countTotalShares()
@@ -322,6 +334,14 @@ class NodePool
         return count;
     }
 
+    /**
+     * Total Q shares in the nodepool still available, just me.
+     */ 
+    int countLocalQShares()
+    {
+        return nSharesByOrder[1];
+    }
+
 
     int countAllMachinesByOrder(int o)
     {
@@ -334,6 +354,15 @@ class NodePool
             count += np.countAllMachinesByOrder(o);
         }
         return count;
+    }
+
+    int[] countAllLocalMachines()
+    {
+        int[] ret = makeArray();
+        for ( int o : machinesByOrder.keySet() ) {
+            ret[o] = machinesByOrder.get(o).size();
+        }
+        return ret;
     }
 
     /**
@@ -648,6 +677,11 @@ class NodePool
         return ans;
     }
 
+    protected int[] countLocalVMachinesByOrder()
+    {
+        return vMachinesByOrder.clone();
+    }
+
     protected int[] countAllNSharesByOrder()
     {
         int[] ans = nSharesByOrder.clone();
@@ -895,6 +929,13 @@ class NodePool
     private synchronized void decrementOnlineByOrder(int order)
     {
         onlineMachinesByOrder.put(order, onlineMachinesByOrder.get(order) - 1);
+    }
+
+    synchronized void getLocalOnlineByOrder(int[] ret)         // for queries, just me
+    {
+        for ( int o: onlineMachinesByOrder.keySet() ) {
+            ret[o] += onlineMachinesByOrder.get(o);
+        }
     }
 
     synchronized void getOnlineByOrder(int[] ret)         // for queries

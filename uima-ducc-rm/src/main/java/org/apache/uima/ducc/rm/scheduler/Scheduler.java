@@ -32,7 +32,9 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoadReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancyReply;
+import org.apache.uima.ducc.common.admin.event.RmQueriedClass;
 import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
+import org.apache.uima.ducc.common.admin.event.RmQueriedNodepool;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -1185,64 +1187,109 @@ public class Scheduler
     	return reply.toString();
     }
 
-    public synchronized RmAdminQLoadReply queryLoad()
+    RmQueriedNodepool  getNpStats(NodePool np)
     {
-        RmAdminQLoadReply reply = new RmAdminQLoadReply();
 
-        int online = 0;
-        int dead = 0;
-        int offline = 0;
-        int free = 0;
-        int shares_available = 0;
-        int shares_free = 0;
+        RmQueriedNodepool ret = new RmQueriedNodepool();
+        
+        ret.setName(np.getId());
+        ret.setOnline(np.countLocalMachines());
+        ret.setDead(np.countLocalUnresponsiveMachines());
+        ret.setOffline(np.countLocalOfflineMachines());
+        
+        ret.setSharesAvailable(np.countLocalShares());
+        ret.setSharesFree(np.countLocalQShares());
+
+        ret.setAllMachines(np.countAllLocalMachines());
+
         int[] onlineMachines = NodePool.makeArray();
         int[] freeMachines = NodePool.makeArray();
-        int[] virtualMachines = NodePool.makeArray();
-
-        for ( NodePool np : nodepools ) {
-            online += np.countMachines();
-            dead += np.countUnresponsiveMachines();
-            offline += np.countOfflineMachines();
-            free += np.countAllFreeMachines();
-            
-            shares_available += np.countTotalShares();
-            shares_free += np.countQShares();
-            np.getOnlineByOrder(onlineMachines);
-
-            for ( int i = 1; i < freeMachines.length; i++ ) {
-                freeMachines[i] += np.countFreeMachines(i);
-            }
-            
-            int[] t = np.cloneVMachinesByOrder();
-            for ( int i = 1; i < virtualMachines.length; i++ ) {
-                virtualMachines[i] += t[i];
-            }
+        for ( int i = 1; i < freeMachines.length; i++ ) {
+            freeMachines[i] += np.countFreeMachines(i);         // (these are local, as we want)
         }
+        ret.setOnlineMachines(onlineMachines);
+        ret.setFreeMachines(freeMachines);
 
-        int[] demanded = NodePool.makeArray();
-        int[] awarded  = NodePool.makeArray();
-        for ( IRmJob j : allJobs.values() ) {
-            int o = j.getShareOrder();
-            demanded[o] += j.queryDemand();
-            awarded[o]  += j.countNShares();
-        }
+        ret.setVirtualMachines(np.countLocalVMachinesByOrder());
 
-        reply.setNodesOnline(online);
-        reply.setNodesDead(dead);
-        reply.setNodesOffline(offline);
-        reply.setNodesFree(free);
-        reply.setSharesAvailable(shares_available);
-        reply.setSharesFree(shares_free);
-        reply.setPendingExpansions(pending_expansions);
-        reply.setPendingEvictions(pending_evictions);
-        reply.setSharesDemanded(demanded);
-        reply.setSharesAwarded(awarded);
-        reply.setMachinesOnline(onlineMachines);
-        reply.setMachinesFree(freeMachines);
-        reply.setMachinesVirtual(virtualMachines);
-        
-        return reply;
+        // logger.info(methodName, null, np.getId() + ": online", online, "dead", dead, "offline", offline, "shares_available", shares_available, "shares_free", shares_free);
+        // logger.info(methodName, null, np.getId() + ": allMachines    ", Arrays.toString(allMachines));
+        // logger.info(methodName, null, np.getId() + ": onlineByOrder  ", Arrays.toString(onlineMachines));
+
+        // logger.info(methodName, null, np.getId() + "------- freeMachines should match free -------");
+        // logger.info(methodName, null, np.getId() + ": freeMachines   ", Arrays.toString(freeMachines));
+        // logger.info(methodName, null, np.getId() + ": free           ", Arrays.toString(free));
+        // logger.info(methodName, null, np.getId() + "----------------------------------------------");
+        // logger.info(methodName, null, np.getId() + ": virtualMachines", Arrays.toString(virtualMachines));
+
+        return ret;
     }
+
+    void calculateLoad(RmAdminQLoadReply reply)
+    {
+
+        for ( ResourceClass cl : resourceClasses.values() ) {
+            RmQueriedClass qcl = new RmQueriedClass();
+
+            switch ( cl.getPolicy() ) {
+                case FAIR_SHARE:
+                    qcl.setPolicy("FAIR_SHARE");
+                    break;
+                case FIXED_SHARE:
+                    qcl.setPolicy("FIXED_SHARE");
+                    break;
+                case RESERVE:
+                    qcl.setPolicy("RESERVE");
+                    break;
+            }
+
+            int[] demanded = NodePool.makeArray();
+            int[] awarded  = NodePool.makeArray();
+
+            HashMap<IRmJob, IRmJob> jobs = cl.getAllJobs();
+            for ( IRmJob j : jobs.values() ) {
+                int o = j.getShareOrder();
+                demanded[o] += j.queryDemand();
+                awarded[o]  += j.countNShares();
+            }
+            
+            qcl.setName(cl.getName());
+            qcl.setDemanded(demanded);
+            qcl.setAwarded(awarded);
+            reply.addClass(qcl);
+        }
+    }
+
+    void listAllNodepools(NodePool parent, ArrayList<NodePool> list)
+    {
+        list.add(parent);
+        for (NodePool np : parent.getChildren().values() ) {
+            listAllNodepools(np, list);
+        }
+    }
+
+    public synchronized RmAdminQLoadReply queryLoad()
+    {
+        
+        while ( !ready() ) {}
+
+        RmAdminQLoadReply ret = new RmAdminQLoadReply();
+        ret.setShareQuantum(share_quantum);
+
+        calculateLoad(ret);
+
+        ArrayList<NodePool> allpools = new ArrayList<NodePool>();
+        for ( NodePool np : nodepools ) {
+            listAllNodepools(np, allpools);
+        }
+
+        for ( NodePool np : allpools ) {
+            ret.addNodepool(getNpStats(np));
+        }
+        
+        return ret;
+    }
+
 
     public synchronized RmAdminQOccupancyReply queryOccupancy()
     {

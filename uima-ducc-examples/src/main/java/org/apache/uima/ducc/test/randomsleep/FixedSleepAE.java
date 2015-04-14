@@ -142,7 +142,7 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             logger.log(Level.INFO, "Init hard exit: probability[" + i_exit + "] toss[" + toss + "]");
             if ( i_exit > toss ) {
                 logger.log(Level.INFO, "Init hard exit: croaking hard now.");
-                Runtime.getRuntime().halt(19);
+                Runtime.getRuntime().halt(0);
             }
         }
 
@@ -324,7 +324,7 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         dolog("**-------> AE Error Coin toss " + cointoss + " vs " + check + ": " + (cointoss < check), do_exit ? "Exiting." : "Throwing.");
         if ( cointoss < check ) {
             if ( do_exit ) {
-                Runtime.getRuntime().halt(19);
+                Runtime.getRuntime().halt(0);
             } else {
                 throwAnException(msg);
             }
