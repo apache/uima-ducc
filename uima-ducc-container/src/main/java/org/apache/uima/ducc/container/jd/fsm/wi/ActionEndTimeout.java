@@ -67,8 +67,9 @@ public class ActionEndTimeout extends Action implements IAction {
 				IMetaCas metaCas = wi.getMetaCas();
 				JobDriver jd = JobDriver.getInstance();
 				CasManager cm = jd.getCasManager();
+				WiTracker tracker = WiTracker.getInstance();
+				IRemoteWorkerProcess rwp = tracker.getRemoteWorkerProcess(wi);
 				JobDriverHelper jdh = JobDriverHelper.getInstance();
-				IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
 				if(rwp != null) {
 					if(metaCas != null) {
 						recallWorkItem(actionData, cm, metaCas, wi);

@@ -16,25 +16,37 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.test;
+package org.apache.uima.ducc.container.jd.test.wi.tracker;
 
 import static org.junit.Assert.assertTrue;
 
 import java.util.Random;
 
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
+import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
+import org.apache.uima.ducc.container.jd.test.TestBase;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.jd.wi.WorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
+import org.junit.Before;
 import org.junit.Test;
 
-public class TestWiTracker {
+public class TestWiTracker extends TestBase  {
 
 	private static Random random = new Random();
+	
+	protected JobDriver jd;
+	
+	@Before
+    public void setUp() throws JobDriverException {
+        initialize();
+        jd = JobDriver.getNewInstance();
+    }
 	
 	private IFsm getFsm() {
 		IFsm fsm = null;
@@ -71,32 +83,32 @@ public class TestWiTracker {
 	
 	@Test
 	public void test() {
+		
 		WiTracker tracker = WiTracker.getInstance();
-		int seqNo = 0;
+		int seqNo = 1;
 		//
-		seqNo = 1;
-		IWorkItem wi01A = getWi(seqNo);
 		IRemoteWorkerThread rwt01A = getRemoteWorkerThread();
-		tracker.assign(wi01A,rwt01A);
+		IWorkItem wi01A = tracker.assign(rwt01A);
+		IMetaCas metaCas = getMetaCas(1);
+		wi01A.setMetaCas(metaCas);
 		//
 		assertTrue(tracker.getSize() == 1);
 		//
-		IWorkItem wi01B = getWi(seqNo);
-		IRemoteWorkerThread rwt01B = getRemoteWorkerThread();
-		tracker.assign(wi01B,rwt01B);
+		IRemoteWorkerThread rwt01B = rwt01A;
+		tracker.assign(rwt01B);
 		//
 		assertTrue(tracker.getSize() == 1);
 		//
 		seqNo = 2;
 		IWorkItem wi02A = getWi(seqNo);
 		IRemoteWorkerThread rwt02A = getRemoteWorkerThread();
-		tracker.assign(wi02A,rwt02A);
+		tracker.assign(rwt02A);
+		wi02A.setMetaCas(metaCas);
 		//
 		assertTrue(tracker.getSize() == 2);
 		//
-		IWorkItem wi02B = getWi(seqNo);
-		IRemoteWorkerThread rwt02B = getRemoteWorkerThread();
-		tracker.assign(wi02B,rwt02B);
+		IRemoteWorkerThread rwt02B = rwt02A;
+		tracker.assign(rwt02B);
 		//
 		assertTrue(tracker.getSize() == 2);
 	}

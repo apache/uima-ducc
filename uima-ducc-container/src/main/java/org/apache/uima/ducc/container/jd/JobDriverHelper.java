@@ -28,18 +28,15 @@ import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.impl.WorkItemInfo;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.ProcessStatistics;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class JobDriverHelper {
 
@@ -56,7 +53,7 @@ public class JobDriverHelper {
 		ArrayList<IWorkItemInfo> list = new ArrayList<IWorkItemInfo>();
 		try {
 			JobDriver jd = JobDriver.getInstance();
-			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = jd.getRemoteThreadMap();
+			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = jd.getRemoteWorkerThreadMap();
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerThread rwt = entry.getKey();
 				IWorkItem wi = entry.getValue();
@@ -142,49 +139,6 @@ public class JobDriverHelper {
 			logger.trace(location, ILogger.null_id, mb);
 		}
 		return processStatistics;
-	}
-	
-	public boolean isEqual(String a, String b) {
-		boolean retVal = false;
-		if(a != null) {
-			if(b != null) {
-				return a.equals(b);
-			}
-		}
-		return retVal;
-	}
-	
-	public boolean isEqual(IMetaCas a, IMetaCas b) {
-		boolean retVal = false;
-		if(a != null) {
-			if(b != null) {
-				return isEqual(a.getSystemKey(), b.getSystemKey());
-			}
-		}
-		return retVal;
-	}
-	
-	public boolean isEqual(IWorkItem a, IWorkItem b) {
-		boolean retVal = false;
-		if(a != null) {
-			if(b != null) {
-				return isEqual(a.getMetaCas(), b.getMetaCas());
-			}
-		}
-		return retVal;
-	}
-	
-	public IRemoteWorkerProcess getRemoteWorkerProcess(IWorkItem wi) {
-		IRemoteWorkerProcess rwp = null;
-		JobDriver jd = JobDriver.getInstance();
-		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = jd.getRemoteThreadMap();
-		for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
-			if(isEqual(entry.getValue(), wi)) {
-				IRemoteWorkerThread rwt = entry.getKey();
-				rwp = new RemoteWorkerProcess(rwt.getNodeName(),rwt.getNodeAddress(),rwt.getPidName(),rwt.getPid());
-			}
-		}
-		return rwp;
 	}
 	
 }

@@ -53,13 +53,15 @@ import org.apache.uima.ducc.container.jd.wi.IRunningWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.RunningWorkItemStatistics;
-import org.apache.uima.ducc.container.jd.wi.WorkItem;
+import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceKeeper;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Hint;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
+import org.apache.uima.ducc.container.net.impl.MetaCas;
+import org.apache.uima.ducc.container.net.impl.TransactionHelper;
 
 public class MessageHandler implements IMessageHandler {
 
@@ -235,8 +237,7 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.ip.get()+processInfo.getNodeAddress());
 			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
 			logger.trace(location, ILogger.null_id, mb.toString());
-			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
-			
+			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = WiTracker.getInstance().find(processInfo);
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerThread rwt = entry.getKey();
 				if(rwt.comprises(processInfo)) {
@@ -270,7 +271,7 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.ip.get()+processInfo.getNodeAddress());
 			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
 			logger.trace(location, ILogger.null_id, mb.toString());
-			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
+			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = WiTracker.getInstance().find(processInfo);
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerThread rwt = entry.getKey();
 				if(rwt.comprises(processInfo)) {
@@ -304,7 +305,7 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.ip.get()+processInfo.getNodeAddress());
 			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
 			logger.trace(location, ILogger.null_id, mb.toString());
-			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
+			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = WiTracker.getInstance().find(processInfo);
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerThread rwt = entry.getKey();
 				if(rwt.comprises(processInfo)) {
@@ -480,50 +481,6 @@ public class MessageHandler implements IMessageHandler {
 		}
 	}
 	
-	private IWorkItem register(IRemoteWorkerThread rwi) {
-		String location = "register";
-		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
-		IWorkItem wi = map.get(rwi);
-		while(wi == null) {
-			IMetaCas metaCas = null;
-			IFsm fsm = new WiFsm();
-			map.putIfAbsent(rwi, new WorkItem(metaCas, fsm));
-			wi = map.get(rwi);
-			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.remote.get()+rwi.toString());
-			logger.debug(location, ILogger.null_id, mb.toString());
-		}
-		return wi;
-	}
-	
-	private IWorkItem find(IRemoteWorkerThread rwt) {
-		String location = "find";
-		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
-		IWorkItem wi = map.get(rwt);
-		if(wi != null) {
-			IMetaCas metaCas = wi.getMetaCas();
-			if(metaCas != null) {
-				MessageBuffer mb = new MessageBuffer();
-				mb.append(Standardize.Label.remote.get()+rwt.toString());
-				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
-				logger.debug(location, ILogger.null_id, mb.toString());
-			}
-			else {
-				MessageBuffer mb = new MessageBuffer();
-				mb.append(Standardize.Label.remote.get()+rwt.toString());
-				mb.append("has no work assigned presently");
-				logger.debug(location, ILogger.null_id, mb.toString());
-			}
-		}
-		else {
-			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.remote.get()+rwt.toString());
-			mb.append("has no work assigned presently");
-			logger.debug(location, ILogger.null_id, mb.toString());
-		}
-		return wi;
-	}
-	
 	private void update(IWorkItem wi, IMetaCas metaCas) {
 		IMetaCas local = wi.getMetaCas();
 		IMetaCas remote = metaCas;
@@ -536,64 +493,63 @@ public class MessageHandler implements IMessageHandler {
 	}
 	
 	private void handleMetaCasTransationGet(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
-		IWorkItem wi = register(rwt);
+		WiTracker tracker = WiTracker.getInstance();
+		IWorkItem wi = tracker.assign(rwt);
 		IFsm fsm = wi.getFsm();
 		IEvent event = WiFsm.Get_Request;
 		Object actionData = new ActionData(wi, rwt, trans);
 		fsm.transition(event, actionData);
 	}
-	
+
 	private void handleMetaCasTransationAck(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
 		String location = "handleMetaCasTransationAck";
-		IWorkItem wi = find(rwt);
-		if(wi == null) {
-			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.remote.get()+rwt.toString());
-			mb.append("has no work assigned presently");
-			logger.debug(location, ILogger.null_id, mb.toString());
-		}
-		else {
-			update(wi, trans.getMetaCas());
+		WiTracker tracker = WiTracker.getInstance();
+		MetaCas metaCas = (MetaCas) trans.getMetaCas();
+		if(tracker.isRecognized(rwt, metaCas)) {
+			IWorkItem wi = tracker.find(rwt);
+			update(wi, metaCas);
 			IFsm fsm = wi.getFsm();
 			IEvent event = WiFsm.Ack_Request;
 			Object actionData = new ActionData(wi, rwt, trans);
 			fsm.transition(event, actionData);
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.AckMsecs.get()+(wi.getTodAck()-wi.getTodGet()));
+			logger.debug(location, ILogger.null_id, mb.toString());
+		}
+		else {
+			trans.setMetaCas(null);
+			TransactionHelper.addResponseHint(trans, Hint.Rejected);
 		}
 	}
 	
 	private void handleMetaCasTransationEnd(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
 		String location = "handleMetaCasTransationEnd";
-		IWorkItem wi = find(rwt);
-		if(wi == null) {
-			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.remote.get()+rwt.toString());
-			mb.append("has no work assigned presently");
-			logger.debug(location, ILogger.null_id, mb.toString());
-		}
-		else {
-			update(wi, trans.getMetaCas());
+		WiTracker tracker = WiTracker.getInstance();
+		MetaCas metaCas = (MetaCas) trans.getMetaCas();
+		if(tracker.isRecognized(rwt, metaCas)) {
+			IWorkItem wi = tracker.find(rwt);
+			update(wi, metaCas);
 			IFsm fsm = wi.getFsm();
 			IEvent event = WiFsm.End_Request;
 			Object actionData = new ActionData(wi, rwt, trans);
 			fsm.transition(event, actionData);
 			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.AckMsecs.get()+(wi.getTodAck()-wi.getTodGet()));
 			mb.append(Standardize.Label.EndMsecs.get()+(wi.getTodEnd()-wi.getTodAck()));
 			logger.debug(location, ILogger.null_id, mb.toString());
+		}
+		else {
+			trans.setMetaCas(null);
+			TransactionHelper.addResponseHint(trans, Hint.Rejected);
 		}
 	}
 	
 	private void handleMetaCasTransationInvestmentReset(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
 		String location = "handleMetaCasTransationInvestmentReset";
-		IWorkItem wi = find(rwt);
-		if(wi == null) {
-			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.remote.get()+rwt.toString());
-			mb.append("has no work assigned presently");
-			logger.debug(location, ILogger.null_id, mb.toString());
-		}
-		else {
-			update(wi, trans.getMetaCas());
+		WiTracker tracker = WiTracker.getInstance();
+		MetaCas metaCas = (MetaCas) trans.getMetaCas();
+		if(tracker.isRecognized(rwt, metaCas)) {
+			IWorkItem wi = tracker.find(rwt);
+			update(wi, metaCas);
 			IFsm fsm = wi.getFsm();
 			IEvent event = WiFsm.Investment_Reset;
 			Object actionData = new ActionData(wi, rwt, trans);
@@ -602,6 +558,10 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.remote.get()+rwt.toString());
 			mb.append("investment reset");
 			logger.debug(location, ILogger.null_id, mb.toString());
+		}
+		else {
+			trans.setMetaCas(null);
+			TransactionHelper.addResponseHint(trans, Hint.Rejected);
 		}
 	}
 

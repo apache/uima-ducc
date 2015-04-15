@@ -95,7 +95,6 @@ implements IJobDriverComponent {
 	private void createInstance() {
 		String location = "createInstance";
 		try {
-			JobDriver.createInstance();
 			int total = JobDriver.getInstance().getCasManager().getCasManagerStats().getCrTotal();
 			logger.info(location, jobid, "total: "+total);
 		}

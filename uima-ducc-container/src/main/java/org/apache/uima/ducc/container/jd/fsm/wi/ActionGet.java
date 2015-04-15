@@ -36,7 +36,6 @@ import org.apache.uima.ducc.container.jd.blacklist.JobProcessBlacklist;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
-import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo.CompletionType;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
@@ -69,10 +68,11 @@ public class ActionGet implements IAction {
 		IActionData actionData = (IActionData) objectData;
 		try {
 			if(actionData != null) {
-				IWorkItem wi = actionData.getWorkItem();
+				IRemoteWorkerThread rwt = actionData.getRemoteWorkerThread();
+				WiTracker tracker = WiTracker.getInstance();
+				IWorkItem wi = tracker.find(rwt);
 				IFsm fsm = wi.getFsm();
 				IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-				IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
 				IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
 				//
 				JobDriver jd = JobDriver.getInstance();
@@ -115,7 +115,6 @@ public class ActionGet implements IAction {
 				IEvent event = null;
 				//
 				if(metaCas != null) {
-					WiTracker.getInstance().assign(wi, rwt);
 					int seqNo = metaCasHelper.getSystemKey();
 					String wiId = metaCas.getUserKey();
 					String node = rwt.getNodeAddress();

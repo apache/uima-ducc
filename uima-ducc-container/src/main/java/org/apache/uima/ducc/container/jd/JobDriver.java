@@ -51,29 +51,27 @@ public class JobDriver {
 	
 	private static JobDriver instance = null;
 	
-	public static JobDriver getInstance() {
+	public synchronized static JobDriver getInstance() {
+		String location = "getInstance";
+		if(instance == null) {
+			try {
+				instance = new JobDriver();
+			} catch (JobDriverException e) {
+				logger.error(location, ILogger.null_id, e);
+			}
+		}
 		return instance;
 	}
 	
-	public static JobDriver createInstance() throws JobDriverException {
-		synchronized(JobDriver.class) {
-			if(instance == null) {
-				instance = new JobDriver();
-			}
-		}
+	public synchronized static JobDriver getNewInstance() {
+		instance = null;
 		return getInstance();
-	}
-	
-	public static void destroyInstance() {
-		synchronized(JobDriver.class) {
-			instance = null;
-		}
 	}
 	
 	private String jobId = null;
 	private String logDir = null;
 	private long workItemTimeoutMillis = 24*60*60*1000;
-	private ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> remoteThreadMap = null;
+	private ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> remoteWorkerThreadMap = null;
 	private ConcurrentHashMap<IRemotePid, IProcessStatistics> remoteProcessMap = null;
 	private IWorkItemStatistics wis = null;
 	private CasManager cm = null;
@@ -102,7 +100,7 @@ public class JobDriver {
 			jobId = feh.getJobId();
 			logDir = feh.getLogDirectory();
 			setWorkItemTimeout();
-			remoteThreadMap = new ConcurrentHashMap<IRemoteWorkerThread, IWorkItem>();
+			remoteWorkerThreadMap = new ConcurrentHashMap<IRemoteWorkerThread, IWorkItem>();
 			remoteProcessMap = new ConcurrentHashMap<IRemotePid, IProcessStatistics>();
 			wis = new WorkItemStatistics();
 			wisk = new WorkItemStateKeeper(IComponent.Id.JD.name(), logDir);
@@ -145,8 +143,8 @@ public class JobDriver {
 		return jobId;
 	}
 	
-	public ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> getRemoteThreadMap() {
-		return remoteThreadMap;
+	public ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> getRemoteWorkerThreadMap() {
+		return remoteWorkerThreadMap;
 	}
 
 	public ConcurrentHashMap<IRemotePid, IProcessStatistics> getRemoteProcessMap() {

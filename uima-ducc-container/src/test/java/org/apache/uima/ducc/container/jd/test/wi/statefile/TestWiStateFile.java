@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.test;
+package org.apache.uima.ducc.container.jd.test.wi.statefile;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -27,15 +27,24 @@ import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateReader;
 import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateKeeper;
 import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateReader;
+import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.JobDriverException;
+import org.apache.uima.ducc.container.jd.test.TestBase;
+import org.junit.Before;
 import org.junit.Test;
 
-public class TestWiStateFile extends ATest {
+public class TestWiStateFile extends TestBase {
+	
+	protected JobDriver jd;
+	
+	@Before
+    public void setUp() throws JobDriverException {
+        initialize();
+        jd = JobDriver.getInstance();
+    }
 	
 	@Test
 	public void test_01() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			File working = mkWorkingDir();
 			String component = "JD.test";

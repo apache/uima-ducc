@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.test;
+package org.apache.uima.ducc.container.jd.test.wi.fsm;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -34,17 +34,26 @@ import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsmBuilder;
 import org.apache.uima.ducc.container.common.fsm.iface.IState;
+import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
+import org.apache.uima.ducc.container.jd.test.TestBase;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
+import org.junit.Before;
 import org.junit.Test;
 
-public class TestWiFsm extends ATest {
+public class TestWiFsm extends TestBase {
+	
+	protected JobDriver jd;
+	
+	@Before
+    public void setUp() throws JobDriverException {
+        initialize();
+        jd = JobDriver.getInstance();
+    }
 	
 	@Test
 	public void test_01() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			IState s0 = new State("a");
 			IState s1 = new State("a");
@@ -71,9 +80,6 @@ public class TestWiFsm extends ATest {
 	
 	@Test
 	public void test_02() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			IEvent e0 = new Event("c");
 			IEvent e1 = new Event("c");
@@ -100,9 +106,6 @@ public class TestWiFsm extends ATest {
 	
 	@Test
 	public void test_03() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			IState s0 = new State("a");
 			IState s1 = new State("b");
@@ -144,9 +147,6 @@ public class TestWiFsm extends ATest {
 	
 	@Test
 	public void test_04() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			IState s1 = new State("s1");
 			IState s2 = new State("s2");
@@ -186,9 +186,6 @@ public class TestWiFsm extends ATest {
 	
 	@Test
 	public void test_05() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			initUserClasspath();
 			WiFsm wiFsm = new WiFsm();
@@ -216,9 +213,6 @@ public class TestWiFsm extends ATest {
 	
 	@Test
 	public void test_06() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			initUserClasspath();
 			WiFsm wiFsm = new WiFsm();

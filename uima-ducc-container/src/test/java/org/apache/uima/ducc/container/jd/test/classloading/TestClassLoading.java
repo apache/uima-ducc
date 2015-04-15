@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.test;
+package org.apache.uima.ducc.container.jd.test.classloading;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -33,22 +33,31 @@ import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGeneration;
+import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
+import org.apache.uima.ducc.container.jd.test.TestBase;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
 import org.apache.uima.ducc.container.jd.user.error.classload.ProxyUserErrorStringify;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 import org.apache.uima.ducc.user.error.iface.Transformer;
+import org.junit.Before;
 import org.junit.Test;
 
-public class TestClassLoading extends ATest {
-
+public class TestClassLoading extends TestBase {
+	
+	protected JobDriver jd;
+	
+	@Before
+    public void setUp() throws JobDriverException {
+        initialize();
+        jd = JobDriver.getInstance();
+    }
+	
 	@Test
 	public void test_01() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
@@ -65,9 +74,6 @@ public class TestClassLoading extends ATest {
 
 	@Test
 	public void test_02() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
@@ -90,9 +96,6 @@ public class TestClassLoading extends ATest {
 	
 	@Test
 	public void test_03() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
@@ -120,9 +123,6 @@ public class TestClassLoading extends ATest {
 	
 	@Test
 	public void test_04() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			//TODO fix & keep this test?
 			boolean disabled = true;
@@ -184,11 +184,8 @@ public class TestClassLoading extends ATest {
 		}
 	}
 	
-	@Test
+	//@Test
 	public void test_05() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
@@ -208,9 +205,6 @@ public class TestClassLoading extends ATest {
 
 	//@Test
 	public void test_06() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
 		try {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
@@ -230,7 +224,7 @@ public class TestClassLoading extends ATest {
 		}
 	}
 	
-  @Test
+  //@Test
   public void test_loader() throws URISyntaxException, IOException {
 
     // First set up a private class-loaded and verify that its resources exist 

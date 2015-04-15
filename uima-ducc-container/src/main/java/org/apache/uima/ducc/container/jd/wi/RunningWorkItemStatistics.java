@@ -35,7 +35,7 @@ public class RunningWorkItemStatistics implements IRunningWorkItemStatistics {
 		long min = Long.MAX_VALUE;
 		long max = 0;
 		long todMrs = 0;
-		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
+		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteWorkerThreadMap();
 		for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 			IWorkItem wi = entry.getValue();
 			long time = wi.getMillisOperating();

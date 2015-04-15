@@ -91,8 +91,9 @@ public class ActionProcessFailure extends Action implements IAction {
 				IMetaCas metaCas = wi.getMetaCas();
 				JobDriver jd = JobDriver.getInstance();
 				CasManager cm = jd.getCasManager();
+				WiTracker tracker = WiTracker.getInstance();
+				IRemoteWorkerProcess rwp = tracker.getRemoteWorkerProcess(wi);
 				JobDriverHelper jdh = JobDriverHelper.getInstance();
-				IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
 				if(rwp != null) {
 					IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 					if(metaCas != null) {

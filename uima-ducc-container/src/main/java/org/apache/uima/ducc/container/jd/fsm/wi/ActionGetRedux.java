@@ -18,8 +18,6 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
@@ -27,10 +25,10 @@ import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
+import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class ActionGetRedux implements IAction {
@@ -50,8 +48,8 @@ public class ActionGetRedux implements IAction {
 		try {
 			if(actionData != null) {
 				IRemoteWorkerThread rwt = actionData.getRemoteWorkerThread();
-				ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
-				IWorkItem wi = map.get(rwt);
+				WiTracker tracker = WiTracker.getInstance();
+				IWorkItem wi = tracker.find(rwt);
 				IFsm fsm = wi.getFsm();
 				IEvent event = WiFsm.CAS_Unavailable;
 				if(wi != null) {

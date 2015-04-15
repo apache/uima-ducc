@@ -214,8 +214,13 @@ public class ActionEnd extends Action implements IAction {
 		IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 		//
 		int seqNo = metaCasHelper.getSystemKey();
-		String delimiter = Standardize.Label.seqNo.get()+seqNo+" ***** EXCEPTION *****";
-		toJdErrLog(delimiter);
+		try {
+			String delimiter = Standardize.Label.seqNo.get()+seqNo+" ***** EXCEPTION *****";
+			toJdErrLog(delimiter);
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
 		Object userException = metaCas.getUserSpaceException();
 		try {
 			String printableException = proxy.convert(userException);

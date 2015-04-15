@@ -49,4 +49,13 @@ public class ThreadInfoFactory {
 		}
 		return ti;
 	}
+	
+	public ThreadInfo getUnique() {
+		ThreadInfo ti = null;
+		if(list.size() > 0) {
+			ti = list.get(0);
+			list.remove(0);
+		}
+		return ti;
+	}
 }

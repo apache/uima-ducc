@@ -23,23 +23,14 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.classloader.ProxyException;
-import org.apache.uima.ducc.container.jd.cas.CasManager;
-import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
-import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
-import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
-import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
-import org.apache.uima.ducc.container.jd.mh.impl.WorkItemInfo;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
-import org.junit.Test;
 
-public class TestSuite extends ATest {
+public class TestSuite extends TestBase {
 	
 	String prefix1 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:tcas=\"http:///uima/tcas.ecore\"";
 	String prefix0 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:cas=\"http:///uima/cas.ecore\"";
@@ -47,7 +38,8 @@ public class TestSuite extends ATest {
 	private void checkCas(String cas) {
 		assertTrue(cas.startsWith(prefix0) || cas.startsWith(prefix1));
 	}
-	private void config() {
+	
+	protected void config() {
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
@@ -56,7 +48,7 @@ public class TestSuite extends ATest {
 		System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 	}
 	
-	private void testIncludeAll() {
+	protected void testIncludeAll() {
 		try {
 			config();
 			new ProxyJobDriverCollectionReader();
@@ -67,15 +59,7 @@ public class TestSuite extends ATest {
 		}
 	}
 	
-	@Test
-	public void test_01() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
-		testIncludeAll();
-	}
-	
-	private void testExcludeOne(int skip) {
+	protected void testExcludeOne(int skip) {
 		try {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
@@ -111,20 +95,7 @@ public class TestSuite extends ATest {
 		}
 	}
 	
-	@Test
-	public void test_02() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
-		testExcludeOne(2);
-		String userClasspath = Utilities.getInstance().getUserCP();
-		String[] cpParts = userClasspath.split(File.pathSeparator);
-		for(int i=0; i<cpParts.length; i++) {
-			testExcludeOne(i);
-		}
-	}
-	
-	private void testNoXml() {
+	protected void testNoXml() {
 		try {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
@@ -140,15 +111,7 @@ public class TestSuite extends ATest {
 		}
 	}
 	
-	@Test
-	public void test_03() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
-		testNoXml();
-	}
-	
-	private void getTotal() {
+	protected void getTotal() {
 		try {
 			config();
 			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
@@ -161,17 +124,8 @@ public class TestSuite extends ATest {
 			fail("Exception");
 		}
 	}
-	
-	@Test
-	public void test_04() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
-		getTotal();
-	}
 
-
-	private void getMetaCas() {
+	protected void getMetaCas() {
 		try {
 			config();
 			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
@@ -191,14 +145,6 @@ public class TestSuite extends ATest {
 			fail("Exception");
 		}
 	}
-	
-	@Test
-	public void test_05() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
-		getMetaCas();
-	}
 
 	private void getMetaCases(ProxyJobDriverCollectionReader pjdcr, int total) throws ProxyException {
 		for(int c=1; c <= total; c++) {
@@ -215,7 +161,7 @@ public class TestSuite extends ATest {
 		}
 	}
 	
-	private void getMetaCases(int extra) {
+	protected void getMetaCases(int extra) {
 		try {
 			config();
 			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
@@ -233,143 +179,5 @@ public class TestSuite extends ATest {
 			fail("Exception");
 		}
 	}	
-	
-	@Test
-	public void test_06() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
-		getMetaCases(0);
-	}
-	
-	@Test
-	public void test_07() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
-		getMetaCases(10);
-	}
-	
-	@Test
-	public void test_10() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
-		try {
-			config();
-			CasManager cm = new CasManager();
-			int total = cm.getCasManagerStats().getCrTotal();
-			assertTrue(total == 100);
-			IMetaCas metaCas = cm.getMetaCas();
-			int retrys = 3;
-			while(metaCas != null) {
-				if(cm.getCasManagerStats().getRetryQueuePuts() < retrys) {
-					cm.putMetaCas(metaCas, RetryReason.ProcessPreempt);
-				}
-				metaCas = cm.getMetaCas();
-			}
-			int crGets = cm.getCasManagerStats().getCrGets();
-			debug("crGets:"+crGets);
-			assertTrue(crGets == total);
-			int rqPuts = cm.getCasManagerStats().getRetryQueuePuts();
-			debug("rqPuts:"+rqPuts);
-			int rqGets = cm.getCasManagerStats().getRetryQueueGets();
-			debug("rqGets:"+rqGets);
-			assertTrue(rqPuts == retrys);
-			assertTrue(rqGets == rqPuts);
-			asExpected("puts == "+rqPuts);
-			asExpected("gets == "+rqGets);
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			fail("Exception");
-		}
-	}
-	
-	@Test
-	public void test_20() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
-		String n01 = "node01";
-		int p10 = 10;
-		int t20 = 20;
-		RemoteWorkerThread rwt01A = new RemoteWorkerThread(n01,null,p10+"",p10,t20);
-		RemoteWorkerThread rwt01B = new RemoteWorkerThread(n01,null,p10+"",p10,t20);
-		assertTrue(rwt01A.equals(rwt01A));
-		assertTrue(rwt01B.equals(rwt01B));
-		assertTrue(rwt01A.equals(rwt01B));
-		assertTrue(rwt01A.compareTo(rwt01A) == 0);
-		assertTrue(rwt01B.compareTo(rwt01B) == 0);
-		assertTrue(rwt01A.compareTo(rwt01B) == 0);
-		String n02 = "node02";
-		int p30 = 30;
-		int t40 = 40;
-		RemoteWorkerThread rwt02A = new RemoteWorkerThread(n02,null,p10+"",p10,t20);
-		RemoteWorkerThread rwt01C = new RemoteWorkerThread(n01,null,p30+"",p30,t20);
-		RemoteWorkerThread rwt01D = new RemoteWorkerThread(n01,null,p10+"",p10,t40);
-		assertTrue(!rwt01A.equals(rwt02A));
-		assertTrue(!rwt01A.equals(rwt01C));
-		assertTrue(!rwt01A.equals(rwt01D));
-		assertTrue(rwt01A.compareTo(rwt02A) != 0);
-		assertTrue(rwt01A.compareTo(rwt01C) != 0);
-		assertTrue(rwt01A.compareTo(rwt01D) != 0);
-		assertTrue(rwt01A.getNodeName().equals(n01));
-		assertTrue(rwt01A.getPid() == p10);
-		assertTrue(rwt01A.getTid() == t20);
-	}
-	
-	@Test
-	public void test_30() {
-		if(isDisabled(this.getClass().getName())) {
-			return;
-		}
-		OperatingInfo oi = new OperatingInfo();
-		oi.setWorkItemCrTotal(100);
-		assertTrue(oi.getWorkItemCrTotal() == 100);
-		oi.setWorkItemCrFetches(50);
-		assertTrue(oi.getWorkItemCrFetches() == 50);
-		oi.setWorkItemEndFailures(55);
-		assertTrue(oi.getWorkItemEndFailures() == 55);
-		oi.setWorkItemEndSuccesses(60);
-		assertTrue(oi.getWorkItemEndSuccesses() == 60);
-		oi.setWorkItemJpAcks(65);
-		assertTrue(oi.getWorkItemJpAcks() == 65);
-		oi.setWorkItemJpGets(70);
-		assertTrue(oi.getWorkItemJpGets() == 70);
-		oi.setWorkItemUserProcessingErrorRetries(75);
-		assertTrue(oi.getWorkItemUserProcessingErrorRetries() == 75);
-		oi.setWorkItemUserProcessingTimeouts(80);
-		assertTrue(oi.getWorkItemUserProcessingTimeouts() == 80);
-		oi.setWorkItemFinishedMillisMin(1000);
-		assertTrue(oi.getWorkItemFinishedMillisMin() == 1000);
-		oi.setWorkItemFinishedMillisMax(2000);
-		assertTrue(oi.getWorkItemFinishedMillisMax() == 2000);
-		oi.setWorkItemFinishedMillisAvg(1500);
-		assertTrue(oi.getWorkItemFinishedMillisAvg() == 1500);
-		oi.setWorkItemRunningMillisMin(1001);
-		assertTrue(oi.getWorkItemRunningMillisMin() == 1001);
-		oi.setWorkItemRunningMillisMax(2001);
-		assertTrue(oi.getWorkItemRunningMillisMax() == 2001);
-		ArrayList<String> pids01 = new ArrayList<String>();
-		pids01.add("011");
-		pids01.add("012");
-		ArrayList<IWorkItemInfo> list = new ArrayList<IWorkItemInfo>();
-		IWorkItemInfo wii = new WorkItemInfo();
-		wii.setNodeName("node01");
-		wii.setPid(1);
-		wii.setTid(1);
-		wii.setOperatingMillis(9991);
-		list.add(wii);
-		wii = new WorkItemInfo();
-		wii.setNodeName("node02");
-		wii.setPid(2);
-		wii.setTid(2);
-		wii.setOperatingMillis(9992);
-		list.add(wii);
-		oi.setActiveWorkItemInfo(list);
-		list = oi.getActiveWorkItemInfo();
-		assertTrue(list.size() == 2);
-	}
 
 }
