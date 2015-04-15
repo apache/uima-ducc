@@ -1088,6 +1088,7 @@ public class NodeConfiguration
         String methodName = "printNodepool";
 
         logInfo(methodName, indent + "Nodepool " + p.getProperty("name"));
+        logInfo(methodName, indent + "   Search Order: " + p.getProperty("search-order"));
         String nodefile = p.getProperty("nodefile");
         String nfheader = "   Node File: ";
         logInfo(methodName, indent + nfheader + (nodefile == null ? "None" : nodefile));
