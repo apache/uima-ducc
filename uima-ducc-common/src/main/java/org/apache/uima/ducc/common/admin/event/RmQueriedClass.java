@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.common.admin.event;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class RmQueriedClass
 	implements Serializable
@@ -72,7 +73,19 @@ public class RmQueriedClass
 
     public String toCompact()
     {
-        return "";
+        StringBuffer sb = new StringBuffer();
+
+        sb.append("{ 'name': '");
+        sb.append(name);
+        sb.append("',\n'policy': '");
+        sb.append(policy);
+        sb.append("',\n 'requested': ");
+        sb.append(Arrays.toString(demanded));
+        sb.append(",\n'awarded': ");
+        sb.append(Arrays.toString(awarded));
+        sb.append(",\n}");
+
+        return sb.toString();
     }
 
     public String toConsole()

@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.common.admin.event;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class RmQueriedNodepool
 	implements Serializable
@@ -123,7 +124,31 @@ public class RmQueriedNodepool
 
     public String toCompact()
     {
-        return "";
+        StringBuffer sb = new StringBuffer();
+        
+        sb.append("{'name': '");
+        sb.append(name);
+        sb.append("',\n 'online': ");
+        sb.append(Integer.toString(online));
+        sb.append(",\n 'dead': ");
+        sb.append(Integer.toString(dead));
+        sb.append(",\n 'offline': ");
+        sb.append(Integer.toString(offline));
+        sb.append(",\n 'total-shares': ");
+        sb.append(Integer.toString(sharesAvailable));
+        sb.append(",\n 'free-shares': ");
+        sb.append(Integer.toString(sharesFree));
+        sb.append(",\n 'all-machines': ");
+        sb.append(Arrays.toString(allMachines));
+        sb.append(",\n 'online-machines': ");
+        sb.append(Arrays.toString(onlineMachines));
+        sb.append(",\n 'free-machines': ");
+        sb.append(Arrays.toString(freeMachines));
+        sb.append(",\n 'virtual-machines': ");
+        sb.append(Arrays.toString(virtualMachines));
+        sb.append(",\n}");
+
+        return sb.toString();
     }
 
     public String toConsole()

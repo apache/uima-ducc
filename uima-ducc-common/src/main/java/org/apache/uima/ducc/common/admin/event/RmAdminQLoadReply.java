@@ -59,6 +59,22 @@ public class RmAdminQLoadReply
     public String toCompact()
     {
         StringBuffer sb = new StringBuffer();
+        sb.append("{\n'quantum':");
+        sb.append(Long.toString(shareQuantum));
+        sb.append(",\n'classes': [\n");
+        for ( RmQueriedClass cl : classes ) {
+            sb.append(cl.toCompact());
+            sb.append("\n,");
+        }
+
+        sb.append("],\n'nodepools': [\n");
+        for ( RmQueriedNodepool np : nodepools ) {
+            sb.append(np.toCompact());
+            sb.append("\n,");
+        }
+
+        sb.append("],\n}");
+
         return sb.toString();
     }
 
