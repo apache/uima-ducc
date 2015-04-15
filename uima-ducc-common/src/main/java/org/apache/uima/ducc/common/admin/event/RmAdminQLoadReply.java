@@ -56,6 +56,46 @@ public class RmAdminQLoadReply
         return String.format(sb.toString(), vals);
     }
 
+    /**
+        The compact format creates a Python structure of this form:
+        A dictionary with these keys:
+            quantum
+               value is a single integer
+            classes
+               value is a list of dictionaries describing demand
+                       with these keys
+                           name
+                              value is string, the name of the class
+                           policy
+                              value is the scheduling policy
+                           requested
+                              value is a list of integers
+                           awarded
+                              value is a list of integers
+            nodepools
+               value is a list of dictionaries describing a node pool
+                        with these keys
+                           name
+                              value is the namne of the nodepool
+                           online
+                              value is an integer
+                           dead
+                              value is an integer
+                           offline
+                              value is an integer
+                           total-shares
+                              value is an integer
+                           free-shares
+                              value is an integer
+                           all-machines
+                              value is a list of integers
+                           online-machines
+                              value is a list of integers
+                           free-machines
+                              value is a list of integers
+                           virtual-machines
+                              value is a list of integers
+    */
     public String toCompact()
     {
         StringBuffer sb = new StringBuffer();
