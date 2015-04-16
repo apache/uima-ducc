@@ -21,52 +21,59 @@
 
 import os
 import sys
-import getopt
+import subprocess
 
 from ducc_util  import DuccUtil
 
 class DuccRmQOccupancy(DuccUtil):
 
-    def usage(self, msg):
-        if ( msg != None ):
-            print msg
+    def format_shares(self, sh):
+        for s in sh:
+            if ( s['blacklisted'] ):
+                pass
+            else:
+                print '%19s J[%8d] S[%8d] O[%d] II[%8d] IR[%8d] E[%5s] P[%5s] F[%5s] I[%5s]' %  ('', s['jobid'], s['shareid'], s['order'], s['investment-init'], s['investment-run'], 
+                 s['evicted'], s['purged'], s['fixed'], s['initialized'])
+                
 
-        print 'rm_qoccupancy --console | --compact'
-        print '    This returns details of each DUCC node.'
-        print '    --console formats the output in human-readable form'
-        print '    --compact formats the output for scripting'
-        print ''
-        print 'Example:'
-        print '   rm_qoccupancy --console'
-        print ''
-        print '   rm_qoccupancy --compact'
-        sys.exit(1)
+    def format_machines(self, lines):
+
+        print("%20s %11s %6s %6s %15s %10s %5s %6s" %  ("Node", "Blacklisted", "Online", "Status", "Nodepool", "Memory", "Order", "Free"))
+
+        for m in lines:
+            print "%20s %11s %6s %6s %15s %10s %5s %6s" %  (m['name'], m['blacklisted'], m['online'], m['status'], m['nodepool'], m['memory'], m['order'], m['shares-free'])
+            if ( len(m['shares']) != 0 ) :
+                self.format_shares(m['shares'])
+                print ''
+
+
+    def format(self, lines):
+        qoccupancy = eval(lines)
+        self.format_machines(qoccupancy)
+
     
     def main(self, argv):
 
-        format = None
-
-        try:
-            opts, args = getopt.getopt(argv, 'h?', ['console', 'compact'])
-        except:
-            self.usage("Invalid arguments " + ' '.join(argv))
-            
-        for ( o, a ) in opts:
-            if o in ('--console'):
-                format = o
-            if o in ('--compact'):
-                format = o
-            elif o in ('-h', '?'):
-                self.usage(None)
-
-        if ( format == None ):
-            self.usage("Must specify --console or --compact")
+        if ( argv == '-h' or argv == '-?' or argv == '--help' ):
+            print 'rm_qload queries and formats the current state of the RM scheduling tables. It takes no parameters.'
+            sys.exit(1);
 
         DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDUCC_HOME=' + self.DUCC_HOME
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
 
-        self.spawn(self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccRmAdmin', '--qoccupancy', format) 
+        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccRmAdmin', '--qoccupancy', '--compact']
+        CMD = ' '.join(CMD)
+        lines = ''
+        proc = subprocess.Popen(CMD, bufsize=0, stdout=subprocess.PIPE, shell=True)
+        for line in proc.stdout:
+            lines = lines + line
+
+        if 'not yet initialized' in lines:
+            print lines
+            return
+            
+        self.format(lines)
         
         return
 

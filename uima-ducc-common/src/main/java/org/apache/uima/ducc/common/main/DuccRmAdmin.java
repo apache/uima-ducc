@@ -279,32 +279,15 @@ public class DuccRmAdmin
         }
 
         if ( args[0].equals("--qload")) { 
-            if ( args.length != 2 ) usage("Query load: specify --console or --compact");
-            if ( !args[1].equals("--console") && !args[1].equals("--compact") ) {
-                usage("Invalid argument: " + args[1] + " - specify --console or --compact");
-            }
 
             RmAdminQLoadReply ret = qload();
-            if ( args[1].equals("--console") ) {
-                System.out.println(ret.toConsole());
-            } else {
-                System.out.println(ret.toCompact());
-            }
+            System.out.println(ret.toString());
             return;
         }
 
         if ( args[0].equals("--qoccupancy")) {
-            if ( args.length != 2 ) usage("Query occupancy: specify --console or --compact");
-            if ( !args[1].equals("--console") && !args[1].equals("--compact") ) {
-                usage("Invalid argument: " + args[1] + " - specify --console or --compact");
-            }
             RmAdminQOccupancyReply ret = qoccupancy();
-            if ( args[1].equals("--console") ) {
-                System.out.println(ret.toConsole());
-            } else {
-                System.out.println(ret.toCompact());
-            }
-
+            System.out.println(ret.toString());
             return;
         }
 
@@ -326,8 +309,8 @@ public class DuccRmAdmin
         System.out.println("Where verbs are:");
         System.out.println("   --varyoff string-delimeted-nodes");
         System.out.println("   --varyon  string-delimeted-nodes");
-        System.out.println("   --qload --console|--compact");
-        System.out.println("   --qoccupancy --console|--compact");
+        System.out.println("   --qload");
+        System.out.println("   --qoccupancy");
         System.out.println("   --reconfigure");         // dynamic reconfig UIMA-4142
 
         System.exit(1);

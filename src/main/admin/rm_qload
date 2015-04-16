@@ -21,48 +21,110 @@
 
 import os
 import sys
-import getopt
+import subprocess
 
 from ducc_util  import DuccUtil
 
 class DuccRmQLoad(DuccUtil):
 
-    def usage(self, msg):
-        if ( msg != None ):
-            print msg
+    def format_array(self, ar):
+        fmt = ''
+        for i in range(0, len(ar)):
+            fmt = fmt + '%4d '
 
-        print 'rm_qload'
-        print '    This returns statistics indicative of the load and scheduling capacity of the system'
+        return (fmt % tuple(ar))
+
+    def format_classes(self, cls):
+    
+        # print the list of classes; each class is a dictionary
+        for cl in cls:
+            print 'Class', cl['name'], 'policy', cl['policy']
+            print '   requested', self.format_array(cl['requested'])
+            print '   awarded  ', self.format_array(cl['awarded'])
+            print ''
+    
+    def format_nodepools(self, nps):
+    
+        # print the list of nodepools; each nodepool is a dictionary
+        for np in nps:
+            print 'Nodepool', np['name']
+            print '   online', np['online'], 'dead', np['dead'], 'offline', np['offline'], 'total-shares', np['total-shares'], 'free-shares', np['free-shares']
+            print '   all     machines:', self.format_array(np['all-machines'])
+            print '   online  machines:', self.format_array(np['online-machines'])
+            print '   free    machines:', self.format_array(np['free-machines'])
+            print '   virtual machines:', self.format_array(np['virtual-machines'])
+            print ''
+    
+    #
+    # The input is structured like this:
+    # A dictionary with these keys:
+    #     quantum
+    #        value is a single integer
+    #     classes
+    #        value is a list of dictionaries describing demand
+    #                with these keys
+    #                    name
+    #                       value is string, the name of the class
+    #                    policy
+    #                       value is the scheduling policy
+    #                    requested
+    #                       value is a list of integers
+    #                    awarded
+    #                       value is a list of integers
+    #     nodepools
+    #        value is a list of dictionaries describing a node pool
+    #                 with these keys
+    #                    name
+    #                       value is the namne of the nodepool
+    #                    online
+    #                       value is an integer
+    #                    dead
+    #                       value is an integer
+    #                    offline
+    #                       value is an integer
+    #                    total-shares
+    #                       value is an integer
+    #                    free-shares
+    #                       value is an integer
+    #                    all-machines
+    #                       value is a list of integers
+    #                    online-machines
+    #                       value is a list of integers
+    #                    free-machines
+    #                       value is a list of integers
+    #                    virtual-machines
+    #                       value is a list of integers
+    # 
+    def format(self, lines):
+        qload = eval(lines)
+    
+        print 'Quantum:', qload['quantum']
         print ''
-        print 'Example:'
-        print '   rm_qload'
-        sys.exit(1)
+        self.format_classes(qload['classes'])
+        self.format_nodepools(qload['nodepools'])
     
     def main(self, argv):
+    
+        if ( argv == '-h' or argv == '-?' or argv == '--help' ):
+            print 'rm_qload queries and formats the current state of the RM scheduling tables. It takes no parameters.'
+            sys.exit(1);
 
-        format = None
-
-        try:
-            opts, args = getopt.getopt(argv, 'h?', ['console', 'compact'])
-        except:
-            self.usage("Invalid arguments " + ' '.join(argv))
-            
-        for ( o, a ) in opts:
-            if o in ('--console'):
-                format = o
-            if o in ('--compact'):
-                format = o
-            elif o in ('-h', '?'):
-                self.usage(None)
-
-        if ( format == None ):
-            self.usage("Must specify --console or --compact")
-       
         DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDUCC_HOME=' + self.DUCC_HOME
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
 
-        self.spawn(self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccRmAdmin', '--qload', format) 
+        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccRmAdmin', '--qload', '--compact']
+        CMD = ' '.join(CMD)
+        lines = ''
+        proc = subprocess.Popen(CMD, bufsize=0, stdout=subprocess.PIPE, shell=True)
+        for line in proc.stdout:
+            lines = lines + line
+
+        if 'not yet initialized' in lines:
+            print lines
+            return
+
+        self.format(lines)
         
         return
 

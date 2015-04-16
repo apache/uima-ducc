@@ -71,7 +71,7 @@ public class RmQueriedClass
 		this.awarded = awarded;
 	}
 
-    public String toCompact()
+    public String toString()
     {
         StringBuffer sb = new StringBuffer();
 
@@ -85,22 +85,6 @@ public class RmQueriedClass
         sb.append(Arrays.toString(awarded));
         sb.append(",\n}");
 
-        return sb.toString();
-    }
-
-    public String toConsole()
-    {
-        StringBuffer sb = new StringBuffer();
-        sb.append("Class ");
-        sb.append(name);
-        sb.append(" ");
-        sb.append(policy);
-        sb.append("\n");
-        sb.append("   Requested: ");
-        sb.append(RmAdminQLoadReply.fmtArray(demanded));
-        sb.append("\n   Awarded  : ");
-        sb.append(RmAdminQLoadReply.fmtArray(awarded));
-        sb.append("\n");
         return sb.toString();
     }
     

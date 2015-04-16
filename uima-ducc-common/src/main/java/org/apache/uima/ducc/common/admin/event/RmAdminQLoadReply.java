@@ -26,6 +26,7 @@ public class RmAdminQLoadReply
 {
 	private static final long serialVersionUID = -8101741014979144426L;
 
+    private boolean ready = true;     // if false, RM is not initialized
     private long shareQuantum;
     private List<RmQueriedNodepool> nodepools = new ArrayList<RmQueriedNodepool>();
     private List<RmQueriedClass>    classes   = new ArrayList<RmQueriedClass>();
@@ -43,6 +44,9 @@ public class RmAdminQLoadReply
     public long getShareQuantum()                 { return shareQuantum; }
     public List<RmQueriedNodepool> getNodepools() { return nodepools; }
     public List<RmQueriedClass>    getClasses()   { return classes; }
+
+    public void    notReady()                     { this.ready = false; }
+    public boolean isReady()                      { return ready; }
 
     public static String fmtArray(int[] array)
     {
@@ -96,20 +100,25 @@ public class RmAdminQLoadReply
                            virtual-machines
                               value is a list of integers
     */
-    public String toCompact()
+    public String toString()
     {
+
+        if ( !ready ) {
+            return "RM is not yet initialized.";
+        }
+
         StringBuffer sb = new StringBuffer();
         sb.append("{\n'quantum':");
         sb.append(Long.toString(shareQuantum));
         sb.append(",\n'classes': [\n");
         for ( RmQueriedClass cl : classes ) {
-            sb.append(cl.toCompact());
+            sb.append(cl.toString());
             sb.append("\n,");
         }
 
         sb.append("],\n'nodepools': [\n");
         for ( RmQueriedNodepool np : nodepools ) {
-            sb.append(np.toCompact());
+            sb.append(np.toString());
             sb.append("\n,");
         }
 
@@ -117,26 +126,4 @@ public class RmAdminQLoadReply
 
         return sb.toString();
     }
-
-    public String toConsole()
-    {
-        StringBuffer sb = new StringBuffer();
-
-        sb.append("Query Load - scheduling quantum ");
-        sb.append(Long.toString(shareQuantum));
-        sb.append(":\n");
-
-        for ( RmQueriedClass cl : classes ) {
-            sb.append(cl.toConsole());
-            sb.append("\n");
-        }
-
-        for ( RmQueriedNodepool np : nodepools ) {
-            sb.append(np.toConsole());
-            sb.append("\n");
-        }
-
-        return sb.toString();
-    }
-
 }

@@ -65,21 +65,37 @@ public class RmQueriedShare
     public boolean isInitialized()  { return initialized; }
 
 
-    public String toCompact()
+    public String toString()
     {
-        if ( blacklisted ) {
-            return String.format("BLACKLISTED %8d %8d %d", jobId, shareId, order);
-        } else {
-            return String.format("%d %d %d %d %d %s %s %s %s", jobId, shareId, order, investmentInit, investmentRt, evicted, purged, fixed, initialized);
-        }
-    }
+        StringBuffer sb = new StringBuffer();
 
-    public String toConsole()
-    {
-        if ( blacklisted ) {
-            return String.format("J[%8d] S[%8d] O[%d] BLACKLISTED", jobId, shareId, order);
-        } else {
-            return String.format("J[%8d] S[%8d] O[%d] II[%8d] IR[%8d] E[%5s] P[%5s] F[%5s] I[%5s]", jobId, shareId, order, investmentInit, investmentRt, evicted, purged, fixed, initialized);
+        sb.append("{");
+
+        sb.append("'blacklisted':");
+        sb.append(blacklisted ? "True" : "False");
+        sb.append(", 'jobid':");
+        sb.append(Long.toString(jobId));
+        sb.append(",'shareid':");
+        sb.append(Long.toString(shareId));
+        sb.append(",'order':");
+        sb.append(Integer.toString(order));
+
+        if ( !blacklisted ) {
+            sb.append(",'investment-init':");
+            sb.append(Long.toString(investmentInit));
+            sb.append(",'investment-run':");
+            sb.append(Long.toString(investmentRt));
+            sb.append(",'evicted':");
+            sb.append(evicted ? "True" : "False");
+            sb.append(",'purged':");
+            sb.append(purged ? "True" : "False");
+            sb.append(",'fixed':");
+            sb.append(fixed ? "True" : "False");
+            sb.append(",'initialized':");
+            sb.append(initialized ? "True" : "False");
         }
+        sb.append("}");
+
+        return sb.toString();
     }
 }

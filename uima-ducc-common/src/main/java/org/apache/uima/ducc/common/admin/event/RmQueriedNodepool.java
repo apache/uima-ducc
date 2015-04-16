@@ -122,7 +122,7 @@ public class RmQueriedNodepool
 		this.virtualMachines = virtualMachines;
 	}
 
-    public String toCompact()
+    public String toString()
     {
         StringBuffer sb = new StringBuffer();
         
@@ -151,32 +151,4 @@ public class RmQueriedNodepool
         return sb.toString();
     }
 
-    public String toConsole()
-    {
-        StringBuffer sb = new StringBuffer();
-        sb.append("Nodepool ");
-        sb.append(name);
-        sb.append("\n   ");
-        sb.append("Nodes online: ");
-        sb.append(Integer.toString(online));
-        sb.append(" Nodes dead: ");
-        sb.append(Integer.toString(dead));
-        sb.append(" Nodes offline: ");
-        sb.append(Integer.toString(offline));
-        sb.append(" Total Shares: ");
-        sb.append(Integer.toString(sharesAvailable));
-        sb.append(" Shares Free: ");
-        sb.append(Integer.toString(sharesFree));
-        sb.append("\n");
-        sb.append("   All     Machines: ");
-        sb.append(RmAdminQLoadReply.fmtArray(allMachines));
-        sb.append("\n   Online  Machines: ");
-        sb.append(RmAdminQLoadReply.fmtArray(onlineMachines));
-        sb.append("\n   Free    Machines: ");
-        sb.append(RmAdminQLoadReply.fmtArray(freeMachines));
-        sb.append("\n   Virtual Machines: ");
-        sb.append(RmAdminQLoadReply.fmtArray(virtualMachines));
-        
-        return sb.toString();
-    }
 }

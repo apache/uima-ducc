@@ -28,7 +28,7 @@ public class RmAdminQOccupancyReply
 {
 	private static final long serialVersionUID = -8101741014979144426L;
 
-
+    boolean ready = true;         // If not ready, RM is not initialized
     List<RmQueriedMachine> machines = new ArrayList<RmQueriedMachine>();
 
     public RmAdminQOccupancyReply()
@@ -41,49 +41,44 @@ public class RmAdminQOccupancyReply
         machines.add(m);
     }
 
+    public void    notReady()   { this.ready = false; }
+    public boolean isReady()    { return ready; }
+
     public List<RmQueriedMachine> getMachines()
     {
         return machines;
     }
 
-
-    public String toConsole()
+    public String toString()
     {
-        Collections.sort(machines, new MachineByOrderSorter());
-        StringBuffer sb = new StringBuffer();
-        sb.append(RmQueriedMachine.header());
-        sb.append("\n");
-        sb.append(RmQueriedMachine.separator());
-        sb.append("\n");
-        for ( RmQueriedMachine m : machines ) {
-            sb.append(m.toConsole());
-            sb.append("\n");
+
+        if ( !ready ) {
+            return "RM is not yet initialized.";
         }
+
+        Collections.sort(machines, new MachineByMemorySorter());
+        StringBuffer sb = new StringBuffer();
+
+        sb.append("[\n");
+        for ( RmQueriedMachine m : machines ) {
+            sb.append(m.toString());
+            sb.append(",\n");
+        }
+        sb.append("]");
         return sb.toString();
     }
 
-    public String toCompact()
-    {
-        // ( no need to sort, this is intended for script scraping so we let the script order things as it wants )
-        StringBuffer sb = new StringBuffer();
-        for ( RmQueriedMachine m : machines ) {
-            sb.append(m.toCompact());
-            sb.append("\n");
-        }
-        return sb.toString();
-    }
-
-    class MachineByOrderSorter
+    class MachineByMemorySorter
     	implements Comparator<RmQueriedMachine>
     {	
     	public int compare(RmQueriedMachine m1, RmQueriedMachine m2)
         {
-            int o1 = m1.getShareOrder();
-            int o2 = m2.getShareOrder();
-            if ( o1 == o2 ) {
+            long mm1 = m1.getMemory();
+            long mm2 = m2.getMemory();
+            if ( mm1 == mm2 ) {
                 return m1.getId().compareTo(m2.getId());
             }
-            return o2 - o1;
+            return (int) (mm2 - mm1);
         }
     }
 

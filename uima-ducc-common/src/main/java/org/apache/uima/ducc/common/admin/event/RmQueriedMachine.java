@@ -65,83 +65,49 @@ public class RmQueriedMachine
     public boolean isOnline()       { return online; }             // UIMA-4142
     public boolean isResponsive()   { return responsive; }         // UIMA-4142
     
-    static String fmt_s = "%20s %11s %6s %6s %15s %10s %5s %4s %s";
-    String        fmt_d = "%20s %11s %6s %6s %15s %10d %5d %4d" ;
-
-    public static String header()
-    {
-        return String.format(fmt_s, "Node", "Blacklisted", "Online", "Status", "Nodepool", "Memory", "Order", "Free", "Shares");
-    }
-
-    public static String separator()
-    {
-        return String.format(fmt_s, "--------------------", "-----------", "------", "------", "---------------", "----------", "-----", "----", "----------");
-    }
-
-    public String toConsole() 
-    {
-        StringBuffer sb = new StringBuffer();
-
-        if ( shares == null ) {
-            sb.append(String.format(fmt_d, name, blacklisted, online, (responsive ? "up" : "down"), nodepoolId, memory, order, 0));
-            sb.append(" [none]");
-        } else {
-            int used = 0;
-            for ( RmQueriedShare s : shares ) {                
-                used += s.getShareOrder();
-            }
-            sb.append(String.format(fmt_d, name, blacklisted, online, (responsive ? "up" : "down"), nodepoolId, memory, order, order - used));
-
-            String spacer = " ";
-            String altSpacer = "\n" + String.format(fmt_s, "", "", "", "", "", "", "", "", ""); // yes, blank, of exactly the right size
-            for ( RmQueriedShare s : shares ) {                
-                sb.append(spacer);
-                sb.append(s.toConsole());
-                spacer = altSpacer;
-            }
-        }
-        return sb.toString();
-
-    }
-
-    public String toCompact() 
+    public String toString() 
     {
         // name memory order(nqshares) unused-shares share-details...
         StringBuffer sb = new StringBuffer();
+        sb.append("{'name':'");
         sb.append(name);
-        sb.append(" ");
+        sb.append("','nodepool':'");
         sb.append(nodepoolId);
-        sb.append(" ");
-        sb.append(Boolean.toString(blacklisted));
-        sb.append(" ");
-        sb.append(Boolean.toString(online));
-        sb.append(" ");
-        sb.append(responsive ? "up" : "down");
-        sb.append(" ");
+        sb.append("','blacklisted':");
+        sb.append(blacklisted ? "True" : "False");
+        sb.append(",'online':");
+        sb.append(online ? "True" : "False");
+        sb.append(",'status': ");
+        sb.append(responsive ? "'up'" : "'down'");
+        sb.append(",'nodepool': '");
+        sb.append(nodepoolId);
+        sb.append("','memory':");
         sb.append(Long.toString(memory));
-        sb.append(" ");
+        sb.append(",'order':");
         sb.append(Integer.toString(order));
         
         if ( shares == null ) {
-            sb.append(" 0, None");
+            sb.append(",'shares-free':'");
+            sb.append(Integer.toString(order));
+            sb.append("'");
+            sb.append(",'shares':[],\n");
         } else {
             int used = 0;
             for ( RmQueriedShare s : shares ) {                
                 used += s.getShareOrder();
             }
 
-            sb.append(" ");
+            sb.append(",'shares-free':");
             sb.append(Integer.toString(order - used));
+            sb.append(",'shares':[");
             for ( RmQueriedShare s : shares ) {
+                sb.append(s.toString());
                 sb.append(",");
-                sb.append(s.toCompact());
             }
+            sb.append("],\n");
         }
+        sb.append("}\n");
         return sb.toString();
     }
 
-    public String toString()
-    {
-        return String.format("%14s %5s %12d %3d %3d", name, blacklisted, memory, order, shares == null ? 0 : shares.size());
-    }
 }

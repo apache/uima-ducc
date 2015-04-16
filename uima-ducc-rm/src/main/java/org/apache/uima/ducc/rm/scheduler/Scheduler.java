@@ -1269,11 +1269,14 @@ public class Scheduler
     }
 
     public synchronized RmAdminQLoadReply queryLoad()
-    {
-        
-        while ( !ready() ) {}
+    {        
 
         RmAdminQLoadReply ret = new RmAdminQLoadReply();
+        if ( ! ready() ) {
+            ret.notReady();
+            return ret;
+        }
+
         ret.setShareQuantum(share_quantum);
 
         calculateLoad(ret);
@@ -1294,6 +1297,10 @@ public class Scheduler
     public synchronized RmAdminQOccupancyReply queryOccupancy()
     {
         RmAdminQOccupancyReply ret = new RmAdminQOccupancyReply();
+        if ( ! ready() ) {
+            ret.notReady();
+            return ret;
+        }
 
         //
         // iterate top-level nodepools to get all their subpools
