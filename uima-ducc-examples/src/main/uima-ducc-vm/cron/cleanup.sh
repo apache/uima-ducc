@@ -18,7 +18,19 @@
 # under the License.
 # -----------------------------------------------------------------------
 
-for f in `find /tmp -maxdepth 1 -mtime +7`; do rm -rf $f; done
-mkdir /tmp/degenaro
-mkdir /tmp/degenaro/ducc
-mkdir /tmp/degenaro/ducc/logs
+# this section reports what the script will remove
+togo=`find /tmp/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +2 | wc -l`
+echo Removing $togo directories in /tmp/degenaro/ducc/logs/
+find /tmp/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +2 | xargs -i ls -ld {}
+togo=`find /home/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +2 | wc -l`
+echo Removing $togo directories in /home/degenaro/ducc/logs/
+find /home/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +2 | xargs -i ls -ld {}
+togo=`find /tmp/ducc/driver/ -maxdepth 4 -name "[0-9]*"  -mtime +1 | wc -l`
+echo Removing $togo directories in /tmp/ducc/driver/
+find /tmp/ducc/driver/ -maxdepth 4 -name "[0-9]*"  -mtime +1 | xargs -i ls -ld {}
+
+
+# this section actually removes stuff
+find /tmp/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +2 | xargs -i rm -rf {}
+find /home/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +2 | xargs -i rm -rf {}
+find /tmp/ducc/driver/ -maxdepth 4 -name "[0-9]*"  -mtime +1 | xargs -i rm -rf {}
