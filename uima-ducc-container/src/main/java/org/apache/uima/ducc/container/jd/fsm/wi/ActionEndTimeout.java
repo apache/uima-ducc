@@ -28,10 +28,8 @@ import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.JobDriverHelper;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
-import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
-import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
@@ -46,14 +44,12 @@ public class ActionEndTimeout extends Action implements IAction {
 		return ActionEndTimeout.class.getName();
 	}
 	
-	private void recallWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi) {
-		String location = "recallWorkItem";
+	private void killWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi) {
+		String location = "killWorkItem";
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
 		WiTracker.getInstance().unassign(wi);
-		TimeoutManager.getInstance().cancelTimer(actionData);
-		cm.putMetaCas(metaCas, RetryReason.TimeoutRetry);
-		cm.getCasManagerStats().incEndRetry();	
+		cm.getCasManagerStats().incEndFailure();
 	}
 	
 	@Override
@@ -72,15 +68,14 @@ public class ActionEndTimeout extends Action implements IAction {
 				JobDriverHelper jdh = JobDriverHelper.getInstance();
 				if(rwp != null) {
 					if(metaCas != null) {
-						recallWorkItem(actionData, cm, metaCas, wi);
+						killWorkItem(actionData, cm, metaCas, wi);
 						IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 						MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
 						IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 						int seqNo = metaCasHelper.getSystemKey();
-						wisk.retry(seqNo);
-						pStats.retry(wi);
+						wisk.error(seqNo);
+						pStats.error(wi);
 						displayProcessStatistics(logger, actionData, wi, pStats);
-						wi.reset();
 					}
 					else {
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
