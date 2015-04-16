@@ -359,6 +359,152 @@ check_ducc -n nlist1 -n nlist2
       \end{description}
              
        
+
+
+\subsection{rm\_qload}
+\label{subsec:admin.rm-qload}
+
+    \subsubsection{{\em Description:}}
+    Rm\_qload is used to query the Resource Manager's scheduling tables to determine the
+    current demand and capacity of the system, as the RM sees it.  The primary purpose
+    is to provide information to adjunct resource managers (such as a ``cloud'') to
+    determine the current needs, or lack thereof, of the system.  The administrative
+    command is implemented as a Python script that interacts with the underlying
+    Java ``RmQueryLoadReply'' API and is provided mostly as an example of how
+    scripting can be used to interact with the RM.
+
+    After displaying the current scheduling quantum, the response is provided in two sections:
+    \begin{enumerate}
+      \item Information showing the current demand and usage of resource classes, and
+      \item Information showing the current nodepool usage.
+    \end{enumerate}
+
+    \subsubsection{\em Class section}
+    Three lines are emitted per class:
+    \begin{enumerate}
+      \item The name of the class and its scheduling policy,
+      \item A line showing the {\em demand}, or {\em request} by quantum, on the class, and
+      \item A line showing the {\em usage}, or {\em award}, by quantum on the class.
+    \end{enumerate}
+    
+    The numbers shown for {\em request} and {\em award} show the number of processes, by
+    memory, in terms of scheduling quantum, for each class.  For example, assuming the
+    scheduling quantum is 15GB, the following shows:
+    \begin{itemize}
+      \item Five processes of quantum 2 (15-30GB) are requested, but only two have been awarded,
+      \item Three processes of quantum 3 (31-45GB) are requested and all have been awarded,
+      \item Four processes of quantum 4 (46-60GB) are requested, and two have been awarded.
+    \end{itemize}
+\begin{verbatim}
+Class normal policy FAIR_SHARE
+   requested    0    0    5    3    4    0    0    0    0 
+   awarded      0    0    2    3    2    0    0    0    0 
+\end{verbatim}
+
+    \subsubsection{\em Nodepool section}
+    Six lines are displayed for each nodepool:
+    \begin{enumerate}
+      \item The name of the nodepool,
+      \item A summary showing the number hosts in the pool which are online, dead (unresponsive), and
+          varied-off, the total quantum shares available to the nodepool, and the total unscheduled or 
+          {\em free} shares.
+      \item The number of hosts known to the nodepool, by quantum, similar to the class listings above,
+      \item The nubmer of online hosts, by quantum,
+      \item The number of completely free hosts by quantum (no work currently scheduled), and
+      \item The number of {\em virtual} hosts, by quantum.  A {\em virtual host} is created when a
+          host is partially scheduled.  For example, if a 32G processes is scheduled on a 64G host, this
+          creates one free 32G {\em virtual host}.
+    \end{enumerate}
+    To determine the number of processes, by quantum, that can be scheduled, one must {\em sum} the
+    ``free'' and ``virtual'' columns.
+    
+    For example, (assuming a 15GB quantum), the following listing shows
+    that nodepool ``power'' contains fourteen hosts with at least 45GB each (3 quanta).  Two
+    of these hosts have something scheduled on them (the ``free
+    machines'' line), leaving unused space of one 15G quantum on one
+    host, and one 30GB quantum on another host.
+
+\begin{verbatim}
+Nodepool power
+   online 14 dead 0 offline 0 total-shares 42 free-shares 42
+   all     machines:    0    0    0   14    0    0    0    0    0 
+   online  machines:    0    0    0    0    0    0    0    0    0 
+   free    machines:    0    0    0   12    0    0    0    0    0 
+   virtual machines:    0    1    1    0    0    0    0    0    0 
+\end{verbatim}
+
+    \subsubsection{\em Usage:}
+    \begin{description}
+      \item[rm\_qload] \hfill \\ 
+        This command has no options.
+      \end{description}
+             
+       
+\subsection{rm\_qoccupancy}
+\label{subsec:admin.rm-qoccupancey}
+
+    \subsubsection{{\em Description:}}
+    Rm\_qoccupancy provides a list of all known hosts to the RM, and for each host, the following information:
+    \begin{itemize}
+      \item The name of the host,
+      \item Whether the host has any blacklists processes on it,
+      \item Whether the host is currently onlline (responsive),
+      \item The status of the host; whether the host is schedulable ({\em up} or {\em down}.  A responsive host becomes
+        unschedulable ({\em down}) if it is varied-off,
+      \item The nodepool the host is a member of,
+      \item The reported memory size of the host, 
+      \item The {\em order} of the host.  The {\em order} is defined to be the maximum number of quantum shares
+        supported by the host,
+      \item The number of unscheduled quantum shares on the host, and
+      \item If work is scheduled on the host, information relevent to that scheduled processes (or reservation).
+    \end{itemize}
+
+    If work is scheduled on a host, the work summary is keyed thus:
+    \begin{description}
+      \item[J] The Orchestrator-assigned job id of the work,
+      \item[S] The RM-assigned share id of the work,
+      \item[O] The {\em order} of the allocation; that is, the number of quantum shares the allocation occupies,
+      \item[II] The {\em initialization investment}; the number of milliseconds the allocated work spent in its
+        initialization phase, if any (usually only UIMA-AS processes display this),
+      \item[IR] The {\em runtime investment}; the number of milliseconds spent processing the current CASs, if this
+        is a UIMA-AS processes.  Note that this number can change dramatically, as it is the sum of time spent only
+        by the current CASs.  When a CAS completes, it no longer contributes to the investment of the process.  The RM
+        uses this information to determine the best candidate for eviction, if needed ot maintain fair-share.
+      \item[E] Whether the RM has preempted (evicted) the process but it has not yet exited,
+      \item[P] Whether the RM has purged the process (evicted, because the host is non-responsive), but it has not
+        been confirmed evicted,
+      \item[F] Whether the process is {\em fixed}; that is, non-preemptbable,
+      \item[I] Whether the initialization phase is completed (usually only UIMA-AS processes).
+    \end{description}
+
+    The following example shows seven hosts, one with a preemptable share in the {\em --default--}
+    nodepool (on bluej290-5), and one with a non-preemptable share in the {\em jobdriver} nodepool.
+\begin{verbatim}
+                Node Blacklisted Online Status        Nodepool     Memory Order   Free
+          bluej290-5       False   True     up     --default--   32505856     2      0
+                    J[    6006] S[     189] O[2] II[       0] IR[       0] E[False] P[False] F[False] I[False]
+
+          bluej290-6       False   True     up     --default--   32505856     2      2
+          bluej290-7       False   True     up     --default--   32505856     2      2
+         bluej291-26       False   True     up    nightly-test   32505856     2      2
+         bluej291-27       False   True     up    nightly-test   32505856     2      2
+         bluej293-60       False   True     up           intel   32505856     2      2
+         bluej537-73       False   True     up       jobdriver   32505856     2      1
+                    J[    5973] S[       1] O[1] II[       0] IR[       0] E[False] P[False] F[ True] I[False]
+
+
+\end{verbatim}
+
+
+    \subsubsection{\em Usage:}
+
+    \begin{description}
+      \item[rm\_qoccupancy] \hfill \\ 
+        This command has no options.
+      \end{description}
+             
+       
+
 \subsection{vary\_off}
 \label{subsec:admin.vary-off}
     \subsubsection{{\em Description:}}
