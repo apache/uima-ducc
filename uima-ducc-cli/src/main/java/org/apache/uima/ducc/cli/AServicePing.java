@@ -141,7 +141,7 @@ public abstract class AServicePing
      * @param endpoint This is the name of the service endpoint, as passed in
      *                 at service registration.
      *
-     * @param initProps Properties file with static data about the service and 
+     * @param initState Properties file with static data about the service and 
      *                  pinger.
      */
     public void init(String arguments, String endpoint, Map<String, Object> initState)
@@ -204,7 +204,7 @@ public abstract class AServicePing
      * run-failures         Integer           Total run failures since the service was started
      * </xmp>
      *
-     * @eturn A Map<String, Object> of string-key to Object containing dynamic information from the SM.  Callers
+     * @return A Map<String, Object> of string-key to Object containing dynamic information from the SM.  Callers
      *        must cast the value to the correct type as shown below.
      */
     public Map<String, Object> getSmState() 

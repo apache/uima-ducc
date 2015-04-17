@@ -47,6 +47,21 @@ import org.apache.uima.ducc.common.utils.Utils;
 
 import com.thoughtworks.xstream.XStream;
 
+/**
+ * This class provides the API and CLI to the Resource Managager administrative functions.
+ *
+ * The functions provided by this class are exposed both to Java programs, and scripting.  
+ *
+ * When invoked through the <code>main</code> class, the specified funtions emit a string which is
+ * easily parsable by scripting.  Specifically, the qoccupancy and qload interfaces return a
+ * string that can be converted to List and Dictionary objects in Python via Python's 
+ * <code>eval</code> function.
+ *
+ * When invokded via Java the response is returned in Java objects, as described below.
+ * The use of this class's Java API is intended for DUCC System programming, and requires
+ * the Camel, Spring, ActiveMQ, and Log4j classes in the classpath, as well as the DUCC
+ * Transport and Common jars.
+ */ 
 public class DuccRmAdmin 
     extends AbstractDuccComponent 
 {
@@ -60,6 +75,14 @@ public class DuccRmAdmin
     String user;
     byte[] cypheredMessage;
 
+    /**
+     * Creates a new instance of the RM administrative interface.
+
+     * @param context This is the Camel context to use.  Usually it is sufficient to simply provide
+     *                <code>new DefaultCamelContext()</code>.
+     * @param epname  This is the RM JMS endpoint as configured in ducc.properties.  Usually it is
+     *                sufficient to provide <code>ducc.rm.admin.endpoint</code>.
+     */
 	public DuccRmAdmin(CamelContext context, String epname)
     {
 		super("DuccServiceReaper", context);
@@ -117,11 +140,17 @@ public class DuccRmAdmin
 		}
 	}
 
+    /**
+     * This provides direct access to the logger for the class.
+     */
     public DuccLogger getLogger()
     {
         return new DuccLogger("Admin");
     }
 
+    /**
+     * Turn the request int xstream format for transmission to RM.
+     */
     private String marshallEvent(DuccAdminEvent duccEvent) 
         throws Exception 
     {
@@ -130,24 +159,17 @@ public class DuccRmAdmin
         return xStream.toXML(duccEvent);
     }
     
-    // private RmAdminReply unmarshallEvent(Object targetToUnmarshall) 
-    //     throws Exception 
-    // {
-    //     XStream xStream = new XStream(new DomDriver());
-    //     String claz = targetToUnmarshall.getClass().getName();
+    /**
+     * Marshall and transmit the request to RM, waiting for the response.
+     * 
+     * @param A DuccAdminEvent appropriate to the desired function.
+     *
+     * @return An {@link RmAdminReply RmAdminReply} appropriate to the response.  See the specific replies
+     *         for details.
 
-    //     if (targetToUnmarshall instanceof byte[]) {
-    //         Object reply = xStream.fromXML(new String((byte[]) targetToUnmarshall));
-    //         if (reply instanceof RmAdminReply) {
-    //             return (RmAdminReply) reply;
-    //         } else {
-    //             claz = (reply == null) ? "NULL" : reply.getClass().getName();
-    //         }
-    //     }
-    //     throw new Exception( "Unexpected Reply type received from Ducc Component. Expected DuccEvent, instead received: " + claz);        
-    // }
-
-    public RmAdminReply dispatchAndWaitForReply(DuccAdminEvent duccEvent) 
+	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
+     */
+    private RmAdminReply dispatchAndWaitForReply(DuccAdminEvent duccEvent) 
         throws Exception 
     {
         int maxRetryCount = 20;
@@ -188,41 +210,55 @@ public class DuccRmAdmin
     }
 
 	/**
-	 * Interprets and executes Admin command
+	 * This causes the RM to "vary off" a set of hosts.  The hosts may continue to broadcast state, and
+     * RM trackes their online/offline status, but it stops scheduling to them.  If there is evictable work
+     * on the hosts, RM will send eviction orders to the Orchestrator in order to clear them.
+     *
+     * @param args This is an array of hostnames indicating the hosts to be varied offline.
 	 * 
-	 * @throws Exception
+     * @return A generic {@link RmAdminReply RmAdminReply} indicating the result of the action.
+     *
+	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
 	 */
-	public void varyoff(String[] args) 
+	public RmAdminReply varyoff(String[] args) 
 		throws Exception 
     {
         String[] nodes = new String[args.length - 1];
         for ( int i = 1; i < args.length; i++) nodes[i-1] = args[i];  // take a slice of the array
 
         RmAdminVaryOff vo = new RmAdminVaryOff(nodes, user, cypheredMessage);
-		RmAdminReply reply = dispatchAndWaitForReply(vo);
-		System.out.println(reply.getResponse());
+		return dispatchAndWaitForReply(vo);
 	}
 
 	/**
-	 * Interprets and executes Admin command
+	 * This causes the RM to "vary on" a set of hosts. If the hosts are broadcasting state,
+     * they are immediately available for scheduling.  This commnd does not start the DUCC agents,
+     * it only instructs RM that, if the hosts was previously offline, it should now be used for
+     * scheduling if and when the host is responding and sending heartbeats.
+     *
+     * @param args This is an array of hostnames indicating the hosts to be varied nline.
 	 * 
-	 * @throws Exception
+     * @return A generic {@link RmAdminReply RmAdminReply} indicating the result of the action.
+     *
+	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
 	 */
-	public void varyon(String[] args) 
+	public RmAdminReply varyon(String[] args) 
 		throws Exception 
     {
         String[] nodes = new String[args.length - 1];
         for ( int i = 1; i < args.length; i++) nodes[i-1] = args[i];  // take a slice of the array
 
         RmAdminVaryOn vo = new RmAdminVaryOn(nodes, user, cypheredMessage);
-		RmAdminReply reply = dispatchAndWaitForReply(vo);
-		System.out.println(reply.getResponse());
+		return dispatchAndWaitForReply(vo);
 	}
 
 	/**
-	 * Query load.
+	 * This queries the current workload demand and resource supply in RM.
+     *
+     * @return A {@link RmAdminQLoadReply RmAdminQLoadReply} containing data regarding the current 
+     *         class and nodepool state.
 	 * 
-	 * @throws Exception
+	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
 	 */
 	public RmAdminQLoadReply qload()
 		throws Exception 
@@ -232,9 +268,12 @@ public class DuccRmAdmin
 	}
 
 	/**
-	 * Query occupancy.
+	 * This queries details on each host the RM is schedling to.
+     *
+     * @return A {@link RmAdminQOccupancyReply RmAdminQOccupancyReply} containing data regarding the current
+     *         hosts.
 	 * 
-	 * @throws Exception
+	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
 	 */
 	public RmAdminQOccupancyReply qoccupancy()
 		throws Exception 
@@ -243,21 +282,31 @@ public class DuccRmAdmin
 		return (RmAdminQOccupancyReply) dispatchAndWaitForReply(qo);
 	}
     
+    // UIMA-4142
 	/**
-	 * Send reconfigure event to RM.
-     * UIMA-4142
+	 * Send a reconfigure event to RM.  RM rereads all its configuration data an possibly reconfigures
+     * the schedule if needed.  
+     *
+     * @return {@link RmAdminReply RmAdminReply}.  The message must be <code>Reconfiguration complete.</code>;
+     *         any other response indicates failure.  Failure occurs when the new configuration is invalid.  If this
+     *         occurs use <code>check_ducc -cv </code> to read and validate the current configuration.
 	 * 
-	 * @throws Exception
+	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
 	 */
-	public void reconfigure()
+	public RmAdminReply reconfigure()
 		throws Exception 
     {
         RmAdminReconfigure np = new RmAdminReconfigure(user, cypheredMessage);
-		RmAdminReply reply = dispatchAndWaitForReply(np);
-		System.out.println(reply.getResponse());
+		return dispatchAndWaitForReply(np);
 	}
 
-    
+    /**
+     * This is called from <code>main</code> in response to a CLI request.
+     *
+     * @param args the command line arguments. See the usage method below for details.
+     *
+	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
+     */    
     public void run(String[] args)
     	throws Exception
     {
@@ -268,18 +317,19 @@ public class DuccRmAdmin
 
         if ( args[0].equals("--varyoff")) {
             if ( args.length < 2 ) usage("Missing node list");
-            varyoff(args);
+            RmAdminReply reply = varyoff(args);
+            System.out.println(reply.getResponse());
             return;
         }
 
         if ( args[0].equals("--varyon")) {
             if ( args.length < 2 ) usage("Missing node list");
-            varyon(args);
+            RmAdminReply reply = varyon(args);
+            System.out.println(reply.getResponse());
             return;
         }
 
         if ( args[0].equals("--qload")) { 
-
             RmAdminQLoadReply ret = qload();
             System.out.println(ret.toString());
             return;
@@ -293,14 +343,15 @@ public class DuccRmAdmin
 
         if ( args[0].equals("--reconfigure") ) {     // UIMA-4142
             if ( args.length != 1 ) usage("Reconfigure takes no arguments.");
-            reconfigure();
+            RmAdminReply reply = reconfigure();
+            System.out.println(reply.getResponse());
             return;
         }
 
         System.out.println("Unknown command: " + args[0]);
     }
 
-    public static void usage(String msg)
+    private static void usage(String msg)
     {
         if ( msg != null ) System.out.println(msg);
 
@@ -316,6 +367,9 @@ public class DuccRmAdmin
         System.exit(1);
     }
 
+    /**
+     * This is provided for use by the CLI, to invoke the varioius RM administrative commands.
+     */
 	public static void main(String[] args) 
     {
 		try {

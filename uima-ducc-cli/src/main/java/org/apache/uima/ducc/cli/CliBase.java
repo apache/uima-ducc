@@ -495,7 +495,7 @@ public abstract class CliBase
      * structures for the API, and extracts the numeric id of the [job, ducclet, reservation, service]
      * returned by the Orchestrator.
      *
-     * @returns true if the action succeeded and false otherwise.  The action in this case, is whatever
+     * @return true if the action succeeded and false otherwise.  The action in this case, is whatever
      *               the Orchestrator was asked to do: submit something, cancel something, etc.
      */
     boolean extractReply(AbstractDuccOrchestratorEvent reply)

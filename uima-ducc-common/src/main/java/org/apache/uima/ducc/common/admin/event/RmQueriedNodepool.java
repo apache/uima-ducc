@@ -21,6 +21,15 @@ package org.apache.uima.ducc.common.admin.event;
 import java.io.Serializable;
 import java.util.Arrays;
 
+/**
+ * This class returns details about the current state of each nodepool.
+ *
+ * Regarding the <code>getFreeMachines</code> and <code>getVirtualMachines</code> calls, these 
+ * two arrays together show the available memory that is free and schedulable.  For example, if
+ * a 48GB machine has a 15GB process scheduled on it (assuming a share quantum of 15GB), the
+ * response will show one 30GB virtual machine, and the expected count of 48GB machines will be
+ * reduced by one.
+ */
 public class RmQueriedNodepool
 	implements Serializable
 {
@@ -37,11 +46,17 @@ public class RmQueriedNodepool
     private int[] freeMachines;
     private int[] virtualMachines;
 
+    /**
+     * Used by RM only.
+     */
     public RmQueriedNodepool()
     {
         
     }
 
+    /**
+     * @return the name of the nodepool
+     */
 	public String getName() {
 		return name;
 	}
@@ -50,6 +65,9 @@ public class RmQueriedNodepool
 		this.name = name;
 	}
 
+    /**
+     * @return the number of online, schedulable hosts in the nodepool.
+     */
 	public int getOnline() {
 		return online;
 	}
@@ -58,6 +76,9 @@ public class RmQueriedNodepool
 		this.online = online;
 	}
 
+    /**
+     * @return the number of hosts which once were responding but have stopped sending heartbeats.
+     */
 	public int getDead() {
 		return dead;
 	}
@@ -66,6 +87,9 @@ public class RmQueriedNodepool
 		this.dead = dead;
 	}
 
+    /**
+     * @return the number of hosts which are varied offline.
+     */
 	public int getOffline() {
 		return offline;
 	}
@@ -74,6 +98,9 @@ public class RmQueriedNodepool
 		this.offline = offline;
 	}
 
+    /**
+     * @return the total number of schedulable quantum shares in the nodepool.
+     */
 	public int getSharesAvailable() {
 		return sharesAvailable;
 	}
@@ -82,6 +109,9 @@ public class RmQueriedNodepool
 		this.sharesAvailable = sharesAvailable;
 	}
 
+    /**
+     * @return the number of unused quantum shares in the nodepool.
+     */
 	public int getSharesFree() {
 		return sharesFree;
 	}
@@ -90,6 +120,10 @@ public class RmQueriedNodepool
 		this.sharesFree = sharesFree;
 	}
 
+    /**
+     * @return an array, indexed by multiples of the share quantum, showing the total number of machines
+     * known to the nodepool, regardless of status, whose memory capacity matches that multiple of the quantum.
+     */
 	public int[] getAllMachines() {
 		return allMachines;
 	}
@@ -98,6 +132,10 @@ public class RmQueriedNodepool
 		this.allMachines = allMachines;
 	}
 
+    /**
+     * @return an array, indexed by multiples of the share quantum, showing the total number of machines
+     * which are online and schedulable whose memory capacity matches that multiple of the quantum.
+     */
 	public int[] getOnlineMachines() {
 		return onlineMachines;
 	}
@@ -106,6 +144,10 @@ public class RmQueriedNodepool
 		this.onlineMachines = onlineMachines;
 	}
 
+    /**
+     * @return an array, indexed by multiples of the share quantum, showing the total number of physical
+     * machines which have nothing scheduled on them.
+     */
 	public int[] getFreeMachines() {
 		return freeMachines;
 	}
@@ -114,6 +156,10 @@ public class RmQueriedNodepool
 		this.freeMachines = freeMachines;
 	}
 
+    /**
+     * @return an array, indexed by multiples of the share quantum, showing the total number of 
+     * shares free on machines that to have something scheduled on them.
+     */
 	public int[] getVirtualMachines() {
 		return virtualMachines;
 	}

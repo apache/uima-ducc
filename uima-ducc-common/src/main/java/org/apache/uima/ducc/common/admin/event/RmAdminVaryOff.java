@@ -18,12 +18,22 @@
 */
 package org.apache.uima.ducc.common.admin.event;
 
+/**
+ * Construct and send this event to vary off a set of hosts.
+ */
 public class RmAdminVaryOff
     extends DuccAdminEvent 
 {
 	private static final long serialVersionUID = -8101741014979144426L;
-    String[] nodes;
+    private String[] nodes;
     
+    /**
+     * This build a request to vary off a set of hosts.
+     *
+     * @param nodes This is a string array containing the names of the hosts to vary off.
+     * @param user  This is the name of the user making the request, as required by the superclass.
+     * @param auth  This is the authentication block for the request, as required by the superclass.
+     */
     public RmAdminVaryOff(String[] nodes, String user, byte[] auth)
     {
         super(user, auth);

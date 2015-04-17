@@ -20,6 +20,9 @@ package org.apache.uima.ducc.common.admin.event;
 
 import java.io.Serializable;
 
+/**
+ * This is a generic response packet to the RM Administrative interface.
+ */
 public class RmAdminReply
 	implements Serializable
 {
@@ -31,6 +34,9 @@ public class RmAdminReply
         this.response = response;
     }
 
+    /**
+     * @return a string with the RM's response message.
+     */
     public String getResponse()
     {
     	return response;

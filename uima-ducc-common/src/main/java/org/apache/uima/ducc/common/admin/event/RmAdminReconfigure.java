@@ -19,6 +19,9 @@
 package org.apache.uima.ducc.common.admin.event;
 
 // UIMA-4142
+/**
+ * Construct and send this event to cause the RM to reread its configuraton.
+ */
 public class RmAdminReconfigure
     extends DuccAdminEvent 
 {

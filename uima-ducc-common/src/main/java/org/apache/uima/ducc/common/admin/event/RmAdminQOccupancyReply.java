@@ -23,6 +23,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * This event returns detailed information on the scheduling state of each active host.
+ */
 public class RmAdminQOccupancyReply
     extends RmAdminReply
 {
@@ -41,7 +44,15 @@ public class RmAdminQOccupancyReply
         machines.add(m);
     }
 
+    /**
+     * Used by RM only.
+     */
     public void    notReady()   { this.ready = false; }
+
+    /**
+     * @return True if RM is able to schedule and be queried, false otherwise. If the RM is not yet
+     * ready to schedule, e.g. immediately after boot or reconfigure, this method will return false.
+     */
     public boolean isReady()    { return ready; }
 
     public List<RmQueriedMachine> getMachines()

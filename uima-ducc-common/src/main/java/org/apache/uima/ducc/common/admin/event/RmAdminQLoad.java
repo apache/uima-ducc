@@ -18,6 +18,9 @@
 */
 package org.apache.uima.ducc.common.admin.event;
 
+/**
+ * Construct and send this event to query the current load and resource status of the RM.
+ */
 public class RmAdminQLoad
     extends DuccAdminEvent 
 {

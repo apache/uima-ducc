@@ -18,6 +18,9 @@
 */
 package org.apache.uima.ducc.common.admin.event;
 
+/**
+ * Construct and send this event to query the current host status of the RM.
+ */
 public class RmAdminQOccupancy
     extends DuccAdminEvent 
 {

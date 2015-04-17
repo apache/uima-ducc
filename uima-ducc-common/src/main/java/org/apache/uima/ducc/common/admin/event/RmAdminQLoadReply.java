@@ -21,6 +21,9 @@ package org.apache.uima.ducc.common.admin.event;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This event returns the response of a RmAdminQLoad request.
+ */
 public class RmAdminQLoadReply
     extends RmAdminReply
 {
@@ -37,28 +40,36 @@ public class RmAdminQLoadReply
     }
 
 
+    /** RM only, other use produces incorrect results. */
     public void setShareQuantum(long q)               { this.shareQuantum = q / ( 1024*1024); }
+    /** RM only, other use produces incorrect results. */
     public void addNodepool    (RmQueriedNodepool np) { nodepools.add(np); }
+    /** RM only, other use produces incorrect results. */
     public void addClass       (RmQueriedClass    cl) { classes.add(cl); }
 
+    /**
+     * Return the share quantum currently being used by RM.
+     */
     public long getShareQuantum()                 { return shareQuantum; }
+
+    /**
+     * @return the {@link RmQueriedNodepool nodepool} details.
+     */
     public List<RmQueriedNodepool> getNodepools() { return nodepools; }
+
+    /**
+     * @return The {@link RmQueriedNodepool class} details.
+     */
     public List<RmQueriedClass>    getClasses()   { return classes; }
 
+    /** RM only, other use produces incorrect results. */
     public void    notReady()                     { this.ready = false; }
-    public boolean isReady()                      { return ready; }
 
-    public static String fmtArray(int[] array)
-    {
-        Object[] vals = new Object[array.length];
-        StringBuffer sb = new StringBuffer();
-        
-        for ( int i = 0; i < array.length; i++ ) {
-            sb.append("%3s ");
-            vals[i] = Integer.toString(array[i]);
-        }
-        return String.format(sb.toString(), vals);
-    }
+    /**
+     * @return True if RM is able to schedule and be queried, false otherwise. If the RM is not yet
+     * ready to schedule, e.g. immediately after boot or reconfigure, this method will return false.
+     */
+    public boolean isReady()                      { return ready; }
 
     /**
         The compact format creates a Python structure of this form:

@@ -21,6 +21,11 @@ package org.apache.uima.ducc.common.admin.event;
 import java.io.Serializable;
 import java.util.Arrays;
 
+/**
+ * This object represents, for each class, the number of shares that are being requested of it, and
+ * the number of shares that have been awarded to requestsin this class, broken down by multiples
+ * of the share quantum (in essence number of processes broken down by size).
+ */
 public class RmQueriedClass
 	implements Serializable
 {
@@ -35,6 +40,9 @@ public class RmQueriedClass
     {
     }
 
+    /**
+     * @return the name of the class.
+     */
 	public String getName() {
 		return name;
 	}
@@ -44,6 +52,12 @@ public class RmQueriedClass
 		this.name = name;
 	}
 
+    /**
+     * @return the scheduling policy for the class:
+     *         FAIR_SHARE
+     *         FIXED_SHARE
+     *         RESERVE
+     */
     public String getPolicy() {
         return policy;
     }
@@ -52,6 +66,10 @@ public class RmQueriedClass
         this.policy = policy;
     }
 
+    /**
+     * @return an array, indexed by multiples of the share quantum, showing the number of requests of each size
+     *         currently demanded by the workload.
+     */
 	public int[] getDemanded() {
 		return demanded;
 	}
@@ -62,6 +80,10 @@ public class RmQueriedClass
 	}
 
 
+    /**
+     * @return an array, indexed by multiples of the share quantum, showing the number of requests of each size
+     *         currently awared to requests in the class.
+     */
 	public int[] getAwarded() {
 		return awarded;
 	}

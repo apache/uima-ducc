@@ -1155,7 +1155,7 @@ public class Scheduler
 
             n = resolve(n);
             if ( n == null ) {
-                reply.append("VaryOn: The node cannot be found in the RM.\n");
+                reply.append("VaryOn: " + n + " cannot be found in the RM.\n");
             } else {                
                 NodePool np = nodepoolsByNode.get(n);  // if null, resolve will fail
                 String repl = np.varyon(n);
@@ -1175,7 +1175,7 @@ public class Scheduler
 
             n = resolve(n);
             if ( n == null ) {
-                reply.append("VaryOff: The node cannot be found in the RM.\n");
+                reply.append("VaryOff: " + n + " cannot be found in the RM.\n");
             } else {
                 NodePool np = nodepoolsByNode.get(n);  // if null, resolve will fail
                 String repl = np.varyoff(n);
