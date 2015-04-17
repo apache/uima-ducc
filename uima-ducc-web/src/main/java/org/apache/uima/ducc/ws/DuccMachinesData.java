@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -602,7 +603,7 @@ public class DuccMachinesData {
 	
 	public List<Long> getMachineSizes() {
 		String location = "getMachineSizes";
-		ArrayList<Long> machineSizes = new ArrayList<Long>();
+		TreeSet<Long> machineSizes = new TreeSet<Long>();
 		ConcurrentSkipListMap<MachineInfo,String> sortedMachines = getSortedMachines();
 		Iterator<MachineInfo> iterator;
 		iterator = sortedMachines.keySet().iterator();
@@ -624,6 +625,7 @@ public class DuccMachinesData {
 				logger.trace(location, jobid, e);
 			}
 		}
-		return machineSizes;
+		List<Long> list = new ArrayList<Long>(machineSizes);
+		return list;
 	}
 }
