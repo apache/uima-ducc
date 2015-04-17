@@ -433,6 +433,7 @@ public class ProcessAccounting {
 	public void copyInventoryProcessState(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyInventoryProcessState";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
+		
 		if(!compare(inventoryProcess.getProcessState().toString(),process.getProcessState().toString())) {
 			switch((JobState)job.getStateObject()) {
 			//case Initializing:
@@ -666,46 +667,52 @@ public class ProcessAccounting {
 								}
 							}
 							if(process != null) {
-								// PID
-								copyInventoryPID(job, inventoryProcess, process);
-								// Scheduler State
-								setResourceStateAndReason(job, inventoryProcess, process);
-								// Process State
-								copyInventoryProcessState(job, inventoryProcess, process);
-								// Process Reason
-								copyReasonForStoppingProcess(job, inventoryProcess, process);
-								// Process Exit code
-								copyProcessExitCode(job, inventoryProcess, process);
-								// Process Init & Run times
-								updateProcessTime(job, inventoryProcess, process);
-								// Process Initialization State
-								switch(inventoryProcess.getProcessState()) {
-								case Running:
-									process.setInitialized();
-									if(job != null) {
-										switch(job.getDuccType()) {
-										case Service:
-											switch(job.getJobState()) {
-											case Initializing:
-												stateJobAccounting.stateChange(job, JobState.Running);
+								if(process.isComplete()) {
+									logger.trace(methodName, jobId, process.getDuccId(), "finalized");
+								}
+								else {
+									logger.trace(methodName, jobId, process.getDuccId(), "active");
+									// PID
+									copyInventoryPID(job, inventoryProcess, process);
+									// Scheduler State
+									setResourceStateAndReason(job, inventoryProcess, process);
+									// Process State
+									copyInventoryProcessState(job, inventoryProcess, process);
+									// Process Reason
+									copyReasonForStoppingProcess(job, inventoryProcess, process);
+									// Process Exit code
+									copyProcessExitCode(job, inventoryProcess, process);
+									// Process Init & Run times
+									updateProcessTime(job, inventoryProcess, process);
+									// Process Initialization State
+									switch(inventoryProcess.getProcessState()) {
+									case Running:
+										process.setInitialized();
+										if(job != null) {
+											switch(job.getDuccType()) {
+											case Service:
+												switch(job.getJobState()) {
+												case Initializing:
+													stateJobAccounting.stateChange(job, JobState.Running);
+													break;
+												}
 												break;
 											}
-											break;
 										}
 									}
+									// Process Pipeline Components State
+									copyUimaPipelineComponentsState(job, inventoryProcess, process);
+									// Process Swap Usage
+									copyInventorySwapUsage(job, inventoryProcess, process);
+									// Process Major Faults
+									copyInventoryMajorFaults(job, inventoryProcess, process);
+									// Process Rss
+									copyInventoryRss(job, inventoryProcess, process);
+									// Process GC Stats
+									copyInventoryGCStats(job, inventoryProcess, process);
+									// Process CPU Time
+									copyInventoryCpuTime(job, inventoryProcess, process);
 								}
-								// Process Pipeline Components State
-								copyUimaPipelineComponentsState(job, inventoryProcess, process);
-								// Process Swap Usage
-								copyInventorySwapUsage(job, inventoryProcess, process);
-								// Process Major Faults
-								copyInventoryMajorFaults(job, inventoryProcess, process);
-								// Process Rss
-								copyInventoryRss(job, inventoryProcess, process);
-								// Process GC Stats
-								copyInventoryGCStats(job, inventoryProcess, process);
-								// Process CPU Time
-								copyInventoryCpuTime(job, inventoryProcess, process);
 							}
 							else {
 								logger.warn(methodName, jobId, processId, messages.fetch("process not found job's process table"));
