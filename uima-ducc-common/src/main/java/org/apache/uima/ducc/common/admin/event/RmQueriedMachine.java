@@ -62,22 +62,37 @@ public class RmQueriedMachine
     }
 
     /**
+     * Return the list of shares scheduled to this host.
+     * @return The list of {@link RmQueriedShare shares}.
+     */
+    public List<RmQueriedShare> getShares()
+    {
+        return shares;
+    }
+
+    /**
+     * Returns the name of the machin.
      * @return the name of the machine.
      */
     public String getId()           { return name; }
     
     /**
+     * Returns the amount of RAM in KB (kilobytes) on the machine.
      * @return the amount of RAM in the machine, in kilobytes.
      */
     public long getMemory()         { return memory; }
 
     /**
+     * Returns the share order of the machine.
+     *
      * @return the number of quantum shares supported by the machine.  For example, if the share quantum is
      *         15GB, a 48GB machine is of order 3.
      */
     public int getShareOrder()      { return order; }
 
     /**
+     * Returns whether the machine is blacklisted.
+     *
      * @return whether the host contains blacklisted processes.  A blacklisted process is one whose characteristics
      *         no longer match the machine.  For example, after reconfiguration, this may be an illegal assignemnt
      *         for the request.  Until such time as the request is (externally) removed, the RM has to account for
@@ -87,12 +102,15 @@ public class RmQueriedMachine
     public boolean isBlacklisted()  { return blacklisted; }        // UIMA-4142
 
     /**
+     * Returns whether the machine is varied online.
+     *
      * @return true if the machine is varied online and false otherwise.  Note that a machine might "not varied offline",
      *         but not responsive (not sending heartbeats).
      */
     public boolean isOnline()       { return online; }             // UIMA-4142
 
     /**
+     * Indicates whether the machine is sending heartbeats.
      * @return true if the machine is sending heartbeats.  Note that a machine might be sending heartbeats but be varied
      *         offline or blacklisted, and hence not schedulable.
      */

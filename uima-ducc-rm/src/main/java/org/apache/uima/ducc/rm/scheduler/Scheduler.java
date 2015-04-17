@@ -1207,6 +1207,8 @@ public class Scheduler
         for ( int i = 1; i < freeMachines.length; i++ ) {
             freeMachines[i] += np.countFreeMachines(i);         // (these are local, as we want)
         }
+
+        np.getLocalOnlineByOrder(onlineMachines);
         ret.setOnlineMachines(onlineMachines);
         ret.setFreeMachines(freeMachines);
 

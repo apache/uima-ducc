@@ -239,8 +239,20 @@
 								user code -->
 							<additionalparam>
 								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/IServiceStatistics.java
-								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/utils/id/ADuccId.java
-								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/utils/id/IDuccId.java
+								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/main/DuccRmAdmin.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/DuccAdminEvent.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmAdminQLoad.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmAdminQLoadReply.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmAdminQOccupancy.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmAdminQOccupancyReply.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmAdminReconfigure.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmAdminReply.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmAdminVaryOff.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmAdminVaryOn.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmQueriedClass.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmQueriedMachine.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmQueriedNodepool.java
+                                ${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/admin/event/RmQueriedShare.java
 
 								${basedir}/uima-ducc-transport/src/main/java/org/apache/uima/ducc/transport/event/sm/IServiceReply.java
 								${basedir}/uima-ducc-transport/src/main/java/org/apache/uima/ducc/transport/event/sm/IServiceDescription.java
