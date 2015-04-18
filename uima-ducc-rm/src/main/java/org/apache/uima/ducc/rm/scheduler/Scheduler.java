@@ -32,6 +32,8 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoadReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancyReply;
+import org.apache.uima.ducc.common.admin.event.RmAdminReply;
+import org.apache.uima.ducc.common.admin.event.RmAdminVaryReply;
 import org.apache.uima.ducc.common.admin.event.RmQueriedClass;
 import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
 import org.apache.uima.ducc.common.admin.event.RmQueriedNodepool;
@@ -263,10 +265,11 @@ public class Scheduler
         initialized = true;
     }
 
-    public String reconfigure()          // UIMA-4142
+    public RmAdminReply reconfigure()          // UIMA-4142
     {
         String methodName = "reconfigure";
 
+        RmAdminReply ret = new RmAdminReply();
         logger.info(methodName, null, "Reconfiguration starts.");
 
         setInitialized(false);           // stop receipt of OR and Agent publications
@@ -278,7 +281,9 @@ public class Scheduler
 		} catch (Throwable e) {
             setInitialized(true);
             logger.warn(methodName, null, "Reconfiguration aborted:", e.toString());
-            return "Reconfiguration failed: " + e.toString();
+            ret.setRc(false);
+            ret.setMessage("Reconfiguration failed: " + e.toString());
+            return ret;
 		}
 
         HashMap<Node, Machine> offlineMachines                   = new HashMap<Node, Machine>();
@@ -327,7 +332,8 @@ public class Scheduler
         setInitialized(true);            // resume receipt of publications
         logger.info(methodName, null, "Reconfiguration complete.");
 
-        return "Reconfiguration complete.";
+        ret.setMessage("Reconfiguration complete.");
+        return ret;
     }
 
     public synchronized void setRecovery(boolean v)
@@ -1147,44 +1153,63 @@ public class Scheduler
         }
     }
 
-    public synchronized String varyon(String[] nodes)
+    public synchronized RmAdminReply varyon(String[] nodes)
     {
         String methodName = "varyon";
-        StringBuffer reply = new StringBuffer();
+        RmAdminVaryReply ret = new RmAdminVaryReply();
+        StringBuffer sb = new StringBuffer();
         for (String n : nodes ) {
 
-            n = resolve(n);
-            if ( n == null ) {
-                reply.append("VaryOn: " + n + " cannot be found in the RM.\n");
+            String rn = resolve(n);
+            if ( rn == null ) {
+                ret.setRc(false);
+                ret.addFailedHost(n);
+                sb.append("VaryOn: " + n + " cannot be found in the RM.\n");
             } else {                
-                NodePool np = nodepoolsByNode.get(n);  // if null, resolve will fail
-                String repl = np.varyon(n);
-                logger.info(methodName, null, repl);
-                reply.append(repl);
-                reply.append("\n");
+                NodePool np = nodepoolsByNode.get(rn);  // if null, resolve will fail
+                if ( np == null ) {
+                    ret.setRc(false);
+                    ret.addFailedHost(rn);
+                    sb.append("VaryOn: " + n + " cannot find associated nodepool.\n");
+                } else {
+                    String repl = np.varyon(rn);
+                    logger.info(methodName, null, repl);
+                    sb.append(repl);
+                    sb.append("\n");
+                }
             }
         }
-    	return reply.toString();
+        ret.setMessage(sb.toString());
+        return ret;
     }
 
-    public synchronized String varyoff(String[] nodes)
+    public synchronized RmAdminReply varyoff(String[] nodes)
     {
         String methodName = "varyoff";
-        StringBuffer reply = new StringBuffer();
+        RmAdminVaryReply ret = new RmAdminVaryReply();
+        StringBuffer sb = new StringBuffer();
         for (String n : nodes ) {
 
-            n = resolve(n);
-            if ( n == null ) {
-                reply.append("VaryOff: " + n + " cannot be found in the RM.\n");
+            String rn = resolve(n);
+            if ( rn == null ) {
+                ret.setRc(false);
+                ret.addFailedHost(n);
+                sb.append("VaryOff: " + n + " cannot be found in the RM.\n");
             } else {
-                NodePool np = nodepoolsByNode.get(n);  // if null, resolve will fail
-                String repl = np.varyoff(n);
-                logger.info(methodName, null, repl);
-                reply.append(repl);
-                reply.append("\n");
+                NodePool np = nodepoolsByNode.get(rn);  // if null, resolve will fail
+                if ( np == null ) {
+                    ret.setRc(false);
+                    ret.addFailedHost(rn);
+                } else {
+                    String repl = np.varyoff(rn);
+                    logger.info(methodName, null, repl);
+                    sb.append(repl);
+                    sb.append("\n");
+                }
             }
         }
-    	return reply.toString();
+        ret.setMessage(sb.toString());
+    	return ret;
     }
 
     RmQueriedNodepool  getNpStats(NodePool np)

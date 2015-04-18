@@ -25,7 +25,7 @@ import java.io.Serializable;
  */
 public abstract class DuccAdminEvent implements Serializable 
 {
-	private static final long serialVersionUID = 1753129558912646806L;
+	private static final long serialVersionUID = 1L;
 
     private String user;
     private byte[] auth_block;

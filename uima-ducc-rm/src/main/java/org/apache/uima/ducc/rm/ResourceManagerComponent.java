@@ -32,6 +32,7 @@ import org.apache.uima.ducc.common.admin.event.RmAdminReconfigure;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOff;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOn;
+import org.apache.uima.ducc.common.admin.event.RmAdminVaryReply;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
@@ -147,25 +148,31 @@ public class ResourceManagerComponent
                 DuccAdminEvent dae = (DuccAdminEvent) body;
                 if (body instanceof RmAdminVaryOff) {
                     if ( ! validateAdministrator(dae) ) {
-                        reply = new RmAdminReply("Not authorized");
+                        reply = new RmAdminVaryReply();
+                        reply.setRc(false);
+                        reply.setMessage("Not authorized");
                     } else {
                         RmAdminVaryOff vo = (RmAdminVaryOff) body;
-                        reply = new RmAdminReply(scheduler.varyoff(vo.getNodes()));
+                        reply = scheduler.varyoff(vo.getNodes());
                     }
                 } else
                 if (body instanceof RmAdminVaryOn) {
                     if ( ! validateAdministrator(dae) ) {
-                        reply = new RmAdminReply("Not authorized");
+                        reply = new RmAdminVaryReply();
+                        reply.setRc(false);
+                        reply.setMessage("Not authorized");
                     } else {
                         RmAdminVaryOn vo = (RmAdminVaryOn) body;            	 
-                        reply = new RmAdminReply(scheduler.varyon(vo.getNodes()));
+                        reply = scheduler.varyon(vo.getNodes());
                     }
                 } else
                 if (body instanceof RmAdminReconfigure) {    // UIMA-4142
                     if ( ! validateAdministrator(dae) ) {
-                        reply = new RmAdminReply("Not authorized");
+                        reply = new RmAdminReply();
+                        reply.setRc(false);
+                        reply.setMessage("Not authorized");
                     } else {
-                        reply = new RmAdminReply(scheduler.reconfigure());
+                        reply = scheduler.reconfigure();
                     }
                 } else
                 if (body instanceof RmAdminQLoad) {
@@ -177,11 +184,13 @@ public class ResourceManagerComponent
                     reply = scheduler.queryOccupancy();
                 } else {
                     logger.info(methodName, null, "Invalid admin command:", body.getClass().getName());
-                    reply = new RmAdminReply("Unrecognized RM admin request.");
+                    reply = new RmAdminReply();
+                    reply.setMessage("Unrecognized RM admin request.");
                 }
             } else {
                 logger.info(methodName, null, "Invalid RM event:", body.getClass().getName());
-                reply = new RmAdminReply("Unrecognized RM event.");
+                reply = new RmAdminReply();
+                reply.setMessage("Unrecognized RM event.");
             }
             exchange.getIn().setBody(reply);
         }

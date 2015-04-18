@@ -26,19 +26,52 @@ import java.io.Serializable;
 public class RmAdminReply
 	implements Serializable
 {
-	private static final long serialVersionUID = -8101741014979144426L;
-    String response;
+	private static final long serialVersionUID = 1;
+
+    private boolean ready   = true;     // if false, RM is not initialized
+    private boolean rc      = true;     // if true, the action worked, otherwise not
+    private String  message = "";       // String response from RM for console messages.
     
-    public RmAdminReply(String response)
+    public RmAdminReply()
     {
-        this.response = response;
+    }
+
+    /* RM only, other use produces incorrect results. */
+    public void    notReady()                     { this.ready = false; }
+
+    /**
+     * @return True if RM is able to schedule and be queried, false otherwise. If the RM is not yet
+     * ready to schedule, e.g. immediately after boot or reconfigure, this method will return false.
+     */
+    public boolean isReady()                      { return ready; }
+
+    /*
+     * RM use only
+     */
+    public void setRc(boolean rc)                 { this.rc = rc; }
+
+    /**
+     * Returns success or failure status.
+     * @return true if the action worked, false otherwise.
+     */
+    public boolean getRc()
+    {
+        return rc;
+    }
+
+    /*
+     * RM use only.
+     */
+    public void setMessage(String m)
+    {
+        this.message = m;
     }
 
     /**
      * @return a string with the RM's response message.
      */
-    public String getResponse()
+    public String getMessage()
     {
-    	return response;
+    	return message;
     }
 }

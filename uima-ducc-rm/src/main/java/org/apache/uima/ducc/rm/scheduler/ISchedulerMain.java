@@ -24,6 +24,7 @@ import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoadReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancyReply;
+import org.apache.uima.ducc.common.admin.event.RmAdminReply;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
@@ -76,9 +77,9 @@ public interface ISchedulerMain
     // once both initialized() and ready() occur, the RM scaffolding will enable scheduling by calling start
     void start();
 
-    String varyoff(String[] nodes);
-    String varyon(String[] nodes);
-    String reconfigure();
+    RmAdminReply varyoff(String[] nodes);
+    RmAdminReply varyon(String[] nodes);
+    RmAdminReply reconfigure();
     RmAdminQLoadReply queryLoad();
     RmAdminQOccupancyReply queryOccupancy();
 }

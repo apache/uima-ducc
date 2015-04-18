@@ -62,7 +62,7 @@ class DuccRmQOccupancy(DuccUtil):
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDUCC_HOME=' + self.DUCC_HOME
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
 
-        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccRmAdmin', '--qoccupancy', '--compact']
+        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccRmAdmin', '--qoccupancy']
         CMD = ' '.join(CMD)
         lines = ''
         proc = subprocess.Popen(CMD, bufsize=0, stdout=subprocess.PIPE, shell=True)

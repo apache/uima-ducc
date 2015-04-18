@@ -24,7 +24,7 @@ package org.apache.uima.ducc.common.admin.event;
 public class RmAdminQOccupancy
     extends DuccAdminEvent 
 {
-	private static final long serialVersionUID = -8101741014979144426L;
+	private static final long serialVersionUID = 1L;
     
     public RmAdminQOccupancy(String user, byte[] auth)
     {

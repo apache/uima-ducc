@@ -29,14 +29,14 @@ import java.util.List;
 public class RmAdminQOccupancyReply
     extends RmAdminReply
 {
-	private static final long serialVersionUID = -8101741014979144426L;
+	private static final long serialVersionUID = 1L;
 
     boolean ready = true;         // If not ready, RM is not initialized
     List<RmQueriedMachine> machines = new ArrayList<RmQueriedMachine>();
 
     public RmAdminQOccupancyReply()
     {
-    	super(null);
+    	super();
     }
 
     public void addMachine(RmQueriedMachine m) 

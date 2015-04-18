@@ -29,7 +29,7 @@ import java.util.Arrays;
 public class RmQueriedClass
 	implements Serializable
 {
-	private static final long serialVersionUID = -8101741014979144426L;
+	private static final long serialVersionUID = 1L;
 
     private String name;
     private String policy;

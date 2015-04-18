@@ -37,6 +37,7 @@ import org.apache.uima.ducc.common.admin.event.RmAdminReconfigure;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOff;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOn;
+import org.apache.uima.ducc.common.admin.event.RmAdminVaryReply;
 import org.apache.uima.ducc.common.authentication.BrokerCredentials;
 import org.apache.uima.ducc.common.authentication.BrokerCredentials.Credentials;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
@@ -216,18 +217,19 @@ public class DuccRmAdmin
      *
      * @param args This is an array of hostnames indicating the hosts to be varied offline.
 	 * 
-     * @return A generic {@link RmAdminReply RmAdminReply} indicating the result of the action.
+     * @return A {@link RmAdminVaryReply RmAdminVaryReply} with success or failure status and if failure, the list of
+     *         hosts that could not be varied off.
      *
 	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
 	 */
-	public RmAdminReply varyoff(String[] args) 
+	public RmAdminVaryReply varyoff(String[] args) 
 		throws Exception 
     {
         String[] nodes = new String[args.length - 1];
         for ( int i = 1; i < args.length; i++) nodes[i-1] = args[i];  // take a slice of the array
 
         RmAdminVaryOff vo = new RmAdminVaryOff(nodes, user, cypheredMessage);
-		return dispatchAndWaitForReply(vo);
+		return (RmAdminVaryReply) dispatchAndWaitForReply(vo);
 	}
 
 	/**
@@ -238,18 +240,19 @@ public class DuccRmAdmin
      *
      * @param args This is an array of hostnames indicating the hosts to be varied nline.
 	 * 
-     * @return A generic {@link RmAdminReply RmAdminReply} indicating the result of the action.
+     * @return A {@link RmAdminVaryReply RmAdminVaryReply} with success or failure status and if failure, the list of
+     *         hosts that could not be varied on.
      *
 	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
 	 */
-	public RmAdminReply varyon(String[] args) 
+	public RmAdminVaryReply varyon(String[] args) 
 		throws Exception 
     {
         String[] nodes = new String[args.length - 1];
         for ( int i = 1; i < args.length; i++) nodes[i-1] = args[i];  // take a slice of the array
 
         RmAdminVaryOn vo = new RmAdminVaryOn(nodes, user, cypheredMessage);
-		return dispatchAndWaitForReply(vo);
+		return (RmAdminVaryReply) dispatchAndWaitForReply(vo);
 	}
 
 	/**
@@ -317,25 +320,27 @@ public class DuccRmAdmin
 
         if ( args[0].equals("--varyoff")) {
             if ( args.length < 2 ) usage("Missing node list");
-            RmAdminReply reply = varyoff(args);
-            System.out.println(reply.getResponse());
+            RmAdminVaryReply reply = varyoff(args);
+            System.out.println(reply.getMessage());
             return;
         }
 
         if ( args[0].equals("--varyon")) {
             if ( args.length < 2 ) usage("Missing node list");
-            RmAdminReply reply = varyon(args);
-            System.out.println(reply.getResponse());
+            RmAdminVaryReply reply = varyon(args);
+            System.out.println(reply.getMessage());
             return;
         }
 
         if ( args[0].equals("--qload")) { 
+            if ( args.length != 1 ) usage("Qload takes no arguments.");
             RmAdminQLoadReply ret = qload();
             System.out.println(ret.toString());
             return;
         }
 
         if ( args[0].equals("--qoccupancy")) {
+            if ( args.length != 1 ) usage("Qoccupancy takes no arguments.");
             RmAdminQOccupancyReply ret = qoccupancy();
             System.out.println(ret.toString());
             return;
@@ -344,7 +349,7 @@ public class DuccRmAdmin
         if ( args[0].equals("--reconfigure") ) {     // UIMA-4142
             if ( args.length != 1 ) usage("Reconfigure takes no arguments.");
             RmAdminReply reply = reconfigure();
-            System.out.println(reply.getResponse());
+            System.out.println(reply.getMessage());
             return;
         }
 
@@ -372,13 +377,15 @@ public class DuccRmAdmin
      */
 	public static void main(String[] args) 
     {
+		int rc = 0;
 		try {
 			DuccRmAdmin admin = new DuccRmAdmin(new DefaultCamelContext(), "ducc.rm.admin.endpoint");
             admin.run(args);
 		} catch (Throwable e) {
 			e.printStackTrace();
+			rc = 1;
 		} finally {
-			System.exit(-1);
+			System.exit(rc);
 		}
 	}
    

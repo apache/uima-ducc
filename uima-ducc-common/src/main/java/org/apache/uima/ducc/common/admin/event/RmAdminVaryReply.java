@@ -18,27 +18,30 @@
 */
 package org.apache.uima.ducc.common.admin.event;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Construct and send this event to vary off a set of hosts.
+ * This event returns the response of a vary on or vary off request.
  */
-public class RmAdminVaryOff
-    extends DuccAdminEvent 
+public class RmAdminVaryReply
+    extends RmAdminReply
 {
 	private static final long serialVersionUID = 1L;
-    private String[] nodes;
-    
-    /**
-     * This build a request to vary off a set of hosts.
-     *
-     * @param nodes This is a string array containing the names of the hosts to vary off.
-     * @param user  This is the name of the user making the request, as required by the superclass.
-     * @param auth  This is the authentication block for the request, as required by the superclass.
-     */
-    public RmAdminVaryOff(String[] nodes, String user, byte[] auth)
+    private List<String> failedHosts = new ArrayList<String>();
+
+    public RmAdminVaryReply()
     {
-        super(user, auth);
-        this.nodes = nodes;
+        super();
     }
 
-    public String[] getNodes() { return nodes;}
+    // RM use only
+    public void addFailedHost(String h)           { this.failedHosts.add(h); }
+    
+    /**
+     * Returns the list of hosts for which the vary failed, if any.
+     * @return A list of the hosts which could not be varied on or off.
+     */
+    public List<String> getFailedHosts()          { return failedHosts; }        
+
 }

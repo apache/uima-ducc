@@ -26,7 +26,7 @@ import java.io.Serializable;
 public class RmQueriedShare
 	implements Serializable
 {
-	private static final long serialVersionUID = -8101741014979144426L;
+	private static final long serialVersionUID = -1L;
 
     long jobId;                            // DuccID of job
     long shareId;                          // DuccID of share

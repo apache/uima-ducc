@@ -27,7 +27,7 @@ import java.util.List;
 public class RmAdminQLoadReply
     extends RmAdminReply
 {
-	private static final long serialVersionUID = -8101741014979144426L;
+	private static final long serialVersionUID = 1L;
 
     private boolean ready = true;     // if false, RM is not initialized
     private long shareQuantum;
@@ -36,7 +36,7 @@ public class RmAdminQLoadReply
 
     public RmAdminQLoadReply()
     {
-    	super(null);
+    	super();
     }
 
 
