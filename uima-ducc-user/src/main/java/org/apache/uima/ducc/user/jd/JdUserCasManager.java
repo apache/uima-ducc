@@ -36,8 +36,6 @@ public class JdUserCasManager {
 	
 	private ConcurrentLinkedQueue<CAS> recycledCasList = new ConcurrentLinkedQueue<CAS>();
 	
-	private ConcurrentLinkedQueue<String> casIds = new ConcurrentLinkedQueue<String>();
-	
 	private TypeSystemDescription tsd = null;
 	private TypePriorities tp = null;
 	private FsIndexDescription[] fid;
@@ -51,17 +49,10 @@ public class JdUserCasManager {
 	}
 	
 	public CAS getEmptyCas() throws ResourceInitializationException {
-		CAS cas = getRecycledCas();
-		while(cas == null) {
+		CAS cas = recycledCasList.poll();		// Returns null if empty
+		if (cas == null) {
 			synchronized(CasCreationUtils.class) {
 				cas = CasCreationUtils.createCas(tsd, tp, fid, crProperties);
-			}
-			String casId = ""+cas.hashCode();
-			if(!casIds.contains(casId)) {
-				casIds.add(casId);
-			}
-			else {
-				cas = getRecycledCas();
 			}
 		}
 		return cas;
@@ -69,18 +60,6 @@ public class JdUserCasManager {
 	
 	public void recycle(CAS cas) {
 		cas.reset();
-		putRecycledCas(cas);
-	}
-	
-	private CAS getRecycledCas() {
-		CAS cas = null;
-		if(!recycledCasList.isEmpty()) {
-			cas = recycledCasList.poll();
-		}
-		return cas;
-	}
-	
-	private void putRecycledCas(CAS cas) {
 		recycledCasList.add(cas);
 	}
 	

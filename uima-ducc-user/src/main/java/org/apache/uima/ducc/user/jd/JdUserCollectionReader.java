@@ -146,7 +146,6 @@ public class JdUserCollectionReader {
 	
 	private JdUserMetaCas _getJdUserMetaCas() throws CollectionException, IOException, Exception {
 		JdUserMetaCas retVal = null;
-		cm.getEmptyCas();
 		synchronized(cr) {
 			if(cr.hasNext()) {
 				CAS cas = cm.getEmptyCas();
