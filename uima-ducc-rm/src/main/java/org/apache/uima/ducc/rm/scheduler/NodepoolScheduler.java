@@ -1696,7 +1696,7 @@ public class NodepoolScheduler
             if ( cl.getNodepoolName().equals(nodepool.getId()) && (cl.getAllJobs().size() > 0) ) {
                 HashMap<IRmJob, IRmJob> jobs = cl.getAllJobs();
                 String npn = cl.getNodepoolName();
-                logger.info(methodName, null, String.format("%12s %7s %7s %6s %5s", npn, "Counted", "Current", "Needed", "Order"));
+                logger.trace(methodName, null, String.format("%12s %7s %7s %6s %5s", npn, "Counted", "Current", "Needed", "Order"));
 
                 for ( IRmJob j : jobs.values() ) {
                     int counted = j.countNSharesGiven();      // allotment from the counter
@@ -1711,7 +1711,7 @@ public class NodepoolScheduler
                     needed = Math.abs(needed); 
                     // needed = Math.max(0, needed);
 
-                    logger.info(methodName, j.getId(), String.format("%12s %7d %7d %6d %5d", npn, counted, current, needed, order));
+                    logger.trace(methodName, j.getId(), String.format("%12s %7d %7d %6d %5d", npn, counted, current, needed, order));
                     neededByOrder[order] += needed;
                     total_needed += needed;
                 }
