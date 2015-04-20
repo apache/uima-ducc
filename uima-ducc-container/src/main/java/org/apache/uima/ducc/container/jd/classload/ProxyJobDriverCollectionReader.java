@@ -32,6 +32,7 @@ import org.apache.uima.ducc.container.common.classloader.ProxyLogger;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.mh.MessageHandler;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 
 public class ProxyJobDriverCollectionReader {
@@ -107,7 +108,9 @@ public class ProxyJobDriverCollectionReader {
 		MetaCas retVal = null;
 		try {
 			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
+			long stime = System.nanoTime();
 			Object instance_metaCas = method_getJdUserMetaCas.invoke(instance_JdUserCollectionReader, nullObjectArray);
+			MessageHandler.accumulateTimes("CR", stime);   // When debugging accumulate elapsed time spent in CR
 			if(instance_metaCas != null) {
 				Method method_getSeqNo = class_JdUserMetaCas.getMethod(name_getSeqNo, nullClassArray);
 				Integer integer = (Integer)method_getSeqNo.invoke(instance_metaCas, nullObjectArray);

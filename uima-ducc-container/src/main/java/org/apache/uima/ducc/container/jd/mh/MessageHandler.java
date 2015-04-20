@@ -20,6 +20,7 @@ package org.apache.uima.ducc.container.jd.mh;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -66,6 +67,8 @@ import org.apache.uima.ducc.container.net.impl.TransactionHelper;
 public class MessageHandler implements IMessageHandler {
 
 	private static ILogger logger = Logger.getLogger(MessageHandler.class, IComponent.Id.JD.name());
+	
+	private static final boolean reportTimes = logger.isDebug();  // Must be set for whole of job
 	
 	private AtomicInteger gets = new AtomicInteger(0);
 	private AtomicInteger acks = new AtomicInteger(0);
@@ -186,6 +189,7 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.todMostRecentStart.get()+oi.getWorkItemTodMostRecentStart());
 			logger.debug(location, jobid, mb.toString());
 			retVal = oi;
+			totalWorkItems  = cms.getCrTotal();  // Used by accumlateTimes
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
@@ -449,6 +453,7 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.type.get()+trans.getType());
 			logger.debug(location, ILogger.null_id, mb.toString());
 			Type type = trans.getType();
+			long stime = System.nanoTime();  // Used when log level == debug
 			switch(type) {
 			case Get:
 				handleMetaCasTransationGet(trans, rwt);
@@ -465,6 +470,7 @@ public class MessageHandler implements IMessageHandler {
 			default:
 				break;
 			}
+			accumulateTimes(type.name(), stime);
 			JdState jdState = JobDriver.getInstance().getJdState();
 			trans.setJdState(jdState);
 			IMetaCas metaCas = trans.getMetaCas();
@@ -565,4 +571,42 @@ public class MessageHandler implements IMessageHandler {
 		}
 	}
 
+	/*
+	 * When debugging report elapsed times for JD's handling of requests
+	 * Check the initial value of the logging level ... cannot change mid-stream as are collecting statistics
+	 */
+	private static int totalWorkItems = -1;
+	private static HashMap<String,long[]> timeMap = new HashMap<String,long[]>();
+	
+	public static void accumulateTimes(String name, long stime) {
+		
+		if (!reportTimes) return;
+		
+		long elapsed = System.nanoTime() - stime;
+
+		synchronized (timeMap) {
+			long[] nums = timeMap.get(name);
+			if (nums == null) {
+				nums = new long[]{0, 0, 10000000000L, 0};		// count total min max
+				timeMap.put(name, nums);
+			}
+			++nums[0];
+			nums[1] += elapsed;
+			if (elapsed < nums[2])
+				nums[2] = elapsed;
+			else if (elapsed > nums[3])
+				nums[3] = elapsed;
+			
+			// When processed last 'Get' log all times since winding down with empty Gets may distort avgs
+			if (nums[0] == totalWorkItems && name.equals("Get")) {
+				for (String nam : timeMap.keySet()) {
+					nums = timeMap.get(nam);
+					logger.debug("accumulateTimes", ILogger.null_id, "Elapsed times at last Get: " + nam + ": " + nums[0]
+							+ " avg: " + 1E-6 * nums[1] / nums[0] 
+							+ " min: " + nums[2] * 1E-6 
+							+ " max: " + nums[3] * 1E-6 + " msec");
+				}
+			}
+		}
+	}
 }

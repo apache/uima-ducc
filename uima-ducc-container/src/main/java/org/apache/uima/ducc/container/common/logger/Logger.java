@@ -169,4 +169,8 @@ public class Logger implements ILogger {
 		duccLogger.warn(location, toDuccId(jobId), toDuccId(processId), t, args);
 	}
 	
+	@Override
+	public boolean isDebug() {
+		return duccLogger.isDebug();
+	}
 }

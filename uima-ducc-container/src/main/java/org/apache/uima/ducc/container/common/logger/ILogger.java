@@ -53,5 +53,7 @@ public interface ILogger {
     public void warn(String location, Id jobId, Throwable t, Object ... args);
     public void warn(String location, Id jobId, Id processId, Object ... args);
     public void warn(String location, Id jobId, Id processId, Throwable t, Object ... args);
+    
+	boolean isDebug();
 
 }

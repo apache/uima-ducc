@@ -36,6 +36,7 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.container.jd.mh.MessageHandler;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
@@ -140,10 +141,10 @@ import org.springframework.context.annotation.Import;
 		    };
 		}
 		*/
-		public Server createServer(int port, String app, IJobDriverComponent jdc) throws Exception {
+		public Server createServer(int port, int maxThreads, String app, IJobDriverComponent jdc) throws Exception {
 			Server server = new Server(port);
 			QueuedThreadPool threadPool = new QueuedThreadPool();
-			threadPool.setMaxThreads(10);
+			threadPool.setMaxThreads(maxThreads);
 			server.setThreadPool(threadPool);
 			
 			 ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -224,11 +225,12 @@ import org.springframework.context.annotation.Import;
 				}
 				port = Utils.findFreePort();
 				jdc.setPort(port);
+				int maxThreads = 100;			// Could be specified in ducc.properties
 				String jdUniqueId = "/jdApp";
 //				jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc, port, jdUniqueId));
-	            Server server = createServer(port, jdUniqueId, jdc);
+	            Server server = createServer(port, maxThreads, jdUniqueId, jdc);
 				server.start();
-				logger.info(location,jobid,"Jetty Running - Port:"+port);
+				logger.info(location,jobid,"Jetty Running - Port: "+port+" Max threads: "+maxThreads);
 				logger.info(location, jobid, "port: "+port+" "+"endpoint: "+common.jdStateUpdateEndpoint+" "+"rate: "+common.jdStatePublishRate);
 
 				jdc.getContext().addRoutes(this.routeBuilderForJdStatePost(jdc, common.jdStateUpdateEndpoint, Integer.parseInt(common.jdStatePublishRate)));
@@ -253,6 +255,7 @@ import org.springframework.context.annotation.Import;
 		    		throws ServletException, IOException
 		    {
 		    	try {
+			    	long post_stime = System.nanoTime();
 					StringBuilder sb = new StringBuilder();
 					BufferedReader reader = request.getReader();
 					String line;
@@ -274,10 +277,12 @@ import org.springframework.context.annotation.Import;
 //									.unmarshall(t.trim());
 					imt = (IMetaCasTransaction) XStreamUtils
 							.unmarshall(content);
+					MessageHandler.accumulateTimes("Unmarshall", post_stime);
 			        
 			    	// process JP's request
 			    	jdc.handleJpRequest(imt);
 			    	
+			    	long marshall_stime = System.nanoTime();
 			    	// setup reply 
 			    	imt.setDirection(Direction.Response);
 
@@ -287,10 +292,16 @@ import org.springframework.context.annotation.Import;
 					String body = XStreamUtils.marshall(imt);
 						
 					response.getWriter().write(body);
-		    		
+					
+					// When debugging accumulate times taken by each stage of the message processing
+					MessageHandler.accumulateTimes("Marshall", marshall_stime);
+			        MessageHandler.accumulateTimes("Post", post_stime);
 		    	} catch (Throwable e) {
 		    		throw new ServletException(e);
 		    	}
 		    }
+		    
+
 		}
+		
 }
