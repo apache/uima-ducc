@@ -19,12 +19,12 @@
 description                    type #4 item count "small", expected errors "some" 
 
 driver_descriptor_CR           org.apache.uima.ducc.test.randomsleep.FixedSleepCR
-driver_descriptor_CR_overrides jobfile=${DUCC_HOME}/examples/uima-ducc-vm/jobs/least.inputs compression=1 error_rate=5.0
+driver_descriptor_CR_overrides jobfile=${DUCC_HOME}/examples/uima-ducc-vm/jobs/least.inputs compression=1
 driver_jvm_args                -Xmx100M
 
 process_descriptor_AE          org.apache.uima.ducc.test.randomsleep.FixedSleepAE
-classpath                      ${DUCC_HOME}/lib/uima-ducc/examples/*
+classpath                      ${DUCC_HOME}/lib/uima-ducc/examples/*:${DUCC_HOME}/apache-uima/lib/*
 process_jvm_args               -Xmx100M 
 process_per_item_time_max      12
-environment                    AE_INIT_TIME=90 AE_INIT_RANGE=30 INIT_ERROR=10 LD_LIBRARY_PATH=/yet/a/nother/dumb/path
+environment                    AE_INIT_TIME=90 AE_INIT_RANGE=30 AE_RUNTIME_ERROR=5.0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path
 process_deployments_max        999
