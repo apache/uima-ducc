@@ -310,7 +310,7 @@ public class DuccRmAdmin
      *
 	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
      */    
-    public void run(String[] args)
+    public int run(String[] args)
     	throws Exception
     {
 
@@ -322,38 +322,39 @@ public class DuccRmAdmin
             if ( args.length < 2 ) usage("Missing node list");
             RmAdminVaryReply reply = varyoff(args);
             System.out.println(reply.getMessage());
-            return;
+            return (reply.getRc() ? 0 : 1);
         }
 
         if ( args[0].equals("--varyon")) {
             if ( args.length < 2 ) usage("Missing node list");
             RmAdminVaryReply reply = varyon(args);
             System.out.println(reply.getMessage());
-            return;
+            return (reply.getRc() ? 0 : 1);
         }
 
         if ( args[0].equals("--qload")) { 
             if ( args.length != 1 ) usage("Qload takes no arguments.");
-            RmAdminQLoadReply ret = qload();
-            System.out.println(ret.toString());
-            return;
+            RmAdminQLoadReply reply = qload();
+            System.out.println(reply.toString());
+            return (reply.getRc() ? 0 : 1);
         }
 
         if ( args[0].equals("--qoccupancy")) {
             if ( args.length != 1 ) usage("Qoccupancy takes no arguments.");
-            RmAdminQOccupancyReply ret = qoccupancy();
-            System.out.println(ret.toString());
-            return;
+            RmAdminQOccupancyReply reply = qoccupancy();
+            System.out.println(reply.toString());
+            return (reply.getRc() ? 0 : 1);
         }
 
         if ( args[0].equals("--reconfigure") ) {     // UIMA-4142
             if ( args.length != 1 ) usage("Reconfigure takes no arguments.");
             RmAdminReply reply = reconfigure();
             System.out.println(reply.getMessage());
-            return;
+            return (reply.getRc() ? 0 : 1);
         }
 
         System.out.println("Unknown command: " + args[0]);
+        return 1;
     }
 
     private static void usage(String msg)
@@ -380,7 +381,7 @@ public class DuccRmAdmin
 		int rc = 0;
 		try {
 			DuccRmAdmin admin = new DuccRmAdmin(new DefaultCamelContext(), "ducc.rm.admin.endpoint");
-            admin.run(args);
+            rc = admin.run(args);
 		} catch (Throwable e) {
 			e.printStackTrace();
 			rc = 1;
