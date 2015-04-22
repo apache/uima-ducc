@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.common.utils;
 
+import java.io.File;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -148,7 +150,16 @@ public class DuccLogger
             System.out.println("WARNING: Cannot find system property DUCC_HOME to configure ducc logger.  Using default log4j configurator.");
         } else {
             if ( ! watchdogStarted ) {
-                DOMConfigurator.configureAndWatch(System.getProperty("DUCC_HOME") + "/resources/log4j.xml");
+            	// Explicitly set the config file since the search for the default uses 
+            	// ClassLoader.getSystemResource() so may find one in the user's classpath
+            	String configFile = System.getProperty("DUCC_HOME") + "/resources/log4j.xml";
+            	String usersValue = System.setProperty("log4j.configuration", "file:" + configFile);
+                DOMConfigurator.configureAndWatch(configFile);
+                if (usersValue == null) {
+                	System.clearProperty("log4j.configuration");
+                } else {
+                	System.setProperty("log4j.configuration", usersValue);
+                }
                 watchdogStarted = true;
             } 
         }
