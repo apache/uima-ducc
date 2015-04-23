@@ -99,6 +99,7 @@ public class DuccPropertiesResolver {
     public static final String ducc_broker_jmx_port = "ducc.broker.jmx.port";
     public static final String ducc_jms_provider = "ducc.jms.provider";
     
+    public static final String ducc_orchestrator_state_publish_rate = "ducc.orchestrator.state.publish.rate";
     public static final String ducc_orchestrator_state_update_endpoint_type = "ducc.orchestrator.state.update.endpoint.type";
     public static final String ducc_orchestrator_state_update_endpoint = "ducc.orchestrator.state.update.endpoint";
     public static final String ducc_orchestrator_http_port = "ducc.orchestrator.http.port";
@@ -118,7 +119,7 @@ public class DuccPropertiesResolver {
     public static final String ducc_jd_host_number_of_machines = "ducc.jd.host.number.of.machines";
     public static final String ducc_jd_host_user = "ducc.jd.host.user";
     
-    public static final String ducc_jd_state_publish_rate = "ducc.jd.state.publish.rate";
+    public static final String ducc_jd_state_publish_rate = ducc_orchestrator_state_publish_rate;
     public static final String ducc_jd_queue_prefix = "ducc.jd.queue.prefix";
     public static final String ducc_jd_queue_timeout_minutes = "ducc.jd.queue.timeout.minutes";
     
