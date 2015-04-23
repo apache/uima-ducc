@@ -118,6 +118,7 @@ public class DuccPropertiesResolver {
     public static final String ducc_jd_host_number_of_machines = "ducc.jd.host.number.of.machines";
     public static final String ducc_jd_host_user = "ducc.jd.host.user";
     
+    public static final String ducc_jd_state_publish_rate = "ducc.jd.state.publish.rate";
     public static final String ducc_jd_queue_prefix = "ducc.jd.queue.prefix";
     public static final String ducc_jd_queue_timeout_minutes = "ducc.jd.queue.timeout.minutes";
     
@@ -166,8 +167,7 @@ public class DuccPropertiesResolver {
         defaultProperties.put(ducc_orchestrator_use_lock_file,"false");
         defaultProperties.put(ducc_ws_login_enabled,"true");
         defaultProperties.put(ducc_authentication_implementer,"org.apache.uima.ducc.ws.authentication.LinuxAuthenticationManager");
-        defaultProperties.put(ducc_jd_queue_timeout_minutes,"5");
-        defaultProperties.put(ducc_jd_queue_prefix,"ducc.jd.queue.");
+        defaultProperties.put(ducc_jd_state_publish_rate,""+1000*15*1);
         defaultProperties.put(ducc_jd_host_class,"JobDriver");
         defaultProperties.put(ducc_jd_host_description,"Job Driver");
         defaultProperties.put(ducc_jd_host_memory_size,"2GB");
