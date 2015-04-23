@@ -21,7 +21,7 @@ package org.apache.uima.ducc.orchestrator;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
-import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
+import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
@@ -34,7 +34,7 @@ import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 public interface Orchestrator {
 	public void reconcileRmState(RmStateDuccEvent duccEvent);
 	public void reconcileSmState(SmStateDuccEvent duccEvent);
-	public void reconcileJdState(JdStateDuccEvent duccEvent);
+	public void reconcileJdState(JdRequestEvent duccEvent);
 	public void reconcileNodeInventory(NodeInventoryUpdateDuccEvent duccEvent);
 	public OrchestratorStateDuccEvent getState();
 	public OrchestratorAbbreviatedStateDuccEvent getAbbreviatedState();

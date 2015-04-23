@@ -54,7 +54,7 @@ import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
-import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
+import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
@@ -360,9 +360,9 @@ implements Orchestrator {
 	 * Job Driver State Reconciliation
 	 */
 	
-	public void reconcileJdState(JdStateDuccEvent duccEvent) {
+	public void reconcileJdState(JdRequestEvent duccEvent) {
 		String methodName = "reconcileJdState";
-		IDriverStatusReport dsr = duccEvent.getState();
+		IDriverStatusReport dsr = duccEvent.getDriverStatusReport();
 		DuccId duccId = null;
 		if(dsr != null) {
 			duccId = dsr.getDuccId();
@@ -371,9 +371,13 @@ implements Orchestrator {
 		if(dsr != null) {
 			logger.info(methodName, duccId, dsr.getLogReport());
 			stateManager.reconcileState(dsr);
+			String sid = ""+duccId.getFriendly();
+			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, sid, this, methodName);
+			duccEvent.setJob(duccWorkJob);
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
+	
 	/**
 	 * Resources Manager State Reconciliation
 	 */

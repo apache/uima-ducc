@@ -30,7 +30,7 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
-import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
+import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
@@ -152,11 +152,10 @@ public class OrchestratorEventListener implements DuccEventDelegateListener {
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
-	public void onJdStateUpdateEvent(@Body JdStateDuccEvent duccEvent) throws Exception {
+	public void onJdStateExchangeEvent(@Body JdRequestEvent duccEvent) throws Exception {
 		String methodName = "onJdStateUpdateEvent";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		try {
-			JdStateEventLogger.receiver(duccEvent);
 			orchestrator.reconcileJdState(duccEvent);
 		}
 		catch(Throwable t) {

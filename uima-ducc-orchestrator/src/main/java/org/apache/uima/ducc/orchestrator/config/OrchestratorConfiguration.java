@@ -44,6 +44,8 @@ import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceReplyDuccEvent;
+import org.apache.uima.ducc.transport.event.JdReplyEvent;
+import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
@@ -160,6 +162,12 @@ public class OrchestratorConfiguration {
 		
 		public void process(Exchange exchange) throws Exception {
 			Object obj = exchange.getIn().getBody();
+			if(obj instanceof JdRequestEvent) {
+				JdRequestEvent jdRequestEvent = exchange.getIn().getBody(JdRequestEvent.class);
+				JdReplyEvent jdReplyEvent = new JdReplyEvent();
+				jdReplyEvent.setJob(jdRequestEvent.getJob());
+				exchange.getIn().setBody(jdReplyEvent);
+			}
 			if(obj instanceof SubmitJobDuccEvent) {
 				SubmitJobDuccEvent submitJobEvent = exchange.getIn().getBody(SubmitJobDuccEvent.class);
 				SubmitJobReplyDuccEvent replyJobEvent = new SubmitJobReplyDuccEvent();
