@@ -18,23 +18,7 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
-
-public class JdStateDuccEvent extends AbstractDuccEvent  {
-
-	private static final long serialVersionUID = 5344338331069768338L;
+@SuppressWarnings("serial")
+public class JdReplyEvent extends JdRequestEvent {
 	
-	private IDriverStatusReport driverStatusReport = null;
-	
-	public JdStateDuccEvent() {
-		super(EventType.JD_STATE);
-	}
-	
-	public void setState(IDriverStatusReport driverStatusReport) {
-		this.driverStatusReport = driverStatusReport;
-	}
-	
-	public IDriverStatusReport getState() {
-		return this.driverStatusReport;
-	}
 }

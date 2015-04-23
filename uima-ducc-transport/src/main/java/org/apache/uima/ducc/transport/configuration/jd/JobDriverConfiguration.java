@@ -42,7 +42,6 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
-import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -101,46 +100,6 @@ import org.springframework.context.annotation.Import;
 	        };
 	    }
 
-		
-		/**
-		 * Creates Camel router that will publish Dispatched Job state at regular intervals.
-		 * 
-		 * @param targetEndpointToReceiveJdStateUpdate - endpoint where to publish Jd state 
-		 * @param statePublishRate - how often to publish state
-		 * @return
-		 * @throws Exception
-		 */
-		private RouteBuilder routeBuilderForJdStatePost(final IJobDriverComponent jdc, final String targetEndpointToReceiveJdStateUpdate, final int statePublishRate) throws Exception {
-			final JobDriverStateProcessor jdsp =  // an object responsible for generating the state 
-				new JobDriverStateProcessor(jdc);
-			
-			return new RouteBuilder() {
-			      public void configure() {
-			        from("timer:jdStateDumpTimer?fixedRate=true&period=" + statePublishRate)
-			                .process(jdsp)
-			                .to(targetEndpointToReceiveJdStateUpdate);
-			      }
-			    };
-
-		}
-		/*
-		private RouteBuilder routeBuilderForJpIncomingRequests(final JobDriverComponent jdc, final int port, final String app) throws Exception {
-		    return new RouteBuilder() {
-		        public void configure() throws Exception {
-		        	CamelContext camelContext = jdc.getContext();
-		            JettyHttpComponent jetty = new JettyHttpComponent();
-		            jetty.setMaxThreads(10);  // Need to parameterize
-		            jetty.setMinThreads(1);
-		            
-		            camelContext.addComponent("jetty", jetty);
-		            // listen on all interfaces.
-		            from("jetty:http://0.0.0.0:" + port + "/"+app)
-		            .unmarshal().xstream().
-		            process(new JobDriverProcessor(jdc)).marshal().xstream();
-		        }
-		    };
-		}
-		*/
 		public Server createServer(int port, int maxThreads, String app, IJobDriverComponent jdc) throws Exception {
 			Server server = new Server(port);
 			QueuedThreadPool threadPool = new QueuedThreadPool();
@@ -177,24 +136,6 @@ import org.springframework.context.annotation.Import;
 		        exchange.getOut().setBody(imt);
 		    }
 		} 
-		/**
-		 * Camel Processor responsible for generating Dispatched Job's state.
-		 * 
-		 */
-		private class JobDriverStateProcessor implements Processor {
-			private IJobDriverComponent jdc;
-			
-			private JobDriverStateProcessor(IJobDriverComponent jdc) {
-				this.jdc = jdc;
-			}
-			public void process(Exchange exchange) throws Exception {
-				// Fetch new state from Dispatched Job
-				JdStateDuccEvent sse = jdc.getState();
-				//	Add the state object to the Message
-				exchange.getIn().setBody(sse);
-			}
-			
-		}
 		
 		/**
 		 * Creates and initializes {@link JobDriverComponent} instance. @Bean annotation identifies {@link JobDriverComponent}
@@ -214,8 +155,6 @@ import org.springframework.context.annotation.Import;
 				//	Inject a dispatcher into the listener in case it needs to send
 				//  a message to another component
 		        delegateListener.setDuccEventDispatcher(jobDriverTransport.duccEventDispatcher(common.orchestratorStateUpdateEndpoint, jdc.getContext()));
-				//	Inject Camel Router that will delegate messages to JobDriver delegate listener
-				jdc.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.orchestratorAbbreviatedStateUpdateEndpoint, delegateListener));
 				try {
 					NodeIdentity nodeIdentity = new NodeIdentity();
 					jdc.setNode(nodeIdentity.getIp());
@@ -231,9 +170,6 @@ import org.springframework.context.annotation.Import;
 	            Server server = createServer(port, maxThreads, jdUniqueId, jdc);
 				server.start();
 				logger.info(location,jobid,"Jetty Running - Port: "+port+" Max threads: "+maxThreads);
-				logger.info(location, jobid, "port: "+port+" "+"endpoint: "+common.jdStateUpdateEndpoint+" "+"rate: "+common.jdStatePublishRate);
-
-				jdc.getContext().addRoutes(this.routeBuilderForJdStatePost(jdc, common.jdStateUpdateEndpoint, Integer.parseInt(common.jdStatePublishRate)));
 				return jdc;
 			}
 			catch(Exception e) {

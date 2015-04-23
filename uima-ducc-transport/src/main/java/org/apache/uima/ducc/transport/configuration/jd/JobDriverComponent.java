@@ -20,36 +20,19 @@
 package org.apache.uima.ducc.transport.configuration.jd;
 
 import java.util.ArrayList;
-import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.camel.CamelContext;
-import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.container.FlagsHelper.Name;
-import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
-import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
-import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
-import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
-import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
-import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
-import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.IDuccProcess;
-import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
-import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
-import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
-import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
-import org.apache.uima.ducc.transport.event.jd.JobDriverReport;
 
 public class JobDriverComponent extends AbstractDuccComponent
 implements IJobDriverComponent {
@@ -59,12 +42,17 @@ implements IJobDriverComponent {
 	private static String node = null;
 	private static int port = 0;
 	
+	private static JobDriverStateExchanger jdse = null;
+	
 	private JobDriverConfiguration configuration;
 	
 	public JobDriverComponent(String componentName, CamelContext ctx, JobDriverConfiguration jdc) {
 		super(componentName,ctx);
 		this.configuration = jdc;
 		verifySystemProperties();
+		jdse = new JobDriverStateExchanger();
+		jdse.setJobDriverComponent(this);
+		jdse.start();
 		createInstance();
 	}
 	
@@ -108,8 +96,20 @@ implements IJobDriverComponent {
 		return configuration;
 	}
 	
+	public String getJmxUrl() {
+		return getProcessJmxUrl();
+	}
+	
+	public String getNode() {
+		return node;
+	}
+	
 	public void setNode(String value) {
 		node = value;
+	}
+	
+	public int getPort() {
+		return port;
 	}
 	
 	public void setPort(int value) {
@@ -121,31 +121,6 @@ implements IJobDriverComponent {
 		return logger;
 	}
 	
-	private AtomicInteger getStateReqNo = new AtomicInteger(0);
-	
-	private IDuccProcessMap dpMap = null;
-	
-	@Override
-	public JdStateDuccEvent getState() {
-		String location = "getState";
-		JdStateDuccEvent state = new JdStateDuccEvent();
-		try {
-			IMessageHandler mh = JobDriver.getInstance().getMessageHandler();
-			IOperatingInfo oi = mh.handleGetOperatingInfo();
-			IDriverStatusReport driverStatusReport = new JobDriverReport(oi, dpMap);
-			driverStatusReport.setNode(node);
-			driverStatusReport.setPort(port);
-			driverStatusReport.setJmxUrl(getProcessJmxUrl());
-			state.setState(driverStatusReport);
-			logger.debug(location, jobid, "reqNo: "+getStateReqNo.incrementAndGet());
-		}
-		catch(Exception e) {
-			logger.error(location, jobid, e);
-		}
-		return state;
-	}
-
-	@Override
 	public void handleJpRequest(IMetaCasTransaction metaCasTransaction) throws Exception {
 		String location = "handleJpRequest";
 		try {
@@ -156,91 +131,6 @@ implements IJobDriverComponent {
 			logger.error(location, jobid, e);
 			throw e;
 		}
-	}
-
-	@Override
-	public void handleOrPublication(OrchestratorAbbreviatedStateDuccEvent duccEvent) throws Exception {
-		String location = "handleOrPublication";
-		try {
-			JobDriver jd = JobDriver.getInstance();
-			String duccId = jd.getJobId();
-			IMessageHandler mh = jd.getMessageHandler();
-			if(duccId != null) {
-				DuccWorkMap dwMap = duccEvent.getWorkMap();
-				DuccWorkJob dwj = (DuccWorkJob) dwMap.findDuccWork(duccId);
-				if(dwj != null) {
-					IWorkItemStateKeeper wisk = JobDriver.getInstance().getWorkItemStateKeeper();
-					wisk.persist();
-					IDuccProcessMap pMap = dwj.getProcessMap();
-					dpMap = pMap;
-					for(Entry<DuccId, IDuccProcess> entry : pMap.entrySet()) {
-						IDuccProcess p = entry.getValue();
-						ProcessState state = p.getProcessState();
-						NodeIdentity ni = p.getNodeIdentity();
-						String node = ni.getName();
-						String ip = ni.getIp();
-						String pidName = p.getDuccId().getFriendly()+"";
-						String pid = p.getPID();
-						StringBuffer sb = new StringBuffer();
-						sb.append("node: "+node);
-						sb.append(" ");
-						sb.append("ip: "+ip);
-						sb.append(" ");
-						sb.append("pid: "+pid);
-						sb.append(" ");
-						sb.append("state:"+state.name());
-						sb.append(" ");
-						String reasonStopped = p.getReasonForStoppingProcess();
-						if(reasonStopped != null) {
-							sb.append("reason[stopped]:"+reasonStopped);
-							sb.append(" ");
-						}
-						String reasonDeallocated = null;
-						ProcessDeallocationType processDeallocationType = p.getProcessDeallocationType();
-						if(processDeallocationType != null) {
-							reasonDeallocated = processDeallocationType.name();
-							sb.append("reason[deallocated]:"+reasonDeallocated);
-							sb.append(" ");
-						}
-						logger.debug(location, jobid, sb.toString());
-						switch(state) {
-						case Starting:    
-						case Initializing:
-						case Running:
-							break;
-						default:
-							try {
-								if(pid != null) {
-									int iPid = Integer.parseInt(pid.trim());
-									IProcessInfo processInfo = new ProcessInfo(node, ip, pidName, iPid, reasonStopped, reasonDeallocated);
-									if(p.isFailedInitialization()) {
-										mh.handleProcessFailedInitialization(processInfo);
-									}
-									else if(p.isPreempted()) {
-										mh.handleProcessPreempt(processInfo);
-									}
-									else if(p.isVolunteered()) {
-										mh.handleProcessVolunteered(processInfo);
-									}
-									else {
-										mh.handleProcessDown(processInfo);
-									}
-								}
-							}
-							catch(Exception e) {
-								logger.error(location, jobid, e);
-							}
-							break;
-						}
-					}
-				}
-			}
-		}
-		catch(Exception e) {
-			logger.error(location, jobid, e);
-			throw e;
-		}
-		
 	}
 
 }

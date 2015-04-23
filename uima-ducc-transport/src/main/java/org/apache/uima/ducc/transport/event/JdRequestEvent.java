@@ -16,20 +16,34 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.transport.configuration.jd;
+package org.apache.uima.ducc.transport.event;
 
-import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
-import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
-import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 
-public class JobDriverEventListener implements DuccEventDelegateListener {
-
-	IJobDriverComponent component;
+@SuppressWarnings("serial")
+public class JdRequestEvent extends AbstractDuccJobEvent {
 	
-	public JobDriverEventListener(IJobDriverComponent component) {
-		this.component = component;
+	private IDriverStatusReport driverStatusReport = null;
+	private IDuccWorkJob job = null;
+	
+	public JdRequestEvent() {
+		super(EventType.JD_STATE);
 	}
-	public void setDuccEventDispatcher(DuccEventDispatcher eventDispatcher) {
+	
+	public IDriverStatusReport getDriverStatusReport() {
+		return driverStatusReport;
 	}
-
+	
+	public void setDriverStatusReport(IDriverStatusReport value) {
+		driverStatusReport = value;
+	}
+	
+	public IDuccWorkJob getJob() {
+		return job;
+	}
+	 
+	public void setJob(IDuccWorkJob value) {
+		job = value;
+	}
 }
