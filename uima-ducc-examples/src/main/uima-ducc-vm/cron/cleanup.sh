@@ -28,9 +28,12 @@ find /home/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +2 | xargs -i 
 togo=`find /tmp/ducc/driver/ -maxdepth 4 -name "[0-9]*"  -mtime +1 | wc -l`
 echo Removing $togo directories in /tmp/ducc/driver/
 find /tmp/ducc/driver/ -maxdepth 4 -name "[0-9]*"  -mtime +1 | xargs -i ls -ld {}
+togo=`find /tmp/ -maxdepth 1 -name "*.xml" -mtime +1 | wc -l`
+echo Removing $togo xml files in /tmp
 
 
 # this section actually removes stuff
 find /tmp/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +2 | xargs -i rm -rf {}
 find /home/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +2 | xargs -i rm -rf {}
 find /tmp/ducc/driver/ -maxdepth 4 -name "[0-9]*"  -mtime +1 | xargs -i rm -rf {}
+find /tmp/ -maxdepth 1 -name "*.xml" -mtime +1 | xargs -i rm -f {}
