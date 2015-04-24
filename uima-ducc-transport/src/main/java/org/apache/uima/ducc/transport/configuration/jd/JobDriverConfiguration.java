@@ -103,7 +103,26 @@ import org.springframework.context.annotation.Import;
 		public Server createServer(int port, int maxThreads, String app, IJobDriverComponent jdc) throws Exception {
 			Server server = new Server(port);
 			QueuedThreadPool threadPool = new QueuedThreadPool();
+			threadPool.setMinThreads(Runtime.getRuntime().availableProcessors());
+			if ( common.jettyMaxThreads != null) {
+				try {
+					maxThreads = Integer.parseInt(common.jettyMaxThreads.trim());
+				} catch( NumberFormatException e) {
+					logger.warn("JobDriver", jobid, "Invalid value for jettyMaxThreads - check ducc.properties - defaulting to "+maxThreads);
+				}
+			}
 			threadPool.setMaxThreads(maxThreads);
+			if ( common.jettyThreadIdleTime != null ) {
+				try {
+					threadPool.setMaxIdleTimeMs(Integer.parseInt(common.jettyThreadIdleTime.trim()));
+					
+				} catch(NumberFormatException e) {
+					logger.warn("JobDriver", jobid, "Invalid value for jettyThreadIdleTime - check ducc.properties - defaulting to 5000ms");
+					threadPool.setMaxIdleTimeMs(5000);
+				}
+			} else {
+				threadPool.setMaxIdleTimeMs(5000);
+			}
 			server.setThreadPool(threadPool);
 			
 			 ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);

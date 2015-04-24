@@ -214,7 +214,13 @@ public class CommonConfiguration {
 	
 	
 	@Value("#{ systemProperties['ducc.orchestrator.http.port'] }")
-  public String duccORHttpPort; 
+    public String duccORHttpPort; 
+
+	@Value("#{ systemProperties['ducc.driver.jetty.max.threads'] }")
+    public String jettyMaxThreads; 
+	
+	@Value("#{ systemProperties['ducc.driver.jetty.thread.idletime'] }")
+	public String jettyThreadIdleTime; 
 
   public CamelContext camelContext() {
 	    context.setAutoStartup(false);
