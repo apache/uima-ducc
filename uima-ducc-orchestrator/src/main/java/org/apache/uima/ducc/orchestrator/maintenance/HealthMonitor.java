@@ -164,26 +164,28 @@ public class HealthMonitor {
 		logger.trace(methodName, null, messages.fetch("enter"));
 		boolean ckpt = false;
 		if(job.isFinished()) {
-			DuccWorkPopDriver driver = job.getDriver();
-			IDuccProcessMap processMap = driver.getProcessMap();
-			if(processMap != null) {
-				Collection<IDuccProcess> processCollection = processMap.values();
-				Iterator<IDuccProcess> iterator = processCollection.iterator();
-				while(iterator.hasNext()) {
-					IDuccProcess process = iterator.next();
-					if(!process.isDeallocated()) {
-						OrUtil.setResourceState(job, process, ResourceState.Deallocated);
-						process.setProcessDeallocationType(ProcessDeallocationType.JobCompleted);
-						logger.info(methodName, job.getDuccId(), process.getDuccId(), ProcessDeallocationType.JobCompleted);
-						ckpt = true;
-					}
-					else {
-						if(!process.isComplete()) {
-							String nodeName = process.getNodeIdentity().getName();
-							if(!NodeAccounting.getInstance().isAlive(nodeName)) {
-								process.advanceProcessState(ProcessState.Stopped);
-								logger.info(methodName, job.getDuccId(), process.getDuccId(), ProcessState.Stopped);
-								ckpt = true;
+			if(!job.hasAliveProcess()) {
+				DuccWorkPopDriver driver = job.getDriver();
+				IDuccProcessMap processMap = driver.getProcessMap();
+				if(processMap != null) {
+					Collection<IDuccProcess> processCollection = processMap.values();
+					Iterator<IDuccProcess> iterator = processCollection.iterator();
+					while(iterator.hasNext()) {
+						IDuccProcess process = iterator.next();
+						if(!process.isDeallocated()) {
+							OrUtil.setResourceState(job, process, ResourceState.Deallocated);
+							process.setProcessDeallocationType(ProcessDeallocationType.JobCompleted);
+							logger.info(methodName, job.getDuccId(), process.getDuccId(), ProcessDeallocationType.JobCompleted);
+							ckpt = true;
+						}
+						else {
+							if(!process.isComplete()) {
+								String nodeName = process.getNodeIdentity().getName();
+								if(!NodeAccounting.getInstance().isAlive(nodeName)) {
+									process.advanceProcessState(ProcessState.Stopped);
+									logger.info(methodName, job.getDuccId(), process.getDuccId(), ProcessState.Stopped);
+									ckpt = true;
+								}
 							}
 						}
 					}
