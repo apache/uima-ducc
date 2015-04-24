@@ -1188,13 +1188,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           logger.info(methodName, null, "....Undeploying Process - DuccId:" + process.getDuccId()
                   + " PID:" + pid);
           if (pid != null) {
-        	try {
-          	  // stop collecting process stats from /proc/<pid>/statm
-                super.getContext().stopRoute(pid);
-                logger.info(methodName, null, "Stopped Camel Route Collecting Metrics For PID:"+pid);
-        	} catch( Exception e) {
-                logger.error(methodName, null, "....Unable to stop Camel route for PID:" + pid);
-        	}
+//        	try {
+//          	  // stop collecting process stats from /proc/<pid>/statm
+//                super.getContext().stopRoute(pid);
+//                logger.info(methodName, null, "Stopped Camel Route Collecting Metrics For PID:"+pid);
+//        	} catch( Exception e) {
+//                logger.error(methodName, null, "....Unable to stop Camel route for PID:" + pid);
+//        	}
             // Mark the process as stopping. When the process exits,
             // the agent can determine
             // if the process died on its own (due to say, user code
