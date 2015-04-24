@@ -150,16 +150,20 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 
     
     protected byte[] serialize(Throwable t) throws Exception {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(baos);
+
 		try {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ObjectOutputStream oos = new ObjectOutputStream(baos);
 			oos.writeObject(t);
-			oos.close();
-			return baos.toByteArray();
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw e;
+			// Unable to serialize user Exception (not Serializable?)
+			// Create a new Exception and serialize it
+			RuntimeException re 
+ 			   = new RuntimeException("Unable to Serialize User Exception - Please Check JP Log File For More Details");
+			oos.writeObject(re);
 		}
+		oos.close();
+		return baos.toByteArray();
 	}
-    
 }
