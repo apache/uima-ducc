@@ -213,22 +213,25 @@ public class MessageHandler implements IMessageHandler {
 	
 	private void processBlacklist(IProcessInfo processInfo, IRemoteWorkerProcess rwp) {
 		String location = "processBlacklist";
-		if(jobProcessBlacklist.includes(rwp)) {
-			MessageBuffer mb1 = new MessageBuffer();
-			mb1.append(Standardize.Label.remote.get()+rwp.toString());
-			mb1.append(Standardize.Label.status.get()+"already kaput");
-			logger.trace(location, ILogger.null_id, mb1.toString());
-		}
-		else {
-			jobProcessBlacklist.add(rwp);
-			MessageBuffer mb1 = new MessageBuffer();
-			mb1.append(Standardize.Label.remote.get()+rwp.toString());
-			mb1.append(Standardize.Label.status.get()+"transition to down");
-			String reasonDeallocated = processInfo.getReasonDeallocated();
-			if(reasonDeallocated != null) {
-				mb1.append(Standardize.Label.deallocate.get()+reasonDeallocated);
+		JobDriver jd = JobDriver.getInstance();
+		if(!jd.isFinito()) {
+			if(jobProcessBlacklist.includes(rwp)) {
+				MessageBuffer mb1 = new MessageBuffer();
+				mb1.append(Standardize.Label.remote.get()+rwp.toString());
+				mb1.append(Standardize.Label.status.get()+"already kaput");
+				logger.trace(location, ILogger.null_id, mb1.toString());
 			}
-			logger.warn(location, ILogger.null_id, mb1.toString());
+			else {
+				jobProcessBlacklist.add(rwp);
+				MessageBuffer mb1 = new MessageBuffer();
+				mb1.append(Standardize.Label.remote.get()+rwp.toString());
+				mb1.append(Standardize.Label.status.get()+"transition to down");
+				String reasonDeallocated = processInfo.getReasonDeallocated();
+				if(reasonDeallocated != null) {
+					mb1.append(Standardize.Label.deallocate.get()+reasonDeallocated);
+				}
+				logger.warn(location, ILogger.null_id, mb1.toString());
+			}
 		}
 	}
 	

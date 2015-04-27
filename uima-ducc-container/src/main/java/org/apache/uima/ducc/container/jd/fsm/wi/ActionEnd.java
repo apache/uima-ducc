@@ -178,10 +178,18 @@ public class ActionEnd extends Action implements IAction {
 	
 	private void jdExhausted(IActionData actionData) {
 		String location = "jdExhausted";
-		JobDriver.getInstance().advanceJdState(JdState.Ended);
-		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		mb.append(Standardize.Label.jdState.get()+JobDriver.getInstance().getJdState());
-		logger.info(location, ILogger.null_id, mb.toString());
+		JobDriver jd = JobDriver.getInstance();
+		switch(jd.getJdState()) {
+		case Ended:
+			break;
+		default:
+			jd.advanceJdState(JdState.Ended);
+			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+			mb.append(Standardize.Label.jdState.get()+JobDriver.getInstance().getJdState());
+			logger.info(location, ILogger.null_id, mb.toString());
+			JobDriverHelper.getInstance().summarize();
+			break;
+		}
 	}
 	
 	private void checkEnded(IActionData actionData, CasManager cm) {

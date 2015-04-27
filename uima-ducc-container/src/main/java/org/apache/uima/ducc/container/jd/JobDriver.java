@@ -255,6 +255,17 @@ public class JobDriver {
 		return killJob;
 	}
 	
+	public boolean isFinito() {
+		boolean retVal = false;
+		if(cm.getCasManagerStats().isKillJob()) {
+			retVal = true;
+		}
+		else if(cm.getCasManagerStats().isExhausted()) {
+			retVal = true;
+		}
+		return retVal;
+	}
+	
 	public CompletionType getCompletionType() {
 		return completionType;
 	}

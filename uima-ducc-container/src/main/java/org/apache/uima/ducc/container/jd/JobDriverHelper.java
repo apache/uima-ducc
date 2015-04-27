@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.container.jd;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +29,8 @@ import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.cas.CasManager;
+import org.apache.uima.ducc.container.jd.cas.CasManagerStats;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
@@ -36,6 +39,7 @@ import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.impl.WorkItemInfo;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
+import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.ProcessStatistics;
 
 public class JobDriverHelper {
@@ -139,6 +143,58 @@ public class JobDriverHelper {
 			logger.trace(location, ILogger.null_id, mb);
 		}
 		return processStatistics;
+	}
+	
+	public static double megabyte = 1.0*1024*1024;
+	private static DecimalFormat df = new DecimalFormat("#.00");
+	
+	private String fmt100(double value) {
+		String retVal = df.format(value);;
+		return retVal;
+	}
+	
+	private String fmtMB(long value) {
+		return fmt100(value/megabyte);
+	}
+	
+	private String fmtSec(long value) {
+		return fmt100(value/1000.0);
+	}
+	
+	public void summarize() {
+		String location = "summarize";
+		JobDriver jd = JobDriver.getInstance();
+		MessageBuffer mb;
+		mb = new MessageBuffer();
+		Runtime.getRuntime().totalMemory();
+		mb.append(Standardize.Label.memory.name()+" ");
+		mb.append("[MB]"+" ");
+		mb.append(Standardize.Label.total.get()+fmtMB(Runtime.getRuntime().totalMemory()));
+		mb.append(Standardize.Label.free.get()+fmtMB(Runtime.getRuntime().freeMemory()));
+		mb.append(Standardize.Label.max.get()+fmtMB(Runtime.getRuntime().maxMemory()));
+		logger.info(location, ILogger.null_id, mb);
+		//
+		IWorkItemStatistics wis = jd.getWorkItemStatistics();
+		mb = new MessageBuffer();
+		mb.append(Standardize.Label.workitem.name()+" ");
+		mb.append(Standardize.Label.statistics.name()+" ");
+		mb.append("[sec]"+" ");
+		mb.append(Standardize.Label.avg.get()+fmtSec(wis.getMillisAvg()));
+		mb.append(Standardize.Label.min.get()+fmtSec(wis.getMillisMin()));
+		mb.append(Standardize.Label.max.get()+fmtSec(wis.getMillisMax()));
+		mb.append(Standardize.Label.stddev.get()+fmtSec(wis.getMillisStdDev()));
+		logger.info(location, ILogger.null_id, mb);
+		//
+		CasManager cm = jd.getCasManager();
+		CasManagerStats cms = cm.getCasManagerStats();
+		mb = new MessageBuffer();
+		mb.append(Standardize.Label.workitem.name()+" ");
+		mb.append(Standardize.Label.count.name()+" ");
+		mb.append(Standardize.Label.done.get()+cms.getEndSuccess());
+		mb.append(Standardize.Label.error.get()+cms.getEndFailure());
+		mb.append(Standardize.Label.retry.get()+cms.getNumberOfRetrys());
+		mb.append(Standardize.Label.preempt.get()+cms.getNumberOfPreemptions());
+		logger.info(location, ILogger.null_id, mb);
 	}
 	
 }

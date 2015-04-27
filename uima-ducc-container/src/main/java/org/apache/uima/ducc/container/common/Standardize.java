@@ -21,6 +21,10 @@ package org.apache.uima.ducc.container.common;
 public class Standardize {
 
 	public enum Label {
+		workitem,
+		statistics,
+		memory,
+		free,
 		tasks,
 		futures,
 		collectionReaderCfg,
@@ -61,6 +65,7 @@ public class Standardize {
 		avg,
 		min,
 		max,
+		stddev,
 		removed,
 		isKillJob,
 		isKillProcess,
