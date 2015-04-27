@@ -107,6 +107,10 @@ import org.springframework.context.annotation.Import;
 			if ( common.jettyMaxThreads != null) {
 				try {
 					maxThreads = Integer.parseInt(common.jettyMaxThreads.trim());
+				    if ( maxThreads < threadPool.getMinThreads()) {
+						logger.warn("JobDriver", jobid, "Invalid value for jettyMaxThreads("+maxThreads+") - it should be greater or equal to number of CPUs ("+threadPool.getMinThreads()+"). Forcing jettyMaxThreads=Number of CPUs");
+				        maxThreads = threadPool.getMinThreads();
+				    }
 				} catch( NumberFormatException e) {
 					logger.warn("JobDriver", jobid, "Invalid value for jettyMaxThreads - check ducc.properties - defaulting to "+maxThreads);
 				}
@@ -117,11 +121,11 @@ import org.springframework.context.annotation.Import;
 					threadPool.setMaxIdleTimeMs(Integer.parseInt(common.jettyThreadIdleTime.trim()));
 					
 				} catch(NumberFormatException e) {
-					logger.warn("JobDriver", jobid, "Invalid value for jettyThreadIdleTime - check ducc.properties - defaulting to 5000ms");
-					threadPool.setMaxIdleTimeMs(5000);
+					logger.warn("JobDriver", jobid, "Invalid value for jettyThreadIdleTime - check ducc.properties - defaulting to 60000ms");
+					threadPool.setMaxIdleTimeMs(60000);
 				}
 			} else {
-				threadPool.setMaxIdleTimeMs(5000);
+				threadPool.setMaxIdleTimeMs(60000);
 			}
 			server.setThreadPool(threadPool);
 			
