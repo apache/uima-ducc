@@ -115,9 +115,11 @@ public class Scheduler
     String schedImplName;
     IScheduler[] schedulers;
 
-    long  share_quantum    = 15;             // 15 GB in KB - smallest share size
-    long share_free_dram  = 0;              // 0  GB in KB  - minim memory after shares are allocated
-    long dramOverride     = 0;              // if > 0, use this instead of amount reported by agents (modeling and testing)
+    long  share_quantum    = 15;             // 15 GB  - smallest share size - converted to KB during init because
+                                             // hosts report in KB
+
+    long share_free_dram  = 0;               // 0  GB in KB  - minim memory after shares are allocated
+    long dramOverride     = 0;               // if > 0, use this instead of amount reported by agents (modeling and testing)
 
     int pending_evictions = 0;                    // for queries
     int pending_expansions = 0;                  // for queries

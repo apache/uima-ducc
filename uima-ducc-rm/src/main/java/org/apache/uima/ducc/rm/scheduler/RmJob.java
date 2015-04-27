@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -330,7 +331,8 @@ public class RmJob
         return wanted_by_order;
     }
 
-    public int calculateCap(int order, int total)
+    // UIMA-4275 simplifies this
+    public int calculateCap()
     {
         return Integer.MAX_VALUE;  // no cap for jobs
     }
@@ -339,13 +341,16 @@ public class RmJob
     // UIMA-4275
     public int countOccupancy()
     {
-        if ( (given_by_order == null) || (given_by_order[share_order] == 0) ) {
-            // must use current allocation because we haven't been counted yet
-            return countNShares() * share_order;
-        } else {
-            // new allocation may not match current, so we use that one
-            return given_by_order[share_order] * share_order;
-        }
+
+        return assignedShares.size() + pendingShares.size();
+
+        // if ( (given_by_order == null) || (given_by_order[share_order] == 0) ) {
+        //     // must use current allocation because we haven't been counted yet
+        //     return countNShares() * share_order;
+        // } else {
+        //     // new allocation may not match current, so we use that one
+        //     return given_by_order[share_order] * share_order;
+        //}
     }
 
     public int countNSharesGiven()
@@ -383,6 +388,9 @@ public class RmJob
     public boolean canUseBonus(int order)              // UIMA-4065
     {
         if ( order != share_order) return false;
+
+        if ( getGivenByOrder()[0] >= getResourceClass().calculateCap() ) return false;  // don't exceed cap UIMA-4275
+
         return (getWantedByOrder()[order] > 0);        // yep, still want
    }
 
@@ -721,7 +729,6 @@ public class RmJob
             return 0;
         }
 
-
         if ( logger.isTrace() ) {
             logger.trace(methodName, getId(), "Shares Before Sort - id, isInitialized, investment:");
             for ( Share s : sharesSorted ) {
@@ -816,21 +823,33 @@ public class RmJob
     }
 
     /**
-     * I'm shrinking by this many.  Put into pendingRemoves but don't take them off the assigned list
-     * until we know job manager has been told.
+     * This is an investment shrink.  We don't have to walk nodepools because we use nodepool depth of each share
+     * to select deeper pools first.
      *
-     * TODO: this will likely change when the Scheduler starts deciding - either we'll put decision logic
-     * into Job proper, or defer it to the IScheduler implementation (probably the latter).
+     * The selection strategy is this:
+     *    1. Lowest investment always wins.
+     *    2. Deepest nodepool is secondary sort.
+     *    3. Largest machine is tertiary.
      *
-     * @Deprecated.  Keeping until I can nuke or update the simple fair share code.
+     * The assumption is that the job must give up the indicated shares unconditionally.  We let the
+     * defragmentation routine to any additional cleanup if this isn't sufficient to satisfy pending expansions.
+     * UIMA-4275
      */
-    //public void shrinkTo(int k)
-    //{	
-//         int count = assignedShares.size() - k;
-//         for ( int i = 0; i < count; i++ ) {
-//             pendingRemoves.add(assignedShares.get(i));
-//         }
-    //}
+    public void shrinkBy(int howmany)
+    {
+        String methodName = "shrinkBy";
+        List<Share> sharesSorted = new ArrayList<Share>(assignedShares.values());
+        Collections.sort(sharesSorted, new ShareByInvestmentSorter());
+
+        int tolose = Math.min(howmany, sharesSorted.size());
+
+        for ( int i = 0; i < tolose; i++ ) {
+            Share ss = sharesSorted.get(i);
+            logger.info(methodName, getId(), "Removing share", ss.toString());
+            pendingRemoves.put(ss, ss);
+            ss.evict();
+        }
+    }
 
     /**
      * Waiting for somebody to deal with my shrinkage?
@@ -1184,6 +1203,12 @@ public class RmJob
     	return resource_class;
     }
     
+    // UIMA-4275
+    public boolean exceedsFairShareCap()
+    {
+        return getResourceClass().fairShareCapExceeded(this);
+    }
+
     // @deprecated
     //public int countInstances() {
     //    return n_machines;
@@ -1368,6 +1393,53 @@ public class RmJob
         }
     }
 
+    // pull this out of the ShareByInvest sorter so other sorters can use it - see the
+    // ShareByWealth sorter in NodePoolScheduler
+    // UIMA-4275
+    public static int compareInvestment(Share s1, Share s2)
+    {
+        if ( s1.equals(s2) ) return 0;
+        
+        int mask = 0;
+        if ( s1.isInitialized() ) mask |= 0x02;
+        if ( s2.isInitialized() ) mask |= 0x01;
+        
+        switch ( mask ) {
+            case 0:        // neither is initialized
+                return ( (int) (s1.getInitializationTime() - s2.getInitializationTime()) );
+            case 1:        // s1 not initialized, s2 is
+                return -1;
+            case 2:        // s2 initialized, s1 not
+                return  1; 
+            default:       // both initialized, compare investments
+        }
+        
+        long i1 = s1.getInvestment();
+        long i2 = s2.getInvestment();
+        if (i1 == i2 ) {
+            // same invesstment, go to depper nodepool first
+            int d1 = s1.getNodepoolDepth();
+            int d2 = s1.getNodepoolDepth();
+            
+            if ( d1 == d2 ) {
+                // same nodepool depth, go for largest machine
+                long m1 = s1.getHostMemory();
+                long m2 = s2.getHostMemory();
+                
+                if ( m1 == m2 ) {
+                    // last resort, sort on youngest first 
+                    return (int) (s2.getId().getFriendly() - s1.getId().getFriendly());
+                }
+                return (int) (m2 - m1);   // largest machine
+            }
+            
+            return (d2 - d1);     // greatest depth
+            
+        } else {
+            return (int) (i1 - i2);  // least investment
+        }
+    }
+
     //
     // Order shares by INCREASING investment
     //
@@ -1376,33 +1448,8 @@ public class RmJob
     {	
     	public int compare(Share s1, Share s2)
         {
-            if ( s1.equals(s2) ) return 0;
-
-            int mask = 0;
-            if ( s1.isInitialized() ) mask |= 0x02;
-            if ( s2.isInitialized() ) mask |= 0x01;
-
-            switch ( mask ) {
-                case 0:        // neither is initialized
-                    return ( (int) (s1.getInitializationTime() - s2.getInitializationTime()) );
-                case 1:        // s1 not initialized, s2 is
-                    return -1;
-                case 2:        // s2 initialized, s1 not
-                    return  1; 
-                default:       // both initialized, compare investments
-            }
-
-            long i1 = s1.getInvestment();
-            long i2 = s2.getInvestment();
-            if (i1 == i2 ) {
-                // Maybe splitting hairs.  Neither share has investment but both are initialized.  Apparently
-                // we're waiting for the data to arrive. Choose the most recently assigned as it probably has the least
-                // actual progress. 
-                return (int) (s2.getId().getFriendly() - s1.getId().getFriendly());
-            } else {
-                return (int) (i1 - i2);
-            }
-    }
+            return compareInvestment(s1, s2);        // UIMA-4275
+        }
     }
 
     @Override

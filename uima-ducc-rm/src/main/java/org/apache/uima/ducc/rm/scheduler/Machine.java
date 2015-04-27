@@ -250,6 +250,11 @@ public class Machine
         this.memory = memory;
     }
 
+    public int getNodepoolDepth()              // UIMA-4275
+    {
+        return nodepool.getDepth();
+    }
+
     public int getShareOrder()
     {
         return share_order;

@@ -711,6 +711,7 @@ class NodePool
     }
 
     void rearrangeVirtual(Machine m, int order)
+         
     {
     	String methodName = "rearrangeVirtual";
         if ( allMachines.containsKey(m.key()) ) {
@@ -726,6 +727,16 @@ class NodePool
             }
            
             Map<Node, Machine> vlist = virtualMachinesByOrder.get(v_order);
+            if ( vlist == null ) {
+                // Delivered under UIMA-4275 as that is when I decided to try to avoid NPE here.
+                //
+                // This is fatal, the internal records are all wrong.  Usually this is because of some
+                // external snafu, such as mixing and matching ducc clusters on the same broker.
+                // There's really not much we can do though.  There's a good chance that continuing
+                // will cause NPE elsewhere.  Maybe we can just ignore it and let it leak?
+                logger.error(methodName, null, "ERROR: bad virtual machine list.", m.getId(), "order", order, "v_order", v_order, "r_order", r_order);
+                return;
+            }
             vlist.remove(m.key());
             
             v_order -= order;
@@ -1521,9 +1532,10 @@ class NodePool
     }
 
     /**
-     * Trying again.
+     * Here we tell the NP how much we need cleared up.  It will look around and try to do that.
+     * @deprecated No longer used, the doEvictions code in NodepoolScheduler handles evictions by itself.
+     *             Keeping this for a while for reference.  UIMA-4275
      */
-    //^jrc
     void doEvictionsByMachine(int [] neededByOrder, boolean force)
     {
     	String methodName = "doEvictions";
@@ -1605,6 +1617,7 @@ class NodePool
         int needed = (counted - current);
         int order = j.getShareOrder();
         int given = 0;        
+        boolean expansionStopped = false;         // UIMA-4275
 
         logger.info(methodName, j.getId(), "counted", counted, "current", current, "needed", needed, "order", order, "given", given);
 
@@ -1623,13 +1636,19 @@ class NodePool
                         if ( m.isBlacklisted() ) continue;                  // nope
                         int g = Math.min(needed, m.countFreeShares(order)); // adjust by the order supported on the machine
                         for ( int ndx= 0;  ndx < g; ndx++ ) {
-                            Share s = new Share(m, j, order);
-                            connectShare(s, m, j, order);
-                            logger.info(methodName, j.getId(), "Connecting new share", s.toString());
-                            //j.assignShare(s);
-                            //m.assignShare(s);
-                            //rearrangeVirtual(m, order);
-                            //allShares.put(s, s);
+                            if ( j.exceedsFairShareCap() ) {                // UIMA-4275
+                                // can't take any more shares, probably because of caps
+                                expansionStopped = true;
+                                break whatof;
+                            } else {
+                                Share s = new Share(m, j, order);
+                                connectShare(s, m, j, order);
+                                logger.info(methodName, j.getId(), "Connecting new share", s.toString());
+                                //j.assignShare(s);
+                                //m.assignShare(s);
+                                //rearrangeVirtual(m, order);
+                                //allShares.put(s, s);
+                            }
                         }
                         
                         given += g;
@@ -1644,7 +1663,7 @@ class NodePool
             //calcNSharesByOrder();
         }
 
-        if ( needed > 0 ) {
+        if ( (needed > 0) && ( !expansionStopped ) ) {            // UIMA-4275
             for ( NodePool np : getChildrenAscending() ) {
 
                 StringBuffer sb = new StringBuffer();

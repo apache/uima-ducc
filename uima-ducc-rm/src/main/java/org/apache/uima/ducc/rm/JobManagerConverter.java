@@ -409,7 +409,8 @@ public class JobManagerConverter
                     return false;                              // so we don't add it to global tables
                 } else {
                     DuccId id = proc.getDuccId();
-                    Share   s = new Share(id, m, j, m.getShareOrder());        // guess share order; scheduler will reset when it recovers job
+                    Share   s = new Share(id, m, j, m.getShareOrder());               // guess share order; scheduler will reset when it recovers job
+                                                                                      // UIMA-4275 include depth
                     long mem = proc.getResidentMemory();
                     long investment = proc.getWiMillisInvestment();
                     logger.info(methodName, j.getId(), "Assigning share in state", state, "pid", pid, "for recovery", s.toString());

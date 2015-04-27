@@ -220,8 +220,9 @@ public class User
         share_wealth -= w;
     }
 
-    public int calculateCap(int order, int total)
+    public int calculateCap()
     {
+        // UIMA-4275, simplify
         return Integer.MAX_VALUE;  // no cap for users
     }
 

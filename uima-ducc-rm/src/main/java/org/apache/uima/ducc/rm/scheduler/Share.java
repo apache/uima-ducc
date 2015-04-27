@@ -168,6 +168,12 @@ public class Share
         return machine;
     }
 
+    long getHostMemory()
+    {
+        if ( machine != null ) return machine.getMemory();
+        else                   return 0L;        // no clue what it is; don't npe
+    }
+
     boolean isPending()
     {
         return job.isPendingShare(this);

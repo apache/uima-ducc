@@ -47,9 +47,8 @@ public class ResourceClass
     private int share_quantum;      // for limits, to convert shares to GB
     private int max_allotment;      // All allocation policies, max in GB
 
-    // for shares, this caps shares
-    private int absolute_cap;       // max shares or machines this class can hand out
-    private double percent_cap;     // max shares or machines this class can hand out as a percentage of all shares
+    // for shares, this caps shares UIMA-4275
+    private int fair_share_cap;       // max shares or machines this class can hand out
     private int true_cap;           // set during scheduling, based on actual current resource availability
     private int pure_fair_share;    // the unmodified fair share, not counting caps, and not adding in bonuses
 
@@ -61,9 +60,6 @@ public class ResourceClass
     private int max_job_order = 0;  // largest order of any job still alive in this rc (not necessarily globally though)
 
     private NodePool nodepool = null;
-
-    // private HashMap<Integer, Integer> nSharesByOrder = new HashMap<Integer, Integer>();         // order, N shares of that order
-    private boolean subpool_counted = false;
 
     // the physical presence of nodes in the pool is somewhat dynamic - we'll store names only, and generate
     // a map of machines on demand by the schedler from currently present machnes
@@ -108,24 +104,18 @@ public class ResourceClass
 
         if ( policy != Policy.FAIR_SHARE ) {
             this.max_allotment = props.getIntProperty("max-allotment", Integer.MAX_VALUE);
+            if ( max_allotment == 0 ) max_allotment = Integer.MAX_VALUE;        // UIMA-4275, remember to set default if allotment is 0
         }
 
         if ( policy == Policy.RESERVE ) {
             this.enforce_memory = props.getBooleanProperty("enforce", true);
         }
 
-        this.absolute_cap = Integer.MAX_VALUE;
-        this.percent_cap  = 1.0;
+        this.fair_share_cap = Integer.MAX_VALUE;      // UIMA-4275
 
         if ( this.policy == Policy.FAIR_SHARE ) {
-            String cap  = props.getStringProperty("fair-share-cap");
-            if ( cap.endsWith("%") ) {
-                int t = Integer.parseInt(cap.substring(0, cap.length()-1));
-                this.percent_cap = (t * 1.0 ) / 100.0;
-            } else {
-                absolute_cap = Integer.parseInt(cap);
-                if (absolute_cap == 0) absolute_cap = Integer.MAX_VALUE;
-            }
+            fair_share_cap = props.getIntProperty("cap", Integer.MAX_VALUE);
+            if (fair_share_cap == 0) fair_share_cap = Integer.MAX_VALUE;
 
             this.share_weight = props.getIntProperty("weight");
             if ( props.containsKey("expand-by-doubling") ) {
@@ -244,12 +234,10 @@ public class ResourceClass
         return true_cap;
     }
 
-    public double getPercentCap() {
-        return percent_cap;
-    }
 
-    public int getAbsoluteCap() {
-        return absolute_cap;
+    // get the absolute cap, in GB
+    private int getFairShareCap() {
+        return fair_share_cap;
     }
         
     public int getAllotment(IRmJob j) 
@@ -289,10 +277,6 @@ public class ResourceClass
      * See if the total memory for job 'j' plus the occupancy of the 'jobs' exceeds 'max'
      * Returns 'true' if occupancy is exceeded, else returns 'false'
      * UIMA-4275
-     *
-     * NOTE: After discussion this may not be the ideal place for this, in favor of a global
-     *       cap on all NPShares, but I suspect it will come back to haunt us that we need
-     *       the finer granularity of class-based caps, so the logic is staying here for now
      */
     private boolean occupancyExceeded(int max, IRmJob j, Map<IRmJob, IRmJob> jobs)
     {
@@ -350,6 +334,15 @@ public class ResourceClass
         }
     }
 
+    // UIMA-4275
+    public boolean fairShareCapExceeded(IRmJob j)
+    {
+        if ( policy != Policy.FAIR_SHARE ) return false;
+
+        if ( j.getShareOrder() + countActiveShares() > calculateCap() ) return true;
+        return false;
+    }
+
     /**
      * Return my share weight, if I have any jobs of the given order or less.  If not,
      * return 0;
@@ -386,6 +379,7 @@ public class ResourceClass
         int wbo = getWantedByOrder()[order];           // calculated by caller so we don't need to check caps
         int gbo = getGivenByOrder()[order];
 
+        if ( getGivenByOrder()[0] >= calculateCap() ) return false;  // don't exceed cap UIMA-4275
         // 
         // we want to ask the nodepool and its subpools:
         //    how many open shares of "order" will you have after we give way
@@ -427,14 +421,8 @@ public class ResourceClass
     {
         //class_shares = 0;
         given_by_order = null;
-        subpool_counted = false;
     }
     
-    public void markSubpoolCounted()
-    {
-        subpool_counted = true;
-    }
-
     void addJob(IRmJob j)
     {
         allJobs.put(j, j);
@@ -542,39 +530,11 @@ public class ResourceClass
         }
     }
 
-    public int calculateCap(int order, int basis)
+    // This is used for the counting code apportion_qshares in NodepoolScheduler.  Returns qshares.
+    public int calculateCap()
     {
-        int perccap = Integer.MAX_VALUE;    // the cap, calculated from percent
-        int absolute = getAbsoluteCap();
-        double percent = getPercentCap();
-
-        if ( percent < 1.0 ) {
-            double b = basis;
-            b = b * percent;
-            perccap = (int) Math.round(b);
-        } else {
-            perccap = basis;
-        }
-
-        int cap =  Math.min(absolute, perccap) / order;   // cap on total shares available
-
-        //
-        // If this RC is defined over a nodepool that isn't the global nodepool then its share
-        // gets calculated multiple times.  The first time when it is encountered during the
-        // depth-first traversal, to work out the fair-share for all classes defined over the
-        // nodepool.  Subpool resources are also available to parent pools however, and must
-        // be reevaluated to insure the resources are fairly allocated over the larger pool
-        // of work.
-        //
-        // So at this point there might already be shares assigned.  If so, we need to
-        // recap on whatever is already given to avoid over-allocating "outside" of the
-        // assigned shares.
-        //
-        if ( (given_by_order != null) && subpool_counted )  {
-            cap = Math.min(cap, given_by_order[order]);
-        } // else - never been counted or assigned at this order, no subpool cap
-        
-        return cap;
+        // significant rework, UIMA-4275
+        return getFairShareCap() / share_quantum;   // cap on total shares available, converted to qshares
     }
 
 
@@ -583,11 +543,12 @@ public class ResourceClass
         return ( (given_by_order != null) && (given_by_order[0] > 0) );
     }
 
-    private int countActiveShares()
+    // number of quantum shares assigned
+    int countActiveShares()
     {
         int sum = 0;
         for ( IRmJob j : allJobs.values() ) {
-            sum += (j.countNShares() * j.getShareOrder());          // in quantum shares
+            sum += (j.countOccupancy() * j.getShareOrder());          // in quantum shares UIMA-4275
         }
         return sum;
     }
@@ -626,15 +587,15 @@ public class ResourceClass
     }
     
     // note we assume Nodepool is the last token so we don't set a len for it!
-    private static String formatString = "%12s %11s %4s %5s %6s %6s %7s %6s %6s %7s %5s %7s %s";
+    private static String formatString = "%12s %11s %4s %5s %6s %7s %6s %6s %7s %5s %7s %s";
     public static String getDashes()
     {
-        return String.format(formatString, "------------", "-----------",  "----", "-----", "------", "------", "-------", "------", "------", "-------", "-----", "-------", "--------");
+        return String.format(formatString, "------------", "-----------",  "----", "-----", "------", "-------", "------", "------", "-------", "-----", "-------", "--------");
     }
 
     public static String getHeader()
     {
-        return String.format(formatString, "Class Name", "Policy", "Prio", "Wgt", "AbsCap", "PctCap", "InitCap", "Dbling", "Prdct", "PFudge", "Shr", "Enforce", "Nodepool");
+        return String.format(formatString, "Class Name", "Policy", "Prio", "Wgt", "AbsCap", "InitCap", "Dbling", "Prdct", "PFudge", "Shr", "Enforce", "Nodepool");
     }
 
     @Override
@@ -649,8 +610,7 @@ public class ResourceClass
                              policy.toString(),
                              priority, 
                              share_weight, 
-                             makeReadable(absolute_cap), 
-                             (int) (percent_cap *100), 
+                             makeReadable(fair_share_cap), 
                              initialization_cap,
                              expand_by_doubling,
                              use_prediction,

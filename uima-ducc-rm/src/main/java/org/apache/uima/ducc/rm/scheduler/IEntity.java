@@ -56,9 +56,10 @@ interface IEntity
 
     boolean canUseBonus(int order);    // can I use one more share of this size
 
-    int    calculateCap(int order, int basis); // The entity must work out any caps that may restrict the counts
+    int    calculateCap();             // The entity must work out any caps that may restrict the counts
+                                       // UIMA-4275 Simplify (delete) args
 
-    long   getTimestamp();                   // for tiebreaks
+    long   getTimestamp();             // for tiebreaks
 
     Comparator<IEntity> getApportionmentSorter();
 }

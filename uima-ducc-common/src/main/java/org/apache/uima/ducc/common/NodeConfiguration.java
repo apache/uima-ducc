@@ -97,13 +97,12 @@ public class NodeConfiguration
         defaultFairShareClass.put("policy", "FAIR_SHARE");
         defaultFairShareClass.put("weight", "100");
         defaultFairShareClass.put("priority", "10");
-        defaultFairShareClass.put("fair-share-cap", Integer.toString(Integer.MAX_VALUE));
-        defaultFairShareClass.put("cap", "<optional>");
+        defaultFairShareClass.put("cap", Integer.toString(Integer.MAX_VALUE));
         defaultFairShareClass.put("expand-by-doubling", ""+SystemPropertyResolver.getBooleanProperty("ducc.rm.expand.by.doubling", true));
         defaultFairShareClass.put("initialization-cap", ""+SystemPropertyResolver.getIntProperty("ducc.rm.initialization.cap", 2));
         defaultFairShareClass.put("use-prediction", ""+SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true));
         defaultFairShareClass.put("prediction-fudge", ""+SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 60000));
-        defaultFairShareClass.put("max-processes", "<optional>");
+        defaultFairShareClass.put("max-processes", "<optional>");   // this is deprecated. it remains here to ease migration to DUCC 2.0.  It has no effect.
         defaultFairShareClass.put("nodepool", "<required>");
         defaultFairShareClass.put("users", "<optional>");
         defaultFairShareClass.put("debug", "fixed");
@@ -122,9 +121,8 @@ public class NodeConfiguration
         defaultFixedShareClass.put("policy", "FIXED_SHARE");
         defaultFixedShareClass.put("priority", "5");
         defaultFixedShareClass.put("default", "<optional>");
-        defaultFixedShareClass.put("max-processes", "<optional>");
-        defaultFixedShareClass.put("max-allotment", "<optional>");
-        defaultFixedShareClass.put("cap", "<optional>");
+        defaultFixedShareClass.put("max-processes", "<optional>");   // this is deprecated. it remains here to ease migration to DUCC 2.0.  It has no effect.
+        defaultFixedShareClass.put("cap", "<optional>");             // this is deprecated. it remains here to ease migration to DUCC 2.0.  It has no effect.
         defaultFixedShareClass.put("nodepool", "<required>");
         defaultFixedShareClass.put("users", "<optional>");
 
@@ -136,9 +134,8 @@ public class NodeConfiguration
         defaultReserveClass.put("policy", "RESERVE");
         defaultReserveClass.put("priority", "1");
         defaultReserveClass.put("default", "<optional>");
-        defaultReserveClass.put("max-machines", "<optional>");
-        defaultReserveClass.put("max-allotment", "<optional>");
-        defaultReserveClass.put("cap", "<optional>");
+        defaultReserveClass.put("max-machines", "<optional>");       // this is deprecated. it remains here to ease migration to DUCC 2.0.  It has no effect.
+        defaultReserveClass.put("cap", "<optional>");                // this is deprecated. it remains here to ease migration to DUCC 2.0.  It has no effect.
         defaultReserveClass.put("nodepool", "<required>");
         defaultReserveClass.put("users", "<optional>");
         defaultReserveClass.put("enforce", "true");
@@ -1154,8 +1151,7 @@ public class NodeConfiguration
         printProperty("Priority",                cl.get("priority"));
         printProperty("Weight",                  cl.get("weight"));
         printProperty("Debug",                   cl.get("debug"));
-        printProperty("Fair-Share Cap",          cl.get("fair-share-cap"));
-        printDeprecatedProperty("Cap",           cl.get("cap"),           "IGNORED Use max-allotment = [mem in GB] instead.");
+        printProperty("Cap",                     cl.get("cap"));
         printProperty("Expand By Doubling",      cl.get("expand-by-doubling"));
         printProperty("Initialization Cap",      cl.get("initialization-cap"));
         printProperty("Use Prediction",          cl.get("use-prediction"));

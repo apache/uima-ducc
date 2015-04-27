@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.rm.scheduler;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -377,7 +376,8 @@ public class NodepoolScheduler
         return String.format(sb.toString(), vals);
     }
 
-    protected void apportion_qshares(List<IEntity> entities, int[] vshares, int total_shares, String descr)
+    // UIMA-4275 Don't pass in total shares any more, we used only for class caps, which work differently now.
+    protected void apportion_qshares(List<IEntity> entities, int[] vshares, String descr)
     {
         String methodName = "apportion_qshares";
         boolean shares_given = false;
@@ -493,9 +493,17 @@ public class NodepoolScheduler
                     int    des = deserved.get(e);                                                    // total deserved this round QShares
                     int    gpr = given_per_round.get(e);                                             // total given this round
                     int    mpr = Math.max(0, des-gpr);                                               // max this round, deserved less what I aleady was given
-                    int    tgiven = Math.min(mpr, (int) Math.floor(dgiven));                         // what is calculated, capped by what I alreay have
-                    int    cap = e.calculateCap(o, total_shares);                                    // get caps, if any
+                    //int    tgiven = Math.min(mpr, (int) Math.floor(dgiven));                         // what is calculated, capped by what I alreay have
+                    // UIMA-4275, floor to ciel.  Below with tgiven and rgiven we deal with ther emainder also.  The floor plus the residual below
+                    //            seemed really agressive and some small allocation were working out to 0 when they shouldn't
+                    int    tgiven = Math.min(mpr, (int) Math.ceil(dgiven));                          // what is calculated, capped by what I alreay have
+                    int    cap = e.calculateCap();                                                   // get caps, if any, in qshares (simplified in UIMA-4275)
                     logger.trace(methodName, null, descr, "O", o, ":", e.getName(), "Before caps, given", tgiven, "cap", cap);
+
+                    if ( gbo[0] >= cap ) {           // UIMA-4275
+                        logger.trace(methodName, null, descr, "O", o, "Entity", e.getName(), "cap prevents further allocation.");
+                        continue;
+                    }
 
                     int    given = tgiven / o;                                                       // tentatively given, back to NShares
                     int    rgiven = tgiven % o;                                                      // residual - remainder
@@ -545,11 +553,11 @@ public class NodepoolScheduler
                 if ( allweights <=0 ) break;   // JRC JRC
             }
 
-            // Remove entities that have everything they want
+            // Remove entities that have everything they want or could otherwise get
             Iterator<IEntity> iter = working.iterator();
             while ( iter.hasNext() ) {
                 IEntity e = iter.next();
-                if ( e.getWantedByOrder()[0] == 0 ) {
+                if ( (e.getWantedByOrder()[0] == 0) || (e.getGivenByOrder()[0] >= e.calculateCap()) ) {      // UIMA-4275, checking fair-share cap
                     // logger.info(methodName, null, descr, e.getName(), "reaped, nothing more wanted:", fmtArray(e.getWantedByOrder()));
                     iter.remove();
                 }
@@ -585,10 +593,10 @@ public class NodepoolScheduler
         } while ( shares_given );
 
         if ( logger.isTrace() ) {
-            logger.trace(methodName, null, descr, "Final before bonus:");
+            logger.info(methodName, null, descr, "Final before bonus:");
             for ( IEntity e : entities ) {
                 int[] gbo = e.getGivenByOrder();
-                logger.trace(methodName, null, descr, String.format("%12s %s", e.getName(), fmtArray(gbo)));
+                logger.info(methodName, null, descr, String.format("%12s %s", e.getName(), fmtArray(gbo)));
             }
         }
 
@@ -617,6 +625,7 @@ public class NodepoolScheduler
                     // UIMA-4065
                     while ( (e.canUseBonus(o) ) && (vshares[o] > 0) ) {
                         gbo[o]++;
+                        gbo[0]++;
                         removeSharesByOrder(vshares, nshares, 1, o);
                         given = true;
                         break;
@@ -641,7 +650,7 @@ public class NodepoolScheduler
         logger.debug(methodName, null, descr, "Final apportionment:");
         for ( IEntity e : entities ) {
             int[] gbo = e.getGivenByOrder();          // nshares
-            logger.debug(methodName, null, descr, String.format("%12s gbo%s", e.getName(), fmtArray(gbo)));                
+            logger.debug(methodName, null, descr, String.format("%12s gbo %s", e.getName(), fmtArray(gbo)));                
         }
         logger.debug(methodName, null, descr, "vshares", fmtArray(vshares));
         logger.debug(methodName, null, descr, "nshares", fmtArray(nshares));
@@ -684,7 +693,6 @@ public class NodepoolScheduler
         // pull the counts.  these don't get updated by the counting routines per-se.  after doing counting the np's are
         // expected to do the 'what-of' calculations that do acutall allocation and which update the counts
         int[] vshares = np.cloneVMachinesByOrder();
-        int total_shares = np.countTotalShares();   // for caps, Qshares
 
         ArrayList<IEntity> l = new ArrayList<IEntity>();
         l.addAll(rcs); 
@@ -693,14 +701,10 @@ public class NodepoolScheduler
             e.initWantedByOrder((ResourceClass) e);
         }
 
-        apportion_qshares((List<IEntity>) l, vshares, total_shares, methodName);
+        apportion_qshares((List<IEntity>) l, vshares, methodName);               // UIMA-4275, remove 'total'
 
         int sum_of_weights = 0;
         for ( ResourceClass rc : rcs ) {
-            rc.markSubpoolCounted();               // Remember that we've attempted to apportion shares to this guy.
-                                                   // This is specific to rc only, not IEntity, so we don't
-                                                   // generalize this into apportion_shares.
-
             sum_of_weights += rc.getShareWeight(); // see next loop
         }
 
@@ -710,7 +714,7 @@ public class NodepoolScheduler
         // for each rc.  Here is a great place to do that calculation.
         //
         for ( ResourceClass rc : rcs ) {
-            int fair_share = (int) Math.floor(total_shares * ( (double)  rc.getShareWeight() / sum_of_weights ));
+            int fair_share = (int) Math.floor(np.countTotalShares() * ( (double)  rc.getShareWeight() / sum_of_weights ));
             rc.setPureFairShare(fair_share);
         }
     }
@@ -729,6 +733,11 @@ public class NodepoolScheduler
             return false;                                                          // nothing to do ...
         }
 
+        // if ( rc.getName().equals("urgent") ) {
+        //     int stop_here = 1;
+        //     stop_here++;
+        // }
+
         int[] vshares = rc.getGivenByOrder();                                      // assigned in countClassShares
 
         HashMap<User, User> users = new HashMap<User, User>();                     // get a map of all users in this class by examining the curent jobs
@@ -741,7 +750,7 @@ public class NodepoolScheduler
 
         ArrayList<IEntity> l = new ArrayList<IEntity>();
         l.addAll(users.values()); 
-        apportion_qshares((List<IEntity>) l, vshares, 0, methodName);
+        apportion_qshares((List<IEntity>) l, vshares, methodName);                // UIMA-4275 remove 'total'
 
         //
         // For final eviction if needed, calculate the pure uncapped un-bonused count for
@@ -776,7 +785,7 @@ public class NodepoolScheduler
                 e.initWantedByOrder(rc);
             }
 
-            apportion_qshares((List<IEntity>) l, vshares, 0,  methodName);
+            apportion_qshares((List<IEntity>) l, vshares, methodName);     // UIMA-4275, remove "total"
 
             //
             // For final eviction if needed, calculate the pure uncapped un-bonused count for
@@ -939,11 +948,11 @@ public class NodepoolScheduler
     {
         String methodName = "howMuchFairShare";
         if ( logger.isTrace() ) {
-            logger.trace(methodName, null, "Scheduling FAIR SHARE for these classes:");
-            logger.trace(methodName, null, "   ", ResourceClass.getHeader());
-            logger.trace(methodName, null, "   ", ResourceClass.getDashes());
+            logger.info(methodName, null, "Scheduling FAIR SHARE for these classes:");
+            logger.info(methodName, null, "   ", ResourceClass.getHeader());
+            logger.info(methodName, null, "   ", ResourceClass.getDashes());
             for ( ResourceClass pc : rcs ) {
-                logger.trace(methodName, null, "   ", pc.toString());
+                logger.info(methodName, null, "   ", pc.toString());
             }
         }
 
@@ -1690,13 +1699,14 @@ public class NodepoolScheduler
         }
 
         int neededByOrder[] = NodePool.makeArray();         // for each order, how many N-shares do I want to add?
-        int total_needed = 0;
+        // int total_needed = 0;
 
+        Map<IRmJob, Integer> overages = new HashMap<IRmJob, Integer>();        // UIMA-4275
         for ( ResourceClass cl : resourceClasses.values() ) {
             if ( cl.getNodepoolName().equals(nodepool.getId()) && (cl.getAllJobs().size() > 0) ) {
                 HashMap<IRmJob, IRmJob> jobs = cl.getAllJobs();
                 String npn = cl.getNodepoolName();
-                logger.trace(methodName, null, String.format("%12s %7s %7s %6s %5s", npn, "Counted", "Current", "Needed", "Order"));
+                logger.info(methodName, null, String.format("%12s %7s %7s %6s %5s", npn, "Counted", "Current", "Needed", "Order"));
 
                 for ( IRmJob j : jobs.values() ) {
                     int counted = j.countNSharesGiven();      // allotment from the counter
@@ -1708,20 +1718,41 @@ public class NodepoolScheduler
                     //                               if needed < 0, that's shares we need to dump because the
                     //                                              counts say so.
                     //                               if needed == 0 then clearly nothing
-                    needed = Math.abs(needed); 
-                    // needed = Math.max(0, needed);
 
-                    logger.trace(methodName, j.getId(), String.format("%12s %7d %7d %6d %5d", npn, counted, current, needed, order));
-                    neededByOrder[order] += needed;
-                    total_needed += needed;
+                    if ( needed < 0 ) {
+                        // UIMA-4275 these guys must be forced to shrink
+                        overages.put(j, -needed);
+                    } else {
+                        // needed = Math.abs(needed); 
+                        // needed = Math.max(0, needed);
+                        
+                        logger.info(methodName, j.getId(), String.format("%12s %7d %7d %6d %5d", npn, counted, current, needed, order));
+                        neededByOrder[order] += needed;
+                        // total_needed += needed;
+                    }
                 }
             }
     
         }
-        logger.debug(methodName, null, nodepool.getId(),  "NeededByOrder before any eviction:", Arrays.toString(neededByOrder));        
-        if ( (nodepool.countOccupiedShares() > 0) && (total_needed > 0) ) {
-            nodepool.doEvictionsByMachine(neededByOrder, false);
+
+        // Every job in overages is required to lose the indicated number of share.  If this is done optimally it
+        // will leave suficcient space for the counted shares of all the expansions.  Therein lies the rub.
+        //
+        // The older code below does its best to make space for the 'needed' array but it fails to fully evict
+        // an over-deployed job in a number of situations.  The loop here is going to rely on defragmentation, which
+        // we did not have originally to do final cleanup.  The job will be asked to dump its extra processes according
+        // to the mechanism in its shrinkBy() method.  See that method for details.
+        // UIMA-4275
+        for (IRmJob j : overages.keySet()) {
+            j.shrinkBy(overages.get(j));
         }
+
+        // First we try to make enough space in the right places for under-allocation jobs
+        // logger.debug(methodName, null, nodepool.getId(),  "NeededByOrder before any eviction:", Arrays.toString(neededByOrder));        
+        // if ( (nodepool.countOccupiedShares() > 0) && (total_needed > 0) ) {
+        //     nodepool.doEvictionsByMachine(neededByOrder, false);
+
+
     }
 
     /**
@@ -2851,6 +2882,10 @@ public class NodepoolScheduler
             IRmJob j2 = s2.getJob();
             User u2 = j2.getUser();
             s2wealth = u2.getShareWealth();
+
+            if ( s2wealth == s1wealth ) {                  
+                return RmJob.compareInvestment(s1, s2);    // UIMA-4275
+            }
 
             return s2wealth - s1wealth;
         }

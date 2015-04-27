@@ -280,4 +280,9 @@ public interface IRmJob
     // counted afresh in the current scheduling cycle, for allotments
     public int countOccupancy();                  // UIMA-4275
 
+    // UIMA-4275 Must lose some number of shares unconditionally
+    public void shrinkBy(int howmany);
+
+    // UIMA-4275
+    public boolean exceedsFairShareCap();
 }
