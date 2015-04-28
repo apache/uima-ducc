@@ -1142,11 +1142,20 @@ public class DuccHandler extends DuccAbstractHandler {
 		default:
 			// Time:avg
 			index++; // jp.17
+			String timeAvg = "";
 			IDuccProcessWorkItems pwi = process.getProcessWorkItems();
 			cbList[index].append("<td align=\"right\">");
-			String timeAvg = "";
-			if(pwi != null) {
-				timeAvg = ""+pwi.getSecsAvg();
+			switch(sType) {
+			case JD:
+				if(pwi != null) {
+					timeAvg = ""+(job.getWiMillisAvg()/1000);
+				}
+				break;
+			default:
+				if(pwi != null) {
+					timeAvg = ""+pwi.getSecsAvg();
+				}
+				break;
 			}
 			cbList[index].append(timeAvg);
 			logAppend(index,"timeAvg",timeAvg);
