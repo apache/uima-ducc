@@ -49,6 +49,7 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 		return value;
 	}
 	
+	@SuppressWarnings("unused")
 	private void compress(DuccWorkMap map) {
 		if(map != null) {
 			if(serviceCmdLineMap != null) {
@@ -72,6 +73,7 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void uncompress(DuccWorkMap map) {
 		if(map != null) {
 			if(serviceCmdLineMap != null) {

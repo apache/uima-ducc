@@ -26,11 +26,11 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class ReservationSpecificationProperties extends SpecificationProperties implements Serializable {
 
-	@Deprecated
+	//TODO @Deprecated
 	public static String key_cancel_managed_reservation_on_interrupt = "cancel_managed_reservation_on_interrupt";
-	@Deprecated
+	//TODO @Deprecated
 	public static String key_number_of_instances = "number_of_instances";
-	@Deprecated
+	//TODO @Deprecated
 	public static String key_instance_memory_size = "instance_memory_size";
 	
 	public static String key_memory_size = "memory_size";
