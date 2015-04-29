@@ -29,7 +29,6 @@ public class MonitorInfo {
 	public String done  = "0";
 	public String error = "0";
 	public String retry = "0";
-	public String lost = "0";
 	public String procs = "0";
 	public ArrayList<String> remotePids = new ArrayList<String>();
 	public ArrayList<String> errorLogs = new ArrayList<String>();
