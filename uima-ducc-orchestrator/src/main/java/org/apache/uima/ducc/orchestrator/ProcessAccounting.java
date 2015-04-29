@@ -45,7 +45,6 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
-import org.apache.uima.ducc.transport.event.jd.v1.IDriverStatusReportV1;
 
 
 public class ProcessAccounting {
@@ -778,15 +777,6 @@ public class ProcessAccounting {
 		String jdPreemptWorkItems = ""+jdStatusReport.getWorkItemsPreempted();
 		if(!compare(jdPreemptWorkItems,duccWorkJob.getSchedulingInfo().getWorkItemsPreempt())) {
 			duccWorkJob.getSchedulingInfo().setWorkItemsPreempt(jdPreemptWorkItems);
-		}
-		if(jdStatusReport instanceof IDriverStatusReportV1) {
-			IDriverStatusReportV1 jdStatusReportV1 = (IDriverStatusReportV1) jdStatusReport;
-			String jdLostWorkItems = ""+jdStatusReportV1.getWorkItemsLost();
-			if(!compare(jdLostWorkItems,duccWorkJob.getSchedulingInfo().getWorkItemsLost())) {
-				duccWorkJob.getSchedulingInfo().setWorkItemsLost(jdLostWorkItems);
-			}
-			duccWorkJob.getSchedulingInfo().setCasQueuedMap(jdStatusReportV1.getCasQueuedMap());
-			duccWorkJob.getSchedulingInfo().setLimboMap(jdStatusReportV1.getLimboMap());
 		}
 		
 		duccWorkJob.getSchedulingInfo().setMostRecentWorkItemStart(jdStatusReport.getMostRecentStart());
