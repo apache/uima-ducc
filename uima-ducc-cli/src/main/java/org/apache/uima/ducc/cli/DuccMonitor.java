@@ -73,8 +73,10 @@ public abstract class DuccMonitor {
 	private DuccPropertiesResolver duccPropertiesResolver = null;
 
 	private DuccContext context = null;
-	IDuccCallback messageProcessor = null;
+	protected IDuccCallback messageProcessor = null;
 
+	private String delayedRunning = null;
+	
 	private SynchronizedSimpleDateFormat sdf = new SynchronizedSimpleDateFormat(
 			"dd/MM/yyyy HH:mm:ss");
 
@@ -366,8 +368,26 @@ public abstract class DuccMonitor {
 				}
 				thisMessage = message.toString();
 				if (!thisMessage.equals(lastMessage)) {
-					info(thisMessage);
-					lastMessage = thisMessage;
+					boolean suppress = false;
+					if(state.equals(StateRunning)) {
+						if(seenRemotePids.size() == 0) {
+							suppress = true;
+							if(delayedRunning == null) {
+								delayedRunning = message.toString();
+							}
+						}
+						else {
+							delayedRunning = null;
+						}
+					}
+					if(!suppress) {
+						if(delayedRunning != null) {
+							info(delayedRunning);
+							delayedRunning = null;
+						}
+						info(thisMessage);
+						lastMessage = thisMessage;
+					}
 				}
 				if (state.equals(StateCompleted)) {
 					// See Jira 2911
