@@ -302,8 +302,8 @@ public class HttpWorkerThread implements Runnable {
         					logger.warn("run", null,"Terminating Job Process - Work Item Failed");
 
         					// Stop the JVM hard. Agent will check the exit code
-        					// so make it 0 to avoid making it look like CROAK
-        					Runtime.getRuntime().halt(0);
+        					// so make it -1 to mark it as CROAK
+        					Runtime.getRuntime().halt(-1);
         					/* *****************************************/
         					/* *****************************************/
         					/* *****************************************/
