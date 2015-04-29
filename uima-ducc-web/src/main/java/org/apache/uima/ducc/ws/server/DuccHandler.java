@@ -67,7 +67,6 @@ import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Version;
-import org.apache.uima.ducc.common.utils.VersionCommunicationsJdJp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.transport.Constants;
@@ -1393,10 +1392,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			thSep(sb);
 			// error & lost
 			int eCount = 0;
-			int lCount = 0;
 			try {
 				eCount = job.getSchedulingInfo().getIntWorkItemsError();
-				lCount = job.getSchedulingInfo().getIntWorkItemsLost();
 			}
 			catch(Exception e) {
 			}
@@ -1405,14 +1402,6 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("Error: ");
 			sb.append(error);
 			sb.append("</th>");
-			if(lCount > 0) {
-				thSep(sb);
-				String lost = ""+lCount;
-				sb.append("<th title=\"The number of work items that were lost\">");
-				sb.append("Lost: ");
-				sb.append(lost);
-				sb.append("</th>");
-			}
 			// extended info live jobs
 			thSep(sb);
 			JobState jobState = JobState.Undefined;
@@ -1428,7 +1417,6 @@ public class DuccHandler extends DuccAbstractHandler {
 			default:
 				int dispatch = 0;
 				int unassigned = job.getSchedulingInfo().getCasQueuedMap().size();
-				int limbo = job.getSchedulingInfo().getLimboMap().size();
 				try {
 					dispatch = Integer.parseInt(job.getSchedulingInfo().getWorkItemsDispatched())-unassigned;
 				}
@@ -1440,20 +1428,6 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append(dispatch);
 				sb.append("</th>");
 				thSep(sb);
-				if(VersionCommunicationsJdJp.get() == 1) {
-					// unassigned
-					sb.append("<th title=\"The number of work items currently dispatched for which acknowledgement is yet to be received\">");
-					sb.append("Unassigned: ");
-					sb.append(unassigned);
-					sb.append("</th>");
-					thSep(sb);
-					// limbo
-					sb.append("<th title=\"The number of work items pending re-dispatch to an alternate Job Process. Each of these work items is essentially stuck waiting for its previous JP to terminate.\">");
-					sb.append("Limbo: ");
-					sb.append(limbo);
-					sb.append("</th>");
-					thSep(sb);
-				}
 				break;
 			}
 		}
