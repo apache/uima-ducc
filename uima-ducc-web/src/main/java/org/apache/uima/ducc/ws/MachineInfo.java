@@ -35,8 +35,9 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(MachineInfo.class.getName());
 	private static DuccId jobid = null;
 	
-	private static final int SECONDS_PER_MILLI = 1000;
-	private static final int DOWN_AFTER_SECONDS = 65;
+	private long down_fudge = 10;
+	private long DOWN_AFTER_SECONDS = WebServerComponent.updateInterval + down_fudge;
+	private long SECONDS_PER_MILLI = 1000;
 	
 	private String fileDef;
 	private String ip;
@@ -92,6 +93,9 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		}
 		catch(Throwable t) {
 			logger.warn(location, jobid, t);
+		}
+		if(secondsMIA < DOWN_AFTER_SECONDS) {
+			secondsMIA = DOWN_AFTER_SECONDS;
 		}
 		return secondsMIA;
 	}
