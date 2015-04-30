@@ -43,7 +43,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "1.1.2"
+#define VERSION "2.0.0"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -74,6 +74,7 @@
  * 2014-02-14 1.1.0 Support DUCC_UMASK to give user control over umask.  jrc
  * 2014-07-16 1.1.1 Bug in group switching; show IDS the process is to run with. jrc
  * 2014-07-16 1.1.2 Send group switching msgs to log_stdout so they get covered by -q option. jrc
+ * 2015-04-30 2.0.0 Fix hole and update version for DUCC 2.0. jrc
  */
 
 /**
@@ -634,7 +635,7 @@ int main(int argc, char **argv, char **envp)
     
     //	fetch "ducc" user passwd structure
     pwd = getpwnam("ducc");
-    
+
     if ( pwd == NULL ) {
         pwd = getpwuid(getuid());
 #ifdef __APPLE__
@@ -698,6 +699,13 @@ int main(int argc, char **argv, char **envp)
             log_stdout("850 Switched to user %d.\n", pwd-> pw_uid);
         }
     }
+
+    uid_t my_effective_id = geteuid();
+    if ( my_effective_id == 0 ) {
+        log_stdout("851 ID switch fails.  Check ducc_ling ownership and privileges.\n");
+        exit(1);
+    }
+
     show_ids(userid);
 
     if ( redirect && ( filepath != NULL) ) {
