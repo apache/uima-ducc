@@ -161,6 +161,10 @@ public class NodepoolScheduler
         return true; 
     }
 
+    /**
+     * This returns the total number of PROCESSES we get to allocate for this job, including those
+     * already given.
+     */
     int getAllotmentForJob(IRmJob j)
     {
     	String methodName = "getAllotmentForJob";
@@ -186,7 +190,7 @@ public class NodepoolScheduler
         // This is how many QShares we get to allocate for the job
         int additional = Math.max(0, user_allotment - allocated);
         int additional_processes = additional / order;
-        logger.info(methodName, j.getId(), "Additional shares allowed for request:", nSharesToString(additional_processes, order));
+        logger.info(methodName, j.getId(), "Additional Nshares allowed for request:", nSharesToString(additional_processes, order));
 
         // No shares, so we show deferred
         if ( (additional_processes == 0) ) {
@@ -1123,7 +1127,7 @@ public class NodepoolScheduler
         Collections.sort(fixed_share_jobs, new JobByTimeSorter());
         logger.debug(methodName, null, "NP[", np.getId(), "Expand needy fixed.", listJobSet(fixed_share_jobs));
         for ( IRmJob j : fixed_share_jobs ) {
-            if ( np.findShares(j) > 0 ) {
+            if ( np.findShares(j, false) > 0 ) {
                 //
                 // Need to fix the shares here, if any, because the findShares() code is same for fixed and fair share so it
                 // won't have done that yet.
@@ -1251,11 +1255,11 @@ public class NodepoolScheduler
     	String methodName = "howMuchFixedShare";
 
         if ( logger.isTrace() ) {
-            logger.trace(methodName, null, "Scheduling FIXED SHARE for these classes:");
-            logger.trace(methodName, null, "   ", ResourceClass.getHeader());
-            logger.trace(methodName, null, "   ", ResourceClass.getDashes());
+            logger.info(methodName, null, "Scheduling FIXED SHARE for these classes:");
+            logger.info(methodName, null, "   ", ResourceClass.getHeader());
+            logger.info(methodName, null, "   ", ResourceClass.getDashes());
             for ( ResourceClass pc : rcs ) {
-                logger.trace(methodName, null, "   ", pc.toString());
+                logger.info(methodName, null, "   ", pc.toString());
             }
         }
 
@@ -1446,11 +1450,11 @@ public class NodepoolScheduler
         String methodName = "howMuchreserve";
 
         if ( logger.isTrace() ) {
-            logger.trace(methodName, null, "Calculating counts for RESERVATION for these classes:");
-            logger.trace(methodName, null, "   ", ResourceClass.getHeader());
-            logger.trace(methodName, null, "   ", ResourceClass.getDashes());
+            logger.info(methodName, null, "Calculating counts for RESERVATION for these classes:");
+            logger.info(methodName, null, "   ", ResourceClass.getHeader());
+            logger.info(methodName, null, "   ", ResourceClass.getDashes());
             for ( ResourceClass pc : rcs ) {
-                logger.trace(methodName, null, "   ", pc.toString());
+                logger.info(methodName, null, "   ", pc.toString());
             }
         }
 
@@ -1465,7 +1469,6 @@ public class NodepoolScheduler
 
         for ( ResourceClass rc : rcs ) {
             ArrayList<IRmJob> jobs = rc.getAllJobsSorted(new JobByTimeSorter());
-
 
             // Now pick up the work that can  be scheduled, if any
             for ( IRmJob j : jobs) {
@@ -1509,18 +1512,28 @@ public class NodepoolScheduler
             return;
         }
 
-        int granted = getAllotmentForJob(j);
+        int granted = getAllotmentForJob(j);           // total allowed, including those already scheduled
+   
+        int needed = granted - j.countNShares();                     // additional shares
+        int freeable = 0;
+        if ( needed > 0 ) {
+            freeable = np.countFreeableMachines(j, needed);         // might schedule evictions
+            if ( (freeable + j.countNShares()) == 0 ) {
+                schedulingUpdate.defer(j, "Deferred because resources are exhausted."); 
+                logger.warn(methodName, j.getId(), "Deferred because resources are exhausted in nodepool " + np.getId());
+                return;
+            }
+        }
 
         //
         // The job passes; give the job a count
         //
-        int order = j.getShareOrder();
-        logger.info(methodName, j.getId(), "+++++ nodepool", np.getId(), "class", rc.getName(), "order", order, "shares", nSharesToString(granted, order));
+        logger.info(methodName, j.getId(), "Request is granted a machine for reservation.");
         int[] gbo = NodePool.makeArray();
-        gbo[order] = granted;                      // what we are allowed
+        int order = j.getShareOrder();     // memory, coverted to order, so we can find stuff        
+        gbo[order] = freeable + j.countNShares(); // account for new stuff plus what it already has
         j.setGivenByOrder(gbo);
 
-        np.countOutNSharesByOrder(order, granted - j.countNShares());
     }
 
     void countSingleReservation(IRmJob j, ResourceClass rc)
@@ -1541,31 +1554,29 @@ public class NodepoolScheduler
             return;
         }
 
+        //
+        // Make sure this allocation does not blow the allotment cap.
+        //
+        if ( ! validSingleAllotment(j) ) return;   // defers and logs 
+
         if ( np.countReservables(j) == 0 ) {
             schedulingUpdate.defer(j, "Deferred because requested memory " + j.getMemory() + " does not match any machine."); 
             logger.warn(methodName, j.getId(), "Deferred because requested memory " + j.getMemory() + " does not match any machine.");
             return;
         }
 
-        int order      = j.getShareOrder();     // memory, coverted to order, so we can find stuff
-        
-        if ( np.countLocalMachines() == 0 ) {
+        if ( np.countFreeableMachines(j, 1) == 0 ) {         // might also schedule preemptions
             schedulingUpdate.defer(j, "Deferred because resources are exhausted."); 
             logger.warn(methodName, j.getId(), "Deferred because resources are exhausted in nodepool " + np.getId());
             return;
         }
-
-        //
-        // Make sure this allocation does not blow the allotment cap.
-        //
-        if ( ! validSingleAllotment(j) ) return;   // defers and logs 
                 
         logger.info(methodName, j.getId(), "Request is granted a machine for reservation.");
         int[] gbo = NodePool.makeArray();
+        int order = j.getShareOrder();     // memory, coverted to order, so we can find stuff        
         gbo[order] = 1;
         j.setGivenByOrder(gbo);
-
-        np.countOutNSharesByOrder(order, 1);
+        
     }
 
     /**

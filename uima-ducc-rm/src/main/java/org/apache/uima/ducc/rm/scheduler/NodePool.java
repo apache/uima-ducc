@@ -1194,7 +1194,8 @@ class NodePool
 
     /**
      * A quick check to see if there are any machines of the right size. We make a more
-     * comprehensive check to see if they're usable in countFreeableMachines later.
+     * comprehensive check to see if they're usable in countFreeableMachines later. We do this
+     * so we can try to return an accurate reason for deferral.
      */
     int countReservables(IRmJob j)
     {
@@ -1205,6 +1206,7 @@ class NodePool
 
     /**
      * Adjust counts for something that takes full machines, like a reservation.
+     * If "enforce" is set the machine order must match, otherwise we just do best effort to match.
      *
      * This is intended for use by reservations only; as such it does NOT recurse into child nodepools.
      *
@@ -1213,18 +1215,18 @@ class NodePool
      *
      * @returns number of machines given
      */
-    int countOutMachinesByOrder(IRmJob j, int needed)
+    int countFreeableMachines(IRmJob j, int needed)
     {
-        String methodName = "countOutMachinesByOrder";
-        
+        String methodName = "countFreeableMachines";
+
+        logger.info(methodName, j.getId(), "Enter nodepool", id, "preemptables.size() =", preemptables.size());
         int order = j.getShareOrder();
-        int given = 0;       
 
         ArrayList<Machine>  machs = new ArrayList<Machine>();
         if ( machinesByOrder.containsKey(order) ) {
-            machs.addAll(machinesByOrder.get(order).values());
+            machs.addAll(machinesByOrder.get(order).values());            // candidates
         } else {
-            return 0;    // oops, nothing here
+            return 0;                                                     // no candidates
         }
 
         StringBuffer sb = new StringBuffer("Machines to search:");
@@ -1236,7 +1238,9 @@ class NodePool
 
         Collections.sort(machs, new MachineByAscendingOrderSorter());
 
+        int given = 0;           // total to give, free or freeable
         Iterator<Machine> iter = machs.iterator();
+        ArrayList<Machine> pables = new ArrayList<Machine>();
         
         while ( iter.hasNext() && (given < needed) ) {
             Machine m = iter.next();
@@ -1246,28 +1250,29 @@ class NodePool
                 continue;
             }
 
-            if ( m.getShareOrder() < order ) {
-                logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "order", m.getShareOrder(), "less than required", order);
-                continue;
-            }
-
             if ( m.isFree() ) {
-                logger.info(methodName, j.getId(), m.getId(), "is free for reservations.");
-                nMachinesByOrder[m.getShareOrder()]--;
+                logger.info(methodName, j.getId(), "Giving", m.getId(), "because it is free");
                 given++;
                 continue;
             }
 
             if ( m.isFreeable() ) {
-                logger.info(methodName, j.getId(), "Setting up", m.getId(), "to clear for reservation");
-                nMachinesByOrder[m.getShareOrder()]--;
+                logger.info(methodName, j.getId(), "Giving", m.getId(), "because it is freeable");
                 given++;
-                preemptables.put(m.key(), m);
-                continue;
+                pables.add(m);
             } else {
                 logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is not freeable");
             }
         }
+
+        // Remember how many full machines we need to free up when we get to preemption stage.
+
+        for ( Machine m : pables ) {
+            logger.info(methodName, j.getId(), "Setting up", m.getId(), "to clear for reservation");
+            preemptables.put(m.key(), m);
+            nMachinesByOrder[m.getShareOrder()]--;
+        }
+
         calcNSharesByOrder();
         return given;
     }
@@ -1342,7 +1347,7 @@ class NodePool
      * We need to make enough space for 'cnt' full machines.
      *
      * Returns number of machines that are freeable, up to 'needed', or 0, if we can't get enough.
-     * If we return 0, we must refuse the reservation.
+     * If we return 0, we must defer the reservation.
      */
     protected int setupPreemptions(int needed, int order)
     {
@@ -1369,7 +1374,7 @@ class NodePool
                     // log its state to try to figure out why it didn't evict
                     if ( ! (s.isEvicted() || s.isPurged() ) ) {
                         IRmJob j = s.getJob();                    
-                        logger.info(methodName, j.getId(), "Found non-preemptable share", s.getId(), "fixed:", s.isFixed(), 
+                        logger.warn(methodName, j.getId(), "Found non-preemptable share", s.getId(), "fixed:", s.isFixed(), 
                                     "j.NShares", j.countNShares(), "j.NSharesGiven", j.countNSharesGiven());
                     }
                 }
@@ -1411,7 +1416,7 @@ class NodePool
         if ( cnt < needed ) {
             // Get the preemptions started
             logger.info(methodName, job.getId(), "Setup preemptions.  Have", cnt, "free machines, needed", needed);
-            setupPreemptions(needed-cnt, order);  // if returns 0, must refuse the job
+            setupPreemptions(needed-cnt, order); 
         }
 
         // something awful happened if we throw here.
@@ -1608,7 +1613,12 @@ class NodePool
     }
 
 
-    int findShares( IRmJob j ) 
+    int findShares( IRmJob j )
+    {
+        return findShares(j, true);
+    }
+
+    int findShares( IRmJob j, boolean honorCaps ) 
     {
         String methodName = "findShares";
 
@@ -1636,7 +1646,7 @@ class NodePool
                         if ( m.isBlacklisted() ) continue;                  // nope
                         int g = Math.min(needed, m.countFreeShares(order)); // adjust by the order supported on the machine
                         for ( int ndx= 0;  ndx < g; ndx++ ) {
-                            if ( j.exceedsFairShareCap() ) {                // UIMA-4275
+                            if ( honorCaps && j.exceedsFairShareCap() ) {                // UIMA-4275
                                 // can't take any more shares, probably because of caps
                                 expansionStopped = true;
                                 break whatof;
