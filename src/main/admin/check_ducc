@@ -112,6 +112,12 @@ class CheckDucc(DuccUtil):
                 if ( 'signal' in line ):
                     response = "Node health did not complete: " + line
                     self.badnodes.append(node)
+                # these next two filter junk if 'mesg' is running in a shell rc
+                if ( 'stdin: is not a tty' in line ):
+                    continue
+                if ( 'mesg' in line ):
+                    continue
+
                 if ( not line ):
                     break
                 line = line.strip()

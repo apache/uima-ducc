@@ -226,9 +226,9 @@ class DuccUtil(DuccBase):
         cmd = ' '.join(CMD)
         #print 'ssh -o BatchMode=yes -o ConnectTimeout=10', host, cmd
         if ( do_wait ):
-            return self.popen('ssh -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
+            return self.popen('ssh -q -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
         else:
-            return self.spawn('ssh -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
+            return self.spawn('ssh -q -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
 
 
     def set_classpath(self):
