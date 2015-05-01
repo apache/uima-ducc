@@ -178,7 +178,7 @@ class DuccUtil(DuccBase):
             print "Cannot determine if ActiveMq broker is alive."
             return false
 
-        lines = self.popen('ssh', self.broker_host, netstat, '-an')
+        lines = self.ssh(self.broker_host, True, netstat, '-an')
         #
         # look for lines like this with the configured port in the 4th token, and
         # ending with LISTEN:
@@ -206,8 +206,10 @@ class DuccUtil(DuccBase):
         CMD = CMD + ' ' + broker_name
         CMD = 'JAVA_HOME=' + self.java_home() + ' ' + CMD
         print '--------------------', CMD
-        self.ssh(broker_host, False, CMD)
-        pass
+        lines = self.ssh(broker_host, True, CMD)
+        for l in lines:
+            pass       # throw away junk from ssh
+
 
     def nohup(self, cmd, showpid=True):
         cmd = ' '.join(cmd)
@@ -548,7 +550,9 @@ class DuccUtil(DuccBase):
         return answer
 
     def kill_process(self, node, proc, signal):
-        self.ssh(node, False, 'kill', signal, proc[1])
+        lines = self.ssh(node, True, 'kill', signal, proc[1])
+        for l in lines:
+            pass # throw away the noise
                 
     def clean_shutdown(self):
         DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "

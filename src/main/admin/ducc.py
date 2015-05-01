@@ -261,7 +261,7 @@ class Ducc(DuccUtil):
         or_parms = None
         single_user = False
         nodup = False           # we allow duplicates unless asked not to
-        localdate = 0
+        localdate = time.time()
 
         try:
            opts, args = getopt.getopt(argv, 'bc:d:n:o:sk?v', ['or_parms=', 'nodup' ])
