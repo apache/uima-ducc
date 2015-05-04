@@ -82,6 +82,9 @@ public class FixedSleepCR extends CollectionReader_ImplBase
         r = new Random(seed);
 
         jobid = System.getenv("JobId");
+        if(jobid == null) {
+        	jobid = System.getProperty("ducc.deploy.JobId");
+        }
         logdir = jobid + ".output";
         logger.log(Level.INFO, " ****** BB Working directory: " + System.getProperty("user.dir"));
         logger.log(Level.INFO, " ****** BB jobid: " + logdir);

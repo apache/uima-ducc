@@ -87,6 +87,14 @@ public abstract class DuccMonitor {
 	private IUiOption[] optsMonitorJob = new UiOption[] { UiOption.Help,
 			UiOption.Debug, UiOption.Quiet, UiOption.Timestamp, UiOption.JobId, };
 
+	private IUiOption[] optsSubmitReservation = new UiOption[] {
+			UiOption.Help, UiOption.Debug, UiOption.Quiet, UiOption.Timestamp,
+			UiOption.ReservationId, UiOption.CancelOnInterrupt, };
+
+	private IUiOption[] optsMonitorReservation = new UiOption[] {
+			UiOption.Help, UiOption.Debug, UiOption.Quiet, UiOption.Timestamp,
+			UiOption.ReservationId, };
+	
 	private IUiOption[] optsSubmitManagedReservation = new UiOption[] {
 			UiOption.Help, UiOption.Debug, UiOption.Quiet, UiOption.Timestamp,
 			UiOption.ManagedReservationId, UiOption.CancelOnInterrupt, };
@@ -142,6 +150,13 @@ public abstract class DuccMonitor {
 					opts = optsSubmitJob;
 				} else {
 					opts = optsMonitorJob;
+				}
+				break;
+			case Reservation:
+				if (submit) {
+					opts = optsSubmitReservation;
+				} else {
+					opts = optsMonitorReservation;
 				}
 				break;
 			case ManagedReservation:
@@ -295,9 +310,14 @@ public abstract class DuccMonitor {
 			}
 			if (command_line.contains(UiOption.JobId)) {
 				id = command_line.get(UiOption.JobId);
-			} else if (command_line.contains(UiOption.ManagedReservationId)) {
+			}
+			else if (command_line.contains(UiOption.ManagedReservationId)) {
 				id = command_line.get(UiOption.ManagedReservationId);
-            } else {
+            } 
+			else if (command_line.contains(UiOption.ReservationId)) {
+				id = command_line.get(UiOption.ReservationId);
+            } 
+			else {
                 System.out.println(command_line.formatHelp(DuccJobMonitor.class.getName()));
 				return RC_HELP;
 			}

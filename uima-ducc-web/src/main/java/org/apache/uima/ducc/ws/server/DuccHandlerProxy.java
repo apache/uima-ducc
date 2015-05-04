@@ -30,6 +30,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
+import org.apache.uima.ducc.ws.server.IWebMonitor.ReservationType;
 import org.eclipse.jetty.server.Request;
 
 import com.google.gson.Gson;
@@ -41,6 +42,9 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 
 	public final String proxyJobStatus			= duccContextProxy+"-job-status";
 	public final String proxyJobMonitorReport	= duccContextProxy+"-job-monitor-report";
+	
+	public final String proxyReservationStatus			= duccContextProxy+"-reservation-status";
+	public final String proxyReservationMonitorReport	= duccContextProxy+"-reservation-monitor-report";
 	
 	public final String proxyManagedReservationStatus			= duccContextProxy+"-managed-reservation-status";
 	public final String proxyManagedReservationMonitorReport	= duccContextProxy+"-managed-reservation-monitor-report";
@@ -124,6 +128,18 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 		duccLogger.trace(location, jobid, "exit");
 	}
 	
+	private void handleServletReservationStatus(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		handleServletManagedReservationStatus(target, baseRequest, request, response);
+	}
+	
+	private void handleServletReservationMonitorReport(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) 
+			throws IOException, ServletException
+	{
+		handleServletManagedReservationMonitorReport(target, baseRequest,request, response);
+	}
+			
 	private void handleServletManagedReservationStatus(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -169,7 +185,7 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 		duccLogger.trace(location, jobid, "enter");
 		duccLogger.info(location, jobid, request.toString());
 
-		ConcurrentHashMap<DuccId,Long> eMap = duccWebMonitor.getExpiryMap(DuccType.Reservation);
+		ConcurrentHashMap<DuccId,Long> eMap = duccWebMonitor.getExpiryMap(DuccType.Reservation, ReservationType.Managed);
 		
 		Gson gson = new Gson();
 		String jSon = gson.toJson(eMap);
@@ -207,6 +223,12 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 		}
 		else if(reqURI.startsWith(proxyManagedReservationMonitorReport)) {
 			handleServletManagedReservationMonitorReport(target, baseRequest, request, response);
+		}
+		else if(reqURI.startsWith(proxyReservationStatus)) {
+			handleServletReservationStatus(target, baseRequest, request, response);
+		}
+		else if(reqURI.startsWith(proxyReservationMonitorReport)) {
+			handleServletReservationMonitorReport(target, baseRequest, request, response);
 		}
 		else {
 			handleServletUnknown(target, baseRequest, request, response);
