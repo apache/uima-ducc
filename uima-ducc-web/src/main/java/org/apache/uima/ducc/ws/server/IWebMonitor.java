@@ -25,10 +25,14 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
 public interface IWebMonitor {
+	
+	public enum ReservationType { Managed, Unmanaged };
+
 	public void register(String host, String port);
 	public boolean isAutoCancelEnabled();
 	public MonitorInfo renew(DuccType duccType, String id);
 	public Long getExpiry(DuccType duccType, DuccId duccId);
 	public ConcurrentHashMap<DuccId,Long> getExpiryMap(DuccType duccType);
+	public ConcurrentHashMap<DuccId,Long> getExpiryMap(DuccType duccType, ReservationType rt);
 	public boolean isCanceled(DuccType duccType, DuccId duccId);
 }

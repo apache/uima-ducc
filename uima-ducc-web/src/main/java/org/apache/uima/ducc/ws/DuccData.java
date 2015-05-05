@@ -408,6 +408,37 @@ public class DuccData {
 		return retVal;
 	}
 	
+	private boolean isEqual(DuccId duccId, String id) {
+		boolean retVal = false;
+		if(duccId != null) {
+			String v1 = duccId.getFriendly()+"";
+			if(id != null) {
+				String v2 = id;
+				if(v1.equalsIgnoreCase(v2)) {
+					retVal = true;
+				}
+			}
+		}
+		return retVal;
+	}
+	
+	public IDuccWork getReservation(String id) {
+		IDuccWork retVal = null;
+		ConcurrentSkipListMap<Info,Info> sortedReservations = getSortedCombinedReservations();
+		if(sortedReservations.size()> 0) {
+			Iterator<Entry<Info, Info>> iterator = sortedReservations.entrySet().iterator();
+			while(iterator.hasNext()) {
+				Info info = iterator.next().getValue();
+				IDuccWork dw = info.getDuccWork();
+				if(isEqual(dw.getDuccId(), id)) {
+					retVal = dw;
+					break;
+				}
+			}
+		}
+		return retVal;
+	}
+	
 	public ConcurrentSkipListMap<JobInfo,JobInfo> getSortedJobs() {
 		return sortedJobs;
 	}
