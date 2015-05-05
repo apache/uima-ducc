@@ -271,13 +271,6 @@ public interface IUiOptions
             public String description() { return "Register a service."; } 
         },
 
-        ReservationId { 
-            public String pname()       { return JobRequestProperties.key_id; }
-            public String argname()     { return "string"; }
-            public String description() { return "The id of the reservation"; }
-            public boolean required()   { return true; }
-        },    
-        
         ServicePingArguments { 
             public String pname()       { return "service_ping_arguments"; }
             public String argname()     { return "string"; }
