@@ -65,7 +65,7 @@ class Ducc(DuccUtil):
     def add_to_classpath(self, lib):
         os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ":" + lib
 
-    def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate, single_user):
+    def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate):
 
         if ( component == 'all' ):
             component = 'rm,sm,pm,ws,orchestrator'
@@ -101,14 +101,10 @@ class Ducc(DuccUtil):
                 if ( not self.verify_limits() ):
                     return
 
-                if ( not single_user ) :
-                    dok = self.verify_duccling(single_user)
-                    if ( not dok ):
-                        print 'NOTOK ducc_ling is not set up correctly on node', self.localhost
-                        print dok
-                        return
-                else:
-                    print 'Single user mode: bypassing ducc_ling checks.'
+                (viable, elevated, safe) = self.verify_duccling()
+                if ( not self.duccling_ok(viable, elevated, safe) ): 
+                    print 'NOT_OK Cannot proceed because of ducc_ling problems.'
+                    return
 
                 if ( not verify_slave_node(localdate, self.ducc_properties) ):
                     # we assume that verify_local_node is spewing a line of the form
@@ -219,8 +215,7 @@ class Ducc(DuccUtil):
                 pid = self.nohup(cmd)
             else:
                 pid = self.spawn(' '.join(cmd))
-                print 'PID ' + str(pid) # nohup will print this from the (twice) forked process if background
-                                        # hard for us to access it here in nohup
+            print 'PID ' + str(pid)
 
         if ( c == 'ws' ):
             os.chdir(here)
@@ -243,7 +238,6 @@ class Ducc(DuccUtil):
         print '   -n <numagents> if > 1, multiple agents are started (testing mode)'
         print '   -o <mem-in-GB> rm memory override for use on small machines'
         print '   -k causes the entire DUCC system to shutdown'
-        print '   -s start in single-user mode (inhibit some sanity checks)'
         print '   --nodup If specified, do not start a process if it appears to be already started.'
         print '   --or_parms [cold|warm|hot]'
         print '   --ducc_head nodename the name of the "ducc head" where ducc is started from'
@@ -259,7 +253,6 @@ class Ducc(DuccUtil):
         shutdown = False
         background = False
         or_parms = None
-        single_user = False
         nodup = False           # we allow duplicates unless asked not to
         localdate = time.time()
 
@@ -283,8 +276,6 @@ class Ducc(DuccUtil):
                 rmoverride = a
             elif ( o == '-k'):
                 shutdown = True
-            elif ( o == '-s'):
-                single_user = True
             elif ( o == '--or_parms' ):
                 or_parms = a
             elif ( o == '--nodup' ):
@@ -308,7 +299,7 @@ class Ducc(DuccUtil):
         if ( component == 'broker' ):
             self.run_broker(background)
         else:
-            self.run_component(component, or_parms, numagents, rmoverride, background, nodup, localdate, single_user)
+            self.run_component(component, or_parms, numagents, rmoverride, background, nodup, localdate)
         return
 
     def __call__(self, *args):

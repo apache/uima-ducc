@@ -338,59 +338,89 @@ class DuccUtil(DuccBase):
             return False
         return True
 
-    def verify_duccling(self, single_user):
-        
-        check_permission = True                        # if we're not ducc we don't care about permissions
-        user = os.environ['LOGNAME']
-        if ( (user != 'ducc') or ( single_user) ):
-            check_permission = False
-                    
-        if ( check_permission ) :            # only care about ducc_ling setup if we're ducc
-            path = os.path.dirname(os.path.abspath(self.duccling))
-            dl   = path + '/ducc_ling'
+    #
+    # Verify the viability of ducc_ling.
+    # Returns a tuple (viable, elevated, safe)
+    #   where 'viable' is a boolean indicating whether the ducc_ling is viable (exists and is correct version)
+    #            If this is false, the other two values are meaningless
+    #
+    #         'elevated' indicates whether priveleges are at least partially elevated
+    #         'safe' indicates whether ducc_ling is safe (elevated privileges and correct permissions)
+    # The caller will evaluate these and take appriopriate action
+    #
+    def verify_duccling(self):
+        viable = True
+        elevated = False
+        safe = False
 
-            sstat = os.stat(path)
-            mode = sstat.st_mode
-            if ( not S_ISDIR(mode) ):
-                print 'ducc_ling path', path, ': Not a directory.'
-                return False
-            
-            dirown = mode & (S_IRWXU | S_IRWXG | S_IRWXO)
-            #print 'Directory perms', oct(dirown)
-            if ( dirown != S_IRWXU ):
-                 print 'ducc_ling path', path, ': Invalid directory permissions', oct(dirown), 'should be', oct(S_IRWXU) 
-                 return False
-             
-            sstat = os.stat(dl)
-            mode = sstat.st_mode
-            expected = (S_IRWXU | S_IRGRP | S_IXGRP)
-            pathown = mode & (S_IRWXU | S_IRWXG | S_IRWXO)
-            #print 'Duccling perms', oct(pathown)
-            if ( pathown != expected ):
-                print 'ducc_ling module', dl, ': Invalid permissions', oct(pathown), 'Should be', oct(expected)
-                return False
-            
-            if ( (mode & S_ISUID) != S_ISUID):
-                print 'ducc_ling module', dl, ': setuid bit is not set'
-                return False
-             
+        dl   = self.duccling
+        path = os.path.dirname(os.path.abspath(dl))       
+
+        
+        if ( not (os.path.exists(dl) and os.access(dl, os.X_OK)) ):
+            print dl, 'does not exist or is not executable.'
+            viable = False
+
+        path = os.path.dirname(os.path.abspath(dl))
+        dl   = path + '/ducc_ling'
+        
+        dl_stat = os.stat(dl)          # dl_stat is stat for ducc_ling
+        dl_mode = dl_stat.st_mode
+
+        if ( (dl_mode & S_ISUID) != S_ISUID):
+            if ( os.environ['LOGNAME'] == 'ducc' ):
+                print 'ducc_ling module', dl, ': setuid bit is not set. Processes will run as user ducc'
+            elevated = False
+            file_safe = True
+            dir_safe  = True
+            own_safe  = True
+        else:
+            elevated = True
+            file_safe = False
+            dir_safe  = False
+            own_safe  = False
+
+
+        if ( elevated ):
+
+            #
+            # if setuid bit is set, all this MUST be true or we won't mark ducc_ling safe:
+            #    file permissions are 750
+            #    dir  permissions are 700
+            #    owenership is root.ducc
+            #
+            dl_perm = oct(dl_mode & (S_IRWXU | S_IRWXG | S_IRWXO))
+            expected = oct(0750)
+            if ( dl_perm != expected ):
+                 print dl, ': Invalid execution bits', dl_perm, 'should be', expected
+            else:
+                file_safe = True
+
+            dir_stat = os.stat(path)          # dir_stat is stat for ducc_ling
+            dir_mode = dir_stat.st_mode
+
+            dir_perm = oct(dir_mode & (S_IRWXU | S_IRWXG | S_IRWXO))
+            expected = oct(0700)
+            if ( dir_perm != expected ):
+                 print 'ducc_ling', path, ': Invalid directory permissions', dir_perm, 'should be', expected
+            else:
+                 dir_safe = True
+
             try:
                 grpinfo = grp.getgrnam('ducc')
+                duccgid = grpinfo.gr_gid
+
+                if ( (dl_stat.st_uid != 0) or (dl_stat.st_gid != duccgid) ):
+                    print 'ducc_ling module', dl, ': Invalid ownership. Should be root.ducc'
+                else:
+                    own_safe = True
             except:
                 print 'ducc_ling group "ducc" cannot be found.'
-                return False
 
-            duccgid = grpinfo.gr_gid
-            #print 'UID', sstat.st_uid, 'GID', duccgid
-            if ( (sstat.st_uid != 0) or (sstat.st_gid != duccgid) ):
-                 print 'ducc_ling module', dl, ': Invalid ownership. Should be root.ducc'
-                 return False
-        else:
-            if ( not os.path.exists(self.duccling) ):
-                print "Missing ducc_ling"
-                return False
-             
-        # now make sure the version matches that on the master node
+        safe = file_safe and dir_safe and own_safe
+
+        # A last viability check, do versions match? This also runs it, proving it
+        # can execute in this environment.
         lines = self.popen(self.duccling + ' -v')
         version_from_head = lines.readline().strip();
         toks = version_from_head.split()
@@ -407,13 +437,40 @@ class DuccUtil(DuccBase):
                     print "Mismatched ducc_ling versions:"
                     print "ALERT: Version on Agent Node:", version_from_head
                     print "ALERT: Version on Ducc  Head:", line
-                    return False
+                    viable = False
             verfile.close()
         else:
-            print "ducc_ling version file missing, cannot verify version."
-            return False;
+            print "NOTE: ducc_ling version file missing, cannot verify version."
 
-        print 'ducc_ling OK'
+        # leave the decisions to the caller
+        return (viable, elevated, safe)        
+
+    # Apply these rules to determine if ducc_ling is installed ok
+    #
+    #    Caller            Elevated         Protected (safe)     Action
+    #    --------          --------         ---------            ------
+    #    ducc                 Y                 Y                OK
+    #                         Y                 N                Fail
+    #
+    #                         N                 Y (by def)       OK
+    #
+    #    ~ducc                Y                 N (by def)       Fail
+    #                         N                 Y (by def)       OK, Note    
+    def duccling_ok(self, viable, elevated, safe):
+
+        if ( not viable ):
+            return False
+
+        user = os.environ['LOGNAME']
+        
+        if ( user == 'ducc' ):
+            if ( elevated ):
+                return safe
+        else:
+            if ( elevated ):
+                return False
+            print 'Note: Running unprivileged ducc_ling. Process will run as user', user
+
         return True
 
     def ssh_ok(self, node, line):

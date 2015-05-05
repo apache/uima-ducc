@@ -25,6 +25,7 @@ import getopt
 
 import shutil
 import subprocess
+from  stat import *
 
 from ducc_util import DuccUtil
 from ducc_base import Properties
@@ -243,7 +244,68 @@ class PostInstall():
             shutil.move(fn, bak)
             print 'Existing', fn, 'moved to', bak
     
+    def verify_permissions(self):
+        # should have 755 permissions
+        spot_checked_directories = ['../bin', '../lib', '../resources' ]
+        # should have 755 permissions
+        spot_checked_execs       = ['../bin/ducc_submit']
+        # should have 644 permissions
+        spot_checked_data        = ['../lib/uima-ducc-cli.jar', '../resources/default.ducc.properties']
+
+        ret = True
+        for f in spot_checked_directories:
+            if ( not os.path.exists(f) ):
+                print 'ERROR: Directory', f, 'cannot be found.'
+                ret = false
+                continue
+
+            stat = os.stat(f)
+            mode = oct(stat.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO))
+            expected = oct(0755)
+            if ( mode != expected ):
+                print 'ERROR: Directory', f, 'has permissions', mode, 'expected', expected
+                ret = False
+
+        for f in spot_checked_execs:
+            if ( not os.path.exists(f) ):
+                print 'ERROR: File', f, 'cannot be found.'
+                ret = False
+                continue
+
+            stat = os.stat(f)
+            mode = oct(stat.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO))
+            expected = oct(0755)
+            if ( mode != expected ):
+                print 'ERROR: File', f, 'has permissions', mode, 'expected', expected
+                ret = False
+
+        for f in spot_checked_data:
+            if ( not os.path.exists(f) ):
+                print 'ERROR: File', f, 'cannot be found.'
+                ret = False
+                continue
+
+            stat = os.stat(f)
+            mode = oct(stat.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO))
+            expected = oct(0644)
+            if ( mode != expected ):
+                print 'ERROR: File', f, 'has permissions', mode, 'expected', expected
+                ret = False
+
+        return ret
+            
     def main(self, argv):                    
+
+        if ( not self.verify_permissions() ):
+            print '--------------------------------------------------------------------------------'
+            print 'Package verificaiton fails.  Most likely cause is an unexpected UMASK unpacking the distribution.'
+            print 'To unpack the distribution your UMASK must be set to 022.'
+            print ''
+            print 'Example:'
+            print ''
+            print 'umask 022; tar -xf [distribution]'
+            print '--------------------------------------------------------------------------------'
+            sys.exit(1)
 
         self.ducc_head = None
         self.keystore_pw = None
