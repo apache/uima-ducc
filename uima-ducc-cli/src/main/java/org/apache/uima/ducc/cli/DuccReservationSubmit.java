@@ -22,7 +22,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
 
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
+import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.ReservationReplyProperties;
@@ -80,6 +82,9 @@ public class DuccReservationSubmit
         UiOption.SchedulingClass,
         UiOption.Specification,
         UiOption.ReservationMemorySize,
+        UiOption.Timestamp,
+        UiOption.WaitForCompletion,
+        UiOption.CancelOnInterrupt,
     };
 
 
@@ -119,7 +124,17 @@ public class DuccReservationSubmit
          */
         boolean rc = extractReply(reply);
 
-        if ( rc ) { 
+        if ( !rc ) { 
+			return false;
+		}
+		
+        // If request was accepted, always start a monitor so can report the state 
+        requestProperties.setProperty(UiOption.WaitForCompletion.pname(), "true");
+		startMonitors(false, DuccContext.Reservation);       // starts conditionally, based on job spec and console listener present
+		
+		// Then since this is a synchronous api, wait for request to complete, as only then will the node be available
+		rc = (getReturnCode() == 0);
+		if (rc) {
         	nodeList = reply.getProperties().getProperty(UiOption.ReservationNodeList.pname());
         }
         

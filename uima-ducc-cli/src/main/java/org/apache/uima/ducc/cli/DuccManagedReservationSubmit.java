@@ -53,6 +53,7 @@ public class DuccManagedReservationSubmit
         UiOption.SchedulingClass,
         UiOption.Specification,
         UiOption.SuppressConsoleLog,
+        UiOption.Timestamp,
         UiOption.WorkingDirectory,
         UiOption.WaitForCompletion,
         UiOption.CancelOnInterrupt,
@@ -178,41 +179,13 @@ public class DuccManagedReservationSubmit
         /*
          * process reply
          */
-        boolean retval = true;
-        Properties properties = reply.getProperties();
-        @SuppressWarnings("unchecked")
-        ArrayList<String> or_warnings = (ArrayList<String>) properties.get(UiOption.SubmitWarnings.pname());
-        if (or_warnings != null) {
-            for ( String s : or_warnings) {
-               message("WARN:", s);
-            }
+        boolean rc = extractReply(reply);
+		if (rc) {
+			saveSpec(DuccUiConstants.managed_reservation_properties, serviceProperties);
+			startMonitors(true, DuccContext.ManagedReservation);       // starts conditionally, based on job spec and console listener present
         }
 
-        @SuppressWarnings("unchecked")
-        ArrayList<String> or_errors = (ArrayList<String>) properties.get(UiOption.SubmitErrors.pname());
-        if(or_errors != null) {
-            for ( String s : or_errors ) {
-                message("ERROR:", s);
-            }
-            retval = false;
-        }
-
-        if ( retval ) {
-            String pid = reply.getProperties().getProperty(UiOption.JobId.pname());
-            if (pid == null ) {
-                retval = false;
-            } else {
-                friendlyId = Long.parseLong(pid);
-                if ( friendlyId < 0 ) {
-                    retval = false;
-                } else {
-                    saveSpec(DuccUiConstants.managed_reservation_properties, serviceProperties);
-                    startMonitors(true, DuccContext.ManagedReservation);       // starts conditionally, based on job spec and console listener present
-                }
-            }
-        }
-
-        return retval;
+        return rc;
     }
         
     /**

@@ -71,14 +71,20 @@ class MonitorListener
 
             String[] argList = arrayList.toArray(new String[0]);
             switch(context) {
-            case ManagedReservation:
-            	monitor = new DuccManagedReservationMonitor(base.getCallback());
-            	break;
-            case Job:
-            	monitor = new DuccJobMonitor(base.getCallback());
-            	break;
+            	case Reservation:
+            		monitor = new DuccReservationMonitor(base.getCallback());
+            		break;
+            	case ManagedReservation:
+            		monitor = new DuccManagedReservationMonitor(base.getCallback());
+            		break;
+            	case Job:
+            		monitor = new DuccJobMonitor(base.getCallback());
+            		break;
+            	default:
+            		base.message("ERROR: unsupported monitor context: " + context);
+            		break;
             }
-            retVal = monitor.run(argList);
+            retVal = monitor == null ? 99 : monitor.run(argList);
         } catch (Exception e) {
             base.message("ERROR:" + e.toString());
             retVal = 999; // error rc's usually positive! // DuccUiConstants.ERROR;
