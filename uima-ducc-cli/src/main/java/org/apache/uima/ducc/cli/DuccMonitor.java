@@ -46,6 +46,7 @@ public abstract class DuccMonitor {
 	protected static final String StateRunning = "Running";
 	protected static final String StateCompleting = "Completing";
 	protected static final String StateCompleted = "Completed";
+	protected static final String WaitingForResources = "WaitingForResources";
 
     protected CommandLine command_line = null;
 
@@ -87,6 +88,14 @@ public abstract class DuccMonitor {
 	private IUiOption[] optsMonitorJob = new UiOption[] { UiOption.Help,
 			UiOption.Debug, UiOption.Quiet, UiOption.Timestamp, UiOption.JobId, };
 
+	private IUiOption[] optsSubmitReservation = new UiOption[] {
+			UiOption.Help, UiOption.Debug, UiOption.Quiet, UiOption.Timestamp,
+			UiOption.ReservationId, UiOption.CancelOnInterrupt, };
+
+	private IUiOption[] optsMonitorReservation = new UiOption[] {
+			UiOption.Help, UiOption.Debug, UiOption.Quiet, UiOption.Timestamp,
+			UiOption.ReservationId, };
+	
 	private IUiOption[] optsSubmitManagedReservation = new UiOption[] {
 			UiOption.Help, UiOption.Debug, UiOption.Quiet, UiOption.Timestamp,
 			UiOption.ManagedReservationId, UiOption.CancelOnInterrupt, };
@@ -142,6 +151,13 @@ public abstract class DuccMonitor {
 					opts = optsSubmitJob;
 				} else {
 					opts = optsMonitorJob;
+				}
+				break;
+			case Reservation:
+				if (submit) {
+					opts = optsSubmitReservation;
+				} else {
+					opts = optsMonitorReservation;
 				}
 				break;
 			case ManagedReservation:
@@ -295,9 +311,14 @@ public abstract class DuccMonitor {
 			}
 			if (command_line.contains(UiOption.JobId)) {
 				id = command_line.get(UiOption.JobId);
-			} else if (command_line.contains(UiOption.ManagedReservationId)) {
+			}
+			else if (command_line.contains(UiOption.ManagedReservationId)) {
 				id = command_line.get(UiOption.ManagedReservationId);
-            } else {
+            } 
+			else if (command_line.contains(UiOption.ReservationId)) {
+				id = command_line.get(UiOption.ReservationId);
+            } 
+			else {
                 System.out.println(command_line.formatHelp(DuccJobMonitor.class.getName()));
 				return RC_HELP;
 			}
@@ -311,6 +332,8 @@ public abstract class DuccMonitor {
 		String urlString = getUrl(id);
 		String lastMessage = "";
 		String thisMessage = "";
+		String lastRationale = "";
+		String thisRationale = "";
 		StringBuffer message = new StringBuffer();
 		message.append("id:" + id);
 		message.append(" ");
@@ -387,6 +410,15 @@ public abstract class DuccMonitor {
 						}
 						info(thisMessage);
 						lastMessage = thisMessage;
+					}
+				}
+				if (state.equals(WaitingForResources)) {
+					if (!monitorInfo.rationale.equals("")) {
+						thisRationale = monitorInfo.rationale;
+						if (!thisRationale.equals(lastRationale)) {
+							info(thisRationale);
+							lastRationale = thisRationale;
+						}
 					}
 				}
 				if (state.equals(StateCompleted)) {
