@@ -804,20 +804,21 @@ implements Orchestrator {
 				// state: WaitingForResources
 				duccWorkReservation.stateChange(ReservationState.WaitingForResources);
 				OrchestratorCheckpoint.getInstance().saveState();
-				int counter = 0;
-				while(duccWorkReservation.isPending()) {
-					counter++;
-					if(counter > 5) {
-						counter = 0;
-						logger.info(methodName, duccWorkReservation.getDuccId(), "waiting for allocation...");
+				if(duccWorkReservation.isWaitForAssignment()) {
+					int counter = 0;
+					while(duccWorkReservation.isPending()) {
+						counter++;
+						if(counter > 5) {
+							counter = 0;
+							logger.info(methodName, duccWorkReservation.getDuccId(), "waiting for allocation...");
+						}
+						Thread.sleep(1000);
 					}
-					Thread.sleep(1000);
-				}
-				// prepare for reply to submitter
-				try {
-					properties.put(ReservationReplyProperties.key_message, duccWorkReservation.getCompletionRationale().getText());
-				}
-				catch(Throwable t) {
+					try {
+						properties.put(ReservationReplyProperties.key_message, duccWorkReservation.getCompletionRationale().getText());
+					}
+					catch(Throwable t) {
+					}
 				}
 				properties.put(ReservationRequestProperties.key_id, duccWorkReservation.getId());
 				// node list
@@ -844,8 +845,6 @@ implements Orchestrator {
 			logger.error(methodName, null, messages.fetch("TODO")+" prepare error reply",e);
 			//TODO
 		}
-		
-		
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return;
 	}
