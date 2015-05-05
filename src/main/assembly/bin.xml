@@ -274,7 +274,7 @@ under the License.
         <include>LICENSE</include>
         <include>NOTICE</include>
       </includes>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
     
@@ -290,7 +290,7 @@ under the License.
     <fileSet>
       <directory>uima-ducc-cli/target</directory>
       <outputDirectory>lib</outputDirectory>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
       <includes>
         <include>uima-ducc-cli.jar</include>
