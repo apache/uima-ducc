@@ -35,12 +35,10 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 	 */
 	private static final long serialVersionUID = 1L;
 
-	// private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(DuccWorkReservation.class.getName());
 	private static final DuccLogger logger = DuccService.getDuccLogger(DuccWorkReservation.class.getName());
-	
 	private IDuccReservationMap duccReservationMap = new DuccReservationMap();
-	
 	private IRationale completionRationale = null;
+	private boolean waitForAssignment = false;
 	
 	public DuccWorkReservation() {
 		init(null);
@@ -113,6 +111,21 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 	
 	public void setCompletionRationale(IRationale completionRationale) {
 		this.completionRationale = completionRationale;
+	}
+	
+	
+	public boolean isWaitForAssignment() {
+		return waitForAssignment;
+	}
+	
+	
+	public void setWaitForAssignment() {
+		waitForAssignment = true;
+	}
+	
+	
+	public void resetWaitForAssignment() {
+		waitForAssignment = false;
 	}
 	
 	
