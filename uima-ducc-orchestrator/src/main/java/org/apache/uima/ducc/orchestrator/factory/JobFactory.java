@@ -347,8 +347,7 @@ public class JobFactory implements IJobFactory {
 		flagName = FlagsHelper.Name.UserErrorHandlerCfg;
 		flagValue = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_exception_handler_arguments);
 		addDashD(jcl, flagName, flagValue);
-		// Name the log config file explicitly - the default of searching the user-provided classpath is dangerous
-		jcl.addOption("-Dlog4j.configuration=file://" + Utils.findDuccHome() + "/resources/log4j.xml");
+		// No longer replace user's value by explicitly setting -Dlog4j.configuration ... DuccLogger knows how to find it
 		// Log directory
 		jcl.setLogDirectory(jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
 		return jcl;
