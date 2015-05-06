@@ -545,7 +545,7 @@ class RunDucc(DuccUtil):
         print '   -b, --batchfile file'
         print '       This is the batch file describing the submissions. Required.'
         print ''
-        print '   -i, --init_time seconds'
+        print '   -i, --init_time milliseconds'
         print '       This is the AE initialization minimum time in seconds. Default:', self.init_time
         print ''
         print '   --init_timeout minutes'
@@ -562,14 +562,13 @@ class RunDucc(DuccUtil):
         print '       The JP will leak in process() until DUCC (hopefully) kills us'
         print ''
         print '   -r, --range seconds'
-        print '       This is the AE initializion time range over base in seconds. Default:', self.init_range
+        print '       This is the AE initializion time range over base in milliseconds. Default:', self.init_range
         print '       Init time is -i value + random[0, -rvalue]'
         print ''
         print '   -m, --memory_override mem-in-GB'
         print '       Use this instead of what is in the props file. Default: None'
         print ''
         print '   -n, --nmachines_override process_deployments_max'
-        print '       Override the preconfigured max machines. Use -1 to fully inhibit max machines'
         print ''
         print '   -o, --observe'
         print '       Specifies that we submit in keepalive mode and observe(watch) the jobs, creating a dir with outputs. Default:', self.observe
@@ -646,7 +645,7 @@ class RunDucc(DuccUtil):
         self.descriptor_as_file = False
 
         try:
-            opts, args  = getopt.getopt(argv, 'b:d:fi:m:nop:q:r:s:t:u:v:w:x:y:z:?h', ['AE', 'DD', 'file', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
+            opts, args  = getopt.getopt(argv, 'b:d:fi:m:n:op:q:r:s:t:u:v:w:x:y:z:?h', ['AE', 'DD', 'file', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
                                                                         'init_fail_cap=', 'range=', 'memory_override=', 'nmachines=', 'process_timeout=', 
                                                                         'init_timeout=', 'observe'
                                                                         'jd_uima_log=', 'jp_uima_log=',
@@ -671,7 +670,8 @@ class RunDucc(DuccUtil):
             elif o in ('-m', '--memory_override'):
                 self.memory_override = a
             elif o in ('-n', '--nmachines'):
-                self.max_machines = int(a)
+                self.max_machines = int(a)         # force ugly failure if not a number
+                self.max_machines = a
             elif o in ('-p', '--process_timeout'):
                 self.process_timeout = a
             elif o in ('-o', '--observe' ):
