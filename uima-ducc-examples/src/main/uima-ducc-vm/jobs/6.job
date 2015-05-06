@@ -26,5 +26,5 @@ process_descriptor_AE          org.apache.uima.ducc.test.randomsleep.FixedSleepA
 classpath                      ${DUCC_HOME}/lib/uima-ducc/examples/*:${DUCC_HOME}/apache-uima/lib/*
 process_jvm_args               -Xmx100M 
 process_per_item_time_max      12
-environment                    AE_INIT_TIME=90 AE_INIT_RANGE=30 AE_RUNTIME_ERROR=0.05 LD_LIBRARY_PATH=/yet/a/nother/dumb/path
+environment                    AE_INIT_TIME=90000 AE_INIT_RANGE=30000 AE_RUNTIME_ERROR=0.05 LD_LIBRARY_PATH=/yet/a/nother/dumb/path
 process_deployments_max        999
