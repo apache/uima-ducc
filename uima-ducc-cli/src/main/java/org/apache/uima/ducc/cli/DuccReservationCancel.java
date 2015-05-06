@@ -43,7 +43,8 @@ public class DuccReservationCancel
         UiOption.Help,
         UiOption.Debug, 
 
-        UiOption.JobId,
+        UiOption.ReservationId,
+        UiOption.Reason,
         UiOption.RoleAdministrator,
     };
 
@@ -103,7 +104,7 @@ public class DuccReservationCancel
         try {
             cancelReservationReplyDuccEvent = (CancelReservationReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(cancelReservationDuccEvent);
         } catch (Exception e) {
-            message("Job not submitted:", e.getMessage());
+            message("Cancel not submitted:", e.getMessage());
             return false;
         } finally {
             dispatcher.close();
