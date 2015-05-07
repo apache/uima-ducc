@@ -150,13 +150,21 @@ public class DuccWebMonitorManagedReservation {
 				stateSequence.add(state);
 			}
 			
-            IRationale rationale = dwr.getCompletionRationale();
-            if (rationale != null && rationale.isSpecified()) {
-                String text = rationale.getText();
-                if (text != null) {
-                    monitorInfo.rationale = text;
-                }
-            }
+			String text = null;
+			
+			String rmReason = dwr.getRmReason();
+			if(rmReason != null) {
+				 text = rmReason;
+			}
+			
+	        IRationale rationale = dwr.getCompletionRationale();
+	        if (rationale != null && rationale.isSpecified()) {
+	            text = rationale.getText();
+	        }
+	        
+	        if (text != null) {
+	            monitorInfo.rationale = text;
+	        }
 		}
 		
 		iterator = gone.iterator();
