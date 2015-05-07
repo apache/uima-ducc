@@ -18,8 +18,6 @@
 */
 package org.apache.uima.ducc.common.utils;
 
-import java.io.File;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
