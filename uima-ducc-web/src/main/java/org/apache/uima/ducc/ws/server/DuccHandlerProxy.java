@@ -29,8 +29,7 @@ import org.apache.uima.ducc.common.json.MonitorInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
-import org.apache.uima.ducc.ws.server.IWebMonitor.ReservationType;
+import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.eclipse.jetty.server.Request;
 
 import com.google.gson.Gson;
@@ -100,7 +99,7 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
 		}
 		else {
-			MonitorInfo monitorInfo  = duccWebMonitor.renew(DuccType.Job, jobId);
+			MonitorInfo monitorInfo  = duccWebMonitor.renew(MonitorType.Job, jobId);
 			Gson gson = new Gson();
 			String jSon = gson.toJson(monitorInfo);
 			duccLogger.debug(location, jobid, jSon);
@@ -118,7 +117,7 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 		duccLogger.trace(location, jobid, "enter");
 		duccLogger.info(location, jobid, request.toString());
 		
-		ConcurrentHashMap<DuccId,Long> eMap = duccWebMonitor.getExpiryMap(DuccType.Job);
+		ConcurrentHashMap<DuccId,Long> eMap = duccWebMonitor.getExpiryMap(MonitorType.Job);
 		
 		Gson gson = new Gson();
 		String jSon = gson.toJson(eMap);
@@ -131,13 +130,56 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 	private void handleServletReservationStatus(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		handleServletManagedReservationStatus(target, baseRequest, request, response);
+		String location = "handleServletReservationStatus";
+		duccLogger.trace(location, jobid, "enter");
+		duccLogger.info(location, jobid, request.toString());
+
+		String id = request.getParameter("id");
+		
+		if(id != null) {
+			id = id.trim();
+		}
+		else {
+			id = "";
+		}
+		
+		if(isIdMissing(id)) {
+			String message = "id missing";
+			duccLogger.info(location, jobid, message);
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+		}
+		else if(isIdInvalid(id)) {
+			String message = "id invalid";
+			duccLogger.info(location, jobid, message);
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+		}
+		else {
+			MonitorInfo monitorInfo  = duccWebMonitor.renew(MonitorType.UnmanagedReservation, id);
+			Gson gson = new Gson();
+			String jSon = gson.toJson(monitorInfo);
+			duccLogger.debug(location, jobid, jSon);
+			response.getWriter().println(jSon);
+			response.setContentType("application/json");
+		}
+		
+		duccLogger.trace(location, jobid, "exit");
 	}
 	
 	private void handleServletReservationMonitorReport(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) 
 			throws IOException, ServletException
 	{
-		handleServletManagedReservationMonitorReport(target, baseRequest,request, response);
+		String location = "handleServletReservationMonitorReport";
+		duccLogger.trace(location, jobid, "enter");
+		duccLogger.info(location, jobid, request.toString());
+
+		ConcurrentHashMap<DuccId,Long> eMap = duccWebMonitor.getExpiryMap(MonitorType.UnmanagedReservation);
+		
+		Gson gson = new Gson();
+		String jSon = gson.toJson(eMap);
+		duccLogger.debug(location, jobid, jSon);
+		response.getWriter().println(jSon);
+		response.setContentType("application/json");
+		duccLogger.trace(location, jobid, "exit");
 	}
 			
 	private void handleServletManagedReservationStatus(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) 
@@ -167,7 +209,7 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
 		}
 		else {
-			MonitorInfo monitorInfo  = duccWebMonitor.renew(DuccType.Reservation, id);
+			MonitorInfo monitorInfo  = duccWebMonitor.renew(MonitorType.ManagedReservation, id);
 			Gson gson = new Gson();
 			String jSon = gson.toJson(monitorInfo);
 			duccLogger.debug(location, jobid, jSon);
@@ -185,7 +227,7 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 		duccLogger.trace(location, jobid, "enter");
 		duccLogger.info(location, jobid, request.toString());
 
-		ConcurrentHashMap<DuccId,Long> eMap = duccWebMonitor.getExpiryMap(DuccType.Reservation, ReservationType.Managed);
+		ConcurrentHashMap<DuccId,Long> eMap = duccWebMonitor.getExpiryMap(MonitorType.ManagedReservation);
 		
 		Gson gson = new Gson();
 		String jSon = gson.toJson(eMap);

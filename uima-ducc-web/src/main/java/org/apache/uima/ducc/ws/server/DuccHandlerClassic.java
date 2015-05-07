@@ -60,7 +60,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
-import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
@@ -80,6 +79,7 @@ import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.apache.uima.ducc.ws.server.DuccCookies.DisplayStyle;
+import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
@@ -224,7 +224,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		}
 		sb.append("</td>");
 		// Reason
-		String reason = getReason(job, DuccType.Job).toString();
+		String reason = getReason(job, MonitorType.Job).toString();
 		sb.append("<td valign=\"bottom\" align=\"right\">");
 		sb.append(reason);
 		sb.append("</td>");
@@ -637,7 +637,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		}
 		else if(duccwork instanceof DuccWorkJob) {
 			DuccWorkJob job = (DuccWorkJob) duccwork;
-			String reason = getReason(job, DuccType.Reservation).toString();
+			String reason = getReason(job, MonitorType.ManagedReservation).toString();
 			sb.append("<td>");
 			sb.append(reason);
 			sb.append("</td>");

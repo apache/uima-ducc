@@ -64,7 +64,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
-import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
@@ -85,6 +84,7 @@ import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.apache.uima.ducc.ws.server.DuccCookies.DisplayStyle;
+import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
@@ -251,7 +251,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Reason
-		sb = getReason(job,DuccType.Job);
+		sb = getReason(job,MonitorType.Job);
 		row.add(new JsonPrimitive(sb.toString()));
 		// Services
 		sb = new StringBuffer();
@@ -734,7 +734,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		else if(duccwork instanceof DuccWorkJob) {
 			// Reason
 			DuccWorkJob job = (DuccWorkJob) duccwork;
-			sb = getReason(job,DuccType.Reservation);
+			sb = getReason(job,MonitorType.ManagedReservation);
 		}
 		row.add(new JsonPrimitive(sb.toString()));
 		// Allocation

@@ -104,6 +104,7 @@ import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
+import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.apache.uima.ducc.ws.sort.JobDetailsProcesses;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
@@ -1364,7 +1365,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			if(job.isCompleted()) {
 				sb.append("<th title=\"The reason for the final state of this job, normally EndOfJob\">");
 				sb.append("Reason: ");
-				String reason = getReason(job, DuccType.Job).toString();
+				String reason = getReason(job, MonitorType.Job).toString();
 				sb.append(reason);
 				thSep(sb);
 			}

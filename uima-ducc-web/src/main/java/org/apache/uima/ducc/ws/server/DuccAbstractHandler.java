@@ -45,7 +45,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
-import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
@@ -57,6 +56,7 @@ import org.apache.uima.ducc.ws.JobProcessInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
+import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
@@ -947,14 +947,14 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 
-	protected String getMonitor(DuccId duccId, DuccType type) {
-		return getMonitor(duccId, type, false);
+	protected String getMonitor(DuccId duccId, MonitorType monitorType) {
+		return getMonitor(duccId, monitorType, false);
 	}
 	
-	protected String getMonitor(DuccId duccId, DuccType type, boolean multi) {
+	protected String getMonitor(DuccId duccId, MonitorType monitorType, boolean multi) {
 		StringBuffer sb = new StringBuffer();
 		DuccWebMonitor duccWebMonitor = DuccWebMonitor.getInstance();
-		Long expiry = duccWebMonitor.getExpiry(type, duccId);
+		Long expiry = duccWebMonitor.getExpiry(monitorType, duccId);
 		if(!duccWebMonitor.isAutoCancelEnabled()) {
 			if(expiry != null) {
 				String text = "webserver not primary";
@@ -1001,7 +1001,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			}
 			sb.append("</span>");
 		}
-		else if(duccWebMonitor.isCanceled(DuccType.Job, duccId)) {
+		else if(duccWebMonitor.isCanceled(MonitorType.Job, duccId)) {
 			sb.append("<span class=\"health_red\" >");
 			sb.append("CancelPending...");
 			sb.append("</span>");
@@ -1009,7 +1009,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return sb.toString();
 	}
 	
-	protected StringBuffer getReason(IDuccWorkJob job, DuccType type) {
+	protected StringBuffer getReason(IDuccWorkJob job, MonitorType monitorType) {
 		StringBuffer sb = new StringBuffer();
 		try {
 			if(job != null) {
@@ -1026,7 +1026,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 						}
 						break;
 					default:
-						String monitor = getMonitor(duccId, type);
+						String monitor = getMonitor(duccId, monitorType);
 						if(monitor.length() > 0) {
 							sb.append(monitor);
 						}

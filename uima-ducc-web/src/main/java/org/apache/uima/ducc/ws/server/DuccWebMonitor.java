@@ -29,10 +29,6 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
-import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
-import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
-import org.apache.uima.ducc.transport.event.common.IDuccWork;
-import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.IListenerOrchestrator;
 
 public class DuccWebMonitor implements IListenerOrchestrator, IWebMonitor {
@@ -66,7 +62,7 @@ public class DuccWebMonitor implements IListenerOrchestrator, IWebMonitor {
 	private DuccWebMonitorJob duccWebMonitorJob = null;
 	private DuccWebMonitorManagedReservation duccWebMonitorManagedReservation = null;
 	private DuccWebMonitorReservation duccWebMonitorReservation = null;
-
+	
 	public static DuccWebMonitor getInstance() {
 		return instance;
 	}
@@ -110,30 +106,6 @@ public class DuccWebMonitor implements IListenerOrchestrator, IWebMonitor {
 		duccWebMonitorJob = new DuccWebMonitorJob(timeoutMillis);
 		duccWebMonitorManagedReservation = new DuccWebMonitorManagedReservation(timeoutMillis);
 		duccWebMonitorReservation = new DuccWebMonitorReservation(timeoutMillis);
-	}
-	
-	private ReservationType getReservationType(String id) {
-		ReservationType rt = ReservationType.Managed;
-		DuccData duccData = DuccData.getInstance();
-		IDuccWork dw = duccData.getReservation(id);
-		if(dw != null) {
-			if(dw instanceof DuccWorkReservation) {
-				rt = ReservationType.Unmanaged;
-			}
-		}
-		return rt;
-	}
-	
-	private ReservationType getReservationType(DuccId duccId) {
-		ReservationType rt = ReservationType.Managed;
-		DuccData duccData = DuccData.getInstance();
-		IDuccWork dw = duccData.getReservation(duccId);
-		if(dw != null) {
-			if(dw instanceof DuccWorkReservation) {
-				rt = ReservationType.Unmanaged;
-			}
-		}
-		return rt;
 	}
 	
 	public void update(OrchestratorStateDuccEvent duccEvent) {
@@ -212,25 +184,19 @@ public class DuccWebMonitor implements IListenerOrchestrator, IWebMonitor {
 	}
 
 	
-	public MonitorInfo renew(DuccType duccType, String id) {
+	public MonitorInfo renew(MonitorType monitorType, String id) {
 		MonitorInfo monitorInfo = new MonitorInfo();
-		if(duccType != null) {
+		if(monitorType != null) {
 			if(id != null) {
-				switch(duccType) {
+				switch(monitorType) {
 				case Job:
 					monitorInfo = duccWebMonitorJob.renew(id, updateCounter);
 					break;
-				case Reservation:
-					switch(getReservationType(id)) {
-					case Managed:
-						monitorInfo = duccWebMonitorManagedReservation.renew(id, updateCounter);
-						break;
-					case Unmanaged:
-						monitorInfo = duccWebMonitorReservation.renew(id, updateCounter);
-						break;
-					}
+				case ManagedReservation:
+					monitorInfo = duccWebMonitorManagedReservation.renew(id, updateCounter);
 					break;
-				case Service:
+				case UnmanagedReservation:
+					monitorInfo = duccWebMonitorReservation.renew(id, updateCounter);
 					break;
 				default:
 					break;
@@ -241,25 +207,19 @@ public class DuccWebMonitor implements IListenerOrchestrator, IWebMonitor {
 	}
 
 	
-	public Long getExpiry(DuccType duccType, DuccId duccId) {
+	public Long getExpiry(MonitorType monitorType, DuccId duccId) {
 		Long expiry = null;
-		if(duccType != null) {
+		if(monitorType != null) {
 			if(duccId != null) {
-				switch(duccType) {
+				switch(monitorType) {
 				case Job:
 					expiry = duccWebMonitorJob.getExpiry(duccId);
 					break;
-				case Reservation:
-					switch(getReservationType(duccId)) {
-					case Managed:
-						expiry = duccWebMonitorManagedReservation.getExpiry(duccId);
-						break;
-					case Unmanaged:
-						expiry = duccWebMonitorReservation.getExpiry(duccId);
-						break;
-					}
+				case ManagedReservation:
+					expiry = duccWebMonitorManagedReservation.getExpiry(duccId);
 					break;
-				case Service:
+				case UnmanagedReservation:
+					expiry = duccWebMonitorReservation.getExpiry(duccId);
 					break;
 				default:
 					break;
@@ -270,25 +230,19 @@ public class DuccWebMonitor implements IListenerOrchestrator, IWebMonitor {
 	}
 
 	
-	public boolean isCanceled(DuccType duccType, DuccId duccId) {
+	public boolean isCanceled(MonitorType monitorType, DuccId duccId) {
 		boolean flag = false;
-		if(duccType != null) {
+		if(monitorType != null) {
 			if(duccId != null) {
-				switch(duccType) {
+				switch(monitorType) {
 				case Job:
 					flag = duccWebMonitorJob.isCanceled(duccId);
 					break;
-				case Reservation:
-					switch(getReservationType(duccId)) {
-					case Managed:
-						flag = duccWebMonitorManagedReservation.isCanceled(duccId);
-						break;
-					case Unmanaged:
-						flag = duccWebMonitorReservation.isCanceled(duccId);
-						break;
-					}
+				case ManagedReservation:
+					flag = duccWebMonitorManagedReservation.isCanceled(duccId);
 					break;
-				case Service:
+				case UnmanagedReservation:
+					flag = duccWebMonitorReservation.isCanceled(duccId);
 					break;
 				default:
 					break;
@@ -299,24 +253,18 @@ public class DuccWebMonitor implements IListenerOrchestrator, IWebMonitor {
 	}
 	
 	
-	public ConcurrentHashMap<DuccId,Long> getExpiryMap(DuccType duccType, ReservationType rt) {
+	public ConcurrentHashMap<DuccId,Long> getExpiryMap(MonitorType monitorType) {
 		ConcurrentHashMap<DuccId,Long> eMap = new ConcurrentHashMap<DuccId,Long>();
-		if(duccType != null) {
-			switch(duccType) {
+		if(monitorType != null) {
+			switch(monitorType) {
 			case Job:
 				eMap = duccWebMonitorJob.getExpiryMap();
 				break;
-			case Reservation:
-				switch(rt) {
-				case Managed:
-					eMap = duccWebMonitorManagedReservation.getExpiryMap();
-					break;
-				case Unmanaged:
-					eMap = duccWebMonitorReservation.getExpiryMap();
-					break;
-				}
+			case ManagedReservation:
+				eMap = duccWebMonitorManagedReservation.getExpiryMap();
 				break;
-			case Service:
+			case UnmanagedReservation:
+				eMap = duccWebMonitorReservation.getExpiryMap();
 				break;
 			default:
 				break;
@@ -325,9 +273,4 @@ public class DuccWebMonitor implements IListenerOrchestrator, IWebMonitor {
 		return eMap;
 	}
 
-	@Override
-	public ConcurrentHashMap<DuccId, Long> getExpiryMap(DuccType duccType) {
-		return getExpiryMap(duccType, ReservationType.Managed);
-	}
-	
 }
