@@ -35,7 +35,6 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.common.utils.TimeStamp;
-import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
