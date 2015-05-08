@@ -391,7 +391,7 @@ class PostInstall():
         self.merge_properties()
 
         # Make duccling
-        rc = os.system('build_duccling')
+        rc = os.system(self.DUCC_HOME + '/admin/build_duccling')
         if ( rc != 0 ):
             print 'Could not build ducc_ling.  Run the command'
             print '   build_duccling'
