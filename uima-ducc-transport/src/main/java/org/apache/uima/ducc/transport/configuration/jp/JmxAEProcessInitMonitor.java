@@ -65,7 +65,8 @@ public class JmxAEProcessInitMonitor implements Runnable {
 			// enable
 			// finding deployed uima components.
 			ObjectName uimaServicePattern = new ObjectName(
-					"org.apache.uima:type=ee.jms.services,*");
+					"org.apache.uima:*");
+//		"org.apache.uima:type=ee.jms.services,*");
 			// Fetch UIMA AS MBean names from JMX Server that match above
 			// name pattern
 			Set<ObjectInstance> mbeans = new HashSet<ObjectInstance>(
@@ -75,7 +76,7 @@ public class JmxAEProcessInitMonitor implements Runnable {
 			for (ObjectInstance instance : mbeans) {
 				String targetName = instance.getObjectName()
 						.getKeyProperty("name");
-				if (targetName.endsWith("FlowController")) { // skip FC
+				if (targetName.endsWith("FlowController") || targetName.trim().endsWith("DUCC.Job")) { // skip FC
 					continue;
 				}
 				// Only interested in AEs
@@ -165,7 +166,7 @@ public class JmxAEProcessInitMonitor implements Runnable {
 							componentsToDelete.add(aeState);
 						}
 					}
-					DuccService.getDuccLogger(this.getClass().getName()).debug(
+					DuccService.getDuccLogger(this.getClass().getName()).info(
 							"UimaAEJmxMonitor.run()",
 							null,
 							"---- AE Name:" + proxy.getName()
@@ -180,7 +181,7 @@ public class JmxAEProcessInitMonitor implements Runnable {
 			}
 			howManySeenSoFar = 1; // reset error counter
 			if (updateAgent) {
-				DuccService.getDuccLogger(this.getClass().getName()).debug("UimaAEJmxMonitor.run()", null,
+				DuccService.getDuccLogger(this.getClass().getName()).info("UimaAEJmxMonitor.run()", null,
 						"---- Publishing UimaPipelineAEComponent List - size="
 								+ aeStateList.size());
 				try {

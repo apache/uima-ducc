@@ -19,12 +19,14 @@
 package org.apache.uima.ducc.agent.processors;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.camel.Exchange;
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
@@ -93,6 +95,40 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 						} else if ( !currentProcess.getValue().getProcessState().equals(previousProcess.getProcessState())) {
 							inventoryChanged = true;
 							break;
+						} else {
+							List<IUimaPipelineAEComponent> breakdown = 
+									currentProcess.getValue().getUimaPipelineComponents();
+							if ( breakdown != null && breakdown.size() > 0 ) { 
+								List<IUimaPipelineAEComponent> previousBreakdown = 
+										previousProcess.getUimaPipelineComponents();
+								if ( previousBreakdown == null || previousBreakdown.size() == 0 || 
+										breakdown.size() != previousBreakdown.size()) {
+									inventoryChanged = true;
+								} else {
+									for (IUimaPipelineAEComponent uimaAeState : breakdown ) {
+                                      boolean found = false;
+									  for (IUimaPipelineAEComponent previousUimaAeState : previousBreakdown ) {
+							 		    if ( uimaAeState.getAeName().equals(previousUimaAeState.getAeName()) ) {
+										  found = true;
+										  if ( !uimaAeState.getAeState().equals(previousUimaAeState.getAeState()) ||
+											   uimaAeState.getInitializationTime() != previousUimaAeState.getInitializationTime() ) {
+										    inventoryChanged = true;
+											break;
+										  }
+									    }
+									  }
+									  if ( !found ) {
+										inventoryChanged = true;
+									  }
+										  
+									  if ( inventoryChanged ) {
+										break;
+									  }
+
+								   }
+								}
+								
+							}
 						}
 					} else {
 						// New inventory contains a process not in the previous snapshot
@@ -102,6 +138,7 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 				}
 			}
 		}
+		
 		//	Get this inventory snapshot
 		previousInventory = inventory;
 		//	Broadcast inventory if there is a change or configured number of epochs
