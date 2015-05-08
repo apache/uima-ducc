@@ -403,47 +403,42 @@ public class ManagedProcess implements Process {
 					pstate = ProcessState.Killed;
 				}
 			} else {
-				// check if the process died due to an external cause. If there
+				// default state to Stopped. If the process died unexpectadly the state
+				// will be changed to Failed
+				pstate = ProcessState.Stopped;
+				// check if the process died due to an external cause. If that
 				// was the case isstopping = false. The isstopping=true iff the Agent
 				// initiated process stop because the process was deallocated
 				if (!isstopping) {
-					// We dont know why AP may have exited so dont mark it as Failed
-					if ( !isAP || (exitcode != 0) ) {
-						// unexpected process death. Killed by the OS or admin user
-						// with kill -9
+					// APs can stop for any reason. There is 
+					// no way to determine why the AP terminated.
+					if ( !isAP ) {
+					    // Unexpected process termination 
 						pstate = ProcessState.Failed;
-
-					}
-					// fetch errors from stderr stream. If the process failed to
-					// start due to misconfiguration
-					// the reason for failure would be provided by the OS (wrong
-					// user id, bad directory,etc)
-					String errors = stdErrReader.getDataFromStream();
-					if (errors.trim().length() > 0) {
-						getDuccProcess().setReasonForStoppingProcess(
-								errors.trim());
-					} else if ( !isAP ){
-						if ( exitcode == 0 || exitcode == 128) {
-							pstate = ProcessState.Stopped;
-							
+						// fetch errors from stderr stream. If the process failed to
+						// start due to misconfiguration
+						// the reason for failure would be provided by the OS (wrong
+						// user id, bad directory,etc)
+						String errors = stdErrReader.getDataFromStream();
+						if (errors.trim().length() > 0) {
+							getDuccProcess().setReasonForStoppingProcess(
+									errors.trim());
 						} else {
+							// Process terminated unexpectadly. It stopped on its own or due to some
+							// external event not initiated by an agent
 							getDuccProcess().setReasonForStoppingProcess(
 									ReasonForStoppingProcess.Croaked.toString());
-							
 						}
 					}
-				} else if ( getDuccProcess().getProcessState().equals(ProcessState.Stopping)) {
-					pstate = ProcessState.Stopped;
+					
 				} else {
-					if ( exitcode - 128 == 9 || exitcode - 128 == 15 ) { // check if the process was killed with -9
+					if ( exitcode - 128 == 9 || exitcode - 128 == 15 ) { // check if the process was killed with -9 or -15
 						addReasonForStopping(getDuccProcess(),
 								ReasonForStoppingProcess.KilledByDucc.toString());
 					} else {
 						addReasonForStopping(getDuccProcess(),
 								ReasonForStoppingProcess.Deallocated.toString());
-						
 					}
-					pstate = ProcessState.Stopped;
 				}
 				notifyProcessObserver(pstate);
 				log("ManagedProcess.drainProcessStreams",
