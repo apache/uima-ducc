@@ -20,6 +20,7 @@
 package org.apache.uima.ducc.common.json;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MonitorInfo {
 	public String code = "0";
@@ -30,6 +31,7 @@ public class MonitorInfo {
 	public String error = "0";
 	public String retry = "0";
 	public String procs = "0";
-	public ArrayList<String> remotePids = new ArrayList<String>();
-	public ArrayList<String> errorLogs = new ArrayList<String>();
+	public List<String> remotePids = new ArrayList<String>();
+	public List<String> errorLogs = new ArrayList<String>();
+	public List<String> nodes = new ArrayList<String>();
 }
