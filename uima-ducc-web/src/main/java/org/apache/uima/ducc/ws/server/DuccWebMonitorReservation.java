@@ -233,6 +233,16 @@ public class DuccWebMonitorReservation {
 			stateSequence.add(state);
 		}
 		
+		monitorInfo.nodes = dwr.getNodes();
+		
+		if(monitorInfo.nodes != null) {
+			StringBuffer sb = new StringBuffer();
+			for(String node : monitorInfo.nodes) {
+				sb.append(node);
+				sb.append(" ");
+			}
+			duccLogger.debug(location, duccId, "nodes: "+sb);
+		}
 		String text = null;
 		
 		String rmReason = dwr.getRmReason();
