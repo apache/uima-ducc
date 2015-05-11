@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
 
-import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
@@ -128,6 +127,9 @@ public class DuccReservationSubmit
 			return false;
 		}
 		
+        System.out.println("Reservation " + getDuccId() + " submitted.");
+        System.out.println("resID = " + getDuccId() + " "+info);
+        
         // If request was accepted, always start a monitor so can report the state 
         requestProperties.setProperty(UiOption.WaitForCompletion.pname(), "true");
 		startMonitors(false, DuccContext.Reservation);       // starts conditionally, based on job spec and console listener present
@@ -185,15 +187,6 @@ public class DuccReservationSubmit
 
             // If the return is 'true' then as best the API can tell, the submit worked
             if ( rc ) {
-                
-                // Fetch the Ducc ID
-            	System.out.println("Reservation " + ds.getDuccId() + " submitted.");
-                System.out.println("resID = " + ds.getDuccId() + " "+ds.info);
-                String nodes = ds.getHostsAsString().trim();
-                if(nodes.length() == 0) {
-                	nodes = "none";
-                }
-                System.out.println("nodes: "  + nodes);
             	System.exit(0);
             } else {
                 System.out.println("Could not submit reservation.");

@@ -21,7 +21,9 @@ package org.apache.uima.ducc.cli;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 
 // import org.apache.commons.cli.CommandLine;
 // import org.apache.commons.cli.CommandLineParser;
@@ -46,7 +48,8 @@ public abstract class DuccMonitor {
 	protected static final String StateRunning = "Running";
 	protected static final String StateCompleting = "Completing";
 	protected static final String StateCompleted = "Completed";
-	protected static final String WaitingForResources = "WaitingForResources";
+	protected static final String StateWaitingForResources = "WaitingForResources";
+	protected static final String StateAssigned = "Assigned";
 
     protected CommandLine command_line = null;
 
@@ -389,6 +392,10 @@ public abstract class DuccMonitor {
 					flag_cancel_on_interrupt.set(false);
 					message.append(details(monitorInfo));
 				}
+				else if (state.equals(StateAssigned)) {
+					flag_cancel_on_interrupt.set(false);
+					message.append(details(monitorInfo));
+				}
 				thisMessage = message.toString();
 				if (!thisMessage.equals(lastMessage)) {
 					boolean suppress = false;
@@ -412,7 +419,7 @@ public abstract class DuccMonitor {
 						lastMessage = thisMessage;
 					}
 				}
-				if (state.equals(WaitingForResources)) {
+				if (state.equals(StateWaitingForResources)) {
 					if (!monitorInfo.rationale.equals("")) {
 						thisRationale = monitorInfo.rationale;
 						if (!thisRationale.equals(lastRationale)) {
@@ -420,6 +427,21 @@ public abstract class DuccMonitor {
 							lastRationale = thisRationale;
 						}
 					}
+				}
+				if (state.equals(StateAssigned)) {
+					if(monitorInfo.nodes != null) {
+						if(monitorInfo.nodes.size() > 0) {
+							StringBuffer sb = new StringBuffer();
+							sb.append("nodes: ");
+							for(String node : monitorInfo.nodes) {
+								sb.append(node);
+								sb.append(" ");
+							}
+							String nodes = sb.toString().trim();
+							info(nodes);
+						}
+					}
+					return RC_SUCCESS;
 				}
 				if (state.equals(StateCompleted)) {
 					// See Jira 2911
@@ -448,7 +470,7 @@ public abstract class DuccMonitor {
 							if (!monitorInfo.errorLogs.isEmpty()) {
 								message = new StringBuffer();
 								message.append("id:" + id);
-								ArrayList<String> errorLogs = monitorInfo.errorLogs;
+								List<String> errorLogs = monitorInfo.errorLogs;
 								for (String errorLog : errorLogs) {
 									message.append(" file:" + errorLog);
 								}
