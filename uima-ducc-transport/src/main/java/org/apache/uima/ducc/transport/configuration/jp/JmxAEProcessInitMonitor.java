@@ -56,6 +56,7 @@ public class JmxAEProcessInitMonitor implements Runnable {
 				return aeState;
 			}
 		}
+		
 		return null;
 	}
 
@@ -166,24 +167,28 @@ public class JmxAEProcessInitMonitor implements Runnable {
 							componentsToDelete.add(aeState);
 						}
 					}
-					DuccService.getDuccLogger(this.getClass().getName()).info(
-							"UimaAEJmxMonitor.run()",
-							null,
-							"---- AE Name:" + proxy.getName()
-									+ " AE State:" + proxy.getState()
-									+ " AE init time="
-									+ aeState.getInitializationTime()
-									+ " Proxy Init time="
-									+ proxy.getInitializationTime()
-									+ " Proxy Thread ID:"
-									+ proxy.getThreadId());
+					if ( agent != null && agent.logger != null ) {
+						agent.logger.debug(
+								"UimaAEJmxMonitor.run()",
+								null,
+								"---- AE Name:" + proxy.getName()
+										+ " AE State:" + proxy.getState()
+										+ " AE init time="
+										+ aeState.getInitializationTime()
+										+ " Proxy Init time="
+										+ proxy.getInitializationTime()
+										+ " Proxy Thread ID:"
+										+ proxy.getThreadId());
+					}
 				}
 			}
 			howManySeenSoFar = 1; // reset error counter
 			if (updateAgent) {
-				DuccService.getDuccLogger(this.getClass().getName()).info("UimaAEJmxMonitor.run()", null,
-						"---- Publishing UimaPipelineAEComponent List - size="
-								+ aeStateList.size());
+				if ( agent != null && agent.logger != null ) {
+					agent.logger.debug("UimaAEJmxMonitor.run()", null,
+							"---- Publishing UimaPipelineAEComponent List - size="
+									+ aeStateList.size());
+				}
 				try {
 					agent.notify(aeStateList);
 				} catch (Exception ex) {
@@ -200,7 +205,9 @@ public class JmxAEProcessInitMonitor implements Runnable {
 			if (!(e.getCause() instanceof InstanceNotFoundException)) {
 				if (howManySeenSoFar > 3) { // allow up three errors of this
 											// kind
-					DuccService.getDuccLogger(this.getClass().getName()).info("UimaAEJmxMonitor.run()", null, e);
+					if ( agent != null && agent.logger != null ) {
+						agent.logger.info("UimaAEJmxMonitor.run()", null, e);
+					}
 					howManySeenSoFar = 1;
 					throw e;
 				}
@@ -210,7 +217,7 @@ public class JmxAEProcessInitMonitor implements Runnable {
 			}
 		} catch (Throwable e) {
 			howManySeenSoFar = 1;
-			DuccService.getDuccLogger(this.getClass().getName()).info("UimaAEJmxMonitor.run()", null, e);
+			agent.logger.info("UimaAEJmxMonitor.run()", null, e);
 		}
 	}
 }
