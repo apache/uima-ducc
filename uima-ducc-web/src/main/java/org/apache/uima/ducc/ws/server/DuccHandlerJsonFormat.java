@@ -110,6 +110,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private final String jsonFormatBrokerAaData					= duccContextJsonFormat+"-aaData-broker";
 	private final String jsonFormatClassesAaData				= duccContextJsonFormat+"-aaData-classes";
 	private final String jsonFormatDaemonsAaData				= duccContextJsonFormat+"-aaData-daemons";
+	private final String jsonFormatDaemonsAaDataAll				= duccContextJsonFormat+"-aaData-daemons-all";
 	
 	private final String jsonFormatMachines 		= duccContextJsonFormat+"-machines";
 	private final String jsonFormatReservations 	= duccContextJsonFormat+"-reservations";
@@ -1762,7 +1763,21 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}	
 	
+	private void handleServletJsonFormatDaemonsAaDataAll(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		boolean allDaemonsFlag = true;
+		handleServletJsonFormatDaemonsAaData(target, baseRequest, request, response, allDaemonsFlag);
+	}
+	
 	private void handleServletJsonFormatDaemonsAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		boolean allDaemonsFlag = false;
+		handleServletJsonFormatDaemonsAaData(target, baseRequest, request, response, allDaemonsFlag);
+	}
+	
+	private void handleServletJsonFormatDaemonsAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response, boolean allDaemonsFlag)
 	throws IOException, ServletException
 	{
 		String methodName = "handleServletJsonFormatDaemonsAaData";
@@ -1891,10 +1906,17 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 
 		// <Agents>
-		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieAgents);
-		if(cookie.equals(DuccCookies.valueAgentsShow)) {
+		
+		boolean showAgents = allDaemonsFlag;
+		if(!showAgents) {
+			String cookie = DuccCookies.getCookie(request,DuccCookies.cookieAgents);
 			duccLogger.trace(methodName, jobid, "== show: "+cookie);
-			
+			if(cookie.equals(DuccCookies.valueAgentsShow)) {
+				showAgents = true;
+			}
+		}
+
+		if(showAgents) {
 			ConcurrentSkipListMap<String,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
 			Iterator<String> iterator = machines.keySet().iterator();
 			while(iterator.hasNext()) {
@@ -1974,9 +1996,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				data.add(row);
 			}
 		}
-		else {
-			duccLogger.trace(methodName, jobid, "!= show: "+cookie);
-		}
+
 		// </Agents>
 		
 		jsonResponse.add("aaData", data);
@@ -2121,6 +2141,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 		else if(reqURI.startsWith(jsonFormatClassesAaData)) {
 			handleServletJsonFormatClassesAaData(target, baseRequest, request, response);
+		}
+		else if(reqURI.startsWith(jsonFormatDaemonsAaDataAll)) {
+			handleServletJsonFormatDaemonsAaDataAll(target, baseRequest, request, response);
 		}
 		else if(reqURI.startsWith(jsonFormatDaemonsAaData)) {
 			handleServletJsonFormatDaemonsAaData(target, baseRequest, request, response);
