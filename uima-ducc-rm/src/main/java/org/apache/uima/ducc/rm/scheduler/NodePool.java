@@ -1205,6 +1205,23 @@ class NodePool
     }
 
     /**
+     * Count total physical machines that could accomodate a 'fixed' request that the job
+     * will fit in.
+     */
+    int countFixable(IRmJob j)
+    {
+        int order = j.getShareOrder();
+        int ret = 0;
+        for ( int i = order; i < maxorder; i++ ) {
+            if ( machinesByOrder.containsKey(order) ) {
+                ret += machinesByOrder.get(order).size();
+            }
+        }
+        return ret;
+    }
+
+    
+    /**
      * Adjust counts for something that takes full machines, like a reservation.
      * If "enforce" is set the machine order must match, otherwise we just do best effort to match.
      *

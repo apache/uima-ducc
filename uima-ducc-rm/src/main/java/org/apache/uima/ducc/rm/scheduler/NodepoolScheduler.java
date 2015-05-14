@@ -1312,9 +1312,15 @@ public class NodepoolScheduler
 
         if ( available == 0 ) {
             if (j.countNShares() == 0)  {
-                schedulingUpdate.defer(j, "Deferred because insufficient resources are availble.");
-                logger.info(methodName, j.getId(), "Deferring, insufficient shares available. NP", np.getId(), 
-                            "available[", np.countNSharesByOrder(order), "]");
+                if ( np.countFixable(j) > 0 ) {
+                    schedulingUpdate.defer(j, "Deferred because insufficient resources are availble.");
+                    logger.info(methodName, j.getId(), "Deferring, insufficient shares available. NP", np.getId(), 
+                                "available[", np.countNSharesByOrder(order), "]");
+                } else {
+                    schedulingUpdate.defer(j, "Deferred because no hosts in class " + rc.getName() + " have sufficient memory to accomodate the request.");
+                    logger.info(methodName, j.getId(), "Deferring, no machines big enough for the request. NP", np.getId(), 
+                                "available[", np.countNSharesByOrder(order), "]");
+                }
             } else {
                 logger.info(methodName, j.getId(), "Nodepool is out of shares: NP", np.getId(), 
                             "available[", np.countNSharesByOrder(order), "]");
@@ -1365,9 +1371,16 @@ public class NodepoolScheduler
         //
         // Now see if we have sufficient shares in the nodepool for this allocation.
         //
-        if ( np.countLocalNSharesByOrder(order) == 0 ) {
-            schedulingUpdate.defer(j, "Deferred  because insufficient resources are availble.");
-            logger.info(methodName, j.getId(), "Deferring, insufficient shares available. NP", np.getId(), "available[", np.countNSharesByOrder(order), "]");
+        if ( np.countLocalNSharesByOrder(order) == 0 ) {            
+            if (np.countFixable(j) > 0 ) {
+                schedulingUpdate.defer(j, "Deferred  because insufficient resources are availble.");
+                logger.info(methodName, j.getId(), "Deferring, insufficient shares available. NP", np.getId(), "available[", np.countNSharesByOrder(order), "]");
+                
+            } else {
+                schedulingUpdate.defer(j, "Deferred because no hosts in class " + rc.getName() + " have sufficient memory to accomodate the request.");
+                logger.info(methodName, j.getId(), "Deferring, no machines big enough for the request. NP", np.getId(), 
+                            "available[", np.countNSharesByOrder(order), "]");
+            }
             return;
         }
         
@@ -1503,7 +1516,7 @@ public class NodepoolScheduler
         int available = np.countReservables(j);
         if ( available == 0 ) {
             if (j.countNShares() == 0)  {
-                schedulingUpdate.defer(j, "Deferred because there are no hosts of the correct size.");
+                schedulingUpdate.defer(j, "Deferred because there are no hosts of the correct size in class " + rc.getName());
                 logger.info(methodName, j.getId(), "Deferred because no hosts of correct size. NP", np.getId());
                            
             } else {
@@ -1560,7 +1573,7 @@ public class NodepoolScheduler
         if ( ! validSingleAllotment(j) ) return;   // defers and logs 
 
         if ( np.countReservables(j) == 0 ) {
-            schedulingUpdate.defer(j, "Deferred because requested memory " + j.getMemory() + " does not match any machine."); 
+            schedulingUpdate.defer(j, "Deferred because there are no hosts of the correct size in class " + rc.getName());
             logger.warn(methodName, j.getId(), "Deferred because requested memory " + j.getMemory() + " does not match any machine.");
             return;
         }
