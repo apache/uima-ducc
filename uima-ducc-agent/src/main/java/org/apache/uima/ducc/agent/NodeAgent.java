@@ -660,6 +660,18 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	    }
 	  return false;
   }
+  private long getSwapOverLimit(IDuccProcess process) {
+	  long overLimit = 0;
+	 for (ManagedProcess deployedProcess : deployedProcesses) {
+	   if ( deployedProcess.getDuccProcess().getDuccId().equals(process.getDuccId()) ) {
+	   	  overLimit = deployedProcess.getMaxSwapThreshold() - process.getSwapUsage(); 
+	   }
+	 }
+	 if ( overLimit < 0 ) {
+		 overLimit = 0;
+	 }
+	 return overLimit;
+  }
   /**
    * Called when swap space on a node reached minimum as defined by ducc.node.min.swap.threshold in
    * ducc.properties. The agent will find the biggest (in terms of memory) process in its inventory
@@ -670,12 +682,12 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     IDuccProcess biggestProcess = null;
     try {
       inventorySemaphore.acquire();
-      // find the fattest process
+      // find the fattest process in terms of absolute use of swap over the process limit
       for (Entry<DuccId, IDuccProcess> processEntry : getInventoryRef().entrySet()) {
-        if (isProcessRunning(processEntry.getValue()) &&
-        		isOverSwapLimit(processEntry.getValue())
-                && (biggestProcess == null || biggestProcess.getResidentMemory() < processEntry
-                        .getValue().getResidentMemory())) {
+        if (isProcessRunning(processEntry.getValue()) 
+        		&& isOverSwapLimit(processEntry.getValue())
+                && (biggestProcess == null  
+                || getSwapOverLimit(biggestProcess) < getSwapOverLimit(processEntry.getValue()))) {
           biggestProcess = processEntry.getValue();
         }
       }
