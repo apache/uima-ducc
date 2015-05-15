@@ -480,7 +480,7 @@ public class ServiceSet
         si.setInstanceId(pending_instances.get(id.getFriendly())); // UIMA-4258
 
         handler.addInstance(this, si);
-        pendingImplementors.put(id.getFriendly(), si);
+        pendingImplementors.put(id.getFriendly(), si);        // remember which instances we hear about in current OR publication
     }
 
     /**
@@ -488,13 +488,14 @@ public class ServiceSet
      */
     void bootComplete()
     {
+        String methodName = "bootComplete";
         //
         // During boot, inactive implementors are removed.  Here we cull the implementors list to
         // remove stuff that didn't come in.
         //
 
         if ( isPingOnly() && enabled() ) {
-            start(1);   // nothing to recover but we need the pseudo service to run
+            start();   // nothing to recover but we need the pseudo service to run
             return;   
         }
         implementors = pendingImplementors;   // only the ones that check in.  others are toast
@@ -503,7 +504,7 @@ public class ServiceSet
         // must update history against stuff we used to have and don't any more
         //
         String old_impls = meta_props.getProperty(implementors_key);
-        logger.info("bootComplete", id, "IMPLS :", old_impls);
+        logger.info(methodName, id, "Old implementors :", old_impls);
         if ( old_impls != null ) {
             Map<String, String> ip = new HashMap<String, String>();
             String[]   keys = old_impls.split("\\s+");
@@ -578,7 +579,7 @@ public class ServiceSet
         int needed = Math.max(0, instances - countImplementors());
         if ( needed > 0 ) {
             logger.info(methodName, id, "Autostarting", needed, "instance" + ((needed > 1) ? "s" : ""), "already have", countImplementors());
-            start(needed);
+            start();
         }
     }
     
@@ -1008,7 +1009,7 @@ public class ServiceSet
             int diff       = n - running;
                 
             if ( diff > 0 ) {
-                start(diff);
+                start();
             } else if ( diff < 0 ) {
                 stop(-diff); // TODO: no good, fix when changeTo is ready
             }
@@ -1192,7 +1193,7 @@ public class ServiceSet
             init_failures = 0;
             resetRuntimeErrors();
             setReferenced(true);
-            start(registered_instances);
+            start();
         } 
 
         persistReferences();
@@ -1257,7 +1258,7 @@ public class ServiceSet
         // to 'reboot' an instance by killing a specific one and also starting up a new one.
         
         if ( nadditions > 0) {
-            start(nadditions);
+            start();
         }
         
         for ( int i = 0; i < ndeletions; i++ ) {
@@ -1292,6 +1293,31 @@ public class ServiceSet
             default:
                 return false;
         }
+    }
+
+    /**
+     * We want to be sure the most-recently started instance get resources before 
+     * allowing a new start.
+     */
+    boolean needNextStart(JobState old, JobState current)
+    {
+        switch ( old ) {
+            case Received:
+            case WaitingForDriver:
+            case WaitingForServices:
+            case WaitingForResources:
+                switch (current) {
+                    case Assigned:
+                    case Initializing:
+                    case Running:
+                        return true;
+                    default:
+                        break;
+                }
+            default:
+                break;
+        }
+        return false;
     }
 
     void removeImplementor(ServiceInstance si)
@@ -1329,6 +1355,12 @@ public class ServiceSet
         }
 
         boolean save_meta = false;
+
+        if ( needNextStart(old_state, state) ) {
+            // sequnced startup
+            start();
+        }
+
         if ( canDeleteInstance(dwj) ) {
             // State Completed or Completing
             JobCompletionType jct = dwj.getCompletionType();
@@ -1352,7 +1384,7 @@ public class ServiceSet
                 
                 // You can stop an instance with the ducc_services CLI, in which case this counts as a manual stop and not
                 // an error.  Or the thing can go away for no clear reason, in which case it does as an error, even if somebody
-                // use the DuccServiceCancel API to stop it.
+                 // use the DuccServiceCancel API to stop it.
                 //
                 // TODO: Update the ducc_services CLI to allow stop and restart of specific instances without counting failure.
                 if ( stoppedInstance.isStopped() ) {
@@ -1393,7 +1425,7 @@ public class ServiceSet
                         save_meta = true;
                     } else {
                         logger.warn(methodName, id, "Instance", inst_id + ": Uunsolicited termination, not yet excessive.  Restarting instance.");
-                        start(1);
+                        start();
                         return;         // don't use termination to set state - start will signal the state machine
                     }
                 }
@@ -1981,9 +2013,13 @@ public class ServiceSet
         stash_instance_id(instid);        
     }
 
-    synchronized void start(int ninstances)
+    synchronized void start()
     {
     	String methodName = "start";
+
+        if ( countImplementors() >= instances ) {
+            return;
+        }
 
         if ( isPingOnly() ) {
             if ( implementors.containsKey(-1l) ) {
@@ -2005,30 +2041,22 @@ public class ServiceSet
                     logger.warn(methodName, id, "Ignoring start of additional instances because process_debug is set.");
                     return;         // only one, in debug
                 }
-
-                if ( ninstances > 1 ) {
-                    ninstances = 1;                                  // and alter the number here.
-                    logger.warn(methodName, id, "Adjusting instances to one(1) because process_debug is set.");
-                }
             }
 
-            for ( int i = 0; i < ninstances; i++ ) {
-                ServiceInstance si = new ServiceInstance(this);
-                si.setInstanceId(find_next_instance());
-                long instid = -1L;
-                logger.info(methodName, id, "Starting instance", i);
-                if ( (instid = si.start(props_filename, meta_props)) >= 0 ) {
-                    logger.info(methodName, id, "Instance[", i, "] id ", instid);
-                    implementors.put(instid, si);
-                    handler.addInstance(this, si);
-                    signal(si);
-                } else {
-                    logger.info(methodName, id, "Instance[", i, "] id ", instid, "Failed to start.");
-                    disable("Cannot submit service process");
-                    signal(si);
-                    break;
-                }
-            }        
+            ServiceInstance si = new ServiceInstance(this);
+            si.setInstanceId(find_next_instance());
+            long inst_ducc_id = -1L;
+            logger.info(methodName, id, "Starting instance. Current count", countImplementors(), "needed", instances);
+            if ( (inst_ducc_id = si.start(props_filename, meta_props)) >= 0 ) {
+                implementors.put(inst_ducc_id, si);
+                handler.addInstance(this, si);
+                signal(si);
+                logger.info(methodName, id, "Instance[", countImplementors(), "] ducc_id ", inst_ducc_id);
+            } else {
+                logger.info(methodName, id, "Instance[", countImplementors(), "] ducc_id ", inst_ducc_id, "Failed to start.");
+                disable("Cannot submit service process");
+                signal(si);
+            }
         }    
 
         saveMetaProperties();

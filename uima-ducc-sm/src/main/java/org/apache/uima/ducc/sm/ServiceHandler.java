@@ -134,6 +134,9 @@ public class ServiceHandler
         List<ServiceSet> services = serviceStateHandler.getServices();
         for ( ServiceSet sset : services ) {
             sset.bootComplete();
+            if ( sset.countImplementors() > 0 ) {            // if something was running, let's make sure all the starts are done
+                sset.start();
+            }
         }
     }
 

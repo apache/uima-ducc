@@ -179,6 +179,7 @@ public class UimaAsPing
         appCtx.put(UimaAsynchronousEngine.ServerUri, broker);
         appCtx.put(UimaAsynchronousEngine.ENDPOINT, endpoint);
         appCtx.put(UimaAsynchronousEngine.GetMetaTimeout, meta_timeout);
+        appCtx.put(UIMAFramework.CAS_INITIAL_HEAP_SIZE, 1000);
 
         ResourceInitializationException excp = null;
         gmfail = false;
