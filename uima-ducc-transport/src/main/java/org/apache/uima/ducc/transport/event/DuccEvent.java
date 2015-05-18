@@ -50,6 +50,7 @@ public interface DuccEvent extends Serializable { // extends Map<Object, Object>
             SERVICE_START,
             SERVICE_STOP,
             SERVICE_QUERY,
+            DUCCWORK,
             AGENT_PING
             };
 	
