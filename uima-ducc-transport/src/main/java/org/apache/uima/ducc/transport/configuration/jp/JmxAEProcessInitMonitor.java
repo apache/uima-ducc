@@ -33,7 +33,6 @@ import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
 import org.apache.uima.analysis_engine.AnalysisEngineManagement;
-import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.agent.UimaPipelineAEComponent;
 
