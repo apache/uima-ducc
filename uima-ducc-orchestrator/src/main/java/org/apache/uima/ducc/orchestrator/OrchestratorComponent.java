@@ -53,6 +53,7 @@ import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
+import org.apache.uima.ducc.transport.event.DuccWorkRequestEvent;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
@@ -353,6 +354,26 @@ implements Orchestrator {
 		}
 		super.start(service, args);
 		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.Orchestrator,getProcessJmxUrl());
+		logger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
+	
+	/**
+	 * DuccWork State Reconciliation
+	 */
+	
+	public void reconcileDwState(DuccWorkRequestEvent duccEvent) {
+		String methodName = "reconcileDwState";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		if(duccEvent != null) {
+			DuccId duccId = duccEvent.getDuccId();
+			if(duccId != null) {
+				if(workMap != null) {
+					IDuccWork dw = workMap.findDuccWork(duccId);
+					duccEvent.setDw(dw);
+				}
+			}
+		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
