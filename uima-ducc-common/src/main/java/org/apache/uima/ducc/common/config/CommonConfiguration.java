@@ -98,14 +98,6 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.orchestrator.state.publish.rate'] }")
 	public String orchestratorStatePublishRate;
 	
-	//	fetch the name of an endpoint where the Orchestrator should post abbreviated state updates
-	@Value("#{ systemProperties['ducc.orchestrator.abbreviated.state.update.endpoint'] }")
-	public String orchestratorAbbreviatedStateUpdateEndpoint;
-	
-	//	fetch the rate at which the Orchestrator should post its abbreviated state
-	@Value("#{ systemProperties['ducc.orchestrator.abbreviated.state.publish.rate'] }")
-	public String orchestratorAbbreviatedStatePublishRate;
-	
 	//	fetch the name of an endpoint where the Job Driver should post state updates
 	@Value("#{ systemProperties['ducc.jd.state.update.endpoint'] }")
 	public String jdStateUpdateEndpoint;
