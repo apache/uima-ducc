@@ -22,7 +22,6 @@ import org.apache.camel.Body;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.sm.IServiceManager;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
-import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.ServiceDisableEvent;
 import org.apache.uima.ducc.transport.event.ServiceEnableEvent;
@@ -215,22 +214,12 @@ public class ServiceManagerEventListener
         }
 	}
 
-    // TODO OR state - not used any more?
+    // OR state
 	public void onOrchestratorStateDuccEvent(@Body OrchestratorStateDuccEvent duccEvent) 
         throws Exception 
     {
-		//System.out.println("......... Service Manager Received OrchestratorStateDuccEvent.");
-		//serviceManager.evaluateServiceRequirements(duccEvent.getWorkMap());
-//		DuccEvent de = new StartServiceDuccEvent();
-//		eventDispatcher.dispatch(targetEndpoint, duccEvent);
-	}
-
-    // Abbreviated OR state
-	public void onOrchestratorAbbreviatedStateDuccEvent(@Body OrchestratorAbbreviatedStateDuccEvent duccEvent) 
-        throws Exception 
-    {
-		String methodName = "onOrchestratorAbbreviatedStateDuccEvent";
-		// System.out.println("......... Service Manager Received OrchestratorAbbreviatedStateDuccEvent.");
+		String methodName = "onOrchestratorStateDuccEvent";
+		// System.out.println("......... Service Manager Received OrchestratorStateDuccEvent.");
 		// serviceManager.evaluateServiceRequirements(duccEvent.getWorkMap());
         try {
             serviceManager.orchestratorStateArrives(duccEvent.getWorkMap());

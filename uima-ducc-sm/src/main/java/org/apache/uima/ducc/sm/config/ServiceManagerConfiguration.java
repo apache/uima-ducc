@@ -262,17 +262,8 @@ public class ServiceManagerConfiguration
         // Set context so SM can send state when it wants to (not on timer)
         sm.setTransportConfiguration(serviceManagerTransport.duccEventDispatcher(common.smStateUpdateEndpoint, sm.getContext()), 
                                      common.smStateUpdateEndpoint);
-        
-
-        //delegateListener.setDuccEventDispatcher(serviceManagerTransport.duccEventDispatcher(common.orchestratorAbbreviatedStateUpdateEndpoint, sm.getContext()));
-        //
-
-		//	Inject Camel Router that will delegate messages to Service Manager delegate listener
-        // TODO Not used? OR state messages - incoming
-		// sm.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.orchestratorStateUpdateEndpoint, delegateListener));
-
-        // OR abbreviated state messages - incoming
-		sm.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.orchestratorAbbreviatedStateUpdateEndpoint, delegateListener));
+        // OR state messages - incoming
+		sm.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.orchestratorStateUpdateEndpoint, delegateListener));
 
         // API requests - incoming
 		//sm.getContext().addRoutes(this.routeBuilderForApi(common.smRequestEndpoint, delegateListener));
