@@ -57,7 +57,6 @@ import org.apache.uima.ducc.transport.event.DuccWorkRequestEvent;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
-import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
@@ -446,7 +445,7 @@ implements Orchestrator {
 	public OrchestratorStateDuccEvent getState() {
 		String methodName = "getState";
 		logger.trace(methodName, null, messages.fetch("enter"));
-		OrchestratorStateDuccEvent orchestratorStateDuccEvent = new OrchestratorStateDuccEvent();
+		OrchestratorStateDuccEvent orchestratorStateDuccEvent = new OrchestratorStateDuccEvent(logger);
 		try {
 			DuccWorkMap workMapCopy = WorkMapHelper.deepCopy(workMap, this, methodName);
 			int activeJobs = workMapCopy.getJobCount();
@@ -472,39 +471,7 @@ implements Orchestrator {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return orchestratorStateDuccEvent;
 	}
-	/**
-	 * Publish Orchestrator Abbreviated State
-	 */
-	
-	public OrchestratorAbbreviatedStateDuccEvent getAbbreviatedState() {
-		String methodName = "getAbbreviatedState";
-		logger.trace(methodName, null, messages.fetch("enter"));
-		OrchestratorAbbreviatedStateDuccEvent orchestratorAbbreviatedStateDuccEvent = new OrchestratorAbbreviatedStateDuccEvent();
-		try {
-			DuccWorkMap workMapCopy = WorkMapHelper.deepCopy(workMap, this, methodName);
-			int activeJobs = workMapCopy.getJobCount();
-			int activeReservations = workMapCopy.getReservationCount();
-			int activeServices = workMapCopy.getServiceCount();
-			logger.debug(methodName, null, messages.fetch("publishing state")+" "+
-											messages.fetchLabel("active job count")+activeJobs
-											+" "+
-											messages.fetchLabel("active reservation count")+activeReservations
-											+" "+
-											messages.fetchLabel("active service count")+activeServices
-											);
-			int jobDriverNodeCount = hostManager.nodes();
-			workMapCopy.setJobDriverNodeCount(jobDriverNodeCount);
-			orchestratorAbbreviatedStateDuccEvent.setWorkMap(workMapCopy);
-			//stateManager.prune(workMapCopy);
-			//healthMonitor.cancelNonViableJobs();
-			//mqReaper.removeUnusedJdQueues(workMapCopy);
-		}
-		catch(Throwable t) {
-			logger.error(methodName, null, t);
-		}
-		logger.trace(methodName, null, messages.fetch("exit"));
-		return orchestratorAbbreviatedStateDuccEvent;
-	}
+
 	@SuppressWarnings("unchecked")
 	private void submitError(Properties properties, String error_message) {
 		String key = SpecificationProperties.key_submit_errors;

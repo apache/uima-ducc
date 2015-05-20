@@ -48,7 +48,6 @@ import org.apache.uima.ducc.transport.event.DuccWorkReplyEvent;
 import org.apache.uima.ducc.transport.event.DuccWorkRequestEvent;
 import org.apache.uima.ducc.transport.event.JdReplyEvent;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
-import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
@@ -271,63 +270,6 @@ public class OrchestratorConfiguration {
 		}
 	}
 	
-	
-	/**
-	 * Creates Camel router that will publish Orchestrator abbreviated state at regular intervals.
-	 * 
-	 * @param targetEndpointToReceiveOrchestratorAbbreviatedStateUpdate - endpoint where to publish state 
-	 * @param statePublishRate - how often to publish state
-	 * @return
-	 * @throws Exception
-	 */
-	private RouteBuilder routeBuilderForOrchestratorAbbreviatedStatePost(final Orchestrator orchestrator, final String targetEndpointToReceiveOrchestratorAbbreviatedStateUpdate, final int statePublishRate) throws Exception {
-		final OrchestratorAbbreviatedStateProcessor orchestratorp =  // an object responsible for generating the state 
-			new OrchestratorAbbreviatedStateProcessor(orchestrator);
-		
-		return new RouteBuilder() {
-		      public void configure() {  
-
-		    	final Predicate blastFilter = new DuccBlastGuardPredicate(duccLogger);
-		    	
-		        from("timer:orchestratorAbbreviatedStateDumpTimer?fixedRate=true&period=" + statePublishRate)
-		        	// This route uses a filter to prevent sudden bursts of messages which
-		        	// may flood DUCC daemons causing chaos. The filter disposes any event
-		        	// that appears in a window of 1 sec or less.
-		        	.filter(blastFilter)		
-		        	//.process(xmStart)
-		        	.process(orchestratorp)
-		        	//.process(xmEnded)
-                    .to(targetEndpointToReceiveOrchestratorAbbreviatedStateUpdate)
-		        	;
-		      }
-		    };
-	}
-	
-	/**
-	 * Camel Processor responsible for generating Orchestrator's state.
-	 * 
-	 */
-	private class OrchestratorAbbreviatedStateProcessor implements Processor {
-		private Orchestrator orchestrator;
-		
-		private OrchestratorAbbreviatedStateProcessor(Orchestrator orchestrator) {
-			this.orchestrator = orchestrator;
-		}
-		public void process(Exchange exchange) throws Exception {
-			String location = "OrchestratorAbbreviatedStateProcessor.process";
-			// Fetch new state from Orchestrator
-			OrchestratorAbbreviatedStateDuccEvent jse = orchestrator.getAbbreviatedState();
-			//	add sequence number to the outgoing message. This should be used to manage
-			//  processing order in the consumer
-			OrchestratorState orchestratorState = OrchestratorState.getInstance();
-			long seqNo = orchestratorState.getNextSequenceNumberStateAbbreviated();
-			duccLogger.debug(location, jobid, ""+seqNo);
-			jse.setSequence(seqNo);
-			//	Add the state object to the Message
-			exchange.getIn().setBody(jse);
-		}
-	}
-	
 	/**
 	 * Instantiate a listener to which Camel will route a body of the incoming message.
 	 * The listener should provide a method for each object class it expects to receive.
@@ -358,7 +300,6 @@ public class OrchestratorConfiguration {
 		orchestrator.getContext().addRoutes(this.routeBuilderForEndpoint(common.jdStateUpdateEndpoint,delegateListener));
 		orchestrator.getContext().addRoutes(this.routeBuilderForEndpoint(common.nodeInventoryEndpoint,delegateListener));
 		orchestrator.getContext().addRoutes(this.routeBuilderForOrchestratorStatePost(orchestrator, common.orchestratorStateUpdateEndpoint, Integer.parseInt(common.orchestratorStatePublishRate)));
-		orchestrator.getContext().addRoutes(this.routeBuilderForOrchestratorAbbreviatedStatePost(orchestrator, common.orchestratorAbbreviatedStateUpdateEndpoint, Integer.parseInt(common.orchestratorAbbreviatedStatePublishRate)));
 		return orchestrator;
 	}
   public class ErrorProcessor implements Processor {
