@@ -30,6 +30,7 @@ import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.pm.helper.DuccWorkHelper;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.DuccEvent;
@@ -45,6 +46,8 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
 
 /**
@@ -62,6 +65,9 @@ implements ProcessManager {
 	private static String header;
 	private static String tbl=String.format("%1$-158s"," ").replace(" ", "-");
 	public static DuccLogger logger = new DuccLogger(ProcessManagerComponent.class, DuccComponent);
+	
+	private static DuccWorkHelper dwHelper = null;
+	
 	//	Dispatch component used to send messages to remote Agents
 	private DuccEventDispatcher eventDispatcher;
   private int shareQuantum;
@@ -82,6 +88,7 @@ implements ProcessManager {
 				String.format(jobHeaderFormat,jobHeaderArray[0],jobHeaderArray[1],jobHeaderArray[2],
 						   jobHeaderArray[3],jobHeaderArray[4],jobHeaderArray[5],jobHeaderArray[6],
 						   jobHeaderArray[7],jobHeaderArray[8]+"\n");
+		dwHelper = new DuccWorkHelper();
 	}
 	public void start(DuccService service) throws Exception {
 		super.start(service, null);
@@ -115,6 +122,20 @@ implements ProcessManager {
 	    int shares = (int)normalizedProcessMemoryRequirements/shareQuantum;  // get number of shares
 	    if ( (normalizedProcessMemoryRequirements % shareQuantum) > 0 ) shares++; // ciel
 	    return shares;
+	}
+
+	private String getCmdLine(ICommandLine iCommandLine) {
+		StringBuffer sb = new StringBuffer();
+		if(iCommandLine != null) {
+			String[] commandLine = iCommandLine.getCommandLine();
+			if(commandLine != null) {
+				for(String item : commandLine) {
+					sb.append(item);
+					sb.append(" ");
+				}
+			}
+		}
+		return sb.toString();
 	}
 
 	public void dispatchStateUpdateToAgents(ConcurrentHashMap<DuccId, IDuccWork> workMap, long sequence) {
@@ -161,26 +182,50 @@ implements ProcessManager {
 	        logger.debug(methodName,dcj.getDuccId(),"--------------- User Requested Memory For Process:"+dcj.getSchedulingInfo().getShareMemorySize()+dcj.getSchedulingInfo().getShareMemoryUnits()+" PM Calculated Memory Assignment of:"+processAdjustedMemorySize);
 	        
 	        ICommandLine driverCmdLine = null;
+	        ICommandLine processCmdLine = null;
 	        IDuccProcess driverProcess = null;
+	        IDuccWork dw = null;
+	        
 	        switch(dcj.getDuccType()) {
 	        case Job:
-		       
-	          driverCmdLine = dcj.getDriver().getCommandLine();
+	          logger.debug(methodName, dcj.getDuccId(), "case: Job");
+	          dw = dwHelper.fetch(dcj.getDuccId());
+	          IDuccWorkJob job = (IDuccWorkJob) dw;
+	          driverCmdLine = job.getDriver().getCommandLine();
+	          processCmdLine = job.getCommandLine();
 	          driverProcess = dcj.getDriver().getProcessMap().entrySet().iterator().next().getValue();
-	          
 	          break;
 	        case Service:
-	          ///logger.info(methodName,null,"!!!!!!!!!!!!! GOT SERVICE");
-	          dcj.getCommandLine().addOption("-Dducc.deploy.components=service");
-	          
+	          logger.debug(methodName, dcj.getDuccId(), "case: Service");
+	          dw = dwHelper.fetch(dcj.getDuccId());
+	          IDuccWorkJob service = (IDuccWorkJob) dw;
+	          processCmdLine = service.getCommandLine();
+	          processCmdLine.addOption("-Dducc.deploy.components=service");
 	          break;
-	        
 	        default:
-	          
+	          logger.debug(methodName, dcj.getDuccId(), "case: default");
+	          dw = dwHelper.fetch(dcj.getDuccId());
+	          if(dw instanceof IDuccWorkExecutable) {
+	        	  IDuccWorkExecutable dwe = (IDuccWorkExecutable) dw;
+	        	  processCmdLine = dwe.getCommandLine();
+	          }
+		      break;
 	        }
 	        
+	        String dText = "n/a";
+	        if(driverCmdLine != null) {
+	        	dText = getCmdLine(driverCmdLine);
+	        }
+	        logger.trace(methodName, dcj.getDuccId(), "driver: "+dText);
+	        
+	        String pText = "n/a";
+	        if(processCmdLine != null) {
+	        	pText = getCmdLine(processCmdLine);
+	        }
+	        logger.trace(methodName, dcj.getDuccId(), "process: "+pText);
+	        
 	        jobDeploymentList.add( new DuccJobDeployment(dcj.getDuccId(), driverCmdLine,
-	                           dcj.getCommandLine(), 
+	                           processCmdLine, 
 	                           dcj.getStandardInfo(),
 	                           driverProcess,
 	                           pma,
@@ -195,7 +240,7 @@ implements ProcessManager {
 	          logger.debug(methodName,null,"---------------  Added reservation for user:"+userId);
 	        }
         }
-	    }
+	  }
       logger.info(methodName, null , "---- PM Dispatching DuccJobsStateEvent request to Agent(s) - State Map Size:"+jobDeploymentList.size()+" Reservation List:"+reservationList.size());
       DuccJobsStateEvent ev =  new DuccJobsStateEvent(DuccEvent.EventType.PM_STATE, jobDeploymentList, reservationList);
       ev.setSequence(sequence);
