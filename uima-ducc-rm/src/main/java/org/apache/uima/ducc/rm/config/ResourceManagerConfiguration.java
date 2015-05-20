@@ -106,9 +106,8 @@ import org.springframework.context.annotation.Import;
                 //  Inject Camel Router that will generate state updates at regular intervals
                 // jrc rm.getContext().addRoutes(this.routeBuilderForRMStateUpdate(rm, common.rmStateUpdateEndpoint, Integer.parseInt(common.rmStatePublishRate)));
 
-                //  Inject Camel Router that will handle Job Manager state update messages
-                // rm.getContext().addRoutes(this.routeBuilderForEndpoint(common.orchestratorStateUpdateEndpoint, delegateListener));
-                rm.getContext().addRoutes(this.routeBuilderForEndpoint(common.orchestratorAbbreviatedStateUpdateEndpoint, delegateListener));
+                //  Inject Camel Router that will handle Orchestrator state update messages
+                rm.getContext().addRoutes(this.routeBuilderForEndpoint(common.orchestratorStateUpdateEndpoint, delegateListener));
 
                 //  Inject Camel Router that will handle Agent Node inventory update messages
                 // rm.getContext().addRoutes(this.routeBuilderForEndpoint(common.nodeInventoryEndpoint,delegateListener));

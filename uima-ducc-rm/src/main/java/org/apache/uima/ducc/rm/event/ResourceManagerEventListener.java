@@ -25,7 +25,6 @@ import org.apache.uima.ducc.rm.scheduler.SchedConstants;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
-import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 
@@ -101,19 +100,6 @@ public class ResourceManagerEventListener
     public void onOrchestratorStateUpdateEvent(@Body OrchestratorStateDuccEvent duccEvent) throws Exception 
     {
     	//String methodName = "onOrchestratorStateUpdateEvent";
-        //logger.info(methodName, null, "Event arrives");
-        rm.onOrchestratorStateUpdate(duccEvent.getWorkMap());
-    }
-
-    /**
-     * Receives {@code OrchestratedAbbreviatedDuccEvent} events from transport.
-     * 
-     * @param duccEvent
-     * @throws Exception
-     */
-    public void onOrchestratedAbbreviatedStateUpdateEvent(@Body OrchestratorAbbreviatedStateDuccEvent duccEvent) throws Exception 
-    {
-    	//String methodName = "onOrchestratorAbbreviatedStateUpdateEvent";
         //logger.info(methodName, null, "Event arrives");
         rm.onOrchestratorStateUpdate(duccEvent.getWorkMap());
     }
