@@ -19,12 +19,19 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
@@ -32,13 +39,8 @@ import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 
 public class DuccWebUtil {
 
-	/*
-	@Deprecated
-	protected String getUserHome(String userName) throws IOException{
-	    return new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(new String[]{"sh", "-c", "echo ~" + userName}).getInputStream())).readLine();
-	}
-	*/
-
+	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccWebUtil.class.getName());
+	
 	public static final void noCache(HttpServletResponse response) {
 		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
 		response.setDateHeader("Expires", 0); // Proxies.
@@ -203,6 +205,36 @@ public class DuccWebUtil {
 					list = true;
 				}
 			}
+		}
+		return list;
+	}
+	
+	
+	public static ArrayList<String> getRemotePids(DuccId duccId, Map<DuccId, IDuccProcess> map) {
+		String location = "getRemotePids";
+		ArrayList<String> list = new ArrayList<String>();
+		if(map != null) {
+			if(map.size() > 0) {
+				for(Entry<DuccId, IDuccProcess> entry : map.entrySet()) {
+					IDuccProcess proc = entry.getValue();
+					NodeIdentity nodeIdentity = proc.getNodeIdentity();
+					String host = nodeIdentity.getName();
+					if(host != null) {
+						String pid = proc.getPID();
+						if(pid != null) {
+							String remotePid = pid+"@"+host;
+							list.add(remotePid);
+							duccLogger.debug(location, duccId, remotePid);
+						}
+					}
+				}
+			}
+			else {
+				duccLogger.debug(location, duccId, "map is empty");
+			}
+		}
+		else {
+			duccLogger.debug(location, duccId, "map is null");
 		}
 		return list;
 	}

@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,6 +36,7 @@ import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
@@ -106,6 +108,10 @@ public class DuccWebMonitorJob {
 			monitorInfo.error = ""+si.getIntWorkItemsError();
 			monitorInfo.retry = si.getWorkItemsRetry();
 			monitorInfo.procs = ""+dwj.getProcessMap().getAliveProcessCount();
+			
+			Map<DuccId, IDuccProcess> map = dwj.getProcessMap().getMap();
+			
+			monitorInfo.remotePids = DuccWebUtil.getRemotePids(duccId, map);
 			
 			if(si.getIntWorkItemsError() > 0) {
 				String logsjobdir = dwj.getUserLogsDir()+dwj.getDuccId().getFriendly()+File.separator;
