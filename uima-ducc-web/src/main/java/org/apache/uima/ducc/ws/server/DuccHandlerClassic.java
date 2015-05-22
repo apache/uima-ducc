@@ -643,9 +643,11 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			sb.append("</td>");
 		}
 		// Allocation
+		/*
 		sb.append("<td align=\"right\">");
 		sb.append(duccwork.getSchedulingInfo().getInstancesCount());
 		sb.append("</td>");
+		*/
 		// User Processes
 		sb.append("<td align=\"right\">");
 		TreeMap<String,Integer> nodeMap = new TreeMap<String,Integer>();

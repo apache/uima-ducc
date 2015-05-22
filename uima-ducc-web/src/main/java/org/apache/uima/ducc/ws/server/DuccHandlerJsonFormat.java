@@ -739,11 +739,13 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 		row.add(new JsonPrimitive(sb.toString()));
 		// Allocation
+		/*
 		sb = new StringBuffer();
 		sb.append("<span>");
 		sb.append(duccwork.getSchedulingInfo().getInstancesCount());
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
+		*/
 		// User Processes
 		sb = new StringBuffer();
 		TreeMap<String,Integer> nodeMap = new TreeMap<String,Integer>();
