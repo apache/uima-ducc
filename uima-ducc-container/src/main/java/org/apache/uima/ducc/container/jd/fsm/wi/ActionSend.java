@@ -24,8 +24,10 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
+import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 
@@ -45,7 +47,9 @@ public class ActionSend implements IAction {
 		IActionData actionData = (IActionData) objectData;
 		try {
 			if(actionData != null) {
-				IWorkItem wi = actionData.getWorkItem();
+				IRemoteWorkerThread rwt = actionData.getRemoteWorkerThread();
+				WiTracker tracker = WiTracker.getInstance();
+				IWorkItem wi = tracker.assign(rwt);
 				IMetaCasTransaction trans = actionData.getMetaCasTransaction();
 				IMetaCas metaCas = trans.getMetaCas();
 				wi.setMetaCas(metaCas);

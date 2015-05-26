@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.MetaCasHelper;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.logger.IComponent;
@@ -54,9 +55,8 @@ public class WiTracker {
 		return JobDriver.getInstance().getRemoteWorkerThreadMap();
 	}
 	
-	public IWorkItem assign(IRemoteWorkerThread rwt) {
-		String location = "assign";
-		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map  = getMap();
+	public IWorkItem link(IRemoteWorkerThread rwt) {
+		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = getMap();
 		IWorkItem wi = null;
 		if(rwt != null) {
 			wi = find(rwt);
@@ -66,7 +66,20 @@ public class WiTracker {
 				wi = new WorkItem(metaCas, fsm);
 				map.put(rwt, wi);
 			}
+		}
+		return wi;
+	}
+	
+	public IWorkItem assign(IRemoteWorkerThread rwt) {
+		String location = "assign";
+		IWorkItem wi = null;
+		if(rwt != null) {
+			wi = find(rwt);
+			IMetaCas metaCas = wi.getMetaCas();
+			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+			int seqNo = metaCasHelper.getSystemKey();
 			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.seqNo.get()+seqNo);
 			mb.append(Standardize.Label.remote.get()+rwt.toString());
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
@@ -76,10 +89,15 @@ public class WiTracker {
 	
 	public void unassign(IWorkItem wi) {
 		String location = "unassign";
-		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map  = getMap();
+		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = getMap();
 		IRemoteWorkerThread rwt = find(wi);
 		if(rwt != null) {
+			wi = find(rwt);
+			IMetaCas metaCas = wi.getMetaCas();
+			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+			int seqNo = metaCasHelper.getSystemKey();
 			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.seqNo.get()+seqNo);
 			mb.append(Standardize.Label.remote.get()+rwt.toString());
 			logger.debug(location, ILogger.null_id, mb.toString());
 			map.remove(rwt);
@@ -89,7 +107,7 @@ public class WiTracker {
 
 	public IWorkItem find(IRemoteWorkerThread rwt) {
 		String location = "find";
-		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map  = getMap();
+		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = getMap();
 		IWorkItem wi = null;
 		if(rwt != null) {
 			wi = map.get(rwt);
@@ -110,7 +128,7 @@ public class WiTracker {
 	}
 	
 	public IRemoteWorkerThread find(IWorkItem wi) {
-		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map  = getMap();
+		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = getMap();
 		IRemoteWorkerThread rwt = null;
 		if(wi != null) {
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
@@ -178,13 +196,13 @@ public class WiTracker {
 	}
 	
 	public int getSize() {
-		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map  = getMap();
+		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = getMap();
 		return map.size();
 	}
 	
 	private void report() {
 		String location = "report";
-		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map  = getMap();
+		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = getMap();
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.size.get()+map.size());
 		logger.trace(location, ILogger.null_id, mb.toString());

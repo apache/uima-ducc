@@ -503,7 +503,7 @@ public class MessageHandler implements IMessageHandler {
 	
 	private void handleMetaCasTransationGet(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
 		WiTracker tracker = WiTracker.getInstance();
-		IWorkItem wi = tracker.assign(rwt);
+		IWorkItem wi = tracker.link(rwt);
 		IFsm fsm = wi.getFsm();
 		IEvent event = WiFsm.Get_Request;
 		Object actionData = new ActionData(wi, rwt, trans);

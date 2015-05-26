@@ -88,7 +88,8 @@ public class TestWiTracker extends TestBase  {
 		int seqNo = 1;
 		//
 		IRemoteWorkerThread rwt01A = getRemoteWorkerThread();
-		IWorkItem wi01A = tracker.assign(rwt01A);
+		IWorkItem wi01A = tracker.link(rwt01A);
+		tracker.assign(rwt01A);
 		IMetaCas metaCas = getMetaCas(1);
 		wi01A.setMetaCas(metaCas);
 		//
@@ -102,6 +103,7 @@ public class TestWiTracker extends TestBase  {
 		seqNo = 2;
 		IWorkItem wi02A = getWi(seqNo);
 		IRemoteWorkerThread rwt02A = getRemoteWorkerThread();
+		tracker.link(rwt02A);
 		tracker.assign(rwt02A);
 		wi02A.setMetaCas(metaCas);
 		//
