@@ -18,14 +18,16 @@
 */
 package org.apache.uima.ducc.transport.event.jd;
 
-import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
 import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IRationale;
+import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
 public interface IDriverStatusReport {
@@ -87,7 +89,7 @@ public interface IDriverStatusReport {
 	public String getUimaDeploymentDescriptor();
 	public String getUimaAnalysisEngine();
 	
-	public Iterator<DuccId> getKillDuccIds();
+	public Map<IRemoteLocation, ProcessDeallocationType> getProcessKillMap();
 	
 	public JobCompletionType getJobCompletionType();
 	public IRationale getJobCompletionRationale();

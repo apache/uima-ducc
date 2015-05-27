@@ -20,12 +20,15 @@ package org.apache.uima.ducc.transport.event.jd;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
 import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.container.common.IJdConstants.DeallocateReason;
 import org.apache.uima.ducc.container.common.Util;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -42,6 +45,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IRationale;
+import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
@@ -80,6 +84,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	
 	private ConcurrentHashMap<RemoteLocation, Long> mapProcessOperatingMillis = null;
 	private ConcurrentHashMap<RemoteLocation, Long> mapProcessInvestmentMillis = null;
+	
+	private Map<IRemoteLocation, ProcessDeallocationType> processKillMap = null;
 	
 	private String jpDeployable = null;
 	
@@ -211,6 +217,23 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		else {
 			logger.debug(location, null, "list is null");
 		}
+		Map<IRemoteLocation, ProcessDeallocationType> map = convert(operatingInfo.getProcessKillMap());
+		setProcessKillMap(map);
+	}
+	
+	private Map<IRemoteLocation, ProcessDeallocationType> convert(Map<IRemoteLocation, DeallocateReason> jdMap) {
+		Map<IRemoteLocation, ProcessDeallocationType> map = new HashMap<IRemoteLocation, ProcessDeallocationType>();
+		for(Entry<IRemoteLocation, DeallocateReason> entry : jdMap.entrySet()) {
+			switch(entry.getValue()) {
+			case WorkItemTimeout:
+				map.put(entry.getKey(),ProcessDeallocationType.Timeout);
+				break;
+			default:
+				map.put(entry.getKey(),ProcessDeallocationType.Undefined);
+				break;
+			}
+		}
+		return map;
 	}
 	
 	private void setDuccId(DuccId value) {
@@ -299,6 +322,10 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	
 	private void setPerWorkItemStatistics(IDuccPerWorkItemStatistics value) {
 		duccPerWorkItemStatistics = value;
+	}
+	
+	public void setProcessKillMap(Map<IRemoteLocation, ProcessDeallocationType> value) {
+		processKillMap = value;
 	}
 	
 	@Override
@@ -439,9 +466,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	}
 	
 	@Override
-	public Iterator<DuccId> getKillDuccIds() {
-		// TODO Auto-generated method stub
-		return null;
+	public Map<IRemoteLocation, ProcessDeallocationType> getProcessKillMap() {
+		return processKillMap;
 	}
 
 	@Deprecated
