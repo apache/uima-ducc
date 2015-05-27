@@ -21,5 +21,6 @@ package org.apache.uima.ducc.common.jd.files.workitem;
 import java.io.Serializable;
 
 public interface IRemoteLocation extends Serializable {
-
+	public String getNodeIP();
+	public String getPid();
 }
