@@ -19,7 +19,10 @@
 package org.apache.uima.ducc.container.jd.mh.impl;
 
 import java.util.ArrayList;
+import java.util.Map;
 
+import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
+import org.apache.uima.ducc.container.common.IJdConstants.DeallocateReason;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
@@ -64,6 +67,8 @@ public class OperatingInfo implements IOperatingInfo {
 
 	private ArrayList<IWorkItemInfo> activeWorkItemInfo = null;
 	private ArrayList<IProcessInfo> processInfo = null;
+	
+	private Map<IRemoteLocation, DeallocateReason> processKillMap = null;
 	
 	public OperatingInfo() {
 	}
@@ -351,6 +356,16 @@ public class OperatingInfo implements IOperatingInfo {
 	@Override
 	public String getJpDeployable() {
 		return jpDeployable;
+	}
+
+	@Override
+	public void setProcessKillMap(Map<IRemoteLocation, DeallocateReason> value) {
+		processKillMap = value;
+	}
+
+	@Override
+	public Map<IRemoteLocation, DeallocateReason> getProcessKillMap() {
+		return processKillMap;
 	}
 
 }

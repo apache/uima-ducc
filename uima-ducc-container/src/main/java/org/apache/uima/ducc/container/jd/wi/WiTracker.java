@@ -142,10 +142,19 @@ public class WiTracker {
 	}
 
 	public IRemoteWorkerProcess getRemoteWorkerProcess(IWorkItem wi) {
+		String location = "getRemoteWorkerProcess";
 		IRemoteWorkerProcess rwp = null;
-		IRemoteWorkerThread rwt = find(wi);
 		if(wi != null) {
-			rwp = new RemoteWorkerProcess(rwt.getNodeName(),rwt.getNodeAddress(),rwt.getPidName(),rwt.getPid());
+			IRemoteWorkerThread rwt = find(wi);
+			if(rwt != null) {
+				rwp = new RemoteWorkerProcess(rwt.getNodeName(),rwt.getNodeAddress(),rwt.getPidName(),rwt.getPid());
+			}
+			else {
+				MessageBuffer mb = new MessageBuffer();
+				mb.append(Standardize.Label.seqNo.get()+wi.getSeqNo());
+				mb.append("has no work assigned presently");
+				logger.debug(location, ILogger.null_id, mb.toString());
+			}
 		}
 		return rwp;
 	}

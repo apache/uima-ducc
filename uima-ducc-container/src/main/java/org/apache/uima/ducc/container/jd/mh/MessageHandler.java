@@ -171,6 +171,7 @@ public class MessageHandler implements IMessageHandler {
 			oi.setActiveWorkItemInfo(jdh.getActiveWorkItemInfo());
 			oi.setProcessInfo(jdh.getProcessInfo());
 			oi.setJdState(jd.getJdState().name());
+			oi.setProcessKillMap(jd.getkillProcessMap());
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.jdState.get()+oi.getJdState());
 			mb.append(Standardize.Label.crTotal.get()+oi.getWorkItemCrTotal());

@@ -18,12 +18,15 @@
 */
 package org.apache.uima.ducc.container.jd;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateKeeper;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
+import org.apache.uima.ducc.container.common.IJdConstants.DeallocateReason;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.IComponent;
@@ -73,6 +76,7 @@ public class JobDriver {
 	private long workItemTimeoutMillis = 24*60*60*1000;
 	private ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> remoteWorkerThreadMap = null;
 	private ConcurrentHashMap<IRemotePid, IProcessStatistics> remoteProcessMap = null;
+	private Map<IRemoteLocation, DeallocateReason> killProcessMap = null;
 	private IWorkItemStatistics wis = null;
 	private CasManager cm = null;
 	private ProxyJobDriverErrorHandler pjdeh = null;
@@ -102,6 +106,7 @@ public class JobDriver {
 			setWorkItemTimeout();
 			remoteWorkerThreadMap = new ConcurrentHashMap<IRemoteWorkerThread, IWorkItem>();
 			remoteProcessMap = new ConcurrentHashMap<IRemotePid, IProcessStatistics>();
+			killProcessMap = new ConcurrentHashMap<IRemoteLocation, DeallocateReason>();
 			wis = new WorkItemStatistics();
 			wisk = new WorkItemStateKeeper(IComponent.Id.JD.name(), logDir);
 			wipk = new WorkItemPerformanceKeeper(logDir);
@@ -183,6 +188,10 @@ public class JobDriver {
 		return wipk;
 	}
 	
+	public Map<IRemoteLocation, DeallocateReason>getkillProcessMap() {
+		return killProcessMap;
+	}
+	
 	public JdState getJdState() {
 		synchronized(jdState) {
 			return jdState;
@@ -236,6 +245,21 @@ public class JobDriver {
 		}
 		else {
 			logger.info(location, ILogger.null_id, mb.toString());
+		}
+	}
+	
+	public void killProcess(IRemoteLocation remoteLocation, DeallocateReason reason) {
+		String location = "killProcess";
+		if(remoteLocation != null) {
+			if(reason != null) {
+				if(!killProcessMap.containsKey(remoteLocation)) {	
+					killProcessMap.put(remoteLocation, reason);
+					MessageBuffer mb = new MessageBuffer();
+					mb.append(Standardize.Label.id.get()+remoteLocation.toString());
+					mb.append(Standardize.Label.reason.get()+reason.toString());
+					logger.info(location, ILogger.null_id, mb.toString());
+				}
+			}
 		}
 	}
 	

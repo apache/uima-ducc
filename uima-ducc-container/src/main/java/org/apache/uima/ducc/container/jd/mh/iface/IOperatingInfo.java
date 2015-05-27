@@ -20,6 +20,10 @@ package org.apache.uima.ducc.container.jd.mh.iface;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Map;
+
+import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
+import org.apache.uima.ducc.container.common.IJdConstants.DeallocateReason;
 
 public interface IOperatingInfo extends Serializable {
 
@@ -123,4 +127,9 @@ public interface IOperatingInfo extends Serializable {
 	
 	public void setProcessInfo(ArrayList<IProcessInfo> value);
 	public ArrayList<IProcessInfo> getProcessItemInfo();
+	
+//
+	
+	public void setProcessKillMap(Map<IRemoteLocation, DeallocateReason> value);
+	public Map<IRemoteLocation, DeallocateReason> getProcessKillMap();
 }

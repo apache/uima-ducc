@@ -18,9 +18,13 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
+import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
+import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
+import org.apache.uima.ducc.container.common.IJdConstants.DeallocateReason;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.MetaCasHelper;
+import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
@@ -52,6 +56,28 @@ public class ActionEndTimeout extends Action implements IAction {
 		cm.getCasManagerStats().incEndFailure();
 	}
 	
+	private void killProcess(IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi, DeallocateReason deallocateReason) {
+		String location = "killProcess";
+		WiTracker tracker = WiTracker.getInstance();
+		IRemoteWorkerProcess rwp = tracker.getRemoteWorkerProcess(wi);
+		if(rwp == null) {
+			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+			mb.append("remote worker process not found");
+			logger.info(location, ILogger.null_id, mb.toString());
+		}
+		else {
+			String nodeIp = rwp.getNodeAddress();
+			String pid = ""+rwp.getPid();
+			IRemoteLocation remoteLocation = new RemoteLocation(nodeIp,pid);
+			JobDriver jd = JobDriver.getInstance();
+			jd.killProcess(remoteLocation, deallocateReason);
+			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+			mb.append(Standardize.Label.node.get()+nodeIp);
+			mb.append(Standardize.Label.pid.get()+pid);
+			logger.info(location, ILogger.null_id, mb.toString());
+		}
+	}
+	
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
@@ -68,6 +94,7 @@ public class ActionEndTimeout extends Action implements IAction {
 				JobDriverHelper jdh = JobDriverHelper.getInstance();
 				if(rwp != null) {
 					if(metaCas != null) {
+						killProcess(actionData, cm, metaCas, wi, DeallocateReason.WorkItemTimeout);
 						killWorkItem(actionData, cm, metaCas, wi);
 						IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 						MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
