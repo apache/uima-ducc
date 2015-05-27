@@ -32,6 +32,7 @@ import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.internationalization.Messages;
+import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
 import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -755,24 +756,57 @@ public class StateManager {
 		return retVal;
 	}
 	
+	private DuccId getDuccId(IDuccProcessMap processMap, IRemoteLocation remoteLocation) {
+		String methodName = "getDuccId";
+		DuccId duccId = null;
+		if(processMap != null) {
+			if(remoteLocation != null) {
+				String nodeIp = remoteLocation.getNodeIP();
+				String processId = remoteLocation.getPid();
+				logger.debug(methodName, null, "nodeIp:"+nodeIp+" "+"processId:"+processId);
+				for(Entry<DuccId, IDuccProcess> entry : processMap.entrySet()) {
+					IDuccProcess p = entry.getValue();
+					logger.debug(methodName, null, "duccId:"+entry.getKey()+" "+"nodeId:"+p.getNodeIdentity().getIp()+" "+"processId:"+p.getPID());
+				}
+				IDuccProcess process = processMap.findProcess(nodeIp, processId);
+				if(process != null) {
+					duccId = process.getDuccId();
+				}
+			}
+			else {
+				logger.debug(methodName, null, "remoteLocation null?");
+			}
+		}
+		else {
+			logger.debug(methodName, null, "processMap null?");
+		}
+		return duccId;
+	}
+	
 	private boolean deallocateFailedProcesses(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "deallocateFailedProcesses";
 		boolean retVal = false;
 		IDuccProcessMap processMap = job.getProcessMap();
-		Iterator<DuccId> iterator = jdStatusReport.getKillDuccIds();
-		if(iterator != null) {
-			while (iterator.hasNext()) {
-				DuccId duccId = iterator.next();
-				IDuccProcess process = processMap.get(duccId);
-				if(process != null) {
-					if(!process.isDeallocated()) {
-						OrUtil.setResourceState(job, process, ResourceState.Deallocated);
-						process.setProcessDeallocationType(ProcessDeallocationType.Exception);
-						logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
+		Map<IRemoteLocation, ProcessDeallocationType> map = jdStatusReport.getProcessKillMap();
+		if(map != null) {
+			logger.debug(methodName, job.getDuccId(), "size:"+map.size());
+			for(Entry<IRemoteLocation, ProcessDeallocationType> entry : map.entrySet()) {
+				DuccId duccId = getDuccId(processMap, entry.getKey());
+				if(duccId != null) {
+					IDuccProcess process = processMap.get(duccId);
+					if(process != null) {
+						if(!process.isDeallocated()) {
+							OrUtil.setResourceState(job, process, ResourceState.Deallocated);
+							process.setProcessDeallocationType(entry.getValue());
+							logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
+						}
+					}
+					else {
+						logger.warn(methodName, job.getDuccId(), duccId, "not in process map");
 					}
 				}
 				else {
-					logger.warn(methodName, job.getDuccId(), duccId, "not in process map");
+					logger.warn(methodName, job.getDuccId(), duccId, "null?");
 				}
 			}
 		}
