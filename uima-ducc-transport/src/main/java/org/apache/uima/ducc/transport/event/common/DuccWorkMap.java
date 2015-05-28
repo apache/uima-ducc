@@ -17,11 +17,11 @@
  * under the License.
 */
 package org.apache.uima.ducc.transport.event.common;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,9 +32,8 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 
-
-@SuppressWarnings({ "rawtypes" })
-public class DuccWorkMap implements IDuccWorkMap, Serializable, Map {
+@SuppressWarnings("rawtypes")
+public class DuccWorkMap implements IDuccWorkMap {
 	
 	/**
 	 * please increment this sUID when removing or modifying a field 
@@ -120,7 +119,7 @@ public class DuccWorkMap implements IDuccWorkMap, Serializable, Map {
 		return retVal;
 	}
 	
-	public ArrayList<DuccWorkJob> getServices(ArrayList<String> implementors) {
+	public List<DuccWorkJob> getServices(List<String> implementors) {
 		ArrayList<DuccWorkJob> servicesList = new ArrayList<DuccWorkJob>();
 		if(implementors != null) {
 			if(getServiceKeySet().size()> 0) {

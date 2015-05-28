@@ -18,16 +18,37 @@
 */
 package org.apache.uima.ducc.transport.event.common;
 
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
-public interface IDuccWorkMap {
+@SuppressWarnings("rawtypes")
+public interface IDuccWorkMap extends Serializable, Map {
+	
+	public IDuccWorkMap deepCopy();
 	
 	public Set<DuccId> getJobKeySet();
 	public Set<DuccId> getServiceKeySet();
+	public Set<DuccId> getReservationKeySet();
 	public Set<DuccId> getManagedReservationKeySet();
+	
+	public int getJobCount();
+	public int getServiceCount();
+	public int getReservationCount();
 	
 	public IDuccWork findDuccWork(DuccId duccId);
 	public IDuccWork findDuccWork(String duccId);
+	public IDuccWork findDuccWork(DuccType duccType, String id);
+	
+	public List<DuccWorkJob> getServices(List<String> implementors);
+	
+	public boolean isJobDriverNodeAssigned();
+	public Map<DuccId,IDuccWork> getMap();
+	public int getJobDriverNodeCount();
+	
+	public void addDuccWork(IDuccWork duccWork);
 }

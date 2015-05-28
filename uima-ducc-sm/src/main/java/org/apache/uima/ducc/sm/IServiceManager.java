@@ -30,7 +30,7 @@ import org.apache.uima.ducc.transport.event.ServiceRegisterEvent;
 import org.apache.uima.ducc.transport.event.ServiceStartEvent;
 import org.apache.uima.ducc.transport.event.ServiceStopEvent;
 import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 
 /**
@@ -39,10 +39,10 @@ import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 public interface IServiceManager 
 {
     // Receive the new map and kick the thread to process it
-	public void orchestratorStateArrives(DuccWorkMap workMap);
+	public void orchestratorStateArrives(IDuccWorkMap workMap);
 
     // Deal with the incoming orchestrator map
-	public void processIncoming(DuccWorkMap workMap);
+	public void processIncoming(IDuccWorkMap workMap);
 
     public void register(ServiceRegisterEvent ev);
 

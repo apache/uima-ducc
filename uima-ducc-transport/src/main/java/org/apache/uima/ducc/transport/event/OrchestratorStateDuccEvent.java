@@ -23,10 +23,10 @@ import java.io.ObjectOutputStream;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 
 public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
@@ -36,7 +36,7 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 	private static DuccId jobid = null;
 	private static DuccLogger logger = null;
 	
-	private DuccWorkMap workMap = null;
+	private IDuccWorkMap workMap = null;
 
 	public OrchestratorStateDuccEvent() {
 		super(EventType.ORCHESTRATOR_STATE);
@@ -47,13 +47,13 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 		logger = duccLogger;
 	}
 	
-	public void setWorkMap(DuccWorkMap value) {
+	public void setWorkMap(IDuccWorkMap value) {
 		this.workMap = value.deepCopy();
 		trim();
 	}
 	
-	public DuccWorkMap getWorkMap() {
-		DuccWorkMap value = this.workMap.deepCopy();
+	public IDuccWorkMap getWorkMap() {
+		IDuccWorkMap value = this.workMap.deepCopy();
 		return value;
 	}
 	
@@ -84,7 +84,8 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 	private void trim() {
 		String location = "trim";
 		int bytesTrimmed = 0;
-		for(DuccId duccId : workMap.keySet()) {
+		for(Object key : workMap.keySet()) {
+			DuccId duccId = (DuccId) key;
 			IDuccWork dw = (IDuccWork) workMap.get(duccId);
 			if(dw instanceof IDuccWorkJob) {
 				IDuccWorkJob job = (IDuccWorkJob) dw;

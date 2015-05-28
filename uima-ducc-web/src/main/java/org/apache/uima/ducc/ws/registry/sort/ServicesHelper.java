@@ -19,12 +19,13 @@
 package org.apache.uima.ducc.ws.registry.sort;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.ws.DuccData;
 
 public class ServicesHelper {
@@ -81,17 +82,17 @@ public class ServicesHelper {
 		return retVal.toString();
 	}
 	
-	public ArrayList<DuccWorkJob> getServicesList(IServiceAdapter serviceAdapter) {
-		ArrayList<DuccWorkJob> retVal = new ArrayList<DuccWorkJob>();
-		ArrayList<String> implementors = serviceAdapter.getImplementors();
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+	public List<DuccWorkJob> getServicesList(IServiceAdapter serviceAdapter) {
+		List<DuccWorkJob> retVal = new ArrayList<DuccWorkJob>();
+		List<String> implementors = serviceAdapter.getImplementors();
+		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		retVal = duccWorkMap.getServices(implementors);
 		return retVal;
 	}
 	
 	public long getPgIn(IServiceAdapter serviceAdapter) {
 		long retVal = 0;
-		ArrayList<DuccWorkJob> servicesList = getServicesList(serviceAdapter);
+		List<DuccWorkJob> servicesList = getServicesList(serviceAdapter);
 		for(DuccWorkJob service : servicesList) {
 			IDuccProcessMap map = service.getProcessMap();
 			for(DuccId key : map.keySet()) {
@@ -106,7 +107,7 @@ public class ServicesHelper {
 	
 	public long getSwap(IServiceAdapter serviceAdapter) {
 		long retVal = 0;
-		ArrayList<DuccWorkJob> servicesList = getServicesList(serviceAdapter);
+		List<DuccWorkJob> servicesList = getServicesList(serviceAdapter);
 		for(DuccWorkJob service : servicesList) {
 			IDuccProcessMap map = service.getProcessMap();
 			for(DuccId key : map.keySet()) {
@@ -121,7 +122,7 @@ public class ServicesHelper {
 	
 	public long getSwapMax(IServiceAdapter serviceAdapter) {
 		long retVal = 0;
-		ArrayList<DuccWorkJob> servicesList = getServicesList(serviceAdapter);
+		List<DuccWorkJob> servicesList = getServicesList(serviceAdapter);
 		for(DuccWorkJob service : servicesList) {
 			IDuccProcessMap map = service.getProcessMap();
 			for(DuccId key : map.keySet()) {

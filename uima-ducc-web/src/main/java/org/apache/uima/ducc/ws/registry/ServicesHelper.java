@@ -19,15 +19,16 @@
 package org.apache.uima.ducc.ws.registry;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccDataHelper;
 
@@ -73,10 +74,10 @@ public class ServicesHelper {
 		return implementors.size();
 	}
 	
-	public ArrayList<DuccWorkJob> getServicesList(ServicesRegistry servicesRegistry, Properties propertiesMeta) {
-		ArrayList<DuccWorkJob> retVal = new ArrayList<DuccWorkJob>();
-		ArrayList<String> implementors = getImplementors(servicesRegistry, propertiesMeta);
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+	public List<DuccWorkJob> getServicesList(ServicesRegistry servicesRegistry, Properties propertiesMeta) {
+		List<DuccWorkJob> retVal = new ArrayList<DuccWorkJob>();
+		List<String> implementors = getImplementors(servicesRegistry, propertiesMeta);
+		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		retVal = duccWorkMap.getServices(implementors);
 		return retVal;
 	}
@@ -85,7 +86,7 @@ public class ServicesHelper {
 		String location = "getPgin";
 		String id = getId(servicesRegistry, propertiesMeta);
 		long retVal = 0;
-		ArrayList<DuccWorkJob> servicesList = getServicesList(servicesRegistry, propertiesMeta);
+		List<DuccWorkJob> servicesList = getServicesList(servicesRegistry, propertiesMeta);
 		for(DuccWorkJob service : servicesList) {
 			IDuccProcessMap map = service.getProcessMap();
 			for(DuccId key : map.keySet()) {
@@ -103,7 +104,7 @@ public class ServicesHelper {
 		String location = "getSwap";
 		String id = getId(servicesRegistry, propertiesMeta);
 		long retVal = 0;
-		ArrayList<DuccWorkJob> servicesList = getServicesList(servicesRegistry, propertiesMeta);
+		List<DuccWorkJob> servicesList = getServicesList(servicesRegistry, propertiesMeta);
 		for(DuccWorkJob service : servicesList) {
 			IDuccProcessMap map = service.getProcessMap();
 			for(DuccId key : map.keySet()) {
@@ -121,7 +122,7 @@ public class ServicesHelper {
 		String location = "getSwapMax";
 		String id = getId(servicesRegistry, propertiesMeta);
 		long retVal = 0;
-		ArrayList<DuccWorkJob> servicesList = getServicesList(servicesRegistry, propertiesMeta);
+		List<DuccWorkJob> servicesList = getServicesList(servicesRegistry, propertiesMeta);
 		for(DuccWorkJob service : servicesList) {
 			IDuccProcessMap map = service.getProcessMap();
 			for(DuccId key : map.keySet()) {

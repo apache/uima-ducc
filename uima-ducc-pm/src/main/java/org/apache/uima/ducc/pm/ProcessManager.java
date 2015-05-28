@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.pm;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
@@ -28,6 +28,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccWork;
 public interface ProcessManager {
 	public static final String DuccComponent = "ProcessManager";
 	//public void reconcileJobManagersState(ConcurrentHashMap<DuccId, IDuccWork> jobMap);
-	public void dispatchStateUpdateToAgents(ConcurrentHashMap<DuccId, IDuccWork> workMap, long sequence);
+	public void dispatchStateUpdateToAgents(Map<DuccId, IDuccWork> workMap, long sequence);
 	public PmStateDuccEvent getState();
 }

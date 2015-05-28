@@ -37,7 +37,7 @@ import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.server.DuccListeners;
 import org.apache.uima.ducc.ws.server.DuccWebServer;
@@ -116,7 +116,7 @@ implements IWebServer {
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
 		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"OrchestratorStateDuccEvent");
 		DuccDaemonsData.getInstance().put(duccEvent);
-		DuccWorkMap wm = duccEvent.getWorkMap();
+		IDuccWorkMap wm = duccEvent.getWorkMap();
 		boolean change = false;
 		int count;
 		count = wm.getJobCount();

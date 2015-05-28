@@ -19,7 +19,7 @@
 package org.apache.uima.ducc.rm;
 
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 
 public interface ResourceManager 
 {
@@ -28,5 +28,5 @@ public interface ResourceManager
     //	public void onNodeMetricsUpdate(Node node);
 	// public void nodeArrives(Node node);
 
-	public void onOrchestratorStateUpdate(DuccWorkMap map);
+	public void onOrchestratorStateUpdate(IDuccWorkMap map);
 }

@@ -32,6 +32,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
 import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
@@ -42,8 +43,8 @@ public class DuccData {
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccData.class.getName());
 	private static DuccId jobid = null;
 	
-	private static DuccWorkMap duccWorkMap = new DuccWorkMap();
-	private static DuccWorkMap duccWorkLive = new DuccWorkMap();
+	private static IDuccWorkMap duccWorkMap = new DuccWorkMap();
+	private static IDuccWorkMap duccWorkLive = new DuccWorkMap();
 	
 	private static ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = new ConcurrentSkipListMap<JobInfo,JobInfo>();
 	private static ConcurrentSkipListMap<DuccId,JobInfo> keyMapJobs = new ConcurrentSkipListMap<DuccId,JobInfo>();
@@ -93,7 +94,8 @@ public class DuccData {
 		}
 	}
 	
-	private void mergeHistory(DuccWorkMap map) {
+	@SuppressWarnings("unchecked")
+	private void mergeHistory(IDuccWorkMap map) {
 		Iterator<DuccId> iterator = duccWorkLive.keySet().iterator();
 		while(iterator.hasNext()) {
 			DuccId duccId = iterator.next();
@@ -116,12 +118,13 @@ public class DuccData {
 		}
 	}
 	
-	public void put(DuccWorkMap map) {
+	public void put(IDuccWorkMap map) {
 		String location = "put";
 		synchronized(this) {
-			DuccWorkMap mapCopy = map.deepCopy();
+			IDuccWorkMap mapCopy = map.deepCopy();
 			mergeHistory(map);
 			duccWorkLive = mapCopy;
+			@SuppressWarnings("unchecked")
 			Iterator<DuccId> iterator = map.keySet().iterator();
 			while(iterator.hasNext()) {
 				DuccId duccId = iterator.next();
@@ -254,11 +257,11 @@ public class DuccData {
 		logger.debug(location, jobid, ""+jc+":"+rc+":"+sc+":"+cc);
 	}
 	
-	public DuccWorkMap get() {
+	public IDuccWorkMap get() {
 		return duccWorkMap;
 	}
 	
-	public DuccWorkMap getLive() {
+	public IDuccWorkMap getLive() {
 		return duccWorkLive;
 	}
 	

@@ -33,11 +33,11 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
@@ -62,7 +62,7 @@ public class DuccWebMonitorReservation {
 		String location = "monitor";
 		duccLogger.trace(location, jobid, "enter");
 		
-		DuccWorkMap dwm = duccEvent.getWorkMap();
+		IDuccWorkMap dwm = duccEvent.getWorkMap();
 		int size = dwm.getReservationKeySet().size();
 		duccLogger.debug(location, jobid, "reservations: "+size);
 		

@@ -45,7 +45,7 @@ import org.apache.uima.ducc.rm.scheduler.SchedConstants;
 import org.apache.uima.ducc.rm.scheduler.Scheduler;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 
 
 public class ResourceManagerComponent 
@@ -347,7 +347,7 @@ public class ResourceManagerComponent
         }
     }
 
-    public void onOrchestratorStateUpdate(DuccWorkMap map)
+    public void onOrchestratorStateUpdate(IDuccWorkMap map)
     {
         String methodName = "onJobManagerStateUpdate";
 

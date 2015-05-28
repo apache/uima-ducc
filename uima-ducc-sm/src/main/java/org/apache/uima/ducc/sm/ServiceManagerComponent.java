@@ -65,6 +65,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 import org.apache.uima.ducc.transport.event.sm.IService.Trinary;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
@@ -367,10 +368,11 @@ public class ServiceManagerComponent
      * At boot only ... pass in the set of all known active services to each service so it can update
      * internal state with current published state.
      */
-    public synchronized void bootHandler(DuccWorkMap work) 
+    public synchronized void bootHandler(IDuccWorkMap work) 
     {
         Map<DuccId, DuccWorkJob> services = new HashMap<DuccId, DuccWorkJob>();
-        for ( IDuccWork w : work.values() ) {
+        for ( Object o : work.values() ) {
+        	IDuccWork w = (IDuccWork) o;
             if ( w.getDuccType() != DuccType.Service ) continue;
             DuccWorkJob j = (DuccWorkJob) w;
             if ( !j.isActive() ) continue;
@@ -445,7 +447,7 @@ public class ServiceManagerComponent
      *
      * Runs on the incoming thread, do not do anything blocking or timecomsuming here.
      */
-    public synchronized void processIncoming(DuccWorkMap workMap) 
+    public synchronized void processIncoming(IDuccWorkMap workMap) 
     {
 		String methodName = "processIncoming";
 
@@ -482,7 +484,8 @@ public class ServiceManagerComponent
 		@SuppressWarnings("unchecked")
 		DuccMapDifference<DuccId, IDuccWork> diffmap = DuccCollectionUtils.difference(workMap, localMap);        
 
-        for ( IDuccWork w : workMap.values() ) {
+        for ( Object o : workMap.values() ) {
+        	IDuccWork w = (IDuccWork) o;
             logger.trace(methodName, w.getDuccId(), w.getDuccType(), "Arrives in state =", w.getStateObject());
             // if ( w.getDuccId().getFriendly() == 204 ) {
             // 	int a = 1;
@@ -638,7 +641,7 @@ public class ServiceManagerComponent
     }
 
     int epochCounter = 0;
-    DuccWorkMap incomingMap = null;
+    IDuccWorkMap incomingMap = null;
     public synchronized void runSm()
     {
         String methodName = "runSm";
@@ -665,7 +668,7 @@ public class ServiceManagerComponent
         }
     }
 
-    public synchronized void orchestratorStateArrives(DuccWorkMap map)
+    public synchronized void orchestratorStateArrives(IDuccWorkMap map)
     {
     	String methodName = "orchestratorStateArrives";
         if ( ! initialized ) {

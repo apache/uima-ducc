@@ -20,8 +20,8 @@ package org.apache.uima.ducc.pm;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
@@ -138,7 +138,7 @@ implements ProcessManager {
 		return sb.toString();
 	}
 
-	public void dispatchStateUpdateToAgents(ConcurrentHashMap<DuccId, IDuccWork> workMap, long sequence) {
+	public void dispatchStateUpdateToAgents(Map<DuccId, IDuccWork> workMap, long sequence) {
     String methodName="dispatchStateUpdateToAgents";
 	  try {
 	    dumpState(workMap);
@@ -265,7 +265,7 @@ implements ProcessManager {
 				(process.getProcessJmxUrl() == null ? "N/A" : process.getProcessJmxUrl() ));
 		
 	}
-	private void dumpState(ConcurrentHashMap<DuccId, IDuccWork> workMap) {
+	private void dumpState(Map<DuccId, IDuccWork> workMap) {
 		String methodName="dumpState";
 		try {
 			StringBuffer sb = new StringBuffer();

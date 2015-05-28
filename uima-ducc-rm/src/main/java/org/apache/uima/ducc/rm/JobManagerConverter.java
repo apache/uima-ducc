@@ -54,6 +54,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
@@ -857,7 +858,7 @@ public class JobManagerConverter
     }
 
     boolean first_or_state = true;
-    public void eventArrives(DuccWorkMap jobMap)
+    public void eventArrives(IDuccWorkMap jobMap)
     {
     	String methodName = "eventArrives";
 
@@ -902,8 +903,8 @@ public class JobManagerConverter
         @SuppressWarnings("unchecked")
 		DuccMapDifference<DuccId, IDuccWork> diffmap = DuccCollectionUtils.difference(jobMap, localMap);        
 
-        for ( IDuccWork w : jobMap.values() ) {
-        	//IDuccWork j = (IDuccWork) w;
+        for ( Object o : jobMap.values() ) {
+        	IDuccWork w = (IDuccWork) o;
             logger.trace(methodName, w.getDuccId(), "Arrives in JmStateEvent state =", w.getStateObject());
         }
 
@@ -1186,11 +1187,12 @@ public class JobManagerConverter
      * startup and OR will not start if there is no JD node, so we do normal init stability.  Otherwise, we assume that the
      * JD node is included, build the resource map, and allow scheduling to proceed.
      */
-    boolean recoverFromOrchestrator(DuccWorkMap jobmap)
+    boolean recoverFromOrchestrator(IDuccWorkMap jobmap)
     {
     	String methodName = "recoverFromOrchestrator";
         Map<Node, Node> nodes = new HashMap<Node, Node>();
-        for ( IDuccWork w : jobmap.values() ) {
+        for ( Object o : jobmap.values() ) {
+        	IDuccWork w = (IDuccWork) o;
         	String prefix = "?";
             switch ( w.getDuccType() ) {
             case Job:

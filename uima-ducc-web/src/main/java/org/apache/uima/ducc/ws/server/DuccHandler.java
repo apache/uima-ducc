@@ -74,7 +74,6 @@ import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
@@ -83,6 +82,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
@@ -1444,7 +1444,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private IDuccWorkJob findJob(String jobno) {
 		IDuccWorkJob job = null;
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		if(duccWorkMap.getJobKeySet().size()> 0) {
 			Iterator<DuccId> iterator = null;
 			iterator = duccWorkMap.getJobKeySet().iterator();
@@ -1467,7 +1467,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		String jobno = request.getParameter("id");
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		DuccWorkJob job = null;
 		if(duccWorkMap.getJobKeySet().size()> 0) {
 			Iterator<DuccId> iterator = null;
@@ -1528,7 +1528,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private DuccWorkJob getJob(String jobNo) {
 		DuccWorkJob job = null;
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		if(duccWorkMap.getJobKeySet().size()> 0) {
 			Iterator<DuccId> iterator = null;
 			iterator = duccWorkMap.getJobKeySet().iterator();
@@ -1546,7 +1546,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private DuccWorkJob getManagedReservation(String reservationNo) {
 		DuccWorkJob managedReservation = null;
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		if(duccWorkMap.getServiceKeySet().size()> 0) {
 			Iterator<DuccId> iterator = null;
 			iterator = duccWorkMap.getServiceKeySet().iterator();
@@ -2206,7 +2206,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			ArrayList<String> implementors = DuccDataHelper.parseServiceIdsAsList(properties);
 			
 			DuccWorkJob service = null;
-			DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+			IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 			if(duccWorkMap.getServiceKeySet().size()> 0) {
 				Iterator<DuccId> iterator = null;
 				iterator = duccWorkMap.getServiceKeySet().iterator();
@@ -2458,7 +2458,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		String reservationNo = request.getParameter("id");
 		
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		DuccWorkJob managedReservation = null;
 		if(duccWorkMap.getServiceKeySet().size()> 0) {
 			Iterator<DuccId> iterator = null;
@@ -2576,8 +2576,8 @@ public class DuccHandler extends DuccAbstractHandler {
             // UIMA-4258, use common implementors parser
 			ArrayList<String> implementors = DuccDataHelper.parseServiceIdsAsList(properties);
 			
-			DuccWorkMap duccWorkMap = DuccData.getInstance().get();
-			ArrayList<DuccWorkJob> servicesList = duccWorkMap.getServices(implementors);
+			IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
+			List<DuccWorkJob> servicesList = duccWorkMap.getServices(implementors);
 			int counter = 0;
 			ShareType type = ShareType.SPU;
 			String service_type = properties.getProperty(IServicesRegistry.service_type);
@@ -3563,7 +3563,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletClusterName";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		if(duccWorkMap.size()> 0) {
 			sb.append("<span title=\"home="+dir_home+"\">");
 			sb.append(getDuccWebServer().getClusterName());
@@ -3961,7 +3961,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String idPro = request.getParameter(pname_idPro);
 		StringBuffer sb = new StringBuffer();
 		
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		DuccWorkJob job = null;
 		if(duccWorkMap.getJobKeySet().size()> 0) {
 			Iterator<DuccId> iterator = null;
@@ -4069,7 +4069,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			String value = request.getParameter(name).trim();
 			duccLogger.info(methodName, null, messages.fetchLabel("cancel")+value);
 			DuccData duccData = DuccData.getInstance();
-			DuccWorkMap duccWorkMap = duccData.get();
+			IDuccWorkMap duccWorkMap = duccData.get();
 			String text;
 			String result;
 			IDuccWorkJob duccWorkJob = (IDuccWorkJob) duccWorkMap.findDuccWork(DuccType.Job, value);
@@ -4180,7 +4180,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			String value = request.getParameter(name).trim();
 			duccLogger.info(methodName, null, messages.fetchLabel("cancel")+value);
 			DuccData duccData = DuccData.getInstance();
-			DuccWorkMap duccWorkMap = duccData.get();
+			IDuccWorkMap duccWorkMap = duccData.get();
 			String text;
 			String result;
 			IDuccWorkReservation duccWorkReservation = (IDuccWorkReservation) duccWorkMap.findDuccWork(DuccType.Reservation, value);
@@ -4247,7 +4247,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				String value = request.getParameter(name).trim();
 				duccLogger.info(methodName, null, messages.fetchLabel("cancel")+value);
 				DuccData duccData = DuccData.getInstance();
-				DuccWorkMap duccWorkMap = duccData.get();
+				IDuccWorkMap duccWorkMap = duccData.get();
 				String text;
 				String result;
 				IDuccWorkJob duccWorkJob = (IDuccWorkJob) duccWorkMap.findDuccWork(DuccType.Service, value);

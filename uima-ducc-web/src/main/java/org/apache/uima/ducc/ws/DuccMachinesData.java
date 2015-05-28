@@ -43,12 +43,12 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.ws.server.DuccConstants;
@@ -424,7 +424,7 @@ public class DuccMachinesData {
     	String location = "getShareMapJobs";
     	try {
 			DuccData duccData = DuccData.getInstance();
-			DuccWorkMap duccWorkMap = duccData.getLive();
+			IDuccWorkMap duccWorkMap = duccData.getLive();
 			Iterator<DuccId> iteratorJ = duccWorkMap.getJobKeySet().iterator();
 			while(iteratorJ.hasNext()) {
 				DuccId jobid = iteratorJ.next();
@@ -471,7 +471,7 @@ public class DuccMachinesData {
     	String location = "getShareMapServices";
     	try {
 			DuccData duccData = DuccData.getInstance();
-			DuccWorkMap duccWorkMap = duccData.getLive();
+			IDuccWorkMap duccWorkMap = duccData.getLive();
 			Iterator<DuccId> iteratorS = duccWorkMap.getServiceKeySet().iterator();
 			while(iteratorS.hasNext()) {
 				DuccId jobid = iteratorS.next();
@@ -518,7 +518,7 @@ public class DuccMachinesData {
     	String location = "getShareMapReservations";
     	try {
 			DuccData duccData = DuccData.getInstance();
-			DuccWorkMap duccWorkMap = duccData.getLive();
+			IDuccWorkMap duccWorkMap = duccData.getLive();
 			Iterator<DuccId> iteratorR = duccWorkMap.getReservationKeySet().iterator();
 			while(iteratorR.hasNext()) {
 				DuccId reservationId = iteratorR.next();

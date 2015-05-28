@@ -31,7 +31,6 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
@@ -41,6 +40,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
@@ -118,7 +118,7 @@ public class NodeViz
         String methodName = "generateVisualization";
         Map<String, VisualizedHost> hosts = new HashMap<String, VisualizedHost>();
 
-        DuccWorkMap jobmap = ev.getWorkMap();
+        IDuccWorkMap jobmap = ev.getWorkMap();
 
         int job_shares = 0;
         int service_shares = 0;
@@ -133,7 +133,8 @@ public class NodeViz
         //              move all onther 'not up' hosts to the end
         // finally, walk the list and make them render
 
-        for ( IDuccWork w : jobmap.values() ) {
+        for ( Object o : jobmap.values() ) {
+        	IDuccWork w = (IDuccWork) o;
             DuccType type = w.getDuccType();
             String service_endpoint = null;
             String service_id = null;          // UIMA-4209
