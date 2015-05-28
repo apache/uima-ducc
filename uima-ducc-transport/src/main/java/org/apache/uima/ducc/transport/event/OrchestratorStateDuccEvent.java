@@ -23,6 +23,8 @@ import java.io.ObjectOutputStream;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.cmdline.ICommandLine;
+import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
@@ -85,13 +87,20 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 		String location = "trim";
 		int bytesTrimmed = 0;
 		for(Object key : workMap.keySet()) {
+			ICommandLine cmdLine1 = null;
+			ICommandLine cmdLine2 = null;
 			DuccId duccId = (DuccId) key;
 			IDuccWork dw = (IDuccWork) workMap.get(duccId);
 			if(dw instanceof IDuccWorkJob) {
 				IDuccWorkJob job = (IDuccWorkJob) dw;
 				if(logger != null) {
-					int s1 = sizeOf(job.getCommandLine());
-					int s2 = sizeOf(job.getDriver().getCommandLine());
+					cmdLine1 = job.getCommandLine();
+					int s1 = sizeOf(cmdLine1);
+					DuccWorkPopDriver driver = job.getDriver();
+					if(driver != null) {
+						cmdLine2 = driver.getCommandLine();
+					}
+					int s2 = sizeOf(cmdLine2);
 					bytesTrimmed = bytesTrimmed+(s1+s2);
 					String message = "jd:"+s1+" jp:"+s2+" total:"+bytesTrimmed;
 					logger.trace(location, duccId, message);
@@ -103,7 +112,8 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 				IDuccWorkJob service = (IDuccWorkJob) dw;
 				if(logger != null) {
 					int s1 = 0;
-					int s2 = sizeOf(service.getCommandLine());
+					cmdLine2 = service.getCommandLine();
+					int s2 = sizeOf(cmdLine2);
 					bytesTrimmed = bytesTrimmed+(s1+s2);
 					String message = "sp:"+s2+" total:"+bytesTrimmed;
 					logger.trace(location, duccId, message);
@@ -113,7 +123,8 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 			else if(dw instanceof IDuccWorkExecutable) {
 				IDuccWorkExecutable dwe = (IDuccWorkExecutable) dw;
 				if(logger != null) {
-					int s1 = sizeOf(dwe.getCommandLine());
+					cmdLine1 = dwe.getCommandLine();
+					int s1 = sizeOf(cmdLine1);
 					int s2 = 0;
 					bytesTrimmed = bytesTrimmed+(s1+s2);
 					String message = "mr:"+s1+" total:"+bytesTrimmed;
