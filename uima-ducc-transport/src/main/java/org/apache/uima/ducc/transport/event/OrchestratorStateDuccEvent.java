@@ -99,6 +99,7 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 					DuccWorkPopDriver driver = job.getDriver();
 					if(driver != null) {
 						cmdLine2 = driver.getCommandLine();
+						driver.setCommandLine(null);
 					}
 					int s2 = sizeOf(cmdLine2);
 					bytesTrimmed = bytesTrimmed+(s1+s2);
@@ -106,7 +107,6 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 					logger.trace(location, duccId, message);
 				}
 				job.setCommandLine(null);
-				job.getDriver().setCommandLine(null);
 			}
 			else if(dw instanceof IDuccWorkService) {
 				IDuccWorkJob service = (IDuccWorkJob) dw;
