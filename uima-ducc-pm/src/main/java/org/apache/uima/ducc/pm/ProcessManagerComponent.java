@@ -277,17 +277,18 @@ implements ProcessManager {
 				IDuccWork duccWork = job.getValue();
 				if ( duccWork instanceof DuccWorkJob ) {
 					DuccWorkJob duccWorkJob = (DuccWorkJob)duccWork;
-					//	Below should never be null
-					IDuccProcess driverProcess =
-							duccWorkJob.getDriver().getProcessMap().entrySet().iterator().next().getValue();
 					sb.append("\n").append(tbl).
 					   append("\nJob ID: ").append(duccWorkJob.getDuccId().getFriendly()).
 					   append("\tJobState: ").append(duccWorkJob.getStateObject()).
 					   append("\tJobSubmittedBy: ").append(duccWorkJob.getStandardInfo().getUser()).
 					   append("\n\n").
-					   append(header).append(tbl).append("\n").
-					   append(formatProcess(driverProcess));
-					
+					   append(header).append(tbl).append("\n");
+					DuccWorkPopDriver driver = duccWorkJob.getDriver();
+					if(driver != null) {
+						IDuccProcess driverProcess =
+							driver.getProcessMap().entrySet().iterator().next().getValue();
+							sb.append(formatProcess(driverProcess));
+					}
 					for(Entry<DuccId,IDuccProcess> process : ((DuccWorkJob)job.getValue()).getProcessMap().entrySet()) {
 						sb.append("\n").append(formatProcess(process.getValue()));
 					}
