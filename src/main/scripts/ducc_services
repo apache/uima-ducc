@@ -27,40 +27,15 @@ from ducc_base import DuccBase
 
 class DuccServices(DuccBase):
 
-    def make_classpath(self, uima_home):
+    def make_classpath(self):
         cp = self.DUCC_HOME + '/lib/uima-ducc-cli.jar'
-        cp = cp + ':' + uima_home + '/lib/uima-core.jar'
-        cp = cp + ':' + uima_home + '/lib/uimaj-as-core.jar'
+        # Use DUCC's UIMA for parsing the DD, as does DuccServiceSubmit ... both should perhaps use user's UIMA
+        cp = cp + ':' + self.DUCC_HOME + '/apache-uima/lib/uima-core.jar'
+        cp = cp + ':' + self.DUCC_HOME + '/apache-uima/lib/uimaj-as-core.jar'
         return cp
 
-    def handle_uima_home(self, argv):
-        answer = []
-        skip = False
-        uima_home = None
-
-        # first look for uima-home in args, and if its there, extract it
-        for a in argv:
-            if ( skip ) :
-                uima_home = a
-                skip = False
-                continue
-            if ( a in ('-u', '--uima-home') ):
-                skip = True
-                continue
-            answer.append(a)
-
-        # if no uima-home, look in environment.  if not there. use DUCC's uima
-        if ( uima_home == None ):
-            if ( os.environ.has_key('UIMA_HOME') ):
-                uima_home = os.environ['UIMA_HOME']
-            else:
-                uima_home = self.DUCC_HOME + '/apache-uima'
-
-        return (answer, uima_home)
-
     def main(self, argv):        
-        (argv, uima_home) = self.handle_uima_home(argv)
-        cp = self.make_classpath(uima_home);        
+        cp = self.make_classpath();        
         self.spawn(self.java(), '-cp', cp, 'org.apache.uima.ducc.cli.DuccServiceApi', ' '.join(self.mkargs(argv)))
 
 if __name__ == "__main__":
