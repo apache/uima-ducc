@@ -40,8 +40,6 @@ import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
-import org.apache.uima.ducc.transport.dispatcher.ClassManager;
-import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.dispatcher.IDuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.AbstractDuccOrchestratorEvent;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
@@ -204,24 +202,6 @@ public abstract class CliBase
             }
         }
     }
-
-    DuccEventHttpDispatcher makeDispatcher(String targetUrl)
-    {
-        String[] classpath = {
-            "lib/apache-camel/xstream*",
-            "lib/google-gson/gson*",
-        };        
-     
-        DuccEventHttpDispatcher ret = null;
-		try {
-			ClassManager cm = new ClassManager(classpath);
-			ret = (DuccEventHttpDispatcher) cm.construct("org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher", new Object[] {targetUrl});
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        return ret;
-    }    
     
     /**
      * Standard init for all except the Service calls that are sent to the SM
@@ -349,7 +329,6 @@ public abstract class CliBase
 
         String targetUrl = DuccUiUtilities.dispatchUrl(servlet);
 
-        // dispatcher = makeDispatcher(targetUrl);
         dispatcher = DispatcherFactory.create(targetUrl);
         
         init_done = true;

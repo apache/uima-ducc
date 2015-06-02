@@ -22,7 +22,6 @@ import java.util.Map;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
-import org.apache.uima.ducc.transport.event.common.IDuccWork;
 
 
 /**

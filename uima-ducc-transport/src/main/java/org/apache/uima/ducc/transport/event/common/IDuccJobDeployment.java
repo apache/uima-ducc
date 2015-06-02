@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
+import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 
 
 public interface IDuccJobDeployment extends Serializable {

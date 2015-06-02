@@ -754,13 +754,13 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, "exit");
     }
     
-    private void addArg(ArrayList<String> cmdLine, String arg) {
-        String mid = "addArg";
-        mh.frameworkTrace(cid, mid, "enter");
-        cmdLine.add(arg);
-        mh.frameworkDebug(cid, mid, arg);
-        mh.frameworkTrace(cid, mid, "exit");
-    }
+//    private void addArg(ArrayList<String> cmdLine, String arg) {
+//        String mid = "addArg";
+//        mh.frameworkTrace(cid, mid, "enter");
+//        cmdLine.add(arg);
+//        mh.frameworkDebug(cid, mid, arg);
+//        mh.frameworkTrace(cid, mid, "exit");
+//    }
     
     /*
      * Options that AllInOne needs

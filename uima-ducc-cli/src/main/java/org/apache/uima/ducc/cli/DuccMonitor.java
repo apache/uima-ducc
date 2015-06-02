@@ -24,19 +24,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
-// import org.apache.commons.cli.CommandLine;
-// import org.apache.commons.cli.CommandLineParser;
-// import org.apache.commons.cli.HelpFormatter;
-// import org.apache.commons.cli.Options;
-// import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.json.MonitorInfo;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.Utils;
-import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
+import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcherCl;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
+// import org.apache.commons.cli.CommandLine;
+// import org.apache.commons.cli.CommandLineParser;
+// import org.apache.commons.cli.HelpFormatter;
+// import org.apache.commons.cli.Options;
+// import org.apache.commons.cli.PosixParser;
 
 public abstract class DuccMonitor {
 
@@ -346,7 +345,7 @@ public abstract class DuccMonitor {
 		debug(urlString);
 		// Poll until finished
 		while (flag_observer.get()) {
-            DuccEventHttpDispatcher dispatcher = new DuccEventHttpDispatcher(urlString, urlTimeout);
+            DuccEventHttpDispatcherCl dispatcher = new DuccEventHttpDispatcherCl(urlString, urlTimeout);
             MonitorInfo monitorInfo = (MonitorInfo) dispatcher.dispatchJson(MonitorInfo.class);
 			// String json = getSingleLineStatus(urlString);
 			// if (json != null) {

@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.cli;
 
-import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
+import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcherCl;
 import org.apache.uima.ducc.transport.dispatcher.IDuccEventDispatcher;
 
 public class DispatcherFactory {
@@ -26,7 +26,7 @@ public class DispatcherFactory {
 	public static IDuccEventDispatcher create(Object specs) throws Exception {
 		IDuccEventDispatcher retVal = null;
 		String targetUrl = (String) specs;
-		retVal = new DuccEventHttpDispatcher(targetUrl);
+		retVal = new DuccEventHttpDispatcherCl(targetUrl, -1);
 		return retVal;
 	}
 }
