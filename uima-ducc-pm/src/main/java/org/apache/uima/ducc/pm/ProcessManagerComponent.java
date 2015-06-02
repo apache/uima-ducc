@@ -40,6 +40,7 @@ import org.apache.uima.ducc.transport.event.common.DuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkPop;
+import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
@@ -191,9 +192,12 @@ implements ProcessManager {
 	          logger.debug(methodName, dcj.getDuccId(), "case: Job");
 	          dw = dwHelper.fetch(dcj.getDuccId());
 	          IDuccWorkJob job = (IDuccWorkJob) dw;
-	          driverCmdLine = job.getDriver().getCommandLine();
+	          DuccWorkPopDriver driver = job.getDriver();
+			  if(driver != null) {
+				  driverCmdLine = driver.getCommandLine();
+				  driverProcess = driver.getProcessMap().entrySet().iterator().next().getValue();
+			  }
 	          processCmdLine = job.getCommandLine();
-	          driverProcess = dcj.getDriver().getProcessMap().entrySet().iterator().next().getValue();
 	          break;
 	        case Service:
 	          logger.debug(methodName, dcj.getDuccId(), "case: Service");
