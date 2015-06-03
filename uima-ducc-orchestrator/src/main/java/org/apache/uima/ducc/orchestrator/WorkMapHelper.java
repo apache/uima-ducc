@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
+import org.apache.commons.lang.SerializationUtils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
@@ -47,6 +48,20 @@ public class WorkMapHelper {
 			workMap.removeDuccWork(duccId);
 		}
 		ts.ended();
+	}
+	
+	public static IDuccWork cloneDuccWork(DuccWorkMap workMap, String duccId, Object object, String methodName) {
+		IDuccWork dwClone = null;
+		TrackSync ts = TrackSync.await(workMap, object.getClass(), methodName);
+		synchronized(workMap) {
+			ts.using();
+			IDuccWork dw = workMap.findDuccWork(duccId);
+			if(dw != null) {
+				dwClone = (IDuccWork)SerializationUtils.clone(dw);
+			}
+		}
+		ts.ended();
+		return dwClone;
 	}
 	
 	public static IDuccWork findDuccWork(DuccWorkMap workMap, String duccId, Object object, String methodName) {

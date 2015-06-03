@@ -392,7 +392,7 @@ implements Orchestrator {
 			logger.info(methodName, duccId, dsr.getLogReport());
 			stateManager.reconcileState(dsr);
 			String sid = ""+duccId.getFriendly();
-			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, sid, this, methodName);
+			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.cloneDuccWork(workMap, sid, this, methodName);
 			duccEvent.setJob(duccWorkJob);
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
