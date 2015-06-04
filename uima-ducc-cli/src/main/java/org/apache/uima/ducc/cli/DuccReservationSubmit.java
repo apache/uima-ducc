@@ -26,7 +26,6 @@ import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationReplyDuccEvent;
-import org.apache.uima.ducc.transport.event.cli.ReservationReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 
 
@@ -38,9 +37,9 @@ public class DuccReservationSubmit
     extends CliBase
 {
     ReservationRequestProperties requestProperties = new ReservationRequestProperties();
+    IDuccCallback resCB = new ReservationCallback();
 	
 	private String nodeList = "";
-	private String info = "";
 	
     /**
      * @param args Array of string arguments as described in the 
@@ -49,7 +48,7 @@ public class DuccReservationSubmit
 	public DuccReservationSubmit(String[] args)
         throws Exception
     {
-        init (this.getClass().getName(), opts, args, requestProperties, null);
+        init (this.getClass().getName(), opts, args, requestProperties, resCB);
     }
 
     /**
@@ -60,7 +59,7 @@ public class DuccReservationSubmit
         throws Exception
     {
         String[] arg_array = args.toArray(new String[args.size()]);
-        init (this.getClass().getName(), opts, arg_array, requestProperties, null);
+        init (this.getClass().getName(), opts, arg_array, requestProperties, resCB);
     }
 
     /**
@@ -70,7 +69,7 @@ public class DuccReservationSubmit
 	public DuccReservationSubmit(Properties props)
         throws Exception
     {
-        init (this.getClass().getName(), opts, props, requestProperties, null);
+        init (this.getClass().getName(), opts, props, requestProperties, resCB);
     }
 
     UiOption[] opts = new UiOption[] {
@@ -122,41 +121,36 @@ public class DuccReservationSubmit
          * process reply (gets friendlyId and messages.
          */
         boolean rc = extractReply(reply);
-
-        if ( !rc ) { 
-			return false;
-		}
-		
-        System.out.println("Reservation " + getDuccId() + " submitted.");
-        System.out.println("resID = " + getDuccId() + " "+info);
         
-        // If request was accepted, always start a monitor so can report the state 
-        requestProperties.setProperty(UiOption.WaitForCompletion.pname(), "true");
-		startMonitors(false, DuccContext.Reservation);       // starts conditionally, based on job spec and console listener present
-		
-		// Then since this is a synchronous api, wait for request to complete, as only then will the node be available
-		rc = (getReturnCode() == 0);
-		if (rc) {
-        	nodeList = reply.getProperties().getProperty(UiOption.ReservationNodeList.pname());
+        // If request was accepted, default to starting a monitor so can report the state 
+        // but only if the user has not specified this option
+        if (rc) {
+        	if (!commandLine.contains(UiOption.WaitForCompletion)) {
+        		requestProperties.setProperty(UiOption.WaitForCompletion.pname(), "");
+        	} 
+            startMonitors(false, DuccContext.Reservation);       // starts conditionally, based on job spec and console listener present
         }
         
-        if((nodeList.trim()).length() == 0) {
-        	Properties properties = reply.getProperties();
-            if(properties != null) {
-            	String key = ReservationReplyProperties.key_message;
-            	if(properties.containsKey(key)) {
-            		info = properties.getProperty(key);
-            	}
-            }
-        }
-        
+        // Note: in DUCC 1.x this waited for a response.  With 2.0 requests are queued and the caller can 
+        // choose to not wait, although that is the default.
+        // Now like the other requests, the wait is done when getting the rc
         return rc;
     }
 
+    /**
+     * If the reservation is granted, this method returns the reserved host
+     * @return Name of host where the reservation is granted.
+     */
+    public String getHost()
+    {
+        return nodeList;
+    }
+	
 	/**
      * If the reservation is granted, this method returns the set of hosts containing the reservation.
      * @return String array of hosts where the reservation is granted.
      */
+	@Deprecated
 	public String[] getHosts() 
     {
 		  return this.nodeList.split("\\s");
@@ -164,9 +158,10 @@ public class DuccReservationSubmit
 	
     /**
      * If the reservation is granted, this method returns the set of hosts containing the reservation as
-     * a single blank-delimeted string.
-     * @return Blank-delimeted string of hosts where the reservation is granted.
+     * a single blank-delimited string.
+     * @return Blank-delimited string of hosts where the reservation is granted.
      */
+	@Deprecated
     public String getHostsAsString()
     {
         return nodeList;
@@ -177,6 +172,7 @@ public class DuccReservationSubmit
      * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_RESERVE">DUCC CLI reference.</a>
      */
 	public static void main(String[] args) {
+		int code = 1;
         try {
             // Instantiate the object with args similar to the CLI, or a pre-built properties file
             DuccReservationSubmit ds = new DuccReservationSubmit(args);
@@ -187,15 +183,42 @@ public class DuccReservationSubmit
 
             // If the return is 'true' then as best the API can tell, the submit worked
             if ( rc ) {
-            	System.exit(0);
+                System.out.println("Reservation "+ds.getDuccId()+" submitted.");
+                code = ds.getReturnCode();
+                // Note:  code is not (but should be) non-zero when request fails
+                String node = ds.getHost();
+                if (!node.isEmpty()) {
+                	System.out.println("Node: " + node);
+                }
             } else {
                 System.out.println("Could not submit reservation.");
-                System.exit(1);
             }
         } catch (Exception e) {
             System.out.println("Cannot initialize: " + e.getMessage() + ".");
-            System.exit(1);
+        } finally {
+            // Set the process exit code
+            System.exit(code);
         }
 	}
 	
+	/*
+	 * Special callback that extracts the assigned node
+	 */
+	private class ReservationCallback implements IDuccCallback {
+
+		private final String nodesPrefix = "nodes: ";
+		
+		public void console(int pnum, String msg) {
+			System.out.println("[" + pnum + "] " + msg);
+		}
+
+		public void status(String msg) {
+			if (msg.startsWith(nodesPrefix)) {
+				nodeList = msg.substring(nodesPrefix.length());
+			} else {
+				System.out.println(msg);
+			}
+		}
+
+	}
 }
