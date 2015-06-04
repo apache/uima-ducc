@@ -351,14 +351,26 @@ public abstract class CliBase
     	
     	Map<IUiOption, String> parsed = commandLine.allOptions();
         for (IUiOption opt : parsed.keySet() ) {
-            String val = parsed.get(opt);
-            if (val == null) {                    // Should only happen for no-arg options
-                val = "";                        
-            } else {
-                if (val.contains("${")) {
-                    val = resolvePlaceholders(val, envNameList);
-                }
-            }
+        	// If a "flexible" boolean that accepts various true/false values, add it only if true
+        	String val;
+        	if (opt.optargs() && "true".equals(opt.deflt())) {
+        		boolean bval = commandLine.getBoolean(opt);
+        		if (bval) {
+        			val = "";
+        		} else {
+        			if (debug) System.out.println("CLI omitted boolean " + opt.pname() + " = '" + parsed.get(opt) + "'");
+        			continue;
+        		}
+			} else {
+				val = parsed.get(opt);
+				if (val == null) { // Should only happen for no-arg options
+					val = "";
+				} else {
+					if (val.contains("${")) {
+						val = resolvePlaceholders(val, envNameList);
+					}
+				}
+			}
             val = val.trim();
             cli_props.put(opt.pname(), val);
             if (debug) System.out.println("CLI set " + opt.pname() + " = '" + val + "'");
