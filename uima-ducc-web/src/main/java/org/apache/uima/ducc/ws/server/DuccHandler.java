@@ -4145,6 +4145,12 @@ public class DuccHandler extends DuccAbstractHandler {
 					arg4 = memory_size;
 				}
 			}
+			
+			String arg5a = "--wait_for_completion";
+			String arg5b = "false";
+			String arg6a = "--cancel_on_interrupt";
+			String arg6b = "false";
+			
 			String arg7 = "";
 			String arg8 = "";
 			if(description != null) {
@@ -4157,7 +4163,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				String java = "/bin/java";
 				String jclass = "org.apache.uima.ducc.cli.DuccReservationSubmit";
 				String jhome = System.getProperty("java.home");
-				String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, /*arg5, arg6,*/ arg7, arg8 };
+				String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, arg5a, arg5b, arg6a, arg6b, arg7, arg8 };
 				String result = DuccAsUser.duckling(userId, arglist);
 				response.getWriter().println(result);
 			} catch (Exception e) {

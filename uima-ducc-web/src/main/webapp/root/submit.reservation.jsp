@@ -120,14 +120,14 @@ under the License.
         <td align="right">
         <td align="left" ><span id="memory_units_area">
                           </span> 
-        <tr>
+        <tr style="display: none;">
         <td align="right">wait for result
         <td align="right">
         <td align="left" ><span id="wait_for_result_area">
                           <table>
                           <tr>
-                          <td align="left"><input type="radio"  id="wait_for_result_yes" name="wait_for_result" value="yes" /> Yes
-                          <td align="left"><input type="radio"  id="wait_for_result_no"  name="wait_for_result" value="no" checked /> No
+                          <td align="left"><input type="radio"  id="wait_for_result_yes" name="wait_for_result" value="yes" checked/> Yes
+                          <td align="left"><input type="radio"  id="wait_for_result_no"  name="wait_for_result" value="no" /> No
                           </table>
                           </span>
         <tr>
@@ -138,7 +138,7 @@ under the License.
         <tr>
         <td align="left" ><span id="reservation_submit_button_area">
                           </span>
-        <td align="left" ><input type="button" onclick="ducc_cancel_submit_reservation()" value="Cancel" />
+        <td align="left" ><input type="button" onclick="ducc_cancel_submit_reservation()" value="Close" />
         </table>
         <tr>
         <td align="right"><span id="working_area" style="display:none;">
