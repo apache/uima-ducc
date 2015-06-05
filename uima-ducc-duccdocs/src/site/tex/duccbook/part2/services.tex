@@ -58,15 +58,20 @@
           \item Run service pingers and respond to the pinger API as needed.
        \end{itemize}
 
-       DUCC provides a ``fast-fail'' for work which references services.  Incoming work which
-       references a service is canceled by the system under the following conditions:
+       When work enters the system with a declared dependency on a service, one of the following
+       actions is tken:
        \begin{itemize}
-         \item The service is not registered.
-         \item The service cannot be started.
-         \item The service is started, but the service pinger determines the service is not
-           viable.
+          \item If the service is not registered, the work request is automatically canceled.
+          \item If the service is not running, the Service Manager attempts to start it; the job
+           remains queued until the service is started and its pinger reports good health.
+         \item If the service exists but cannot be started, the work remains queued and error
+             status is shown in the web server.  Once the service is working again the
+             work is allowed to proceed.
+           \item If the service processes are running but the pinger reports failure contacting the service,
+               the work remains queued with error status shown in the webserver.  Once the service
+               pinger indicates the service is functional again the work is allowed to proceed.
        \end{itemize}
-         
+                
     \section{Service Types.}
     \label{sec:services.types}
       DUCC supports two types of services: UIMA-AS and CUSTOM:
@@ -77,13 +82,32 @@
             for UIMA-AS services.  It is legal to define a custom pinger for a UIMA-AS service.
             
           \item[CUSTOM] This is any arbitrary service.  Developers must provide a custom pinger
-            and declare it in the service registration.            
+            and declare the pinger in the service registration.            
       \end{description}
 
       DUCC also supports services that are not managed by DUCC.  These are known as {\em ping-only}
       services.  The registration for a ping-only service contains only keywords needed to 
       support a pinger.  Ping-only services must be defined as custom services; there is no
       default pinger provided for ping-only services.
+
+      \section{Service Instance IDs}
+      \label{sec:service.service.ids}
+      DUCC 2.0.0 introduces support for constant service instance IDs.  As a service is being
+      started, the SM assigns monotonically increasing IDs to each service instance, starting
+      with ID 0, up the the maximum number of instances started.
+
+      If an instance exits unexpectedly, the SM respawns it (unless a failure threshold has been
+      exceeded).  The new instance is assigned the same instance ID as the instance it replaces.
+      This insures that, for example, instance ``three'' is always started as instance ``three'',
+      maintained constant over failures and SM restarts.
+
+      The instance ID is communicated to the process through the environment with the key
+      {\tt DUCC\_SERVICE\_INSTANCE}.  This key may also be used in service registrations if it
+      is desired to pass the instance ID via parameters of some sort.  For example:
+\begin{verbatim}
+        service_jvm_args   -DSERVICE_ID=${DUCC_SERVICE_INSTANCE}
+        process_executable_args -i ${DUCC_SERVICE_INSTANCE}
+\end{verbatim}
 
       \section{Service References and Endpoints} 
       \label{sec:service.endpoints}
@@ -160,7 +184,9 @@
            established to keep the service alive for a while, in anticipation that it will be needed
            again soon.  When the keep-alive timer expires, and there are no more dependent jobs or
            services, the reference-started service is automatically stopped to free up its resources
-           for other work.
+           for other work.  The time the service is allowed to remain alive is known as its
+           {\em linger} time and can be controlled with the {\em service\_linger} keyword in the
+           service registration.
 
         \item[Manually started services] A service may be started via the CLI if it is not
           already running and in the absence of references by other work.  A service which is
@@ -334,7 +360,7 @@
 
       The following registration options are used for declaring and configuring pingers.  Any of these
       may be dynamically modified with the service CLI's {\em$--$modify} option.  Dynamically changing
-      these causes the current pinger to be terminated and restarted with the configuration.  See
+      these causes the current pinger to be terminated and restarted with the new configuration.  See
       \hyperref[sec:cli.ducc-services]{ducc\_services} for details of the options:
       \begin{itemize}
         \item service\_ping\_arguments
@@ -414,7 +440,7 @@ public class CustomPing
       This section provides the information needed to use the pinger API and build a
       custom pinger. 
 
-      \paragraph{1. Establish a compiation CLASSPATH} One DUCC jar is required in the CLASSPATH to build your pinger:
+      \paragraph{1. Establish a compilation CLASSPATH} One DUCC jar is required in the CLASSPATH to build your pinger:
 \begin{verbatim}
       DUCC_HOME/lib/uima-ducc-cli.jar
 \end{verbatim}      
@@ -425,7 +451,8 @@ public class CustomPing
 \begin{verbatim}
      service_ping_dolog = true
 \end{verbatim}
-      This will log any output from  {\tt System.out.println()} to your home directory in
+      This will log any output from  {\tt System.out.println()} to the declared log directory
+      for the service.  If not specified in the reqistration, this directory is:
 \begin{verbatim}
      $HOME/ducc/logs/<serviceid>/services
 \end{verbatim}
