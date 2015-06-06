@@ -162,6 +162,10 @@
               \item DuccBook - This manual. 
               \item Machines - This shows the status of all the ducc worker nodes. 
             \end{itemize}
+
+            \item[Viz]
+            This opens a page with a visualization of the system hosts, showing all
+            scheduled work in the system.
       \end{description}              
 
       % Create well-known link to this spot for HTML version
@@ -212,3 +216,10 @@
       \HCode{<a name='DUCC_WS_SYSTEM'></a>}
       \fi
       \input{part2/webserver/system.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_Viz'></a>}
+      \fi
+      \input{part2/webserver/viz.tex}

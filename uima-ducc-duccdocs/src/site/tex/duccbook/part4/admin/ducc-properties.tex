@@ -107,6 +107,22 @@
            \item[Type] Tuning
          \end{description} 
 
+       \item[ducc.broker.configuration] \hfill \\
+         This is the ActiveMQ configuration file to use, for auto-managed brokers only.  The path
+         must be specified relative to the ActiveMQ installation directory.
+         \begin{description}
+           \item[Default] conf/activemq-ducc.xml
+           \item[Type] Tuning
+         \end{description} 
+
+       \item[ducc.broker.credentials] \hfill \\
+         This is the ActiveMQ credentials file used to authenticate DUCC daemons with the broker, for
+         auto-managed brokers only.
+         \begin{description}
+           \item[Default] \${ducc.private.resources}/ducc-broker-credentials.properties
+           \item[Type] Tuning
+         \end{description} 
+
        \item[ducc.broker.home] \hfill \\
          For DUCC auto-managed brokers only, this names the location where ActiveMQ is installed
          installed.  
@@ -127,7 +143,7 @@
          \end{description} 
            
            
-       \item[ducc.broker.decoration] \hfill \\
+       \item[ducc.broker.url.decoration] \hfill \\
          The property is used by the DUCC Job Driver processes to modify the ActiveMQ broker URL
          when connecting to the Job Processes.
 
@@ -280,7 +296,7 @@
          If an agent detects free swap space dipping below the value defined
          below, it will find the fattest (in terms of memory) process in its
          inventory and kill it. The value of the parameter below is expressed
-         in Megabytes.
+         in bytes.
 
          If set to 0, the threshold is disabled.
          \begin{description}
@@ -376,7 +392,7 @@
          for use ONLY by DUCC developers. It allows developers of DUCC to simulate a multiuser 
          environment without the need for root privileges. 
          
-         Note: WARNING! Enabling this feature in a production DUCC system is a potentially serious
+         Note: WARNING! Enabling this feature in a production DUCC system is a serious
          security breach. It should only be set by DUCC developers running with an un-privileged
          ducc\_ling.
          \begin{description}
@@ -409,11 +425,10 @@
 
        \item[ducc.environment.propagated] \hfill \\
          This specifies the environmental variables whose values will be merged with the
-         user-specified environment option on job, process and service submissions.  A typical setting
-         might be: USER HOME LANG
+         user-specified environment option on job, process and service submissions.
 
          \begin{description}
-           \item[Default] (unconfigured) 
+           \item[Default] USER HOME LANG DUCC\_SERVICE\_INSTANCE
            \item[Type] Local 
          \end{description}
                                                                         
@@ -525,6 +540,21 @@
             \item[Type] Tuning
           \end{description}
 
+        \item[ducc.ws.requestLog.RetainDays] \hfill \\
+          Optionally configure the webserver request log, default, if not configured, is 0 (meaning no request logging).
+          Logs are written to DUCC\_HOME/logs/webserver.
+          \begin{description}
+            \item[Default Value] 30
+            \item[Type] Tuning
+          \end{description}
+
+        \item[ducc.ws.visualization.strip.domain] \hfill \\
+          If set, the visualization will strip domain names from nodes to present a cleaner visualization.
+          \begin{description}
+            \item[Default Value] true
+            \item[Type] Tuning
+          \end{description}
+
       \end{description}  
             
     
@@ -573,53 +603,6 @@
             \item[Type] Private 
           \end{description}
           
-        \item[ducc.jd.host.class] \hfill \\
-          This is the scheduling class used to request a reservation from the Resource Manager for 
-          the machine that will be used to run the Job Driver processes. This class must also be 
-          configured in ducc.classes with scheduling policy RESERVE. 
-          \begin{description}
-            \item[Default Value] JobDriver 
-            \item[Type] Tuning 
-          \end{description}
-          
-        \item[ducc.jd.host.description] \hfill \\
-          This is a name to be associated with the reservation that is made for the Job Driver Node. 
-          It can be any string and is displayed in the Reservations page on the Web Server. 
-          \begin{description}
-            \item[Default Value] Job Driver 
-            \item[Type] Tuning 
-          \end{description}
-
-        \item[ducc.jd.host.memory.size] \hfill \\
-          This is the amount of memory that is requested in the Job Driver reservation. It is used 
-          in conjunction with the configuration of the class specified for the job driver (by default, 
-          JobDriver) to schedule a node. The default configuration for this class uses a node pool 
-          instead of memory to allocate the Job Driver node so by default, this parameter is ignored. 
-          \begin{description}
-            \item[Default Value] 2GB 
-            \item[Type] Tuning 
-          \end{description}
-          
-
-        \item[ducc.jd.host.number.of.machines] \hfill \\
-          This is the number of machines to request for Job Driver nodes. This may be increased if 
-          there are many jobs in the system and the load on the JD node is high enough to slow the 
-          JD processes. 
-          \begin{description}
-            \item[Default Value] 1 
-            \item[Type] Tuning 
-          \end{description}
-          
-
-        \item[ducc.jd.host.user] \hfill \\
-          This is the userid that is associated with the Job Driver reservation. It does not need to be 
-          a "real" userid as the actual owner of the reservation is user "ducc". It is primarily used as 
-          annotation of the reservation in the Web Server and logs. 
-          \begin{description}
-            \item[Default Value] System 
-            \item[Type] Tuning 
-          \end{description}
-
 
         \item[ducc.jd.queue.timeout.minutes] \hfill \\
          After dispatching a work item to UIMA-AS client for processing, the
@@ -840,7 +823,7 @@
         The interval in milliseconds between Orchestrator publications of its non-abbreviated  
         state. 
         \begin{description}
-          \item[Default Value] 15000 
+          \item[Default Value] 10000 
           \item[Type] Private 
         \end{description}
         
@@ -926,14 +909,12 @@
             \item[Type] Private 
           \end{description}
           
-        \item[ducc.rm.state.publish.rate] \hfill \\
-          The interval in milliseconds between Resource Manager state publications to the Orchestrator.
-
-          This can directly affect user response.  For small clusters a value of 10000 is often acceptable
-          and results in faster response.  On larger clusters the value should be raised to around
-          60000 (60 seconds) to avoid thrashing.
+        \item[ducc.rm.state.publish.ratio] \hfill \\
+          This specifies the frequency of RM schedules, relative to the number of Orchestrator publications.  If
+          the value is set to 1, RM runs and publishes a schedule immediately on receipt of OR state.  If set to
+          some number N, RM runs a schedule after receipt of every N Orchestrator publications.
           \begin{description}
-            \item[Default Value] 10000 
+            \item[Default Value] 1
             \item[Type] Tuning
           \end{description} 
                     
@@ -948,6 +929,15 @@
             \item[Type] Tuning 
           \end{description}
 
+        \item[ducc.rm.global.allotment] \hfill \\
+          This specifies the maximum non-preemptable shares any user may be awarded, in GB.  If not configured,
+          there is no maximum enforced.  This can be overridden on a per-user basis in the user registry.
+          See the \hyperref[chap:rm]{Resource Management} section for more information on the share quantum.
+          \begin{description}
+            \item[Default Value] (not set, no limit imposed)
+            \item[Type] Tuning 
+          \end{description}
+
         \item[ducc.rm.scheduler] \hfill \\
           The component that implements the scheduling algorithm is pluggable. This specifies the 
           name of that class. 
@@ -956,9 +946,19 @@
             \item[Type] Private
           \end{description} 
           
+        \item[ducc.rm.user.registry] \hfill \\
+          This names the file with the user registr, within the DUCC\_HOME/resources directoryy.
+          As of this version of DUCC, the registry is used
+          only to override the global allotments.  The registry entries may also be placed in the
+          \hyperref[sec:ducc.classes]{\em ducc.classes} file if desired.
+          \begin{description}
+            \item[Default Value] ducc.users
+            \item[Type] Private
+          \end{description} 
+          
         \item[ducc.rm.class.definitions] \hfill \\
           This specifies the name of the file that contains the site's class definitions. This file is 
-          described in detail the section on ducc.properties [77]. 
+          described in detail in the \hyperref[sec:ducc.classes]{\em ducc.classes} section.
           \begin{description}
             \item[Default Value] ducc.classes 
             \item[Type] Tuning 
@@ -1246,23 +1246,20 @@
             \item[Default Value] 10 
             \item[Type] Tuning 
           \end{description}
-          
-        \item[ducc.agent.launcher.use.ducc.spawn] \hfill \\
-          This specifies whether to launch job processes via ducc\_ling. When set to false the process 
-          is launched directly as a child of the agent. Log indirection is not performed, the working 
-          directory is not set, and the the process does not change its identity to that of the submitter. 
-          This property is intended for the use of DUCC developers. 
-          \begin{description}
-            \item[Default Value] true 
-            \item[Type] Private 
-          \end{description}
-          
+                    
         \item[ducc.agent.launcher.ducc\_spawn\_path] \hfill \\
           This property specifies the full path to the ducc\_ling utility. During installation ducc\_ling 
           is normally moved to local disk and given setuid-root privileges. Use this property to tell 
-          the DUCC agents the location of the installed ducc\_ling. 
+          the DUCC agents the location of the installed ducc\_ling.  The default location is within
+          an architecture dependent subdiretory of DUCC\_HOME/admin.  
+
+          The arcitecture is derived from
+          the JRE property {\em os.arch}.  During DUCC installation the {\em ducc\_ling} utility is
+          compiled for the architecture of the host where DUCC is installed.  In heterogeneous
+          clusters, the system administrator should run the utility {\em build\_duccling} once on
+          a machine of each architecture to insure this utility gets correctly installed.
           \begin{description}
-            \item[Default Value] \ducchome/admin/ducc\_ling 
+            \item[Default Value] \ducchome/admin/\${os.arch}/ducc\_ling 
             \item[Type] Tuning             
           \end{description}
           
@@ -1450,7 +1447,7 @@
         This is the name of the pluggable java class that implements the the UIMA-AS service 
         shell for job processes (JPs). 
         \begin{description}
-          \item[Default Value] org.apache.uima.ducc.agent.deploy.uima.UimaAsServiceConfiguration 
+          \item[Default Value] org.apache.uima.ducc.transport.configuration.jp.JobProcessConfiguration
           \item[Type] Private 
         \end{description}
         
@@ -1479,7 +1476,7 @@
       \item[ducc.uima-as.saxon.jar.path] \hfill \\
         This configures the path the required Saxon jar. 
         \begin{description}
-          \item[Default Value] file:\ducchome/lib/saxon/saxon8.jar
+          \item[Default Value] file:\ducchome/apache-uima/saxon/saxon8.jar
           \item[Type] Private 
         \end{description}
         
@@ -1487,15 +1484,15 @@
       \item[ducc.uima-as.dd2spring.xsl.path] \hfill \\
         This configures the path the required dd2spring xsl definitions. 
         \begin{description}
-          \item[Default Value] \ducchome/resources/dd2sprint.xsl
+          \item[Default Value] \ducchome/apache-uima/bin/dd2spring.xsl
           \item[Type] Private 
         \end{description}
         
-      \item[ducc.uima-as.flow\_controller.specifier] \hfill \\
+      \item[ducc.uima-as.flow-controller.specifier] \hfill \\
         This configures the pluggable class that implements the default flow controller used in the 
         DUCC job processes (JPs). 
         \begin{description}
-          \item[Default Value] DuccJobProcessFC 
+          \item[Default Value] org.apache.uima.ducc.FlowController
           \item[Type] Private 
         \end{description}
       \end{description}
