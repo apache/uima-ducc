@@ -192,7 +192,7 @@ stop_ducc -c agent@n1 -c agent@n2
             Stop and restart the rm: 
 \begin{verbatim}
 stop_ducc -c rm 
-start_ducc -c rmc 
+start_ducc -c rm
 \end{verbatim}
             
             Components include: 
@@ -202,6 +202,7 @@ start_ducc -c rmc
               \item[pm] The Process Manager.                 
               \item[sm] The Service Manager.                 
               \item[ws] The Web Server.                 
+              \item[broker] The ActiveMQ broker (only if the broker is auto-managed).
               \item[agent\@node] Node Agent on the specified node.
               \end{description}
 

@@ -225,11 +225,6 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
         ``false''.  This class is never passed to the scheduler and may not be referenced
         by jobs.
 
-      \item[cap] This specifies the largest number of shares that any job in this class
-        may be assigned.  It may be an absolute number or a percentage.  If specified as
-        a percentage (i.e. it contains a trailing \%), it specifies a percentage of the
-        total nodes in the containing nodepool.
-
       \item[debug] FAIR\_SHARE only. This specifies the name of a class to substitute
         for jobs submitted for debug.  For example, if class {\em normal} specifies
 \begin{verbatim}
@@ -246,19 +241,6 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
         FIXED\_SHARE or RESERVE may contain this designation, in which case it names the default
         class to use for reservations (Note that either FIXED\_SHARE or RESERVE scheduling policies
         are valid for reservations.)
-
-      \item[enforce] RESERVE only.  If specified, then reservations for this class must specify a
-        memory size that when converted to shares exactly matches an eligible machine.  For example,
-        if the share quantum is 15GB, a 15GB reservation will never be honored by a 240GB machine; 
-        for this machine a memory size between 226 \& 240GB would have to be specified.  
-        The DUCC Web Server's {\em Machines} page displays the recommended request size for every machine.  
-
-        If {\em enforce} is not specified, the default is ``true''.
-
-        If {\em enforce} is set to false, the scheduler will attempt to match the reservation as 
-        closely as possible to an existing machine, and if it cannot it will use the next largest
-        machine available.  Thus, a 15GB reservation {\em might} be satisfied with a 240GB machine if
-        that is all that is available at the time.
 
       \item[expand-by-doubling] FAIR\_SHARE only.  If ``true'', and the {\em initialization-cap} is
         set, then after any process has initialized, the job will expand to its maximum allowable
@@ -358,7 +340,6 @@ Class reserve-base {
       policy = RESERVE
       nodepool = intel
       priority = 1
-      enforce = true
       abstract = true
       max-machines = 10
 }
