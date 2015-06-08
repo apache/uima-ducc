@@ -543,3 +543,55 @@ Nodepool power
         \end{description}
             
        
+\subsection{ducc\_properties\_manager}
+\label{sec:cli.ducc-properties-manager}
+
+    \paragraph{Description:}
+    This CLI is used to manually merge or difference two properties files. 
+
+    Normally, the DUCC scripts {\em start\_ducc, check\_ducc,}, and {\em rm\_configure} automatically
+    merge the file {\em default.ducc.properties} and {\em site.ducc.properties} when invoked.  
+
+    \paragraph{Usage:}
+    \begin{description}
+    \item[ducc\_props\_manager --merge file1 --with file2 --to file3]
+      Merge two properties files into one.  Properties added to, or changed in, the second file
+      are used to override those in the first file, with the result written to the third file.
+    \item[ducc\_props\_manager --delta file1 --with file2 --to file3]
+      Compare two properties files and write the differences into a third file.  The first file is
+      considered a ``master'' file.  Properties with different values in the second file, or which
+      do not occur in the first file, are written into the third file.
+    \end{description}
+
+    \paragraph{Options:}
+    \begin{description}
+        \item[$--$merge file1]          
+          In this form, the two files specified in the {\em $--$with} and {\em$--$to} fields are merged, with the
+          results placed in $--$file3.  Overrides are flagged with a change tag and the date of the merge.
+
+          {\em file1} is considered the ``master'' properties file and is usually the unmodified file provided
+          with the DUCC distribution, {\em default.ducc.properties}.
+
+          {\em file2} is considered a set of override or additional properties and is usually the site local
+          properties file, {\em site.ducc.properties.}
+
+        \item[$--$delta file1]
+          In this form, the two files specified in the {\em $--$with} and {\em$--$to} fields are compared, with
+          differences placed in $--$file3.
+
+          {\em file1} is considered the ``master'' properties file and is usually the unmodified file provided
+          with the DUCC distribution, {\em default.ducc.properties}.
+          
+          {\em file2} is considered the ``external'' properties file and is usually the properties file from
+          an older version of DUCC.  
+
+          Differences are placed in {\em $--$file3} which may be a viable first cut at a new {\em site.ducc.properties.}
+
+          \item[$--$with file2] This specifies the properties file to merge with the master, or to difference
+            with the master properties file.
+
+          \item[$--$to file3] This specifies the file to which the results of the merge or delta are written.
+     \end{description}
+        
+    \paragraph{Notes:}
+    None.
