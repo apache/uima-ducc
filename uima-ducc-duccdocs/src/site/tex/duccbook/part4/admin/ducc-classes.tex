@@ -48,7 +48,9 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
     and the system will refuse to start if the configuration is incorrect.
 
     NOTE: The administrative command {\em check\_ducc -c} may be used to verify and validate
-    you class configration before attemping to start DUCC.
+    you class configration before attemping to start DUCC.  {\em check\_ducc -cv} may be used
+    to additionally ``pretty-print'' the ducc.classes configuration to the console to revel
+    class nesting and inheritance.
 
     For example, the diagram below is an abstract representation of all the nodes in a
     system.  There are five nodepools defined:
@@ -258,12 +260,7 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
 
         Omit this property, or set it to 0 to disable the cap.
 
-      \item[max-machines] RESERVE only.  This specifies the maximum number of full machines that
-        may be reserved by any single job.
-
-        Omit this property, or set it to 0 to disable the cap.
-
-      \item[prediction-fudge] FAIR\_SHARE only. When the scheduler is considering expanding the
+g      \item[prediction-fudge] FAIR\_SHARE only. When the scheduler is considering expanding the
         number of processes for a job it tries to determine if the job may complete before those
         processes are allocated and initialized.  The {\em prediction-fudge} adds some amount of 
         time (in milliseconds) to the projected completion time.  This allows installations to
@@ -272,7 +269,7 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
 
         If not specified, the global value set in \hyperref[sec:ducc.properties]{ducc.properties} is used.
 
-      \item[nodepool] If specified, jobs for this class are assigned to nodes in this nodepool. The
+      \item[nodepool] Jobs for this class are assigned to nodes in this nodepool. The
         value must be the name of one of the configured nodepools.
 
       \item[policy] This is the scheduling policy, one of FAIR\_SHARE, FIXED\_SHARE, or RESERVE. This
@@ -341,7 +338,6 @@ Class reserve-base {
       nodepool = intel
       priority = 1
       abstract = true
-      max-machines = 10
 }
  
 Class reserve     reserve-base { }
@@ -355,10 +351,10 @@ Class timing-p7   reserve-base { nodepool = timing-p7 }
 \subsection{Validation}
 
 The administrative command, \hyperref[subsec:admin.check-ducc]{\em check\_ducc} may be used to
-validate a configuration, with the {\em -c} option.  This reads the entire configuration and
+validate a configuration, with the {\em -c} and {\em v} options.  This reads the entire configuration and
 nodefiles, validates consistency of the definitions and insures the nodepools do not overlap.
 
-During start-up, the \hyperref[subsec:admin.check-ducc]{\em start\_ducc} command always runs full validation, and if the
+The \hyperref[subsec:admin.start-ducc]{\em start\_ducc} command always runs full validation, and if the
 configuration is found to be incorrect, the cluster is not started.
 
 Configuration checking is done internally by the DUCC java utility {\em
