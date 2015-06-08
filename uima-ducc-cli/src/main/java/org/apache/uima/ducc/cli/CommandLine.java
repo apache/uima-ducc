@@ -176,9 +176,10 @@ public class CommandLine
         //   Any capitilaztion of true, t, yes, y, 1  --------> true
         //   Any capitilaztion of false, f, no, n, 0  --------> false
 
-        if ( k.noargs() && get(k) == null ) return true;
+    	String v = get(k);
+        if ( v == null || v.isEmpty()) return true;
 
-        String v = get(k).toUpperCase();
+        v = v.toUpperCase();
         if ( v.equals("TRUE")  || v.equals("T") || v.equals("YES") || v.equals("Y") || v.equals("1") ) return true;
         if ( v.equals("FALSE") || v.equals("F") || v.equals("NO")  || v.equals("N") || v.equals("0") ) return false;
         throw new IllegalArgumentException("Value is not true | false for argument " + k.pname());
