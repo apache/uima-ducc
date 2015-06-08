@@ -1,0 +1,67 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+\section{Ducc User Definitions}
+\label{sec:admin-ducc.users}
+    The DUCC user registry provides user-specific overrides of various constraints
+    DUCC might impose.  
+
+    As of 2.0.0, the only constraint override is 
+    \hyperref[sec:rm.allotment]{allotment} for non-preemptable requests.
+
+    The syntax of the user registry is the same as that used in
+    {\em ducc.classes}, and in fact, the user registry may be embedded directly
+    in that file, rather than specified externally.
+
+    The registry consists of multiple entries, one for affected user.  Any user
+    of the system NOT in the registry acquires the system defaults.
+
+    A user definition consists of the token ``User'' followed by the 
+    id of the user, followed by a block delimited with ``curly'' braces \{ and \}.  This
+    block contains the attributes of the nodepool as key/value pairs.
+    Lineneds are ignored.  A semicolon ``$;$'' may optionally be used to
+    delimit key/value pairs for readability, and an equals sign ``='' may optionally
+    be used to delimit keys from values, also just for readability.  
+
+    The attributes of a User entry are:
+    \begin{description}
+      \item[max-allotment] This overrides the maximum allotment for non-preemptable
+        requests as defined in {\em ducc.properties}.  The override may be used to
+        either increase, or decrease the user's allotment.  The units are in gigabytes.
+    \end{description}
+
+    The example below shows overrides for three users:
+    \begin{itemize}
+      \item Bob is allowed a non-preemptable allotment of 4000GB.
+      \item May is allowed a non-preemptable allotment of 1000GB.
+      \item Antoinette is allowed a non-preemptable allotment of 720GB.
+    \end{itemize}    
+        
+
+    \begin{figure}[H]    
+\begin{verbatim}
+# --------------------- User Registry ---------------------
+User bob         { max-allotment = 4000 }
+User mary        { max-allotment = 1000 }
+User antoinette  { max-allotment = 720  }
+\end{verbatim}
+          \caption{Sample User Registration}
+      \label{fig:class.configuration}
+    \end{figure}
+
+
