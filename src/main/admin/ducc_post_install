@@ -230,7 +230,7 @@ class PostInstall():
 
         if ( self.ducc_head == None ):
             self.ducc_head = self.localhost
-            reply = raw_input('Enter hostname of DUCC hoead[' + self.ducc_head + ']')
+            reply = raw_input('Enter hostname of DUCC head[' + self.ducc_head + ']')
             if ( reply != '' ):
                 self.ducc_head = reply
 
