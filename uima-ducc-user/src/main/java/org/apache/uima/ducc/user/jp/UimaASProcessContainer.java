@@ -21,6 +21,7 @@ package org.apache.uima.ducc.user.jp;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -46,9 +48,11 @@ import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.aae.monitor.statistics.AnalysisEnginePerformanceMetrics;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
+import org.apache.uima.analysis_engine.impl.AnalysisEngineManagementImpl;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.collection.EntityProcessStatus;
+import org.apache.uima.impl.UimaVersion;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 import org.xml.sax.Attributes;
@@ -76,7 +80,9 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
     private String duccHome=null;
     
     private volatile boolean threadAffinity=false;
-	    
+	boolean enablePerformanceBreakdownReporting = false;
+
+	
 	public boolean useThreadAffinity() {
 	  return threadAffinity;
 	}	
@@ -100,6 +106,28 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		if ( "uima-as".equals(jobType)) {
 			System.out.println("UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
         } 
+		// enable performance breakdown reporting for uima sdk
+		// version 2.6+ or higher. These versions include changes
+		// to make performance aggregation thread safe. Fields
+		// to accumulate performance are AtomicLong's instead of long.
+		try {
+			if ( UimaVersion.getMajorVersion() >=2 && UimaVersion.getMinorVersion() >= 6) {
+				AnalysisEngineManagementImpl aemi = 
+						new AnalysisEngineManagementImpl();
+				// use reflection to make sure the new uima sdk is being used.
+				// The new code will use AtomicLong instead of long for
+				// analysisTime field
+				Field f = aemi.getClass().getDeclaredField("analysisTime");
+				f.setAccessible(true);
+	            if ( f.getType().isAssignableFrom(AtomicLong.class)) {
+	         	    enablePerformanceBreakdownReporting = true;
+		        }
+			}
+		} catch( Throwable t) {
+			
+		}
+
+		
 		// generate Spring context file once
 		synchronized( UimaASProcessContainer.class) {
 			if ( !initialized ) {
@@ -334,24 +362,41 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			// Use thread dedicated UimaSerializer to de-serialize the CAS
 			super.getUimaSerializer().
 				deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,-1);
+
 			/*
 			 * The following code commented for now. Re-enable when uima-as
 			 * performance metric collection is fixed. There is a bug in 
 			 * the uima-as which causes metrics to be invalid.
 			List<AnalysisEnginePerformanceMetrics> perfMetrics = new ArrayList<AnalysisEnginePerformanceMetrics>();
 			*/
-			
-			// delegate processing to the UIMA-AS service and wait for a reply
-			uimaASClient.sendAndReceiveCAS(cas);//, perfMetrics);
-			// convert UIMA-AS metrics into properties so that we can return this
-			// data in a format which doesnt require UIMA-AS to digest
 			List<Properties> metricsList = new ArrayList<Properties>(); 
-			Properties p = new Properties();
-			p.setProperty("name", "Performance Metrics Not Supported For DD Jobs");
-			p.setProperty("uniqueName","Performance Metrics Not Supported For DD Jobs" );
-			p.setProperty("analysisTime","0" );
-			p.setProperty("numProcessed","0" );
-			metricsList.add(p);
+
+			if ( enablePerformanceBreakdownReporting ) {
+				List<AnalysisEnginePerformanceMetrics> perfMetrics = 
+						new ArrayList<AnalysisEnginePerformanceMetrics>();
+				uimaASClient.sendAndReceiveCAS(cas, perfMetrics);
+
+				for( AnalysisEnginePerformanceMetrics metrics : perfMetrics ) {
+					Properties p = new Properties();
+					p.setProperty("name", metrics.getName());
+					p.setProperty("uniqueName", metrics.getUniqueName());
+					p.setProperty("analysisTime",String.valueOf(metrics.getAnalysisTime()) );
+					p.setProperty("numProcessed",String.valueOf(metrics.getNumProcessed()) );
+					metricsList.add(p);
+				}
+				
+			} else {
+				// delegate processing to the UIMA-AS service and wait for a reply
+				uimaASClient.sendAndReceiveCAS(cas);//, perfMetrics);
+				// convert UIMA-AS metrics into properties so that we can return this
+				// data in a format which doesnt require UIMA-AS to digest
+				Properties p = new Properties();
+				p.setProperty("name", "Performance Metrics Not Supported For DD Jobs");
+				p.setProperty("uniqueName","Performance Metrics Not Supported For DD Jobs" );
+				p.setProperty("analysisTime","0" );
+				p.setProperty("numProcessed","0" );
+				metricsList.add(p);
+			}
 			/*
 			 * The following code commented for now. Re-enable when uima-as
 			 * performance metric collection is fixed. There is a bug in 
