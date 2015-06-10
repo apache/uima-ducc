@@ -20,18 +20,23 @@
  \section{Overview}
 
     This chapter provides an overview of the DUCC process logs and how to interpret the
-    entries therin.
+    entries therein.
 
     Each of the DUCC ``head node'' processes writes a detailed log of its operation to
     the directory \ducchome/logs.  The logs are managed by Apache log4j.  All logs are
     managed by a single log4j configuration file
 \begin{verbatim}
-        DUCC_HOME/resources/log4j.xml
+        $DUCC_HOME/resources/log4j.xml
 \end{verbatim}
 
     The DUCC logger is configured to check for updates to the log4j.xml
     configuration file and automatically update without the need to restart any of
     the DUCC processes.  The update may take up to 60 seconds to take effect.
+
+    The DUCC logger is loaded and configured through the log4j API such that other
+    log4j configuration files that might be in the classpath are ignored.  This also
+    means that log4j configuration files in the user's classpath will not interfere
+    with DUCC's logger.
 
     The logs are set to roll after some reaching a given size and the number of generations
     is limited to prevent overrunning disk space.  In general the log level is set to
@@ -52,6 +57,8 @@
       \hline
           Process Manager & pm.log \\
       \hline
+          Web Server & ws.log \\
+      \hline
           Agent & {\em [hostname].agent.log } \\
       \hline
     \end{tabular}
@@ -59,9 +66,40 @@
     Because there may be many agents, the agent log is prefixed with the name of the host for
     each running agent.
 
-\section{Common Log Format}
-     
-    Timestamp   LOGLEVEL  COMPONENT.sourceFileName method-name Jobid-or-NA text
+    The log4j file may be customized for each installation to change the format or content of the
+    log files, according to the rules defined by log4j itself.  This section defines the 
+    default configuration.
+
+    The general format of a log message is as follows:
+\begin{verbatim}
+    Timestamp   LOGLEVEL  COMPONENT.sourceFileName method-name J[Jobid-or-NA] T[TID] text
+\end{verbatim}
+    where
+    \begin{description}
+      \item[Timestamp] is the time of the occurrence.  By default, the timestamp uses millisecond granularity.
+      \item[LOGLEVEL] This is one of the log4j debug levels, INFO, ERROR, DEBUG, etc.
+      \item[COMPONENT] This identifies the DUCC component emitting the message.  The components include
+        \begin{description}
+          \item[SM] Service Manager
+          \item[RM] Resource Manager
+          \item[PM] Process Manager
+          \item[OR] Orchestrator
+          \item[WS] Web Server
+          \item[Agent] Agent            
+          \item[JD] Job Driver
+          \item[JobProcessComponent] Job process, also known as JP
+        \end{description}
+      \item[sourceFileName] This is the name of the Java source file from which the message is emitted.
+      \item[method-name] This is the name of the method in {\em sourceFileName} which emitted the message.
+      \item[{J[Workid-or-NA]}] This is the DUCC assigned id of the work being processed, when relevant.  If the
+        message is not associated with work, this field shows ``N/A''.  Some logs (such as JP and JD logs)
+        pertain ONLY to a specific job and do not contain this field.
+      \item[{T[TID]}] This is the ID of the thread emitting the message.  Some logs (such as RM) do not use
+        this field so it is omitted.
+      \item[text] This is the component-specific text content of the message.  Key messages are described
+        in detail in subsequent sections.
+
+    \end{description}
 
 \section{Resource Manager Log (rm.log)}
 
@@ -70,7 +108,7 @@
     more detail below:
     \begin{itemize}
       \item Bootstrap configuration
-      \item Node arrival and missesd heartbeats
+      \item Node arrival and missed heartbeats
       \item Node occupancy
       \item Job arrival and status updates
       \item Calculation of job caps
@@ -84,7 +122,7 @@
 \subsection{Bootstrap Configuration}
    The RM summarizes its entire configuration when it starts up and prints it to the log to
    provide context for subsequent data and as verification that the RM is configured in the
-   way it was though to be.  All the following are fond in the bootstrap section and are mostly
+   way it was thought to be.  All the following are found in the bootstrap section and are mostly
    self-explanatory:
 
    \begin{itemize}
@@ -93,12 +131,67 @@
      \item A summary of all classes, one per line.  This is a more concise display and is similar to the
        DUCC Classes page in the web server.
      \item A listing of all RM configuration parameters and the environment including things such as the
-       version of JAVA, the operating system, etc.
+       version of Java, the operating system, etc.
      \item Nodepool occupancy.  As host names are parsed from the {\em ducc.nodes} files, the RM log
        shows exactly which nodepool each node is added to.
    \end{itemize}
    
    The RM logs can wrap quickly under high load in which case this information is lost.
+
+   The following represent key RM logs lines to search for if it is desired to examine or verify its
+   initialization.  (Part of the leaders on these messages are removed here to shorten the
+   lines for publication.)
+
+    \paragraph{Initial RM start}
+    The first logged line of any RM start will contain the string {\em Starting component:  resourceManager}:
+\begin{verbatim}
+RM.ResourceManagerComponent- N/A boot  ... Starting Component:  resourceManager
+\end{verbatim}
+
+    \paragraph{RM Node and Class Configuration}
+    The first configuration lines show the reading and validation of the node and class configuration.  Look
+    for the string {\em printNodepool} to find these lines:
+\begin{verbatim}
+RM.Config- N/A printNodepool     Nodepool --default--
+RM.Config- N/A printNodepool        Search Order: 100
+RM.Config- N/A printNodepool        Node File: None
+RM.Config- N/A printNodepool                   <None>
+RM.Config- N/A printNodepool        Classes: background low normal high normal-all nightly-test reserve
+RM.Config- N/A printNodepool        Subpools: jobdriver power intel
+         ...
+\end{verbatim}
+
+   \paragraph{RM Scheduling Configuration}
+   Next the RM reads configures its scheduling parameters and emits the information.  It also emits information
+   about its environment: the ActiveMQ broker, JVM information, OS information, DUCC version, etc.  To fine
+   this search for the string {\em init  Scheduler}.
+\begin{verbatim}
+ init  Scheduler running with share quantum           :  15  GB
+ init                         reserved DRAM           :  0  GB
+ init                         DRAM override           :  0  GB
+ init                         scheduler               :  org.apache.uima.ducc.rm.scheduler.NodepoolScheduler
+
+ init                         DUCC home               :  /home/challngr/ducc_runtime
+ init                         ActiveMQ URL            :  tcp://bluej537:61617?jms.useCompression=true
+ init                         JVM                     :  Oracle Corporation 1.7.0_45
+ init                         JAVA_HOME               :  /users1/challngr/jdk1.7.0_45/jre
+ init                         JVM Path                :  /users/challngr/jdk1.7.0_45/bin/java
+ init                         JMX URL                 :  service:jmx:rmi:///jndi/rmi://bluej537:2099/jmxrmi
+ init                         OS Architecture         :  amd64
+ init                         OS Name                 :  Linux
+ init                         DUCC Version            :  2.0.0-beta
+ init                         RM Version              :  2.0.0
+\end{verbatim}
+
+   \paragraph{RM Begins to Schedule}
+   The next lines will show the nodes checking in and which nodepools they are assigned to.  When the scheduler is
+   ready to accept Orchestrator requests you will see assignment of the JobDriver reservation.  At this point
+   RM is fully operational.  The confirmation of JobDriver assignment is similar to this:
+\begin{verbatim}
+Reserved:
+         ID    JobName       User      Class Shares Order QShares NTh Memory nQuest Ques Rem InitWait Max P/Nst
+R______7434 Job_Driver     System  JobDriver      1     1       1   0      2      0        0        0         1
+\end{verbatim}
 
 \subsection{Node Arrival and Missed Heartbeats}
 \subsubsection{Node Arrival}
@@ -108,10 +201,9 @@
 
     A node arrival entry is of the form:
 \begin{verbatim}
-    [LOGHEADER] Nodepool: power Host added: power :  bluej290-18   shares  3 total    9:          
-                              bluej290-18     3             0             3  48128 <none>
+LOGHEADER Nodepool: power Host added: power :  bluej290-18   shares  3 total    9:   48128 <none>
 \end{verbatim}
-    where the fields mean (f the field isn't described here, the value is not relevent to node arrival):
+    where the fields mean (f the field isn't described here, the value is not relevant to node arrival):
     \begin{description}
       \item[LOGHEADER] is the log entry header as described above.
       \item[Nodepool:power] The node is added to the ``power'' nodepool
@@ -122,9 +214,9 @@
     \end{description}
 
 \subsubsection{Missed Heartbeats}
-    The DUCC Agents send out regular ``heartbeat'' meessages with current node statistics. These
+    The DUCC Agents send out regular ``heartbeat'' messages with current node statistics. These
     messages are used by RM to determine if a node has failed.  If a heartbeat does not arrive
-    at the specified time this is noted in the log as a {\em missing} heartbeat. If a specific (configurable) number
+    at the specified time this is noted in the log as a {\em missing heartbeat}. If a specific (configurable) number
     of consecutive heartbeats is missed, the RM marks the node offline and instructs the
     DUCC Orchestrator to purge the shares so they can be rescheduled.
 
@@ -159,7 +251,13 @@
     [LOGHEADER] Machine occupancy before schedule
 \end{verbatim}
 
-    Sample node occupancy follows.  The header is included in the log.
+    NOTE: The current node occupancy can be queried interactively with the 
+    \hyperref[subsec:admin.rm-qoccupancy]{rm\_occupancy} command:
+\begin{verbatim}
+    DUCC_HOME/admin/rm_qoccupancy
+\end{verbatim}
+
+    Sample node occupancy as displayed in the log follows.  The header is included in the log.
 \begin{verbatim}
            Name Order Active Shares Unused Shares Memory (MB) Jobs
 --------------- ----- ------------- ------------- ----------- ------ ...
@@ -182,30 +280,428 @@ f6n10.bluej.net    16             3            13      255459 208977 [13]
     The meaning of each column is:
     \begin{description}
       \item[Name] The host name.
-      \item[Order] This is the share order of the node.  The number represents the number of shares
+      \item[Order] This is the share order of the node.  The number represents the number of quantum shares
         that can be scheduled on this node. (Recall that an actual process may and usually does
-        occupy multiple shares.)
-      \item[Active Shares] This is the number of the shares on the node which are scheduled
+        occupy multiple quantum shares.)
+      \item[Active Shares] This is the number of quantum shares on the node which are scheduled
         for work.
-      \item[Unused Shares] This is the number of shares available for new work.
+      \item[Unused Shares] This is the number of quantum shares available for new work.
       \item[Memory] This is the real memory capacity of the node, as reported by the node's
         Agent process.
       \item[Jobs] Each entry here is the DUCC-assigned id of a job with process assigned to
         this node.  Each entry corresponds to one process.  If an ID appears more than 
         once the job has more than one process assigned to the node; see for example, the
-        node {\bf f6n10.bluej.net} with multiple entries for job {\em 206693}.
+        node {\bf f1n3.bluej.net} with multiple entries for job {\em 206693}.
 
         When no work is assigned to the node, the string {\bf $<$none$>$} is displayed.  
         
         When there is a number in brackets, e.g. {\bf [13]} for node {\bf f7n1.bluej.net}, the
-        number represents the number of shares available to be shcheduled on the node.
+        number represents the number of quantum shares available to be scheduled on the node.
     \end{description}
-    
-    The current node occupancy can be queried interactively with the command:
+
+\subsection{Job Arrival and Status Updates}
+ 
+   \paragraph{Orchestrator State Arrival}
+
+     On a regular basis the Orchestrator publishes the full state of
+     work which may require resources.  This is the prime input to the
+     RM's scheduler and must arrive on a regular basis.  Every arrival
+     of an Orchestrator publication is flagged in the log as follows.
+     If these aren't observed every
+     \hyperref[itm:props-or.state.publish.rate]{Orchestrator publish
+       interval} something is wrong; most likely the Orchestrator or
+     the ActiveMQ broker has a problem.
+
 \begin{verbatim}
-    DUCC_HOME/admin/rm_qoccupancy --console
+RM.ResourceManagerComponent- N/A onJobManagerStateUpdate  -------> OR state arrives
 \end{verbatim}
-    
+        
+    \paragraph{Job State}
+    Immediately after the OR state arrival is logged the state of all work needing scheduling
+    is logged.  These are always tracked by the {\em JobManagerConverter} module in the
+    RM and is logged similar to the following.  It shows the state of each bit of work
+    of interest, and if that state has changed since the last publication, what that state is.
+\begin{verbatim}
+   ...
+RM.JobManagerConverter- 7433 eventArrives  Received non-schedulable job, state =  Completed
+RM.JobManagerConverter- 7434 eventArrives  [SPR] State:  WaitingForResources -> Assigned
+   ...
+\end{verbatim}
+
+\subsection{Calculation Of Job Caps}
+   Prior to every schedule, and immediately after receipt of the Orchestrator state,
+   the RM examines every piece of work and calculates the maximum level of resources the
+   job can physically use at the moment.  This handles the {\em expand-by-doubling} 
+   function, the {\em prediction} function, and accounts for the amount of work left
+   relative to the resources the work already possesses.
+
+   The curious or intrepid can see the code that implements this in {\em RmJob.java} method 
+   {\em initJobCap()}.
+
+   The calculation is done in two steps:
+   \begin{enumerate}
+     \item Calculate the projected cap.  This uses the prediction logic and amount of
+       work remaining to
+       calculate the {\em largest} number of resources the job can use, if the system
+       had unlimited resources.  This is an upper bound on the actual resources 
+       assigned to the job.
+     \item Adjust the cap down using expand-by-doubling and the initialization state of
+       the work.  The result of this step is always a {\em smaller or equal} number
+       as the projected cap.
+   \end{enumerate}
+   The goal of this step is to calculate the largest number of resource the job can
+   actually use at the moment.  The FAIR\_SHARE calculations may further revise this
+   down, but will never revise it up.
+
+   If there is no data yet on the initialization state of work, the rejected cap cannot
+   be calculated and a line such as the following is emitted:
+\begin{verbatim}
+RM.RmJob - 7483 getPrjCap  Hilaria Cannot predict cap: init_wait true || time_per_item 0.0
+\end{verbatim}
+
+   If the job has completed initialization the projected cap is calculated based on 
+   the average initialization time of all the job processes and the current rate of
+   work-item completion.  A line such as this is emitted:
+\begin{verbatim}
+RM.RmJob- 7483 Hilaria O 2 T 58626 NTh 28 TI 18626 TR 12469.0 R 2.2456e-03 QR 1868 P 132 F 1736 \
+       ST 1433260775524 return 434
+\end{verbatim}
+   In this particular line:
+      \begin{description}
+        \item[7483] is the job id
+        \item[Hilaria] is the job's owner (userid)
+        \item[O 2] this says this is an {\em order 2} job: each process will occupy two quantum shares.
+        \item[T 58626] is the smallest number of milliseconds until a new process for this job
+          can be made runnable, based on the average initialization time for processes in
+          this job, the Orchestrator publish rate, and the
+          \hyperref[itm:props-rm.prediction.fudge{\em RM prediction fudge.}]
+        \item[Nth] This is the number of threads currently executing for this job.  It is 
+          calculated as the (number of currently allocated processes) * (the number of threads
+          per process).
+        \item[TI] This is the average initialization time in milliseconds for processes in this job.
+        \item[TR] This is the average execution time in milliseconds for work items in this job.
+        \item[R] This is the current rate at which the job is completing work items, 
+          calculated as (Nth / TR).
+        \item[QR] The is the number of work items (questions) remaining to be executed.
+        \item[P] This is the projected number of questions that can be completed
+          in the time from ``now'' until a new process can be started and initialized
+          (in this case 58626 milliseconds from now, see above), with the currently
+          allocated resources, calculated as (T * R).
+        \item[F] This is the number of questions that will remain unanswered at the
+          end of the target (T) period, calculated as (QR - P).
+        \item[ST] This is the time the job was submitted.
+        \item[return] This is the projected cap, the largest number of processes this
+          job can physically use, calculated as (F / threads-per-process).
+          
+          If the returned projected cap is 0, it is adjusted up to the number of
+          processes currently allocated.
+      \end{description}
+          
+   Once the projected cap is calculated a final check is made to avoid several problems:
+   \begin{itemize}
+     \item Preemption of processes that contain active work but are not using all their
+       threads.  This occurs when a job is ``winding down'' and may have more
+       processes than it technically needs, but all processes still are performing work.
+     \item The job may have declared a maximum number of processes to allocate, which is
+       less than the number it could otherwise be awarded.
+     \item If prediction is being used, revise the estimate down to the smaller
+       of the projected cap and the resources currently allocated.
+     \item If initialization caps are being applied and no process in the job has
+       successfully initialized, revise the estimate down to the initialization cap.
+     \item If expand-by-doubling is being used, potentially revise the estimate down
+       to no more than double the currently allocated processes.
+   \end{itemize}
+
+   The final cap is emitted in a line such as:
+\begin{verbatim}
+RM.RmJob- 7483 initJobCap Hilaria O 2 Base cap: 7 Expected future cap: 434 potential cap 7 actual cap 7
+\end{verbatim}
+    In this line:
+    \begin{description}
+      \item[7483] is the job id.
+      \item[Hilaria] is the job's user name.
+      \item[O 2] indicates this job uses two quantum shares per processes.
+      \item[Base cap:] This is an upper-bound on the number of processes
+        that can be used in a perfect world.  It is calculated by 
+        dividing the number of questions by the number of threads per
+        process.  It is then revised down by the declared max-processes
+        in the job.  In the example above, the job declared
+        max-processes of 7.
+      \item[Expected future cap] This is the projected cap, described above.
+      \item[Potential cap] This is the base cap, possibly revised downward
+        by the future cap, if it is projected that fewer processes are
+        would be useful.
+      \item[Actual cap] This is the assigned maximum processes to be
+        scheduled for this job, possibly adjusted based on the
+        initialization status of the job and the expand-by-doubling policy.        
+    \end{description}
+
+    The {\em actual cap} is the one used to calculate the job's FAIR\_SHARE and
+    is always the the largest number of processes usable in a perfect world.  Note
+    that the FAIR\_SHARE calculation may result in further reduction of this
+    number.
+
+\subsection{The ``how much'' calculations}
+   The RM log includes a section that details the fair-share calculations.  The details
+   of this are rather involved and out-of-scope for this section.  Interested parties
+   are welcome to read the scheduler source, in the file {\em NodePoolScheduler.java},
+   methods {\em countClassShares, countJobShares, countUserShares}, and {\em apportion\_qshares}.
+
+   The logs reveal the inputs to each of the methods above.  The overall logic is as follows
+   and can be followed in the logs.
+
+   \begin{itemize}
+     \item All job classes of equal priority are bundled together and handed to the
+       {\em countClassShares} method.  This method assigns some number of shares
+       to each class based on the weighted fair-share logic, using the configured
+       class weights.  The start of this can be seen under log lines similar to this:
+\begin{verbatim}
+INFO RM.NodepoolScheduler- N/A apportion_qshares  countClassShares RmCounter Start
+\end{verbatim}
+
+     \item All users for each class are passed to the {\em countUserShares} method
+       and then assigned some number of shares from the
+       pool of shares assigned to the class, again
+       using the fair-share computations, but with equal weighs.
+       The start of this can be seen under log lines similar to this:
+\begin{verbatim}
+INFO RM.NodepoolScheduler- N/A apportion_qshares  countJobShares RmCounter Start
+\end{verbatim}
+
+     \item All jobs for each user are passed to the {\em countJobShares} method
+       and assigned some number of shares from the pool assigned to the user, using
+       the fair-share calculator with equal weights.
+       The start of this can be seen under log lines similar to this:
+\begin{verbatim}
+INFO RM.NodepoolScheduler- N/A apportion_qshares  countUserShares RmCounter Start
+\end{verbatim}
+
+     \item The method {\em apportion\_qshares} is the common fair-share
+       calculator, used by the three routines above.
+   \end{itemize}
+
+\subsection{The ``what of'' calculations}
+    These calculations are also too involved to discuss in detail for this section.
+
+    Interested parties may look in {\em NodePoolScheduler.java}, method
+    {\em whatOfFairShare}, and {\em NodePool.java} method {\em traverseNodepoolsForExpansion}
+    to see details.
+
+    The logs track the general flow through the methods above and generally contain
+    enough information to diagnose problems should they arise.  
+
+    The key log message here, other than those sketching logic flow, shows the
+    assignment of specific processes to jobs as seen below.
+
+\begin{verbatim}
+RM.NodePool- 7483 connectShare  share bluej290-12.461 order 2 machine \
+                  bluej290-12        false     2             0             2       31744 <none>
+\end{verbatim}
+    This shows job {\em 7483} being assigned a process on host {\em bluej290-12} as
+    RM share id {\em 461}, which consists of {\em 2 quantum shares} (order 2).  Host
+    bluej290-12 is a 32GB machine with {\em 31744} KB of usable, schedulable memory.
+
+\subsection{Defragmentation}
+    The RM considers the system's memory pool to be fragmented if the counted
+    resources from the the ``how much'' phase of scheduling cannot be fully
+    mapped to real physical resources in the ``what of'' phase.  In short, the
+    ``how much'' phase assumes an ideal, unfragmented virtual cluster.  The ``what of''
+    phase may be unable to make the necessary physical assignments without excessive
+    preemption of jobs that are legitimately at or below their fair share allocations.
+
+    Intuitively, the ``how much'' phase guarantees that if you could do unlimited
+    shuffling around of the allocated resources, everything would ``fit''.  The
+    system is considered fragmented if such shuffling is actually needed.  The
+    defragmentation processes attempts that shuffling, under the constraint of
+    interrupting the smallest amount of productive work possible.
+
+    One scheduling goal, however, is to attempt to guarantee every job gets
+    at least some minimal number of it's fairly-counted processes.  This minimal number
+    is called the 
+    \hyperref[itm:props-rm.defragmentation.threshold]{defragmentation threshold.} and
+    is configured in ducc.properties.  This threshold is used to rigorously define
+    ``smallest amount of productive work'' as used in the previous paragraph.
+    The defragmentation threshold is used in
+    two ways:
+
+    \begin{enumerate}
+      \item Attempt to get every work request resources allocated at least up
+        to the level of the defragmentation threshold.
+      \item Never steal resources beyond the defragmentation threshold during
+        the ``take from the rich'' phase of defragmentation, described below.
+    \end{enumerate}
+    To accomplish this, a final stage, ``defragmentation'', is
+    performed before publishing the new schedule to the Orchestrator
+    for deployment.
+
+    Defragmentation consists of several steps.  The details are again involved,
+    but an understanding of the logic will make following the log relatively
+    straightforward.
+    \begin{itemize}
+      \item Examine every job and determine whether it was assigned
+        all the processes from the ``how much'' phase.  If not, it is marked
+        as POTENTIALLY NEEDY.
+        
+        This step is logged with the tag {\em detectFragmentation}.
+
+      \item Examine every POTENTIALLY NEEDY job to determine if there are
+        sufficient preemptions pending such that the ``how much'' phase will be able
+        to complete as soon as the preemptions complete.  If not, the
+        job is marked ACTUALLY NEEDY.
+
+        This step is also logged with the tag {\em detectFragmentation}.
+
+      \item For every job marked ACTUALLY NEEDY, examine all jobs in the
+        system already assigned shares to determine which ones can
+        donate some resources to the ACTUALLY NEEDY jobs.  These are typically
+        jobs with more processes than their FAIR SHARE, but which, in a
+        perfect, unfragmented layout, would be allocated more resources.  These
+        jobs are called {\em rich} jobs.
+        
+        This step is logged with the tags {\em insureFullEviction} and
+        {\em doFinalEvictions}.
+
+      \item Attempt to match allocations from ``rich'' jobs with jobs that
+        are ACTUALLY NEEDY.  If the ACTUALLY NEEDY job is able to use
+        one of the ``rich job'' allocations, the allocation is scheduled for
+        preemption.  (Note there are many reasons that a rich job may not
+        have appropriate resources to donate: mismatched nodepool, physical
+        host too small, not preemptable, etc.).
+        
+        This step is logged with the tag {\em takeFromTheRich}. If this
+        step has any successes, the log will also show lines with the
+        tags {\em clearShare} and {\em shrinkByOne} as the resources
+        are scheduled for reuse.
+
+        \item The needy job is placed in a list of jobs which are given the
+          highest priority for assignment of new processes, at the start of each
+          subsequent scheduling cycle, until such time
+          as they are no longer needy.
+
+          This step is logged with the tag {\em Expand needy}.
+    \end{itemize}
+
+    Those who wish to see the details of defragmentation can find them in
+    {\em NodepoolScheduler.java}, starting with the method {\em detectFragmentation}
+    and tracing the flows from there.
+
+\subsection{Published Schedule}
+
+   The schedule gets printed to the log twice on every scheduling cycle.  The first
+   form is a pretty-printed summary of all known jobs, showing which ones are
+   getting more resources, {\em expanding}, those which are losing resources, 
+   {\em shrinking}, and those which are not changing, {\em stable.}
+
+   The second form is a {\em toString()} of the structure sent to the Orchestrator,
+   showing the exact resources currently assigned, added, or lost this cycle.
+
+   \paragraph{The pretty-printed schedule}
+      This entry is divided into five sections.  Each section contains one line for
+      each relevant job, with largely self-explanatory headers. An example follows (
+      wrapped here so it fits within a printed page):
+\begin{verbatim}
+         ID                        JobName       User      Class   Shares Order QShares NTh Memory  \
+J______7485 mega-15-min/jobs/mega-2.job[DD   Tanaquil nightly-test      7     2      14   4     24  \
+J______7486 mega-15-min/jobs/mega-3.job[DD    Rodrigo normal-all       93     2     186   4     28  \
+
+              nQuest Ques Rem InitWait Max P/Nst
+               11510    11495    false         7
+               14768    14764    false        93
+
+\end{verbatim}
+     Here,
+
+     \begin{description}
+       \item[ID] is the unique DUCC ID of the work, prefixed with an indication of what kind of
+         work it is: Job (J), a Service (S), a Reservation (R), or Managed Reservation (M).
+       \item[JobName] is the user-supplied name / description of the job.
+       \item[User] is the owner of the work.
+       \item[Class] is the scheduling class used to schedule the work.
+       \item[Shares] is the number of allocations awarded, which might be processes, or simply reserved space.  It
+         is a human-readable convenience, calculated as (Order * QShares).
+       \item[Order] is the number of share quanta per allocation.
+       \item[QShares] is the total quantum shares awarded to the work.
+       \item[Nth] is the declared number of threads per process.
+       \item[Memory] is the amount of memory in GB for each allocation.
+       \item[nQuest] is the number of work items (questions) for the job, where relevant.
+       \item[Ques Rem] is the number of work items not yet completed.
+       \item[InitWait] is either {\em true} or {\em false}, indicating whether at least one process
+         has successfully completed initialization.
+       \item[Max P/Nst] is the job-declared maximum processes / instances for the job.
+     \end{description}
+
+     The five subsections of this log section are:
+     \begin{description}
+       \item[Expanded] This is the list of all work that is receiving more resources this cycle.
+       \item[Shrunken] This is the list of work that is losing resources this cycle.
+       \item[Stable] This is the list of work whose assigned resources do not change this cycle.
+       \item[Dormant] This is the list of work that is unable to receive any resources this cycle.
+       \item[Reserved] This is the list of reservations.
+     \end{description}
+
+   \paragraph{The Orchestrator Structure}
+      This is a list containing up to four lines per scheduled work.  
+      
+      The specific resources shown here are formatted thus:
+\begin{verbatim}
+    hostname.RM share id^Initialization time
+\end{verbatim}
+      The {\em hostname} is the name of the host where the resource is assigned.  The {\em RM Share}
+      is the unique (to RM only) id of the share assigned to this resource.  The {\em Initialization time}
+      is the amount of time spent by the process residing within this resource in its initialization phase.
+      
+      The lines are:
+      \begin{enumerate}
+        \item The type of work and it's DUCC ID, for example: 
+\begin{verbatim}
+ Reservation 7438
+\end{verbatim}
+        \item The complete set of all resources currently assigned to the work, for example:
+\begin{verbatim}
+Existing[1]: bluej537-7-73.1^0
+\end{verbatim}
+          The resources here include all resources the RM tracks as being owned by the job, including
+          older resources, newly assigned resources, and resources scheduled for eviction.  The specific
+          resources which are being added or removed are shown in the next lines.
+          
+        \item The complete set of resources the RM has scheduled for eviction, but which are not
+          yet confirmed freed.  For example, we see 7 resources which have been evicted:
+\begin{verbatim}
+ Removals[7]: bluej290-11.465^19430 bluej290-12.461^11802 bluej290-4.460^12672 bluej290-5.464^23004 
+              bluej290-2.467^22909 bluej290-7.463^20636 bluej290-6.466^19931 
+\end{verbatim}
+
+        \item The complete set of resources which are being added to the work in this cycle.  For
+          example:
+
+\begin{verbatim}
+ Additions[4]: bluej291-43.560^0 bluej291-42.543^0 bluej290-23.544^0 bluej291-44.559^0 
+\end{verbatim}
+      \end{enumerate}
+         
+      In most cases, if resources cannot be awarded, this section also shows the reason 
+      string which is published for the benefit of the web server and the Orchestrator's job monitor:
+\begin{verbatim}
+ Job         7487 Waiting for defragmentation.
+	Existing[0]: 
+	Additions[0]: 
+	Removals[0]: 
+\end{verbatim}
+
+     In some cases, it is possible that a job will show BOTH Additions and Removals.  This usually
+     occurs as a result of the defragmentation step.  The job will have been found in need of
+     new resources during the initial fair-share computation but later during fragmentation,
+     it is also found to be a ``rich'' job which must donate resources to under-allocated work.
+     Not all the processes belonging to the ``rich'' job may be appropriate for the poor job,
+     in which case they will be allowed to expand even as it is donating some to the
+     under-allocated work.
+
+     This can also occur if resources were previously preempted, for some reason the
+     preemption is taking a long time.  Since then other resources have become freed and
+     the can now re-expand.  It is not possible to reverse a preemption (because the actual
+     state of the preemption is not knowable) so both expansion and shrinkage can be
+     in progress for the same job.
+
 \section{Service  Manager Log (sm.log)}
     To be filled in.
 
