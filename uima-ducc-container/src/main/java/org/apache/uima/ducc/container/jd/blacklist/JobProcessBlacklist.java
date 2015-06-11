@@ -81,7 +81,7 @@ public class JobProcessBlacklist {
 				mb.append(Standardize.Label.pid.get()+rwp.getPid());
 				mb.append(Standardize.Label.size.get()+map.size());
 				mb.append(Standardize.Label.value.get()+retVal);
-				logger.debug(location, ILogger.null_id, mb.toString());
+				logger.trace(location, ILogger.null_id, mb.toString());
 			}
 		}
 		return retVal;

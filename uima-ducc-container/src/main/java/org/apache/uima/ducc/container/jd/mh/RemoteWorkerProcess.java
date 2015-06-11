@@ -36,6 +36,23 @@ public class RemoteWorkerProcess implements IRemoteWorkerProcess {
 	private String pidName = null;
 	private int pid = 0;
 	
+	public static RemoteWorkerProcess factory(String nodeName, String nodeAddress, String pidName, String pid) {
+		String location = "factory";
+		RemoteWorkerProcess rwp = null;
+		try {
+			rwp = new RemoteWorkerProcess(
+					nodeName,
+					nodeAddress,
+					pidName,
+					Integer.parseInt(pid)
+					);
+		}
+		catch(Exception e) {
+			logger.trace(location, ILogger.null_id, e);
+		}
+		return rwp;
+	}
+	
 	public RemoteWorkerProcess(IMetaCasRequester metaCasRequester) {
 		setNodeName(metaCasRequester.getRequesterNodeName());
 		setNodeAddress(metaCasRequester.getRequesterAddress());

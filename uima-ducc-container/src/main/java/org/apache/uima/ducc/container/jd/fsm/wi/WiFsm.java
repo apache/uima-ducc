@@ -65,6 +65,7 @@ public class WiFsm extends Fsm {
 	public static IAction ActionAckRedux			= new ActionAckRedux();
 	public static IAction ActionEnd					= new ActionEnd();
 	
+	public static IAction ActionProcessBlacklist	= new ActionProcessBlacklist();
 	public static IAction ActionProcessFailure		= new ActionProcessFailure();
 	public static IAction ActionProcessPreempt		= new ActionProcessPreempt();
 	public static IAction ActionProcessVolunteered	= new ActionProcessVolunteered();
@@ -104,8 +105,8 @@ public class WiFsm extends Fsm {
 		add(Start, Ack_Request, ActionError, Start);
 		add(Start, End_Request, ActionError, Start);
 		add(Start, Process_Preempt, ActionIgnore, Start);
-		add(Start, Process_Volunteered, ActionIgnore, Start);
-		add(Start, Process_Failure, ActionIgnore, Start);
+		add(Start, Process_Volunteered, ActionProcessBlacklist, Start);
+		add(Start, Process_Failure, ActionProcessBlacklist, Start);
 		add(Start, Ack_Timer_Pop, ActionIgnore, Start);
 		add(Start, End_Timer_Pop, ActionIgnore, Start);
 		add(Start, Investment_Reset, ActionIgnore, Start);
