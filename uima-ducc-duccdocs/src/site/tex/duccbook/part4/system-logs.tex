@@ -38,7 +38,7 @@
     means that log4j configuration files in the user's classpath will not interfere
     with DUCC's logger.
 
-    The logs are set to roll after some reaching a given size and the number of generations
+    The logs are set to roll after reaching a given size and the number of generations
     is limited to prevent overrunning disk space.  In general the log level is set to
     provide sufficient diagnostic output to resolve most issues.
 
@@ -67,8 +67,7 @@
     each running agent.
 
     The log4j file may be customized for each installation to change the format or content of the
-    log files, according to the rules defined by log4j itself.  This section defines the 
-    default configuration.
+    log files, according to the rules defined by log4j itself.
 
     The general format of a log message is as follows:
 \begin{verbatim}
@@ -86,8 +85,10 @@
           \item[OR] Orchestrator
           \item[WS] Web Server
           \item[Agent] Agent            
-          \item[JD] Job Driver
-          \item[JobProcessComponent] Job process, also known as JP
+          \item[JD] Job Driver.  These logs are written to the log directory specified in each
+            job submission.
+          \item[JobProcessComponent] Job process, also known as JP.  These logs are written to the
+            log directory specifid in each job submission.
         \end{description}
       \item[sourceFileName] This is the name of the Java source file from which the message is emitted.
       \item[method-name] This is the name of the method in {\em sourceFileName} which emitted the message.
@@ -118,6 +119,20 @@
       \item Internal schedule
       \item Published schedule
     \end{itemize}
+
+    Most useful messages are emitted under log level INFO but a wealth of details can
+    be seen by incresing the log level to DEBUG or TRACE.  To do so, 
+    edit the file 
+    {\em  \ducchome/resources/log4j.xml}
+    and change the {\em priority} value to {\em debug} (or {\em trace}) in the stanza
+    similar to that shown here.  Within about a minute the logger will
+    pick up the change and increase its log level.
+\begin{verbatim}
+   <category name="org.apache.uima.ducc.sm" additivity="true">
+     <priority value="debug"/>
+     <appender-ref ref="smlog" /> 
+   </category>
+\end{verbatim}
     
 \subsection{Bootstrap Configuration}
    The RM summarizes its entire configuration when it starts up and prints it to the log to
@@ -152,12 +167,12 @@ RM.ResourceManagerComponent- N/A boot  ... Starting Component:  resourceManager
     The first configuration lines show the reading and validation of the node and class configuration.  Look
     for the string {\em printNodepool} to find these lines:
 \begin{verbatim}
-RM.Config- N/A printNodepool     Nodepool --default--
-RM.Config- N/A printNodepool        Search Order: 100
-RM.Config- N/A printNodepool        Node File: None
-RM.Config- N/A printNodepool                   <None>
-RM.Config- N/A printNodepool        Classes: background low normal high normal-all nightly-test reserve
-RM.Config- N/A printNodepool        Subpools: jobdriver power intel
+RM.Config- N/A printNodepool   Nodepool --default--
+RM.Config- N/A printNodepool      Search Order: 100
+RM.Config- N/A printNodepool      Node File: None
+RM.Config- N/A printNodepool                 <None>
+RM.Config- N/A printNodepool      Classes: background low normal high normal-all nightly-test reserve
+RM.Config- N/A printNodepool      Subpools: jobdriver power intel
          ...
 \end{verbatim}
 
@@ -166,21 +181,22 @@ RM.Config- N/A printNodepool        Subpools: jobdriver power intel
    about its environment: the ActiveMQ broker, JVM information, OS information, DUCC version, etc.  To fine
    this search for the string {\em init  Scheduler}.
 \begin{verbatim}
- init  Scheduler running with share quantum           :  15  GB
- init                         reserved DRAM           :  0  GB
- init                         DRAM override           :  0  GB
- init                         scheduler               :  org.apache.uima.ducc.rm.scheduler.NodepoolScheduler
+ init  Scheduler running with share quantum       :  15  GB
+ init                         reserved DRAM       :  0  GB
+ init                         DRAM override       :  0  GB
+ init                         scheduler           :  org.apache.uima.ducc.rm.scheduler.NodepoolScheduler
+            ... (more lines) ...
 
- init                         DUCC home               :  /home/challngr/ducc_runtime
- init                         ActiveMQ URL            :  tcp://bluej537:61617?jms.useCompression=true
- init                         JVM                     :  Oracle Corporation 1.7.0_45
- init                         JAVA_HOME               :  /users1/challngr/jdk1.7.0_45/jre
- init                         JVM Path                :  /users/challngr/jdk1.7.0_45/bin/java
- init                         JMX URL                 :  service:jmx:rmi:///jndi/rmi://bluej537:2099/jmxrmi
- init                         OS Architecture         :  amd64
- init                         OS Name                 :  Linux
- init                         DUCC Version            :  2.0.0-beta
- init                         RM Version              :  2.0.0
+ init                         DUCC home           :  /home/challngr/ducc_runtime
+ init                         ActiveMQ URL        :  tcp://bluej537:61617?jms.useCompression=true
+ init                         JVM                 :  Oracle Corporation 1.7.0_45
+ init                         JAVA_HOME           :  /users1/challngr/jdk1.7.0_45/jre
+ init                         JVM Path            :  /users/challngr/jdk1.7.0_45/bin/java
+ init                         JMX URL             :  service:jmx:rmi:///jndi/rmi://bluej537:2099/jmxrmi
+ init                         OS Architecture     :  amd64
+ init                         OS Name             :  Linux
+ init                         DUCC Version        :  2.0.0-beta
+ init                         RM Version          :  2.0.0
 \end{verbatim}
 
    \paragraph{RM Begins to Schedule}
@@ -189,8 +205,8 @@ RM.Config- N/A printNodepool        Subpools: jobdriver power intel
    RM is fully operational.  The confirmation of JobDriver assignment is similar to this:
 \begin{verbatim}
 Reserved:
-         ID    JobName       User      Class Shares Order QShares NTh Memory nQuest Ques Rem InitWait Max P/Nst
-R______7434 Job_Driver     System  JobDriver      1     1       1   0      2      0        0        0         1
+         ID    JobName    User      Class Shares Order QShares NTh Memory nQuest Ques Rem InitWait Max P/Nst
+R______7434 Job_Drive   System  JobDriver      1     1       1   0      2      0        0        0         1
 \end{verbatim}
 
 \subsection{Node Arrival and Missed Heartbeats}
@@ -261,20 +277,20 @@ LOGHEADER Nodepool: power Host added: power :  bluej290-18   shares  3 total    
 \begin{verbatim}
            Name Order Active Shares Unused Shares Memory (MB) Jobs
 --------------- ----- ------------- ------------- ----------- ------ ...
- f1n2.bluej.net    16            16             0      255459 206710 206715 207878 206719 207900 206674 
+ f1n2.bluej.net    16            16             0      255459 206710 206715 207878 206719 207900
  f1n4.bluej.net    16             0            16      255459 <none>[16]
  f7n2.bluej.net    16             0            16      255459 <none>[16]
 f9n10.bluej.net    16             0            16      255459 <none>[16]
  f6n1.bluej.net    16             0            16      255459 <none>[16]
  f7n1.bluej.net    16             3            13      255459 203408 [13]
- f7n3.bluej.net    16            16             0      255459 206716 207904 206720 206717 207879 206718 
-f4n10.bluej.net    16            15             1      255459 209155 208975 209153 209155 209153 [1]
+ f7n3.bluej.net    16            16             0      255459 206716 207904 206720 206717 206718 
+f4n10.bluej.net    16            15             1      255459 209155 208975 209153 209155 [1]
  f7n5.bluej.net    16            16             0      255459 208960 
- f1n3.bluej.net    16            16             0      255459 205608 206695 207906 205609 206693 206683 
+ f1n3.bluej.net    16            16             0      255459 205608 206695 207906 206693 206693 
  f1n1.bluej.net    16             3            13      255459 208913 [13]
 f6n10.bluej.net    16             3            13      255459 208977 [13]
- f6n7.bluej.net    16             0            16      255459 <none>[16]
- f7n6.bluej.net    16            15             1      255459 209155 209151 206701 209155 206699 [1]
+ f6n7.bluej.net    16             0            16      255459 <none> [16]
+ f7n6.bluej.net    16            15             1      255459 209155 209151 206701 209155 [1]
 \end{verbatim}
 
     The meaning of each column is:
@@ -363,8 +379,8 @@ RM.RmJob - 7483 getPrjCap  Hilaria Cannot predict cap: init_wait true || time_pe
    the average initialization time of all the job processes and the current rate of
    work-item completion.  A line such as this is emitted:
 \begin{verbatim}
-RM.RmJob- 7483 Hilaria O 2 T 58626 NTh 28 TI 18626 TR 12469.0 R 2.2456e-03 QR 1868 P 132 F 1736 \
-       ST 1433260775524 return 434
+RM.RmJob- 7483 Hilaria O 2 T 58626 NTh 28 TI 18626 TR 12469.0 R 2.2456e-03 QR 1868 \
+       P 132 F 1736  ST 1433260775524 return 434
 \end{verbatim}
    In this particular line:
       \begin{description}
@@ -374,7 +390,7 @@ RM.RmJob- 7483 Hilaria O 2 T 58626 NTh 28 TI 18626 TR 12469.0 R 2.2456e-03 QR 18
         \item[T 58626] is the smallest number of milliseconds until a new process for this job
           can be made runnable, based on the average initialization time for processes in
           this job, the Orchestrator publish rate, and the
-          \hyperref[itm:props-rm.prediction.fudge{\em RM prediction fudge.}]
+          \hyperref[itm:props-rm.prediction.fudge]{\em RM prediction fudge.}
         \item[Nth] This is the number of threads currently executing for this job.  It is 
           calculated as the (number of currently allocated processes) * (the number of threads
           per process).
@@ -600,13 +616,9 @@ RM.NodePool- 7483 connectShare  share bluej290-12.461 order 2 machine \
       each relevant job, with largely self-explanatory headers. An example follows (
       wrapped here so it fits within a printed page):
 \begin{verbatim}
-         ID                        JobName       User      Class   Shares Order QShares NTh Memory  \
-J______7485 mega-15-min/jobs/mega-2.job[DD   Tanaquil nightly-test      7     2      14   4     24  \
-J______7486 mega-15-min/jobs/mega-3.job[DD    Rodrigo normal-all       93     2     186   4     28  \
-
-              nQuest Ques Rem InitWait Max P/Nst
-               11510    11495    false         7
-               14768    14764    false        93
+       ID JobName  User  Class  Shares Order QShares NTh Memory nQuest Ques Rem InitWait Max P/Nst
+J____7485 mega-2   bob   low         7     2      14   4     24  11510    11495    false         7
+J____7486 mega-1   mary  normal     93     2     186   4     28  14768    14764    false        93
 
 \end{verbatim}
      Here,
@@ -667,8 +679,9 @@ Existing[1]: bluej537-7-73.1^0
         \item The complete set of resources the RM has scheduled for eviction, but which are not
           yet confirmed freed.  For example, we see 7 resources which have been evicted:
 \begin{verbatim}
- Removals[7]: bluej290-11.465^19430 bluej290-12.461^11802 bluej290-4.460^12672 bluej290-5.464^23004 
-              bluej290-2.467^22909 bluej290-7.463^20636 bluej290-6.466^19931 
+ Removals[7]: bluej290-11.465^19430 bluej290-12.461^11802 bluej290-4.460^12672 \
+              bluej290-5.464^23004  bluej290-2.467^22909 bluej290-7.463^20636 \
+              bluej290-6.466^19931 
 \end{verbatim}
 
         \item The complete set of resources which are being added to the work in this cycle.  For
@@ -703,7 +716,275 @@ Existing[1]: bluej537-7-73.1^0
      in progress for the same job.
 
 \section{Service  Manager Log (sm.log)}
-    To be filled in.
+
+   The service manager log shows the events involved in managing services.  These events include
+   \begin{itemize}
+     \item Bootstrap configuration
+     \item Receipt and anlysis of Orchestrator state
+     \item CLI requests: register, modify, start, stop, unregister, etc.
+     \item Dispatching / startup of service instances
+     \item Progression of Service state
+     \item Starting and logging of pingers
+   \end{itemize}
+
+    To enable finer-grained messages, edit the file 
+    {\em  \ducchome/resources/log4j.xml}
+    and change the {\em priority} value to {\em debug} (or {\em trace}) in the stanza
+    similar to that shown here.  Within about a minute the logger will
+    pick up the change and increase its log level.
+\begin{verbatim}
+   <category name="org.apache.uima.ducc.sm" additivity="true">
+     <priority value="debug"/>
+     <appender-ref ref="smlog" /> 
+   </category>
+\end{verbatim}
+
+\subsection{Bootstrap configuration}
+
+    \paragraph{Initial SM start}
+    The first logged line of any RM start will contain the string {\em Starting component:  serviceManager}:
+\begin{verbatim}
+SM.ServiceManagerComponent - N/A boot  ... Starting Component:  serviceManager
+\end{verbatim}
+
+    This is followed by a summary of the environment in which the Service Manager is running, including
+    configuration data, information about the JRE and about hosting hardware.
+
+\begin{verbatim}
+  Service Manager starting:
+      DUCC home               :  /home/challngr/ducc_runtime
+      ActiveMQ URL            :  tcp://bluej537:61617?jms.useCompression=true
+  
+      JVM                     :  Oracle Corporation 1.7.0_45
+      JAVA_HOME               :  /users1/challngr/jdk1.7.0_45/jre
+      JVM Path                :  /users/challngr/jdk1.7.0_45/bin/java
+      JMX URL                 :  service:jmx:rmi:///jndi/rmi://bluej537:2102/jmxrmi
+  
+      OS Architecture         :  amd64
+      Crypto enabled          :  true
+  
+      Test mode enabled       :  true
+  
+      Service ping rate       :  15000
+      Service ping timeout    :  15000
+      Service ping stability  :  10
+      Default ping class      :  org.apache.uima.ducc.cli.UimaAsPing
+  
+      Init Failure Max        :  1
+      Instance Failure Max    :  3
+      Instance Failure Window :  10
+  
+      DUCC Version            :  2.0.0-beta
+      SM Version              :  2.0.0
+\end{verbatim}
+
+    \paragraph{Initialize the service registry}
+    Following this is are entries showing the reading and internal initialization of the
+    service registry, for example:
+\begin{verbatim}
+SM.ServiceHandler - 411 ServiceStateHandler.registerService  \
+                    adding UIMA-AS:FixedSleepAE_1:tcp://bluej537:61617 411
+\end{verbatim}
+
+    \paragraph{Wait for the Resource Manager and Orchestrator to become ready}
+
+    The Service Manager waits until the Resource Manager and Orchestrator are ready.  This usually
+    results in lines similar to the following, which are normal and expected.  If these lines
+    continue for more than a few minutes it is possible that some part of DUCC has not correctly
+    started:
+\begin{verbatim}
+SM.ServiceManagerComponent - N/A orchestratorStateArrives \
+                             Orchestrator JD node not assigned, ignoring Orchestrator state update.
+\end{verbatim}
+
+    \paragraph{Begin work}
+    When the Service Manager is ready for business, lines similar to the following are emitted on
+    a regular basis:
+\begin{verbatim}
+INFO SM.ServiceManagerComponent - N/A processIncoming  ===== Orchestrator State Arrives =====
+\end{verbatim}
+
+\subsection{Receipt and analysis of Orchestrator State}
+
+\subsection{CLI Requests}
+
+   CLI Requests are all logged at log level INFO.  Initial receipt of the command
+   is tagged with the string {\em ServiceManagerComponent} and contains the name of 
+   the command issued.  Information pertinent to the command issued is logged. 
+   For example, this shows registration of a new service.
+
+\begin{verbatim}
+INFO SM.ServiceManagerComponent - 428 register  ServiceRegisterEvent \
+     [ninstances=2, autostart=Unset, \
+     endpoint=UIMA-AS:FixedSleepAE_5:tcp://bluej537:61617, user=challngr]
+\end{verbatim}
+
+   Some commands require service ownership or administrative authority.  Here we show
+   a service being started, and the authorization check being made.
+
+\begin{verbatim}
+INFO SM.ServiceManagerComponent - N/A start  Starting service ServiceStartEvent \
+     [friendly=430, user=challngr, instances=-1]
+INFO SM.ServiceHandler - 430 authorized  start request from challngr allowed.
+\end{verbatim}
+
+\subsection{Dispatching / Startup of Service Instances}
+    The full set of startup messages is logged when an instance is dispatched to DUCC to
+    be scheduled and started.  These starts are usually preceeded by a message or two
+    indicating what triggered the start.  For instance, this shows service 427 being
+    started because it was referenced by job 7676:
+
+\begin{verbatim}
+INFO SM.ServiceSet - 427 reference  Reference start requested by  7676
+INFO SM.ServiceSet - 427 reference   References job/service 7676 count[1] implementors [0]
+INFO SM.ServiceSet - 427 reference  Reference starting new service instances.
+\end{verbatim}
+
+    This is followed by a line indicating how many instances are to be started:
+\begin{verbatim}
+INFO SM.ServiceSet - 427 start  Starting instance. Current count 0 needed 2
+\end{verbatim}
+
+    Shortly thereafter the {\em stdout} messages from the submission to the
+    DUCC Orchestrator are shown.  These are tagged with the keyword {\em ServiceInstance}.
+\begin{verbatim}
+INFO SM.ServiceInstance - 427 start  START INSTANCE
+INFO SM.ServiceInstance - 427 start  Start stdout: 050 ducc_ling Version 1.1.2 \
+                          compiled Aug  4 2014 at 06:45:31
+\end{verbatim}
+   
+    A few lines later the DUCC-assigned ID of the instance is shown, in
+    this case, ID 7677, for service 427.
+\begin{verbatim}
+INFO SM.ServiceInstance - 427 start  Start stdout: Service instance 7677 submitted
+INFO SM.ServiceInstance - N/A start  Request to start service 427 accepted as service instance  7677
+\end{verbatim}
+
+   THe next lines show the environment used for the service submit.  
+\begin{verbatim}
+INFO SM.ServiceInstance - 427 start  Start stdout: 1104 Running with user and group: \
+     id 2087 gid 2001 eid 2087 egid 2001
+INFO SM.ServiceInstance - 427 start  Start stdout: 300 Bypassing redirect of log.
+INFO SM.ServiceInstance - 427 start  Start stdout: 4050 Limits:       CORE soft[1024] hard[-1]
+INFO SM.ServiceInstance - 427 start  Start stdout: 4050 Limits:        CPU soft[-1] hard[-1]
+INFO SM.ServiceInstance - 427 start  Start stdout: 4050 Limits:       DATA soft[-1] hard[-1]
+       ... (more environment) ...
+INFO SM.ServiceInstance - 427 start  Start stdout: Environ[0] = DUCC_SERVICE_INSTANCE=0
+INFO SM.ServiceInstance - 427 start  Start stdout: Environ[1] = JAVA_HOME=/opt/ibm-jdk1.7
+INFO SM.ServiceInstance - 427 start  Start stdout: Environ[2] = LESSCLOSE=lessclose.sh %s %s
+INFO SM.ServiceInstance - 427 start  Start stdout: Environ[3] = ENV=/etc/bash.bashrc
+\end{verbatim}
+
+    Next the exact command line executed to submit the isntance is shown.  If the submission
+    is successful, see {\em START INSTANCE COMPLETE}.  The exact progression of 
+    the scheduling and deployment of an 
+    instance is not shown in this log.  If it is desired to observe that, look in 
+    the RM log, searching on the service instance id.  In the examples shown here, that
+    id is 7677.
+
+\begin{verbatim}
+INFO SM.ServiceInstance - 427 start  Start stdout: 1000 Command to exec: /opt/ibm-jdk1.7/bin/java
+INFO SM.ServiceInstance - 427 start  Start stdout:     arg[1]: -cp
+INFO SM.ServiceInstance - 427 start  <INHIBITED CP>
+INFO SM.ServiceInstance - 427 start  <INHIBITED CP>
+INFO SM.ServiceInstance - 427 start  Start stdout:     arg[4]: --specification
+INFO SM.ServiceInstance - 427 start  Start stdout:     arg[5]: /home/challngr/ducc_runtime/state/services/427.svc
+INFO SM.ServiceInstance - 427 start  Start stdout:     arg[6]: --service_id
+INFO SM.ServiceInstance - 427 start  Start stdout:     arg[7]: 427
+INFO SM.ServiceInstance - 427 start  Start stdout: 1001 Command launching...
+INFO SM.ServiceInstance - 427 start  Start stdout: Service instance 7677 submitted
+INFO SM.ServiceInstance - N/A start  Request to start service 427 accepted as service instance  7677
+INFO SM.ServiceInstance - 427 start  START INSTANCE COMPLETE
+\end{verbatim}
+
+    The state progression of the service as it starts is then available, as described in the next section.
+
+
+\subsection{Progression of Service State}
+
+    The state of each service as it starts and stops is tracked at log level INFO.  To find the state progression
+    for any particular service search on {\em service-id setState} where service-id is the ID of the service.
+    
+    Here we show the progression for service 427 as it is started and progresses to fully functional (there are
+    other lines logged between these of course).  Note that if a service has multiple instances defined, the 
+    overall service state is determined by an aggregate of the states of the individual instances.  In these
+    messages, the ``Inst'' field of each message shows DUCC ID of the most recently updated  service instance 
+    that triggered the overall state change.
+
+\begin{verbatim}
+SM.ServiceSet - 427 setState  State update \
+                              from[Stopped] to[Starting] via[Starting] Inst[7677/Received]
+SM.ServiceSet - 427 setState  State update \
+                              from[Starting] to[Initializing] via[Initializing] Inst[7677/Initializing]
+SM.ServiceSet - 427 setState  State update \
+                              from[Initializing] to[Waiting] via[Waiting] Inst[7677/Running]
+SM.ServiceSet - 427 setState  State update \
+                              from[Waiting] to[Available] via[Available] Inst[7677/Running]
+\end{verbatim}
+
+\subsection{Starting and Logging Pingers}
+
+    When a pinger is started (or restarted) the event is logged and tagged
+    with the string {\em service-id startPingThread}.  Following are a few 
+    lines stating the name of the pinger and the Java class used to
+    implement the pinger.  For example:
+
+\begin{verbatim}
+INFO SM.ServiceSet - 430 startPingThread  Starting service monitor.
+INFO SM.PingDriver - 430 find RegisteredPinger  \
+     Loading site-registered service monitor from org.apache.uima.ducc.cli.UimaAsPing
+INFO SM.PingDriver - 430 <ctr>  Using ping class org.apache.uima.ducc.cli.UimaAsPing
+\end{verbatim}
+
+    If the pingers do not declare loggers, their {\em stdout} and {\em stderr} are
+    captured in the logs, under the tag {\em handleStatistics}.  As well, every
+    ping is recorded with its ``info'' string, making it possible to see the
+    exact state of the pinger.  For example:
+
+\begin{verbatim}
+INFO SM.PingDriver - 411 handleStatistics  Ping ok:  UIMA-AS:FixedSleepAE_1:tcp://bluej537:61617 \
+                         Alive[true] Healthy[true] + Info: QDEPTH[0] AveNQ[0] Consum[26] Prod[0] \
+                         minNQ[0] maxNQ[0] expCnt[0] inFlt[0] DQ[0] NQ[0] NDisp[0] \
+                         MetaNode[192.168.4.36] MetaPid[8892:67]
+\end{verbatim}
+
+    Pingers always return state to the Service Manager and some of that state
+    affects the SM's operation; in particular, pingers can start and stop
+    specific service instances or change the autostart setting for a
+    service.  They also must return success and failure status to the SM.
+    The ping state is logged under the tag {\em service-id signalRebalance}
+    as seen below.  If {\em Additions:} or {\em Deletions:} is non-zero, you
+    can expect to see SM automatically start or stop specific instances for 
+    the service.
+\begin{verbatim}
+INFO SM.ServiceSet - 430 signalRebalance  PING: Additions: 0 deletions: 0 \
+     excessive failures: false implementors 1 references 0
+\end{verbatim}
+
+\subsection{Publishing State}
+    By default the SM log does not include the state as published to the
+    Orchestrator because it can be voluminous and cause the logs to 
+    become cluttered and to wrap too fast.  It may be necessary to
+    increas the log level to DEBUG as described at the start of this section.
+
+   The published state will be emitted with lines similar to the following.  Most
+   entries will show ``Available'', which means either they do not depend on
+   the Service Manager, or the service they depend on is in state Available.  If there
+   is some exceptional condition pertaining to a job, that is shown.  In the
+   sample below, Job 251214 is waiting for a specific service whose state itself
+   is ``waiting''.
+
+\begin{verbatim}
+INFO SM.ServiceHandler - 251261 handleModifiedobs  No service dependencies, no updates made.
+INFO SM.ServiceManagerComponent - N/A publish  Publishing State, active job count = 102
+INFO SM.ServiceManagerComponent - N/A publish  Service Map
+Job 251159 Service state Available
+Job 251263 Service state Available
+Job 251192 Service state Available
+Job 251214 Service state Waiting \
+    [UIMA-AS:fastqa-Dedicated-Staging-2015-08_cache:tcp://broker42:62616 : waiting] 
+\end{verbatim}
+
 
 \section{ (Orchestrator Log or.log)}
     To be filled in.
