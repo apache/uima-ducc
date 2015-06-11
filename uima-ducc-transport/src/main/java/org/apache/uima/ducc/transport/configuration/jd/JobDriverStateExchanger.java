@@ -28,7 +28,9 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.blacklist.JobProcessBlacklist;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
+import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
@@ -46,6 +48,8 @@ import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.JobDriverReport;
 
 public class JobDriverStateExchanger extends Thread {
+	
+	private JobProcessBlacklist jobProcessBlacklist = JobProcessBlacklist.getInstance();
 	
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(JobDriverStateExchanger.class.getName());
 	private static final DuccId jobid = null;
@@ -209,9 +213,20 @@ public class JobDriverStateExchanger extends Thread {
 					String reasonDeallocated = null;
 					ProcessDeallocationType processDeallocationType = p.getProcessDeallocationType();
 					if(processDeallocationType != null) {
-						reasonDeallocated = processDeallocationType.name();
-						sb.append("reason[deallocated]:"+reasonDeallocated);
-						sb.append(" ");
+						switch(processDeallocationType) {
+						case Undefined:
+							break;
+						default:
+							reasonDeallocated = processDeallocationType.name();
+							sb.append("reason[deallocated]:"+reasonDeallocated);
+							sb.append(" ");
+							break;
+						}
+					}
+					RemoteWorkerProcess rwp = RemoteWorkerProcess.factory(node, ip, pidName, pid);
+					if(jobProcessBlacklist.includes(rwp)) {
+						logger.trace(location, jobid, sb.toString());
+						continue;
 					}
 					logger.debug(location, jobid, sb.toString());
 					switch(state) {
