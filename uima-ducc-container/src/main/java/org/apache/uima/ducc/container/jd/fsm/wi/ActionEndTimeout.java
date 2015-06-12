@@ -38,6 +38,7 @@ import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 
 public class ActionEndTimeout extends Action implements IAction {
 
@@ -48,12 +49,40 @@ public class ActionEndTimeout extends Action implements IAction {
 		return ActionEndTimeout.class.getName();
 	}
 	
+	private void jdExhausted(IActionData actionData) {
+		String location = "jdExhausted";
+		JobDriver jd = JobDriver.getInstance();
+		switch(jd.getJdState()) {
+		case Ended:
+			break;
+		default:
+			jd.advanceJdState(JdState.Ended);
+			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+			mb.append(Standardize.Label.jdState.get()+JobDriver.getInstance().getJdState());
+			logger.info(location, ILogger.null_id, mb.toString());
+			JobDriverHelper.getInstance().summarize();
+			break;
+		}
+	}
+	
+	private void checkEnded(IActionData actionData, CasManager cm) {
+		String location = "checkEnded";
+		int remainder = cm.getCasManagerStats().getUnfinishedWorkCount();
+		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+		mb.append(Standardize.Label.remainder.get()+remainder);
+		logger.debug(location, ILogger.null_id, mb.toString());
+		if(remainder <= 0) {
+			jdExhausted(actionData);
+		}
+	}
+	
 	private void killWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi) {
 		String location = "killWorkItem";
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
 		WiTracker.getInstance().unassign(wi);
 		cm.getCasManagerStats().incEndFailure();
+		checkEnded(actionData, cm);
 	}
 	
 	private void killProcess(IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi, DeallocateReason deallocateReason) {
