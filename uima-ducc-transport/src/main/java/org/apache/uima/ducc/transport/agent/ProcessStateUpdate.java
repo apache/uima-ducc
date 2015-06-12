@@ -36,6 +36,7 @@ public class ProcessStateUpdate implements Serializable {
 	String socketEndpoint=null;
 	String duccProcessId;
 	String processJmxUrl;
+	String message;
 	List<IUimaPipelineAEComponent> uimaPipeline;
 	
 	public ProcessStateUpdate(ProcessState state, String pid, String duccProcessId) {
@@ -51,6 +52,7 @@ public class ProcessStateUpdate implements Serializable {
 		this.pid = pid;
 		this.duccProcessId = duccProcessId;
 		this.processJmxUrl = processJmxUrl;
+		this.message = processJmxUrl;
 		this.uimaPipeline = uimaPipeline;
 	}
 	/**
@@ -85,6 +87,9 @@ public class ProcessStateUpdate implements Serializable {
 	}
 	public String getProcessJmxUrl() {
 		return processJmxUrl;
+	}
+	public String getMessage() {
+		return message;
 	}
   public String getSocketEndpoint() {
     return socketEndpoint;

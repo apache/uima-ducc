@@ -77,15 +77,24 @@ implements IJobProcessor{
 		this.processorInstance = pc;
 	}
 	public void setState(ProcessState state) {
+		setState(state,super.getProcessJmxUrl() );
+	}
+	public void setState(ProcessState state, String message) {
 		synchronized(currentState) {
 			if ( currentState.name().equals(ProcessState.FailedInitialization.name()) ) {
 				return;
 			}
+			if ( message == null ) {
+				message = super.getProcessJmxUrl();
+			}
 			if ( !state.name().equals(currentState.name())) {
 				currentState = state;
-				agent.notify(currentState, super.getProcessJmxUrl());
+				logger.info("setState", null, "Notifying Agent New State:"+state.name());
+
+				agent.notify(currentState, message);
 			} 
 		}
+		
 	}
     public void setThreadSleepTime(int sleepTime) {
     	threadSleepTime = sleepTime;

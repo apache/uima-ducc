@@ -41,6 +41,7 @@ import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.TransactionId;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class HttpWorkerThread implements Runnable {
@@ -293,7 +294,25 @@ public class HttpWorkerThread implements Runnable {
 	                        } else {
 		                    	logger.warn("run", null, "Worker thread exiting due to error while processing a WI");
 	                        }
-        					duccComponent.setState(ProcessState.Stopping);
+	        				logger.info("run", null, "JP Terminating Due to WI Error - Notify Agent");
+
+        					// send an update to the agent.
+	                        duccComponent.setState(ProcessState.Stopping, ReasonForStoppingProcess.ExceededErrorThreshold.toString());
+        					// sleep for awhile to let the agent handle 
+	                        // Stopping event. 
+	                        // Reason for the sleep: there may be a race condition
+	                        // here, where the JP sends a Stopping event to 
+	                        // its agent and immediately exits. Before the
+	                        // agent finishes handling of Stopping event its
+	                        // internal thread detects process termination 
+	                        // and may mark the JP as croaked. Sleep should
+	                        // reduce the risk of this race but there is still 
+	                        // a chance that agent doesn't handle Stopping
+	                        // event before it detects JP terminating. Unlikely
+	                        // but theoretically possible.
+	                        try {
+    	                        Thread.sleep(3000);
+        					} catch( InterruptedException e) {}
         					/* *****************************************/
         					/* *****************************************/
         					/* *****************************************/
@@ -301,8 +320,7 @@ public class HttpWorkerThread implements Runnable {
         					/* *****************************************/
         					logger.warn("run", null,"Terminating Job Process - Work Item Failed");
 
-        					// Stop the JVM hard. Agent will check the exit code
-        					// so make it -1 to mark it as CROAK
+        					// Stop the JVM hard. 
         					Runtime.getRuntime().halt(-1);
         					/* *****************************************/
         					/* *****************************************/

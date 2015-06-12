@@ -21,7 +21,6 @@ package org.apache.uima.ducc.agent.launcher;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -36,6 +35,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccReasonForProcessNotRunning.ReasonForStopping;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
@@ -424,10 +424,20 @@ public class ManagedProcess implements Process {
 							getDuccProcess().setReasonForStoppingProcess(
 									errors.trim());
 						} else {
-							// Process terminated unexpectadly. It stopped on its own or due to some
-							// external event not initiated by an agent
-							getDuccProcess().setReasonForStoppingProcess(
-									ReasonForStoppingProcess.Croaked.toString());
+                            // JP should not be marked as CROAKED if it terminates 
+							// due to a process error. On such error, the JP sends Stopping event
+							// to its agent along with a message=ReasonForStoppingProcess.ExceededErrorThreshold. 
+							if ( getDuccProcess().getProcessState().equals(ProcessState.Stopping)) {
+								// the reason was already set while handling JPs Stopping event
+								getDuccProcess().setProcessState(ProcessState.Stopped); // now the JP is dead
+								
+								//getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.ExceededErrorThreshold.toString());
+							} else {
+								// Process terminated unexpectedly. It stopped on its own due to Ducc framework
+								// error or due to some external event not initiated by an agent
+								getDuccProcess().setReasonForStoppingProcess(
+										ReasonForStoppingProcess.Croaked.toString());
+							}
 						}
 					}
 					

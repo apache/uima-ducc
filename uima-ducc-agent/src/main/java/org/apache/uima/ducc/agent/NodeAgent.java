@@ -1104,10 +1104,15 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             undeployProcess(processEntry.getValue());
           } 
           else if (duccEvent.getState().equals(ProcessState.Stopping)) { 
-              deployedProcess.getDuccProcess().setProcessState(ProcessState.Stopping);
-              processEntry.getValue().
-              	    setReasonForStoppingProcess(ReasonForStoppingProcess.ExceededErrorThreshold.toString());
-              deployedProcess.setStopping();
+        	  if ( duccEvent.getMessage() != null && duccEvent.getMessage().equals(ReasonForStoppingProcess.ExceededErrorThreshold.toString())) {
+                  processEntry.getValue().
+            	    setReasonForStoppingProcess(ReasonForStoppingProcess.ExceededErrorThreshold.toString());
+        	  }
+              if ( !deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopped) && 
+            	   !deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopping) )  {
+            	  deployedProcess.getDuccProcess().setProcessState(ProcessState.Stopping);
+                  deployedProcess.setStopping();
+              }
           }
           if (duccEvent.getUimaPipeline() != null) {
             StringBuffer buffer = new StringBuffer("\t\tUima Pipeline -");

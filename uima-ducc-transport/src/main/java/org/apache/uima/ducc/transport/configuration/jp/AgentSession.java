@@ -94,13 +94,12 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 	 * 
 	 */
 	public void notify(ProcessStateUpdate state) {
-		if ( stopped || state.getState().equals(ProcessState.Stopping)) {
+		if ( stopped || (state.getState().equals(ProcessState.Stopping)&& state.getMessage() == null  )) {
 			return;
 		}
 		try {
 		    ProcessStateUpdateDuccEvent duccEvent = 
 				new ProcessStateUpdateDuccEvent(state);
-            //logger.info("notifyAgentWithStatus",null," >>>>>>> UIMA AS Service Deployed - PID:"+pid);
 
             if (endpoint != null ) {
               state.setSocketEndpoint(endpoint);
@@ -108,7 +107,7 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 			//	send the process update to the remote
 			dispatcher.dispatch(duccEvent, System.getenv("IP"));
 			String jmx = state.getProcessJmxUrl() == null ? "N/A" : state.getProcessJmxUrl();
-			logger.debug("notifyAgentWithStatus",null,"... Job Process State Changed - PID:"+pid+". Process State: "+state.getState().toString()+". JMX Url:"+jmx+" Dispatched State Update Event to Agent with IP:"+System.getenv("IP"));
+			logger.info("notifyAgentWithStatus",null,"... Job Process State Changed - PID:"+pid+". Process State: "+state.getState().toString()+". JMX Url:"+jmx+" Dispatched State Update Event to Agent with IP:"+System.getenv("IP"));
 		} catch( Exception e) {
 			e.printStackTrace();
 		}
