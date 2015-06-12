@@ -28,7 +28,7 @@
 	<primitive>true</primitive>
 	<annotatorImplementationName>org.apache.uima.ducc.test.randomsleep.FixedSleepAE</annotatorImplementationName>
 	<analysisEngineMetaData>
-		<name>DefaultAE</name>
+		<name>FixedSleep Annotator</name>
 		<description>Receives CASes with modified index; does nothing (echos).</description>
 		<version>1.0</version>
 		<vendor>The Apache Software Foundation</vendor>

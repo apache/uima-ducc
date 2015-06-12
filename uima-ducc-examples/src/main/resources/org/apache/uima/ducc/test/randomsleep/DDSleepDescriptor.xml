@@ -26,7 +26,7 @@
 
 <analysisEngineDeploymentDescription xmlns="http://uima.apache.org/resourceSpecifier">
   
-  <name>Top Level TAE</name>
+  <name>Sleep DeploymentDescriptor</name>
   <description></description>
   
   <deployment protocol="jms" provider="activemq">

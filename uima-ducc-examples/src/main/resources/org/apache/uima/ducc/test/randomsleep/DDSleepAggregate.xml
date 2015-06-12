@@ -42,7 +42,7 @@
 
   </delegateAnalysisEngineSpecifiers>
   <analysisEngineMetaData>
-    <name>Test Aggregate TAE</name>
+    <name>Sleep AggregateDescriptor</name>
     <description>Detects Nothing</description>
     <configurationParameters/>
     <configurationParameterSettings/>
