@@ -31,13 +31,8 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
-import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.JobDriverHelper;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
-import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
-import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
-import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
-import org.apache.uima.ducc.container.jd.log.ErrorLogger;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
@@ -51,16 +46,16 @@ import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceKeeper;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 
-public class ActionEnd extends Action implements IAction {
+public class ActionEnd extends ActionEndAbstract implements IAction {
 
 	private static Logger logger = Logger.getLogger(ActionEnd.class, IComponent.Id.JD.name());
 	
 	private ProxyUserErrorStringify proxy = null;
 	
 	public ActionEnd() {
+		super(logger);
 		initialize();
 	}
 	
@@ -77,31 +72,6 @@ public class ActionEnd extends Action implements IAction {
 	@Override
 	public String getName() {
 		return ActionEnd.class.getName();
-	}
-	
-	private void killJob(IActionData actionData, CasManager cm) {
-		String location = "killJob";
-		cm.getCasManagerStats().setKillJob();
-		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		logger.info(location, ILogger.null_id, mb.toString());
-	}
-	
-	private void retryWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas) {
-		String location = "retryWorkItem";
-		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		logger.info(location, ILogger.null_id, mb.toString());
-		TimeoutManager.getInstance().cancelTimer(actionData);
-		cm.putMetaCas(metaCas, RetryReason.UserErrorRetry);
-		cm.getCasManagerStats().incEndRetry();
-	}
-	
-	private void killWorkItem(IActionData actionData, CasManager cm) {
-		String location = "killWorkItem";
-		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		logger.info(location, ILogger.null_id, mb.toString());
-		TimeoutManager.getInstance().cancelTimer(actionData);
-		cm.getCasManagerStats().incEndFailure();
-		checkEnded(actionData, cm);
 	}
 	
 	private void successWorkItem(IActionData actionData, CasManager cm, IWorkItem wi) {
@@ -176,101 +146,6 @@ public class ActionEnd extends Action implements IAction {
 		}
 	}
 	
-	private void jdExhausted(IActionData actionData) {
-		String location = "jdExhausted";
-		JobDriver jd = JobDriver.getInstance();
-		switch(jd.getJdState()) {
-		case Ended:
-			break;
-		default:
-			jd.advanceJdState(JdState.Ended);
-			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-			mb.append(Standardize.Label.jdState.get()+JobDriver.getInstance().getJdState());
-			logger.info(location, ILogger.null_id, mb.toString());
-			JobDriverHelper.getInstance().summarize();
-			break;
-		}
-	}
-	
-	private void checkEnded(IActionData actionData, CasManager cm) {
-		String location = "checkEnded";
-		int remainder = cm.getCasManagerStats().getUnfinishedWorkCount();
-		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		mb.append(Standardize.Label.remainder.get()+remainder);
-		logger.debug(location, ILogger.null_id, mb.toString());
-		if(remainder <= 0) {
-			jdExhausted(actionData);
-		}
-	}
-	
-	private void toJdErrLog(String text) {
-		ErrorLogger.record(text);
-	}
-	
-	private void handleException(IActionData actionData) throws JobDriverException {
-		String location = "handleException";
-		IWorkItem wi = actionData.getWorkItem();
-		IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-		IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
-		IMetaCas metaCas = wi.getMetaCas();
-		JobDriver jd = JobDriver.getInstance();
-		JobDriverHelper jdh = JobDriverHelper.getInstance();
-		CasManager cm = jd.getCasManager();
-		//
-		IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
-		MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
-		IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
-		//
-		int seqNo = metaCasHelper.getSystemKey();
-		try {
-			String delimiter = Standardize.Label.seqNo.get()+seqNo+" ***** EXCEPTION *****";
-			toJdErrLog(delimiter);
-		}
-		catch(Exception e) {
-			logger.error(location, ILogger.null_id, e);
-		}
-		Object userException = metaCas.getUserSpaceException();
-		try {
-			String printableException = proxy.convert(userException);
-			toJdErrLog(printableException);
-		}
-		catch(Exception e) {
-			logger.error(location, ILogger.null_id, e);
-		}
-		//
-		String serializedCas = (String) metaCas.getUserSpaceCas();
-		ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
-		ProxyJobDriverDirective pjdd = pjdeh.handle(serializedCas, userException);
-		if(pjdd != null) {
-			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-			mb.append(Standardize.Label.isKillJob.get()+pjdd.isKillJob());
-			mb.append(Standardize.Label.isKillProcess.get()+pjdd.isKillProcess());
-			mb.append(Standardize.Label.isKillWorkItem.get()+pjdd.isKillWorkItem());
-			logger.info(location, ILogger.null_id, mb.toString());
-			if(pjdd.isKillJob()) {
-				wisk.error(seqNo);
-				pStats.error(wi);
-				killJob(actionData, cm);
-				killWorkItem(actionData, cm);
-			}
-			else if(pjdd.isKillWorkItem()) {
-				wisk.error(seqNo);
-				pStats.error(wi);
-				killWorkItem(actionData, cm);
-			}
-			else {
-				wisk.retry(seqNo);
-				pStats.retry(wi);
-				retryWorkItem(actionData, cm, metaCas);
-			}
-		}
-		else {
-			wisk.error(seqNo);
-			pStats.error(wi);
-			killWorkItem(actionData, cm);
-		}
-	}
-	
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
@@ -303,7 +178,15 @@ public class ActionEnd extends Action implements IAction {
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						mb.append("exception");
 						logger.info(location, ILogger.null_id, mb.toString());
-						handleException(actionData);
+						Object userException = metaCas.getUserSpaceException();
+						String printableException = null;
+						try {
+							printableException = proxy.convert(userException);
+						}
+						catch(Exception e) {
+							logger.error(location, ILogger.null_id, e);
+						}
+						handleException(actionData, userException, printableException);
 						displayProcessStatistics(logger, actionData, wi, pStats);
 					}
 					else {

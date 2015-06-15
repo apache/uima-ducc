@@ -18,93 +18,34 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
-import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
-import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
-import org.apache.uima.ducc.container.common.IJdConstants.DeallocateReason;
 import org.apache.uima.ducc.container.common.MessageBuffer;
-import org.apache.uima.ducc.container.common.MetaCasHelper;
-import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.JobDriverHelper;
-import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 
-public class ActionEndTimeout extends Action implements IAction {
+public class ActionEndTimeout extends ActionEndAbstract implements IAction {
 
 	private static Logger logger = Logger.getLogger(ActionEndTimeout.class, IComponent.Id.JD.name());
+	
+	public ActionEndTimeout() {
+		super(logger);
+		initialize();
+	}
+	
+	private void initialize() {	
+	}
 	
 	@Override
 	public String getName() {
 		return ActionEndTimeout.class.getName();
-	}
-	
-	private void jdExhausted(IActionData actionData) {
-		String location = "jdExhausted";
-		JobDriver jd = JobDriver.getInstance();
-		switch(jd.getJdState()) {
-		case Ended:
-			break;
-		default:
-			jd.advanceJdState(JdState.Ended);
-			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-			mb.append(Standardize.Label.jdState.get()+JobDriver.getInstance().getJdState());
-			logger.info(location, ILogger.null_id, mb.toString());
-			JobDriverHelper.getInstance().summarize();
-			break;
-		}
-	}
-	
-	private void checkEnded(IActionData actionData, CasManager cm) {
-		String location = "checkEnded";
-		int remainder = cm.getCasManagerStats().getUnfinishedWorkCount();
-		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		mb.append(Standardize.Label.remainder.get()+remainder);
-		logger.debug(location, ILogger.null_id, mb.toString());
-		if(remainder <= 0) {
-			jdExhausted(actionData);
-		}
-	}
-	
-	private void killWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi) {
-		String location = "killWorkItem";
-		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		logger.info(location, ILogger.null_id, mb.toString());
-		WiTracker.getInstance().unassign(wi);
-		cm.getCasManagerStats().incEndFailure();
-		checkEnded(actionData, cm);
-	}
-	
-	private void killProcess(IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi, DeallocateReason deallocateReason) {
-		String location = "killProcess";
-		WiTracker tracker = WiTracker.getInstance();
-		IRemoteWorkerProcess rwp = tracker.getRemoteWorkerProcess(wi);
-		if(rwp == null) {
-			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-			mb.append("remote worker process not found");
-			logger.info(location, ILogger.null_id, mb.toString());
-		}
-		else {
-			String nodeIp = rwp.getNodeAddress();
-			String pid = ""+rwp.getPid();
-			IRemoteLocation remoteLocation = new RemoteLocation(nodeIp,pid);
-			JobDriver jd = JobDriver.getInstance();
-			jd.killProcess(remoteLocation, deallocateReason);
-			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-			mb.append(Standardize.Label.node.get()+nodeIp);
-			mb.append(Standardize.Label.pid.get()+pid);
-			logger.info(location, ILogger.null_id, mb.toString());
-		}
 	}
 	
 	@Override
@@ -116,21 +57,18 @@ public class ActionEndTimeout extends Action implements IAction {
 			if(actionData != null) {
 				IWorkItem wi = actionData.getWorkItem();
 				IMetaCas metaCas = wi.getMetaCas();
-				JobDriver jd = JobDriver.getInstance();
-				CasManager cm = jd.getCasManager();
 				WiTracker tracker = WiTracker.getInstance();
 				IRemoteWorkerProcess rwp = tracker.getRemoteWorkerProcess(wi);
 				JobDriverHelper jdh = JobDriverHelper.getInstance();
 				if(rwp != null) {
+					IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 					if(metaCas != null) {
-						killProcess(actionData, cm, metaCas, wi, DeallocateReason.WorkItemTimeout);
-						killWorkItem(actionData, cm, metaCas, wi);
-						IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
-						MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
-						IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
-						int seqNo = metaCasHelper.getSystemKey();
-						wisk.error(seqNo);
-						pStats.error(wi);
+						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+						mb.append("timeout");
+						logger.info(location, ILogger.null_id, mb.toString());
+						Exception userException = new Exception("timeout");
+						String printableException = userException.toString();
+						handleException(actionData, userException, printableException);
 						displayProcessStatistics(logger, actionData, wi, pStats);
 					}
 					else {
