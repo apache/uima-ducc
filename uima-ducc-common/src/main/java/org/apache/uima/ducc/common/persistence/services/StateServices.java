@@ -29,12 +29,6 @@ import org.apache.uima.ducc.common.utils.IOHelper;
 
 
 public class StateServices implements IStateServices {
-
-	private static StateServices instance = new StateServices();
-	
-	public static StateServices getInstance() {
-		return instance;
-	}
 	
 	/*
 	private static final DuccLogger logger = DuccLoggerComponents.getTrLogger(ServiceDefinitionsProperties.class.getName());
@@ -49,7 +43,7 @@ public class StateServices implements IStateServices {
 	}
 	*/
 	
-	public StateServices() {
+	StateServices() {
 		mkdirs();
 	}
 	

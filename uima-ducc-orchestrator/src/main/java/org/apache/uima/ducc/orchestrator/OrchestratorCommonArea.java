@@ -38,7 +38,8 @@ import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
 import org.apache.uima.ducc.orchestrator.utilities.Checkpointable;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
+import org.apache.uima.ducc.transport.event.common.history.HistoryFactory;
+import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
 
 
 public class OrchestratorCommonArea {
@@ -67,7 +68,7 @@ public class OrchestratorCommonArea {
 		return commonConfiguration;
 	}
 	
-	private HistoryPersistenceManager historyPersistenceManager = null;
+	private IHistoryPersistenceManager historyPersistenceManager = null;
 	
 	@Deprecated
 	private void initSeqNo() {
@@ -131,7 +132,7 @@ public class OrchestratorCommonArea {
 		OrchestratorCheckpoint.getInstance().switchOnOff(commonConfiguration.orchestratorCheckpoint);
 		OrchestratorCheckpoint.getInstance().restoreState();
 		hostManager = JobDriverHostManager.getInstance();
-		historyPersistenceManager = HistoryPersistenceManager.getInstance();
+		historyPersistenceManager = HistoryFactory.getInstance();
 	}
 	
 	public String getStateDirectory() {
@@ -251,7 +252,7 @@ public class OrchestratorCommonArea {
 	
 	// **********
 	
-	public HistoryPersistenceManager getHistoryPersistencemanager() {
+	public IHistoryPersistenceManager getHistoryPersistencemanager() {
 		return historyPersistenceManager;
 	}
 	

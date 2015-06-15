@@ -24,8 +24,8 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
-import org.apache.uima.ducc.common.persistence.services.StateServices;
 import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
+import org.apache.uima.ducc.common.persistence.services.StateServicesFactory;
 import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -75,7 +75,7 @@ public class ServicesRegistry {
 		String location = "refreshCache";
 		try {
 			ServicesRegistryMap mapRevised = new ServicesRegistryMap();
-			IStateServices iss = StateServices.getInstance();
+			IStateServices iss = StateServicesFactory.getInstance();
 			StateServicesDirectory ssd = iss.getStateServicesDirectory();
 			if(!ssd.getDescendingKeySet().isEmpty()) {
 				for(Integer key : ssd.getDescendingKeySet()) {

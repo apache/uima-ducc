@@ -33,7 +33,8 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
-import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
+import org.apache.uima.ducc.transport.event.common.history.HistoryFactory;
+import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
 
 
 public class DuccBoot extends Thread {
@@ -104,7 +105,7 @@ public class DuccBoot extends Thread {
 		return map;
 	}
 	
-	private void restoreReservations(HistoryPersistenceManager hpm, DuccData duccData) {
+	private void restoreReservations(IHistoryPersistenceManager hpm, DuccData duccData) {
 		String location = "restoreReservations";
 		ArrayList<String> duccWorkReservations = hpm.reservationList();
 		logger.info(location, jobid, messages.fetchLabel("Number of Reservations to restore")+duccWorkReservations.size());
@@ -132,7 +133,7 @@ public class DuccBoot extends Thread {
 		logger.info(location, jobid, messages.fetch("Reservations restored: "+restored));
 	}
 	
-	private void restoreJobs(HistoryPersistenceManager hpm, DuccData duccData) {
+	private void restoreJobs(IHistoryPersistenceManager hpm, DuccData duccData) {
 		String location = "restoreJobs";
 		ArrayList<String> duccWorkJobs = hpm.jobList();
 		logger.info(location, jobid, messages.fetchLabel("Number of Jobs to restore")+duccWorkJobs.size());
@@ -160,7 +161,7 @@ public class DuccBoot extends Thread {
 		logger.info(location, jobid, messages.fetch("Jobs restored: "+restored));
 	}
 	
-	private void restoreServices(HistoryPersistenceManager hpm, DuccData duccData) {
+	private void restoreServices(IHistoryPersistenceManager hpm, DuccData duccData) {
 		String location = "restoreServices";
 		ArrayList<String> duccWorkServices = hpm.serviceList();
 		logger.info(location, jobid, messages.fetchLabel("Number of Services to restore")+duccWorkServices.size());
@@ -202,7 +203,7 @@ public class DuccBoot extends Thread {
 	private void restore() {
 		String location = "restore";
 		logger.info(location, jobid, messages.fetchLabel("History directory")+IDuccEnv.DUCC_HISTORY_DIR);
-		HistoryPersistenceManager hpm = HistoryPersistenceManager.getInstance();
+		IHistoryPersistenceManager hpm = HistoryFactory.getInstance();
 		DuccData duccData = DuccData.getInstance();
 		restoreReservations(hpm, duccData);
 		restoreJobs(hpm, duccData);

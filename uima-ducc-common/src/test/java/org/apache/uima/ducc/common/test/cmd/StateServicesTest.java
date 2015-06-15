@@ -21,16 +21,19 @@ package org.apache.uima.ducc.common.test.cmd;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.NavigableSet;
 import java.util.Properties;
-import java.util.Map.Entry;
 
-import org.apache.uima.ducc.common.persistence.services.StateServices;
+import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
+import org.apache.uima.ducc.common.persistence.services.StateServicesFactory;
 import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.common.utils.Utils;
 
-public class StateServicesTest extends StateServices{
+public class StateServicesTest 
+//	extends StateServices
+{
 	
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		String ducc_home = Utils.findDuccHome();
@@ -42,7 +45,7 @@ public class StateServicesTest extends StateServices{
 			System.out.println("DUCC_HOME not set in environment");
 			return;
 		}
-		StateServices ss = StateServices.getInstance();
+		IStateServices ss = StateServicesFactory.getInstance();
 		ArrayList<String> svcList = ss.getSvcList();
 		for(String fname : svcList) {
 			System.out.println(fname);
@@ -55,6 +58,8 @@ public class StateServicesTest extends StateServices{
 		NavigableSet<Integer> keySet = ssd.getDescendingKeySet();
 		Iterator<Integer> iterator = keySet.iterator();
 		while(iterator.hasNext()) {
+			String svc = IStateServices.svc;
+			String meta = IStateServices.meta;
 			Integer i = iterator.next();
 			StateServicesSet sss = ssd.get(i);
 			Properties propertiesSvc = sss.get(svc);

@@ -40,11 +40,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 
 public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 
-	private static HistoryPersistenceManager instance = new HistoryPersistenceManager();
-	
-	public static HistoryPersistenceManager getInstance() {
-		return instance;
-	}
 	
 	// private static final DuccLogger logger = DuccLoggerComponents.getTrLogger(HistoryPersistenceManager.class.getName());
 	private static final DuccLogger logger = DuccService.getDuccLogger(HistoryPersistenceManager.class.getName());
@@ -62,7 +57,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		SPEAK,
 	}
 	
-	public HistoryPersistenceManager() {
+	HistoryPersistenceManager() {
 		mkdirs();
 	}
 	

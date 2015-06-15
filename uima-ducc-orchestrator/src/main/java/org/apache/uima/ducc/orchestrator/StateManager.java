@@ -72,7 +72,7 @@ import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.Rationale;
-import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
+import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.IDuccProcessWorkItemsReport;
 import org.apache.uima.ducc.transport.event.rm.IResource;
@@ -105,7 +105,7 @@ public class StateManager {
 	private DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 	private StateJobAccounting stateJobAccounting = StateJobAccounting.getInstance();
 	
-	HistoryPersistenceManager hpm = orchestratorCommonArea.getHistoryPersistencemanager();
+	IHistoryPersistenceManager hpm = orchestratorCommonArea.getHistoryPersistencemanager();
 	
 	private boolean jobDriverTerminated(DuccWorkJob duccWorkJob) {
 		String methodName = "jobDriverTerminated";

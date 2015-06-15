@@ -34,7 +34,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
-import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
+import org.apache.uima.ducc.transport.event.common.history.HistoryFactory;
 import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
 
 
@@ -70,7 +70,7 @@ public class DuccData {
 	
 	private volatile String published = null;
 	
-	private IHistoryPersistenceManager hpm = HistoryPersistenceManager.getInstance();
+	private IHistoryPersistenceManager hpm = HistoryFactory.getInstance();
 	
 	public boolean isPublished() {
 		return published != null;
