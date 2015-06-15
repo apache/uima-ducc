@@ -115,17 +115,25 @@ public class ErrorHandler implements IErrorHandler {
 	}
 	
 	@Override
-	public IErrorHandlerDirective handle(String serializedCAS, Object byteArray) {
+	public IErrorHandlerDirective handle(String serializedCAS, Object object) {
 		ErrorHandlerDirective jdUserDirective = new ErrorHandlerDirective();
 		try {
 			Throwable userThrowable = null;
 			if(serializedCAS != null) {
 				// CAS is provided
 			}
-			if(byteArray != null) {
-				userThrowable = Transformer.deserialize(byteArray);
-				userThrowable.getClass();
-				// Exception is provided
+			if(object != null) {
+				// JD exception (e.g. timeout)
+				if(object instanceof Exception) {
+					userThrowable = (Throwable) object;
+					userThrowable.getClass();
+				}
+				// User code exception
+				else {
+					Object byteArray = object;
+					userThrowable = Transformer.deserialize(byteArray);
+					userThrowable.getClass();
+				}
 			}
 			jobErrorCount.incrementAndGet();
 			if(jobErrorCount.get() > jobErrorLimit.get()) {
