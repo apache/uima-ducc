@@ -1252,7 +1252,7 @@ public class NodepoolScheduler
      */
     void howMuchFixed(ArrayList<ResourceClass> rcs)
     {
-    	String methodName = "howMuchFixedShare";
+    	String methodName = "howMuchFixed";
 
         if ( logger.isTrace() ) {
             logger.info(methodName, null, "Scheduling FIXED SHARE for these classes:");
@@ -1321,11 +1321,11 @@ public class NodepoolScheduler
                     logger.info(methodName, j.getId(), "Deferring, no machines big enough for the request. NP", np.getId(), 
                                 "available[", np.countNSharesByOrder(order), "]");
                 }
+                return;
             } else {
                 logger.info(methodName, j.getId(), "Nodepool is out of shares: NP", np.getId(), 
                             "available[", np.countNSharesByOrder(order), "]");
             }
-            return;
         }
 
         int granted = getAllotmentForJob(j); // in nshares, processes
