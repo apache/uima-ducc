@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +62,6 @@ public class FixedSleepCR extends CollectionReader_ImplBase
     private volatile int index = 0;
     private volatile String logdir = "None";
     private volatile String jobid;
-    PrintStream jdmark;
 
     double error_rate;
     double exit_rate;
@@ -156,22 +154,6 @@ public class FixedSleepCR extends CollectionReader_ImplBase
             }
             workitems.add(compressed);
             logger.log(Level.INFO, " ****** Adding work item of duration " + elapsed + " ms compressed to " + compressed + " ms as work item " + ndx++);
-        }
-
-        File f = new File(logdir);
-        if ( f.mkdirs() ) {
-            String jdmarker = logdir + "/jd.marker";
-            try {
-                jdmark = new PrintStream(jdmarker);
-                jdmark.println("" + System.currentTimeMillis() + " " + jobid + " " + jobfile + " " + workitems.size() + " work items.");
-                logger.log(Level.INFO, "Created jdmarker file: " + jdmarker);
-            } catch (FileNotFoundException e) {
-                logger.log(Level.INFO, " !!!!!! Can't open file: " + jdmarker + ". user.dir = ", System.getProperty("user.dir"));
-            }
-            
-        }else {
-            logger.log(Level.INFO, " !!!!!! Can't create log directory " + f.toString() );
-            logdir = "None";
         }
 
     }
@@ -339,10 +321,6 @@ public class FixedSleepCR extends CollectionReader_ImplBase
         logger.log(Level.INFO, msgheader + workitems.get(index) + " getNext invocation " + get_next_counter++);
         String parm = "" + workitems.get(index) + " " + (index+1) + " " + workitems.size() + " " + logdir;
 
-        if ( jdmark != null ) {
-            jdmark.println("" + System.currentTimeMillis() + " " + parm);
-        }
-
         randomError(error_rate, msgheader, false);           
         randomError(exit_rate, msgheader, false);
         runBloater(bloat, msgheader);
@@ -357,21 +335,12 @@ public class FixedSleepCR extends CollectionReader_ImplBase
     public void destroy() 
     {
         logger.log(Level.INFO, "destroy");
-        if ( jdmark != null ) {
-            jdmark.println("" + System.currentTimeMillis() + " " + jobid + " JD is destroyed");
-            jdmark.close();
-        }
     }
 
     
     public void close() throws IOException 
     {
-        logger.log(Level.INFO, "close");
-        if ( jdmark != null ) {
-            jdmark.println("" + System.currentTimeMillis() + " " + jobid + " JD is closed");
-            jdmark.close();
-        }
-        
+        logger.log(Level.INFO, "close");        
     }
 
     
@@ -389,14 +358,7 @@ public class FixedSleepCR extends CollectionReader_ImplBase
         logger.log(Level.INFO, "hasNext");
         boolean answer = (index < workitems.size());
         if ( ! answer ) {
-            if ( jdmark == null ) {
-                logger.log(Level.INFO, "ALERT jdmarker is null and should not be. Bypassing final closing message.");
-            } else {
-                jdmark.println("" + System.currentTimeMillis() + " " + jobid + " No more work, hasNext returns " + answer);
-                jdmark.close();
-                jdmark = null; 
-                logger.log(Level.INFO, "getNext() returns false, JDMARKER is closed.");
-            }
+            logger.log(Level.INFO, "" + System.currentTimeMillis() + " " + jobid + " No more work, hasNext returns " + answer);
         }
         return answer;
     }

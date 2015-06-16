@@ -21,7 +21,6 @@ package org.apache.uima.ducc.test.randomsleep;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -51,7 +50,6 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
     Random r;
     Logger logger;
     static boolean initComplete = false;
-    Marker marker;
     String AE_Identifier = "*^^^^^^^^^ AE ";
 
     ArrayList< long[] > bloated_space = new ArrayList< long[] >();
@@ -88,34 +86,6 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             logger.log(Level.INFO, "Working directory is " + workingdir.toString());
             for ( File f : files ) {
                 logger.log(Level.INFO, "File: " + f.toString());
-            }
-        }
-
-        if ( System.getenv( "FAST_INIT_FAIL" ) != null ) {
-            // we want just enough init to get at least one process into RUNNING state, but all
-            // subsequent initializations to fail under this scenario.
-            String jobid = System.getProperty("ducc.job.id");
-            String wd = System.getProperty("user.dir");
-            String markerdir = wd + "/" + jobid + ".output";
-            System.out.println("LOOK IN " + markerdir);
-            File marker = new File(markerdir);
-            
-            String[] outputs = marker.list();
-            int count = 0;
-            for ( String s : outputs) {
-                if ( s.endsWith(".die") ) count++;
-                System.out.println("COUNT " + s + " count = " + count);
-                if ( count > 2 ) {
-                    throw new IllegalStateException("foo foo and foo");
-                }
-            }
-            File init_death = new File(markerdir + "/" + tid + ".die");
-            System.out.println("CREATE " + init_death);
-            try {
-                init_death.createNewFile();
-            } catch (IOException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
             }
         }
 
@@ -342,9 +312,6 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         String s = sb.toString();
         System.out.println("FROM PRINTLN: " + s);
         logger.log(Level.INFO, "FROM LOGGER:" + s);
-        if ( marker != null ) {
-            marker.write(s);
-        }
     }
 
     public void destroy()
@@ -354,11 +321,6 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         try {
             Thread.sleep(3000);                         // simulate actual work being done here
         } catch (InterruptedException e) {
-        }
-        //      check if process() has been called. If not, marker is still null
-        if ( marker != null ) {
-            marker.flush();
-            marker.close();
         }
         System.out.println(AE_Identifier + " Destroy exits");
     }
@@ -398,14 +360,6 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             System.exit(1);
         }
 
-        if ( marker == null) {
-            if  (!logid.equals("None") ) {
-                marker = new Marker(logid, pid, tid);
-            } 
-        } else {
-            marker.flush();
-        }
-
         try{ 
             dolog(msgheader + " sleeping " + elapsed + " MS.");
             String bloat = System.getenv("PROCESS_BLOAT");
@@ -434,6 +388,9 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
 
     }
 
+    //
+    // Not used any more.  Kept in src in case we want to resurrect it.
+    //
     class Marker
     {
         PrintWriter writer = null;

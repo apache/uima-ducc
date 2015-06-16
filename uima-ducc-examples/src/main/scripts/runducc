@@ -575,7 +575,7 @@ class RunDucc(DuccUtil):
         print '       If specified, we run verification against the results.'
         print ''
         print '   -p, --process_timeout sec'
-        print '       Process timeout, in seconds. Default:', self.process_timeout
+        print '       Process timeout, in minutes. Default:', self.process_timeout
         print ''
         print '   --jd_uima_log log-properties'
         print '       If specified, use the indicated properties file for JD UIMA/UIMA-AS logging. Default:', self.jd_uima_log
