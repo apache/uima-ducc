@@ -273,7 +273,7 @@ ducc.submit.environment.propagated
         The build-in default UIMA-AS pinger supports an argument string of the following form
         (with NO embedded blanks):
 \begin{verbatim}
-     queue_threshold=nn,window=mm,broker-jmx-port=pppp,meta-timeout=tttt
+     service_ping_arguments=broker-jmx-port=pppp,meta-timeout=tttt
 \end{verbatim}
         
         The keywords in the string have the following meaning:
@@ -281,6 +281,13 @@ ducc.submit.environment.propagated
           \item[broker-jmx-port=pppp] This is the JMX port for the service's broker.  If not
             specified, the default of 1099 is used.  This is used to gather ActiveMQ statistics
             for the service.
+
+            Sometimes it is necessary to disable the gathering of ActiveMQ statistics through
+            JMX; for example, if the queue is accessed via HTTP instead of TCP.  To disable
+            JMX statistics, specify the port as ``none''.
+\begin{verbatim}
+    service_ping_arguments=broker-jmx-port=none
+\end{verbatim}
           \item[meta-timeout=tttt] This is the time, in milliseconds, to wait for a response
             to UIMA-AS {\em get-meta}.  If not specified, the default is 5000 milliseconds.
         \end{description}
