@@ -57,20 +57,14 @@ public class ReserveAndCancel
         DuccReservationSubmit reserve;
 
         reserve_props.setProperty("description", "Reserve And Cancel");
-        reserve_props.setProperty("instance_memory_size", "4");
-        reserve_props.setProperty("number_of_instances", "2");
+        reserve_props.setProperty("instance_memory_size", "28");
+        reserve_props.setProperty("number_of_instances", "1");
         reserve_props.setProperty("scheduling_class", "fixed");
         reserve = new DuccReservationSubmit(reserve_props);
         if ( reserve.execute() ) {
-            resid = "" + reserve.getDuccId();
-            success(testid, "Reservation", resid, "successful, rc =", ""+reserve.getReturnCode(), ":", reserve.getHostsAsString());
-            String[] hosts = reserve.getHosts();
-            System.out.println("" + hosts.length + " hosts assigned");
-            if ( hosts.length > 0 ) {
-                for ( String h : reserve.getHosts() ) {
-                    System.out.println("   " + h);
-                }
-            }            
+            resid = "" + reserve.getDuccId();            
+            String host = reserve.getHost();
+            success(testid, "Reservation", resid, "successful, rc =", ""+reserve.getReturnCode(), ":", host);               
         } else {
             fail(testid, "Reservation failed, rc = " + reserve.getReturnCode());
         }
@@ -101,7 +95,7 @@ public class ReserveAndCancel
         reserve_props.setProperty("scheduling_class", "fixed");
         reserve = new DuccReservationSubmit(reserve_props);
         if ( reserve.execute() ) {
-            fail(testid, "Reservation " +""+ reserve.getDuccId() + " successful but should have failed, rc =" + ""+reserve.getReturnCode() + ": " + reserve.getHostsAsString());
+            fail(testid, "Reservation " +""+ reserve.getDuccId() + " successful but should have failed, rc =" + ""+reserve.getReturnCode() + ": " + reserve.getHost());
             // designed to fail, if it doesn't we don't care about what is returned
         } else {
             success(testid, "Reservation failed as expected, rc = " + ""+reserve.getReturnCode());

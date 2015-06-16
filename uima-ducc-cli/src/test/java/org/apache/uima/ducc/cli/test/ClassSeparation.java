@@ -123,21 +123,16 @@ public class ClassSeparation
         String resid = null;
 
         reserve_props.setProperty("description", "Reserve And Cancel");
-        reserve_props.setProperty("instance_memory_size", "4");
-        reserve_props.setProperty("number_of_instances", "2");
+        reserve_props.setProperty("memory_size", "4");
         reserve_props.setProperty("scheduling_class", "fixed");
+        reserve_props.setProperty("wait_for_completion", "true");
         try {
             reserve = new DuccReservationSubmit(reserve_props);
             if ( reserve.execute() ) {
                 resid = "" + reserve.getDuccId();
-                success(testid, "Reservation", resid, "successful, rc =", ""+reserve.getReturnCode(), ":", reserve.getHostsAsString());
-                String[] hosts = reserve.getHosts();
-                System.out.println("" + hosts.length + " hosts assigned");
-                if ( hosts.length > 0 ) {
-                    for ( String h : reserve.getHosts() ) {
-                        System.out.println("   " + h);
-                    }
-                }            
+                String host = reserve.getHost();
+                success(testid, "Reservation", resid, "successful, rc =", ""+reserve.getReturnCode(), ":", host);
+                System.out.println("   " + host);                  
             } else {
                 fail(testid, "Reservation failed, rc = " + reserve.getReturnCode());
             }

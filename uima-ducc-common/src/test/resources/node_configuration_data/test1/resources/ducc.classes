@@ -74,7 +74,6 @@ Class fixed-base {
       priority = 5
       abstract = true
       max-processes = 10
-      max-allotment = 10
 }
 
 Class fixed      fixed-base  { default = true}
@@ -87,7 +86,6 @@ Class reserve-base {
       priority = 1
       abstract = true
       max-machines = 10
-      max-allotment = 10
 }
  
 Class reserve     reserve-base { default = true }

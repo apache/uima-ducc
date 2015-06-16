@@ -474,7 +474,14 @@ public class ServiceTester
             props.setProperty("driver_jvm_args",                "-Xmx500M");            
             props.setProperty("process_descriptor_AE",          "org.apache.uima.ducc.test.randomsleep.FixedSleepAE");
             props.setProperty("process_memory_size",            "2");
-            props.setProperty("classpath",                      "${DUCC_HOME}/lib/uima-ducc/examples/*");
+
+            String dh = "${DUCC_HOME}";            
+            String classpath = dh + "/lib/uima-ducc/examples/*";
+            classpath = classpath + ":/" + dh + "/apache-uima/lib/*";
+            classpath = classpath + ":/" + dh + "/apache-uima/apache-activemq/lib/*";
+            classpath = classpath + ":/" + dh + "/apache-uima/apache-activemq/lib/optional/*";
+
+            props.setProperty("classpath",                      classpath);
             props.setProperty("process_jvm_args",               "-Xmx100M ");
             props.setProperty("process_thread_count",           "2");
             props.setProperty("process_per_item_time_max",      "5");
@@ -1228,14 +1235,20 @@ public class ServiceTester
     {
     	String testId = "UIMA Service";
 
+        String dh = "${DUCC_HOME}";            
+        String classpath = dh + "/lib/uima-ducc/examples/*";
+        classpath = classpath + ":/" + dh + "/apache-uima/lib/*";
+        classpath = classpath + ":/" + dh + "/apache-uima/apache-activemq/lib/*";
+        classpath = classpath + ":/" + dh + "/apache-uima/apache-activemq/lib/optional/*";
+
         String[] service_props = {
             "--description",            "Test Service 1",
             "--process_jvm_args",       "-Xmx100M -DdefaultBrokerURL=",  // note broken, gets fixed in a while
-            "--classpath",              "${DUCC_HOME}/lib/uima-ducc/examples/*:${DUCC_HOME}/apache-uima/lib/*:${DUCC_HOME}/apache-uima/apache-activemq/lib/*:${DUCC_HOME}/examples/simple/resources/service",
+            "--classpath",              classpath,
             "--service_ping_arguments", "broker-jmx-port=1099",
             "--environment",            "AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path",
             "--process_memory_size",    "15",
-            "--process_DD",             "${DUCC_HOME}/examples/simple/resources/service/Service_FixedSleep_1.xml",
+            "--process_descriptor_DD",             "${DUCC_HOME}/examples/simple/resources/service/Service_FixedSleep_1.xml",
             "--scheduling_class",       "fixed",
             "--working_directory",       "${HOME}",
             "--register",		// Has no specification argument

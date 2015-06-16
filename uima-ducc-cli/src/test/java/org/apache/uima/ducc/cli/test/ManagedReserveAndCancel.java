@@ -75,6 +75,7 @@ public class ManagedReserveAndCancel
 
         reserve_props.setProperty("description", "Managed Reserve And Cancel " + testid);
         reserve_props.setProperty("process_executable_args", "30");
+        reserve_props.setProperty("process_executable", "/bin/sleep");
         reserve = new DuccManagedReservationSubmit(reserve_props);
         if ( reserve.execute() ) {
             success(testid, "Managed reservation", ""+reserve.getDuccId(), "submitted successfully, rc =" + reserve.getReturnCode());
