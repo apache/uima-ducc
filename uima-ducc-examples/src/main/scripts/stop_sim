@@ -48,7 +48,7 @@ class StopSim(DuccUtil):
             cmp = 'agent'
         else:
             cmp = inst
-        self.ssh(node, False, 'kill', signal, pid)
+        self.ssh(node, True, 'kill', signal, pid)
 
         return msgs
 
