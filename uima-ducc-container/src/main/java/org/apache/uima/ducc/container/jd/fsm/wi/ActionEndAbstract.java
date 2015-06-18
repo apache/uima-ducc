@@ -158,9 +158,12 @@ public abstract class ActionEndAbstract extends Action implements IAction {
 		//
 		int seqNo = metaCasHelper.getSystemKey();
 		try {
-			String delimiter = Standardize.Label.seqNo.get()+seqNo+" ***** EXCEPTION *****";
-			toJdErrLog(delimiter);
-			toJdErrLog(printableException);
+			// Identify the timeout case in the header & record in one logger call as is multi-threadsd
+			if (printableException != null) {
+				toJdErrLog(Standardize.Label.seqNo.get()+seqNo+" ***** EXCEPTION *****\n"+printableException);
+			} else {
+				toJdErrLog(Standardize.Label.seqNo.get()+seqNo+" ***** TIMEOUT *****\n"+userException.toString()+"\n");
+			}
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);

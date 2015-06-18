@@ -66,9 +66,8 @@ public class ActionEndTimeout extends ActionEndAbstract implements IAction {
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						mb.append("timeout");
 						logger.info(location, ILogger.null_id, mb.toString());
-						Exception userException = new Exception("timeout");
-						String printableException = userException.toString();
-						handleException(actionData, userException, printableException);
+						Exception userException = new Exception("Timeout - work-item exceeded the specified 'process_per_item_time_max'");
+						handleException(actionData, userException, null);
 						displayProcessStatistics(logger, actionData, wi, pStats);
 					}
 					else {
