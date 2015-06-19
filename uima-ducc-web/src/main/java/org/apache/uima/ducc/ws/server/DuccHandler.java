@@ -66,6 +66,7 @@ import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.TimeStamp;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
@@ -111,6 +112,8 @@ import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.apache.uima.ducc.ws.utils.LinuxSignals;
 import org.apache.uima.ducc.ws.utils.LinuxSignals.Signal;
+import org.apache.uima.ducc.ws.utils.alien.FileInfo;
+import org.apache.uima.ducc.ws.utils.alien.OsProxy;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandler extends DuccAbstractHandler {
@@ -120,7 +123,11 @@ public class DuccHandler extends DuccAbstractHandler {
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandler.class.getName());
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
-
+	
+	private static String ducc_ling = 
+			Utils.resolvePlaceholderIfExists(
+					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
+	
 	private enum DetailsType { Job, Reservation, Service };
 	private enum ShareType { JD, MR, SPC, SPU, UIMA };
 	private enum LogType { POP, UIMA };
@@ -204,6 +211,14 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	public DuccHandler(DuccWebServer duccWebServer) {
 		super.init(duccWebServer);
+	}
+	
+	public String getDuccling(HttpServletRequest request) {
+		String retVal = null;
+		if(duccWebSessionManager.isAuthentic(request)) {
+			retVal = ducc_ling;
+		}
+		return retVal;
 	}
 	
 	/*
@@ -392,6 +407,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		return retVal;
 	}
 	
+	@Deprecated
 	private String getFileSize(String fileName) {
 		String location = "getFileSize";
 		String retVal = "0";
@@ -2042,11 +2058,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(job != null) {
 			try {
 				String userId = duccWebSessionManager.getUserId(request);
-				TreeMap<String, File> map = DuccFile.getFilesInLogDirectory(job, userId);
+				String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+				Map<String, FileInfo> map = OsProxy.getFilesInDirectory(getDuccling(request), userId, directory);
 				Set<String> keys = map.keySet();
 				int counter = 0;
 				for(String key : keys) {
-					File file = map.get(key);
+					FileInfo fileInfo = map.get(key);
 					StringBuffer row = new StringBuffer();
 					//
 					String tr = trGet(counter);
@@ -2062,13 +2079,13 @@ public class DuccHandler extends DuccAbstractHandler {
 					*/
 					// name
 					row.append("<td>");
-					String url = getFilePagerUrl(userId, file.getAbsolutePath());
-					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
+					String url = getFilePagerUrl(userId, fileInfo.getName());
+					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
 					row.append("<td>");
-					row.append(getFileSize(file.getAbsolutePath()));
+					row.append(fileInfo.getLength());
 					row.append("</td>");
 					//
 					row.append("</tr>");
@@ -2097,11 +2114,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(reservation != null) {
 			try {
 				String userId = duccWebSessionManager.getUserId(request);
-				TreeMap<String, File> map = DuccFile.getFilesInLogDirectory(reservation, userId);
+				String directory = reservation.getUserLogsDir()+reservation.getDuccId().getFriendly()+File.separator;
+				Map<String, FileInfo> map = OsProxy.getFilesInDirectory(getDuccling(request), userId, directory);
 				Set<String> keys = map.keySet();
 				int counter = 0;
 				for(String key : keys) {
-					File file = map.get(key);
+					FileInfo fileInfo = map.get(key);
 					StringBuffer row = new StringBuffer();
 					//
 					String tr = trGet(counter);
@@ -2117,13 +2135,13 @@ public class DuccHandler extends DuccAbstractHandler {
 					*/
 					// name
 					row.append("<td>");
-					String url = getFilePagerUrl(userId, file.getAbsolutePath());
-					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
+					String url = getFilePagerUrl(userId, fileInfo.getName());
+					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
 					row.append("<td>");
-					row.append(getFileSize(file.getAbsolutePath()));
+					row.append(fileInfo.getLength());
 					row.append("</td>");
 					//
 					row.append("</tr>");
@@ -2145,10 +2163,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(job != null) {
 			try {
 				String userId = duccWebSessionManager.getUserId(request);
-				TreeMap<String, File> map = DuccFile.getFilesInLogDirectory(job, userId);
+				String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+				Map<String, FileInfo> map = OsProxy.getFilesInDirectory(getDuccling(request), userId, directory);
 				Set<String> keys = map.keySet();
 				for(String key : keys) {
-					File file = map.get(key);
+					FileInfo fileInfo = map.get(key);
 					StringBuffer row = new StringBuffer();
 					//
 					String tr = trGet(counter);
@@ -2168,13 +2187,13 @@ public class DuccHandler extends DuccAbstractHandler {
 					row.append("</td>");
 					// name
 					row.append("<td>");
-					String url = getFilePagerUrl(userId, file.getAbsolutePath());
-					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
+					String url = getFilePagerUrl(userId, fileInfo.getName());
+					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
 					row.append("<td>");
-					row.append(getFileSize(file.getAbsolutePath()));
+					row.append(fileInfo.getLength());
 					row.append("</td>");
 					//
 					row.append("</tr>");
