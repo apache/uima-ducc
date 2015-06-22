@@ -100,33 +100,37 @@ import org.springframework.context.annotation.Import;
 	        };
 	    }
 
-		public Server createServer(int port, int maxThreads, String app, IJobDriverComponent jdc) throws Exception {
+		public Server createServer(int port, String app, IJobDriverComponent jdc) throws Exception {
 			Server server = new Server(port);
 			QueuedThreadPool threadPool = new QueuedThreadPool();
-			threadPool.setMinThreads(Runtime.getRuntime().availableProcessors());
+			int cores = Runtime.getRuntime().availableProcessors();
+			
 			if ( common.jettyMaxThreads != null) {
 				try {
-					maxThreads = Integer.parseInt(common.jettyMaxThreads.trim());
+					int maxThreads = Integer.parseInt(common.jettyMaxThreads.trim());
 				    if ( maxThreads < threadPool.getMinThreads()) {
-						logger.warn("JobDriver", jobid, "Invalid value for jettyMaxThreads("+maxThreads+") - it should be greater or equal to number of CPUs ("+threadPool.getMinThreads()+"). Forcing jettyMaxThreads=Number of CPUs");
-				        maxThreads = threadPool.getMinThreads();
+						logger.warn("JobDriver", jobid, "Invalid value for jetty MaxThreads("+maxThreads+") - it should be greater or equal to "+threadPool.getMinThreads()+". Defaulting to jettyMaxThreads="+threadPool.getMaxThreads());
+				    } else {
+						threadPool.setMaxThreads(maxThreads);
 				    }
 				} catch( NumberFormatException e) {
-					logger.warn("JobDriver", jobid, "Invalid value for jettyMaxThreads - check ducc.properties - defaulting to "+maxThreads);
+					logger.warn("JobDriver", jobid, "Invalid value for jetty MaxThreads - check ducc.properties - defaulting to "+threadPool.getMaxThreads());
 				}
 			}
-			threadPool.setMaxThreads(maxThreads);
+			if ( cores > threadPool.getMaxThreads() ) {
+				logger.warn("JobDriver", jobid, "Invalid value for jetty MaxThreads("+threadPool.getMaxThreads()+") - it should be greater or equal to "+cores+". Defaulting to Number of CPU Cores="+cores);
+				threadPool.setMaxThreads(cores);
+			}
+			
 			if ( common.jettyThreadIdleTime != null ) {
 				try {
 					threadPool.setMaxIdleTimeMs(Integer.parseInt(common.jettyThreadIdleTime.trim()));
 					
 				} catch(NumberFormatException e) {
-					logger.warn("JobDriver", jobid, "Invalid value for jettyThreadIdleTime - check ducc.properties - defaulting to 60000ms");
-					threadPool.setMaxIdleTimeMs(60000);
+					logger.warn("JobDriver", jobid, "Invalid value for jetty ThreadIdleTime - check ducc.properties - defaulting to 60000ms");
 				}
-			} else {
-				threadPool.setMaxIdleTimeMs(60000);
-			}
+			} 
+			threadPool.setMinThreads(1);
 			server.setThreadPool(threadPool);
 			
 			 ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -134,7 +138,9 @@ import org.springframework.context.annotation.Import;
 		     server.setHandler(context);
 		 
 		    context.addServlet(new ServletHolder(new JDServlet(jdc)),app);
-			return server;
+		    logger.info("JobDriver",jobid,"Jetty Configuration - Port: "+port+" Threads: "+threadPool.getMinThreads()+"-"+threadPool.getMaxThreads());
+
+		    return server;
 		}
 		
 		public static class JobDriverProcessor  implements Processor {
@@ -187,12 +193,10 @@ import org.springframework.context.annotation.Import;
 				}
 				port = Utils.findFreePort();
 				jdc.setPort(port);
-				int maxThreads = 100;			// Could be specified in ducc.properties
 				String jdUniqueId = "/jdApp";
-//				jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc, port, jdUniqueId));
-	            Server server = createServer(port, maxThreads, jdUniqueId, jdc);
+	            Server server = createServer(port, jdUniqueId, jdc);
 				server.start();
-				logger.info(location,jobid,"Jetty Running - Port: "+port+" Max threads: "+maxThreads);
+				logger.info(location,jobid,"Jetty Started - Port: "+port);
 				return jdc;
 			}
 			catch(Exception e) {
