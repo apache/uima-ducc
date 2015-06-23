@@ -130,7 +130,6 @@ import org.springframework.context.annotation.Import;
 					logger.warn("JobDriver", jobid, "Invalid value for jetty ThreadIdleTime - check ducc.properties - defaulting to 60000ms");
 				}
 			} 
-			threadPool.setMinThreads(1);
 			server.setThreadPool(threadPool);
 			
 			 ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
