@@ -264,8 +264,7 @@ public abstract class DuccMonitor {
 						seenRemotePids.add(remotePid);
 						StringBuffer message = new StringBuffer();
 						message.append("id:" + id);
-						message.append(" ");
-						message.append("remote:" + remotePid);
+						message.append(" remote:" + remotePid);
 						info(message.toString());
 					}
 				}
@@ -339,8 +338,7 @@ public abstract class DuccMonitor {
 		String thisRationale = "";
 		StringBuffer message = new StringBuffer();
 		message.append("id:" + id);
-		message.append(" ");
-		message.append("location:");
+		message.append(" location:");
 		message.append(ManagementFactory.getRuntimeMXBean().getName());
 		info(message.toString());
 		debug(urlString);
@@ -353,12 +351,12 @@ public abstract class DuccMonitor {
 				dispatcher = new DuccEventHttpDispatcherCl(urlString, urlTimeout);
 				monitorInfo = (MonitorInfo) dispatcher.dispatchJson(MonitorInfo.class);
 				if (connectionFailed) {
-					info("Connection to DUCC restored");
+					info("id:" + id + " warning:Connection to DUCC restored");
 					connectionFailed = false;
 				}
 			} catch (ConnectException e) {
 				if (!connectionFailed) {
-					info("Connection to DUCC failed -- retrying");
+					info("id:" + id + " warning:Connection to DUCC failed -- retrying");
 					connectionFailed = true;
 				}
 			}
@@ -370,14 +368,12 @@ public abstract class DuccMonitor {
 				if (stateCount <= 0) {
 					message = new StringBuffer();
 					message.append("id:" + id);
-					message.append(" ");
-					message.append("state:" + NotFound);
+					message.append(" state:" + NotFound);
 					thisMessage = message.toString();
 					info(thisMessage);
 					message = new StringBuffer();
 					message.append("id:" + id);
-					message.append(" ");
-					message.append("rc:" + RC_FAILURE);
+					message.append(" rc:" + RC_FAILURE);
 					thisMessage = message.toString();
 					info(thisMessage);
 					return RC_FAILURE;
@@ -390,8 +386,7 @@ public abstract class DuccMonitor {
 				}
 				message = new StringBuffer();
 				message.append("id:" + id);
-				message.append(" ");
-				message.append("state:" + state);
+				message.append(" state:" + state);
 				if (state.equals(StateRunning)) {
 					message.append(details(monitorInfo));
 				} else if (state.equals(StateCompleting)) {
