@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.cli;
 
 import java.lang.management.ManagementFactory;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -343,16 +344,25 @@ public abstract class DuccMonitor {
 		message.append(ManagementFactory.getRuntimeMXBean().getName());
 		info(message.toString());
 		debug(urlString);
-		// Poll until finished
+		// Poll until finished - retry if the WS appears to be down
+		boolean connectionFailed = false;
 		while (flag_observer.get()) {
-            DuccEventHttpDispatcherCl dispatcher = new DuccEventHttpDispatcherCl(urlString, urlTimeout);
-            MonitorInfo monitorInfo = (MonitorInfo) dispatcher.dispatchJson(MonitorInfo.class);
-			// String json = getSingleLineStatus(urlString);
-			// if (json != null) {
-			// 	debug(json);
-			// 	Gson gson = new Gson();
-			// 	MonitorInfo monitorInfo = gson
-			// 			.fromJson(json, MonitorInfo.class);
+			DuccEventHttpDispatcherCl dispatcher = null;
+			MonitorInfo monitorInfo = null;
+			try {
+				dispatcher = new DuccEventHttpDispatcherCl(urlString, urlTimeout);
+				monitorInfo = (MonitorInfo) dispatcher.dispatchJson(MonitorInfo.class);
+				if (connectionFailed) {
+					info("Connection to DUCC restored");
+					connectionFailed = false;
+				}
+			} catch (ConnectException e) {
+				if (!connectionFailed) {
+					info("Connection to DUCC failed -- retrying");
+					connectionFailed = true;
+				}
+			}
+
             if ( monitorInfo != null ) {
             	displayRemotePids(monitorInfo);
 				int stateCount = monitorInfo.stateSequence.size();
@@ -492,8 +502,6 @@ public abstract class DuccMonitor {
 						}
 					//}
 				}
-			} else {
-				error("error: accessing " + urlString);
 			}
 			long start = System.currentTimeMillis();
 			long end = start;
@@ -567,6 +575,7 @@ public abstract class DuccMonitor {
 			code = runInternal(args);
 		} catch (Exception e) {
 			messageProcessor.status("ERROR: " + e.toString());
+			e.printStackTrace();
 		}
 		debug("rc=" + code);
 		return code;
