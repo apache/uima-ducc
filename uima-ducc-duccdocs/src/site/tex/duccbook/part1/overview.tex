@@ -194,7 +194,8 @@
     DUCC supports  management of multiple jobs and multiple users in a distributed cluster:
 
     \begin{description}
-        \item[Multiple User Support] DUCC runs all work under the identity of the submitting user. Logs
+        \item[Multiple User Support] When properly configured, 
+          DUCC runs all work under the identity of the submitting user. Logs
           are written with the user's credentials into the user's file space designated at job
           submission.
 
@@ -264,6 +265,8 @@
     The following DUCC security measures are provided:
 
     \begin{description}
+    \item[user credentials] DUCC instantiates user processes using a setuid root executable named ducc\_ling.
+    See more at \hyperref[sec:duccling.security]{\em ducc\_ling}.
     \item[command line interface] The CLI employs HTTP to send requests
     to the DUCC controller.  The CLI creates and employs public and private
     security keys in the user's home directory for authentication of HTTP
@@ -280,8 +283,36 @@
     A simple interface is provided so
     that an installation can plug-in a site specific authentication mechanism
     comprising userid and password.
-    \item[ActiveMQ] TBD.
+    \item[ActiveMQ] DUCC uses ActiveMQ for administrative communication.
+    AMQ authentication is used to prevent arbitrary processes from participating.
     \end{description}
+    
+    \subsection{ducc\_ling}   
+    \label{sec:duccling.security}
+           ducc\_ling contains the following functions, which the security-conscious may verify by examining
+       the source in \duccruntime/duccling.  All sensitive operations are performed only AFTER switching
+       userids, to prevent unauthorized root access to the system.
+       \begin{itemize}
+         \item Changes it's real and effective userid to that of the user invoking the job.
+         \item Optionally redirects its stdout and stderr to the DUCC log for the current job.
+         \item Optionally redirects its stdio to a port set by the CLI, when a job is submitted.
+         \item ``Nice''s itself to a ``worse'' priority than the default, to reduce the chances
+           that a runaway DUCC job could monopolize a system.
+         \item Optionally sets user limits.
+         \item Prints the effective limits for a job to both the user's log, and the DUCC agent's log.
+         \item Changes to the user's working directory, as specified by the job.
+         \item Optionally establishes LD\_LIBRARY\_PATH 
+           for the job from the environment variable  {\tt DUCC\_LD\_LIBRARY\_PATH}
+           if set in the DUCC job specification. (Secure Linux systems will
+           prevent LD\_LIBRARY\_PATH 
+           from being set by a program with root authority, so this is
+           done AFTER changing userids).
+         \item  ONLY user {\em ducc} may use the ducc\_ling program in
+           a privileged way. Ducc\_ling contains checks to prevent even user {\em root} from using it for
+           privileged operations. 
+
+       \end{itemize}
+    
     
     \section{Security Issues}
     The following DUCC security issues should be considered:

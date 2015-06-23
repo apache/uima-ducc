@@ -18,29 +18,20 @@
 % 
 \section{Overview}
 
-DUCC is a multi-user, multi-system distributed application.  First-time installation is performed in
-two stages:
+DUCC is a multi-user, multi-system distributed application.
+The instuctions below follow a staged installation/verification methodology,
+roughly as follows:
 
 \begin{itemize}
-    \item Single-user installation: This provides single-user, single-system installation for testing,
-      and verification. Simple development of small applications on small systems such as laptops or
-      office workstations is possible after Single-user Installation.
+    \item Single system installation.
       
-    \item Multi-user installation: This provides secure multi-user capabilities and configuration
-      for multi-system clusters.
+    \item Add new machines to DUCC control.
+      
+    \item Enable processes to run with the credentials of multiple submitting user.
+      This step requires root authority on one or more machines.
+      
+    \item Enable CGroup containers. This step requires root authority on every DUCC machine.
 \end{itemize}
-
-First-time users must perform single-user installation and verification on a single system.  Once
-this configuration is working and verified, it is straightforward to upgrade to a multi-user
-configuration.
-
-\begin{description}
-    \item[Note:] A key feature of DUCC is to run user processes in CGroups in order to guarantee
-      each process always has the amount of RAM requested. Total RAM allocation to the managed process
-      and its child processes that exceed requested memory will go to swap space.
-      Without CGroups a process that exceeds its requested memory size by N\% is killed 
-      (default N=5 in ducc.properties), and memory use by child processes is ignored.
-\end{description}
 
 DUCC is distributed as a compressed tar file.  The instructions below assume installation from one
 of this distribution media.  If building from source, the build creates this file in your svn
@@ -53,11 +44,11 @@ file as the ``$<$distribution.file$>$''.
 
 \section{Software Prerequisites}
 \label{sec:install.prerequisites}
-Both single and multi-user configurations have the following software pre-requisites:
+
+Single system installation:
 
 \begin{itemize}
-  \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must the the only member of group {\em ducc}.
-  \item Reasonably current Linux.  DUCC has been tested on SLES 10.2, 11.1, and 11.2, and RHEL 6.3.
+  \item Reasonably current Linux.  DUCC has been tested on SLES 11.x and RHEL 6.x
     
     {\em Note:} On some systems the default {\em user limits}
     for max user processes (ulimit -u) and nfiles (ulimit -n) are defined too
@@ -67,20 +58,34 @@ Both single and multi-user configurations have the following software pre-requis
     the nfiles limit raised above 1024 to at least twice the number of user
     processes running on the cluster.
 
-  \item Sufficient swap for the expected workload.  If CGroups are configured this is
-    at least 1GB and for larger systems, more.
-  \item For CGroups support, libcgroup1-0.37+ on SLES and libcgroup-0.37+ on RHEL.  
-  \item DUCC has been tested and run on IBM and Oracle JDK 1.6 and 1.7.
   \item Python 2.x, where 'x' is 4 or greater.  DUCC has not been tested on Python 3.x.
+  \item Java 7. DUCC has been tested and run using IBM and Oracle JDK 1.7.
+  \item Passwordless ssh for user running DUCC
 \end{itemize}
   
-Multi-user installation has additional requirements:
+Additional requirements for multiple system installation:
 
 \begin{itemize}
-  \item All systems must have a shared filesystem (such as NFS or GPFS)  and common user space 
-  \item Passwordless ssh must be installed for user {\em ducc} on all systems.
-  \item Root access is required to install a small setuid-root program on each system.
+  \item All systems must have a shared filesystem (such as NFS or GPFS) and common user space.
+        The \$DUCC\_HOME directory must be located on a shared filesystem.
 \end{itemize}
+  
+Additional requirements for running multiple user processes with their own credentials.
+
+\begin{itemize}
+  \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must the the only member of group {\em ducc}.
+  \item DUCC run with user {\em ducc} credentials.
+  \item Root access is required to setuid-root the DUCC process launcher.
+\end{itemize}
+  
+Additional requirements for CGroup containers:
+
+\begin{itemize}
+  \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must the the only member of group {\em ducc}.
+  \item DUCC run with user {\em ducc} credentials.
+  \item libcgroup1-0.37+ on SLES and libcgroup-0.37+ on RHEL, along with a custom /etc/cgconfig.conf
+\end{itemize}
+
   
 In order to build DUCC from source the following software is also required:
 \begin{itemize}
@@ -110,7 +115,7 @@ To build from source, ensure you have
 Subversion and Maven installed.  Extract the source from the SVN repository named above. 
 
 Then from your extract directory into
-the root directory (usually current-directory>/trunk), and run the command
+the root directory (usually current-directory/trunk), and run the command
 \begin{verbatim}
     mvn install
 \end{verbatim}
@@ -129,7 +134,7 @@ directory.
 
 \section{Documentation}
 \begin{sloppypar}
-After single-user installation, the DUCC documentation is found (in both PDF and HTML format) in the directory 
+After installation the DUCC documentation is found (in both PDF and HTML format) in the directory 
 ducc\_runtime/docs.  As well, the DUCC webserver contains a link to the full documentation on each major page.
 The API is documented only via JavaDoc, distributed in the webserver's root directory 
 {\tt \duccruntime/webserver/root/doc/api.}  
@@ -141,21 +146,18 @@ If building from source, Maven places the documentation in
     \item {\tt trunk/target/site/apidocs} (API Javadoc)
 \end{itemize}
 
-\section{Single-user  Installation and Verification}
+\section{Single System Installation and Verification}
 
-Single-user installation sets up an initial, working configuration on a single system.  
-Although any user ID can be used to run DUCC in single-user mode, it is recommended to create user ``ducc''
-to avoid confusion. No security is established in single-user mode, and all user processes run as
-the DUCC user ID.
+Although any user ID can be used to run DUCC, it is recommended to create user ``ducc''
+to later enable use of cgroups as well as running processes with the credentials of the submitting user.
 
 Verification submits a very simple UIMA pipeline for execution under DUCC.  Once this is shown to be
-working, one may proceed to upgrade to full installation.
+working, one may proceed installing additional features.
 
 
-\section{Minimal Hardware Requirements for single-user Installation}
+\section{Minimal Hardware Requirements for Single System Installation}
 \begin{itemize}
-    \item One Intel-based or IBM Power-based system.  (More systems may be added during multi-user
-      installation, described below.)
+    \item One Intel-based or IBM Power-based system.  (More systems may be added later.)
 
     \item 8GB of memory.  16GB or more is preferable for developing and testing applications beyond
       the non-trivial.  
@@ -169,7 +171,7 @@ clusters consisting of multiple nodes with large (16GB-256GB or more) memory.  T
 requirements are for initial test and evaluation purposes, but will not be sufficient to run actual
 workloads.
 
-\section{Single-user System Installation}
+\section{Single System Installation}
 \label{subsec:install.single-user}
     \begin{enumerate}
       \item Expand the distribution file with the appropriate umask:
@@ -229,41 +231,38 @@ The post-installation script performs these tasks:
 
 \section{Initial System Verification}
 
-Here we start the basic installation, submit a simple UIMA-AS job, verify that it ran, and stop
-DUCC.  Once this is confirmed working DUCC is ready to use in an unsecured, single-user mode on a
-single system.
+Here we verify the system configuration, start DUCC, run a test Job, and then shutdown DUCC.
 
 To run the verification, issue these commands.
 \begin{enumerate}
   \item cd \duccruntime/admin 
-  \item ./check\_ducc -s
+  \item ./check\_ducc
   
     Examine the output of check\_ducc.  If any errors are shown, correct the errors and rerun
     check\_ducc until there are no errors.  
-  \item Finally, start ducc: ./start\_ducc -s
+  \item Finally, start ducc: ./start\_ducc
   \end{enumerate}
   
   Start\_ducc will first perform a number of consistency checks.
   It then starts the ActiveMQ broker, the DUCC control processes, and a single DUCC agent on the
-  local node.  Note that ``single user mode'' (-s) is specified for this first start.  This inhibits
-  the checks on the permissions on ducc\_ling (described \hyperref[sec:duccling]{below}).
+  local node.
 
   You will see some startup messages similar to the following:
 
 \begin{verbatim}
-ENV: Java is configured as: /share/jdk1.6/bin/java
-ENV: java full version "1.6.0_14-b08"
+ENV: Java is configured as: /share/jdk1.7/bin/java
+ENV: java full version "1.7.0_40-b43"
 ENV: Threading enabled: True
 MEM: memory is 15 gB
 ENV: system is Linux
 allnodes /home/ducc/ducc_runtime/resources/ducc.nodes
-Class definition file is ducc.mixed.classes
+Class definition file is ducc.classes
 OK: Class and node definitions validated.
 OK: Class configuration checked
 Starting broker on ducchead.biz.org
 Waiting for broker ..... 0
 Waiting for broker ..... 1
-ActiveMQ broker is found on configured host and port: ducchead.biz.org:61618
+ActiveMQ broker is found on configured host and port: ducchead.biz.org:61616
 Starting 1 agents
 ********** Starting agents from file /home/ducc/ducc_runtime/resources/ducc.nodes
 Starting warm
@@ -287,13 +286,8 @@ All threads returned
   Now open a browser and go to the DUCC webserver's url, http://$<$hostname$>$:42133 where $<$hostname$>$ is
   the name of the host where DUCC is started.  Navigate to the Reservations page via the links in
   the upper-left corner.  You should see the DUCC JobDriver reservation in state
-  WaitingForResources.  In a few minutes this should change to Assigned.  (This usually takes 3-4
-  minutes in the default configuration.) Now jobs can be submitted.
-  
-  \begin{center}     
-  \cfbox{green}{The hostname and port are configurable by
-  the DUCC administrator in ducc.properties}
-  \end{center}
+  WaitingForResources.  In a few minutes this should change to Assigned.
+  Now jobs can be submitted.
   
   To submit a job,
   \begin{enumerate}
@@ -325,135 +319,103 @@ $HOME/ducc/logs/job-id
       \item./stop\_ducc -a
       \end{enumerate}
       
-      Once the system is verified and the sample job completes correctly, proceed to Multi-User
-      Installation and Verification to set up multiple-user support and optionally, multi-node
-      operation.
 
-\section{Multi-User Installation and Verification}
-  
-    Multi-user installation consists of these steps over and above single-user installation:
-    \begin{enumerate}
-        \item Install and configure the setuid-root program, ducc\_ling.  This small program allows DUCC
-          jobs to be run as the submitting user rather than user ducc.
+\section{Add additional nodes to the DUCC cluster}
+   Additional nodes must meet all \hyperref[sec:install.prerequisites]{\em prerequisites}.
+   If user's home directories are on local filesystems the location for user logfiles
+   should be specified to be on a shared filesystem. 
 
-        \item Optionally install and configure CGroups.
+   Addional nodes are normally added to a worker node group. Note that the
+   DUCC head node does not have to be a worker node.
+   In addition, the webserver node can be separate from the DUCC head node 
+   (see webserver configuration options in ducc.properties).
 
-        \item Optionally update the configuration to include additional nodes.
-     \end{enumerate}
+   For worker nodes DUCC needs to know what node group
+   each machine belongs to, and what nodes need an Agent process to be started on.
 
-     Multi-user installation has these pre-requisites (DUCC will not work on multiple nodes
-     unless these steps are taken):
-     \begin{itemize}
+   The configuration shipped with DUCC have all nodes in the same "default" node pool.
+   Worker nodes are listed in the file
+\begin{verbatim}
+$DUCC_HOME/resources/ducc.nodes.  
+\end{verbatim}
+   
+   During initial installation, this file was initialized with the node DUCC is installed on.
+   Additional nodes may be added to the file using a text editor to increase the size of the DUCC
+   cluster.
 
-         \item All systems in the DUCC cluster must have a shared filesystem and shared user space (user
-           directories are shared over NFS or an equivalent networked file system, across the systems, and
-           user ids and credentials are the same).
 
-         \item Passwordless ssh must be installed for user ducc on all systems. Users do NOT require
-           ssh access to the DUCC nodes.
-           
-         \item Root access is (briefly) required to install a small setuid-root program on each system.
-      \end{itemize}
+\section{Ducc\_ling Configuration - Running with credentials of submitting user}
+\label{sec:duccling.install}
 
-\section{Ducc\_ling Installation}
-\label{sec:duccling}
     Before proceeding with this step, please note: 
     \begin{itemize}
-        \item This step is required ONLY to install multi-user capabilities.
         \item The sequence operations consisting of {\em chown} and {\em chmod} MUST be performed
           in the exact order given below.  If the {\em chmod} operation is performed before
           the {\em chown} operation, Linux will regress the permissions granted by {\em chmod} 
           and ducc\_ling will be incorrectly installed.
     \end{itemize}
 
-    ducc\_ling is a setuid-root program whose function is to execute user tasks under the identity of
-    the user.  This must be installed correctly; incorrect installation can prevent jobs from running as
+    ducc\_ling is designed to be a setuid-root program whose function is to run user processes with the identity of
+    the submitting user. This must be installed correctly; incorrect installation can prevent jobs from running as
     their submitters, and in the worse case, can introduce security problems into the system.
 
-    ducc\_ling must be installed on LOCAL disk on every system in the DUCC cluster, to avoid
-    shared-filesystem access to it.  The path to ducc\_ling must be the same on each system.  For
-    example, one could install it to /local/ducc/bin on local disk on every system.
+    ducc\_ling can either be installed on a local disk on every system in the DUCC cluster, 
+    or on a shared-filesystem that does not suppress setuid-root permissions on client nodes.
+    The path to ducc\_ling must be the same on each DUCC node. 
+    The default path configuration is
+    \${DUCC\_HOME}/admin/\$\{os.arch\}/ in order to handle clusters with mixed OS platforms.
+    \$\{os.arch\} is the architecture specific value of the Java system property with that name;
+    examples are amd64 and ppc64.
+   
+	The steps are: build ducc\_ling for each node architecture to be added to the cluster,
+	copy ducc\_ling to the desired location, and then configure ducc\_ling to give user
+	ducc the ability to spawn a process as a different user.
 
-    To install ducc\_ling (these instructions assume it is installed into /local/ducc/bin):
-    As ducc, ensure ducc\_ling is built correctly for your architecture:
+    In the example below ducc\_ling is left under \$DUCC\_HOME, where it is built.
+
+    As user {\em ducc}, build ducc\_ling for necessary architectures (this is done
+    automatically for the DUCC head machine by the ducc\_post\_install script).
+    For each unique OS platform:
     \begin{enumerate}
-        \item cd \duccruntime/duccling/src
-        \item make clean all
+        \item cd \$DUCC\_HOME/admin
+        \item ./build\_duccling
      \end{enumerate}
-        
-     Now, as root, move ducc\_ling to a secure location and grant authorization to run tasks under
-     different users' identities:
+
+     Then, as user {\em root} on the shared filesystem, {\em cd \$DUCC\_HOME/admin}, and for each unique OS architecture:
      \begin{enumerate}
-         \item mkdir /local/ducc
-         \item mkdir /local/ducc/bin
-         \item chown ducc.ducc /local/ducc
-         \item chown ducc.ducc /local/ducc/bin
-         \item chmod 700 /local/ducc
-         \item chmod 700 /local/ducc/bin
-         \item cp \duccruntime/duccling/src/ducc\_ling /local/ducc/bin
-         \item chown root.ducc /local/ducc/bin/ducc\_ling
-         \item chmod 4750 /local/ducc/bin/ducc\_ling
-      \end{enumerate}
-         
-      Finally, update the configuration to use this ducc\_ling instead of the default ducc\_ling:
-      \begin{enumerate}
-        \item Edit \duccruntime/resources/ducc.properties and change this line:         
-\begin{verbatim}
- ducc.agent.launcher.ducc_spawn_path=${DUCC_HOME}/admin/ducc_ling
-\end{verbatim}
-          to this line (Using the actual location of the updated ducc\_ling, if different from /local/ducc/bin):
-\begin{verbatim}
-ducc.agent.launcher.ducc_spawn_path=/local/ducc/bin/ducc_ling
-\end{verbatim}
-        \end{enumerate}
-
-
-        What these steps do:
-      \begin{enumerate}
-          \item The first two step compile ducc\_ling for your current machine architecture and
-            operating system level.
-          \item The next two steps (mkdir) create directory /local/ducc/bin
-          \item The next two steps (chown) set ownership of /local/ducc and /local/ducc/bin to user ducc,
-            group ducc
-          \item The next two steps (chmod) set permissions for /local/ducc and /local/ducc/bin so only user
-            ducc may access the contents of these directories
-          \item The copy stop copies the ducc\_ling program created in initial installation into /local/ducc/bin
-          \item The next step (chown) sets ownership of /local/ducc/bin/ducc\_ling to root, and
-            group ownership to ducc.
-          \item The next step (chmod) stablishes the {\em setuid} bit, which allows user ducc to execute ducc\_ling
-            with root privileges.
-          \item Finally, ducc.properties is updated to point to the new, privileged ducc\_ling.
-       \end{enumerate}
+        \item chown ducc.ducc \$\{os.arch\}
+        \\ (set directory ownership to be user ducc, group ducc)
+        \item chmod 700 \$\{os.arch\}
+        \\ (only user ducc can read contents of directory)
+        \item chown root.ducc \$\{os.arch\}/ducc\_ling
+        \\ (make root owner of ducc\_ling, and let users in group ducc access it)
+        \item chmod 4750 \$\{os.arch\}/ducc\_ling
+        \\ (ducc\_ling runs as user root when started by users in group ducc)
+     \end{enumerate}
           
-       If these steps are correctly performed, ONLY user {\em ducc} may use the ducc\_ling program in
-       a privileged way. Ducc\_ling contains checks to prevent even user {\em root} from using it for
-       privileged operations.
+If these steps are correctly performed, ONLY user {\em ducc} may use the ducc\_ling program in
+a privileged way. ducc\_ling contains checks to prevent even user {\em root} from using it for
+privileged operations.
 
-       Ducc\_ling contains the following functions, which the security-conscious may verify by examining
-       the source in \duccruntime/duccling.  All sensitive operations are performed only AFTER switching
-       userids, to prevent unauthorized root access to the system.
-       \begin{itemize}
-         \item Changes it's real and effective userid to that of the user invoking the job.
-         \item Optionally redirects its stdout and stderr to the DUCC log for the current job.
-         \item Optionally redirects its stdio to a port set by the CLI, when a job is submitted.
-         \item ``Nice''s itself to a ``worse'' priority than the default, to reduce the chances
-           that a runaway DUCC job could monopolize a system.
-         \item Optionally sets user limits.
-         \item Prints the effective limits for a job to both the user's log, and the DUCC agent's log.
-         \item Changes to the user's working directory, as specified by the job.
-         \item Optionally establishes LD\_LIBRARY\_PATH 
-           for the job from the environment variable
-\begin{verbatim}
-        DUCC_LD_LIBRARY_PATH
-\end{verbatim}
-           if set in the DUCC job specification. (Secure Linux systems will
-           prevent LD\_LIBRARY\_PATH 
-           from being set by a program with root authority, so this is
-           done AFTER changing userids).
+If a different location is chosen for ducc\_ling the new path needs to be specified 
+for ducc.agent.launcher.ducc\_spawn\_path in \$DUCC\_HOME/resources/site.ducc.properties.
+See more info at see \hyperref[sec:admin.properties-merge] {Properties merging}. 
 
-       \end{itemize}
 
 \section{CGroups Installation and Configuration}
+
+\begin{description}
+    \item[Note:] A key feature of DUCC is to run user processes in CGroups in order to guarantee
+      each process always has the amount of RAM requested. RAM allocated to the managed process
+      (and any child processes) that exceed requested DUCC memory size will be forced into swap space. 
+      Without CGroups a process that exceeds its requested memory size by N\% is killed 
+      (default N=5 in ducc.properties), and memory use by child processes is ignored.
+      
+      DUCC's CGroup configuration also allocates CPU resources to managed processes based on
+      relative memory size. A process with 50\% of a machine's RAM will be guaranteed at least
+      50\% of the machine's CPU resources as well. 
+\end{description}
+
     The steps in this task must be done as user root and user ducc.
 
     To install and configure CGroups for DUCC:
@@ -466,6 +428,7 @@ ducc.agent.launcher.ducc_spawn_path=/local/ducc/bin/ducc_ling
    # Mount cgroups
    mount {
       memory = /cgroup;
+      cpu = /cgroup;
    }
    # Define cgroup ducc and setup permissions
    group ducc {
@@ -478,6 +441,7 @@ ducc.agent.launcher.ducc_spawn_path=/local/ducc/bin/ducc_ling
         }
     }
     memory {}
+    cpu{}
    }
 \end{verbatim}
        \item Start the cgconfig service:
@@ -490,32 +454,18 @@ ducc.agent.launcher.ducc_spawn_path=/local/ducc/bin/ducc_ling
    /cgroups/ducc
 \end{verbatim}
 
-       \item Some versions of libcgroup are buggy. As user ducc, verify that the following command executes with no error:
-\begin{verbatim}
-   cgcreate -t ducc -a ducc -g memory:ducc/test-cgroups
-\end{verbatim}
-         
        \item Configure the cgconfig service to start on reboot:
 \begin{verbatim}
    chkconfig cgconfig on
 \end{verbatim}
-
-       \item Update \hyperref[itm:props-agent.cgroups.enable]{ducc.properties} to enable CGroups.
-         Note that if CGroups is not installed, the DUCC Agent will detect this and not attempt to
-         use the feature.  It is completely safe to enable CGroups in {\em ducc.properties} on
-         machines where it is not installed.
     \end{enumerate}
 
-\section{Set up the full nodelists}
-   To add additional nodes to the ducc cluster, DUCC needs to know what nodes to start its Agent
-   processes on.  These nodes are listed in the file
-\begin{verbatim}
-$DUCC_HOME/resources/ducc.nodes.  
-\end{verbatim}
-   
-   During initial installation, this file was initialized with the node DUCC is installed on.
-   Additional nodes may be added to the file using a text editor to increase the size of the DUCC
-   cluster.
+{\em Note:} if CGroups is not installed on a machine the DUCC Agent will detect this and not 
+  	attempt to use the feature. CGroups can also be disabled for all machines
+   	(see \hyperref[itm:props-agent.cgroups.enable] {\em ducc.agent.launcher.cgroups.enable}) 
+   	or it can be disabled for individual machines (see \hyperref[itm:props-agent.cgroups.exclusion]{\em ducc.agent.exclusion.file}).
+
+
  
 \section{Full DUCC Verification}
 
