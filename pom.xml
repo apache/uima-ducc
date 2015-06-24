@@ -438,7 +438,26 @@
 				</execution>
 			    </executions>
 			</plugin>
-
+<plugin>
+    <artifactId>maven-antrun-plugin</artifactId>
+    <executions>
+      <execution>
+        <phase>prepare-package</phase>
+        <configuration>
+          <tasks>
+            <echo>Updating README with Ducc Version: ${project.version}</echo>
+            <copy file="${basedir}/README" tofile="${basedir}/target/README"/>
+            <replace token= "@@ducc.version@@" value="${project.version}" file="${basedir}/target/README" />                                 
+            <copy file="${basedir}/RELEASE_NOTES.html" tofile="${basedir}/target/RELEASE_NOTES.html"/>
+            <replace token= "@@ducc.version@@" value="${project.version}" file="${basedir}/target/RELEASE_NOTES.html" />                                 
+          </tasks>
+        </configuration>
+        <goals>
+          <goal>run</goal>
+        </goals>
+      </execution>
+    </executions>
+  </plugin>
 		</plugins>
 		<!-- /pluginManagement -->
 	</build>
