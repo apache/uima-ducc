@@ -103,6 +103,7 @@ implements Orchestrator {
 	//	Springframework magic to inject instance of {@link CommonConfiguration}
 	@Autowired CommonConfiguration common;
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorComponent.class.getName());
+	private static DuccId jobid = null;
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private Messages messages = orchestratorCommonArea.getSystemMessages();
@@ -115,7 +116,7 @@ implements Orchestrator {
 	private CommonConfiguration commonConfiguration = orchestratorCommonArea.getCommonConfiguration();
 	private JobDriverHostManager hostManager = orchestratorCommonArea.getHostManager();
 	private StateJobAccounting stateJobAccounting = StateJobAccounting.getInstance();
-	
+
 	public OrchestratorComponent(CamelContext context) {
 		super("Orchestrator", context);
 	}
@@ -622,6 +623,7 @@ implements Orchestrator {
 		}
 		else if(Validate.request(duccEvent)) {
 			String jobId = properties.getProperty(JobRequestProperties.key_id);
+			logger.info(methodName, jobid, JobRequestProperties.key_id+"="+jobId);
 			long t0 = System.currentTimeMillis();
 			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, DuccType.Job, jobId, this, methodName);
 			long t1 = System.currentTimeMillis();
@@ -850,6 +852,7 @@ implements Orchestrator {
 		}
 		else {
 			String id = properties.getProperty(ReservationRequestProperties.key_id);
+			logger.info(methodName, jobid, ReservationRequestProperties.key_id+"="+id);
 			long t0 = System.currentTimeMillis();
 			DuccWorkReservation duccWorkReservation = (DuccWorkReservation) WorkMapHelper.findDuccWork(workMap, DuccType.Reservation, id, this, methodName);
 			long t1 = System.currentTimeMillis();
@@ -986,6 +989,7 @@ implements Orchestrator {
 		else if(Validate.request(duccEvent)) {
 			// update state
 			String jobId = properties.getProperty(JobRequestProperties.key_id);
+			logger.info(methodName, jobid, JobRequestProperties.key_id+"="+jobId);
 			long t0 = System.currentTimeMillis();
 			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, DuccType.Service, jobId, this, methodName);
 			long t1 = System.currentTimeMillis();
