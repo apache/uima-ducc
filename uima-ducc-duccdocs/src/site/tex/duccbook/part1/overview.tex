@@ -39,12 +39,12 @@
     \section{DUCC Job Model}
 
     The Job Model defines the steps necessary to scale-up a UIMA pipeline using DUCC.  The goal of
-    DUCC is to allow the application logic to be unchanged.
+    DUCC is to scale-up any UIMA pipeline, including pipelines that must be deployed across multiple
+    machines using shared services.
 
     The DUCC Job model consists of standard UIMA components: a Collection Reader (CR), a CAS
     Multiplier (CM), application logic as implemented one or more Analysis Engines (AE), and a CAS
-    Consumer (CC).  In theory, any CR, or CM will work with DUCC, but DUCC is all about scale-out.  In
-    order to achieve good scale-out these components must be constructed in a specific way.
+    Consumer (CC).
 
     The Collection Reader builds input CASs and forwards them to the UIMA pipelines.  In the DUCC
     model, the CR is run in a process separate from the rest of the pipeline. In fact, in all but the
@@ -60,10 +60,6 @@
     AE(s), and CC into a single process, multiple instances of which are then deployed over the
     cluster.
 
-    DUCC does not provide any mechanism for receiving output CASs.  Each application must
-    supply its own CAS Consumer which serializes the output of the pipelines for 
-    consumption by other entities (as serialized CASs, for example).
-
     A DUCC job therefore consists of a small specification containing the following items:
     
     \begin{itemize}
@@ -71,15 +67,13 @@
       \item The name of a resource containing the CM descriptor.
       \item The name of a resource containing the AE descriptor.
       \item The name of a resource containing the CC descriptor.
-      \item Other information required to parametrize the above and identify the job
-        such as log directory, working directory, desired scale-out, etc.  These are
-        described in detail in subsequent sections.
+      \item Other information required to parameterize the above and identify the job
+        such as log directory, working directory, desired scale-out, classpath, etc.
+        These are described in detail in subsequent sections.
     \end{itemize}
 
-    On job submission, DUCC examines the job specification and automatically creates a scaled-out
-    UIMA-AS service with a single process executing the CR as a UIMA-AS client and and as many
-    processes as possible executing the combined CM, AE, and CC pipeline as UIMA-AS service
-    instances.
+    On job submission, DUCC creates a single process executing the CR and
+    one or more processes containing the analysis pipeline.
 
     DUCC provides other facilities in support of scale-out:
     \begin{itemize}
@@ -99,19 +93,18 @@
 
     \paragraph{UIMA Pipelines}
     A normal UIMA pipeline
-    contains a Collection Reader, one or more Analysis Engines connected in a pipeline, and a CAS
-    Consumer as shown in \hyperref[fig:UIMA-pipeline]{Figure ~\ref{fig:UIMA-pipeline}}.
+    contains a Collection Reader (CR), one or more Analysis Engines (AE) connected in a pipeline, and a CAS
+    Consumer (CC) as shown in \hyperref[fig:UIMA-pipeline]{Figure ~\ref{fig:UIMA-pipeline}}.
 
     \begin{figure}[H]
       \centering
-%      \includegraphics[bb=0 0 575 310, width=5.5in]{images/uima-pipeline.jpg}
       \includegraphics[width=5.5in]{images/uima-pipeline.jpg}
       \caption{Standard UIMA Pipeline}
       \label{fig:UIMA-pipeline}
     \end{figure}
 
     \paragraph{UIMA-AS  Scaled Pipeline}
-    With UIMA-AS the CR is separated into a discrete process and a CAS Multiplier is introduced 
+    With UIMA-AS the CR is separated into a discrete process and a CAS Multiplier (CM) is introduced 
     into the pipeline as an interface between the CR and the pipeline, as shown in
     \hyperref[fig:UIMA-AS-pipeline]{Figure ~\ref{fig:UIMA-AS-pipeline}} below.
     Multiple pipelines are serviced by the 
@@ -122,46 +115,46 @@
 
     \begin{figure}[H]
       \centering
-%      \includegraphics[bb=0 0 584 341, width=5.5in]{images/uima-as-pipeline.jpg}
-      \includegraphics[width=5.5in]{images/uima-as-pipeline.jpg}
+      \includegraphics[width=5.5in]{images/uima-as-pipeline.png}
       \caption{UIMA Pipeline As Scaled by UIMA-AS}
       \label{fig:UIMA-AS-pipeline}
     \end{figure}
 
-    \paragraph{UIMA-AS Pipeline Scaled By DUCC}
+    \paragraph{UIMA Pipeline Scaled By DUCC}
     DUCC is a UIMA and  UIMA-AS-aware cluster manager.  To scale out work under DUCC the developer
     tells DUCC what the parts of the application are, and DUCC does the work to build the
     scale-out via UIMA/AS, to find and schedule resources, to deploy the parts of the application
     over the cluster, and to manage the jobs while it executes.
 
-    On job submission, the DUCC Command Line Interface (CLI) inspects the XML defining the analytic
-    and generates a UIMA-AS Deployment Descriptor (DD).  The DD establishes some number of pipeline
-    threads per process (as indicated in the DUCC job parameters), and generates job-unique queues.
+    On job submission, the CR is wrapped with a DUCC main class and launched as a Job Driver (or JD).
+    The DUCC main class establishes communication with other DUCC components and instantiates the CR.
+    If the CR initializes successfully, and indicates that there are greater than 0 work items to process,
+    the specified CM, AE and CC components are assembled into an aggregate, wrapped with a DUCC main
+    class, and launched as a Job Process (or JP).
 
-    Under DUCC, the Collection Reader is executed in a process called the Job Driver (or JD). The 
-    pipelines are executed in one or more processes called Job Processes (or JPs). The JD 
-    process provides a thin wrapper over the CR to enable communication with DUCC.  The JD uses the
-    CR to implement a UIMA-AS client delivering CASs to the multiple (scaled-out) pipelines, 
-    shown in \hyperref[fig:UIMA-AS-pipeline-DUCC]{Figure ~\ref{fig:UIMA-AS-pipeline-DUCC}} below.
+	The JP will replicate the aggregate as many times as specified, each aggregate instance running 
+	in a single thread. When the aggregate initializes, and whenever an aggregate thread needs work,
+	the JP wrapper will fetch the next work item from the JD, as shown in 
+    \hyperref[fig:UIMA-AS-pipeline-DUCC]{Figure ~\ref{fig:UIMA-AS-pipeline-DUCC}} below.
 
     \begin{figure}[H]
       \centering
-%      \includegraphics[bb=0 0 571 311, width=5.5in]{images/ducc-sequential.jpg}
-      \includegraphics[width=5.5in]{images/ducc-sequential.jpg}
+      \includegraphics[width=5.5in]{images/ducc-sequential.png}
       \caption{UIMA Pipeline As Automatically Scaled Out By DUCC}
       \label{fig:UIMA-AS-pipeline-DUCC}
     \end{figure}
 
-    \paragraph{UIMA-AS Pipeline with User-Supplied DD Scaled By DUCC}
+    \paragraph{UIMA Pipeline with User-Supplied DD Scaled By DUCC}
 
     Application programmers may supply their own Deployment Descriptors to control intra-process
-    threading and scale-out.  If a DD is supplied in the job parameters, DUCC will use this instead
-    of generating one as depicted in \hyperref[fig:UIMA-AS-pipeline-DUCC-DD]{Figure ~\ref{fig:UIMA-AS-pipeline-DUCC-DD}} below.
+    threading and scale-out.  If a DD is specified in the job parameters, DUCC will launch each
+    JP with the specified UIMA-AS service instantiated in-process,
+    as depicted in \hyperref[fig:UIMA-AS-pipeline-DUCC-DD]{Figure ~\ref{fig:UIMA-AS-pipeline-DUCC-DD}} below.
+    In this case the user can still specify how many work items to deliver to the service concurrently.
 
     \begin{figure}[H]
       \centering
-%      \includegraphics[bb=0 0 571 316,width=5.5in]{images/ducc-parallel.jpg}
-      \includegraphics[width=5.5in]{images/ducc-parallel.jpg}
+      \includegraphics[width=5.5in]{images/ducc-parallel.png}
       \caption{UIMA Pipeline With User-Supplied DD as Automatically Scaled Out By DUCC}
       \label{fig:UIMA-AS-pipeline-DUCC-DD}
     \end{figure}
@@ -171,9 +164,9 @@
     DUCC provides a number of facilities to assist error management:
     
     \begin{itemize}
-      \item DUCC uses the UIMA-AS error-handling facilities to reflect errors from the Job Processes
+      \item DUCC captures exceptions in the JPs and delivers them
         to the Job Drivers. The JD wrappers implement logic to enforce error thresholds, to identify
-        and log errors, and to reflect job problems in the DUCC Web Server.  All error thresholds are
+        and log errors, and to reflect job problems in the DUCC Web Server.  Error thresholds are
         configurable both globally and on a per-job basis.
 
       \item Error and timeout thresholds are implemented for both the initialization phase of a pipeline
@@ -183,10 +176,10 @@
         initialization is successful, the process is terminated and all affected CASs are retried, up to some
         configurable threshold.
 
-      \item DUCC ensures that processes can successfully initialize before fully scaling out a job,
-        to ensure a cluster is not overwhelmed with errant processes.
+      \item To avoid disrupting existing workloads by a job that will fail to run,
+        DUCC ensures that JD and JP processes can successfully initialize before fully scaling out a job.
 
-      \item Various error conditions encountered  while a job is running will prevent the errant job
+      \item Various error conditions encountered  while a job is running will prevent a problematic job
         from continuing scale out, and can result in termination of the job.
       \end{itemize}
       
