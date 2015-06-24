@@ -35,9 +35,8 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
-import org.apache.uima.ducc.transport.event.common.IDuccReasonForProcessNotRunning.ReasonForStopping;
-import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
 
