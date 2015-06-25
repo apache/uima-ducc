@@ -56,7 +56,6 @@ import org.apache.uima.ducc.common.jd.files.perf.PerformanceMetricsSummaryItem;
 import org.apache.uima.ducc.common.jd.files.perf.PerformanceMetricsSummaryMap;
 import org.apache.uima.ducc.common.jd.files.perf.PerformanceSummary;
 import org.apache.uima.ducc.common.jd.files.perf.UimaStatistic;
-import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateReader;
 import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -112,6 +111,7 @@ import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.apache.uima.ducc.ws.utils.LinuxSignals;
 import org.apache.uima.ducc.ws.utils.LinuxSignals.Signal;
+import org.apache.uima.ducc.ws.utils.alien.AlienWorkItemStateReader;
 import org.apache.uima.ducc.ws.utils.alien.FileInfo;
 import org.apache.uima.ducc.ws.utils.alien.OsProxy;
 import org.eclipse.jetty.server.Request;
@@ -1605,7 +1605,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				String directory = job.getLogDirectory()+jobNo;
 				String userId = duccWebSessionManager.getUserId(request);
 				long wiVersion = job.getWiVersion();
-				WorkItemStateReader workItemStateReader = new WorkItemStateReader(component, directory, userId, wiVersion);
+				AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(getDuccling(request), component, directory, userId, wiVersion);
 				ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateReader.getMap();
 			    if( (map == null) || (map.size() == 0) ) {
 			    	sb.append("no data (map empty?)");
@@ -1769,7 +1769,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				String directory = job.getLogDirectory()+jobNo;
 				String userId = duccWebSessionManager.getUserId(request);
 				long wiVersion = job.getWiVersion();
-				WorkItemStateReader workItemStateReader = new WorkItemStateReader(component, directory, userId, wiVersion);
+				AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(getDuccling(request), component, directory, userId, wiVersion);
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
 			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(userId);
 			    if( (performanceMetricsSummaryMap == null) || (performanceMetricsSummaryMap.size() == 0) ) {
