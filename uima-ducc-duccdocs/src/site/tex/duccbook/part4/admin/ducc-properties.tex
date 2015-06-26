@@ -84,6 +84,40 @@
            \item[Type] Local
          \end{description}
 
+       \item[ducc.authentication.users.include] \hfill \\
+          Specify users allowed to log in to the web server.  This is used only
+          if {\em ducc.authentication.implementor} is the LinuxAuthenticationManager.
+         \begin{description}
+           \item[Default] All users may log in.
+           \item[Type] Local
+         \end{description}
+
+       \item[ducc.authentication.users.exclude] \hfill \\
+          Specify users not allowed to log in to the webserver.  This is used only
+          if {\em ducc.authentication.implementor} is the LinuxAuthenticationManager.
+         \begin{description}
+           \item[Default] No users are excluded.
+           \item[Type] Local
+         \end{description}
+
+       \item[ducc.authentication.groups.include] \hfill \\
+         Specify groups allowed to log in.  Groups are defined by Unix authentication.  Only
+         users in the groups specified here may log in to the web server.  This is used only
+          if {\em ducc.authentication.implementor} is the LinuxAuthenticationManager.
+         \begin{description}
+           \item[Default] Users in all groups may log in.
+           \item[Type] Local
+         \end{description}
+
+       \item[ducc.authentication.groups.exclude] \hfill \\
+         Specify groups not allowed to log in.  Groups are defined by Unix authentication. 
+         Users in the groups specified here may not log in to the web server.  This is used only
+          if {\em ducc.authentication.implementor} is the LinuxAuthenticationManager.
+         \begin{description}
+           \item[Default] No users are excluded due to group membership.
+           \item[Type] Local
+         \end{description}
+
        \item[ducc.admin.endpoint] \hfill \\
          This is the JMS endpoint name used for DUCC administration messages. 
          \begin{description}
@@ -322,6 +356,21 @@
          \begin{description}
            \item[Default] (unconfigured) 
            \item[Type] Local 
+         \end{description}
+
+       \item[ducc.driver.jetty.max.threads] \hfill \\
+         Max number of threads in Jetty thread pool servicing incoming  HTTP requests. 
+         \begin{description}
+           \item[Default] 100
+           \item[Type] Tuning
+         \end{description}
+
+       \item[ducc.driver.jetty.thread.idletime] \hfill \\
+         Max idle time for jetty threads (in milliseconds). When a thread exceeds
+         its idle time it will be terminated.
+         \begin{description} 
+           \item[Default] 60000
+           \item[Type] Tuning
          \end{description}
 
        \item[ducc.orchestrator.jvm.args] \hfill \\
@@ -572,6 +621,14 @@
           \begin{description}
             \item[Default Value] ducc.jd.state               
             \item[Type] Private 
+          \end{description}
+            
+        \item[ducc.jd.startup.initialization.error.limit] \hfill \\
+          For a newly started Job, the number of JP UIMA initialization failures
+          allowed until at least one JP succeeds - otherwise, the Job self-destructs.
+          \begin{description}
+            \item[Default Value] 1     
+            \item[Type] Tuning
           \end{description}
             
 
@@ -828,29 +885,6 @@
           \item[Default Value] 10000 
           \item[Type] Private 
         \end{description}
-        
-      \item[ducc.orchestrator.abbreviated.state.endpoint] \hfill \\
-        This is the name of the JMS endpoint through which the Orchestrator broadcasts its 
-        abbreviated state. This state state is used by the Resource Manager and Service Manager. 
-        \begin{description}
-          \item[Default Value] ducc.orchestrator.abbreviated.state 
-          \item[Type] Private
-        \end{description} 
-        
-      \item[ducc.orchestrator.abbreviated.state.update.endpoint.type] \hfill \\
-        This is the JMS endpoint type used for the "abbreviated" state messages sent by the 
-        Orchestrator. 
-        \begin{description}
-          \item[Default Value] topic 
-          \item[Type] Private
-        \end{description} 
-        
-      \item[ducc.orchestrator.abbreviated.state.publish.rate] \hfill \\
-        The interval in milliseconds between Orchestrator publications of its abbreviated state. 
-        \begin{description}
-          \item[Default Value] 15000 
-          \item[Type] Private
-        \end{description} 
 
       \item[ducc.orchestrator.maintenance.rate] \hfill \\
         This is the interval in milliseconds between Orchestrator maintenance cycles, which check
@@ -1502,6 +1536,43 @@
           \item[Default Value] org.apache.uima.ducc.FlowController
           \item[Type] Private 
         \end{description}
+
+      \item[ducc.process.request.timeout] \hfill \\
+        This is the maximum amount of time to wait for a response from a JD, in milliseconds. This value
+        is used by a JP when sending requests to the JD. 
+        \begin{description}
+          \item[Default Value] 30000
+          \item[Type] Tuning
+        \end{description}
+
+      \item[ducc.process.uima.as.container.class] \hfill \\
+        Define process container class for DD jobs to instantiate and invoke via reflection. 
+        The container provides classpath  isolation for user defined analytics.
+        The container is instantiated with classes from a System classloader.
+        \begin{description}
+          \item[Default Value] org.apache.uima.ducc.user.jp.UimaASProcessContainer
+          \item[Type] Private
+        \end{description}
+
+      \item[ducc.process.uima.container.class] \hfill \\
+        Define process container class for non-DD jobs to instantiate and invoke via reflection. 
+        The container provides classpath  isolation for user defined analytics.        
+        The container is instantiated with classes from a System classloader.
+        \begin{description}
+          \item[Default Value] org.apache.uima.ducc.user.jp.UimaProcessContainer
+          \item[Type] Private
+        \end{description}
+
+      \item[ducc.process.thread.sleep.time] \hfill \\
+        Define the sleep time in milliseconds for JP to use when JD sends empty CAS. In this case the
+        JD's CR has processed its collection. The JP threads need to slow down sending
+        requests
+        \begin{description}
+          \item[Default Value] 3000
+          \item[Type] Tuning
+        \end{description}
+
+
       \end{description}
       
 
