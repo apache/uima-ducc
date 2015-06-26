@@ -321,7 +321,13 @@ $HOME/ducc/logs/job-id
       
 
 \section{Add additional nodes to the DUCC cluster}
-   Additional nodes must meet all \hyperref[sec:install.prerequisites]{\em prerequisites}.
+   Additional nodes must meet all 
+   \ifdefined\DUCCSTANDALONE
+   {\em prerequisites} (listed above).
+   \else
+   \hyperref[sec:install.prerequisites]{\em prerequisites}.
+   \fi
+
    If user's home directories are on local filesystems the location for user logfiles
    should be specified to be on a shared filesystem. 
 
@@ -399,7 +405,12 @@ privileged operations.
 
 If a different location is chosen for ducc\_ling the new path needs to be specified 
 for ducc.agent.launcher.ducc\_spawn\_path in \$DUCC\_HOME/resources/site.ducc.properties.
-See more info at see \hyperref[sec:admin.properties-merge] {Properties merging}. 
+See more info at see 
+\ifdefined\DUCCSTANDALONE
+{\em properties merging} in the duccbook. 
+\else
+\hyperref[sec:admin.properties-merge] {Properties merging}. 
+\fi
 
 
 \section{CGroups Installation and Configuration}
@@ -420,8 +431,12 @@ See more info at see \hyperref[sec:admin.properties-merge] {Properties merging}.
 
     To install and configure CGroups for DUCC:
     \begin{enumerate}
-       \item Install the appropriate \hyperref[sec:install.prerequisites]{libcgroup package} at level 0.37
-         or above.
+       \item Install the appropriate 
+   \ifdefined\DUCCSTANDALONE
+   libcgroup package at level 0.37 or above (see {\em Installation Prerequisites}).
+   \else
+   \hyperref[sec:install.prerequisites]{libcgroup package} at level 0.37 or above.
+   \fi
 
        \item Configure /etc/cgconfig.conf as follows:
 \begin{verbatim}
@@ -462,8 +477,18 @@ See more info at see \hyperref[sec:admin.properties-merge] {Properties merging}.
 
 {\em Note:} if CGroups is not installed on a machine the DUCC Agent will detect this and not 
   	attempt to use the feature. CGroups can also be disabled for all machines
-   	(see \hyperref[itm:props-agent.cgroups.enable] {\em ducc.agent.launcher.cgroups.enable}) 
-   	or it can be disabled for individual machines (see \hyperref[itm:props-agent.cgroups.exclusion]{\em ducc.agent.exclusion.file}).
+   	(see 
+   \ifdefined\DUCCSTANDALONE
+   {\em ducc.agent.launcher.cgroups.enable} in ducc.properties, described in the Duccbook.)
+   \else
+   \hyperref[itm:props-agent.cgroups.enable] {\em ducc.agent.launcher.cgroups.enable}) 
+   \fi
+   	or it can be disabled for individual machines (see 
+   \ifdefined\DUCCSTANDALONE
+   {\em ducc.agent.exclusion.file} in ducc.properties, described in the Duccbook.)
+   \else
+   \hyperref[itm:props-agent.cgroups.exclusion]{\em ducc.agent.exclusion.file}).
+   \fi
 
 
  
