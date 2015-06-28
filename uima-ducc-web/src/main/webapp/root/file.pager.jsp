@@ -115,7 +115,9 @@ under the License.
             url : url,
             success : function (data) 
             {
-                $("#log_file_page_area").html(data);
+                data = data.replace(/</g, "&lt"); 
+                data = data.replace(/>/g, "&gt"); 
+            	$("#log_file_page_area").html(data);
             }
         });
     }
@@ -135,6 +137,8 @@ under the License.
             url : url,
             success : function (data) 
             {
+            	data = data.replace(/</g, "&lt"); 
+                data = data.replace(/>/g, "&gt"); 
                 $("#log_file_page_area").html(data);
             }
         });
