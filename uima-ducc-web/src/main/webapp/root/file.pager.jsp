@@ -103,6 +103,12 @@ under the License.
     </div>
   
   <script type="text/javascript">
+  String.prototype.startsWith = function(prefix) {
+      return this.indexOf(prefix) === 0;
+  }
+  String.prototype.endsWith = function(suffix) {
+	  return this.indexOf(suffix, this.length - suffix.length) !== -1;
+  }
   function ducc_init_log_file() {
     var queryDict = {}
     location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]})
@@ -115,9 +121,22 @@ under the License.
             url : url,
             success : function (data) 
             {
+                pre = "";
+                post = "";
+                if(data.startsWith("<pre>")) {
+                        pre = "<pre>";
+                        data = data.substring(5);
+                }
+                if(data.endsWith("</pre>\n")) {
+                        post = "</pre>\n";
+                        data = data.substring(0,data.length-7);
+                }
                 data = data.replace(/</g, "&lt"); 
-                data = data.replace(/>/g, "&gt"); 
-            	$("#log_file_page_area").html(data);
+                data = data.replace(/>/g, "&gt");
+                if(data.length <= 0) {
+                	data = "No data found.\n";
+                }
+                $("#log_file_page_area").html(pre+data+post);
             }
         });
     }
@@ -137,9 +156,22 @@ under the License.
             url : url,
             success : function (data) 
             {
-            	data = data.replace(/</g, "&lt"); 
-                data = data.replace(/>/g, "&gt"); 
-                $("#log_file_page_area").html(data);
+                pre = "";
+                post = "";
+                if(data.startsWith("<pre>")) {
+                        pre = "<pre>";
+                        data = data.substring(5);
+                }
+                if(data.endsWith("</pre>\n")) {
+                        post = "</pre>\n";
+                        data = data.substring(0,data.length-7);
+                }
+                data = data.replace(/</g, "&lt"); 
+                data = data.replace(/>/g, "&gt");
+                if(data.length <= 0) {
+                	data = "No data found.\n";
+                }
+                $("#log_file_page_area").html(pre+data+post);
             }
         });
     }
