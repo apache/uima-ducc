@@ -45,81 +45,44 @@ provides cluster management services to automate the scale-out of UIMA pipelines
       
 <h2><a name="major.changes">2. Major Changes in this Release</a></h2>
 <p>
-UIMA DUCC @@ducc.version@@ Apache is a maintenance release containing bug fixes and a few
-new features. What's new:<br>
+UIMA DUCC @@ducc.version@@ Apache is a major release containing new features and bug fixes. What's new:<br>
 
-<h3>2.1 Service Manager Changes</h3>
-Advanced ping support - pinger is able to microschedule service instances
-The Ping API is enhanced to allow the following actions:
-<ul>
-        <li>start instances</li>
-        <li>stop  instances</li>
-        <li>change autostart</li> 
-        <li>set last-usage information in query</li>        
-        <li>manage the instance failure window. Default failure-window management is provide.</li>
+<h3>2.1 Non-preemptive (NP) work loads</h3>
+In order to prevent the cluster from being filled with non-preemptable (NP) allocations, users will 
+have a limit of 360GB total NP resources. This will motivate users to allocate work in 
+fair-share, preemptable classes, and to move any services supporting other users to be 
+owned by a group user like emrauser, dsemuser, etc.
+There is also a change in behavior for NP allocations that cannot be filled. An example 
+would be a training step or a java-viaducc submission. Previously these submissions 
+failed, now these submissions are queued. NP class submissions that exceed a user's 
+allotment (or cluster availability) will queue up until they can be run. Submissions 
+that cannot be run because the cluster does not have any machine which can satisfy 
+the request will also queue. <br>
+Reservations from the web page or from the CLI ducc_reserve will be limited to a single 
+instance in a reserve class. That is, each reservation must be for an entire machine.
 
-</ul>
+<h3>2.2 Classpath isolation</h3> 
+User's code now runs with only the classpath it supplies. That includes all UIMA jars and 
+any additional 3rd party jars that are required. This will affect any jobs utilizing UIMA-AS 
+services, "DD jobs" and UIMA-AS services themselves.
 
-A sample microscheduling pinger is supplied to illustrate the new API.
+<h3>2.3 DUCC error handler </h3>
+The interface to this optional capability has changed. 
 
-Multiple pingers may be registered by the admin to run internally as threads in the SM instead of as external processes.
+<h3>2.4 Java Process (JP) pulls Work Items (WIs) from a Job Driver (JD) via HTTP </h3>
+JP no longer uses ActiveMQ for receiving WIs for processing. Instead it uses HTTP to 
+pull WIs from its JD.
 
-CLI support to enable / disable instance startup.
+<h3>2.5 DUCC flow controller typesystem </h3>
+The original name of the flow controller typesystem file has been deprecated. The old 
+version will remain available for now. 
 
-CLI support to seamlessly transition service startup mode among autostarted, reference-started, and manually-started
+For the future, please make the following change to CR/CM/CC components using this typesystem: 
+change 
+<import name="org.apache.uima.ducc.common.uima.DuccJobFlowControlTS"/> 
+to 
+<import name="org.apache.uima.ducc.FlowControllerTS"/> 
 
-Enhance query to provide more information to CLI and web server:
-         Service last use
-         Registration date  
-         Explicit denotation of start mode: autostart, reference start, and manual start
-
-CLI now does user authentication and administrator authorization on all actions.
-  
-Most registration parameters can be dynamically modified without re-registering the service.
-
-Dynamic modification of pinger properties automatically restarts the pinger.
-
-Debug support - a service may be registered to connect back to a debug port when it is started.
-
-Multiple per-service admins - A service may register a list of ids which are allowed to perform administrative functions for that service.
-
-<h3>2.2 ducc_ling Changes</h3>
-<p>
-All registered groups are set for processes.
-
-User may set DUCC_UMASK to establish the umask for a processes.
-</p>
-
-
-<h3>2.3 Resource Manager Changes</h3>
-<p>
-
-Administrative CLI interface
-
-Vary-off a node to temporarily exclude it from scheduling
-
-Vary-on a node to return it to the scheduling pool
-      
-Query occupancy - for each node, shows what is scheduled there
-
-Query load - summary of scheduling tables to allow external entities such as LSF to collaborate with DUCC scheduler
-
-Misc enhancements
-   Better handling of failed nodes, purges all work other than reservations
-
-  Improved de-fragmentation logic
-
-  Improved handling of small clusters
-
-  Improved eviction, takes into account the amount of work that would be lost before scheduling a process for eviction.
-
-
-</p>
-
-<h3>2.4 Web Server Changes</h3>
-<p>
-Added Node visualization
-</p>
 
 For a complete list of issues fixed and up-to-date information on UIMA-DUCC issues, see our issue tracker: 
 <a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%221.1.0-Ducc%22%20ORDER%20BY%20key%20ASC">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%221.1.0-Ducc%22%20ORDER%20BY%20key%20ASC</a>
