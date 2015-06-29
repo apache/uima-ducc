@@ -176,8 +176,13 @@ public class ServiceManagerConfiguration
         public void process(Exchange exchange) throws Exception {
             // the caused by exception is stored in a property on the exchange
             Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
-            exchange.getOut().setBody(XStreamUtils.marshall(caused));
-            logger.error("ErrorProcessor.process", null, caused);
+            try {
+                logger.error("ErrorProcessor.process", null, caused);
+                exchange.getOut().setBody(XStreamUtils.marshall(caused));
+            	
+            } catch( Throwable t ) {
+                logger.error("ErrorProcessor.process", null,t);
+            }
         }
     }
 

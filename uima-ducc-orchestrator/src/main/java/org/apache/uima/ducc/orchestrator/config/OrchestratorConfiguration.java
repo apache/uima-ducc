@@ -307,8 +307,8 @@ public class OrchestratorConfiguration {
     public void process(Exchange exchange) throws Exception {
       // the caused by exception is stored in a property on the exchange
       Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
+      duccLogger.error("ErrorProcessor.process",null, caused);
       exchange.getOut().setBody(caused); //XStreamUtils.marshall(caused));
-      caused.printStackTrace();
     }
   }
   public class ServiceRequestHandler {
