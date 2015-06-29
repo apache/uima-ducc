@@ -55,18 +55,24 @@ public class DuccUiUtilities {
 		return user;
 	}
 
-  public static String fixupEnvironment(String environment) {
-    // Rename the user's LD_LIBRARY_PATH as Secure Linuxs will not pass that on
-    String source = "LD_LIBRARY_PATH";
-    String target = "DUCC_" + source;
+  public static String fixupEnvironment(String environment, String allInOne) {
+	  
     ArrayList<String> envList = QuotedOptions.tokenizeList(environment, false); // Don't strip quotes
     Map<String, String> envMap = QuotedOptions.parseAssignments(envList, +1); // Expand any FOO or FOO* entries
-    if (envMap.containsKey(source)) {
-      if (!envMap.containsKey(target)) {
-        envMap.put(target, envMap.get(source));
-        envMap.remove(source);
+    
+    // Rename the user's LD_LIBRARY_PATH as Secure Linuxs will not pass that on
+    // But not for --all-in-one local
+    if (allInOne == null || !allInOne.equalsIgnoreCase("local")) {
+      String source = "LD_LIBRARY_PATH";
+      String target = "DUCC_" + source;
+      if (envMap.containsKey(source)) {
+        if (!envMap.containsKey(target)) {
+          envMap.put(target, envMap.get(source));
+          envMap.remove(source);
+        }
       }
     }
+    
     // Augment user-specified environment with a few useful ones (only if not already set), e.g. USER HOME
     String envNames = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_environment_propagated);
     if (envNames != null) {

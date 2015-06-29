@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.uima.ducc.cli.CliBase;
@@ -719,18 +720,26 @@ public class AllInOneLauncher extends CliBase {
         }
         
         // Put environment settings in the process's environment
+        // Don't inherit any settings
+        Map<String,String> env = pb.environment();
+        env.clear();
         if(environment != null) {
             ArrayList<String> envList = QuotedOptions.tokenizeList(environment, true); // Strip quotes
             Map<String,String> envMap = QuotedOptions.parseAssignments(envList, +1); // Expand any FOO & FOO* entries
-            Map<String,String> env = pb.environment();
-            env.clear();
             env.putAll(envMap);
         }
         
-        // Dump command line
-        for (String arg : commandArray) {
-            mh.frameworkDebug(cid, mid, arg);
+        // Log the environment and arguments in the same way ducc_ling does
+        System.out.println("Changed to working directory " + working_directory);
+        int n = 0;
+        for (Entry<String, String> entry : env.entrySet()) {
+        	System.out.println("Environ[" + (n++) + "] = " + entry.getKey() + "=" + entry.getValue());
         }
+        System.out.println("Command to exec: " + command[0]);
+        for (int i = 1; i < command.length; ++i) {
+        	System.out.println("    arg[" + i + "]: " + command[i]);
+        }
+        System.out.println("Command launching...");
         
         // Run!
         pb.redirectErrorStream(true);

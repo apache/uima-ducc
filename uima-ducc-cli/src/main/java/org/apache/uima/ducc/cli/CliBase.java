@@ -412,7 +412,8 @@ public abstract class CliBase
             // renaming LD_LIBRARY_PATH & propagating some user values
             if (uiopt == UiOption.Environment) {
               String environment = cli_props.getProperty(uiopt.pname());
-              environment = DuccUiUtilities.fixupEnvironment(environment);
+              String allInOne = cli_props.getProperty(UiOption.AllInOne.pname());
+              environment = DuccUiUtilities.fixupEnvironment(environment, allInOne);
               cli_props.setProperty(uiopt.pname(), environment);
             }
         }
