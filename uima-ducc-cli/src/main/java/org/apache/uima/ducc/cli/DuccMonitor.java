@@ -262,10 +262,16 @@ public abstract class DuccMonitor {
 				for(String remotePid : monitorInfo.remotePids) {
 					if(!seenRemotePids.contains(remotePid)) {
 						seenRemotePids.add(remotePid);
-						StringBuffer message = new StringBuffer();
-						message.append("id:" + id);
-						message.append(" remote:" + remotePid);
-						info(message.toString());
+						switch(context) {
+						case Job:
+							break;
+						default:
+							StringBuffer message = new StringBuffer();
+							message.append("id:" + id);
+							message.append(" remote:" + remotePid);
+							info(message.toString());
+							break;
+						}
 					}
 				}
 			}
