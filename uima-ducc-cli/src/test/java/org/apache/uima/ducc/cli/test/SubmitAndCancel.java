@@ -38,6 +38,9 @@ public class SubmitAndCancel
         "--process_descriptor_AE",          "org.apache.uima.ducc.test.randomsleep.FixedSleepAE",
         "--process_memory_size",            "2",
         "--classpath",                      "${DUCC_HOME}/lib/uima-ducc/examples/*:${DUCC_HOME}/apache-uima/lib/*",
+        /* Use the following if testing changes in the cli & examples projects
+        "--classpath",                      "../uima-ducc-cli/target/classes:../uima-ducc-examples/target/classes:${DUCC_HOME}/apache-uima/lib/*",
+        */
         "--process_jvm_args",               "-Xmx100M ",
         "--process_thread_count",           "2",
         "--process_per_item_time_max",      "5",
@@ -239,13 +242,18 @@ public class SubmitAndCancel
             System.out.println(testid + " ------------------------------ Submit all_in_one local ------------------------------");
             System.out.println(testid + " Console attached: " + submit.isConsoleAttached());
             if ( submit.execute() ) {
-                success(testid, "Job " + submit.getDuccId() + " submitted, rc = " + submit.getReturnCode());
+                int rc = submit.getReturnCode();
+                if (rc == 0) {
+                    success(testid, "All-in-one local job completed, rc = 0");
+                } else {
+                    fail(testid, "All-in-one local job completed, rc = " + rc);
+                }
             } else {
-                fail(testid, "Job " + submit.getDuccId() + " not submitted, rc = " + submit.getReturnCode());
+                fail(testid, "All-in-one local job not submitted, rc = " + submit.getReturnCode());
             }
         } catch ( Throwable t ) {
-            fail(testid, "All-In-One Local Job failed with exception " + t.toString());
-            t.printStackTrace();
+              fail(testid, "All-In-One local Job failed with exception " + t.toString());
+              t.printStackTrace();
         }
     }
 

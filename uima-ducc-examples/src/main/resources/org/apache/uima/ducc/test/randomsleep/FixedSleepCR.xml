@@ -87,21 +87,11 @@
     	</configurationParameterSettings>
     	
         <!-- Type System of CASes returned by this Collection Reader -->
+        <!-- Use the basic default one ... the AE adds org.apache.uima.examples.SourceDocumentInformation -->
+        <typeSystemDescription/>
 
-        <typeSystemDescription>
-          <imports>
-            <import name="org.apache.uima.examples.SourceDocumentInformation"/>
-          </imports>
-        </typeSystemDescription>
+        <capabilities/>
 
-        <capabilities>
-          	<capability>
-          		<inputs/>
-          		<outputs>
-          			<type allAnnotatorFeatures="true">org.apache.uima.examples.SourceDocumentInformation</type>
-          		</outputs>
-          	</capability>
-        </capabilities>
 		<operationalProperties>
 			<modifiesCas>false</modifiesCas>
 			<multipleDeploymentAllowed>false</multipleDeploymentAllowed>

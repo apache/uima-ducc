@@ -35,6 +35,8 @@ import org.apache.uima.UimaContext;
 import org.apache.uima.analysis_component.CasAnnotator_ImplBase;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
+import org.apache.uima.cas.CASException;
+import org.apache.uima.examples.SourceDocumentInformation;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
@@ -354,6 +356,13 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
 
         String        msgheader   = "**-------> AE process " + pid + " TID " + tid + " task " + qid + " of " + total;
 
+        // Check that the CAS has the AE's typesystem, not the basic one in the CR
+        try {
+			new SourceDocumentInformation(cas.getJCas());
+		} catch (CASException e) {
+			throw new AnalysisEngineProcessException(e);
+		}
+        
         if ( System.getenv( "FAST_INIT_FAIL" ) != null ) {
             // must insure nothing gets done in this case.
             System.out.println("Croakamundo.");
