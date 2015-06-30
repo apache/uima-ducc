@@ -22,17 +22,23 @@ import java.io.IOException;
 
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
+import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.collection.CollectionException;
 import org.apache.uima.ducc.cli.CliBase;
 import org.apache.uima.ducc.cli.DuccJobSubmit;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
+import org.apache.uima.ducc.user.common.DuccUimaSerializer;
 import org.apache.uima.resource.ResourceInitializationException;
 
 public class AllInOne extends CliBase {
     
 	private static String cid = AllInOne.class.getSimpleName();
+	
+	private static DuccUimaSerializer uimaSerializer = new DuccUimaSerializer();
+	
+	private static XmiSerializationSharedData xmiSerializationSharedData = new XmiSerializationSharedData();
 	
 	private IMessageHandler mh = new MessageHandler();
 	
@@ -109,7 +115,7 @@ public class AllInOne extends CliBase {
 		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
-	private void process() throws CollectionException, ResourceInitializationException, IOException, AnalysisEngineProcessException {
+	private void process() throws Exception {
 		String mid = "process";
 		mh.frameworkTrace(cid, mid, "enter");
 		int count = 0;
@@ -119,7 +125,13 @@ public class AllInOne extends CliBase {
 		while(casGenerator.hasNext()) {
 			cas = casGenerator.getCas(cas);
 			mh.frameworkDebug(cid, mid, "cas:"+count);
-			casPipeline.process(cas);
+			
+			// Emulate a DUCC job by serializing then deserializing into the aggregate's possibly larger typesystem
+			String serializedCas = uimaSerializer.serializeCasToXmi(cas, xmiSerializationSharedData);
+			CAS cas2 = casPipeline.getEmptyCas();  // Always returns the same CAS
+			uimaSerializer.deserializeCasFromXmi(serializedCas, cas2, xmiSerializationSharedData, true, -1);
+			
+			casPipeline.process(cas2);
 			count++;
 		}
 		casPipeline.destroy();
@@ -149,9 +161,14 @@ public class AllInOne extends CliBase {
 	}
 	
 	
-	public static void main(String[] args) throws Exception {
-		AllInOne allInOne = new AllInOne(args);
-		allInOne.go();
+	public static void main(String[] args) {
+		try {
+			AllInOne allInOne = new AllInOne(args);
+			allInOne.go();
+		} catch (Exception e) {
+			// Indicate that something went wrong
+			System.exit(1);
+		}
 	}
 
 	@Override

@@ -36,7 +36,12 @@ import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.uima.UimaHelper;
 import org.apache.uima.ducc.common.utils.QuotedOptions;
+import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.resource.ResourceSpecifier;
+import org.apache.uima.resource.metadata.FsIndexDescription;
+import org.apache.uima.resource.metadata.TypePriorities;
+import org.apache.uima.resource.metadata.TypeSystemDescription;
+import org.apache.uima.util.CasCreationUtils;
 import org.apache.uima.util.XMLInputSource;
 
 public class CasPipeline {
@@ -48,6 +53,8 @@ public class CasPipeline {
 	
 	private AnalysisEngineDescription aed = null;
 	AnalysisEngine ae = null;
+
+	private CAS cas = null;
 	
 	public CasPipeline(Properties properties, IMessageHandler mh) {
 		if(properties != null) {
@@ -166,6 +173,25 @@ public class CasPipeline {
 	
 	public void destroy() {
 	    ae.destroy();
+	}
+	
+	public CAS getEmptyCas() throws ResourceInitializationException {
+		// Reuse same CAS for each request
+		if (cas != null) {
+			cas.reset();
+		} else {
+	        TypePriorities ae_tp = ae.getProcessingResourceMetaData().getTypePriorities();
+	        TypeSystemDescription ae_tsd = ae.getProcessingResourceMetaData().getTypeSystem();
+	        FsIndexDescription[] ae_fid = ae.getProcessingResourceMetaData().getFsIndexes();
+			//	Use class level locking to serialize access to CasCreationUtils
+			//  Only one thread at the time can create a CAS. UIMA uses lazy
+			//  initialization approach which can cause NPE when two threads
+			//  attempt to initialize a CAS. 
+			synchronized( CasCreationUtils.class) {
+				cas = CasCreationUtils.createCas(ae_tsd, ae_tp, ae_fid);
+			}
+		}
+		return cas;
 	}
 	
 	public void dumpStatistics(PrintStream out) {
