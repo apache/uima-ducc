@@ -1070,14 +1070,17 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     "----------- Agent Stopped ProcessMemoryUsagePollingRouter for Process:"
                             + duccEvent.getPid());
           } else if (duccEvent.getState().equals(ProcessState.FailedInitialization)) {
-            deployedProcess.getDuccProcess().setReasonForStoppingProcess(
+              logger.info(methodName, null, ">>>> Agent Handling Process FailedInitialization. PID:"
+                      + duccEvent.getPid());
+              deployedProcess.getDuccProcess().setReasonForStoppingProcess(
                     ReasonForStoppingProcess.FailedInitialization.toString());
-            // Mark the process for death. Doesnt actually kill the
-            // process
+      	      deployedProcess.getDuccProcess().setProcessState(ProcessState.Stopping);
+              deployedProcess.setStopping();
+/*
             deployedProcess.kill();
             logger.info(methodName, null, ">>>> Agent Handling Process FailedInitialization. PID:"
                     + duccEvent.getPid() + " Killing Process");
-           try {
+            try {
                super.getContext().stopRoute(duccEvent.getPid());
            } catch( Exception e) {
         	   logger.error(methodName, null, "Unable to stop Camel route for PID:"+duccEvent.getPid());
@@ -1085,13 +1088,17 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             logger.info(methodName, null,
                     "----------- Agent Stopped ProcessMemoryUsagePollingRouter for Process:"
                             + duccEvent.getPid() + ". Process Failed Initialization");
-            // kill the process
             undeployProcess(processEntry.getValue());
+            */
           } else if (duccEvent.getState().equals(ProcessState.InitializationTimeout)) {
             deployedProcess.getDuccProcess().setReasonForStoppingProcess(
                     ReasonForStoppingProcess.InitializationTimeout.toString());
+      	    deployedProcess.getDuccProcess().setProcessState(ProcessState.Stopping);
+            deployedProcess.setStopping();
+
             // Mark the process for death. Doesnt actually kill the
             // process
+            /*
             deployedProcess.kill();
             logger.info(methodName, null, ">>>> Agent Handling Process InitializationTimeout. PID:"
                     + duccEvent.getPid() + " Killing Process");
@@ -1100,8 +1107,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     "----------- Agent Stopped ProcessMemoryUsagePollingRouter for Process:"
                             + duccEvent.getPid()
                             + ". Agent Timedout Waiting For Process to Initialize");
-            // kill the process
+            
             undeployProcess(processEntry.getValue());
+            */
           } 
           else if (duccEvent.getState().equals(ProcessState.Stopping)) { 
         	  if ( duccEvent.getMessage() != null && duccEvent.getMessage().equals(ReasonForStoppingProcess.ExceededErrorThreshold.toString())) {

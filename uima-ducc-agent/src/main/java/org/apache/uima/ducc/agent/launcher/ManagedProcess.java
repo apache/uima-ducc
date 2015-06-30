@@ -424,13 +424,12 @@ public class ManagedProcess implements Process {
 									errors.trim());
 						} else {
                             // JP should not be marked as CROAKED if it terminates 
-							// due to a process error. On such error, the JP sends Stopping event
-							// to its agent along with a message=ReasonForStoppingProcess.ExceededErrorThreshold. 
-							if ( getDuccProcess().getProcessState().equals(ProcessState.Stopping)) {
+							// due to a process error, failed initialization or initialization
+							// timeout. On such errors, a JP sends an event to its agent where
+							// the reason for failure is set
+							if ( getDuccProcess().getProcessState().equals(ProcessState.Stopping) ) {
 								// the reason was already set while handling JPs Stopping event
 								getDuccProcess().setProcessState(ProcessState.Stopped); // now the JP is dead
-								
-								//getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.ExceededErrorThreshold.toString());
 							} else {
 								// Process terminated unexpectedly. It stopped on its own due to Ducc framework
 								// error or due to some external event not initiated by an agent

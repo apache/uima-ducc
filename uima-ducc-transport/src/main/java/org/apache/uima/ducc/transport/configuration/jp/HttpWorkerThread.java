@@ -100,9 +100,9 @@ public class HttpWorkerThread implements Runnable {
 	   	} catch( Throwable t) {
 	   		error = true;
 	   		synchronized(JobProcessComponent.class) {
-				duccComponent.setState(ProcessState.FailedInitialization);
+	   			// send notification to an agent 
+	   			duccComponent.setState(ProcessState.FailedInitialization);
 			}
-            t.printStackTrace();
 	   		logger.error("HttpWorkerThread.run()", null, t);
 	   		System.out.println("EXITING WorkThread ID:"
 					+ Thread.currentThread().getId());
@@ -112,6 +112,10 @@ public class HttpWorkerThread implements Runnable {
 			/* *****************************************/
         	/*       EXITING  PROCESS ON FIRST ERROR   */
 			/* *****************************************/
+	   		try {
+	   			// allow agent some time to process FailedInitialization event 
+	   			Thread.sleep(2000);
+	   		} catch( Exception e) {}
 	   		System.exit(1);
 			/* *****************************************/
 			/* *****************************************/
