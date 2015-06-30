@@ -96,6 +96,8 @@ public class AllInOneLauncher extends CliBase {
     private UiOption[] opts = DuccJobSubmit.opts;
     
     private HashMap<String,String> optionsMap = new HashMap<String,String>();
+    
+    private long duccId = -1;
 
     /*
      * Called with the already cleaned-up properties parsed by DuccSubmit to
@@ -786,7 +788,7 @@ public class AllInOneLauncher extends CliBase {
           UiOption.ProcessDescriptorAEOverrides,
           UiOption.ProcessDescriptorCC,
           UiOption.ProcessDescriptorCCOverrides };
-    
+
     /*
      * Create a string hold the args for the java command.
      * If any values contain blanks they would have to be quoted, instead restrict the args
@@ -865,6 +867,7 @@ public class AllInOneLauncher extends CliBase {
             String line = dt + " " + mr.getDuccId() + " submitted.";
             consoleCb.status(line);
             returnCode = mr.getReturnCode();
+            duccId = mr.getDuccId();
         } 
         else {
             String line = "Could not submit " + dt;
@@ -904,5 +907,9 @@ public class AllInOneLauncher extends CliBase {
     public int getReturnCode() {
       return returnCode;
     }
+    
+     public long getDuccId() {
+    	 return duccId;
+     }
     
 }

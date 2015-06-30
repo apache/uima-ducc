@@ -339,10 +339,17 @@ public class DuccJobSubmit
      * @return The exit code from the job.
      */
     public int getReturnCode() {
-      if (allInOneLauncher != null) {
-        return allInOneLauncher.getReturnCode();
-      }
-      return super.getReturnCode();
+        if (allInOneLauncher != null) {
+            return allInOneLauncher.getReturnCode();
+        }
+        return super.getReturnCode();
+    }
+
+    public long getDuccId() {
+        if (allInOneLauncher != null) {
+            return allInOneLauncher.getDuccId();
+        }
+        return super.getDuccId();
     }
     
     private boolean isAllInOne() {
