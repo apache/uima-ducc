@@ -122,10 +122,13 @@ public class DuccWebMonitorJob {
 			}
 			
 			ArrayList<String> stateSequence = monitorInfo.stateSequence;
-			String state = dwj.getJobState().toString();
-			if(!stateSequence.contains(state)) {
-				duccLogger.info(location, duccId, "state: "+state);
-				stateSequence.add(state);
+			JobState jobState = dwj.getJobState();
+			if(jobState != null) {
+				String state = jobState.toString();
+				if(!stateSequence.contains(state)) {
+					duccLogger.info(location, duccId, "state: "+state);
+					stateSequence.add(state);
+				}
 			}
 			
 			IRationale rationale = dwj.getCompletionRationale();

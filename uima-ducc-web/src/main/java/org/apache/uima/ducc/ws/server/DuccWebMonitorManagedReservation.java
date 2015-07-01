@@ -113,10 +113,13 @@ public class DuccWebMonitorManagedReservation {
 			monitorInfo.remotePids = DuccWebUtil.getRemotePids(duccId, map);
 			
 			ArrayList<String> stateSequence = monitorInfo.stateSequence;
-			String state = dwr.getJobState().toString();
-			if(!stateSequence.contains(state)) {
-				duccLogger.info(location, duccId, "state: "+state);
-				stateSequence.add(state);
+			JobState jobState = dwr.getJobState();
+			if(jobState != null) {
+				String state = jobState.toString();
+				if(!stateSequence.contains(state)) {
+					duccLogger.info(location, duccId, "state: "+state);
+					stateSequence.add(state);
+				}
 			}
 			
 			String text = null;

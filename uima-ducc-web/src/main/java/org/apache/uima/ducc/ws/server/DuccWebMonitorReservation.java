@@ -36,6 +36,7 @@ import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IRationale;
@@ -227,10 +228,13 @@ public class DuccWebMonitorReservation {
 		DuccWorkReservation dwr = (DuccWorkReservation) dw;
 		
 		ArrayList<String> stateSequence = monitorInfo.stateSequence;
-		String state = dwr.getReservationState().toString();
-		if(!stateSequence.contains(state)) {
-			duccLogger.info(location, duccId, "state: "+state);
-			stateSequence.add(state);
+		ReservationState reservationState = dwr.getReservationState();
+		if(reservationState != null) {
+			String state = reservationState.toString();
+			if(!stateSequence.contains(state)) {
+				duccLogger.info(location, duccId, "state: "+state);
+				stateSequence.add(state);
+			}
 		}
 		
 		monitorInfo.nodes = dwr.getNodes();
