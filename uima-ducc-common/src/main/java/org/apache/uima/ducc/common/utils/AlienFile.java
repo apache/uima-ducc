@@ -63,7 +63,7 @@ public class AlienFile extends AlienAbstract {
 		return command;
 	}
 	
-	private int getByteSize() throws Throwable {
+	private int getByteSize() throws Exception {
 		String methodName = "getByteSize";
 		String[] command = getCommand();
 		echo(command);
@@ -91,7 +91,7 @@ public class AlienFile extends AlienAbstract {
         return size;
 	}
 
-	private String reader(int size) throws Throwable {
+	private String reader(int size) throws Exception {
 		String data = null;
 		BufferedReader br = null;
 		InputStreamReader isr = null;
@@ -115,9 +115,9 @@ public class AlienFile extends AlienAbstract {
 	        data = new String(cbuf);
 			return data;
 		}
-		catch(Throwable t) {
-			t.printStackTrace();
-			throw t;
+		catch(Exception e) {
+			e.printStackTrace();
+			throw e;
 		}
 		finally {
 			closer(br);
@@ -125,7 +125,7 @@ public class AlienFile extends AlienAbstract {
 		}
 	}
 	
-	public String getString() throws Throwable {
+	public String getString() throws Exception {
 		int size = getByteSize();
 		String data = reader(size);
 		if(data != null) {
@@ -134,7 +134,7 @@ public class AlienFile extends AlienAbstract {
 		return data;
 	}
 	
-	public InputStreamReader getInputStreamReader() throws Throwable {
+	public InputStreamReader getInputStreamReader() throws Exception {
 		InputStreamReader isr = null;
 		try {
 			String[] command = getCommand();
@@ -151,13 +151,13 @@ public class AlienFile extends AlienAbstract {
 				isr = new InputStreamReader(pOut);
 			}
 		} 
-		catch(Throwable t) {
-			throw t;
+		catch(Exception e) {
+			throw e;
 		}
 		return isr;
 	}
 
-	public DataInputStream getDataInputStream() throws Throwable {
+	public DataInputStream getDataInputStream() throws Exception {
 		DataInputStream dis = null;
 		try {
 			String[] command = getCommand();
@@ -168,13 +168,13 @@ public class AlienFile extends AlienAbstract {
 			InputStream pOut = p.getInputStream();
 			dis= new DataInputStream(pOut);
 		} 
-		catch(Throwable t) {
-			throw t;
+		catch(Exception e) {
+			throw e;
 		}
 		return dis;
 	}
 	
-	public static void main(String[] args) throws Throwable {
+	public static void main(String[] args) throws Exception {
 		AlienFile alienFile;
 		String arg_user = args[0];
 		String arg_file = args[1];

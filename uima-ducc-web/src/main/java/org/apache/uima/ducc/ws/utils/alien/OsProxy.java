@@ -34,7 +34,7 @@ public class OsProxy {
 	private static String newline = "\n";
 	private static String whitespace = "\\s+";
 	
-	public static Map<String, FileInfo> getFilesInDirectory(String ducc_ling, String user, String directory) throws Throwable {
+	public static Map<String, FileInfo> getFilesInDirectory(String ducc_ling, String user, String directory) {
 		String location = "getFilesInDirectory";
 		TreeMap<String, FileInfo> map = new TreeMap<String, FileInfo>();
 		if(ducc_ling == null) {
@@ -51,12 +51,19 @@ public class OsProxy {
 			}
 			catch(Exception e) {
 				// no worries
+				logger.debug(location, jobid, e);
 			}
 		}
 		else {
 			try {
 				AlienDirectory alienDirectory = new AlienDirectory(user, directory, ducc_ling);
-				String result = alienDirectory.getString();
+				String result = null;
+				try {
+					result = alienDirectory.getString();
+				}
+				catch(Exception e) {
+					logger.debug(location, jobid, e);
+				}
 				logger.debug(location, jobid, result);
 				if(result != null) {
 					String[] lines = result.split(newline);
@@ -78,6 +85,7 @@ public class OsProxy {
 			}
 			catch(Exception e) {
 				// no worries
+				logger.debug(location, jobid, e);
 			}
 		}
 		return map;

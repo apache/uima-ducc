@@ -77,7 +77,7 @@ public class AlienDirectory extends AlienAbstract {
 		return command;
 	}
 
-	private String reader() throws Throwable {
+	private String reader() throws Exception {
 		String data = null;
 		BufferedReader br = null;
 		InputStreamReader isr = null;
@@ -105,9 +105,9 @@ public class AlienDirectory extends AlienAbstract {
 	        data = sb.toString();
 			return data;
 		}
-		catch(Throwable t) {
-			t.printStackTrace();
-			throw t;
+		catch(Exception e) {
+			e.printStackTrace();
+			throw e;
 		}
 		finally {
 			closer(br);
@@ -115,14 +115,14 @@ public class AlienDirectory extends AlienAbstract {
 		}
 	}
 	
-	public String getString() throws Throwable {
+	public String getString() throws Exception {
 		String methodName = "getString";
 		String data = reader();
 		logger.debug(methodName, duccId, data);
 		return data;
 	}
 	
-	public InputStreamReader getInputStreamReader() throws Throwable {
+	public InputStreamReader getInputStreamReader() throws Exception {
 		InputStreamReader isr = null;
 		try {
 			String[] command = getCommand();
@@ -133,13 +133,13 @@ public class AlienDirectory extends AlienAbstract {
 			InputStream pOut = p.getInputStream();
 			isr = new InputStreamReader(pOut);
 		} 
-		catch(Throwable t) {
-			throw t;
+		catch(Exception e) {
+			throw e;
 		}
 		return isr;
 	}
 
-	public DataInputStream getDataInputStream() throws Throwable {
+	public DataInputStream getDataInputStream() throws Exception {
 		DataInputStream dis = null;
 		try {
 			String[] command = getCommand();
@@ -150,13 +150,13 @@ public class AlienDirectory extends AlienAbstract {
 			InputStream pOut = p.getInputStream();
 			dis= new DataInputStream(pOut);
 		} 
-		catch(Throwable t) {
-			throw t;
+		catch(Exception e) {
+			throw e;
 		}
 		return dis;
 	}
 	
-	public static void main(String[] args) throws Throwable {
+	public static void main(String[] args) throws Exception {
 		AlienDirectory alienDirectory;
 		String arg_user = args[0];
 		String arg_directory = args[1];

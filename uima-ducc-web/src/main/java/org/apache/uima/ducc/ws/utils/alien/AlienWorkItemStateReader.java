@@ -123,8 +123,8 @@ public class AlienWorkItemStateReader extends WorkItemStateReader {
 		catch(IOException e) {
 			logger.debug(location, jobid, "File error");
 		}
-		catch(Throwable t) {
-			logger.error(location, jobid, t);
+		catch(Exception e) {
+			logger.debug(location, jobid, e);
 		}
 	}
 	

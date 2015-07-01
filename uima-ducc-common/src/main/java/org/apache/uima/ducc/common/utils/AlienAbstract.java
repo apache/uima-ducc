@@ -87,8 +87,8 @@ public abstract class AlienAbstract {
 			String text = sb.toString().trim();
 			duccLogger.debug(methodName, duccId, text);
 		}
-		catch(Throwable t) {
-			t.printStackTrace();
+		catch(Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -96,7 +96,7 @@ public abstract class AlienAbstract {
 		try {
 			c.close();
 		}
-		catch(Throwable t) {
+		catch(Exception e) {
 		}
 	}
 	
