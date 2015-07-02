@@ -417,6 +417,7 @@ public class DuccProcess implements IDuccProcess {
 		case JobCompleted:
 		case Stopped:
 		case Canceled:
+		case Undefined:
 			retVal = true;
 			break;
 		case Exception:
@@ -426,7 +427,6 @@ public class DuccProcess implements IDuccProcess {
 		case InitializationTimeout:
 		case Killed:
 		case Purged:
-		case Undefined:
 			retVal = false;
 			break;
 		}
