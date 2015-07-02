@@ -371,20 +371,9 @@ public abstract class DuccMonitor {
             	displayRemotePids(monitorInfo);
 				int stateCount = monitorInfo.stateSequence.size();
 				debug("states:" + stateCount);
-				if (stateCount <= 0) {
-					message = new StringBuffer();
-					message.append("id:" + id);
-					message.append(" state:" + NotFound);
-					thisMessage = message.toString();
-					info(thisMessage);
-					message = new StringBuffer();
-					message.append("id:" + id);
-					message.append(" rc:" + RC_FAILURE);
-					thisMessage = message.toString();
-					info(thisMessage);
-					return RC_FAILURE;
-				}
-				String state = "";
+				// If OR or network is very slow WS may not have seen the job yet so just report NotFound
+				// No longer give up and possibly falsely cancel the job
+				String state = NotFound;
 				Iterator<String> states = monitorInfo.stateSequence.iterator();
 				while (states.hasNext()) {
 					state = states.next();
@@ -402,7 +391,7 @@ public abstract class DuccMonitor {
 					flag_cancel_on_interrupt.set(false);
 					message.append(details(monitorInfo));
 				}
-				else if (state.equals(StateAssigned)) {
+				else if (state.equals(StateAssigned)) {       // A reservation has completed
 					flag_cancel_on_interrupt.set(false);
 					message.append(details(monitorInfo));
 				}
