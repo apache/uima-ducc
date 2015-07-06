@@ -381,12 +381,14 @@ implements IJobProcessor{
         	if ( agent != null) {
             	agent.stop();
         	}
+        	httpClient.stop();
 	    } catch( Exception e) {
 	    	e.printStackTrace();
 	    } finally {
 	    	try {
 		    	super.stop();
 	    	} catch( Exception ee) {}
+	    	System.exit(0);
 	    }
 	}
 

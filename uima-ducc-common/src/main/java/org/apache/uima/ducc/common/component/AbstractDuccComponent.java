@@ -89,6 +89,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
     DuccService.setDuccLogger(logger);          // sets the global logger
     logger.setAdditionalAppenders();           // add appenders to the non-ducc stuff in log4j.config
+    logger.info("Component",null,"Starting Component " + componentName);
   }
 
   /**
@@ -395,10 +396,11 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             ActiveMQComponent amqc = (ActiveMQComponent) context.getComponent("activemq");
             amqc.stop();
             amqc.shutdown();
-
-            logger.info(methodName, null, "Stopping Camel Context");
-            context.stop();
-            logger.info(methodName, null, "Camel Context Stopped");
+            if (!"Uima Process".equals(componentName)) {
+              logger.info(methodName, null, "Stopping Camel Context");
+              context.stop();
+              logger.info(methodName, null, "Camel Context Stopped");
+            }
             
 
             ObjectName name = new ObjectName(

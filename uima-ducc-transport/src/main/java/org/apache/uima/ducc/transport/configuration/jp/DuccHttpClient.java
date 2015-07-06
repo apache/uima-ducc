@@ -23,6 +23,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
@@ -64,6 +65,7 @@ public class DuccHttpClient {
 	// New --------------------
     HttpClient httpClient = null;
 	String jdUrl;
+	MultiThreadedHttpConnectionManager cMgr = null;
 	
 	public void setTimeout( int timeout) {
 		this.timeout = timeout;
@@ -80,12 +82,16 @@ public class DuccHttpClient {
 		this.jdUrl = jdUrl;
 		pid = getProcessIP("N/A");
 		nodeIdentity = new NodeIdentity();
-		MultiThreadedHttpConnectionManager cMgr =
-		    new MultiThreadedHttpConnectionManager();
+		cMgr = new MultiThreadedHttpConnectionManager();
 		
 		httpClient = 
     		new HttpClient(cMgr);
-		 
+	 
+	}
+	public void stop() throws Exception {
+		if ( cMgr != null ) {
+			cMgr.shutdown();
+		}
 	}
 	public void intialize(String url, int port, String application)
 			throws Exception {
