@@ -391,8 +391,8 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 				// convert UIMA-AS metrics into properties so that we can return this
 				// data in a format which doesnt require UIMA-AS to digest
 				Properties p = new Properties();
-				p.setProperty("name", "Performance Metrics Not Supported For DD Jobs");
-				p.setProperty("uniqueName","Performance Metrics Not Supported For DD Jobs" );
+				p.setProperty("name", "Performance Metrics Not Supported For DD Jobs and UIMA-AS <= v2.6.0 ");
+				p.setProperty("uniqueName","Performance Metrics Not Supported For DD Jobs and UIMA-AS <= v2.6.0 " );
 				p.setProperty("analysisTime","0" );
 				p.setProperty("numProcessed","0" );
 				metricsList.add(p);
