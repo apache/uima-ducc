@@ -396,12 +396,13 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             ActiveMQComponent amqc = (ActiveMQComponent) context.getComponent("activemq");
             amqc.stop();
             amqc.shutdown();
+            /*
             if (!"Uima Process".equals(componentName)) {
               logger.info(methodName, null, "Stopping Camel Context");
               context.stop();
               logger.info(methodName, null, "Camel Context Stopped");
             }
-            
+            */
 
             ObjectName name = new ObjectName(
                                              "org.apache.uima.ducc.service.admin.jmx:type=DuccComponentMBean,name="
