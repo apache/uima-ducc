@@ -36,7 +36,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private static DuccId jobid = null;
 	
 	private long down_fudge = 10;
-	private long DOWN_AFTER_SECONDS = WebServerComponent.updateInterval + down_fudge;
+	private long DOWN_AFTER_SECONDS = WebServerComponent.updateIntervalSeconds + down_fudge;
 	private long SECONDS_PER_MILLI = 1000;
 	
 	private String fileDef;
@@ -82,22 +82,23 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	
 	private long getAgentMillisMIA() {
 		String location = "getAgentMillisMIA";
-		long secondsMIA = DOWN_AFTER_SECONDS*SECONDS_PER_MILLI;
+		long millisMIA = DOWN_AFTER_SECONDS*SECONDS_PER_MILLI;
 		Properties properties = DuccWebProperties.get();
 		String s_tolerance = properties.getProperty("ducc.rm.node.stability");
 		String s_rate = properties.getProperty("ducc.agent.node.metrics.publish.rate");
 		try {
 			long tolerance = Long.parseLong(s_tolerance.trim());
 			long rate = Long.parseLong(s_rate.trim());
-			secondsMIA = (tolerance * rate) / 1000;
+			long secondsRM = (tolerance * rate) / SECONDS_PER_MILLI;
+			logger.trace(location, jobid, "default:"+DOWN_AFTER_SECONDS+" "+"secondsRM:"+secondsRM);
+			if(DOWN_AFTER_SECONDS < secondsRM) {
+				millisMIA = secondsRM * SECONDS_PER_MILLI;
+			}
 		}
 		catch(Throwable t) {
 			logger.warn(location, jobid, t);
 		}
-		if(secondsMIA < DOWN_AFTER_SECONDS) {
-			secondsMIA = DOWN_AFTER_SECONDS;
-		}
-		return secondsMIA;
+		return millisMIA;
 	}
 	
 	private String calculateStatus() {
@@ -229,8 +230,11 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		this.pubSizeMax = value;
 	}
 	
-	public boolean isExpired(long seconds) {
-		return getElapsedSeconds() > seconds;
+	public boolean isExpired(long millisLimit) {
+		String location = "isExpired";
+		long millisElapsed = getElapsedSeconds() * 1000;
+		logger.trace(location, jobid, "millisElapsed:"+millisElapsed+" "+"millisLimit:"+millisLimit);
+		return millisElapsed > millisLimit;
 	}
 	
 	public long getElapsedSeconds() {

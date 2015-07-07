@@ -59,7 +59,8 @@ implements IWebServer {
 	private static AtomicInteger reservationCount = new AtomicInteger(0);
 	
 	private static AtomicLong updateLast = new AtomicLong(System.currentTimeMillis());
-	public static long updateInterval = 60*1000;
+	public static long updateIntervalSeconds = 60;
+	public static long updateIntervalMilliSeconds = updateIntervalSeconds*1000;
 	private static AtomicLong updateCount = new AtomicLong(0);
 	private static long warmup = 10;
 	
@@ -145,9 +146,9 @@ implements IWebServer {
 
 	private void sortMachines() {
 		long last = updateLast.get();
-		long deadline = last + updateInterval;
+		long deadline = last + updateIntervalMilliSeconds;
 		if(updateCount.getAndIncrement() < warmup) {
-			deadline = last + updateInterval/10;
+			deadline = last + updateIntervalMilliSeconds/10;
 		}
 		long now = System.currentTimeMillis();
 		if(now > deadline) {
