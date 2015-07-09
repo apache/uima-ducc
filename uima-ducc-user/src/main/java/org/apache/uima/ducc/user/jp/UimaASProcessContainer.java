@@ -106,27 +106,10 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		if ( "uima-as".equals(jobType)) {
 			System.out.println("UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
         } 
-		// enable performance breakdown reporting for uima sdk
-		// version 2.6+ or higher. These versions include changes
-		// to make performance aggregation thread safe. Fields
-		// to accumulate performance are AtomicLong's instead of long.
-		try {
-			if ( UimaVersion.getMajorVersion() >=2 && UimaVersion.getMinorVersion() >= 6) {
-				AnalysisEngineManagementImpl aemi = 
-						new AnalysisEngineManagementImpl();
-				// use reflection to make sure the new uima sdk is being used.
-				// The new code will use AtomicLong instead of long for
-				// analysisTime field
-				Field f = aemi.getClass().getDeclaredField("analysisTime");
-				f.setAccessible(true);
-	            if ( f.getType().isAssignableFrom(AtomicLong.class)) {
-	         	    enablePerformanceBreakdownReporting = true;
-		        }
-			}
-		} catch( Throwable t) {
-			
+		// enable performance breakdown reporting for uima AS version > 2.6.0
+		if ( UimaAsVersion.getMajorVersion() >=2 && UimaAsVersion.getMinorVersion() >= 6 && UimaAsVersion.getBuildRevision() > 0) {
+     	    enablePerformanceBreakdownReporting = true;
 		}
-
 		
 		// generate Spring context file once
 		synchronized( UimaASProcessContainer.class) {
@@ -382,6 +365,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 					p.setProperty("uniqueName", metrics.getUniqueName());
 					p.setProperty("analysisTime",String.valueOf(metrics.getAnalysisTime()) );
 					p.setProperty("numProcessed",String.valueOf(metrics.getNumProcessed()) );
+					System.out.println("... Metrics - AE:"+metrics.getName()+" AE Analysis Time:"+metrics.getAnalysisTime());
 					metricsList.add(p);
 				}
 				
