@@ -28,6 +28,7 @@ import org.apache.camel.RuntimeExchangeException;
 import org.apache.camel.dataformat.xstream.XStreamDataFormat;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.impl.DefaultClassResolver;
+import org.apache.log4j.Level;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoad;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoadReply;
@@ -146,7 +147,10 @@ public class DuccRmAdmin
      */
     public DuccLogger getLogger()
     {
-        return new DuccLogger("Admin");
+        DuccLogger ret = new DuccLogger("admin");
+        ret.setLevel(Level.OFF);      // jrc UIMA-4358 disable logging for RM admin because
+                                      // scripting has to scrape stdout and the log gets in the way
+        return ret;
     }
 
     /**
