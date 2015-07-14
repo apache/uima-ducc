@@ -191,24 +191,27 @@
 			<artifactId>uima-ducc-container</artifactId>
 		</dependency>
 	</dependencies>
-	<build>
+	
+        <build>
 
 
-         <resources>
-         <resource>
-            <directory></directory>
-            <includes>
-               <include>README</include>
-               <include>RELEASE_NOTES.html</include>
-            </includes>
-            <filtering>true</filtering>
-            <targetPath>${project.build.directory}</targetPath>
-         </resource>
-		</resources>
+         <!--resources>
+            <resource>
+               <directory>${baseidr}/src/main/resources</directory>
+               <includes>
+                  <include>README</include>
+                  <include>RELEASE_NOTES.html</include>
+               </includes>
+               <filtering>true</filtering>
+               <targetPath>${basedir}/target</targetPath>
+            </resource>
+	 </resources-->
+
 
 
 
 		<plugins>
+
 
 			<!-- This java doc config is for building the ones distributed with the 
 				bin packaging, and also posted on our website. -->
