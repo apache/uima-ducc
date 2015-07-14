@@ -1,4 +1,4 @@
-              Apache Distributed UIMA Cluster Computing (DUCC) Version @@ducc.version@@ README
+              Apache Distributed UIMA Cluster Computing (DUCC) Version ${project.version} README
               
 
 1. Building from the Source Distribution

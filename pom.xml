@@ -192,7 +192,19 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<resources />
+
+
+         <resources>
+         <resource>
+            <directory></directory>
+            <includes>
+               <include>README</include>
+               <include>RELEASE_NOTES.html</include>
+            </includes>
+            <filtering>true</filtering>
+            <targetPath>${project.build.directory}</targetPath>
+         </resource>
+		</resources>
 
 
 
@@ -362,7 +374,7 @@
 				</executions>
 			</plugin>
 
-			<!-- plugin>
+			<!--plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.5</version>
 				<executions>
@@ -438,7 +450,7 @@
 				</execution>
 			    </executions>
 			</plugin>
-<plugin>
+<!--plugin>
     <artifactId>maven-antrun-plugin</artifactId>
     <executions>
       <execution>
@@ -457,9 +469,12 @@
         </goals>
       </execution>
     </executions>
-  </plugin>
+  </plugin -->
 		</plugins>
 		<!-- /pluginManagement -->
+
+
+
 	</build>
 
 	<!-- Include all ducc modules -->
