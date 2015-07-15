@@ -1631,7 +1631,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(eu, component, directory, wiVersion);
 				ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateReader.getMap();
 			    if( (map == null) || (map.size() == 0) ) {
-			    	sb.append("no data (map empty?)");
+			    	sb.append("no accessible data (map empty?)");
 			    }
 			    else {
 			    	ConcurrentSkipListMap<IWorkItemState,IWorkItemState> sortedMap = new ConcurrentSkipListMap<IWorkItemState,IWorkItemState>();
@@ -1768,11 +1768,11 @@ public class DuccHandler extends DuccAbstractHandler {
 				duccLogger.warn(methodName, null, e.getMessage());
 				duccLogger.debug(methodName, null, e);
 				sb = new StringBuffer();
-				sb.append("no data");
+				sb.append("no accessible data");
 			}
 		}
 		else {
-			sb.append("no data (no job?)");
+			sb.append("no accessible data (no job?)");
 		}
 	
 		response.getWriter().println(sb);
@@ -1796,7 +1796,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
 			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(eu.get());
 			    if( (performanceMetricsSummaryMap == null) || (performanceMetricsSummaryMap.size() == 0) ) {
-			    	sb.append("no data (map empty?)");
+			    	sb.append("no accessible data (map empty?)");
 			    }
 			    else {
 			    	int casCount  = performanceMetricsSummaryMap.casCount();
@@ -1946,11 +1946,11 @@ public class DuccHandler extends DuccAbstractHandler {
 			catch(Exception e) {
 				duccLogger.warn(methodName, null, e);
 				sb = new StringBuffer();
-				sb.append("no data");
+				sb.append("no accessible data");
 			}
 		}
 		else {
-			sb.append("no data (no job?)");
+			sb.append("no accessible data (no job?)");
 		}
 		
 		response.getWriter().println(sb);
@@ -2063,7 +2063,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			catch(Throwable t) {
 				duccLogger.warn(methodName, null, t);
 				sb = new StringBuffer();
-				sb.append("no data");
+				sb.append("no accessible data");
 			}
 		}
 		response.getWriter().println(sb);
@@ -2120,7 +2120,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			catch(Throwable t) {
 				duccLogger.warn(methodName, null, t);
 				sb = new StringBuffer();
-				sb.append("no data");
+				sb.append("no accessible data");
 			}
 		}
 		response.getWriter().println(sb);
@@ -2177,7 +2177,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			catch(Throwable t) {
 				duccLogger.warn(methodName, null, t);
 				sb = new StringBuffer();
-				sb.append("no data");
+				sb.append("no accessible data");
 			}
 		}
 		response.getWriter().println(sb);
@@ -2396,7 +2396,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String jobNo = request.getParameter("id");
 		DuccWorkJob job = getJob(jobNo);
 		StringBuffer data = new StringBuffer();
-		data.append("no data");
+		data.append("no accessible data");
 		if(job != null) {
 			try {
 				IDuccProcessMap processMap = job.getProcessMap();
@@ -2465,7 +2465,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String jobNo = request.getParameter("id");
 		DuccWorkJob job = getJob(jobNo);
 		StringBuffer data = new StringBuffer();
-		data.append("no data");
+		data.append("no accessible data");
 		if(job != null) {
 			try {
 				IDuccProcessMap processMap = job.getProcessMap();
@@ -2613,7 +2613,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			catch(Throwable t) {
 				duccLogger.warn(methodName, null, t);
 				sb = new StringBuffer();
-				sb.append("no data");
+				sb.append("no accessible data");
 			}
 		}
 		
@@ -2831,7 +2831,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		catch(Exception e) {
 			duccLogger.warn(methodName, null, e);
 			sb = new StringBuffer();
-			sb.append("no data");
+			sb.append("no accessible data");
 		}
 
 		response.getWriter().println(sb);
@@ -4062,7 +4062,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		if(sb.length() == 0) {
 			sb.append("<tr>");
-			sb.append("<td>"+"no data");
+			sb.append("<td>"+"no accessible data");
 			sb.append("<td>");
 			sb.append("<td>");
 		}
