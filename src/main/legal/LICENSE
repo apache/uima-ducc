@@ -215,7 +215,6 @@
    commons-lang-2.6.jar
    commons-pool-1.5.4.jar
    log4j-1.2.16.jar
-   derby-10.10.1.1.jar
    gson-2.2.2.jar
    guava-r09.jar
    jna-4.0.0.jar
