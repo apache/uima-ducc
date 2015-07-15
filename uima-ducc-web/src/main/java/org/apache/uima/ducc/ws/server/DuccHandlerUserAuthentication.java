@@ -123,6 +123,7 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 		try {
 			Properties properties = DuccWebProperties.get();
 			String ducc_runmode = properties.getProperty("ducc.runmode","Production");
+			duccLogger.debug(methodName, jobid, ducc_runmode);
 			if(ducc_runmode.equalsIgnoreCase("Test")) {
 				String ducc_runmode_pw = properties.getProperty("ducc.runmode.pw","");
 				if(ducc_runmode_pw.length() > 0) {
@@ -150,6 +151,7 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 				}
 				else {
 					Role role = Role.User;
+					duccLogger.debug(methodName, jobid, messages.fetch("role ")+role);
 					String domain = null;
 					if(userId != null) {
 						if(userId.contains("@")) {
@@ -158,6 +160,7 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 							domain = parts[1];
 						}
 					}
+					duccLogger.info(methodName, jobid, messages.fetch("userId ")+userId+" "+messages.fetch("domain ")+domain);
 					duccLogger.debug(methodName, jobid, messages.fetchLabel("version")+duccAuthenticator.getVersion());
 					IAuthenticationResult result1 = duccAuthenticator.isAuthenticate(userId, domain, password);
 					IAuthenticationResult result2 = duccAuthenticator.isGroupMember(userId, domain, role);

@@ -26,6 +26,7 @@ import org.apache.uima.ducc.common.utils.AlienAbstract;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 
 public class AlienTextFile extends AlienAbstract {	
 	
@@ -44,13 +45,18 @@ public class AlienTextFile extends AlienAbstract {
 	private static int sizeBlockDd = 512;
 	private static int sizeDefault = 0;
 	
-	private String file_name;
-	private int page_bytes = 64*4096;
+	private static int page_bytes = 64*4096;
 	
-	public AlienTextFile(String user, String file_name) {
+	private String file_name;
+	
+	public AlienTextFile(EffectiveUser eu, String file_name) {
+		init(eu.get(), file_name);
+	}
+	
+	private AlienTextFile(String user, String file_name) {
 		init(user, file_name);
 	}
-
+	
 	private void init(String user, String file_name) {
 		String location = "init";
 		set_user(user);
@@ -90,7 +96,7 @@ public class AlienTextFile extends AlienAbstract {
 		page_bytes = value;
 	}
 	
-	protected int get_page_bytes() {
+	public static int get_page_bytes() {
 		return page_bytes;
 	}
 	

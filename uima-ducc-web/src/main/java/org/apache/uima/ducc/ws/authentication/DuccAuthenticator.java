@@ -101,7 +101,7 @@ public class DuccAuthenticator implements IAuthenticationManager {
 		IAuthenticationResult retVal = null;
 		try {
 			retVal = iAuthenticationManager.isAuthenticate(userid, domain, password);
-			duccLogger.debug(methodName, jobid, retVal);
+			duccLogger.debug(methodName, jobid, userid+" "+domain+" "+retVal);
 		}
 		catch(Throwable t) {
 			duccLogger.error(methodName, jobid, t);
@@ -115,7 +115,7 @@ public class DuccAuthenticator implements IAuthenticationManager {
 		IAuthenticationResult retVal = null;
 		try {
 			retVal = iAuthenticationManager.isGroupMember(userid, domain, role);
-			duccLogger.debug(methodName, jobid, retVal);
+			duccLogger.debug(methodName, jobid, userid+" "+domain+" "+retVal);
 		}
 		catch(Throwable t) {
 			duccLogger.error(methodName, jobid, t);

@@ -32,7 +32,6 @@ import java.util.zip.GZIPOutputStream;
 
 import org.apache.uima.ducc.common.utils.AlienFile;
 import org.apache.uima.ducc.common.utils.IOHelper;
-import org.apache.uima.ducc.common.utils.Utils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -142,10 +141,7 @@ public class JobPerformanceSummaryJsonGz implements IPersistenceJobPerformanceSu
 		}
 		else {
 			try {
-				String ducc_ling = 
-						Utils.resolvePlaceholderIfExists(
-								System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
-				AlienFile alienFile = new AlienFile(userid, filename, ducc_ling);
+				AlienFile alienFile = new AlienFile(userid, filename);
 				String json = alienFile.getString();
 				Type typeOfMap = new TypeToken<JobPerformanceSummaryData>() { }.getType();
 				data = gson.fromJson(json, typeOfMap);

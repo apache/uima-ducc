@@ -65,7 +65,6 @@ import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.TimeStamp;
-import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
@@ -112,7 +111,9 @@ import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.apache.uima.ducc.ws.utils.LinuxSignals;
 import org.apache.uima.ducc.ws.utils.LinuxSignals.Signal;
 import org.apache.uima.ducc.ws.utils.alien.AlienWorkItemStateReader;
+import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 import org.apache.uima.ducc.ws.utils.alien.FileInfo;
+import org.apache.uima.ducc.ws.utils.alien.FileInfoKey;
 import org.apache.uima.ducc.ws.utils.alien.OsProxy;
 import org.eclipse.jetty.server.Request;
 
@@ -123,10 +124,6 @@ public class DuccHandler extends DuccAbstractHandler {
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandler.class.getName());
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
-	
-	private static String ducc_ling = 
-			Utils.resolvePlaceholderIfExists(
-					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
 	
 	private enum DetailsType { Job, Reservation, Service };
 	private enum ShareType { JD, MR, SPC, SPU, UIMA };
@@ -211,22 +208,6 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	public DuccHandler(DuccWebServer duccWebServer) {
 		super.init(duccWebServer);
-	}
-	
-	public String getDuccling(HttpServletRequest request) {
-		String retVal = null;
-		if(duccWebSessionManager.isAuthentic(request)) {
-			retVal = ducc_ling;
-		}
-		return retVal;
-	}
-	
-	public String getUserIdElseDucc(HttpServletRequest request) {
-		String retVal = getUserIdFromRequest(request);
-		if(retVal == null) {
-			retVal = System.getProperty("user.name");
-		}
-		return retVal;
 	}
 	
 	public String getUserIdFromRequest(HttpServletRequest request) {
@@ -425,22 +406,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		String retVal = "0";
 		try {
 			double size = fileSize;
-			size = size / Constants.MB;
-			retVal = sizeFormatter.format(size);
-		}
-		catch(Exception e) {
-			duccLogger.warn(location,jobid,e);
-		}
-		return retVal;
-	}
-	
-	@Deprecated
-	private String getFileSize(String fileName) {
-		String location = "getFileSize";
-		String retVal = "0";
-		try {
-			File file = new File(fileName);
-			double size = file.length();
 			size = size / Constants.MB;
 			retVal = sizeFormatter.format(size);
 		}
@@ -948,9 +913,13 @@ public class DuccHandler extends DuccAbstractHandler {
 		return sb.toString();
 	}
 	
-	private String getFilePagerUrl(String user, String file_name) {
-		AlienTextFile atf = new AlienTextFile(user, file_name);
+	private String getFilePagerUrl(EffectiveUser eu, String file_name) {
+		AlienTextFile atf = new AlienTextFile(eu, file_name);
 		int pages = atf.getPageCount();
+		return getFilePagerUrl(file_name, pages);
+	}
+	
+	private String getFilePagerUrl(String file_name, int pages) {
 		String parms = "?"+"fname="+file_name+"&"+"pages="+pages;
 		String url=duccFilePager+parms;
 		return url;
@@ -972,7 +941,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		return retVal;
 	}
 	
-	private void buildJobProcessListEntry(StringBuffer pb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter, Map<String, FileInfo> fileInfoMap) {
+	private void buildJobProcessListEntry(EffectiveUser eu, StringBuffer pb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter, Map<String, FileInfo> fileInfoMap) {
 		StringBuffer rb = new StringBuffer();
 		int COLS = 26;
 		switch(sType) {
@@ -990,10 +959,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String logfile = buildLogFileName(job, process, sType);
 		
-		String user = job.getStandardInfo().getUser();
 		String file_name = logsjobdir+logfile;
 		
-		String url = getFilePagerUrl(user, file_name);
+		String url = getFilePagerUrl(eu, file_name);
 		String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
 		String tr = trGet(counter);
 		rb.append(tr);
@@ -1335,7 +1303,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				index = 0;
 				// Log
 				index = 1;
-				String jd_url = getFilePagerUrl(user, logsjobdir+errfile);
+				String jd_url = getFilePagerUrl(eu, logsjobdir+errfile);
 				String href2 = "<a href=\""+jd_url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
 				cbList[index] = new StringBuffer();
 				cbList[index].append("<td>");
@@ -1516,11 +1484,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		return job;
 	}
 	
-	private Map<String, FileInfo> getFileInfoMap(String userId, String directory) {
+	private Map<String, FileInfo> getFileInfoMap(EffectiveUser eu, String directory) {
 		String location = "";
 		Map<String, FileInfo> map = new TreeMap<String, FileInfo>();
 		try {
-			map = OsProxy.getFilesInDirectory(ducc_ling, userId, directory);
+			map = OsProxy.getFilesInDirectory(eu, directory);
 		}
 		catch(Throwable t) {
 			duccLogger.error(location, jobid, t);
@@ -1533,6 +1501,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	{
 		String methodName = "handleDuccServletJobProcessesData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		EffectiveUser eu = EffectiveUser.create(request);
 		StringBuffer sb = new StringBuffer();
 		String jobno = request.getParameter("id");
 		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
@@ -1550,9 +1519,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 		}
 		if(job != null) {
-			String userId = getUserIdElseDucc(request);
 			String directory = job.getLogDirectory()+File.separator+job.getId();
-			Map<String, FileInfo> fileInfoMap = getFileInfoMap(userId, directory);
+			Map<String, FileInfo> fileInfoMap = getFileInfoMap(eu, directory);
 			Iterator<DuccId> iterator = null;
 			iterator = job.getDriver().getProcessMap().keySet().iterator();
 			int counter = 1;
@@ -1560,7 +1528,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				DuccId processId = iterator.next();
 				IDuccProcess process = job.getDriver().getProcessMap().get(processId);
 				StringBuffer bb = new StringBuffer();
-				buildJobProcessListEntry(bb, job, process, DetailsType.Job, ShareType.JD, counter, fileInfoMap);
+				buildJobProcessListEntry(eu, bb, job, process, DetailsType.Job, ShareType.JD, counter, fileInfoMap);
 				if(bb.length() > 0) {
 					sb.append(bb.toString());
 					counter++;
@@ -1579,7 +1547,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				JobDetailsProcesses jdp = sortedIterator.next();
 				IDuccProcess process = jdp.getProcess();
 				StringBuffer bb = new StringBuffer();
-				buildJobProcessListEntry(bb, job, process, DetailsType.Job, ShareType.UIMA, counter, fileInfoMap);
+				buildJobProcessListEntry(eu, bb, job, process, DetailsType.Job, ShareType.UIMA, counter, fileInfoMap);
 				if(bb.length() > 0) {
 					sb.append(bb.toString());
 					counter++;
@@ -1658,9 +1626,9 @@ public class DuccHandler extends DuccAbstractHandler {
 			try {
 				long now = System.currentTimeMillis();
 				String directory = job.getLogDirectory()+jobNo;
-				String userId = getUserIdElseDucc(request);
+				EffectiveUser eu = EffectiveUser.create(request);
 				long wiVersion = job.getWiVersion();
-				AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(getDuccling(request), component, directory, userId, wiVersion);
+				AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(eu, component, directory, wiVersion);
 				ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateReader.getMap();
 			    if( (map == null) || (map.size() == 0) ) {
 			    	sb.append("no data (map empty?)");
@@ -1822,11 +1790,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(job != null) {
 			try {
 				String directory = job.getLogDirectory()+jobNo;
-				String userId = getUserIdElseDucc(request);
+				EffectiveUser eu = EffectiveUser.create(request);
 				long wiVersion = job.getWiVersion();
-				AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(getDuccling(request), component, directory, userId, wiVersion);
+				AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(eu, component, directory,  wiVersion);
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
-			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(userId);
+			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(eu.get());
 			    if( (performanceMetricsSummaryMap == null) || (performanceMetricsSummaryMap.size() == 0) ) {
 			    	sb.append("no data (map empty?)");
 			    }
@@ -2049,10 +2017,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
-				String userId = getUserIdElseDucc(request);
-				Properties usProperties = DuccFile.getUserSpecifiedProperties(job, userId);
-				Properties fsProperties = DuccFile.getFileSpecifiedProperties(job, userId);
-				Properties properties = DuccFile.getJobProperties(job, userId);
+				EffectiveUser eu = EffectiveUser.create(request);
+				Properties usProperties = DuccFile.getUserSpecifiedProperties(eu, job);
+				Properties fsProperties = DuccFile.getFileSpecifiedProperties(eu, job);
+				Properties properties = DuccFile.getJobProperties(eu, job);
 				TreeMap<String,String> map = new TreeMap<String,String>();
 				Enumeration<?> enumeration = properties.keys();
 				while(enumeration.hasMoreElements()) {
@@ -2112,9 +2080,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
-				String userId = getUserIdElseDucc(request);
+				EffectiveUser eu = EffectiveUser.create(request);
 				String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-				Map<String, FileInfo> map = OsProxy.getFilesInDirectory(getDuccling(request), userId, directory);
+				Map<String, FileInfo> map = OsProxy.getFilesInDirectory(eu, directory);
 				Set<String> keys = map.keySet();
 				int counter = 0;
 				for(String key : keys) {
@@ -2134,13 +2102,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					*/
 					// name
 					row.append("<td>");
-					String url = getFilePagerUrl(userId, fileInfo.getName());
+					String url = getFilePagerUrl(eu, fileInfo.getName());
 					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
 					row.append("<td>");
-					row.append(fileInfo.getLength());
+					double size = (fileInfo.getLength()*1.0)/Constants.MB;
+					row.append(sizeFormatter.format(size));
 					row.append("</td>");
 					//
 					row.append("</tr>");
@@ -2168,9 +2137,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob reservation = getManagedReservation(reservationNo);
 		if(reservation != null) {
 			try {
-				String userId = getUserIdElseDucc(request);
+				EffectiveUser eu = EffectiveUser.create(request);
 				String directory = reservation.getUserLogsDir()+reservation.getDuccId().getFriendly()+File.separator;
-				Map<String, FileInfo> map = OsProxy.getFilesInDirectory(getDuccling(request), userId, directory);
+				Map<String, FileInfo> map = OsProxy.getFilesInDirectory(eu, directory);
 				Set<String> keys = map.keySet();
 				int counter = 0;
 				for(String key : keys) {
@@ -2190,13 +2159,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					*/
 					// name
 					row.append("<td>");
-					String url = getFilePagerUrl(userId, fileInfo.getName());
+					String url = getFilePagerUrl(eu, fileInfo.getName());
 					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
 					row.append("<td>");
-					row.append(fileInfo.getLength());
+					double size = (fileInfo.getLength()*1.0)/Constants.MB;
+					row.append(sizeFormatter.format(size));
 					row.append("</td>");
 					//
 					row.append("</tr>");
@@ -2214,12 +2184,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private void buildServiceFilesListEntry(Request baseRequest,HttpServletRequest request, StringBuffer sb, DuccWorkJob job, IDuccProcess process, ShareType type, int counter) {
+	private void buildServiceFilesListEntry(Request baseRequest,HttpServletRequest request, StringBuffer sb, DuccWorkJob job, IDuccProcess process, ShareType type, int counter, Map<String, FileInfo> map) {
+		EffectiveUser eu = EffectiveUser.create(request);
 		if(job != null) {
 			try {
-				String userId = getUserIdElseDucc(request);
-				String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-				Map<String, FileInfo> map = OsProxy.getFilesInDirectory(getDuccling(request), userId, directory);
 				Set<String> keys = map.keySet();
 				for(String key : keys) {
 					FileInfo fileInfo = map.get(key);
@@ -2242,13 +2210,21 @@ public class DuccHandler extends DuccAbstractHandler {
 					row.append("</td>");
 					// name
 					row.append("<td>");
-					String url = getFilePagerUrl(userId, fileInfo.getName());
+					String url = getFilePagerUrl(eu, fileInfo.getName());
 					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
 					row.append("<td>");
-					row.append(fileInfo.getLength());
+					double size = (fileInfo.getLength()*1.0)/Constants.MB;
+					row.append(sizeFormatter.format(size));
+					row.append("</td>");
+					// date
+					row.append("<td>");
+					String date = fileInfo.getDate();
+					String time = fileInfo.getTime();
+					String dow = fileInfo.getDOW();
+					row.append(date+" "+time+" "+dow);
 					row.append("</td>");
 					//
 					row.append("</tr>");
@@ -2292,15 +2268,18 @@ public class DuccHandler extends DuccAbstractHandler {
 						type = ShareType.SPC;
 					}
 				}
+				EffectiveUser eu = EffectiveUser.create(request);
 				while(iterator.hasNext()) {
 					DuccId serviceId = iterator.next();
 					String fid = ""+serviceId.getFriendly();
 					if(implementors.contains(fid)) {
 						service = (DuccWorkJob) duccWorkMap.findDuccWork(serviceId);
 						IDuccProcessMap map = service.getProcessMap();
+						String directory = service.getUserLogsDir()+service.getDuccId().getFriendly()+File.separator;
+						Map<String, FileInfo> fmap = OsProxy.getFilesInDirectory(eu, directory);
 						for(DuccId key : map.keySet()) {
 							IDuccProcess process = map.get(key);
-							buildServiceFilesListEntry(baseRequest,request,sb, service, process, type, ++counter);
+							buildServiceFilesListEntry(baseRequest,request,sb, service, process, type, ++counter, fmap);
 						}
 					}
 				}
@@ -2332,7 +2311,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		try {
 			String name = request.getParameter("name");
 			duccLogger.debug(methodName, null, name);
-			String userId = getUserIdElseDucc(request);
+			EffectiveUser eu = EffectiveUser.create(request);
 			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
 			Properties properties;
@@ -2340,48 +2319,54 @@ public class DuccHandler extends DuccAbstractHandler {
 			String numeric_id = properties.getProperty(IServicesRegistry.numeric_id);
 			properties = payload.svc;
 			String log_directory = properties.getProperty(IServicesRegistry.log_directory);
-			File serviceDirectory = new File(log_directory);
-			if(serviceDirectory.isDirectory()) {
-				int counter = 0;
-				TreeMap<String,File> map = new TreeMap<String,File>();
-				File[] files = serviceDirectory.listFiles();
-				for(File file : files) {
-					if(file.isDirectory()) {
-						map.put(file.getName(),file);
-					}
-				}
-				for(String historyDirectoryName : map.descendingKeySet()) {
-					File historyDirectoryFile = map.get(historyDirectoryName);
-					File[] historyFiles = historyDirectoryFile.listFiles();
-					for(File historyFile : historyFiles) {
-						StringBuffer row = new StringBuffer();
-						String tr = trGet(counter);
-						row.append(tr);
-						// id
-						row.append("<td>");
-						row.append(numeric_id+"."+historyDirectoryFile.getName());
-						row.append("</td>");
-						// name
-						row.append("<td>");
-						
-						String url = getFilePagerUrl(userId, historyFile.getAbsolutePath());
-						String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+historyFile.getName()+"</a>";
-						row.append(href);
-						row.append("</td>");
-						// size
-						row.append("<td>");
-						row.append(getFileSize(historyFile.getAbsolutePath()));
-						row.append("</td>");
-						// date
-						row.append("<td>");
-						row.append(getTimeStamp(request, jobid, ""+historyFile.lastModified()));
-						row.append("</td>");
-						//
-						row.append("</tr>");
-						sb.append(row);
-						counter++;
-					}
-				}
+			
+			Map<String, FileInfo> pmap = OsProxy.getFilesInDirectory(eu, log_directory, true);
+			Set<String> keys = pmap.keySet();
+			
+			long sequence = 0;
+			TreeMap<FileInfoKey,FileInfo> map = new TreeMap<FileInfoKey,FileInfo>();
+			for(String key : keys) {
+				sequence++;
+				FileInfo fileInfo = pmap.get(key);
+				FileInfoKey fik = new FileInfoKey(fileInfo.getTOD(), sequence);
+				map.put(fik, fileInfo);
+			}
+			Set<FileInfoKey> sortkeys = map.descendingKeySet();
+			
+			int counter = 0;
+			for(FileInfoKey key : sortkeys) {
+				FileInfo fileInfo = map.get(key);
+			
+				StringBuffer row = new StringBuffer();
+				String tr = trGet(counter);
+				row.append(tr);
+				// id
+				row.append("<td>");
+				row.append(numeric_id+fileInfo.getRelDir());
+				row.append("</td>");
+				// name
+				row.append("<td>");
+				
+				String url = getFilePagerUrl(fileInfo.getName(), fileInfo.getPageCount());
+				String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
+				row.append(href);
+				row.append("</td>");
+				// size
+				row.append("<td>");
+				double size = (fileInfo.getLength()*1.0)/Constants.MB;
+				row.append(sizeFormatter.format(size));
+				row.append("</td>");
+				// date
+				row.append("<td>");
+				String date = fileInfo.getDate();
+				String time = fileInfo.getTime();
+				String dow = fileInfo.getDOW();
+				row.append(date+" "+time+" "+dow);
+				row.append("</td>");
+				//
+				row.append("</tr>");
+				sb.append(row);
+				counter++;
 			}
 			duccLogger.debug(methodName, null, log_directory);
 		}
@@ -2406,7 +2391,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	{
 		String methodName = "handleDuccServletJobSpecificationData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		String userId = getUserIdElseDucc(request);
+		EffectiveUser eu = EffectiveUser.create(request);
 		StringBuffer sb = new StringBuffer();
 		String jobNo = request.getParameter("id");
 		DuccWorkJob job = getJob(jobNo);
@@ -2454,7 +2439,7 @@ public class DuccHandler extends DuccAbstractHandler {
 								link = logfile+":"+reason;
 							}
 						}
-						String url = getFilePagerUrl(userId, logsjobdir+logfile);
+						String url = getFilePagerUrl(eu, logsjobdir+logfile);
 						String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
 						data.append(href);
 					}
@@ -2475,7 +2460,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	{
 		String methodName = "handleDuccServletJobSpecificationData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		String userId = getUserIdElseDucc(request);
+		EffectiveUser eu = EffectiveUser.create(request);
 		StringBuffer sb = new StringBuffer();
 		String jobNo = request.getParameter("id");
 		DuccWorkJob job = getJob(jobNo);
@@ -2504,7 +2489,7 @@ public class DuccHandler extends DuccAbstractHandler {
 								link = logfile+":"+reason;
 							}
 						}
-						String url = getFilePagerUrl(userId, logsjobdir+logfile);
+						String url = getFilePagerUrl(eu, logsjobdir+logfile);
 						String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
 						data.append(href);
 					}
@@ -2520,8 +2505,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private void buildServiceProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter, Map<String, FileInfo> fileInfoMap) {
-		buildJobProcessListEntry(sb, job, process, dType, sType, counter, fileInfoMap);
+	private void buildServiceProcessListEntry(EffectiveUser eu, StringBuffer sb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter, Map<String, FileInfo> fileInfoMap) {
+		buildJobProcessListEntry(eu, sb, job, process, dType, sType, counter, fileInfoMap);
 	}
 	
 	private void handleDuccServletReservationProcessesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
@@ -2547,16 +2532,16 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 		}
 		if(managedReservation != null) {
-			String userId = getUserIdElseDucc(request);
+			EffectiveUser eu = EffectiveUser.create(request);
 			String directory = managedReservation.getUserLogsDir()+managedReservation.getDuccId().getFriendly()+File.separator;
-			Map<String, FileInfo> fileInfoMap = OsProxy.getFilesInDirectory(getDuccling(request), userId, directory);
+			Map<String, FileInfo> fileInfoMap = OsProxy.getFilesInDirectory(eu, directory);
 			Iterator<DuccId> iterator = null;
 			int counter = 0;
 			iterator = managedReservation.getProcessMap().keySet().iterator();
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = managedReservation.getProcessMap().get(processId);
-				buildServiceProcessListEntry(sb, managedReservation, process, DetailsType.Reservation, ShareType.MR, ++counter, fileInfoMap);
+				buildServiceProcessListEntry(eu, sb, managedReservation, process, DetailsType.Reservation, ShareType.MR, ++counter, fileInfoMap);
 			}
 		}
 		if(sb.length() == 0) {
@@ -2582,10 +2567,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob managedReservation = getManagedReservation(reservationNo);
 		if(managedReservation != null) {
 			try {
-				String userId = getUserIdElseDucc(request);
-				Properties usProperties = DuccFile.getUserSpecifiedProperties(managedReservation, userId);
-				Properties fsProperties = DuccFile.getFileSpecifiedProperties(managedReservation, userId);
-				Properties properties = DuccFile.getManagedReservationProperties(managedReservation, userId);
+				EffectiveUser eu = EffectiveUser.create(request);
+				Properties usProperties = DuccFile.getUserSpecifiedProperties(eu, managedReservation);
+				Properties fsProperties = DuccFile.getFileSpecifiedProperties(eu, managedReservation);
+				Properties properties = DuccFile.getManagedReservationProperties(eu, managedReservation);
 				TreeMap<String,String> map = new TreeMap<String,String>();
 				Enumeration<?> enumeration = properties.keys();
 				while(enumeration.hasMoreElements()) {
@@ -2663,20 +2648,18 @@ public class DuccHandler extends DuccAbstractHandler {
 					type = ShareType.SPC;
 				}
 			}
+			EffectiveUser eu = EffectiveUser.create(request);
 			for(DuccWorkJob service : servicesList) {
-				
-				String userId = getUserIdElseDucc(request);
 				String directory = service.getLogDirectory()+File.separator+service.getId();
-				Map<String, FileInfo> fileInfoMap = getFileInfoMap(userId, directory);
-				
+				Map<String, FileInfo> fileInfoMap = getFileInfoMap(eu, directory);
 				IDuccProcessMap map = service.getProcessMap();
 				if(map.isEmpty()) {
-					buildServiceProcessListEntry(sb, service, null, DetailsType.Service, type, ++counter, fileInfoMap);
+					buildServiceProcessListEntry(eu, sb, service, null, DetailsType.Service, type, ++counter, fileInfoMap);
 				}
 				else {
 					for(DuccId key : map.keySet()) {
 						IDuccProcess process = map.get(key);
-						buildServiceProcessListEntry(sb, service, process, DetailsType.Service, type, ++counter, fileInfoMap);
+						buildServiceProcessListEntry(eu, sb, service, process, DetailsType.Service, type, ++counter, fileInfoMap);
 					}
 				}
 			}
@@ -3871,13 +3854,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		String fname = request.getParameter("fname");
 		String page = request.getParameter("page");
 		StringBuffer sb = new StringBuffer();
-		String userId = getUserIdElseDucc(request);	
+		EffectiveUser eu = EffectiveUser.create(request);
 		String newline = "\n";
 		String colon = ":";
 		try {
-			String user = userId;
 			String file_name = fname;
-			AlienTextFile atf = new AlienTextFile(user, file_name);
+			AlienTextFile atf = new AlienTextFile(eu, file_name);
 			int pageCount = atf.getPageCount();
 			int pageNo = 0;
 			try {
@@ -3979,8 +3961,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		InputStreamReader isr = null;
 		BufferedReader br = null;
 		try {
-			String userId = getUserIdElseDucc(request);
-			isr = DuccFile.getInputStreamReader(fname, userId);
+			EffectiveUser eu = EffectiveUser.create(request);
+			isr = DuccFile.getInputStreamReader(eu, fname);
 			br = new BufferedReader(isr);
 			String logLine;
 			while ((logLine = br.readLine()) != null)   {

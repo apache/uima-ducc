@@ -28,6 +28,7 @@ under the License.
     <th title="The service deployment id">Id</th>
     <th title="The file name">Name</th>
     <th title="The file size, in MB">Size</th>
+     <th title="The file date">Date</th>
     </tr>
     </thead>
     <tbody id="files_data_area">

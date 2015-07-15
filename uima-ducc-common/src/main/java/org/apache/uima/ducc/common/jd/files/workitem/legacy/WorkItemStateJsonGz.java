@@ -36,7 +36,6 @@ import org.apache.uima.ducc.common.jd.files.IWorkItemState;
 import org.apache.uima.ducc.common.jd.files.WorkItemState;
 import org.apache.uima.ducc.common.utils.AlienFile;
 import org.apache.uima.ducc.common.utils.IOHelper;
-import org.apache.uima.ducc.common.utils.Utils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -48,10 +47,6 @@ public class WorkItemStateJsonGz implements IPersistenceWorkItemState {
 	private String filename = null;
 	
 	private Gson gson = new Gson();
-	
-	private String ducc_ling = 
-			Utils.resolvePlaceholderIfExists(
-					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
 	
 	public WorkItemStateJsonGz(String directory) {
 		initialize(directory);
@@ -153,7 +148,7 @@ public class WorkItemStateJsonGz implements IPersistenceWorkItemState {
 		}
 		else {
 			try {
-				AlienFile alienFile = new AlienFile(userid, filename, ducc_ling);
+				AlienFile alienFile = new AlienFile(userid, filename);
 				String json = alienFile.getString();
 		        Type typeOfMap = new TypeToken<ConcurrentSkipListMap<Long, WorkItemState>>() { }.getType();
 				map = gson.fromJson(json, typeOfMap);

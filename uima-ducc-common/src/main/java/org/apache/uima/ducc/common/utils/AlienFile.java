@@ -28,6 +28,10 @@ public class AlienFile extends AlienAbstract {
 	
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(AlienFile.class.getName());
 	
+	private static String ducc_ling = 
+			Utils.resolvePlaceholderIfExists(
+					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
+	
 	private String command_cat = "/bin/cat";
 	private String file_name;
 	
@@ -47,10 +51,9 @@ public class AlienFile extends AlienAbstract {
 		return file_name;
 	}
 	
-	public AlienFile(String user, String file_name, String ducc_ling) {
+	public AlienFile(String user, String file_name) {
 		set_user(user);
 		set_file_name(file_name);
-		set_ducc_ling(ducc_ling);
 	}
 	
 	private String[] getCommand() {
@@ -178,13 +181,7 @@ public class AlienFile extends AlienAbstract {
 		AlienFile alienFile;
 		String arg_user = args[0];
 		String arg_file = args[1];
-		if(args.length < 3) {
-			alienFile = new AlienFile(arg_user, arg_file, null);
-		}
-		else {
-			String arg_ducc_ling = args[2];
-			alienFile = new AlienFile(arg_user, arg_file, arg_ducc_ling);
-		}
+		alienFile = new AlienFile(arg_user, arg_file);
 		String data = alienFile.getString();
 		System.out.println(data);
 	}

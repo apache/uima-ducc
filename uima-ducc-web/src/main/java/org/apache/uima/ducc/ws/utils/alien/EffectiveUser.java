@@ -18,38 +18,51 @@
 */
 package org.apache.uima.ducc.ws.utils.alien;
 
-import java.util.TreeMap;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
-import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.ws.server.DuccWebSessionManager;
 
-public class OsProxy {
+public class EffectiveUser {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(OsProxy.class.getName());
+	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(EffectiveUser.class.getName());
 	private static DuccId jobid = null;
 	
-	private static String ducc_ling = 
-			Utils.resolvePlaceholderIfExists(
-					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
+	protected static DuccWebSessionManager duccWebSessionManager = DuccWebSessionManager.getInstance();
 	
-	public static TreeMap<String, FileInfo> getFilesInDirectory(EffectiveUser eu, String directory) {
-		return getFilesInDirectory(eu, directory, false);
+	public static EffectiveUser create(HttpServletRequest request) {
+		String name = null;
+		if(duccWebSessionManager.isAuthentic(request)) {
+			name = duccWebSessionManager.getUserId(request);
+		}
+		return new EffectiveUser(name);
 	}
 	
-	public static TreeMap<String, FileInfo> getFilesInDirectory(EffectiveUser eu, String directory, boolean recursive) {
-		String location = "getFilesInDirectory";
-		TreeMap<String, FileInfo> map = new TreeMap<String, FileInfo>();
-		
-		try {
-			AlienDirectory alienDirectory = new AlienDirectory(eu, directory, ducc_ling, recursive);
-			map = alienDirectory.getMap();
+	protected static EffectiveUser create(String name) {
+		return new EffectiveUser(name);
+	}
+	
+	private String user = null;
+	
+	private EffectiveUser(String user) {
+		set(user);
+	}
+	
+	private void set(String value) {
+		String location = "set";
+		if(value != null) {
+			user = value;
+			logger.debug(location, jobid, "value: "+user);
 		}
-		catch(Exception e) {
-			// no worries
-			logger.error(location, jobid, e);
+		else {
+			user = System.getProperty("user.name");
+			logger.debug(location, jobid, "property: "+user);
 		}
-		return map;
+	}
+	
+	public String get() {
+		return user;
 	}
 }

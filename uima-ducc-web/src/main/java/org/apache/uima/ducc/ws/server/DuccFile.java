@@ -19,33 +19,24 @@
 
 package org.apache.uima.ducc.ws.server;
 
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Properties;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.uima.ducc.cli.DuccUiConstants;
 import org.apache.uima.ducc.common.utils.AlienFile;
-import org.apache.uima.ducc.common.utils.FileHelper;
-import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 
 public class DuccFile {
 	
-	private static String ducc_ling = 
-			Utils.resolvePlaceholderIfExists(
-					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
-	
-	public static Properties getUserSpecifiedProperties(IDuccWorkJob job, String user) throws Throwable {
+	public static Properties getUserSpecifiedProperties(EffectiveUser eu, IDuccWorkJob job) throws Throwable {
 		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String name = DuccUiConstants.user_specified_properties;
 		Properties properties = null;
 		try {
-			properties = DuccFile.getProperties(directory+name, user);
+			properties = DuccFile.getProperties(eu, directory+name);
 		}
 		catch(Exception e) {
 			// no worries
@@ -53,12 +44,12 @@ public class DuccFile {
 		return properties;
 	}
 	
-	public static Properties getFileSpecifiedProperties(IDuccWorkJob job, String user) throws Throwable {
+	public static Properties getFileSpecifiedProperties(EffectiveUser eu, IDuccWorkJob job) throws Throwable {
 		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String name = DuccUiConstants.file_specified_properties;
 		Properties properties = null;
 		try {
-			properties = DuccFile.getProperties(directory+name, user);
+			properties = DuccFile.getProperties(eu, directory+name);
 		}
 		catch(Exception e) {
 			// no worries
@@ -66,19 +57,19 @@ public class DuccFile {
 		return properties;
 	}
 	
-	public static Properties getJobProperties(IDuccWorkJob job, String user) throws Throwable {
+	public static Properties getJobProperties(EffectiveUser eu, IDuccWorkJob job) throws Throwable {
 		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String name = DuccUiConstants.job_specification_properties;
-		Properties properties = DuccFile.getProperties(directory+name, user);
+		Properties properties = DuccFile.getProperties(eu, directory+name);
 		return properties;
 	}
 	
-	public static Properties getManagedReservationProperties(IDuccWorkJob job, String user) throws Throwable {
+	public static Properties getManagedReservationProperties(EffectiveUser eu, IDuccWorkJob job) throws Throwable {
 		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		// <hack>
 		try {
 			String hack_name = "process.properties";
-			Properties hack_properties = DuccFile.getProperties(directory+hack_name, user);
+			Properties hack_properties = DuccFile.getProperties(eu, directory+hack_name);
 			if(!hack_properties.isEmpty()) {
 				return hack_properties;
 			}
@@ -87,52 +78,25 @@ public class DuccFile {
 		}
 		// </hack>
 		String name = DuccUiConstants.managed_reservation_properties;
-		Properties properties = DuccFile.getProperties(directory+name);
+		Properties properties = DuccFile.getProperties(eu, directory+name);
 		return properties;
 	}
 	
-	/*
-	public static Properties getProperties(String directory, String name) throws IOException {
-		return getProperties(directory+name);
-	}
-	*/
-	
-	private static Properties getProperties(String path) throws IOException {
-		FileInputStream fis = null;
+	public static Properties getProperties(EffectiveUser eu, String path) throws Throwable {
+		StringReader sr = null;
 		try {
-			File file = new File(path);
-			fis = new FileInputStream(file);
-			Properties properties = new Properties();
-			properties.load(fis);
-			fis.close();
-			return properties;
-		}
-		catch(IOException e) {
-			if(fis != null) {
-				fis.close();
-			}
-			throw e;
-		}
-	}
-	
-	public static Properties getProperties(String path, String user) throws Throwable {
-		if(user == null) {
-			return getProperties(path);
-		}
-		StringReader sir = null;
-		try {
-			AlienFile alienFile = new AlienFile(user, path, ducc_ling);
+			AlienFile alienFile = new AlienFile(eu.get(), path);
 			String data = alienFile.getString();
-			sir = new StringReader(data);
+			sr = new StringReader(data);
 			Properties properties = new Properties();
-			properties.load(sir);
-			sir.close();
+			properties.load(sr);
+			sr.close();
 			return properties;
 		}
 		finally {
 			try {
-				if(sir != null) {
-					sir.close();
+				if(sr != null) {
+					sr.close();
 				}
 			}
 			catch(Throwable t) {
@@ -140,25 +104,8 @@ public class DuccFile {
 		}
 	}
 	
-	private static InputStreamReader getInputStreamReader(String path) throws IOException {
-		InputStreamReader isr = null;
-		FileInputStream fis = new FileInputStream(path);
-		DataInputStream dis = new DataInputStream(fis);
-		if(FileHelper.isGzFileType(path)) {
-			GZIPInputStream gis = new GZIPInputStream(dis);
-			isr = new InputStreamReader(gis, FileHelper.encoding);
-		}
-		else {
-			isr = new InputStreamReader(dis);
-		}
-		return isr;
-	}
-	
-	public static InputStreamReader getInputStreamReader(String path, String user) throws Throwable {
-		if(user == null) {
-			return getInputStreamReader(path);
-		}
-		AlienFile alienFile = new AlienFile(user, path, ducc_ling);
+	public static InputStreamReader getInputStreamReader(EffectiveUser eu, String path) throws Throwable {
+		AlienFile alienFile = new AlienFile(eu.get(), path);
 		return alienFile.getInputStreamReader();
 	}
 }

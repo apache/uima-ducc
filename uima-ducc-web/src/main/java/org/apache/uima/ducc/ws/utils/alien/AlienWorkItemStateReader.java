@@ -38,26 +38,19 @@ public class AlienWorkItemStateReader extends WorkItemStateReader {
 	
 	protected DuccLogger logger = DuccLogger.getLogger(AlienWorkItemStateReader.class, null);
 	
-	private String ducc_ling = null;
 	private String user = null;
 	
 	private long MaxRecords = 4096;
 	
-	public AlienWorkItemStateReader(String ducc_ling, String component, String directory, String user, long wiVersion) {
-		super(component, directory, user, wiVersion);
-		set_ducc_ling(ducc_ling);
-		set_user(user);
-	}
-	
-	private void set_ducc_ling(String value) {
-		ducc_ling = value;
+	public AlienWorkItemStateReader(EffectiveUser eu, String component, String directory, long wiVersion) {
+		super(component, directory, eu.get(), wiVersion);
+		set_user(eu.get());
 	}
 	
 	private void set_user(String value) {
 		user = value;
 	}
 
-	
 	@Override
 	public ConcurrentSkipListMap<Long,IWorkItemState> getMap() {
 		long lastRecordNo = 0;
@@ -68,17 +61,12 @@ public class AlienWorkItemStateReader extends WorkItemStateReader {
 	private ConcurrentSkipListMap<Long,IWorkItemState> getMap(long lastRecordNo, long maxRecords) {
 		String location = "getMap";
 		ConcurrentSkipListMap<Long,IWorkItemState> map = null;
-		if(ducc_ling == null) {
-			map = super.getMap();
-		}
-		else {
-			map = new ConcurrentSkipListMap<Long,IWorkItemState>();
-			fetch(map,fnActiveJson);
-			int sizeActive = map.size();
-			fetch(map,fnJson);
-			int sizeInactive = map.size() - sizeActive;
-			logger.debug(location, jobid, "active:"+sizeActive+" "+"inactive:"+sizeInactive);
-		}
+		map = new ConcurrentSkipListMap<Long,IWorkItemState>();
+		fetch(map,fnActiveJson);
+		int sizeActive = map.size();
+		fetch(map,fnJson);
+		int sizeInactive = map.size() - sizeActive;
+		logger.debug(location, jobid, "active:"+sizeActive+" "+"inactive:"+sizeInactive);
 		return map;
 	}
 	
@@ -95,7 +83,7 @@ public class AlienWorkItemStateReader extends WorkItemStateReader {
 	
 	private void fetch(ConcurrentSkipListMap<Long,IWorkItemState> map, String fn) {
 		String location = "fetch";
-		AlienFile alienFile = new AlienFile(user, fn, ducc_ling);
+		AlienFile alienFile = new AlienFile(user, fn);
 		InputStreamReader isr = null;
 		BufferedReader br = null;
 		try {
@@ -145,4 +133,5 @@ public class AlienWorkItemStateReader extends WorkItemStateReader {
 		double retVal = 0;
 		return retVal;
 	}
+	
 }

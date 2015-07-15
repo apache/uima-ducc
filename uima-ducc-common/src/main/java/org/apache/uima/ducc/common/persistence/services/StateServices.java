@@ -25,23 +25,18 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.IDuccEnv;
+import org.apache.uima.ducc.common.main.DuccService;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.IOHelper;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
 public class StateServices implements IStateServices {
 	
-	/*
-	private static final DuccLogger logger = DuccLoggerComponents.getTrLogger(ServiceDefinitionsProperties.class.getName());
-	*/
+	private static DuccLogger logger = DuccService.getDuccLogger(StateServices.class.getName());  
+	private static DuccId jobid = null;
 	
 	private String directory_state_services = IDuccEnv.DUCC_STATE_SERVICES_DIR;
-	
-	/*
-	private enum Verbosity {
-		QUIET,
-		SPEAK,
-	}
-	*/
 	
 	StateServices() {
 		mkdirs();
@@ -52,18 +47,26 @@ public class StateServices implements IStateServices {
 	}
 	
 	private ArrayList<String> getList(String type) {
+		
+		String location = "getList";
 		ArrayList<String> retVal = new ArrayList<String>();
-		File folder = new File(directory_state_services);
-		File[] listOfFiles = folder.listFiles();
-		if(listOfFiles != null) {
-			for (int i = 0; i < listOfFiles.length; i++) {
-				if (listOfFiles[i].isFile()) {
-					String name = listOfFiles[i].getName();
-					if(name.endsWith("."+type)) {
-						retVal.add(name);
+		try {
+			logger.debug(location, jobid, directory_state_services);
+			File folder = new File(directory_state_services);
+			File[] listOfFiles = folder.listFiles();
+			if(listOfFiles != null) {
+				for (int i = 0; i < listOfFiles.length; i++) {
+					if (listOfFiles[i].isFile()) {
+						String name = listOfFiles[i].getName();
+						if(name.endsWith("."+type)) {
+							retVal.add(name);
+						}
 					}
 				}
 			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
 		}
 		return retVal;
 	}
@@ -79,6 +82,7 @@ public class StateServices implements IStateServices {
 	}
 	
 	private Properties getProperties(String name) {
+		String location = "getProperties";
 		Properties properties = new Properties();
 		try {
 			FileInputStream fis = new FileInputStream(name);
@@ -90,29 +94,41 @@ public class StateServices implements IStateServices {
 			}
 		}
 		catch(Exception e) {	
+			logger.error(location, jobid, e);
 		}
 		return properties;
 	}
 	
 	
 	public StateServicesDirectory getStateServicesDirectory() throws IOException {
-		StateServicesDirectory ssd = new StateServicesDirectory();
-		ArrayList<String> svcList = getSvcList();
-		for(String entry : svcList) {
-			try {
-				StateServicesSet sss = new StateServicesSet();
-				String num = entry.split("[.]")[0];
-				Integer i = new Integer(num);
-				String fnSvc = directory_state_services+num+"."+svc;
-				String fnMeta = directory_state_services+num+"."+meta;
-				Properties propertiesSvc = getProperties(fnSvc);
-				sss.put(svc, propertiesSvc);
-				Properties propertiesMeta = getProperties(fnMeta);
-				sss.put(meta, propertiesMeta);
-				ssd.put(i, sss);
+		String location = "getStateServicesDirectory";
+		StateServicesDirectory ssd = null;
+		try {
+			ssd = new StateServicesDirectory();
+			ArrayList<String> svcList = getSvcList();
+			logger.trace(location, jobid, svcList.size());
+			for(String entry : svcList) {
+				try {
+					StateServicesSet sss = new StateServicesSet();
+					String num = entry.split("[.]")[0];
+					Integer i = new Integer(num);
+					String base = directory_state_services+num;
+					logger.trace(location, jobid, base);
+					String fnSvc = base+"."+svc;
+					String fnMeta = base+"."+meta;
+					Properties propertiesSvc = getProperties(fnSvc);
+					sss.put(svc, propertiesSvc);
+					Properties propertiesMeta = getProperties(fnMeta);
+					sss.put(meta, propertiesMeta);
+					ssd.put(i, sss);
+				}
+				catch(Exception e) {
+					logger.error(location, jobid, e);
+				}
 			}
-			catch(Exception e) {
-			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
 		}
 		return ssd;
 	}

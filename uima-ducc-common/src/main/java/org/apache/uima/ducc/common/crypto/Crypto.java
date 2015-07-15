@@ -44,7 +44,6 @@ import java.security.spec.RSAPublicKeySpec;
 import javax.crypto.Cipher;
 
 import org.apache.uima.ducc.common.utils.AlienFile;
-import org.apache.uima.ducc.common.utils.Utils;
 
 public class Crypto implements ICrypto {
 	
@@ -258,11 +257,7 @@ public class Crypto implements ICrypto {
 					ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(fileName)));
 				}
 				else {
-					String ducc_ling = 
-							Utils.resolvePlaceholderIfExists(
-									System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
-					
-					AlienFile alienFile = new AlienFile(user,fileName,ducc_ling);
+					AlienFile alienFile = new AlienFile(user,fileName);
 					dis = alienFile.getDataInputStream();
 					ois = new ObjectInputStream(new BufferedInputStream(dis));
 				}
