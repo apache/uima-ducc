@@ -28,7 +28,7 @@ from ducc_util import DuccUtil                        # sets the sys.path so we 
 from properties import Properties
 from properties import Property
 
-class DuccPropManager():
+class DuccPropManager:
     def __init__(self):
         # simple bootstratp to establish DUCC_HOME and to set the python path so it can
         # find the common code in DUCC_HOME/admin

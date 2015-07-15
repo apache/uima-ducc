@@ -161,13 +161,7 @@ class Ducc(DuccUtil):
             if ( c == 'pm' ):
                 if ( self.pm_jvm_args != None ):
                     jvm_opts.append(self.pm_jvm_args)
-                    
-            if ( c == 'db' ):
-                if ( self.db_jvm_args != None ):
-                    jvm_opts.append(self.db_jvm_args)
-                self.add_to_classpath(ducc_home + '/lib/derby/*')
-
-                    
+                                        
             if ( c == 'sm' ):
                 if ( self.sm_jvm_args != None ):
                     jvm_opts.append(self.sm_jvm_args)

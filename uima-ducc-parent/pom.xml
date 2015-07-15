@@ -165,7 +165,6 @@
 		<jetty.version>7.4.4.v20110707</jetty.version>
 		<orbit-org-apache-jasper.version>2.1.0.v201110031002</orbit-org-apache-jasper.version>
 		<servlet-api.version>2.5</servlet-api.version>
-		<derby.version>10.10.1.1</derby.version>
         
 		<http.commons.client.version>4.3.5</http.commons.client.version>
 		<http.commons.client-cache.version>4.3.5</http.commons.client-cache.version>

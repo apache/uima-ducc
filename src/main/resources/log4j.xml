@@ -59,16 +59,6 @@
       <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1}- %X{JID} %X{METHOD} %m%n"/> 
     </layout> 
   </appender> 
-
-  <appender name="dblog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
-    <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/db.log"/>
-    <param name="maxBackupIndex" value="5" />
-    <param name="maxFileSize" value="10MB" />
-    <layout class="org.apache.log4j.PatternLayout"> 
-      <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %m%n"/> 
-    </layout> 
-  </appender> 
   
   <appender name="orlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
@@ -160,11 +150,6 @@
      <appender-ref ref="rmlog" /> 
    </category>
 
-   <category name="org.apache.uima.ducc.db" additivity="true">
-     <priority value="info"/>
-     <appender-ref ref="dblog" /> 
-   </category>
-   
    <category name="org.apache.uima.ducc.orchestrator" additivity="true">
      <priority value="info"/>
      <appender-ref ref="orlog" /> 
