@@ -47,7 +47,7 @@ class RunReservation(Thread,Config):
 
     def sleep(self):
         sleepTime = randint(1,300)
-        print self.getName()+' seconds to sleep: '+str(sleepTime)
+        print self.getName(),' seconds to sleep: ',str(sleepTime)
         time.sleep(sleepTime)
     
     def hold(self):
@@ -55,12 +55,12 @@ class RunReservation(Thread,Config):
             sleepTime = self.helper.getHoldTimeInSecondsForManaged()
         else:
             sleepTime = self.helper.getHoldTimeInSecondsForUnmanaged()
-        print self.getName()+' seconds to hold: '+str(sleepTime)
+        print self.getName(),' seconds to hold: ',str(sleepTime)
         time.sleep(sleepTime)
     
     def process(self):
         self.user = self.helper.getUser()
-        print self.user
+        print self.getName(),' user: ',self.user
         if (self.reservationType == ReservationType.Managed):
             command = self.manSubmit
             fileName = self.reservations+'/'+self.helper.getManagedReservationFileName()
@@ -71,7 +71,7 @@ class RunReservation(Thread,Config):
         spArgs.append(command)
         spArgs.append('-f')
         spArgs.append(fileName)
-        print spArgs
+        print self.getName(),' args: ',spArgs
         os.environ['USER'] = self.user
         sp = subprocess.Popen(spArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = sp.communicate()
@@ -81,7 +81,7 @@ class RunReservation(Thread,Config):
             self.rid = tokens[2]
         else:
             self.rid = tokens[1]
-        print 'id='+self.rid
+        print self.getName(),' id='+self.rid
         #print 'err='+err
         
     def cleanup(self):
@@ -93,11 +93,11 @@ class RunReservation(Thread,Config):
         spArgs.append(command)
         spArgs.append('-id')
         spArgs.append(self.rid)
-        print spArgs
+        print self.getName(),' args: ',spArgs
         os.environ['USER'] = self.user
         sp = subprocess.Popen(spArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = sp.communicate()
-        print out
+        print self.getName(),' out: ',out
         #print 'err='+err
         
     def run(self):
@@ -120,12 +120,12 @@ class RunJob(Thread,Config):
 
     def sleep(self):
         sleepTime = randint(1,300)
-        print self.getName()+' seconds to sleep: '+str(sleepTime)
+        print self.getName(),' seconds to sleep: ',str(sleepTime)
         time.sleep(sleepTime)
 
     def process(self):
         self.user = self.helper.getUser()
-        print self.user
+        print self.getName(),' user: ',self.user
         spArgs = []
         spArgs.append(self.jobSubmit)
         spArgs.append('--wait_for_completion')
@@ -146,11 +146,11 @@ class RunJob(Thread,Config):
         jobFileName = self.helper.getJobFileName()
         job = self.jobs+'/'+jobFileName
         spArgs.append(job)
-        print spArgs
+        print self.getName(),' args: ',spArgs
         os.environ['USER'] = self.user
         sp = subprocess.Popen(spArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = sp.communicate()
-        print out
+        print self.getName(),' out: ',out
         if err:
             print err
 
