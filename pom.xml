@@ -432,7 +432,7 @@
 			</plugin>
             <!-- May need to disable this because of a JIRA bug causing only 100 JIRas to be included.
              -->
-			<plugin>
+			<!--plugin>
 			    <groupId>org.apache.maven.plugins</groupId>
 			    <artifactId>maven-changes-plugin</artifactId>
 			    <executions>
@@ -443,7 +443,7 @@
 				   </configuration>
 				</execution>
 			    </executions>
-			</plugin>
+			</plugin -->
 <!--plugin>
     <artifactId>maven-antrun-plugin</artifactId>
     <executions>
