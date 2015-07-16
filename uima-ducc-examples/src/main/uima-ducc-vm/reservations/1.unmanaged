@@ -21,6 +21,6 @@ description                    #1 type "unmanaged"
 instance_memory_size           15
 number_of_instances            1
 
-scheduling_class               fixed
+scheduling_class               reserve
 
 
