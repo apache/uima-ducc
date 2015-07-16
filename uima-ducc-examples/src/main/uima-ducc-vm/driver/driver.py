@@ -137,9 +137,10 @@ class RunJob(Thread,Config):
         spArgs.append('--process_thread_count')
         spArgs.append(self.helper.getThreads())
         spArgs.append('--log_directory')
-        spArgs.append(self.helper.getLogDir(self.user, self.tid))
+        subdir = str(randint(1,1000000000))
+        spArgs.append(self.helper.getLogDir(self.user, subdir))
         spArgs.append('--working_directory')
-        spArgs.append(self.helper.getWorkDir(self.user, self.tid))
+        spArgs.append(self.helper.getWorkDir(self.user, subdir))
         if(randint(0,1) > 0):
             spArgs.append('--service_dependency')
             spArgs.append(self.helper.getServiceSet())

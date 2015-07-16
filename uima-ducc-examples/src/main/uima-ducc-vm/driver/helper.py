@@ -187,14 +187,14 @@ class Helper():
         value = self.dictServiceSets.get(key)
         return value
     
-    def getLogDir(self,user,tid):
-        value = self.base+'/'+user+'/ducc/logs'
+    def getLogDir(self,user,subdir):
+        value = self.base+'/'+user+'/ducc/logs'+'/'+subdir
         if not os.path.exists(value):
             os.makedirs(value)
         return value
         
-    def getWorkDir(self,user,tid):
-        value = self.base+'/'+user+'/ducc/work'+'/'+tid
+    def getWorkDir(self,user,subdir):
+        value = self.base+'/'+user+'/ducc/work'+'/'+subdir
         if not os.path.exists(value):
             os.makedirs(value)
         return value
