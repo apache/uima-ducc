@@ -31,6 +31,7 @@ class Config():
     jobs = examples+'/jobs'
     reservations = examples+'/reservations'
     jobSubmit = ducc_home+'/bin/ducc_submit'
+    jobCancel = ducc_home+'/bin/ducc_cancel'
     resSubmit = ducc_home+'/bin/ducc_reserve'
     resCancel = ducc_home+'/bin/ducc_unreserve'
     manSubmit = ducc_home+'/bin/ducc_process_submit'

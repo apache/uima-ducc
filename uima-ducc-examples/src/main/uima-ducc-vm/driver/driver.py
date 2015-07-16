@@ -18,10 +18,7 @@
 # under the License.
 # -----------------------------------------------------------------------
 
-
-
-
-from threading import Thread
+from threading import Thread, BoundedSemaphore
 from random import randint
 import time
 import os
@@ -39,8 +36,9 @@ class RunReservation(Thread,Config):
 
     helper = Helper();
     
-    def __init__(self,tid,reservationType):
+    def __init__(self,permit,tid,reservationType):
         Thread.__init__(self)
+        self.permit = permit
         self.tid = str(tid)
         print self.helper.timestamp(),'init:'+str(self.tid)
         self.reservationType = reservationType
@@ -103,18 +101,21 @@ class RunReservation(Thread,Config):
     def run(self):
         print self.helper.timestamp(),'run.start:'+str(self.tid)
         while True:
+            self.permit.acquire()
             self.sleep()
             self.process()
             self.hold()
-            self.cleanup()     
+            self.cleanup()   
+            self.permit.release()  
         print self.helper.timestamp(),'run.end:'+str(self.tid)
        
 class RunJob(Thread,Config):
 
     helper = Helper();
     
-    def __init__(self,tid):
+    def __init__(self,permit,tid):
         Thread.__init__(self)
+        self.permit = permit
         self.tid = str(tid)
         print self.helper.timestamp(),'init:'+str(self.tid)
 
@@ -150,45 +151,63 @@ class RunJob(Thread,Config):
         os.environ['USER'] = self.user
         sp = subprocess.Popen(spArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = sp.communicate()
+        tokens = out.split(' ')
+        #print tokens
+        self.jid = tokens[1]
         print self.helper.timestamp(),self.getName(),' out: ',out
         if err:
             print err
 
     def cleanup(self):
-        pass
-
+        print self.helper.timestamp(),self.getName(),' user: ',self.user
+        spArgs = []
+        spArgs.append(self.jobCancel)
+        spArgs.append('-id')
+        spArgs.append(self.jid)
+        print self.helper.timestamp(),self.getName(),' args: ',spArgs
+        os.environ['USER'] = self.user
+        sp = subprocess.Popen(spArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = sp.communicate()
+        print self.helper.timestamp(),self.getName(),' out: ',out
+        #print 'err='+err
+        
     def run(self):
         print self.helper.timestamp(),'run.start:'+str(self.tid)
         while True:
+            self.permit.acquire()
             self.sleep()
             self.process()
             self.cleanup()
+            self.permit.release()
         print self.helper.timestamp(),'run.end:'+str(self.tid)
     
 if __name__ == '__main__':
 
     print 'driver.start'
     
+    permitForJobs = BoundedSemaphore(3)
+    permitForReservations = BoundedSemaphore(2)
+    
     tid = 0
     
     tid += 1
-    th1 = RunJob(tid)
+    th1 = RunJob(permitForJobs, tid)
     th1.start()
     
     tid += 1
-    th2 = RunJob(tid)
+    th2 = RunJob(permitForJobs, tid)
     th2.start()
     
     tid += 1
-    th3 = RunJob(tid)
+    th3 = RunJob(permitForJobs, tid)
     th3.start()
     
     tid += 1
-    th4 = RunReservation(tid,ReservationType.Unmanaged)
+    th4 = RunReservation(permitForReservations,tid,ReservationType.Unmanaged)
     th4.start()
     
     tid += 1
-    th5 = RunReservation(tid,ReservationType.Managed)
+    th5 = RunReservation(permitForReservations,tid,ReservationType.Managed)
     th5.start()
         
     th1.join()
