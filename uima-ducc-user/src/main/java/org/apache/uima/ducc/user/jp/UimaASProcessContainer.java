@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -264,6 +265,8 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		}
 		
 		if (e instanceof BindException) {
+			return true;
+		} else if (e instanceof SocketException && "Address already in use".equals(e.getMessage()) ) {
 			return true;
 		} else if ( e.getCause() != null ) {
 			return isBindException(e.getCause());				
