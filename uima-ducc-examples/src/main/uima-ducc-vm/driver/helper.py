@@ -23,6 +23,7 @@
 
 import os
 import random
+import datetime
 
 class Helper():
 
@@ -217,6 +218,10 @@ class Helper():
         value = seconds
         return value
     
+    def timestamp(self):
+        value = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        return value
+       
 if __name__ == '__main__':
     helper = Helper()
     print helper.getUser()
