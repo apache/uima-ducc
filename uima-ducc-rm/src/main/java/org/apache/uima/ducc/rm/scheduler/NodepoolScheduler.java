@@ -334,18 +334,18 @@ public class NodepoolScheduler
     	return String.format("%sQ%d", o, shares);
     }
 
-    /**
-     * Return the nodepool for a class, or the global nodepool if none is explicitly associated with the class.
-     * @deprecated Remove as soon as it is verified corrcct.
-     */
-    NodePool getNodepool(ResourceClass rc)
-    {
-        String id = rc.getNodepoolName();
-        if ( id == null ) {
-            return globalNodepool;
-        }
-        return globalNodepool.getSubpool(id);
-    }
+    // /**
+    //  * Return the nodepool for a class, or the global nodepool if none is explicitly associated with the class.
+    //  * @deprecated Remove as soon as it is verified corrcct.
+    //  */
+    // NodePool getNodepool(ResourceClass rc)
+    // {
+    //     String id = rc.getNodepoolName();
+    //     if ( id == null ) {
+    //         return globalNodepool;
+    //     }
+    //     return globalNodepool.getSubpool(id);
+    // }
 
     // ==========================================================================================
     // ==========================================================================================
@@ -353,20 +353,20 @@ public class NodepoolScheduler
     // ==========================================================================================
     // ==========================================================================================
 
-    /**
-     * @deprecated - see rc.geMaxOrder();
-     */
-    int calculateMaxJobOrder(ArrayList<ResourceClass> rcs)
-    {
-        int max = 0;
-        for ( ResourceClass rc: rcs ) {
-            HashMap<Integer, HashMap<IRmJob, IRmJob>> jobs = rc.getAllJobsByOrder();
-            for ( int i : jobs.keySet() ) {
-                max= Math.max(max, i);
-            }
-        }
-        return max;
-    }
+    // /**
+    //  * @deprecated - see rc.geMaxOrder();
+    //  */
+    // int calculateMaxJobOrder(ArrayList<ResourceClass> rcs)
+    // {
+    //     int max = 0;
+    //     for ( ResourceClass rc: rcs ) {
+    //         HashMap<Integer, HashMap<IRmJob, IRmJob>> jobs = rc.getAllJobsByOrder();
+    //         for ( int i : jobs.keySet() ) {
+    //             max= Math.max(max, i);
+    //         }
+    //     }
+    //     return max;
+    // }
 
     private String fmtArray(int[] array)
     {
