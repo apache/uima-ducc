@@ -346,7 +346,7 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         int           total      = Integer.parseInt(tok.nextToken());
         double        error_rate = getDoubleFromEnv("AE_RUNTIME_ERROR", false);
         double        exit_rate  = getDoubleFromEnv("AE_RUNTIME_EXIT", false);
-        String        logid      = tok.nextToken();
+        //String        logid      = tok.nextToken();
 
         RuntimeMXBean rmxb       = ManagementFactory.getRuntimeMXBean();
         String        pid        = rmxb.getName();
