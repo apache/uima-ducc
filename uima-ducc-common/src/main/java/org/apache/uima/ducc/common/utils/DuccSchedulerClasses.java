@@ -59,10 +59,12 @@ public class DuccSchedulerClasses {
      * Pass in a logger, usefull in the daemons.  If no logger the NodeConfiguration will
      * write to stdout/stderr.
      */
+	
+	/* Not used?  And should call this() instead of super()
 	public DuccSchedulerClasses(DuccLogger logger) {
         super();
         this.logger = logger;
-	}
+	}*/
 	
 	public String getProperty(Properties properties, String name) {
         if ( properties == null ) return null;
@@ -82,10 +84,11 @@ public class DuccSchedulerClasses {
 
         File file = new File(fileName);
         if ( lastModified != file.lastModified() ) {         // reread if it looks like it changed
-            lastModified = file.lastModified();
-            nodeConfiguration = new NodeConfiguration(fileName, null, null, logger); // UIMA-4275 use single common constructor
-            lastModified = file.lastModified();
-            nodeConfiguration.readConfiguration();
+            synchronized(this) {    // Ensure parallel threads see a valid nodeConfiguration 
+                nodeConfiguration = new NodeConfiguration(fileName, null, null, logger); // UIMA-4275 use single common constructor
+                nodeConfiguration.readConfiguration();
+                lastModified = file.lastModified();   // Update this AFTER the nodeConfiguration is valid
+            }
         }
 
 		return nodeConfiguration;
