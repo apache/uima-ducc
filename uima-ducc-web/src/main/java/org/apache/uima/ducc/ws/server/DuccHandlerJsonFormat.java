@@ -1715,12 +1715,12 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Max Allocation 
 				
                 if ( policy.equals("RESERVE") ) {
-                    val = cl.getStringProperty("max-machines");
+                    val = cl.getStringProperty("max-machines", "0");
                     if( val == null || val.equals("0")) {
                         val = "-";
                     }
                 } else if ( policy.equals("FIXED_SHARE") ) {
-                    val = cl.getStringProperty("max-processes");
+                    val = cl.getStringProperty("max-processes", "0");
                     if( val == null || val.equals("0")) {
                         val = "-";
                     }
