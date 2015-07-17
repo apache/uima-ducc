@@ -1094,7 +1094,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             deployedProcess.getDuccProcess().setReasonForStoppingProcess(
                     ReasonForStoppingProcess.InitializationTimeout.toString());
       	    deployedProcess.getDuccProcess().setProcessState(ProcessState.Stopping);
-            deployedProcess.setStopping();
+            //deployedProcess.setStopping();
 
             // Mark process for death. Doesnt actually kill the process
             
