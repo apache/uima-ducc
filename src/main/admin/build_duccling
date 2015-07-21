@@ -86,7 +86,7 @@ def main():
     if ( rc != 0 ):
         print 'Could not run', arch +'ducc_ling -v'
 
-    print 'ducc_ling is installed for architecture', arch + '. See the installation guide for multi-user setup.'
+    print 'ducc_ling is installed for architecture', arch + '. See the installation guide for additional modifications needed to run user processes with their OS user credentials.'
 
 
 main()
