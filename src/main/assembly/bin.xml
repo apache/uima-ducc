@@ -330,16 +330,16 @@ under the License.
     <fileSet>
       <directory>src/main/issuesFixed</directory>
       <outputDirectory>issuesFixed</outputDirectory>
-      <fileMode>750</fileMode>
-      <directoryMode>750</directoryMode>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>
     </fileSet>
 
 
     <fileSet>
       <directory>src/main/admin</directory>
       <outputDirectory>admin</outputDirectory>
-      <fileMode>750</fileMode>
-      <directoryMode>750</directoryMode>
+      <fileMode>754</fileMode>
+      <directoryMode>755</directoryMode>
       <!--  exclude DuccHello.java. It will be copied separately
             and given different permissions. Look below at <files>...</files>
        -->      
