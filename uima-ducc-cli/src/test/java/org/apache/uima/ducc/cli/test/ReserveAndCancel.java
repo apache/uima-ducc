@@ -45,7 +45,7 @@ public class ReserveAndCancel
         return new String[] {
             "Reserve",
             "Cancel",
-            "ReserveFail",
+           /* "ReserveFail",      reserve now waits forever when resources are unavailable */
             "CancelFail",
         };
     }
@@ -57,16 +57,20 @@ public class ReserveAndCancel
         DuccReservationSubmit reserve;
 
         reserve_props.setProperty("description", "Reserve And Cancel");
-        reserve_props.setProperty("instance_memory_size", "28");
-        reserve_props.setProperty("number_of_instances", "1");
-        reserve_props.setProperty("scheduling_class", "fixed");
+        reserve_props.setProperty("memory_size", "28");
+        reserve_props.setProperty("scheduling_class", "reserve");
         reserve = new DuccReservationSubmit(reserve_props);
-        if ( reserve.execute() ) {
-            resid = "" + reserve.getDuccId();            
-            String host = reserve.getHost();
-            success(testid, "Reservation", resid, "successful, rc =", ""+reserve.getReturnCode(), ":", host);               
-        } else {
-            fail(testid, "Reservation failed, rc = " + reserve.getReturnCode());
+        try {
+            if (reserve.execute()) {
+                resid = "" + reserve.getDuccId();
+                String host = reserve.getHost();
+                success(testid, "Reservation", resid, "successful, rc =", "" + reserve.getReturnCode(), ":", host);
+            } else {
+                fail(testid, "Reservation failed, rc = " + reserve.getReturnCode());
+            }
+        } catch (Exception e) {
+            fail(testid, "Reservation failed, error = " + e);
+            resid = "-1";
         }
     }
 
