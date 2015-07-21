@@ -80,7 +80,7 @@ installation instructions.
 3.1 Supported Platforms
 -----------------------
 
-UIMA-DUCC has been tested with Sun Java 7 as well as IBM Java 7 on Linux. The cluster of machines DUCC manages
+UIMA-DUCC has been tested with Oracle Java 7 as well as IBM Java 7 on Linux. The cluster of machines DUCC manages
 must all be running a reasonably current level of Linux; other operating systems are not supported.
 . 
 
