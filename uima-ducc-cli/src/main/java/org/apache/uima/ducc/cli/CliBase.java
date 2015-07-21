@@ -553,10 +553,7 @@ public abstract class CliBase
     public boolean setProperty(String key, String value)
     {
 
-        if ( key.startsWith("--") ) {
-            key = key.substring(2);
-        }
-        if ( ! commandLine.isOption(key)) {       
+        if ( ! commandLine.isOptionName(key)) {       
             return false;
         }
         cli_props.setProperty(key, value);

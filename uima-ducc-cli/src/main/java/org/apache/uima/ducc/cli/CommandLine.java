@@ -105,16 +105,33 @@ public class CommandLine
         return contains(o);                         // does it have a value?
     }
 
+    /**
+     * Checks if this is a command-line option, i.e. with -- or - prefix
+     * 
+     * @param s This is the command-line token to test
+     * @return <b>true</b> if it is a valid option, <b>false</b> otherwise
+     */
     public boolean isOption(String s)
     {
-        // is this string a legal option?
-        // for use in parsing values that start with - or --
+        // Command-line options must have a -- or - prefix 
         if      ( s.startsWith("--") ) s = s.substring(2);
         else if ( s.startsWith("-") )  s = s.substring(1);
+        else return false;
 
         return name_to_option.containsKey(s);
     }
 
+    /**
+     * Checks if this is a valid option
+     * 
+     * @param s This is the option to test
+     * @return <b>true</b> if it is a valid option, <b>false</b> otherwise
+     */
+    public boolean isOptionName(String s)
+    {
+        return name_to_option.containsKey(s);
+    }
+    
     public boolean isOption(IUiOption k)
     {
         // is this a legal option?

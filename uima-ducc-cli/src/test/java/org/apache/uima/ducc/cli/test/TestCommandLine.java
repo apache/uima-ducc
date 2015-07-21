@@ -350,6 +350,7 @@ public class TestCommandLine
             "MultipleOptionSets",
             "HelpGeneration",
             "MultiTokenValue",
+            "OptionAsArg",
         };
     }
 
@@ -823,6 +824,36 @@ public class TestCommandLine
         }
         
     }
+
+    public void testOptionAsArg(String testid)
+    {
+        // 
+        // Specify an option value that also matches another option
+        // See Jira 4521
+        //
+        String[] args = {
+            "--scheduling_class" , "help",
+            "--help",
+        };
+        IUiOption[] opts = {
+            OptionSet1.Help,
+            OptionSet1.Debug,
+            OptionSet1.Autostart,
+            OptionSet1.SchedulingClass,
+            OptionSet1.WorkingDirectory,
+        };
+
+        CommandLine cl = new CommandLine(args, opts);
+
+        try {            
+            cl.parse();
+            success(testid, "Command line:", cl.toString());
+        } catch (Exception e) {
+            fail(testid, "Parse with an arg matching an option failed.", e.getMessage());
+        }
+        
+    }
+
 
     public static void main(String[] args)
     {
