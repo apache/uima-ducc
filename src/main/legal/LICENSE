@@ -227,8 +227,8 @@
    xbean-spring-3.11.1.jar
    commons-httpclient-3.1.jar
    geronimo-servlet_2.5_spec-1.2.jar
-   httpcore-4.2.1.jar
-   httpclient-4.2.1.jar
+   httpcore-4.3.2.jar
+   httpclient-4.3.5.jar
    (webserver)javax.activation_1.1.0.v201005080500.jar
    (webserver)javax.el_2.1.0.v201004190952.jar 
    (webserver)javax.servlet.jsp_2.1.0.v201004190952.jar
