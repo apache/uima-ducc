@@ -3308,7 +3308,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("{ ");
 		sb.append("\"aaData\": [ ");
 		
-		DuccSchedulerClasses schedulerClasses = new DuccSchedulerClasses();
+		DuccSchedulerClasses schedulerClasses = DuccSchedulerClasses.getInstance();
         Map<String, DuccProperties> clmap = schedulerClasses.getClasses();
 
 		boolean first = true;
@@ -3678,7 +3678,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		sb.append("<select id=\"scheduling_class\">");
-		DuccSchedulerClasses schedulerClasses = new DuccSchedulerClasses();
+		DuccSchedulerClasses schedulerClasses = DuccSchedulerClasses.getInstance();
 		String[] class_array = schedulerClasses.getReserveClasses();
 		String defaultName = schedulerClasses.getReserveClassDefaultName();
 		for(int i=0; i<class_array.length; i++) {

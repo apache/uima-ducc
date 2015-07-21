@@ -47,24 +47,13 @@ public class DuccSchedulerClasses {
 		return instance;
 	}
 	
-	public DuccSchedulerClasses() {
+	private DuccSchedulerClasses() {
 	    String dir_home = Utils.findDuccHome();  // Ensure DUCC_HOME is in the System properties
 		String key = DuccPropertiesResolver.ducc_rm_class_definitions;
 		String file_classes = DuccPropertiesResolver.getInstance().getFileProperty(key);
 		String dir_resources = "resources";
 		fileName = dir_home+File.separator+dir_resources+File.separator+file_classes;
 	}
-	
-    /**
-     * Pass in a logger, usefull in the daemons.  If no logger the NodeConfiguration will
-     * write to stdout/stderr.
-     */
-	
-	/* Not used?  And should call this() instead of super()
-	public DuccSchedulerClasses(DuccLogger logger) {
-        super();
-        this.logger = logger;
-	}*/
 	
 	public String getProperty(Properties properties, String name) {
         if ( properties == null ) return null;

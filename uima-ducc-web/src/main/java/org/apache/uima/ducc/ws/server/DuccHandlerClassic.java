@@ -1091,7 +1091,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 
         
-		DuccSchedulerClasses schedulerClasses = new DuccSchedulerClasses();
+		DuccSchedulerClasses schedulerClasses = DuccSchedulerClasses.getInstance();
         Map<String, DuccProperties> clmap = schedulerClasses.getClasses();
 		if ( clmap != null ) {
             DuccProperties[] class_set = clmap.values().toArray(new DuccProperties[clmap.size()]);

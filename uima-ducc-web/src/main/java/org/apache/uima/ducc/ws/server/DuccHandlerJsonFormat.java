@@ -1640,7 +1640,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonArray data = new JsonArray();
 		JsonArray row;
 
-		DuccSchedulerClasses schedulerClasses = new DuccSchedulerClasses();
+		DuccSchedulerClasses schedulerClasses = DuccSchedulerClasses.getInstance();
         Map<String, DuccProperties> clmap = schedulerClasses.getClasses();
 		        
 		if( clmap != null ) {
