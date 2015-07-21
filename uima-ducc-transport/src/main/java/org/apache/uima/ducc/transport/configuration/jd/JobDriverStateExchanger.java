@@ -38,7 +38,7 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.dispatcher.IDuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.JdReplyEvent;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
-import org.apache.uima.ducc.transport.event.common.DuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.DuccProcessConcurrentMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
@@ -69,7 +69,7 @@ public class JobDriverStateExchanger extends Thread {
 	
 	private AtomicInteger getStateReqNo = new AtomicInteger(0);
 	
-	private IDuccProcessMap dpMap = new DuccProcessMap();
+	private IDuccProcessMap dpMap = new DuccProcessConcurrentMap();
 	
 	public static IDuccEventDispatcher create(Object specs) throws Exception {
 		IDuccEventDispatcher retVal = null;

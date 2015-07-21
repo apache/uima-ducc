@@ -26,7 +26,7 @@ public class ADuccWorkExecutable extends ADuccWork implements IDuccWorkExecutabl
 	 * please increment this sUID when removing or modifying a field 
 	 */
 	private static final long serialVersionUID = 1L;
-	private IDuccProcessMap processMap = new DuccProcessMap();
+	private IDuccProcessMap processMap = new DuccProcessConcurrentMap();
 	private ICommandLine commandLine = null;
 //	private IDuccUimaAggregate uimaAggregate = null;
 	private IDuccUimaDeployableConfiguration uimaDeployableConfiguration = null;
