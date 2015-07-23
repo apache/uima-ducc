@@ -86,7 +86,7 @@ public class FileInfo {
 		group = value;
 	}
 	
-	private DateFormat format = new SimpleDateFormat("yyyy-mm-dd HH:mm", Locale.ENGLISH);
+	private DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH);
 	private SimpleDateFormat dow = new SimpleDateFormat("E"); // the day of the week abbreviated
 	
 	public long getTOD() {
