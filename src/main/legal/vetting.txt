@@ -54,4 +54,4 @@ These dependencies are not bundled (packaged) in derby jar though. For this
 reason DUCC NOTICE file does not mention these dependencies. DUCC uses core
 functionality of Derby. 
 
-
+07/23/2015 Added missing xmlbeans attributions to NOTICE file
