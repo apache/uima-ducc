@@ -60,7 +60,7 @@ process_deployments_max        999
 
     This can be submitted, overriding the scheduling class and memory, thus:
 \begin{verbatim}
-ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_class high
+ducc_submit --specification 1.job --process_memory_size 16 --scheduling_class high
 \end{verbatim}    
 
     The DUCC CLI parameters are now described in detail.
@@ -106,7 +106,7 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
     For example, to set the maximum number of open files allowed in any job process, specify 
     an environment similar to this when submitting the job:
 \begin{verbatim}
-     ducc_job_submit .... --environment="DUCC_RLIMT_NOFILE=1024" ...
+     ducc_submit .... --environment="DUCC_RLIMT_NOFILE=1024" ...
 \end{verbatim}
     
     \section{Command  Line Forms}

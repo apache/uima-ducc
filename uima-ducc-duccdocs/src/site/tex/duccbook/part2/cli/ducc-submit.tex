@@ -48,12 +48,9 @@
            \item[$--$attach\_console] If specified, redirect remote stdout and stderr
              to the local submitting console.
 
-           \item[$--$cancel\_on\_interrupt].  If the job is started with $--$wait\_for\_completion, this
-             option causes the job to be canceled if the submit command is terminated,
-             e.g., with CTL-C. If $--$cancel\_job\_on\_interrupt is not
-             specified, the job monitor will be terminated but the job will continue to run.
-
-             If $--$wait\_for\_completion is not specified this option is ignored. 
+           \item[$--$cancel\_on\_interrupt] If specified, the job is monitored 
+             and will be canceled if the submit command is interrupted, e.g. with CTRL-C. 
+             This option always implies $--$wait\_for\_completion.
 
            \item[$--$classpath {[path-string]}] The CLASSPATH used for the job.  If specified, this is used
              for both the Job Driver and each Job Process. If not specified, the CLASSPATH of the
@@ -357,15 +354,15 @@ process_memory_size                 = 15
            \item[$--$suppress\_console\_log] If specified, suppress creation of the log files that 
              normally hold the redirected stdout and stderr.
 
-           \item[$--$time-stamp ]
-
+           \item[$--$timestamp ]
              If specified, messages from the submit process are timestamped. This is intended primarily 
              for use with a monitor with --wait\_for\_completion. 
 
            \item[$--$wait\_for\_completion ]             
              If specified, the submit command monitors the job and prints periodic
              state and progress information to the console.  When the job completes, the monitor
-             is terminated and the submit command returns.
+             is terminated and the submit command returns.  If the command is interrupted, e.g. with CTRL-C,
+             the job will not be canceled unless $--$cancel\_on\_interrupt is also specified.
              
            \item[$--$working\_directory ]             
              This specifies the working directory to be set by the Job Driver and Job Process processes. 

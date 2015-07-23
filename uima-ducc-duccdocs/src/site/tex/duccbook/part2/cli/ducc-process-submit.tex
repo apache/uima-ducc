@@ -47,11 +47,9 @@
         \item[$--$attach\_console] If specified, remote process stdout and stderr are 
           redirected to, and stdin redirected from, the local submitting console.
           
-        \begin{sloppypar}
-        \item[$--$cancel\_on\_interrupt ] Cancel managed reservation on interrupt
-          (Ctrl-C).  If running with {\em $--$wait\_for\_completion} and this flag is specified,
-          terminating the submit process will result in the remote process being terminated.
-        \end{sloppypar}
+        \item[$--$cancel\_on\_interrupt] If specified, the remote process is monitored 
+           and will be canceled if the submit command is interrupted, e.g. with CTRL-C. 
+           This option always implies $--$wait\_for\_completion.
         
         \item[$--$description {[text]}] The text is any string used to describe the process. It is
           displayed in the Web Server. When specified on a command-line the text usually must be
@@ -137,10 +135,16 @@ process_memory_size = 15
         \item[$--$suppress\_console\_log] If specified, suppress creation of the log files that 
           normally hold the redirected stdout and stderr.
 
-        \item[$--$wait\_for\_completion ] If specified, the submit command does not return control to
-          the console immediately, and instead monitors the DUCC state traffic and prints
-          information about the process as it progresses.
-          
+        \item[$--$timestamp ]
+          If specified, messages from the submit process are timestamped. This is intended primarily 
+          for use with a monitor with --wait\_for\_completion. 
+
+        \item[$--$wait\_for\_completion ]             
+          If specified, the submit command monitors the remote process and prints periodic
+          state and progress information to the console.  When the process completes, the monitor
+          is terminated and the submit command returns.  If the command is interrupted, e.g. with CTRL-C,
+          the request will not be canceled unless $--$cancel\_on\_interrupt is also specified.
+
         \item[$--$working\_directory ] This specifies the working directory to be set by the Job
           Driver and Job Process processes.  If not specified, the current directory is used.
 
