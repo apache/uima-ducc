@@ -29,7 +29,6 @@
 <p>
 <a href="#what.is.uima-ducc">1. What is UIMA-DUCC?</a><br/>
 <a href="#major.changes">2. Major Changes in this Release</a><br/>
-<a href="#limitations">3. Limitations in this Release</a><br/>
 </p>  
    
 <h2><a name="what.is.uima-ducc">1. What is UIMA-DUCC?</a></h2>
@@ -48,18 +47,11 @@ provides cluster management services to automate the scale-out of UIMA pipelines
 UIMA DUCC 2.0.0 Apache is a major release containing new features and bug fixes. What's new:<br>
 
 <h3>2.1 Non-preemptive (NP) work loads</h3>
-In order to prevent the cluster from being filled with non-preemptable (NP) allocations, users will 
-have a limit of 360GB total NP resources. This will motivate users to allocate work in 
-fair-share, preemptable classes, and to move any services supporting other users to be 
-owned by a group user like emrauser, dsemuser, etc.
-There is also a change in behavior for NP allocations that cannot be filled. An example 
-would be a training step or a java-viaducc submission. Previously these submissions 
-failed, now these submissions are queued. NP class submissions that exceed a user's 
-allotment (or cluster availability) will queue up until they can be run. Submissions 
-that cannot be run because the cluster does not have any machine which can satisfy 
-the request will also queue. <br>
-Reservations from the web page or from the CLI ducc_reserve will be limited to a single 
-instance in a reserve class. That is, each reservation must be for an entire machine.
+In order to prevent the cluster from being filled with non-preemptable (NP) allocations it is possible to place 
+limit on total NP allocations for each user.  The limit applies globally and can be overridden on a per-user 
+basis by the DUCC adminisstrator.  Additionally all NP allocations are limited to a single instance per request.  
+Please refer to sections "13.4 Allotment", "12.8 Ducc User Definitions", and "12.4.6 Resource Manager Properties" of
+DUCC Admistrative Guide for more details.
 
 <h3>2.2 Classpath isolation</h3> 
 User's code now runs with only the classpath it supplies. That includes all UIMA jars and 
@@ -79,30 +71,36 @@ version will remain available for now.
 
 For the future, please make the following change to CR/CM/CC components using this typesystem: 
 change 
-<import name="org.apache.uima.ducc.common.uima.DuccJobFlowControlTS"/> 
+&lt;import name="org.apache.uima.ducc.common.uima.DuccJobFlowControlTS"/&gt; 
 to 
-<import name="org.apache.uima.ducc.FlowControllerTS"/> 
+&lt;import name="org.apache.uima.ducc.FlowControllerTS"/&gt; 
+
+
+<h3>2.6 CGROUPS to control CPU share as well as memory share.</h3>
+    CPU shares are set proportionally to memory shares when CGROUPS are enabled.
+
+<h3>2.7 Queue resource requests that were previously unfullfiliable</h3>
+    Requests for resources are held pending if they can't be fulfilled for any reason
+    other than the scheduling class being missing.  Shares may be made available when
+    other work exits, or if resources are dynamically added to the cluster.  The
+    WebServer shows the reason for work that is enqueued, WaitngForResources.
+
+<h3>2.8 Queue service requests that were previously unfulfillable</h3>
+    Work that is dependent on a service is held pending if it can't be fulfilled.  The jobs
+    may be freed by registering or starting a compatible service.
+
+<h3>2.9 Service Manager instances</h3>
+    A unique instance id is assigned and held constant for the multiple instances of a service.
+    This ID is made available to the running instances to enable reasoning (such as how to
+    partition a data set) on the instance.
+
+
 <br><br>
 
 For a complete list of issues fixed and up-to-date information on UIMA-DUCC issues, see our issue tracker: 
 <a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.0.0-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.0.0-Ducc%22%20</a>
 </p> 
       
-<h2><a name="limitations">3. Limitations in this Release</a></h2>
-<h3>3.1 FireFox memory bloat</h3>
-<p>
-DUCC's Web Server comprises a javascript that provides the ability 
-to monitor various aspects of the DUCC system via a browser.
-It has been occasionally observed for a browser that if several tabs
-are simultaneously activated, each containing an "Automatic" monitor
-of one aspect of the DUCC system, then over a relatively long period
-of time (on the order of days) the browser process may consume a large
-amount of memory (on the order of several GB).
-At the time of this writing, this problem is not reliably reproduced.
-This limitation has not been observed when in "Manual" monitoring mode.
-The memory bloat has only been observed on Firefox browser.
-</p>
-
 
 </body>
 </html>
