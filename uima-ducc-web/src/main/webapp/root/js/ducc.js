@@ -3025,11 +3025,11 @@ function ducc_update_page(type) {
             ducc_load_job_processes_data();
             ducc_load_job_workitems_data();
             ducc_load_job_performance_data();
-            //ducc_load_job_specification_data();
+            ducc_load_job_specification_data();
             ducc_load_job_files_data();
         }
         if (type == "reservation-details") {
-            //ducc_load_reservation_specification_data();
+            ducc_load_reservation_specification_data();
             ducc_load_reservation_processes_data();
             ducc_load_reservation_files_data();
         }
