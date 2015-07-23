@@ -151,6 +151,9 @@ If building from source, Maven places the documentation in
 Although any user ID can be used to run DUCC, it is recommended to create user ``ducc''
 to later enable use of cgroups as well as running processes with the credentials of the submitting user.
 
+If multiple nodes are going to be added later, it is recommended to install the ducc runtime tree
+on a shared filesystem so that it can be mounted on the additional nodes.
+
 Verification submits a very simple UIMA pipeline for execution under DUCC.  Once this is shown to be
 working, one may proceed installing additional features.
 
@@ -183,7 +186,7 @@ workloads.
   
         This directory contains the full DUCC runtime which
         you may use ``in place'' but it is highly recommended that you move it
-        into a standard location; for example, under ducc's HOME directory:
+        into a standard location on a shared filesystem; for example, under ducc's HOME directory:
 \begin{verbatim}
 mv apache-uima-ducc-[version] /home/ducc/ducc_runtime
 \end{verbatim}
@@ -327,6 +330,9 @@ $HOME/ducc/logs/job-id
    \else
    \hyperref[sec:install.prerequisites]{\em prerequisites}.
    \fi
+
+   \$DUCC\_HOME must be on a shared filesystem and mounted at the same location
+   on all DUCC nodes.
 
    If user's home directories are on local filesystems the location for user logfiles
    should be specified to be on a shared filesystem. 
