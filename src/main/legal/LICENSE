@@ -233,7 +233,6 @@
    (webserver)javax.el_2.1.0.v201004190952.jar 
    (webserver)javax.servlet.jsp_2.1.0.v201004190952.jar
    (webserver)javax.servlet.jsp.jstl_1.2.0.v201004190952.jar
-   (webserver)jetty-jsp-2.1-7.4.4.v20110707.jar
    (webserver)(org.apache.jasper.glassfish_2.1.0.v201007080150.jar
    (webserver)(org.apache.taglibs.standard.glassfish_1.2.0.v201004190952.jar
    (webserver)javax.transaction_1.1.1.v201004190952.jar
