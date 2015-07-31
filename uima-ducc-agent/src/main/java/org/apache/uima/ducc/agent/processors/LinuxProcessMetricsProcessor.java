@@ -435,31 +435,43 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
 		InputStream stream = null;
 	    BufferedReader reader = null;
 	    String cpuTime = "0";
-	     ProcessBuilder pb;
-	     // run top in batch mode and filter just the CPU
-	     pb = new ProcessBuilder("/bin/sh", "-c", "top -b -n 1 -p "+pid+" | tail -n 2 | head -n 1 | awk '{print $9}'");
+	    ProcessBuilder pb;
+        int cpuint = 0;
 
-	      pb.redirectErrorStream(true);
-	      Process proc = pb.start();
-	      proc.waitFor();
-	      //  spawn ps command and scrape the output
-	      stream = proc.getInputStream();
-	      reader = new BufferedReader(new InputStreamReader(stream));
-	      String line;
-	      String regex = "\\s+";
-	      // read the next line from ps output
-	      while ((line = reader.readLine()) != null) {
-	          String tokens[] = line.split(regex);
-	          if ( tokens.length > 0 ) {
-	        	  logger.info("collectProcessCurrentCPU",null, line+" == CPUTIME:"+tokens[0]);
-	        	  cpuTime = tokens[0];
-	          }
-	      }	
-	      if ( cpuTime.indexOf(".") > -1) {
-	    	  cpuTime = cpuTime.substring(0, cpuTime.indexOf("."));
-	      }
-	      stream.close();
-	      return Integer.valueOf(cpuTime);
+	     if ( process != null && 
+	          (process.getProcessState().equals(ProcessState.Running) ||
+  	          (process.getProcessState().equals(ProcessState.Initializing) ) ) ) {
+		     // run top in batch mode and filter just the CPU
+		     pb = new ProcessBuilder("/bin/sh", "-c", "top -b -n 1 -p "+pid+" | tail -n 2 | head -n 1 | awk '{print $9}'");
+
+		      pb.redirectErrorStream(true);
+		      Process proc = pb.start();
+		      proc.waitFor();
+		      //  spawn ps command and scrape the output
+		      stream = proc.getInputStream();
+		      reader = new BufferedReader(new InputStreamReader(stream));
+		      String line;
+		      String regex = "\\s+";
+		      // read the next line from ps output
+		      while ((line = reader.readLine()) != null) {
+		          String tokens[] = line.split(regex);
+		          if ( tokens.length > 0 ) {
+		        	  logger.info("collectProcessCurrentCPU",null, line+" == CPUTIME:"+tokens[0]);
+		        	  cpuTime = tokens[0];
+		          }
+		      }	
+		      if ( cpuTime.indexOf(".") > -1) {
+		    	  cpuTime = cpuTime.substring(0, cpuTime.indexOf("."));
+		      }
+		      stream.close();
+		      try {
+		    	 cpuint = Integer.valueOf(cpuTime);
+		      } catch( NumberFormatException e) {
+		    	  // ignore, return 0
+		      }
+
+	     }
+	     return cpuint;
   }
   private void killChildProcess(final String pid, final String signal) {
     // spawn a thread that will do kill -15, wait for 1 minute and kill the process
