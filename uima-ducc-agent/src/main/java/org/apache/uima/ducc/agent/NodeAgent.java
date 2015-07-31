@@ -1020,7 +1020,15 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     deployedProcess);
             super.getContext().addRoutes(rb);
             StringBuffer sb = new StringBuffer();
-            
+            if ( duccEvent.getState().equals(ProcessState.Running) ) {
+               if ( processEntry.getValue().getUimaPipelineComponents() != null && 
+            		processEntry.getValue().getUimaPipelineComponents().size() > 0 ) {
+            	   processEntry.getValue().getUimaPipelineComponents().clear();
+            	   if ( duccEvent.getUimaPipeline() != null ) {
+            		   duccEvent.getUimaPipeline().clear();
+            	   }
+               }
+            }
             for ( Route route : super.getContext().getRoutes() ) {
             	sb.append("Camel Context - RouteId:"+route.getId()+"\n");
             }
