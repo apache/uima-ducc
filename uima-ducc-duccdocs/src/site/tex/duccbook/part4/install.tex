@@ -359,6 +359,14 @@ $DUCC_HOME/resources/ducc.nodes.
 \section{Ducc\_ling Configuration - Running with credentials of submitting user}
 \label{sec:duccling.install}
 
+   DUCC launches user processes through ducc\_ling, a small native C application.
+   By default the resultant process runs with the credentials of the user ID of
+   the DUCC application. It is possible for multiple users to submit work to
+   DUCC in this configuration, but it requires that the user ID running DUCC has
+   write access to all directories to which the user process outputs data.
+   By configuring the ducc user ID and ducc\_ling correctly, work submitted by
+   all users will run with their own credentials.  
+
     Before proceeding with this step, please note: 
     \begin{itemize}
         \item The sequence operations consisting of {\em chown} and {\em chmod} MUST be performed
