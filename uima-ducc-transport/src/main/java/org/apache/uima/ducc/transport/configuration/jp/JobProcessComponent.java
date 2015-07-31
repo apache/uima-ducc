@@ -279,7 +279,7 @@ implements IJobProcessor{
 					// Stop polling for AE state. All AEs have initialized. No need
 					// to poll. 
 					try {
-						monitor.run();  // force final publication
+						monitor.updateAgentWhenRunning();  // force final publication
 						executor.shutdown();
 					} catch( Exception ee) {
 						ee.printStackTrace();
