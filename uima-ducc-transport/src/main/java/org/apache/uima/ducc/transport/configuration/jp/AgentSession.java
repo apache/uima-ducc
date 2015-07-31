@@ -112,10 +112,10 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 			e.printStackTrace();
 		}
 	}
-	public void notify(List<IUimaPipelineAEComponent> pipeline) {
+	public void notify(boolean forceUpdate, List<IUimaPipelineAEComponent> pipeline) {
 	   synchronized( stateLock ) {
 	     //  Only send update if the AE is initializing
-	     if ( state.equals(ProcessState.Initializing)) {
+	     if ( forceUpdate || state.equals(ProcessState.Initializing)) {
 	       try {
 	         ProcessStateUpdate processUpdate = 
 	           new ProcessStateUpdate(state, pid, duccProcessId, null, pipeline);

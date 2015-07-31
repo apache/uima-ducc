@@ -32,6 +32,6 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 public interface IAgentSession {
 	public void notify(ProcessState state);
 	public void notify(ProcessState state, String message);
-	public void notify(List<IUimaPipelineAEComponent> pipeline);
+	public void notify(boolean forceUpdate, List<IUimaPipelineAEComponent> pipeline);
 	public void stop() throws Exception;
 }

@@ -63,7 +63,7 @@ public class JmxAEProcessInitMonitor implements Runnable {
     	running = true;
 		try {
 			aeStateList.clear();
-			agent.notify(aeStateList);
+			agent.notify(true, aeStateList);
 		} catch (Exception ex) {
 			agent.logger.error("UimaAEJmxMonitor.updateAgentWhenRunning", null, ex);
 		}
@@ -201,7 +201,7 @@ public class JmxAEProcessInitMonitor implements Runnable {
 									+ aeStateList.size());
 				}
 				try {
-					agent.notify(aeStateList);
+					agent.notify(false, aeStateList);
 				} catch (Exception ex) {
 					throw ex;
 				} finally {
