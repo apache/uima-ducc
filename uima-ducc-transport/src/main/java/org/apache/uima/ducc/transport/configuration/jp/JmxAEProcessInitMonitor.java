@@ -62,8 +62,9 @@ public class JmxAEProcessInitMonitor implements Runnable {
     public void updateAgentWhenRunning() {
     	running = true;
 		try {
-			aeStateList.clear();
-			agent.notify(true, aeStateList);
+			//aeStateList.clear();
+			//agent.notify(true, aeStateList);
+		    run();
 		} catch (Exception ex) {
 			agent.logger.error("UimaAEJmxMonitor.updateAgentWhenRunning", null, ex);
 		}
