@@ -209,7 +209,7 @@ public class ResourceManagerComponent
         nodeStability         = SystemPropertyResolver.getIntProperty("ducc.rm.node.stability", DEFAULT_STABILITY_COUNT);
         nodeMetricsUpdateRate = SystemPropertyResolver.getIntProperty("ducc.agent.node.metrics.publish.rate", DEFAULT_NODE_METRICS_RATE);
         schedulingRatio       = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.ratio", DEFAULT_SCHEDULING_RATIO);
-        orPublishingRate      = SystemPropertyResolver.getIntProperty("ducc.orchestrator.abbreviated.state.publish.rate", DEFAULT_OR_PUBLISH_RATE);
+        orPublishingRate      = SystemPropertyResolver.getIntProperty("ducc.orchestrator.state.publish.rate", DEFAULT_OR_PUBLISH_RATE);
         minRmPublishingRate   = orPublishingRate - DEFAULT_RM_PUBLISHING_SLOP;
         if ( minRmPublishingRate <=0 ) minRmPublishingRate = DEFAULT_RM_PUBLISHING_SLOP;        // somewhat arbitrary, but what else?
 
