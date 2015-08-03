@@ -342,7 +342,7 @@ public class RmJob
     public int countOccupancy()
     {
 
-        return assignedShares.size() + pendingShares.size();
+        return (assignedShares.size() + pendingShares.size()) * share_order;
 
         // if ( (given_by_order == null) || (given_by_order[share_order] == 0) ) {
         //     // must use current allocation because we haven't been counted yet

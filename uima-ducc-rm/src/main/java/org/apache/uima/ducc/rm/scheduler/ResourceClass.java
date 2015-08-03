@@ -111,11 +111,10 @@ public class ResourceClass
             this.enforce_memory = props.getBooleanProperty("enforce", true);
         }
 
+        // For now, R 2.0.0 not configurable, and not cappable.  Hope to revive in future release.
         this.fair_share_cap = Integer.MAX_VALUE;      // UIMA-4275
 
         if ( this.policy == Policy.FAIR_SHARE ) {
-            fair_share_cap = props.getIntProperty("cap", Integer.MAX_VALUE);
-            if (fair_share_cap == 0) fair_share_cap = Integer.MAX_VALUE;
 
             this.share_weight = props.getIntProperty("weight");
             if ( props.containsKey("expand-by-doubling") ) {
@@ -337,10 +336,11 @@ public class ResourceClass
     // UIMA-4275
     public boolean fairShareCapExceeded(IRmJob j)
     {
-        if ( policy != Policy.FAIR_SHARE ) return false;
-
-        if ( j.getShareOrder() + countActiveShares() > calculateCap() ) return true;
         return false;
+        // if ( policy != Policy.FAIR_SHARE ) return false;
+
+        // if ( j.getShareOrder() + countActiveShares() > calculateCap() ) return true;
+        // return false;
     }
 
     /**
