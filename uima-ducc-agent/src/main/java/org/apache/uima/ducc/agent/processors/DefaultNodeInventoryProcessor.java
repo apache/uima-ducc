@@ -199,14 +199,17 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 					 * logger.warn(methodName, null,
 					 * "endInit:"+endInitLong+" "+"startRun:"+startRunLong); }
 					 */
-					int pipelineInitStats = (p.getValue()
-							.getUimaPipelineComponents() == null) ? 0 : p
-							.getValue().getUimaPipelineComponents().size();
-
 					if (p.getValue().getUimaPipelineComponents() == null) {
 						p.getValue().setUimaPipelineComponents(
 								new ArrayList<IUimaPipelineAEComponent>());
 					}
+					if ( p.getValue().getProcessState().equals(ProcessState.Running)) {
+						p.getValue().getUimaPipelineComponents().clear();
+					}
+					int pipelineInitStats = (p.getValue()
+							.getUimaPipelineComponents() == null) ? 0 : p
+							.getValue().getUimaPipelineComponents().size();
+
 					sb.append("\n\t[Process Type=")
 							.append(p.getValue().getProcessType())
 							.append(" DUCC ID=")
