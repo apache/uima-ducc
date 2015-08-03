@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.agent.processors;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -174,7 +175,11 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 					*/
 	        int pipelineInitStats = (p.getValue().getUimaPipelineComponents() == null ) ? 0 : 
 	          p.getValue().getUimaPipelineComponents().size();
-					sb.append("\n\t[Process Type=").
+
+	        if ( p.getValue().getUimaPipelineComponents() == null) {
+	        	p.getValue().setUimaPipelineComponents(new ArrayList<IUimaPipelineAEComponent>());
+	        }
+			sb.append("\n\t[Process Type=").
 					   append(p.getValue().getProcessType()).
 					   append(" DUCC ID=").
 					   append(p.getValue().getDuccId()).
