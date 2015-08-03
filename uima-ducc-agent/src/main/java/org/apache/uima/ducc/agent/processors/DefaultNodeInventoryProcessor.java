@@ -203,7 +203,7 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 						p.getValue().setUimaPipelineComponents(
 								new ArrayList<IUimaPipelineAEComponent>());
 					}
-					if ( p.getValue().getProcessState().equals(ProcessState.Running)) {
+					if ( !p.getValue().getProcessState().equals(ProcessState.Initializing)) {
 						p.getValue().getUimaPipelineComponents().clear();
 					}
 					int pipelineInitStats = (p.getValue()
