@@ -144,6 +144,7 @@ public class NodeConfiguration
         defaultNodepool.put("name", "<optional>");
         defaultNodepool.put("nodefile", "<optional>");
         defaultNodepool.put("parent", "<optional>");
+        defaultNodepool.put("share-quantum", "<optional>");
         defaultNodepool.put("domain", "<optional>");
         defaultNodepool.put("search-order", "100");    // temporary.  UIMA-4324
 
@@ -641,6 +642,37 @@ public class NodeConfiguration
     }
 
     /**
+     * Look at all top-level nodepools and insure the scheduling quantum is set.  If not, inherit it from
+     * ducc.properties.
+     */
+    void setShareQuantum()
+    	throws IllegalConfigurationException
+    {
+        for (DuccProperties props : independentNodepools ) {
+            String q = props.getProperty("share-quantum");
+            if ( q == null ) {
+                props.setProperty("share-quantum", ""+SystemPropertyResolver.getIntProperty("ducc.rm.share.quantum", 15));
+            } else {
+                try {
+                    int quantum = Integer.parseInt(q);
+                } catch (NumberFormatException e) {
+                    throw new IllegalConfigurationException("Value for \"share-quantum\" in nodepool " + props.getProperty("name") + " is not a number.");
+                }
+            }
+        }
+    }
+
+    /**
+     * (Recursively) walk up parental chain to find the top-level np for this guy.
+     */
+    DuccProperties getTopLevel(DuccProperties child)
+    {
+        String parent = child.getStringProperty("parent", null);
+        if ( parent == null ) return child;
+        return getTopLevel(nodepools.get(parent));
+    }
+
+    /**
      * Find all the top-level nodepools.
      * Make sure every parent nodepool exists.
      * Set the names of the child nodepools into each parent.
@@ -650,12 +682,26 @@ public class NodeConfiguration
         throws IllegalConfigurationException
     {
 
-        // map the child nodepools into their parents
+        // Insure default is set right
+        setShareQuantum();
+
+        // Map the child nodepools into their parents
         for ( DuccProperties p : nodepools.values() ) {
             String parent = p.getStringProperty("parent", null);
             String name   = p.getStringProperty("name");
 
             if ( parent != null ) {
+
+                // Insure no scheduling quantum is set
+                if ( p.getProperty("share-quantum") != null ) {
+                    throw new IllegalConfigurationException("Nodepool " + name + ": \"share-quantum\" is legal only for top-level nodepools.");
+                }                
+
+                // Now pull down the parent's scheduling quantum
+                DuccProperties tl = getTopLevel(p);
+                p.setProperty("share-quantum", tl.getProperty("share-quantum"));  // (guaranteed non-null by setSchedulingQuantum)
+
+                // And now connect children and parents
                 DuccProperties par_pool = nodepools.get(parent);
                 if ( par_pool == null ) {
                     throw new IllegalConfigurationException("Nodepool " + name+ " parent pool " + parent + " cannot be found.");
@@ -952,6 +998,23 @@ public class NodeConfiguration
         return reserveDefault;
     }
 
+    public int getShareQuantum(String classname)
+        throws IllegalConfigurationException
+    {
+        // to find the quantum for a class - 
+        // -- look up the class to get the nodepool name
+        // -- look in the nodepool for the quantum
+        // must throw on invalid classname which could be a tupo on the part of whoever calls this
+        DuccProperties props = clmap.get(classname);
+        if ( props == null ) {
+            throw new IllegalConfigurationException("Class " + classname + " is not configured.");
+        }
+        
+        String npname = props.getProperty("nodepool");
+        DuccProperties np = nodepools.get(npname);
+        return Integer.parseInt(np.getProperty("share-quantum"));        
+    }
+
     public DuccProperties[] getToplevelNodepools()
     {
         return independentNodepools.toArray(new DuccProperties[independentNodepools.size()]);
@@ -1085,6 +1148,7 @@ public class NodeConfiguration
         String methodName = "printNodepool";
 
         logInfo(methodName, indent + "Nodepool " + p.getProperty("name"));
+        logInfo(methodName, indent + "   Scheduling quantum: " + p.getProperty("share-quantum"));
         logInfo(methodName, indent + "   Search Order: " + p.getProperty("search-order"));
         String nodefile = p.getProperty("nodefile");
         String nfheader = "   Node File: ";
