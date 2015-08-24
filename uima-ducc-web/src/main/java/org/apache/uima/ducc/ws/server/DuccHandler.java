@@ -132,6 +132,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private DuccAuthenticator duccAuthenticator = DuccAuthenticator.getInstance();
 	
 	private String duccVersion						= duccContext+"/version";
+	private String duccHome							= duccContext+"/home";
 	
 	private String duccLoginLink					= duccContext+"/login-link";
 	private String duccLogoutLink					= duccContext+"/logout-link";
@@ -277,6 +278,17 @@ public class DuccHandler extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		String version = Version.version();
 		sb.append(version);
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}	
+	
+	private void handleDuccServletHome(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletHome";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		sb.append(dir_home);
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
@@ -3630,7 +3642,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		if(duccWorkMap.size()> 0) {
-			sb.append("<span title=\"home="+dir_home+"\">");
+			sb.append("<span>");
 			sb.append(getDuccWebServer().getClusterName());
 			sb.append("</span>");
 		}
@@ -4666,6 +4678,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			baseRequest.setHandled(true);
 			if(reqURI.startsWith(duccVersion)) {
 				handleDuccServletVersion(target, baseRequest, request, response);
+				//DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccHome)) {
+				handleDuccServletHome(target, baseRequest, request, response);
 				//DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccAuthenticationStatus)) {
