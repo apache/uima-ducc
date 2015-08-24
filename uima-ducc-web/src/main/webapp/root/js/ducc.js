@@ -210,6 +210,37 @@ function ducc_version() {
     }
 }
 
+var wip_home = false;
+
+function ducc_home() {
+    var fname = "ducc_home";
+    var data = null;
+    if(wip_home) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_home = true;
+    try {
+        var servlet = "/ducc-servlet/home";
+        var tomsecs = ms_timeout;
+        $.ajax({
+            url: servlet,
+            timeout: tomsecs
+        }).done(function(data) {
+            wip_home = false;
+            $("#home").html(data);
+            data = null;
+            ducc_console_success(fname);
+        }).fail(function(jqXHR, textStatus) {
+            wip_home = false;
+            ducc_console_fail(fname, textStatus);
+        });
+    } catch (err) {
+        wip_home = false;
+        ducc_error(fname, err);
+    }
+}
+
 var wip_password_checked = false;
 
 function ducc_password_checked() {
@@ -2474,6 +2505,7 @@ function ducc_init(type) {
     try {
         ducc_identity();
         ducc_version();
+        ducc_home();
         ducc_links();
         ducc_cookies();
         if (type == "viz") {
