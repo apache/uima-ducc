@@ -24,16 +24,21 @@ under the License.
 <tr>
 <td valign="middle" align="center">
 <div>
-<b><big><span class="title">ducc-mon</span></big></b>
-<br>
+<table>
+<tr>
+<td><b><span class="title">ducc-mon</span></b>
+<td><td><i>Version: <b><span class="version" id="version"></b></span></i>
+</table>
 <span class="title_acronym">D</span><span class="title">istributed</span>
 <span class="title_acronym">U</span><span class="title">IMA</span>
 <span class="title_acronym">C</span><span class="title">luster</span>
 <span class="title_acronym">C</span><span class="title">omputing</span>
 <span class="title_acronym">Mon</span><span class="title">itor</span>
 <br>
-<i>Version: <span class="version" id="version"></span></i>
-<br>
+<table>
+<tr>
+<td><i>Home: <b><span class="home" id="home"></span></b></i>
+</table>
 <table>
 <tr>
 <td valign="middle" align="center">
