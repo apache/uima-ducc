@@ -132,7 +132,7 @@ class VisualizedHost
         }
         if ( ! found ) {
             logger.debug(methodName, null, name, "Create new job fragment for", user, "with", qshares, "qshare, type", type);
-            JobFragment j = new JobFragment(user, type, duccid, jobmem, qshares, service_endpoint);
+            JobFragment j = new JobFragment(user, type, duccid, jobmem, qshares, quantum, service_endpoint);
             fragments.add(j);
         }
     }
@@ -166,7 +166,7 @@ class VisualizedHost
         m.tooltipEnd();
         
         Collections.sort(fragments, sorter);
-        float height_one_share = (float) Math.sqrt(shares * NodeViz.quantum) / shares;
+        float height_one_share = (float) Math.sqrt(shares * quantum) / shares;
         float foo = (float) Math.sqrt(mem) / shares;
         logger.debug(methodName, null, name, "shares", shares, "height-one-share", height_one_share, "foo", foo);
         float top = 0f + TITLE_ADJUSTMENT;                   // the top of the box

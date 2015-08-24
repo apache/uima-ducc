@@ -33,19 +33,21 @@ class JobFragment
     int      qshares;          // total qshares represented by the node
     String   service_endpoint; // for services only, the defined endpoint we we can link back to services page
     int      mem;              // Actual memory requested
+    int      quantum;          // The scheduling quantum used for this job
     String   color;            // color to draw this
     DuccType type;             // Job, Service, Reservation, Pop. 
 
     String textColor = "white";
     String fillColor = "black";
 
-    JobFragment(String user, DuccType type, String id, int mem, int qshares, String service_endpoint)
+    JobFragment(String user, DuccType type, String id, int mem, int qshares, int quantum, String service_endpoint)
     {
         this.user             = user;
         this.type             = type;
         this.id               = id;
         this.qshares          = qshares;
         this.mem              = mem;
+        this.quantum          = quantum;
         this.nprocesses       = 1;
         this.service_endpoint = service_endpoint;
         setColors();

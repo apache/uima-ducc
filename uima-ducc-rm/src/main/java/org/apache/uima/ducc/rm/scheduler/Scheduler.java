@@ -115,9 +115,6 @@ public class Scheduler
     String schedImplName;
     IScheduler[] schedulers;
 
-    long  share_quantum    = 15;             // 15 GB  - smallest share size - converted to KB during init because
-                                             // hosts report in KB
-
     long share_free_dram  = 0;               // 0  GB in KB  - minim memory after shares are allocated
     long dramOverride     = 0;               // if > 0, use this instead of amount reported by agents (modeling and testing)
 
@@ -174,7 +171,6 @@ public class Scheduler
         evictionPolicy    = EvictionPolicy.valueOf(ep);        
 
         // nodepool          = new NodePool(null, evictionPolicy, 0);   // global nodepool
-        share_quantum     = SystemPropertyResolver.getLongProperty("ducc.rm.share.quantum", share_quantum) * 1024 * 1024;        // GB -> KB
         share_free_dram   = SystemPropertyResolver.getLongProperty("ducc.rm.reserved.dram", share_free_dram) * 1024 * 1024;   // GB -> KB
         ducc_home         = SystemPropertyResolver.getStringProperty("DUCC_HOME");
 
@@ -227,7 +223,6 @@ public class Scheduler
 //         scheduler.setClasses(resourceClasses);
 //         scheduler.setNodePool(nodepools[0]);
 
-        logger.info(methodName, null, "Scheduler running with share quantum           : ", (share_quantum / (1024*1024)), " GB");
         logger.info(methodName, null, "                       reserved DRAM           : ", (share_free_dram / (1024*1024)), " GB");
         logger.info(methodName, null, "                       DRAM override           : ", (dramOverride / (1024*1024)), " GB");
         logger.info(methodName, null, "                       scheduler               : ", schedImplName);
@@ -427,10 +422,11 @@ public class Scheduler
     /**
      * Calculate share order, given some memory size in GB (as in from a job spec)
      */
-    public int calcShareOrder(long mem)
+    public int calcShareOrder(IRmJob j)
     {
         // Calculate its share order
-        mem = mem * 1024 * 1024;                 // to GB
+        long mem = j.getMemory() << 20 ;                             // to KB from GB
+        int share_quantum = j.getShareQuantum();
         
         int share_order = (int) (mem / share_quantum);               // liberal calc, round UP
         if ( (mem % share_quantum) > 0 ) {
@@ -438,6 +434,7 @@ public class Scheduler
         }
         return share_order;
     }
+
 
     /**
      * Collect all the classes served by the indicated nodepool (property set).  This fills
@@ -548,7 +545,7 @@ public class Scheduler
         logger.info(methodName, null, ResourceClass.getHeader());
         logger.info(methodName, null, ResourceClass.getDashes());
         for ( DuccProperties props : cls.values() ) {
-            ResourceClass rc = new ResourceClass(props, share_quantum);            
+            ResourceClass rc = new ResourceClass(props);
             resourceClasses.put(rc, rc);
             resourceClassesByName.put(rc.getName(), rc);
             logger.info(methodName, null, rc.toString());
@@ -590,7 +587,8 @@ public class Scheduler
             @SuppressWarnings("unchecked")
 			Map<String, String> nodes = (Map<String, String>) np.get("nodes");
             int search_order = np.getIntProperty("search-order", 100);
-            nodepools[i] = new NodePool(null, id, nodes, evictionPolicy, 0, search_order);
+            int q = np.getIntProperty("share-quantum", 15) << 20 ;      // to kB which is how the nodes report in
+            nodepools[i] = new NodePool(null, id, nodes, evictionPolicy, 0, search_order, q);
             schedulers[i].setNodePool(nodepools[i]);                    // set its top-level nodepool
 
             mapNodesToNodepool(nodes, nodepools[i]);
@@ -614,6 +612,7 @@ public class Scheduler
             }
 
             schedulers[i].setClasses(classesForNp);
+
         }
 
         // Here create or update Users with constraints from the registry
@@ -973,7 +972,7 @@ public class Scheduler
                 j.setUser(u);
 
                 // Calculate its share order
-                int share_order = calcShareOrder(j.getMemory());
+                int share_order = calcShareOrder(j);
                 j.setShareOrder(share_order);
 
                 // Assign it to its priority class
@@ -1114,7 +1113,7 @@ public class Scheduler
             if ( dramOverride > 0 ) {
                 allocatable_mem = dramOverride;
             }
-            share_order = (int) (allocatable_mem / share_quantum);           // conservative - rounds down (this will always cast ok)                
+            share_order = (int) (allocatable_mem / np.getShareQuantum());           // conservative - rounds down (this will always cast ok)                
         } else {
             share_order = m.getShareOrder();
         }
@@ -1229,8 +1228,8 @@ public class Scheduler
 
         ret.setAllMachines(np.countAllLocalMachines());
 
-        int[] onlineMachines = NodePool.makeArray();
-        int[] freeMachines = NodePool.makeArray();
+        int[] onlineMachines = np.makeArray();
+        int[] freeMachines = np.makeArray();
         for ( int i = 1; i < freeMachines.length; i++ ) {
             freeMachines[i] += np.countFreeMachines(i);         // (these are local, as we want)
         }
@@ -1272,20 +1271,22 @@ public class Scheduler
                     break;
             }
 
-            int[] demanded = NodePool.makeArray();
-            int[] awarded  = NodePool.makeArray();
+            // TODO MUST FIX THIS
 
-            HashMap<IRmJob, IRmJob> jobs = cl.getAllJobs();
-            for ( IRmJob j : jobs.values() ) {
-                int o = j.getShareOrder();
-                demanded[o] += j.queryDemand();
-                awarded[o]  += j.countNShares();
-            }
+            // int[] demanded = NodePool.makeArray();
+            // int[] awarded  = NodePool.makeArray();
+
+            // HashMap<IRmJob, IRmJob> jobs = cl.getAllJobs();
+            // for ( IRmJob j : jobs.values() ) {
+            //     int o = j.getShareOrder();
+            //     demanded[o] += j.queryDemand();
+            //     awarded[o]  += j.countNShares();
+            // }
             
-            qcl.setName(cl.getName());
-            qcl.setDemanded(demanded);
-            qcl.setAwarded(awarded);
-            reply.addClass(qcl);
+            // qcl.setName(cl.getName());
+            // qcl.setDemanded(demanded);
+            // qcl.setAwarded(awarded);
+            // reply.addClass(qcl);
         }
     }
 
@@ -1305,8 +1306,6 @@ public class Scheduler
             ret.notReady();
             return ret;
         }
-
-        ret.setShareQuantum(share_quantum);
 
         calculateLoad(ret);
 
@@ -1522,7 +1521,7 @@ public class Scheduler
     public void resetNodepools()
     {
         for ( NodePool np : nodepools ) {
-            np.reset(NodePool.getMaxOrder());
+            np.reset(np.getMaxOrder());
         }
     }
 
@@ -1555,10 +1554,12 @@ public class Scheduler
     {
     	String methodName = "processRecovery";
 
-        int share_order = calcShareOrder(j.getMemory());
         ResourceClass rc = resourceClassesByName.get(j.getClassName());
-        j.setShareOrder(share_order);
         j.setResourceClass(rc);
+        
+        int share_order = calcShareOrder(j);
+        j.setShareOrder(share_order);
+
         HashMap<Share, Share> shares = j.getRecoveredShares();
         List<Share> sharesToShrink = new ArrayList<Share>();       // UIMA-4142
         StringBuffer sharenames = new StringBuffer();

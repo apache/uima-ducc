@@ -77,6 +77,11 @@ public interface IRmJobState extends Serializable
     boolean isRefused();
 
     /**
+     * Actual memory allocated per process.
+     */
+    public int memoryGbPerProcess();
+
+    /**
      * If isRefused() is true, this string contains a message explaining why.
      */
     String getReason();

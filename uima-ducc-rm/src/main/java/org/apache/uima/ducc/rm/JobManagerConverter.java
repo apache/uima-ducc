@@ -124,7 +124,6 @@ public class JobManagerConverter
     {
     	String methodName = "blacklistJob";
         
-        int order = scheduler.calcShareOrder(memory);
         Map<DuccId, IResource> all_shares      = null; 
         Map<DuccId, IResource> shrunken_shares = null;
         Map<DuccId, IResource> expanded_shares = null;
@@ -137,16 +136,18 @@ public class JobManagerConverter
 
         // first time - everything must go
         IDuccProcessMap pm = ((IDuccWorkExecutable)job).getProcessMap();              
+        int quantum = 0;
         for ( IDuccProcess proc : pm.values() ) {          // build up Shares from the incoming state
             NodeIdentity ni = proc.getNodeIdentity();
             Machine m = scheduler.getMachine(ni);
             int share_order = 1;
+            quantum = m.getQuantum();
             
             if ( m != null ) {
                 if ( proc.isActive() || (proc.getProcessState() == ProcessState.Undefined) ) {                                    
                     logger.info(methodName, job.getDuccId(), "blacklist", proc.getDuccId(), 
                                 "state", proc.getProcessState(), "isActive", proc.isActive(), "isComplete", proc.isComplete());
-                    m.blacklist(job.getDuccId(), proc.getDuccId(), order);
+                    m.blacklist(job.getDuccId(), proc.getDuccId(), memory);
                     if ( evict ) {
                         share_order = m.getShareOrder();         // best guess
                         Resource r = new Resource(proc.getDuccId(), proc.getNode(), false, share_order, 0);
@@ -162,7 +163,7 @@ public class JobManagerConverter
         }
 
         if ( evict && (shrunken_shares.size() > 0) ) {
-            RmJobState rjs = new RmJobState(job.getDuccId(), all_shares, shrunken_shares, expanded_shares);
+            RmJobState rjs = new RmJobState(job.getDuccId(), quantum, all_shares, shrunken_shares, expanded_shares);
             rjs.setDuccType(job.getDuccType());
             blacklistedResources.put(job.getDuccId(), rjs);          // to tell OR
         }
@@ -1157,7 +1158,7 @@ public class JobManagerConverter
                     }
                 }
                 
-                RmJobState rjs = new RmJobState(j.getId(), all_shares, shrunken_shares, expanded_shares);
+                RmJobState rjs = new RmJobState(j.getId(), (j.getShareQuantum() >> 20) * (j.getShareOrder()), all_shares, shrunken_shares, expanded_shares);
                 rjs.setDuccType(j.getDuccType());
                 rjs.setReason(j.getReason());
                 rmJobState.put(j.getId(), rjs);

@@ -1,3 +1,4 @@
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,6 +20,7 @@
 package org.apache.uima.ducc.rm.scheduler;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -42,6 +44,7 @@ class NodePool
     int depth;
     int updated = 0;
     int search_order = 100;
+    int share_quantum = 0;
 
     EvictionPolicy evictionPolicy = EvictionPolicy.SHRINK_BY_MACHINE;
 
@@ -92,7 +95,7 @@ class NodePool
 
     // Indexed by available free shares, the specific machines with the indicated free space
     HashMap<Integer, Map<Node, Machine>> virtualMachinesByOrder = new HashMap<Integer, Map<Node, Machine>>();  // UIMA-4142
-    static int maxorder = 0;
+    GlobalOrder maxorder = null;
 
 //     NodePool(NodePool parent, String id, EvictionPolicy ep, int order)
 //     {
@@ -103,7 +106,7 @@ class NodePool
 //         this.order = order;
 //     }
 
-    NodePool(NodePool parent, String id, Map<String, String> nodes, EvictionPolicy ep, int depth, int search_order)
+    NodePool(NodePool parent, String id, Map<String, String> nodes, EvictionPolicy ep, int depth, int search_order, int share_quantum)
     {
     	String methodName = "NodePool.<init>";
         this.parent = parent;
@@ -116,6 +119,13 @@ class NodePool
         this.evictionPolicy = ep;
         this.depth = depth;
         this.search_order = search_order;
+        this.share_quantum = share_quantum;
+
+        if ( parent == null ) {
+            maxorder = new GlobalOrder();
+        } else {
+            maxorder = parent.getGlobalOrder();
+        }
     }
 
     void addResourceClass(ResourceClass cl)
@@ -131,6 +141,11 @@ class NodePool
     String getId()
     {
         return id;
+    }
+
+    int getShareQuantum()
+    {
+        return share_quantum;
     }
 
     int getDepth()
@@ -481,21 +496,32 @@ class NodePool
         return cln;
     }
 
-    public static int getMaxOrder()
+    public GlobalOrder getGlobalOrder()
     {
-        return maxorder;              // must always be the same for parent and all children
+        return maxorder;
     }
 
-    public static int[] makeArray()        // common static code because getting this right everywhere is painful
+    public void updateMaxOrder(int order)
+    {
+        maxorder.update(order);
+    }
+
+    public int getMaxOrder()
+    {
+        return maxorder.getOrder();              // must always be the same for parent and all children
+    }
+
+    public int getArraySize()
+    {
+        return getMaxOrder() + 1;                      // a bit bigger, because we're 1-indexed for easier counting
+                                                       // same for parent and children
+    }
+
+    public int[] makeArray()                           // common static code because getting this right everywhere is painful
     {
         return new int[getArraySize()];
     }
 
-    public static int getArraySize()
-    {
-        return getMaxOrder() + 1;          // a bit bigger, because we're 1-indexed for easier counting
-                                           // same for parent and children
-    }
 
     int getSearchOrder()
     {
@@ -637,7 +663,7 @@ class NodePool
 
         // init nSharesByorder to the sum of 'n and 'v MachinesByOrder
         System.arraycopy(nMachinesByOrder, 0, nSharesByOrder, 0, len);
-        for ( int i = 0; i < maxorder + 1; i++ ) {
+        for ( int i = 0; i < getMaxOrder() + 1; i++ ) {
             nSharesByOrder[i] += vMachinesByOrder[i];
         }
 
@@ -715,6 +741,11 @@ class NodePool
     	String methodName = "rearrangeVirtual";
         if ( allMachines.containsKey(m.key()) ) {
             int v_order = m.getVirtualShareOrder();
+            
+            if ( v_order < 0 ) {
+            	int stop_here = 1;
+            	stop_here++;
+            }
             int r_order = m.getShareOrder();
 
             logger.trace(methodName, null, m.getId(), "order", order, "v_order", v_order, "r_order", r_order);
@@ -783,14 +814,16 @@ class NodePool
         //       reset code so it matches the cycles better.  otoh, this isn't a performance-intensive
         //       scheduler so do we care?
         //
-        maxorder = Math.max(order, maxorder);
-        nSharesByOrder     = new int[maxorder + 1];
-        nMachinesByOrder   = new int[maxorder + 1];
-        vMachinesByOrder   = new int[maxorder + 1];
+        updateMaxOrder(order);
+        logger.info(methodName, null, "Nodepool:", id, "Maxorder set to", getMaxOrder());
+
+        nSharesByOrder     = makeArray();
+        nMachinesByOrder   = makeArray();
+        vMachinesByOrder   = makeArray();
         //nFreeSharesByOrder = new int[maxorder + 1];
         //neededByOrder      = new int[maxorder + 1];
 
-        nPendingByOrder = new int[maxorder + 1];
+        nPendingByOrder = makeArray();
 
         // UIMA-4142 Must set vMachinesByOrder and virtualMachinesByOrder independently of
         //           machinesByOrder because blacklisting can cause v_order != r_order
@@ -922,7 +955,7 @@ class NodePool
      */
     NodePool createSubpool(String className, Map<String, String> names, int order)
     {
-        NodePool np = new NodePool(this, className, names, evictionPolicy, depth + 1, order);
+        NodePool np = new NodePool(this, className, names, evictionPolicy, depth + 1, order, share_quantum);
         children.put(className, np);
         return np;
     }
@@ -965,8 +998,7 @@ class NodePool
     {
         String methodName = "nodeArrives";
 
-        maxorder = Math.max(order, maxorder);
-                
+        updateMaxOrder(order);
         
         for ( NodePool np : children.values() ) {
             if ( np.containsPoolNode(node) ) {
@@ -1211,7 +1243,7 @@ class NodePool
     {
         int order = j.getShareOrder();
         int ret = 0;
-        for ( int i = order; i < maxorder; i++ ) {
+        for ( int i = order; i < getMaxOrder(); i++ ) {
             if ( machinesByOrder.containsKey(order) ) {
                 ret += machinesByOrder.get(order).size();
             }
@@ -1304,7 +1336,7 @@ class NodePool
         int rem = 0;
         int low = order;
 
-        while ( (given < nrequested ) && ( low <= maxorder ) ) {
+        while ( (given < nrequested ) && ( low <= getMaxOrder() ) ) {
 
             int avail = vMachinesByOrder[low] + nMachinesByOrder[low];
             if ( avail > 0 ) {
@@ -1507,126 +1539,126 @@ class NodePool
         return null;                                            // found nothing, heck
     }
 
-    // private void doEvictions(int[] neededByOrder, HashMap<Integer, HashMap<IRmJob, IRmJob>> candidates, boolean force)
-    // {
+    private void doEvictions(int[] neededByOrder, HashMap<Integer, HashMap<IRmJob, IRmJob>> candidates, boolean force)
+    {
 
-    //     for ( int nbo = maxorder; nbo > 0; nbo-- ) {
+        for ( int nbo = getMaxOrder(); nbo > 0; nbo-- ) {
 
-    //         if ( neededByOrder[nbo] == 0 ) {                                  // these are N-shares
-    //             continue;
-    //         }
-    //         for ( int oo = maxorder; oo > 0; oo-- ) {
-    //             HashMap<IRmJob, IRmJob> jobs = candidates.get(oo);
-    //             if ( jobs == null ) {
-    //                 continue;
-    //             }
+            if ( neededByOrder[nbo] == 0 ) {                                  // these are N-shares
+                continue;
+            }
+            for ( int oo = getMaxOrder(); oo > 0; oo-- ) {
+                HashMap<IRmJob, IRmJob> jobs = candidates.get(oo);
+                if ( jobs == null ) {
+                    continue;
+                }
 
-    //             Iterator<IRmJob> iter = jobs.values().iterator();             // he has something to give.  is it enough?
-    //             while ( iter.hasNext() && (neededByOrder[nbo] > 0) ) {
-    //                 IRmJob j = iter.next();
-    //                 int loss = 0;
+                Iterator<IRmJob> iter = jobs.values().iterator();             // he has something to give.  is it enough?
+                while ( iter.hasNext() && (neededByOrder[nbo] > 0) ) {
+                    IRmJob j = iter.next();
+                    int loss = 0;
 
-    //                 switch ( evictionPolicy ) {
-    //                     case SHRINK_BY_MACHINE:
-    //                         // minimize fragmentation
-    //                         loss = j.shrinkByOrderByMachine(neededByOrder[nbo], nbo, force, this); // pass in number of N-shares of given order that we want
-    //                                                                                                    // returns number of quantum shares it had to relinquish 
-    //                         break;
-    //                     case SHRINK_BY_INVESTMENT: 
-    //                         // minimize lost work
-    //                         loss = j.shrinkByInvestment(neededByOrder[nbo], nbo, force, this);    // pass in number of N-shares of given order that we want
-    //                                                                                                    // returns number of quantum shares it had to relinquish 
-    //                         break;
-    //                 }
+                    switch ( evictionPolicy ) {
+                        case SHRINK_BY_MACHINE:
+                            // minimize fragmentation
+                            loss = j.shrinkByOrderByMachine(neededByOrder[nbo], nbo, force, this); // pass in number of N-shares of given order that we want
+                                                                                                       // returns number of quantum shares it had to relinquish 
+                            break;
+                        case SHRINK_BY_INVESTMENT: 
+                            // minimize lost work
+                            loss = j.shrinkByInvestment(neededByOrder[nbo], nbo, force, this);    // pass in number of N-shares of given order that we want
+                                                                                                       // returns number of quantum shares it had to relinquish 
+                            break;
+                    }
 
-    //                 neededByOrder[nbo]   -= loss;
-    //                 neededByOrder[0]     -= loss;
-    //                 nPendingByOrder[oo]  += loss;
+                    neededByOrder[nbo]   -= loss;
+                    neededByOrder[0]     -= loss;
+                    nPendingByOrder[oo]  += loss;
 
-    //                 if ( j.countNShares() == 0 ) {                            // nothing left? don't look here any more
-    //                     iter.remove();
-    //                 }
-    //             }
+                    if ( j.countNShares() == 0 ) {                            // nothing left? don't look here any more
+                        iter.remove();
+                    }
+                }
 
-    //         }
-    //     }
-    // }
+            }
+        }
+    }
 
-    // /**
-    //  * Here we tell the NP how much we need cleared up.  It will look around and try to do that.
-    //  * @deprecated No longer used, the doEvictions code in NodepoolScheduler handles evictions by itself.
-    //  *             Keeping this for a while for reference.  UIMA-4275
-    //  */
-    // void doEvictionsByMachine(int [] neededByOrder, boolean force)
-    // {
-    // 	String methodName = "doEvictions";
-    //     //
-    //     // Collect losers that are also squatters, by order, and try them first
-    //     //
-    //     String type;
-    //     type = force ? "forced" : "natural";
+    /**
+     * Here we tell the NP how much we need cleared up.  It will look around and try to do that.
+     * @deprecated No longer used, the doEvictions code in NodepoolScheduler handles evictions by itself.
+     *             Keeping this for a while for reference.  UIMA-4275
+     */
+    void doEvictionsByMachine(int [] neededByOrder, boolean force)
+    {
+    	String methodName = "doEvictions";
+        //
+        // Collect losers that are also squatters, by order, and try them first
+        //
+        String type;
+        type = force ? "forced" : "natural";
 
-    //     logger.debug(methodName, null, getId(),  "NeededByOrder", type, "on entrance eviction", Arrays.toString(neededByOrder));
+        logger.debug(methodName, null, getId(),  "NeededByOrder", type, "on entrance eviction", Arrays.toString(neededByOrder));
 
-    //     for ( NodePool np : getChildrenDescending() ) {
-    //         logger.info(methodName, null, "Recurse to", np.getId(), "from", getId(), "force:", force);
-    //         np.doEvictionsByMachine(neededByOrder, force);
-    //         logger.info(methodName, null, "Recurse from", np.getId(), "proceed with logic for", getId(), "force", force);
-    //     }
+        for ( NodePool np : getChildrenDescending() ) {
+            logger.info(methodName, null, "Recurse to", np.getId(), "from", getId(), "force:", force);
+            np.doEvictionsByMachine(neededByOrder, force);
+            logger.info(methodName, null, "Recurse from", np.getId(), "proceed with logic for", getId(), "force", force);
+        }
 
-    //     // 
-    //     // Adjust neededByOrder to reflect the number of shares that need to be preempted by subtracting the
-    //     // number of shares that already are free
-    //     //
-    //     for ( int nbo = maxorder; nbo > 0; nbo-- ) {
-    //         // UIMA-4065 - I think that subtracting countPendingSharesByOrder() amounts to double counting because it
-    //         //             will reflect any evictions from the depth-first recursion.  Instead, we would subtract only
-    //         //             our own shares.
-    //         //
-    //         // int needed = Math.max(0, neededByOrder[nbo] - countNSharesByOrder(nbo) - countPendingSharesByOrder(nbo)); 
-    //         int needed = Math.max(0, neededByOrder[nbo] - countNSharesByOrder(nbo) - nPendingByOrder[nbo]);
-    //         neededByOrder[nbo] = needed;
-    //         neededByOrder[0] += needed;
-    //     }
+        // 
+        // Adjust neededByOrder to reflect the number of shares that need to be preempted by subtracting the
+        // number of shares that already are free
+        //
+        for ( int nbo = getMaxOrder(); nbo > 0; nbo-- ) {
+            // UIMA-4065 - I think that subtracting countPendingSharesByOrder() amounts to double counting because it
+            //             will reflect any evictions from the depth-first recursion.  Instead, we would subtract only
+            //             our own shares.
+            //
+            // int needed = Math.max(0, neededByOrder[nbo] - countNSharesByOrder(nbo) - countPendingSharesByOrder(nbo)); 
+            int needed = Math.max(0, neededByOrder[nbo] - countNSharesByOrder(nbo) - nPendingByOrder[nbo]);
+            neededByOrder[nbo] = needed;
+            neededByOrder[0] += needed;
+        }
 
-    //     logger.debug(methodName, null, getId(),  "NeededByOrder", type, "after adjustments for pending eviction:", Arrays.toString(neededByOrder));
+        logger.debug(methodName, null, getId(),  "NeededByOrder", type, "after adjustments for pending eviction:", Arrays.toString(neededByOrder));
 
-    //     HashMap<Integer, HashMap<IRmJob, IRmJob>> squatters = new HashMap<Integer, HashMap<IRmJob, IRmJob>>();
-    //     HashMap<Integer, HashMap<IRmJob, IRmJob>> residents = new HashMap<Integer, HashMap<IRmJob, IRmJob>>();
+        HashMap<Integer, HashMap<IRmJob, IRmJob>> squatters = new HashMap<Integer, HashMap<IRmJob, IRmJob>>();
+        HashMap<Integer, HashMap<IRmJob, IRmJob>> residents = new HashMap<Integer, HashMap<IRmJob, IRmJob>>();
 
-    //     for ( Share s : allShares.values() ) {
-    //         HashMap<Integer, HashMap<IRmJob, IRmJob>> map = null;
-    //         boolean is_candidate = force ? s.isForceable() : s.isPreemptable();
-    //         if ( is_candidate ) {
-    //             IRmJob j = s.getJob();
-    //             ResourceClass rc = j.getResourceClass();
-    //             if ( rc.getNodepoolName().equals(id) ) {
-    //                 map = residents;
-    //             } else {
-    //                 map = squatters;
-    //             }
+        for ( Share s : allShares.values() ) {
+            HashMap<Integer, HashMap<IRmJob, IRmJob>> map = null;
+            boolean is_candidate = force ? s.isForceable() : s.isPreemptable();
+            if ( is_candidate ) {
+                IRmJob j = s.getJob();
+                ResourceClass rc = j.getResourceClass();
+                if ( rc.getNodepoolName().equals(id) ) {
+                    map = residents;
+                } else {
+                    map = squatters;
+                }
 
-    //             int order = j.getShareOrder();
-    //             HashMap<IRmJob, IRmJob> jmap = null;
-    //             if ( map.containsKey(order) ) {
-    //                 jmap = map.get(order);
-    //             } else {
-    //                 jmap = new HashMap<IRmJob, IRmJob>();
-    //                 map.put(order, jmap);
-    //             }
-    //             jmap.put(j, j);
-    //         }
-    //     }
+                int order = j.getShareOrder();
+                HashMap<IRmJob, IRmJob> jmap = null;
+                if ( map.containsKey(order) ) {
+                    jmap = map.get(order);
+                } else {
+                    jmap = new HashMap<IRmJob, IRmJob>();
+                    map.put(order, jmap);
+                }
+                jmap.put(j, j);
+            }
+        }
 
-    //     doEvictions(neededByOrder, squatters, force);
-    //     logger.debug(methodName, null, getId(), "NeededByOrder", type, "after eviction of squatters:", Arrays.toString(neededByOrder));
-    //     if ( neededByOrder[0] <= 0 )  {
-    //         return;
-    //     }
+        doEvictions(neededByOrder, squatters, force);
+        logger.debug(methodName, null, getId(), "NeededByOrder", type, "after eviction of squatters:", Arrays.toString(neededByOrder));
+        if ( neededByOrder[0] <= 0 )  {
+            return;
+        }
 
-    //     doEvictions(neededByOrder, residents, force);
-    //     logger.debug(methodName, null, getId(), "NeededByOrder", type, "after eviction of residents:", Arrays.toString(neededByOrder));
-    // }
+        doEvictions(neededByOrder, residents, force);
+        logger.debug(methodName, null, getId(), "NeededByOrder", type, "after eviction of residents:", Arrays.toString(neededByOrder));
+    }
 
 
     int findShares( IRmJob j )
@@ -1938,4 +1970,28 @@ class NodePool
         }
     }
 
+    class GlobalOrder
+    {
+        int maxorder = 0;
+
+        GlobalOrder()
+        {
+            this.maxorder = 0;
+        }
+
+        synchronized void reset()
+        {
+            this.maxorder = 0;
+        }
+
+        synchronized void update(int order)
+        {
+            this.maxorder = Math.max(maxorder, order);
+        }
+
+        synchronized int getOrder()
+        {
+            return maxorder;
+        }
+    }
 }

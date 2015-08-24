@@ -217,7 +217,7 @@ public class Markup
                 out.append("<title>");
                 out.append(j.qshares); 
                 out.append(" unused shares (");
-                out.append((j.qshares * NodeViz.quantum));
+                out.append((j.qshares * j.quantum));
                 out.append("GB) on ");
                 out.append(h.name); 
                 out.append("(");

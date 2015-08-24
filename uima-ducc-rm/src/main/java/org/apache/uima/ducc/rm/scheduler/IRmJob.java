@@ -49,6 +49,11 @@ public interface IRmJob
     public void setJobName(String name);
 
     /**
+     * Asks it's resource class what the share quantum is that it is being scheduled under.
+     */
+    public int getShareQuantum();
+    
+    /**
      * Save ref to the class we are in, and init class-based structures.
      */
     public void setResourceClass(ResourceClass cl);

@@ -105,9 +105,9 @@ public class RmStateDuccEvent
 
             Map<DuccId, IResource> existing = j.getResources();
             if ( existing == null ) {
-                buf.append(String.format("%s %s %s\n\tExisting[0]", j.getDuccType(), j.getId().getFriendly(), reason));
+                buf.append(String.format("%s %s %dGB %s\n\tExisting[0]", j.getDuccType(), j.getId().getFriendly(), j.memoryGbPerProcess(), reason));
             } else {
-                buf.append(String.format("%s %s %s\n\tExisting[%d]: ", j.getDuccType(), j.getId().getFriendly(), reason, existing.size()));
+                buf.append(String.format("%s %s %dGB %s\n\tExisting[%d]: ", j.getDuccType(), j.getId().getFriendly(), j.memoryGbPerProcess(), reason, existing.size()));
                 for ( IResource r : existing.values() ) {                    
                     buf.append(r.toString());
                     buf.append(" ");

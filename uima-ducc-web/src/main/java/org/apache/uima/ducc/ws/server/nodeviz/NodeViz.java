@@ -19,6 +19,8 @@
 
 package org.apache.uima.ducc.ws.server.nodeviz;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -26,8 +28,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.uima.ducc.common.Node;
+import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
@@ -61,8 +66,8 @@ public class NodeViz
     private String visualization;                      // cached visualization
     private long update_interval = 60000;              // Only gen a new viz every 'this long'
 
+    static int default_quantum = 4;                    // for hosts with no jobs so we don't know or care that much
     private String version = "1.1.0";
-    static int quantum = 4;
     static String wshost = "";
     static String wsport = "42133";
     static boolean strip_domain = true;
@@ -72,17 +77,16 @@ public class NodeViz
         String methodName = "NodeViz";
 
         update_interval = SystemPropertyResolver.getLongProperty("ducc.viz.update.interval", update_interval);                                
-        quantum         = SystemPropertyResolver.getIntProperty("ducc.rm.share.quantum", quantum);
-
+        default_quantum = SystemPropertyResolver.getIntProperty("ducc.rm.share.quantum", default_quantum);
         wshost          = SystemPropertyResolver.getStringProperty("ducc.ws.node", System.getProperty("ducc.head"));
         wsport          = SystemPropertyResolver.getStringProperty("ducc.ws.port", wsport);
-        strip_domain   = SystemPropertyResolver.getBooleanProperty("ducc.ws.visualization.strip.domain", true);
+        strip_domain    = SystemPropertyResolver.getBooleanProperty("ducc.ws.visualization.strip.domain", true);
         
         logger.info(methodName, null, "------------------------------------------------------------------------------------");
         logger.info(methodName, null, "Node Visualization starting:");
         logger.info(methodName, null, "    DUCC home               : ", System.getProperty("DUCC_HOME"));
         logger.info(methodName, null, "    ActiveMQ URL            : ", System.getProperty("ducc.broker.url"));
-        logger.info(methodName, null, "Using Share Quantum         : ", quantum);
+        logger.info(methodName, null, "Default Quantum             : ", default_quantum);
         logger.info(methodName, null, "Viz update Interval         : ", update_interval);
         logger.info(methodName, null, "Web Server Host             : ", wshost);
         logger.info(methodName, null, "Web Server Port             : ", wsport);
@@ -125,6 +129,33 @@ public class NodeViz
         int pop_shares = 0;
         int reservation_shares = 0;
 
+        int job_gb = 0;
+        int service_gb = 0;
+        int pop_gb = 0;
+        int reservation_gb = 0;
+
+        // Must find nost configuration so we can work out the quantum used to schedule each job
+        String class_definitions = SystemPropertyResolver
+            .getStringProperty(DuccPropertiesResolver
+                               .ducc_rm_class_definitions, "scheduler.classes");
+        String user_registry = SystemPropertyResolver
+            .getStringProperty(DuccPropertiesResolver
+                               .ducc_rm_user_registry, "ducc.users");
+        class_definitions = System.getProperty("DUCC_HOME") + "/resources/" + class_definitions;
+        NodeConfiguration nc = new NodeConfiguration(class_definitions, null, user_registry, logger);        // UIMA-4142 make the config global
+        try {
+			nc.readConfiguration();
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IllegalConfigurationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
         // first step, generate the viz from the OR map which seems to have everything we need
         // next stop,  walk the machines list and generate empty node for any machine in that list 
         //             that had no work on it
@@ -157,10 +188,20 @@ public class NodeViz
             IDuccStandardInfo si      = w.getStandardInfo();
             IDuccSchedulingInfo sti   = w.getSchedulingInfo();
 
-            String            user    = si.getUser();
-            String            duccid  = service_id == null ? Long.toString(w.getDuccId().getFriendly()) : service_id;     // UIMA-4209
-            int               jobmem  = Integer.parseInt(sti.getShareMemorySize());
-            int               qshares = jobmem / quantum;
+            String              user    = si.getUser();
+            String              duccid  = service_id == null ? Long.toString(w.getDuccId().getFriendly()) : service_id;     // UIMA-4209
+            int                 jobmem  = Integer.parseInt(sti.getShareMemorySize());
+
+            String              sclass = sti.getSchedulingClass();
+            int                 quantum = default_quantum;
+            try {
+                quantum = nc.getShareQuantum(sclass);
+            } catch ( Exception e ) {
+                // this most likely caused by a reconfigure so that a job's class no longer exists.  nothing to do about it
+                // but punt and try not to crash.
+                logger.warn(methodName, null, "Cannot find scheduling class or quantum for " + sclass + ". Using default quantum of " + default_quantum);
+            }
+            int                 qshares = jobmem / quantum;
             if ( jobmem % quantum != 0 ) qshares++;
 
             switch ( type ) {
@@ -185,12 +226,15 @@ public class NodeViz
                         switch ( type ) {
                             case Job:
                                 job_shares += qshares;
+                                job_gb += jobmem;
                                 break;
                             case Pop:
                                 pop_shares += qshares;
+                                pop_gb += jobmem;
                                 break;
                             case Service:
                                 service_shares += qshares;
+                                service_gb += jobmem;
                                 break;
                         }
 
@@ -216,6 +260,7 @@ public class NodeViz
                     
                     logger.debug(methodName, w.getDuccId(), "Receive:", type, w.getStateObject(), "processes[", rm.size(), "] Completed:", w.isCompleted());
                     reservation_shares += qshares;
+                    reservation_gb += jobmem;
                     
                     for ( IDuccReservation r: rm.values()) {
                         Node n = r.getNode();                        
@@ -244,9 +289,11 @@ public class NodeViz
         logger.debug(methodName, null, "Generateing visualizaiton");
         ConcurrentSkipListMap<String,MachineInfo> m = machineData.getMachines();
 
-
         for (String s : m.keySet()) {
-
+            // 
+            // This is for hosts that have no work on them so they didn't come in the work map
+            //
+            
             MachineInfo mi = m.get(s);
             // NOTE: the map changes all the time so the value may be gone.  This situation
             //       will be fixed one day but for now just forget the node, it will show up 
@@ -258,24 +305,24 @@ public class NodeViz
             String key = strip(s);             // our key, possibly with domain stripped
             if ( ! hosts.containsKey(key) ) {
                 // System.out.println("Set host from MachineInfo with key :" + key + ":");
-                VisualizedHost vh = new VisualizedHost(mi, quantum);
+
+                VisualizedHost vh = new VisualizedHost(mi, default_quantum);
                 hosts.put(key, vh);
             }
         }
 
-        int total_shares = 0;
-        int total_ram = 0;
+        int total_gb = 0;
         Markup markup = new Markup();
         VisualizedHost[] sorted = hosts.values().toArray(new VisualizedHost[hosts.size()]);
         Arrays.sort(sorted, new HostSorter());
         for ( VisualizedHost vh : sorted ) {
             vh.toSvg(markup);
-            total_shares += vh.countShares();
-            total_ram += vh.countRam();
+            total_gb += vh.countRam();
         }
         String page = markup.close();
 
-        int unoccupied_shares = total_shares - (job_shares + pop_shares + service_shares + reservation_shares);
+        int unoccupied_gb = total_gb - (job_gb + pop_gb + service_gb + reservation_gb);
+        int total_shares = job_shares + pop_shares + service_shares + reservation_shares;
 
 		visualization = 
             "<html>" + 
@@ -285,20 +332,19 @@ public class NodeViz
             "<i onclick=\"ducc_viz_node_sorter('size')\" id=\"ducc-viz-sort-size\" style=\"color:red\">Size </i>" +
             "<i onclick=\"ducc_viz_node_sorter('name')\" id=\"ducc-viz-sort-name\"\">Name</i>" +
             "</br>" +
-            "<b>Shares of size " + quantum + "GB: </b>" + total_shares + 
+            "<b>Total shares: </b>" + total_shares + 
             ", <b>Jobs: </b>" + job_shares +
             ", <b>Services: </b>" + service_shares +
             ", <b>Managed Reservations: </b>" + pop_shares +
             ", <b>Reservations: </b>" + reservation_shares +
-            ", <b>Unoccupied: </b>" + unoccupied_shares +
+            ", <b>Unoccupied: </b>" + unoccupied_gb +
             "<br><i><small>" +
-            "<b>RAM Total:</b> " + total_ram +
-            "GB, <b>For shares:</b> " + (total_shares * quantum) +
-            "GB, <b>Jobs:</b> " + (job_shares * quantum) +
-            "GB, <b>Services:</b> " + (service_shares * quantum) +
-            "GB, <b>Managed Reservations:</b> " + (pop_shares * quantum) +
-            "GB, <b>Reservations:</b> " + (reservation_shares * quantum) +
-            "GB, <b>Unoccupied:</b> " + (unoccupied_shares * quantum) +
+            "<b>RAM Total:</b> " + total_gb +
+            "GB, <b>Jobs:</b> " + (job_gb) +
+            "GB, <b>Services:</b> " + (service_gb) +
+            "GB, <b>Managed Reservations:</b> " + (pop_gb) +
+            "GB, <b>Reservations:</b> " + (pop_gb) +
+            "GB, <b>Unoccupied:</b> " + (unoccupied_gb) +
             "GB</small></i>" +
             "</div>" +
             "<br>" +

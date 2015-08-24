@@ -84,7 +84,7 @@ public class ResourceClass
 
     private static Comparator<IEntity> apportionmentSorter = new ApportionmentSorterCl();
 
-    public ResourceClass(DuccProperties props, long share_quantum)
+    public ResourceClass(DuccProperties props)
     {
         //
         // We can assume everything useful is here because the parser insured it
@@ -92,7 +92,7 @@ public class ResourceClass
         this.id = props.getStringProperty("name");
         this.policy = Policy.valueOf(props.getStringProperty("policy"));
         this.priority = props.getIntProperty("priority");
-        this.share_quantum = (int) (share_quantum / ( 1024 * 1024 ));        // KB back to GB
+        // (Note: the share quantum is set when the nodepool is set because it isn't known quite yet in the constructor.)
 
         String userset = props.getProperty("users");
         if ( userset != null ) {
@@ -111,7 +111,9 @@ public class ResourceClass
             this.enforce_memory = props.getBooleanProperty("enforce", true);
         }
 
-        // For now, R 2.0.0 not configurable, and not cappable.  Hope to revive in future release.
+        // This is not used any more - we keep it for back-level compatibility, and because
+        // we may revive it in the future.  It will therefore be referenced, but by making it
+        // Integer.MAX_VALUE it is essentially a no-op.
         this.fair_share_cap = Integer.MAX_VALUE;      // UIMA-4275
 
         if ( this.policy == Policy.FAIR_SHARE ) {
@@ -153,9 +155,31 @@ public class ResourceClass
         return authorizedUsers.containsKey(user);
     }
 
+    /**
+     * Ask my nodepool to make an array of the right size for the caller.
+     */
+    int[] makeArray()
+    {
+        return nodepool.makeArray();
+    }
+
+    /**
+     * Ask my nodepool what the largest order of job I supoprt is.
+     */
+    int getMaxOrder()
+    {
+        return nodepool.getMaxOrder();
+    }
+
+    public int getShareQuantum()
+    {
+    	return share_quantum;
+    }
+    
     public void setNodepool(NodePool np)
     {
         this.nodepool = np;
+        this.share_quantum = np.getShareQuantum();
     }
 
     public NodePool getNodepool()
@@ -336,6 +360,7 @@ public class ResourceClass
     // UIMA-4275
     public boolean fairShareCapExceeded(IRmJob j)
     {
+        // fair-share caps are deprecated, insure this never returns true
         return false;
         // if ( policy != Policy.FAIR_SHARE ) return false;
 
@@ -407,7 +432,7 @@ public class ResourceClass
 
         if ( given_by_order == null ) return;       // nothing given, nothing to adjust
 
-        for ( int o = NodePool.getMaxOrder(); o > 0; o-- ) {
+        for ( int o = nodepool.getMaxOrder(); o > 0; o-- ) {
             np.countOutNSharesByOrder(o, given_by_order[o]);
         }
     }
@@ -505,8 +530,8 @@ public class ResourceClass
 
     public void initWantedByOrder(ResourceClass unused)
     {
-        int ord = NodePool.getMaxOrder();
-        wanted_by_order = NodePool.makeArray();
+        int ord = nodepool.getMaxOrder();
+        wanted_by_order = nodepool.makeArray();
         for ( int o = ord; o > 0; o-- ) {
             wanted_by_order[o] = countNSharesWanted(o);
             wanted_by_order[0] += wanted_by_order[o];

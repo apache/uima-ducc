@@ -106,15 +106,18 @@ public class NodepoolScheduler
         }
 
         fragmentationThreshold = SystemPropertyResolver.getIntProperty("ducc.rm.fragmentation.threshold", fragmentationThreshold);
-        scheduling_quantum = SystemPropertyResolver.getIntProperty("ducc.rm.share.quantum", scheduling_quantum);
         do_defragmentation = SystemPropertyResolver.getBooleanProperty("ducc.rm.defragmentation", do_defragmentation);
         use_global_allotment = SystemPropertyResolver.getBooleanProperty("ducc.rm.use_global_allotment",  use_global_allotment);
         global_allotment = SystemPropertyResolver.getIntProperty("ducc.rm.global_allotment", global_allotment);
     }
 
+    /**
+     * Sets the top-level np for this scheduler
+     */
     public void setNodePool(NodePool np)
     {
         this.globalNodepool = np;
+        this.scheduling_quantum = np.getShareQuantum() >> 20;   // to GB from KB
     }
 
     public void setEvictionPolicy(EvictionPolicy ep)
@@ -385,8 +388,8 @@ public class NodepoolScheduler
     {
         String methodName = "apportion_qshares";
         boolean shares_given = false;
-        int maxorder = NodePool.getMaxOrder();
-        int[] nshares = NodePool.makeArray();           // nshares
+        int maxorder = globalNodepool.getMaxOrder();
+        int[] nshares = globalNodepool.makeArray();           // nshares
 
 
         if ( entities.size() == 0 ) return;
@@ -408,12 +411,12 @@ public class NodepoolScheduler
         StringBuffer   enames = null;
         StringBuffer eweights = null;
         logger.info(methodName, null, descr, "RmCounter Start");
-        logger.info(methodName, null, descr, "maxorder = ", NodePool.getMaxOrder());
+        logger.info(methodName, null, descr, "maxorder = ", globalNodepool.getMaxOrder());
         enames = new StringBuffer();            
         eweights = new StringBuffer();  
 
         for ( IEntity e : working ) {              
-            int[] gbo = NodePool.makeArray();
+            int[] gbo = globalNodepool.makeArray();
             e.setGivenByOrder(gbo);
 
             given_by_order.put(e, gbo);
@@ -1334,7 +1337,7 @@ public class NodepoolScheduler
         // The job passes; give the job a count
         //
         logger.info(methodName, j.getId(), "+++++ nodepool", np.getId(), "class", rc.getName(), "order", order, "shares", nSharesToString(granted, order));
-        int[] gbo = NodePool.makeArray();
+        int[] gbo = globalNodepool.makeArray();
         gbo[order] = granted;                      // what we get
         j.setGivenByOrder(gbo);
         
@@ -1359,7 +1362,7 @@ public class NodepoolScheduler
             // already accounted for as well, since it is a non-preemptable share
             logger.info(methodName, j.getId(), "[stable]", "assigned", j.countNShares(), "processes, ", 
                         (j.countNShares() * j.getShareOrder()), "QS");
-            int[] gbo = NodePool.makeArray();
+            int[] gbo = globalNodepool.makeArray();
             
             gbo[j.getShareOrder()] = 1;                // must set the allocation so eviction works right
             j.setGivenByOrder(gbo);
@@ -1393,7 +1396,7 @@ public class NodepoolScheduler
         // The job passes.  Assign it a count and get on with life ...
         //
         logger.info(methodName, j.getId(), "+++++ nodepool", np.getId(), "class", rc.getName(), "order", order, "shares", nSharesToString(1, order));
-        int[] gbo = NodePool.makeArray();
+        int[] gbo = globalNodepool.makeArray();
         gbo[order] = 1;
         j.setGivenByOrder(gbo);
         
@@ -1542,7 +1545,7 @@ public class NodepoolScheduler
         // The job passes; give the job a count
         //
         logger.info(methodName, j.getId(), "Request is granted a machine for reservation.");
-        int[] gbo = NodePool.makeArray();
+        int[] gbo =globalNodepool.makeArray();
         int order = j.getShareOrder();     // memory, coverted to order, so we can find stuff        
         gbo[order] = freeable + j.countNShares(); // account for new stuff plus what it already has
         j.setGivenByOrder(gbo);
@@ -1560,7 +1563,7 @@ public class NodepoolScheduler
             logger.info(methodName, j.getId(), "[stable]", "assigned", j.countNShares(), "processes, ", 
                         (j.countNShares() * j.getShareOrder()), "QS");
 
-            int[] gbo = NodePool.makeArray();
+            int[] gbo =globalNodepool.makeArray();
 
             gbo[j.getShareOrder()] = 1;         // UIMA4275 - only one
             j.setGivenByOrder(gbo);            
@@ -1585,7 +1588,7 @@ public class NodepoolScheduler
         }
                 
         logger.info(methodName, j.getId(), "Request is granted a machine for reservation.");
-        int[] gbo = NodePool.makeArray();
+        int[] gbo =globalNodepool.makeArray();
         int order = j.getShareOrder();     // memory, coverted to order, so we can find stuff        
         gbo[order] = 1;
         j.setGivenByOrder(gbo);
@@ -1722,7 +1725,7 @@ public class NodepoolScheduler
             logger.info(methodName, null, "Return from", np.getId(), "proceeding with logic for", nodepool.getId());
         }
 
-        int neededByOrder[] = NodePool.makeArray();         // for each order, how many N-shares do I want to add?
+        int neededByOrder[] =globalNodepool.makeArray();         // for each order, how many N-shares do I want to add?
         // int total_needed = 0;
 
         Map<IRmJob, Integer> overages = new HashMap<IRmJob, Integer>();        // UIMA-4275
@@ -2298,8 +2301,8 @@ public class NodepoolScheduler
             NodePool np = allPools[npi];
             String id = np.getId();
 
-            int[] vmach = NodePool.makeArray();
-            int[] nmach = NodePool.makeArray();
+            int[] vmach =globalNodepool.makeArray();
+            int[] nmach =globalNodepool.makeArray();
             Map<IRmJob, Integer> jobmap = new HashMap<IRmJob, Integer>();
             vshares.put(id, vmach);
             nshares.put(id, nmach);

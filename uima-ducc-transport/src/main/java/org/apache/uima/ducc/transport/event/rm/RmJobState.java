@@ -28,7 +28,9 @@ public class RmJobState implements IRmJobState {
 
 	private static final long serialVersionUID = 1L;
 	private DuccId duccId;                              // this job's DuccId as assigned by OR
-    private DuccType ducc_type;                         // for messages :(
+    private DuccType ducc_type;                         // for messages
+    private int memoryPerProcess;                       // in gb, actual memory allocated, usually > memory requesed
+                                                        // because of rounding to nearst multiple of the quantum
 
     // for all maps:
     //     key:  DuccId of a share, assigned by RM
@@ -47,11 +49,13 @@ public class RmJobState implements IRmJobState {
     }
 
     public RmJobState(DuccId duccId, 
+                      int memoryPerProcess,
                       Map<DuccId, IResource> resources, 
                       Map<DuccId, IResource> removals, 
                       Map<DuccId, IResource> additions)
     {
         this.duccId = duccId;
+        this.memoryPerProcess = memoryPerProcess;
         this.resources = resources;
         this.pendingRemovals = removals;
         this.pendingAdditions = additions;
@@ -60,6 +64,7 @@ public class RmJobState implements IRmJobState {
     public RmJobState(DuccId duccId, String refusalReason)
     {
         this.duccId = duccId;
+        this.memoryPerProcess = 0;
         this.refused = true;
         this.reason = refusalReason;
     }
@@ -113,4 +118,16 @@ public class RmJobState implements IRmJobState {
     {
         this.ducc_type = dt;
     }
+
+    // in GB
+    public int memoryGbPerProcess()
+    {
+        return memoryPerProcess;
+    }
+
+    public int setMemorPerProcess(int m)
+    {
+        return memoryPerProcess;
+    }
+
 }

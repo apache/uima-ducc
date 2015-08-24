@@ -321,7 +321,7 @@ public class RmJob
 
     public void initWantedByOrder(ResourceClass unused)
     {
-        wanted_by_order              = NodePool.makeArray();
+        wanted_by_order              = unused.makeArray();
         wanted_by_order[share_order] = getJobCap();
         wanted_by_order[0]           = wanted_by_order[share_order];
     }
@@ -1226,6 +1226,11 @@ public class RmJob
     public void setThreads(int th)
     {
     	this.threads = th;
+    }
+
+    public int getShareQuantum()
+    {
+        return resource_class.getShareQuantum();
     }
 
     public int getMemory() {

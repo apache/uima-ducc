@@ -39,7 +39,7 @@ public class Machine
     private int hbcounter = 0;           // heartbeat counter
 
     private long memory;            // in Kb
-    private int share_order = 0;
+    private int share_order = 1;
 
     private NodePool nodepool;
 
@@ -94,13 +94,26 @@ public class Machine
         return node;
     }
 
+    /**
+     * Return the quantum for this machine - the actual amount allocated in a single share on this machine.
+     */
+    public int getQuantum()
+    {
+        return (int) memory / share_order;
+    }
+
     // UIMA-4142
     // Black list some number of shres for a specific job and proc.  This reduces the number of
     // schedulable shares until they are whitelisted.
-    public synchronized void blacklist(DuccId jobid, DuccId procid, int nshares)
+    //public synchronized void blacklist(DuccId jobid, DuccId procid, int nshares)
+    public synchronized void blacklist(DuccId jobid, DuccId procid, long jobmem)
     {
         String methodName = "blacklist";
-        
+      
+        int q = getQuantum();
+        int nshares = (int) jobmem / q;
+        if ( jobmem % q > 0 ) nshares++;
+
         if ( ! blacklistedWork.containsKey(procid) ) {                 // already condemned?
             if ( nshares == -1 ) nshares = share_order;                // whole machine - reservations
 

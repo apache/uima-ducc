@@ -168,6 +168,7 @@ public class Share
         return machine;
     }
 
+
     long getHostMemory()
     {
         if ( machine != null ) return machine.getMemory();

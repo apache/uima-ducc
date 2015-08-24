@@ -172,8 +172,8 @@ public class User
 
     public void initWantedByOrder(ResourceClass rc)
     {
-    	wanted_by_order = NodePool.makeArray();
-        for ( int o = NodePool.getMaxOrder(); o > 0; o-- ) {
+    	wanted_by_order = rc.makeArray();
+        for ( int o = rc.getMaxOrder(); o > 0; o-- ) {
             wanted_by_order[o] = countNSharesWanted(o, rc);
             wanted_by_order[0] +=  wanted_by_order[o];
         }

@@ -62,7 +62,7 @@ public interface ISchedulerMain
     IRmJob getJob(DuccId id);
     Share getShare(DuccId id);
     Machine getMachine(NodeIdentity id);
-    int calcShareOrder(long mem);                 // UIMA-4142 expose to JobManagerConverter
+    int calcShareOrder(IRmJob j);                 // UIMA-4142 expose to JobManagerConverter
 
     void queryMachines();
 
