@@ -654,7 +654,7 @@ public class NodeConfiguration
                 props.setProperty("share-quantum", ""+SystemPropertyResolver.getIntProperty("ducc.rm.share.quantum", 15));
             } else {
                 try {
-                    int quantum = Integer.parseInt(q);
+					Integer.parseInt(q);      // insure it's a number
                 } catch (NumberFormatException e) {
                     throw new IllegalConfigurationException("Value for \"share-quantum\" in nodepool " + props.getProperty("name") + " is not a number.");
                 }

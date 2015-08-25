@@ -741,11 +741,6 @@ class NodePool
     	String methodName = "rearrangeVirtual";
         if ( allMachines.containsKey(m.key()) ) {
             int v_order = m.getVirtualShareOrder();
-            
-            if ( v_order < 0 ) {
-            	int stop_here = 1;
-            	stop_here++;
-            }
             int r_order = m.getShareOrder();
 
             logger.trace(methodName, null, m.getId(), "order", order, "v_order", v_order, "r_order", r_order);
