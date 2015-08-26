@@ -47,16 +47,7 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 	private AtomicLong count = new AtomicLong(0);
 	private AtomicLong total = new AtomicLong(0);
 	
-	private class Data {
-		public String uniqueName;
-		public SynchronizedStats synchronizedStats;
-		public Data(String uniqueName, SynchronizedStats synchronizedStats) {
-			this.uniqueName = uniqueName;
-			this.synchronizedStats = synchronizedStats;
-		}
-	}
-	
-	private ConcurrentHashMap<String, Data> map = new ConcurrentHashMap<String, Data>();
+	private ConcurrentHashMap<PerfKey, SynchronizedStats> map = new ConcurrentHashMap<PerfKey, SynchronizedStats>();
 
 	public WorkItemPerformanceKeeper(String logDir) {
 		setLogDir(logDir);
@@ -69,11 +60,10 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 	@Override
 	public List<IWorkItemPerformanceInfo> dataGet() {
 		List<IWorkItemPerformanceInfo> list = new ArrayList<IWorkItemPerformanceInfo>();
-		for(Entry<String, Data> entry : map.entrySet()) {
-			String name = entry.getKey();
-			Data data = entry.getValue();
-			String uniqueName = data.uniqueName;
-			SynchronizedStats stats = data.synchronizedStats;
+		for(Entry<PerfKey, SynchronizedStats> entry : map.entrySet()) {
+			String name = entry.getKey().getName();
+			String uniqueName = entry.getKey().getUniqueName();
+			SynchronizedStats stats = entry.getValue();
 			double count = stats.getNum();
 			double time = stats.getSum();
 			double pctOfTime = 0;
@@ -108,15 +98,12 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 		String location = "dataAdd";
 		try {
 			// name
-			String key = name;
-			if(!map.containsKey(key)) {
-				Data data = new Data(uniqueName, new SynchronizedStats());
-				map.putIfAbsent(key, data);
+			PerfKey perfKey = new PerfKey(name, uniqueName);
+			if(!map.containsKey(perfKey)) {
+				map.putIfAbsent(perfKey, new SynchronizedStats());
 			}
-			// data
-			Data data = map.get(key);
 			// stats
-			SynchronizedStats stats = data.synchronizedStats;
+			SynchronizedStats stats = map.get(perfKey);
 			stats.addValue(time);
 			total.addAndGet(time);
 			// sum
@@ -185,5 +172,4 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 		}
 	}
 	
-
 }

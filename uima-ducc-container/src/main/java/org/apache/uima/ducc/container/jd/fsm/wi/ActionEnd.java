@@ -100,6 +100,17 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 	private String keyUniqueName = "uniqueName";
 	private String keyAnalysisTime = "analysisTime";
 	
+	private String normalizeUniqueName(String uniqueName) {
+		String retVal = uniqueName;
+		try {
+			// expected format: <thread-number> Components /<annotators-path>
+			retVal = uniqueName.trim().split("\\s++", 3)[2];
+		}
+		catch(Exception e) {
+		}
+		return retVal;
+	}
+	
 	private void updatePerformanceMetrics(IActionData actionData, IWorkItem wi) {
 		String location = "updatePerformanceMetrics";
 		if(wi != null) {
@@ -117,7 +128,7 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 							wipk.count();
 							for(Properties properties : list) {
 								String name = properties.getProperty(keyName);
-								String uniqueName = properties.getProperty(keyUniqueName);
+								String uniqueName = normalizeUniqueName(properties.getProperty(keyUniqueName));
 								String analysisTime = properties.getProperty(keyAnalysisTime);
 								long time = 0;
 								try {
