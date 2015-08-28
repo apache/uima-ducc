@@ -30,8 +30,10 @@ public class JavaCommandLine extends ACommandLine {
 	public JavaCommandLine(String executable) {
 		super(executable);
 	}
-	public void addOption(String option ) {
-		options.add(option);
+    public void addOption(String option ) {
+        if (!options.contains(option)) {
+            options.add(option);
+        }
 	}
 	public List<String> getOptions() {
 		return options;
