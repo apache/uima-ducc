@@ -74,15 +74,19 @@ public class TestSuite {
 	}
 
 	private String getResource(String name) {
-		String retVal = null;
-		URL urlXml = null;
-		File file = null;
-		String path = null;
-		//
-		urlXml = this.getClass().getResource(name);
-		file = new File(urlXml.getFile());
-		path = file.getAbsolutePath();
-		retVal = path;
+		String retVal = name;
+		try {
+			URL urlXml = null;
+			File file = null;
+			String path = null;
+			//
+			urlXml = this.getClass().getResource(name);
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			retVal = path;
+		}
+		catch(Exception e) {
+		}
 		return retVal;
 	}
 	
