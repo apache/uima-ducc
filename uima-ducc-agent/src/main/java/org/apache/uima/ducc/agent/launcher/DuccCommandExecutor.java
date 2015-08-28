@@ -317,7 +317,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			// if the process is marked for death or still initializing or it is
 			// JD, kill it
 			if (((ManagedProcess) managedProcess).doKill()
-					|| ((ManagedProcess) managedProcess).getDuccProcess()
+                                                    					|| ((ManagedProcess) managedProcess).getDuccProcess()
 							.getProcessType().equals(ProcessType.Service)
 					|| ((ManagedProcess) managedProcess).getDuccProcess()
 							.getProcessType().equals(ProcessType.Pop)
@@ -681,7 +681,14 @@ public class DuccCommandExecutor extends CommandExecutor {
 				// destroyed as well.
 				if (agent.useCgroups) {
 					String containerId = getContainerId();
-					agent.cgroupsManager.destroyContainer(containerId);
+					String userId = ((ManagedProcess) super.managedProcess)
+					.getOwner();
+					// before destroying the container the code checks if there
+					// are processes still running in it. This could be true if
+					// user code launched child processes. If there are child
+					// processes still running, the code kills each one at a 
+					// time and at the end the container is removed.
+					agent.cgroupsManager.destroyContainer(containerId, userId);
 					logger.info(methodName, null,
 							"Removed CGroup Container with ID:" + containerId);
 				}

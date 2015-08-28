@@ -74,7 +74,7 @@ public class CGroupsManager {
 			synchronized (cgMgr) {
 				cgMgr.wait(60000);
 			}
-			cgMgr.destroyContainer(args[0]);
+			cgMgr.destroyContainer(args[0], args[2]);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -185,7 +185,7 @@ public class CGroupsManager {
 					// Don't remove CGroups if there are zombie processes there. Otherwise, attempt
 					// to remove the CGroup may hang a thread.
 					if ( zombieCount == 0 )  {  // no zombies in the container
-	 					destroyContainer(cgroupFolder);
+	 					destroyContainer(cgroupFolder, "ducc");
 						agentLogger.info("cleanupOnStartup", null,
 								"--- Agent Removed Empty CGroup:" + cgroupFolder);
 					} else {
@@ -481,9 +481,25 @@ public class CGroupsManager {
 	 * 
 	 * @throws Exception
 	 */
-	public boolean destroyContainer(String containerId) throws Exception {
+	public boolean destroyContainer(String containerId, String userId) throws Exception {
 		try {
 			if (cgroupExists(cgroupBaseDir + "/" + containerId)) {
+				// before removing cgroup container, make sure to kill 
+				// all processes that still may be there. User process
+				// may have created child processes that may still be running.
+				String[] pids = getPidsInCgroup(containerId);
+				if ( pids != null ) {
+					if ( pids.length > 0 ) {
+						agentLogger.info("destroyContainer", null,"Found "+pids.length+" child processes still in container:"+containerId+" - killing all"); 
+					}
+					for( String pid : pids ) {
+						try {
+						   kill(pid, userId);
+						} catch(Exception ee) {
+							agentLogger.warn("destroyContainer", null, "Unable to kill child process with PID:"+pid+" from cgroup:"+containerId+"\n"+ee);
+						}
+					}
+				}
 				String[] command = new String[] { "/bin/rmdir",
 						cgroupBaseDir + "/" + containerId };
 				int retCode = launchCommand(command, false, "ducc", containerId);

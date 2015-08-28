@@ -293,7 +293,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     		  useCgroups = true;
                               try {
                             	  // remove dummy container
-                            	  cgroupsManager.destroyContainer("test");
+                            	  cgroupsManager.destroyContainer("test","duck");
                               } catch( Exception eee ) {}
                               logger.info("nodeAgent", null, "------- Agent Running with CGroups Enabled");
                     	  } else {
