@@ -51,4 +51,5 @@ public interface IDuccWorkMap extends Serializable, Map {
 	public int getJobDriverNodeCount();
 	
 	public void addDuccWork(IDuccWork duccWork);
+	public void removeDuccWork(DuccId duccId);
 }
