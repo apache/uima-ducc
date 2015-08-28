@@ -130,7 +130,8 @@ public class DuccPropertiesResolver {
     public static final String ducc_rm_user_registry = "ducc.rm.user.registry"; // UIMA-4275
     public static final String ducc_rm_share_quantum = "ducc.rm.share.quantum";
     public static final String ducc_jd_share_quantum = "ducc.jd.share.quantum";
-    
+    public static final String ducc_jd_share_quantum_reserve_count = "ducc.jd.share.quantum.reserve.count";
+  
     public static final String ducc_authentication_implementer = "ducc.authentication.implementer";
     public static final String ducc_authentication_users_include = "ducc.authentication.users.include";
     public static final String ducc_authentication_users_exclude = "ducc.authentication.users.exclude";
@@ -164,6 +165,7 @@ public class DuccPropertiesResolver {
         defaultProperties.put(default_process_per_item_time_max,"1");
         defaultProperties.put(ducc_rm_share_quantum,"10");
         defaultProperties.put(ducc_jd_share_quantum,"300");
+        defaultProperties.put(ducc_jd_share_quantum_reserve_count,"2");
         defaultProperties.put(ducc_orchestrator_unmanaged_reservations_accepted,"true");
         defaultProperties.put(ducc_orchestrator_use_lock_file,"false");
         defaultProperties.put(ducc_ws_login_enabled,"true");
