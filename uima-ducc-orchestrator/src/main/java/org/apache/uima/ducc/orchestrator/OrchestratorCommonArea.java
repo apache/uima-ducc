@@ -35,6 +35,7 @@ import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
+import org.apache.uima.ducc.orchestrator.jd.scheduler.JdScheduler;
 import org.apache.uima.ducc.orchestrator.utilities.Checkpointable;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
@@ -131,7 +132,7 @@ public class OrchestratorCommonArea {
 		processAccounting = new ProcessAccounting();
 		OrchestratorCheckpoint.getInstance().switchOnOff(commonConfiguration.orchestratorCheckpoint);
 		OrchestratorCheckpoint.getInstance().restoreState();
-		hostManager = JobDriverHostManager.getInstance();
+		jdScheduler = JdScheduler.getInstance();
 		historyPersistenceManager = HistoryFactory.getInstance();
 	}
 	
@@ -244,10 +245,10 @@ public class OrchestratorCommonArea {
 	
 	// **********
 	
-	private JobDriverHostManager hostManager = null;
+	private JdScheduler jdScheduler = null;
 	
-	public JobDriverHostManager getHostManager() {
-		return hostManager;
+	public JdScheduler getJdScheduler() {
+		return jdScheduler;
 	}
 	
 	// **********

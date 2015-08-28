@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.NodeConfiguration;
@@ -27,16 +28,22 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.orchestrator.jd.scheduler.JdScheduler;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
+import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class OrchestratorHelper {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorComponent.class.getName());
+	private static DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorHelper.class.getName());
 	
 	public static DuccId jobid = null;
 	
@@ -202,4 +209,86 @@ public class OrchestratorHelper {
 	}
 	*/
 	
+	public static void jdDeallocate(IDuccWorkJob job, IDuccProcess jdProcess) {
+		String location = "jdDeallocate";
+		if(job != null) {
+			DuccId jobId = job.getDuccId();
+			if(jdProcess != null) {
+				JdScheduler jdScheduler = JdScheduler.getInstance();
+				ProcessState processState = jdProcess.getProcessState();
+				if(processState != null) {
+					switch(processState) {
+					case Failed:
+					case FailedInitialization:
+					case Stopped:
+					case Killed:
+					case Abandoned:
+						DuccId jdId = jdProcess.getDuccId();
+						DuccId jdProcessDuccId = (DuccId) jdId;
+						jdScheduler.deallocate(jdProcessDuccId, jobId);
+						logger.debug(location, jobId, "state: "+processState);
+						break;
+					default:
+						logger.debug(location, jobId, "state: "+processState);
+						break; 
+					}
+				}
+				else {
+					logger.debug(location, jobId, "state: "+processState);
+				}
+			}
+			else {
+				logger.debug(location, jobId, "jdProcess: "+jdProcess);
+			}
+		}
+		else {
+			logger.debug(location, null, "job: "+job);
+		}
+	}
+	
+	public static void jdDeallocate(IDuccWorkJob job) {
+		String location = "jdDeallocate";
+		JdScheduler jdScheduler = JdScheduler.getInstance();
+		if(job != null) {
+			DuccId jobId = job.getDuccId();
+			DuccWorkPopDriver driver = job.getDriver();
+			if(driver != null) {
+				IDuccProcessMap processMap = job.getDriver().getProcessMap();
+				if(processMap != null) {
+					for(Entry<DuccId, IDuccProcess> entry : processMap.entrySet()) {
+						IDuccProcess jd = entry.getValue();
+						ProcessState processState = jd.getProcessState();
+						if(processState != null) {
+							switch(processState) {
+							case Failed:
+							case FailedInitialization:
+							case Stopped:
+							case Killed:
+							case Abandoned:
+								DuccId jdId = entry.getKey();
+								DuccId jdProcessDuccId = (DuccId) jdId;
+								jdScheduler.deallocate(jdProcessDuccId, jobId);
+								break;
+							default:
+								logger.debug(location, jobId, "state: "+processState);
+								break;
+							}
+						}
+						else {
+							logger.debug(location, jobId, "state: "+processState);
+						}
+					}
+				}
+				else {
+					logger.debug(location, jobId, "map: "+processMap);
+				}
+			}
+			else {
+				logger.debug(location, jobId, "driver: "+driver);
+			}
+		}
+		else {
+			logger.debug(location, null, "job: "+job);
+		}
+	}
 }

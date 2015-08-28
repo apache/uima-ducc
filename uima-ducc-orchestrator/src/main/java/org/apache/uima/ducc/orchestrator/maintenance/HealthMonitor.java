@@ -30,19 +30,20 @@ import org.apache.uima.ducc.orchestrator.Constants;
 import org.apache.uima.ducc.orchestrator.OrUtil;
 import org.apache.uima.ducc.orchestrator.OrchestratorCheckpoint;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
+import org.apache.uima.ducc.orchestrator.OrchestratorHelper;
 import org.apache.uima.ducc.orchestrator.StateManager;
 import org.apache.uima.ducc.orchestrator.WorkMapHelper;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
+import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.IRationale;
-import org.apache.uima.ducc.transport.event.common.Rationale;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
+import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
+import org.apache.uima.ducc.transport.event.common.Rationale;
 
 
 public class HealthMonitor {
@@ -191,6 +192,9 @@ public class HealthMonitor {
 					}
 				}
 			}
+		}
+		if(ckpt) {
+			OrchestratorHelper.jdDeallocate(job);
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return ckpt;

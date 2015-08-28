@@ -39,9 +39,10 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
 import org.apache.uima.ducc.orchestrator.CGroupManager;
-import org.apache.uima.ducc.orchestrator.JobDriverHostManager;
 import org.apache.uima.ducc.orchestrator.OrUtil;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
+import org.apache.uima.ducc.orchestrator.exceptions.ResourceUnavailableForJobDriverException;
+import org.apache.uima.ducc.orchestrator.jd.scheduler.JdScheduler;
 import org.apache.uima.ducc.transport.cmdline.ACommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
@@ -86,7 +87,7 @@ public class JobFactory implements IJobFactory {
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
-	private JobDriverHostManager hostManager = orchestratorCommonArea.getHostManager();
+	private JdScheduler jdScheduler = orchestratorCommonArea.getJdScheduler();
 	private DuccIdFactory jdIdFactory = new DuccIdFactory();
 
 	private int addEnvironment(DuccWorkJob job, String type, ACommandLine aCommandLine, String environmentVariables) {
@@ -379,7 +380,7 @@ public class JobFactory implements IJobFactory {
 		addDashD(jcl, flagName, flagValue);
 	}
 	
-	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
+	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) throws ResourceUnavailableForJobDriverException {
 		String methodName = "createDriver";
 		DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
 		// broker & queue
@@ -409,16 +410,21 @@ public class JobFactory implements IJobFactory {
 		logger.debug(methodName, job.getDuccId(), "driver: "+driverCommandLine.getCommand());
 		driver.setCommandLine(driverCommandLine);
 		//
-		NodeIdentity nodeIdentity = hostManager.getNode();
-		DuccId duccId = jdIdFactory.next();
-		duccId.setFriendly(0);
-		DuccProcess driverProcess = new DuccProcess(duccId,nodeIdentity,ProcessType.Pop);
+		DuccId jdId = jdIdFactory.next();
+		int friendlyId = driver.getProcessMap().size();
+		jdId.setFriendly(friendlyId);
+		DuccId jdProcessDuccId = (DuccId) jdId;
+		NodeIdentity nodeIdentity = jdScheduler.allocate(jdProcessDuccId, job.getDuccId());
+		if(nodeIdentity == null) {
+			throw new ResourceUnavailableForJobDriverException();
+		}
+		DuccProcess driverProcess = new DuccProcess(jdId,nodeIdentity,ProcessType.Pop);
 		CGroupManager.assign(job.getDuccId(), driverProcess, driver_max_size_in_bytes);
 		OrUtil.setResourceState(job, driverProcess, ResourceState.Allocated);
 		driverProcess.setNodeIdentity(nodeIdentity);
 		driver.getProcessMap().put(driverProcess.getDuccId(), driverProcess);
 		//
-		orchestratorCommonArea.getProcessAccounting().addProcess(duccId, job.getDuccId());
+		orchestratorCommonArea.getProcessAccounting().addProcess(jdId, job.getDuccId());
 		//
 		job.setDriver(driver);
 	}
@@ -444,31 +450,26 @@ public class JobFactory implements IJobFactory {
         }
 	}
 	
-	public DuccWorkJob create(CommonConfiguration common, JobRequestProperties jobRequestProperties) {
-		String methodName = "create";
+	public DuccWorkJob createJob(CommonConfiguration common, JobRequestProperties jobRequestProperties) throws ResourceUnavailableForJobDriverException {
 		DuccWorkJob job = new DuccWorkJob();
+		job.setDuccType(DuccType.Job);
+		job.setDuccId(duccIdFactory.next());
+		createDriver(common, jobRequestProperties, job);
+		setDebugPorts(common, jobRequestProperties, job);
+		return create(common, jobRequestProperties, job);
+	}
+	
+	public DuccWorkJob createService(CommonConfiguration common, JobRequestProperties jobRequestProperties) {
+		DuccWorkJob job = new DuccWorkJob();
+		job.setDuccType(DuccType.Service);
+		job.setDuccId(duccIdFactory.next());
+		return create(common, jobRequestProperties, job);
+	}
+	
+	private DuccWorkJob create(CommonConfiguration common, JobRequestProperties jobRequestProperties, DuccWorkJob job) {
+		String methodName = "create";
 		checkSpec(job, jobRequestProperties);
-		// id, type
-		String ddCr = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR);
-		if(ddCr == null) {
-			job.setDuccType(DuccType.Service);
-			job.setDuccId(duccIdFactory.next());
-		}
-		else {
-			job.setDuccType(DuccType.Job);
-			job.setDuccId(duccIdFactory.next());
-			
-		}
-		// driver
 		DuccType duccType = job.getDuccType();
-		switch(duccType) {
-			case Job:
-				createDriver(common, jobRequestProperties, job);
-				setDebugPorts(common, jobRequestProperties, job);
-				break;
-			case Service:
-				break;
-		}
         // Service Deployment Type
         if(jobRequestProperties.containsKey(ServiceRequestProperties.key_service_type_custom)) {
 			job.setServiceDeploymentType(ServiceDeploymentType.custom);

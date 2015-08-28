@@ -665,6 +665,7 @@ public class ProcessAccounting {
 							if(process == null) {
 								if(job != null) { 
 									process = job.getDriver().getProcessMap().get(processId);
+									OrchestratorHelper.jdDeallocate(job, inventoryProcess);
 								}
 							}
 							if(process != null) {

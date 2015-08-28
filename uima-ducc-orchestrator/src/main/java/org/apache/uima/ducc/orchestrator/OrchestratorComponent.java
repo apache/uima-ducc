@@ -22,11 +22,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.camel.CamelContext;
-import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
@@ -45,8 +43,10 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorConstants.StartType;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
+import org.apache.uima.ducc.orchestrator.exceptions.ResourceUnavailableForJobDriverException;
 import org.apache.uima.ducc.orchestrator.factory.IJobFactory;
 import org.apache.uima.ducc.orchestrator.factory.JobFactory;
+import org.apache.uima.ducc.orchestrator.jd.scheduler.JdScheduler;
 import org.apache.uima.ducc.orchestrator.maintenance.MaintenanceThread;
 import org.apache.uima.ducc.orchestrator.maintenance.NodeAccounting;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
@@ -114,7 +114,7 @@ implements Orchestrator {
 	private IJobFactory jobFactory = JobFactory.getInstance();
 	private ReservationFactory reservationFactory = ReservationFactory.getInstance();
 	private CommonConfiguration commonConfiguration = orchestratorCommonArea.getCommonConfiguration();
-	private JobDriverHostManager hostManager = orchestratorCommonArea.getHostManager();
+	private JdScheduler jdScheduler = orchestratorCommonArea.getJdScheduler();
 	private StateJobAccounting stateJobAccounting = StateJobAccounting.getInstance();
 
 	public OrchestratorComponent(CamelContext context) {
@@ -316,15 +316,6 @@ implements Orchestrator {
 							}
 							break;
 						case hot:
-							if(jdHostClass.equals(reservation.getSchedulingInfo().getSchedulingClass())) {
-								IDuccReservationMap map = reservation.getReservationMap();
-								Iterator<Entry<DuccId, IDuccReservation>> entries = map.entrySet().iterator();
-								while(entries.hasNext()) {
-									Entry<DuccId, IDuccReservation> entry = entries.next();
-									NodeIdentity node = entry.getValue().getNodeIdentity();
-									hostManager.addNode(node);
-								}
-							}
 							break;
 						}
 						break;
@@ -338,12 +329,11 @@ implements Orchestrator {
 			switch(startType) {
 			case cold:
 			case warm:
-				hostManager = JobDriverHostManager.getInstance();
-				hostManager.init();
+				jdScheduler = JdScheduler.getInstance();
 				break;
 			case hot:
-				hostManager = JobDriverHostManager.getInstance();
-				hostManager.conditional();
+				jdScheduler = JdScheduler.getInstance();
+				jdScheduler.restore();
 				break;
 			}
 			resolveSignatureRequired();
@@ -409,6 +399,7 @@ implements Orchestrator {
 		Map<DuccId, IRmJobState> resourceMap = duccEvent.getJobState();
 		try {
 			stateManager.reconcileState(resourceMap);
+			jdScheduler.handle(workMap);
 		}
 		catch(Exception e) {
 			logger.error(methodName, null, e);
@@ -459,7 +450,7 @@ implements Orchestrator {
 											+" "+
 											messages.fetchLabel("active service count")+activeServices
 											);
-			int jobDriverNodeCount = hostManager.nodes();
+			int jobDriverNodeCount = jdScheduler.getReservationCount();
 			workMapCopy.setJobDriverNodeCount(jobDriverNodeCount);
 			orchestratorStateDuccEvent.setWorkMap(workMapCopy);
 			//stateManager.prune(workMapCopy);
@@ -564,14 +555,8 @@ implements Orchestrator {
 		try {
 			OrchestratorHelper.assignDefaults(duccEvent);
 			JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
-			int jdNodes = hostManager.nodes();
 			if(!isSignatureValid(properties)) {
 				String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
-				logger.error(methodName, null, error_message);
-				submitError(properties, error_message);
-			}
-			else if(jdNodes <= 0) {
-				String error_message = messages.fetch(" type=system error, text=job driver node unavailable.");
 				logger.error(methodName, null, error_message);
 				submitError(properties, error_message);
 			}
@@ -582,17 +567,24 @@ implements Orchestrator {
 			}
 			else {
 				if(Validate.request(duccEvent)) {
-					IDuccWorkJob duccWorkJob = jobFactory.create(common,properties);
-					WorkMapHelper.addDuccWork(workMap, duccWorkJob, this, methodName);
-					// state: Received
-					stateJobAccounting.stateChange(duccWorkJob, JobState.Received);
-					OrchestratorCheckpoint.getInstance().saveState();
-					// state: WaitingForDriver
-					stateJobAccounting.stateChange(duccWorkJob, JobState.WaitingForDriver);
-					OrchestratorCheckpoint.getInstance().saveState();
-					// prepare for reply to submitter
-					properties.put(JobRequestProperties.key_id, duccWorkJob.getId());
-					duccEvent.setProperties(properties);
+					try {
+						IDuccWorkJob duccWorkJob = jobFactory.createJob(common,properties);
+						WorkMapHelper.addDuccWork(workMap, duccWorkJob, this, methodName);
+						// state: Received
+						stateJobAccounting.stateChange(duccWorkJob, JobState.Received);
+						OrchestratorCheckpoint.getInstance().saveState();
+						// state: WaitingForDriver
+						stateJobAccounting.stateChange(duccWorkJob, JobState.WaitingForDriver);
+						OrchestratorCheckpoint.getInstance().saveState();
+						// prepare for reply to submitter
+						properties.put(JobRequestProperties.key_id, duccWorkJob.getId());
+						duccEvent.setProperties(properties);
+					}
+					catch(ResourceUnavailableForJobDriverException e) {
+						String error_message = messages.fetch(" type=system error, text=job driver node unavailable.");
+						logger.error(methodName, null, error_message);
+						submitError(properties, error_message);
+					}
 				}
 				else {
 					logger.info(methodName, null, messages.fetch("TODO")+" prepare error reply");
@@ -921,14 +913,8 @@ implements Orchestrator {
 		try {
 			OrchestratorHelper.assignDefaults(duccEvent);
 			JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
-			NodeIdentity nodeIdentity = hostManager.getNode();
 			if(!isSignatureValid(properties)) {
 				String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
-				logger.error(methodName, null, error_message);
-				submitError(properties, error_message);
-			}
-			else if(nodeIdentity == null) {
-				String error_message = messages.fetch(" type=system error, text=job driver node unavailable.");
 				logger.error(methodName, null, error_message);
 				submitError(properties, error_message);
 			}
@@ -938,9 +924,8 @@ implements Orchestrator {
 				submitError(properties, error_message);
 			}
 			else {
-				logger.debug(methodName, null, messages.fetch("job driver host")+" "+messages.fetchLabel("IP")+nodeIdentity.getIp()+" "+messages.fetchLabel("name")+nodeIdentity.getName());
 				if(Validate.request(duccEvent)) {
-					IDuccWorkJob duccWorkJob = jobFactory.create(common,properties);
+					IDuccWorkJob duccWorkJob = jobFactory.createService(common,properties);
 					WorkMapHelper.addDuccWork(workMap, duccWorkJob, this, methodName);
 					// state: Received
 					stateJobAccounting.stateChange(duccWorkJob, JobState.Received);

@@ -19,9 +19,11 @@
 package org.apache.uima.ducc.orchestrator.factory;
 
 import org.apache.uima.ducc.common.config.CommonConfiguration;
+import org.apache.uima.ducc.orchestrator.exceptions.ResourceUnavailableForJobDriverException;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 
 public interface IJobFactory {
-	public IDuccWorkJob create(CommonConfiguration common, JobRequestProperties jobRequestProperties);
+	public IDuccWorkJob createJob(CommonConfiguration common, JobRequestProperties jobRequestProperties) throws ResourceUnavailableForJobDriverException;
+	public IDuccWorkJob createService(CommonConfiguration common, JobRequestProperties jobRequestProperties);
 }
