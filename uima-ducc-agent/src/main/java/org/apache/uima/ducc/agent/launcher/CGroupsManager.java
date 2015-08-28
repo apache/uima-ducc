@@ -494,7 +494,7 @@ public class CGroupsManager {
 					}
 					for( String pid : pids ) {
 						try {
-						   kill(pid, userId);
+						   kill(userId, pid);
 						} catch(Exception ee) {
 							agentLogger.warn("destroyContainer", null, "Unable to kill child process with PID:"+pid+" from cgroup:"+containerId+"\n"+ee);
 						}
