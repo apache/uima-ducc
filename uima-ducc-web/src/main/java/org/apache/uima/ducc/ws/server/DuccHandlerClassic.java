@@ -63,6 +63,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IJdReservation;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
@@ -578,6 +579,26 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				if(rmReason != null) {
 					sb.append("<span>");
 					sb.append(rmReason);
+					sb.append("</span>");
+				}
+				break;
+			case Assigned:
+				List<IJdReservation> list = reservation.getJdReservationList();
+				long inuse = 0;
+				long total = 0;
+				if(list != null) {
+					for(IJdReservation jdReservation : list) {
+						inuse += jdReservation.getSlicesInuse();
+						total += jdReservation.getSlicesTotal();
+					}
+					title = "title=\"the number of job driver allocations inuse for this reservation\"";
+					sb.append("<span "+title+">");
+					sb.append("inuse: "+inuse);
+					sb.append("</span>");
+					sb.append(" ");
+					title = "title=\"the number of job driver allocations limit for this reservation\"";
+					sb.append("<span "+title+">");
+					sb.append("limit: "+total);
 					sb.append("</span>");
 				}
 				break;
