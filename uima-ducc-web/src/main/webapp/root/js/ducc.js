@@ -3585,7 +3585,12 @@ function ducc_submit_reservation() {
         if (wait_for_result) {
             document.getElementById("working_area").style.display = 'block';
             document.getElementById("submit_button").disabled = 'disabled';
-
+            //
+            document.getElementById("scheduling_class").disabled = 'disabled';
+            document.getElementById("memory_size").disabled = 'disabled';
+            document.getElementById("memory_units").disabled = 'disabled';
+            document.getElementById("description").disabled = 'disabled';
+            
             $.ajax({
                 type: 'POST',
                 async: false,
