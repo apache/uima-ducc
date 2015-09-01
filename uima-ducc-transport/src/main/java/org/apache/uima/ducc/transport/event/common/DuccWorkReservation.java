@@ -41,7 +41,7 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 	private boolean waitForAssignment = false;
 	
 	// for JD Reservations only
-	private List<IJdReservation> jdReservationList = null;
+	private List<JdReservationBean> jdReservationBeanList = null;
 	
 	public DuccWorkReservation() {
 		init(null);
@@ -58,12 +58,12 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 		setCompletionTypeObject(IDuccCompletionType.ReservationCompletionType.Undefined);
 	}
 
-	public void setJdReservationList(List<IJdReservation> value) {
-		jdReservationList = value;
+	public void setJdReservationBeanList(List<JdReservationBean> value) {
+		jdReservationBeanList = value;
 	}
 	
-	public List<IJdReservation> getJdReservationList() {
-		return jdReservationList;
+	public List<JdReservationBean> getJdReservationBeanList() {
+		return jdReservationBeanList;
 	}
 	
 	public IDuccReservationMap getReservationMap() {

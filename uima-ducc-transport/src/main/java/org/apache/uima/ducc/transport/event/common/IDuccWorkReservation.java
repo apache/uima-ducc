@@ -54,6 +54,6 @@ public interface IDuccWorkReservation extends IDuccWork, Serializable {
 	
 	public List<String> getUniqueNodes();
 	
-	public void setJdReservationList(List<IJdReservation> jdReservationList);
-	public List<IJdReservation> getJdReservationList();
+	public void setJdReservationBeanList(List<JdReservationBean> jdReservationBeanList);
+	public List<JdReservationBean> getJdReservationBeanList();
 }

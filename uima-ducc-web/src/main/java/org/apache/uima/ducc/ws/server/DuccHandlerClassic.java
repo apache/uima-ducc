@@ -52,6 +52,7 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.orchestrator.jd.scheduler.JdReservation;
 import org.apache.uima.ducc.transport.Constants;
 import org.apache.uima.ducc.transport.event.DbComponentPropertiesHelper;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -63,8 +64,8 @@ import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.IJdReservation;
 import org.apache.uima.ducc.transport.event.common.IRationale;
+import org.apache.uima.ducc.transport.event.common.JdReservationBean;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccMachinesData;
@@ -583,11 +584,12 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				}
 				break;
 			case Assigned:
-				List<IJdReservation> list = reservation.getJdReservationList();
+				List<JdReservationBean> list = reservation.getJdReservationBeanList();
 				long inuse = 0;
 				long total = 0;
 				if(list != null) {
-					for(IJdReservation jdReservation : list) {
+					for(JdReservationBean jdReservationBean : list) {
+						JdReservation jdReservation = (JdReservation) jdReservationBean;
 						inuse += jdReservation.getSlicesInuse();
 						total += jdReservation.getSlicesTotal();
 					}
@@ -596,7 +598,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					sb.append("inuse: "+inuse);
 					sb.append("</span>");
 					sb.append(" ");
-					title = "title=\"the number of job driver allocations limit for this reservation\"";
+					title = "title=\"the number of job driver allocations maximum capacity for this reservation\"";
 					sb.append("<span "+title+">");
 					sb.append("limit: "+total);
 					sb.append("</span>");

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.transport.event.common;
+package org.apache.uima.ducc.orchestrator.jd.scheduler;
 
 import java.io.Serializable;
 

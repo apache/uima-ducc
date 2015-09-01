@@ -27,22 +27,13 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
-import org.apache.uima.ducc.transport.event.common.IJdReservation;
+import org.apache.uima.ducc.transport.event.common.JdReservationBean;
 
-public class JdReservation implements IJdReservation {
+public class JdReservation extends JdReservationBean implements IJdReservation {
 
 	private static final long serialVersionUID = 1L;
 	
 	private static DuccLogger logger = new DuccLogger(JdReservation.class);
-	
-	private DuccId jdReservationDuccId = null;
-	private NodeIdentity nodeIdentity;
-	private ReservationState reservationState = null;
-	private Long shareCount = new Long(1);
-	private Long shareSize = new Long(30*JdHelper.GB);
-	private Long sliceSize = new Long(300*JdHelper.MB);
-	
-	private ConcurrentHashMap<DuccId, Long> map = new ConcurrentHashMap<DuccId, Long>();
 	
 	public JdReservation(IDuccWorkReservation dwr, Long shareSizeMB, Long sliceSizeMB) {
 		initialize(dwr, shareSizeMB, sliceSizeMB);
@@ -107,35 +98,18 @@ public class JdReservation implements IJdReservation {
 		}
 	}
 	
-	private void setJdReservationId(DuccId value) {
-		jdReservationDuccId = value;
-	}
-	
-	public DuccId getDuccId() {
-		return jdReservationDuccId;
-	}
-	
-	private void setNodeIdentity(NodeIdentity value) {
-		nodeIdentity = value;
-	}
-	
 	public String getHost() {
 		String retVal = null;
+		NodeIdentity nodeIdentity= getNodeIdentity();
 		if(nodeIdentity != null) {
 			retVal = nodeIdentity.getName();
 		}
 		return retVal;
 	}
-	private void setReservationState(ReservationState value) {
-		reservationState = value;
-	}
-	
-	public ReservationState getReservationState() {
-		return reservationState;
-	}
 	
 	public boolean isUp() {
 		boolean retVal = false;
+		ReservationState reservationState = getReservationState();
 		if(reservationState != null) {
 			switch(reservationState) {
 			case Assigned:
@@ -148,30 +122,6 @@ public class JdReservation implements IJdReservation {
 		return retVal;
 	}
 	
-	private void setShareCount(Long value) {
-		shareCount = value;
-	}
-	
-	private Long getShareCount() {
-		return shareCount;
-	}
-	
-	private void setShareSize(Long value) {
-		shareSize = value;
-	}
-	
-	private Long getShareSize() {
-		return shareSize;
-	}
-	
-	private void setSliceSize(Long value) {
-		sliceSize = value;
-	}
-	
-	private Long getSliceSize() {
-		return sliceSize;
-	}
-	
 	public Long getSlicesTotal() {
 		Long shareCount = getShareCount();
 		Long shareSize = getShareSize();
@@ -181,6 +131,7 @@ public class JdReservation implements IJdReservation {
 	}
 	
 	public Long getSlicesInuse() {
+		ConcurrentHashMap<DuccId, Long> map = getMap();
 		long retVal = new Long(map.size());
 		return retVal;
 	}
@@ -208,12 +159,13 @@ public class JdReservation implements IJdReservation {
 	protected NodeIdentity allocate(DuccId jdId, DuccId jobId, Long size) {
 		String location = "allocate";
 		NodeIdentity retVal = null;
+		ConcurrentHashMap<DuccId, Long> map = getMap();
 		if(jdId != null) {
 			synchronized(map) {
 				if(!map.containsKey(jdId)) {
 					if(!isFull()) {
 						map.put(jdId, size);
-						retVal = nodeIdentity;
+						retVal = getNodeIdentity();;
 					}
 				}
 			}
@@ -227,11 +179,12 @@ public class JdReservation implements IJdReservation {
 	protected NodeIdentity deallocate(DuccId jdId, DuccId jobId) {
 		String location = "deallocate";
 		NodeIdentity retVal = null;
+		ConcurrentHashMap<DuccId, Long> map = getMap();
 		if(jdId != null) {
 			synchronized(map) {
 				if(map.containsKey(jdId)) {
 					map.remove(jdId);
-					retVal = nodeIdentity;
+					retVal = getNodeIdentity();
 				}
 			}
 			if(retVal != null) {

@@ -44,7 +44,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
-import org.apache.uima.ducc.transport.event.common.IJdReservation;
+import org.apache.uima.ducc.transport.event.common.JdReservationBean;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 
 public class JdScheduler {
@@ -89,10 +89,10 @@ public class JdScheduler {
 					IDuccWork dw = dwm.findDuccWork(duccId);
 					if(dw instanceof IDuccWorkReservation) {
 						IDuccWorkReservation dwr = (IDuccWorkReservation) dw;
-						List<IJdReservation> jdReservationList = getJdReservationList(jdReservationDuccId);
-						dwr.setJdReservationList(jdReservationList);
-						if(jdReservationList != null) {
-							logger.debug(location, duccId, "size: "+jdReservationList.size());
+						List<JdReservationBean> jdReservationBeanList = getJdReservationBeanList(jdReservationDuccId);
+						dwr.setJdReservationBeanList(jdReservationBeanList);
+						if(jdReservationBeanList != null) {
+							logger.debug(location, duccId, "size: "+jdReservationBeanList.size());
 						}
 						else {
 							logger.debug(location, duccId, "size: "+null);
@@ -115,9 +115,9 @@ public class JdScheduler {
 				IDuccWork dw = entry.getValue();
 				if(dw instanceof IDuccWorkReservation) {
 					IDuccWorkReservation dwr = (IDuccWorkReservation) dw;
-					List<IJdReservation> jdReservationList = dwr.getJdReservationList();
-					if(jdReservationList != null) {
-						setJdReservationList(jdReservationList);
+					List<JdReservationBean> jdReservationBeanList = dwr.getJdReservationBeanList();
+					if(jdReservationBeanList != null) {
+						setJdReservationBeanList(jdReservationBeanList);
 					}
 				}
 			}
@@ -359,9 +359,9 @@ public class JdScheduler {
 		logger.trace(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
-	private void setJdReservationList(List<IJdReservation> jdReservationList) {
-		if(jdReservationList != null) {
-			for(IJdReservation entry : jdReservationList) {
+	private void setJdReservationBeanList(List<JdReservationBean> jdReservationBeanList) {
+		if(jdReservationBeanList != null) {
+			for(JdReservationBean entry : jdReservationBeanList) {
 				JdReservation jdReservation = (JdReservation) entry;
 				DuccId jdReservationDuccId = jdReservation.getDuccId();
 				map.put(jdReservationDuccId, jdReservation);
@@ -369,18 +369,18 @@ public class JdScheduler {
 		}
 	}
 	
-	public List<IJdReservation> getJdReservationList(DuccId jdReservationDuccId) {
-		String location = "getJdReservationList";
-		List<IJdReservation> jdReservationList = new ArrayList<IJdReservation>();
+	public List<JdReservationBean> getJdReservationBeanList(DuccId jdReservationDuccId) {
+		String location = "getJdReservationBeanList";
+		List<JdReservationBean> jdReservationBeanList = new ArrayList<JdReservationBean>();
 		for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 			JdReservation jdReservation = entry.getValue();
 			if(jdReservationDuccId.equals(jdReservation.getDuccId())) {
-				jdReservationList.add(jdReservation);
+				jdReservationBeanList.add(jdReservation);
 				DuccId duccId = (DuccId) jdReservationDuccId;
-				logger.trace(location, duccId, jdReservationList.size());
+				logger.trace(location, duccId, jdReservationBeanList.size());
 			}
 		}
-		return jdReservationList;
+		return jdReservationBeanList;
 	}
 	
 	public int countSharesTotal() {
