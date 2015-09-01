@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
@@ -52,7 +53,7 @@ public class CGroupsManager {
 	private String cgroupUtilsDir=null;
 	private String cgroupSubsystems = ""; // comma separated list of subsystems
 											// eg. memory,cpu
-
+    private long maxTimeToWaitForProcessToStop;
 	/**
 	 * @param args
 	 */
@@ -60,7 +61,7 @@ public class CGroupsManager {
 		try {
 
 			CGroupsManager cgMgr = new CGroupsManager("/usr/bin","/cgroup/ducc", "memory",
-					null);
+					null, 10000);
 			System.out.println("Cgroups Installed:"
 					+ cgMgr.cgroupExists("/cgroup/ducc"));
 			Set<String> containers = cgMgr.collectExistingContainers();
@@ -74,7 +75,7 @@ public class CGroupsManager {
 			synchronized (cgMgr) {
 				cgMgr.wait(60000);
 			}
-			cgMgr.destroyContainer(args[0], args[2]);
+			cgMgr.destroyContainer(args[0], args[2], NodeAgent.SIGKILL);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -84,11 +85,12 @@ public class CGroupsManager {
 		return cgroupUtilsDir;
 	}
 	public CGroupsManager(String cgroupUtilsDir, String cgroupBaseDir, String cgroupSubsystems,
-			DuccLogger agentLogger) {
+			DuccLogger agentLogger, long maxTimeToWaitForProcessToStop) {
 		this.cgroupUtilsDir = cgroupUtilsDir;
 		this.cgroupBaseDir = cgroupBaseDir;
 		this.cgroupSubsystems = cgroupSubsystems;
 		this.agentLogger = agentLogger;
+		this.maxTimeToWaitForProcessToStop = maxTimeToWaitForProcessToStop;
 	}
 	public String[] getPidsInCgroup(String cgroupName) throws Exception {
 		File f = new File(cgroupBaseDir + "/" + cgroupName + "/cgroup.procs");
@@ -150,7 +152,7 @@ public class CGroupsManager {
 									zombieCount++;
 								} else	if (proc.getPid().equals(pid)) {
 									// kill process hard via -9
-									kill( proc.getUserid(), proc.getPid());
+									kill( proc.getUserid(), proc.getPid(), NodeAgent.SIGKILL);
 								}
 							}
 						}
@@ -185,7 +187,7 @@ public class CGroupsManager {
 					// Don't remove CGroups if there are zombie processes there. Otherwise, attempt
 					// to remove the CGroup may hang a thread.
 					if ( zombieCount == 0 )  {  // no zombies in the container
-	 					destroyContainer(cgroupFolder, "ducc");
+	 					destroyContainer(cgroupFolder, "ducc", NodeAgent.SIGTERM);
 						agentLogger.info("cleanupOnStartup", null,
 								"--- Agent Removed Empty CGroup:" + cgroupFolder);
 					} else {
@@ -250,7 +252,7 @@ public class CGroupsManager {
 	    return cgroupPids.toArray(pids);
 	  }
 
-	public void kill(final String user, final String pid) {
+	public void kill(final String user, final String pid, final int signal) {
 		final String methodName = "kill";
 		InputStream is = null;
 		BufferedReader reader = null;
@@ -271,7 +273,7 @@ public class CGroupsManager {
 					useDuccling = true;
 				}
 				cmdLine = "/bin/kill";
-				arg = "-9";
+				arg = "-"+signal;
 			}
 			String[] duccling_nolog;
 			if (useDuccling) {
@@ -471,6 +473,24 @@ public class CGroupsManager {
 			return false;
 		}
 	}
+	private int killChildProcesses(String containerId, String userId, int signal) throws Exception {
+		int childCount=0;
+		String[] pids = getPidsInCgroup(containerId);
+		if ( pids != null ) {
+			if ( pids.length > 0 ) {
+				childCount = pids.length;
+				agentLogger.info("destroyContainer", null,"Found "+pids.length+" child processes still in container:"+containerId+" - killing all"); 
+			}
+			for( String pid : pids ) {
+				try {
+				   kill(userId, pid, signal);
+				} catch(Exception ee) {
+					agentLogger.warn("destroyContainer", null, "Unable to kill child process with PID:"+pid+" from cgroup:"+containerId+"\n"+ee);
+				}
+			}
+		}
+		return childCount;
+	}
 	/**
 	 * Removes cgroup container with a given id. Cgroups are implemented as a
 	 * virtual file system. All is needed here is just rmdir.
@@ -481,25 +501,27 @@ public class CGroupsManager {
 	 * 
 	 * @throws Exception
 	 */
-	public boolean destroyContainer(String containerId, String userId) throws Exception {
+	public boolean destroyContainer(String containerId, String userId, int signal) throws Exception {
 		try {
 			if (cgroupExists(cgroupBaseDir + "/" + containerId)) {
-				// before removing cgroup container, make sure to kill 
-				// all processes that still may be there. User process
-				// may have created child processes that may still be running.
-				String[] pids = getPidsInCgroup(containerId);
-				if ( pids != null ) {
-					if ( pids.length > 0 ) {
-						agentLogger.info("destroyContainer", null,"Found "+pids.length+" child processes still in container:"+containerId+" - killing all"); 
-					}
-					for( String pid : pids ) {
+				if ( signal == NodeAgent.SIGTERM ) {
+					// before removing cgroup container, make sure to kill 
+					// all processes that still may be there. User process
+					// may have created child processes that may still be running.
+					// First use kill -15, than wait and any process still standing
+					// will be killed hard via kill -9
+					int childProcessCount = 
+							killChildProcesses(containerId, userId, NodeAgent.SIGTERM);
+					if ( childProcessCount > 0 ) {
 						try {
-						   kill(userId, pid);
-						} catch(Exception ee) {
-							agentLogger.warn("destroyContainer", null, "Unable to kill child process with PID:"+pid+" from cgroup:"+containerId+"\n"+ee);
+							this.wait(maxTimeToWaitForProcessToStop);
+						} catch( InterruptedException ie) {
 						}
 					}
 				}
+				// Any process remaining in a cgroup will be killed hard
+				killChildProcesses(containerId, userId, NodeAgent.SIGKILL);
+				
 				String[] command = new String[] { "/bin/rmdir",
 						cgroupBaseDir + "/" + containerId };
 				int retCode = launchCommand(command, false, "ducc", containerId);

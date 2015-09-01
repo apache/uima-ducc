@@ -688,7 +688,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					// user code launched child processes. If there are child
 					// processes still running, the code kills each one at a 
 					// time and at the end the container is removed.
-					agent.cgroupsManager.destroyContainer(containerId, userId);
+					agent.cgroupsManager.destroyContainer(containerId, userId, NodeAgent.SIGTERM);
 					logger.info(methodName, null,
 							"Removed CGroup Container with ID:" + containerId);
 				}
