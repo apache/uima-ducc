@@ -208,7 +208,7 @@ public class TestSuite {
 			publication(jdScheduler, dwm);
 			//
 			HashMap<DuccId,DuccId> map = new HashMap<DuccId,DuccId>();
-			int expectedInuse = 10;
+			int expectedInuse = 5;
 			for(int i=0; i < expectedInuse; i++) {
 				DuccId jdId = TestHelper.getJdId();
 				map.put(jdId, jdId);
