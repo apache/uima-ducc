@@ -36,7 +36,6 @@ public class JdReservationBean implements Serializable {
 	private DuccId jdReservationDuccId = null;
 	private NodeIdentity nodeIdentity;
 	private ReservationState reservationState = null;
-	private Long shareCount = new Long(1);
 	private Long shareSize = new Long(30*GB);
 	private Long sliceSize = new Long(300*MB);
 	
@@ -72,14 +71,6 @@ public class JdReservationBean implements Serializable {
 	
 	public ReservationState getReservationState() {
 		return reservationState;
-	}
-	
-	public void setShareCount(Long value) {
-		shareCount = value;
-	}
-	
-	public Long getShareCount() {
-		return shareCount;
 	}
 	
 	public void setShareSize(Long value) {
