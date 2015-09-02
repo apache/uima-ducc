@@ -296,6 +296,7 @@ public class CGroupsManager {
 				// dont care about the output, just drain the buffers
 			}
 			is.close();
+			killedProcess.waitFor();
 			StringBuffer sb = new StringBuffer();
 			for (String part : duccling_nolog) {
 				sb.append(part).append(" ");
@@ -505,6 +506,8 @@ public class CGroupsManager {
 		try {
 			if (cgroupExists(cgroupBaseDir + "/" + containerId)) {
 				if ( signal == NodeAgent.SIGTERM ) {
+					agentLogger.info("destroyContainer", null, "Destroying Container "+containerId+" Using signal:"+signal +" to kill child processes if any still exist in cgroups container");
+
 					// before removing cgroup container, make sure to kill 
 					// all processes that still may be there. User process
 					// may have created child processes that may still be running.
@@ -513,6 +516,7 @@ public class CGroupsManager {
 					int childProcessCount = 
 							killChildProcesses(containerId, userId, NodeAgent.SIGTERM);
 					if ( childProcessCount > 0 ) {
+						agentLogger.info("destroyContainer", null, "Killed "+childProcessCount+"Child Processes with kill -15");
 						try {
 							this.wait(maxTimeToWaitForProcessToStop);
 						} catch( InterruptedException ie) {
