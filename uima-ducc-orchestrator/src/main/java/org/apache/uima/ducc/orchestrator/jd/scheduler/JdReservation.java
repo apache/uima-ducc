@@ -18,14 +18,12 @@
 */
 package org.apache.uima.ducc.orchestrator.jd.scheduler;
 
-import java.text.DecimalFormat;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
-import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.JdReservationBean;
 
@@ -37,49 +35,6 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 	
 	public JdReservation(IDuccWorkReservation dwr, Long shareSizeMB, Long sliceSizeMB) {
 		initialize(dwr, shareSizeMB, sliceSizeMB);
-	}
-	
-	private String getProcessMemorySize(DuccId id, String type, String size, MemoryUnits units) {
-		String methodName = "getProcessMemorySize";
-		String retVal = "?";
-		double multiplier = 1;
-		switch(units) {
-		case KB:
-			multiplier = Math.pow(10, -6);
-			break;
-		case MB:
-			multiplier = Math.pow(10, -3);
-			break;
-		case GB:
-			multiplier = Math.pow(10, 0);
-			break;
-		case TB:
-			multiplier = Math.pow(10, 3);
-			break;
-		}
-		try {
-			double dSize = Double.parseDouble(size) * multiplier;
-			DecimalFormat formatter = new DecimalFormat("###0");
-			retVal = formatter.format(dSize);
-		}
-		catch(Exception e) {
-			logger.trace(methodName, id, "type"+type+" "+"size"+size, e);
-		}
-		return retVal;	
-	}
-	
-	private Long calculateShares(IDuccWorkReservation dwr) {
-		Long retVal = new Long(1);
-		try {
-			String type="Reservation";
-			String size = dwr.getSchedulingInfo().getShareMemorySize();
-			MemoryUnits units = dwr.getSchedulingInfo().getShareMemoryUnits();
-			String ms = getProcessMemorySize(dwr.getDuccId(),type,size,units);
-			retVal = Long.parseLong(ms);
-		}
-		catch(Exception e) {
-		}
-		return retVal;
 	}
 	
 	private void initialize(IDuccWorkReservation dwr, Long shareSize, Long sliceSize) {
@@ -94,7 +49,6 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 			if(sliceSize != null) {
 				setSliceSize(sliceSize);
 			}
-			setShareCount(calculateShares(dwr));
 		}
 	}
 	
@@ -123,10 +77,9 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 	}
 	
 	public Long getSlicesTotal() {
-		Long shareCount = getShareCount();
 		Long shareSize = getShareSize();
 		Long sliceSize = getSliceSize();
-		Long retVal = (shareSize * shareCount) / sliceSize;
+		Long retVal = shareSize / sliceSize;
 		return retVal;
 	}
 	
