@@ -480,13 +480,13 @@ public class CGroupsManager {
 		if ( pids != null ) {
 			if ( pids.length > 0 ) {
 				childCount = pids.length;
-				agentLogger.info("destroyContainer", null,"Found "+pids.length+" child processes still in container:"+containerId+" - killing all"); 
+				agentLogger.info("killChildProcesses", null,"Found "+pids.length+" child processes still in container:"+containerId+" - killing all"); 
 			}
 			for( String pid : pids ) {
 				try {
 				   kill(userId, pid, signal);
 				} catch(Exception ee) {
-					agentLogger.warn("destroyContainer", null, "Unable to kill child process with PID:"+pid+" from cgroup:"+containerId+"\n"+ee);
+					agentLogger.warn("killChildProcesses", null, "Unable to kill child process with PID:"+pid+" from cgroup:"+containerId+"\n"+ee);
 				}
 			}
 		}
