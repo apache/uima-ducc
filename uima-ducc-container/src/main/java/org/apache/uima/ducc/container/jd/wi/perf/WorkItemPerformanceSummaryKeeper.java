@@ -38,9 +38,9 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 
-public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
+public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSummaryKeeper {
 	
-	private static Logger logger = Logger.getLogger(WorkItemPerformanceKeeper.class, IComponent.Id.JD.name());
+	private static Logger logger = Logger.getLogger(WorkItemPerformanceSummaryKeeper.class, IComponent.Id.JD.name());
 	
 	private String logDir = null;
 	
@@ -49,7 +49,7 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 	
 	private ConcurrentHashMap<PerfKey, SynchronizedStats> map = new ConcurrentHashMap<PerfKey, SynchronizedStats>();
 
-	public WorkItemPerformanceKeeper(String logDir) {
+	public WorkItemPerformanceSummaryKeeper(String logDir) {
 		setLogDir(logDir);
 	}
 	
@@ -58,8 +58,8 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 	}
 	
 	@Override
-	public List<IWorkItemPerformanceInfo> dataGet() {
-		List<IWorkItemPerformanceInfo> list = new ArrayList<IWorkItemPerformanceInfo>();
+	public List<IWorkItemPerformanceSummaryInfo> dataGet() {
+		List<IWorkItemPerformanceSummaryInfo> list = new ArrayList<IWorkItemPerformanceSummaryInfo>();
 		for(Entry<PerfKey, SynchronizedStats> entry : map.entrySet()) {
 			String name = entry.getKey().getName();
 			String uniqueName = entry.getKey().getUniqueName();
@@ -73,7 +73,7 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 			double avg = stats.getMean();
 			double min = stats.getMin();
 			double max = stats.getMax();
-			IWorkItemPerformanceInfo item = new WorkItemPerformanceInfo(
+			IWorkItemPerformanceSummaryInfo item = new WorkItemPerformanceSummaryInfo(
 					name,
 					uniqueName,
 					count,
@@ -134,14 +134,14 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 		}
 	}
 	
-	private PerformanceMetricsSummaryItem create(IWorkItemPerformanceInfo wipi) {
+	private PerformanceMetricsSummaryItem create(IWorkItemPerformanceSummaryInfo wipsi) {
 		PerformanceMetricsSummaryItem retVal = new PerformanceMetricsSummaryItem(
-				wipi.getName(),
-				wipi.getUniqueName(),
-				(long)wipi.getTime(),
-				(long)wipi.getCount(),
-				(long)wipi.getMin(),
-				(long)wipi.getMax()
+				wipsi.getName(),
+				wipsi.getUniqueName(),
+				(long)wipsi.getTime(),
+				(long)wipsi.getCount(),
+				(long)wipsi.getMin(),
+				(long)wipsi.getMax()
 				);
 		return retVal;
 	}
@@ -149,10 +149,10 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 	public void publish() {	
 		String location = "publish";
 		try {
-			List<IWorkItemPerformanceInfo> list = dataGet();
+			List<IWorkItemPerformanceSummaryInfo> list = dataGet();
 			ConcurrentSkipListMap<String, JobPerformanceSummary> map = new ConcurrentSkipListMap<String, JobPerformanceSummary>();
-			for(IWorkItemPerformanceInfo wipi : list) {
-				PerformanceMetricsSummaryItem item = create(wipi);
+			for(IWorkItemPerformanceSummaryInfo wipsi : list) {
+				PerformanceMetricsSummaryItem item = create(wipsi);
 				JobPerformanceSummary jps = new JobPerformanceSummary();
 				jps.setAnalysisTime(item.getAnalysisTime());
 				jps.setAnalysisTimeMax(item.getAnalysisTimeMax());

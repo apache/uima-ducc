@@ -18,14 +18,9 @@
 */
 package org.apache.uima.ducc.container.jd.wi.perf;
 
-public interface IWorkItemPerformanceInfo {
+public interface IWorkItemPerformanceIndividualInfo {
 
 	public String getName();
 	public String getUniqueName();
-	public double getCount();
 	public double getTime();
-	public double getPctOfTime();
-	public double getAvg();
-	public double getMin();
-	public double getMax();
 }

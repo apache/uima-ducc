@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.container.jd.wi.perf;
 
-public class WorkItemPerformanceInfo implements IWorkItemPerformanceInfo {
+public class WorkItemPerformanceSummaryInfo implements IWorkItemPerformanceSummaryInfo {
 
 	String name = null;
 	String uniqueName = null;
@@ -29,7 +29,7 @@ public class WorkItemPerformanceInfo implements IWorkItemPerformanceInfo {
 	double min = 0;
 	double max = 0;
 	
-	public WorkItemPerformanceInfo(
+	public WorkItemPerformanceSummaryInfo(
 			String name,
 			String uniquename,
 			double count,

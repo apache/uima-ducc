@@ -20,11 +20,9 @@ package org.apache.uima.ducc.container.jd.wi.perf;
 
 import java.util.List;
 
+public interface IWorkItemPerformanceIndividualKeeper {
 
-public interface IWorkItemPerformanceKeeper {
-
-	public List<IWorkItemPerformanceInfo> dataGet();
-	public void count();
+	public List<IWorkItemPerformanceIndividualInfo> dataGet();
 	public void dataAdd(String name, String uniqueName, long millis);
 	public void publish();
 }

@@ -16,13 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common;
+package org.apache.uima.ducc.container.jd.wi.perf.files;
 
-public interface IJdConstants {
+import java.util.concurrent.ConcurrentSkipListMap;
 
-	public enum DeallocateReason { WorkItemTimeout };
+public class JobPerformanceIndividualData {
+
+	private ConcurrentSkipListMap<String, JobPerformanceIndividual> map = new ConcurrentSkipListMap<String, JobPerformanceIndividual>();
 	
-	public String folderNameWorkItemPerformance = "work-item-performance";
+	public JobPerformanceIndividualData() {
+	}
 	
-	public String environmentVariableNameWorkItemPerformance = "DUCC_WORK_ITEM_PERFORMANCE";
+	public JobPerformanceIndividualData(ConcurrentSkipListMap<String, JobPerformanceIndividual> map) {
+		setMap(map);
+	}
+	
+	public ConcurrentSkipListMap<String, JobPerformanceIndividual> getMap() {
+		return map;
+	}
+
+	public void setMap(ConcurrentSkipListMap<String, JobPerformanceIndividual> value) {
+		map = value;
+	}
+
 }

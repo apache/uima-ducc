@@ -16,13 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common;
+package org.apache.uima.ducc.container.jd.wi.perf.files;
 
-public interface IJdConstants {
+import java.io.IOException;
 
-	public enum DeallocateReason { WorkItemTimeout };
-	
-	public String folderNameWorkItemPerformance = "work-item-performance";
-	
-	public String environmentVariableNameWorkItemPerformance = "DUCC_WORK_ITEM_PERFORMANCE";
+public interface IPersistenceJobPerformanceIndividual {
+
+	public void initialize(String directory, String wiNo);
+	public void exportData(JobPerformanceIndividualData data) throws IOException;
+	public JobPerformanceIndividualData importData() throws IOException, ClassNotFoundException;
 }

@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.container.common;
 
 import java.io.File;
+import java.util.Map;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
@@ -71,5 +72,31 @@ public class FlagsExtendedHelper extends FlagsHelper {
 			sb.append(File.separator);
 		}
 		return sb.toString();
+	}
+	
+	public boolean isIndividualWorkItemPerformance() {
+		String location = "isIndividualWorkItemPerformance";
+		boolean retVal = false;
+		try {
+			Map<String, String> env = System.getenv();
+			if(env != null) {
+				String key = IJdConstants.environmentVariableNameWorkItemPerformance;
+				if(env.containsKey(key)) {
+					String value = env.get(key);
+					logger.debug(location, ILogger.null_id, key+"="+value);
+					if(value != null) {
+						Boolean b = Boolean.valueOf(value);
+						retVal = b.booleanValue();
+					}
+				}
+				else {
+					logger.debug(location, ILogger.null_id, key+" "+"not found in environment");
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+		return retVal;
 	}
 }
