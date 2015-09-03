@@ -319,6 +319,7 @@ public class ServiceSet
 
     synchronized void deleteProperties()
     {
+        String methodName = "deleteProperties";
 
         // be sure to move any services that seem not to have croaked yet to history
         String history = meta_props.getStringProperty(history_key, "");
@@ -328,6 +329,7 @@ public class ServiceSet
         meta_props.put(history_key, history);
         meta_props.remove(implementors_key);
 
+        logger.info(methodName, id, "Deleting properties for unregistered service.");
         ServiceManagerComponent.deleteProperties(id.toString(), meta_filename, meta_props, props_filename, job_props);
         meta_filename = null;
         props_filename = null;
@@ -914,7 +916,8 @@ public class ServiceSet
         //     t.printStackTrace();
         // }
         
-        if ( isDeregistered() ) return;
+        // UIMA-4587  why bypass?  State can dribble in for a while, let's update it
+        // if ( isDeregistered() ) return;
 
         if ( meta_filename == null ) {
             // if this is null it was deleted and this is some kind of lingering thread updating, that
@@ -1301,6 +1304,13 @@ public class ServiceSet
      */
     boolean needNextStart(JobState old, JobState current)
     {
+    	String methodName = "needNextStart";
+        // UIMA-4587
+        if ( isDeregistered() ) {
+            logger.info(methodName, id, "Bypassing instance start because service is unregistered.");
+            return false;
+        }
+
         switch ( old ) {
             case Received:
             case WaitingForDriver:
@@ -2016,6 +2026,12 @@ public class ServiceSet
     synchronized void start()
     {
     	String methodName = "start";
+
+        // UIMA-4587
+        if ( isDeregistered() ) {
+            logger.info(methodName, id, "Bypass start becuase service is unregistered.");
+            return;
+        }
 
         if ( countImplementors() >= instances ) {
             return;

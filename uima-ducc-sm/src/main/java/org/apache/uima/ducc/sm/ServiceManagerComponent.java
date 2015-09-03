@@ -979,7 +979,7 @@ public class ServiceManagerComponent
              File pfh = new File(history_dir + id + ".svc");
              try {
 				FileOutputStream fos = new FileOutputStream(pfh);
-				 job_props.store(fos, "Archived meta descriptor");            
+				 job_props.store(fos, "Archived svc properties.");            
 				 fos.close();
 			} catch (Exception e) {
                  logger.warn(methodName, null, id + ":Unable to save history to \"" + pfh.toString(), ": ", e.toString() + "\"");

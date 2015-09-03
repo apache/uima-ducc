@@ -648,7 +648,7 @@ public class ServiceHandler
         }
     }
 
-    ServiceReplyEvent query(ServiceQueryEvent ev)      // UIMA-4336 Redeclare return type
+    synchronized ServiceReplyEvent query(ServiceQueryEvent ev)      // UIMA-4336 Redeclare return type
     {
     	//String methodName = "query";
         long   id     = ev.getFriendly();
@@ -707,7 +707,7 @@ public class ServiceHandler
         return false;
     }
 
-    ServiceReplyEvent start(ServiceStartEvent ev)
+    synchronized ServiceReplyEvent start(ServiceStartEvent ev)
     {
         // String methodName = "start";
         
@@ -815,7 +815,7 @@ public class ServiceHandler
         sset.updateInstances(running + wanted); // pass in target instances
     }
 
-    ServiceReplyEvent stop(ServiceStopEvent ev)
+    synchronized ServiceReplyEvent stop(ServiceStopEvent ev)
     {
         String methodName = "stop";
 
@@ -882,7 +882,7 @@ public class ServiceHandler
 
     }
 
-    ServiceReplyEvent disable(ServiceDisableEvent ev)
+    synchronized ServiceReplyEvent disable(ServiceDisableEvent ev)
     {
         long   id = ev.getFriendly();
         String url = ev.getEndpoint();
@@ -904,7 +904,7 @@ public class ServiceHandler
         return ServiceManagerComponent.makeResponse(true, "Disabled", sset.getKey(), sset.getId().getFriendly());
     }
 
-    ServiceReplyEvent enable(ServiceEnableEvent ev)
+    synchronized ServiceReplyEvent enable(ServiceEnableEvent ev)
     {
         long   id = ev.getFriendly();
         String url = ev.getEndpoint();
@@ -927,7 +927,7 @@ public class ServiceHandler
     }
 
 
-    ServiceReplyEvent ignore(ServiceIgnoreEvent ev)
+    synchronized ServiceReplyEvent ignore(ServiceIgnoreEvent ev)
     {
         long   id = ev.getFriendly();
         String url = ev.getEndpoint();
@@ -956,7 +956,7 @@ public class ServiceHandler
         return ServiceManagerComponent.makeResponse(true, "References now being ignored.", sset.getKey(), sset.getId().getFriendly());
     }
 
-    ServiceReplyEvent observe(ServiceObserveEvent ev)
+    synchronized ServiceReplyEvent observe(ServiceObserveEvent ev)
     {
         long   id = ev.getFriendly();
         String url = ev.getEndpoint();
@@ -981,7 +981,7 @@ public class ServiceHandler
         return ServiceManagerComponent.makeResponse(true, "Observing references.", sset.getKey(), sset.getId().getFriendly());
     }
 
-    ServiceReplyEvent register(DuccId id, String props_filename, String meta_filename, DuccProperties props, DuccProperties meta)
+    synchronized ServiceReplyEvent register(DuccId id, String props_filename, String meta_filename, DuccProperties props, DuccProperties meta)
     {
     	String methodName = "register";
 
@@ -1045,7 +1045,7 @@ public class ServiceHandler
         }
     }
 
-    public ServiceReplyEvent modify(ServiceModifyEvent ev)
+    synchronized public ServiceReplyEvent modify(ServiceModifyEvent ev)
     {
         long  id   = ev.getFriendly();
         String url = ev.getEndpoint();
@@ -1200,7 +1200,7 @@ public class ServiceHandler
         // restart_service - not yet
     }
 
-    public ServiceReplyEvent unregister(ServiceUnregisterEvent ev)
+    synchronized public ServiceReplyEvent unregister(ServiceUnregisterEvent ev)
     {
         //String methodName = "unregister";
         long id = ev.getFriendly();
