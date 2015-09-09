@@ -28,44 +28,38 @@ public class MachineFacts implements Serializable {
 	public String status;
 	public String ip;
 	public String name;
-	public String memoryEffective;
-	public String memoryTotal;
+	public String memTotal;
+	public String memFree;
 	public String swapInuse;
 	public String swapDelta;
 	public String swapFree;
 	public boolean cgroups = false;
 	public List<String> aliens;
-	public String sharesTotal;
-	public String sharesInuse;
 	public String heartbeat;
 	
 	public MachineFacts(String status, 
 				   String ip,
 				   String name,
-				   String memoryEffective,
-				   String memoryTotal,
+				   String memTotal,
+				   String memFree,
 				   String swapInuse,
 				   String swapDelta,
 				   String swapFree,
 				   boolean cgroups,
 				   List<String> aliens,
-				   String sharesTotal,
-				   String sharesInuse,
 				   String heartbeat
 				   ) 
 	{
 		this.status = status;
 		this.ip = ip;
 		this.name = name;
-		this.memoryEffective = memoryEffective;
-		this.memoryTotal = memoryTotal;
+		this.memTotal = memTotal;
+		this.memFree = memFree;
 		this.swapInuse = swapInuse;
 		this.swapDelta = swapDelta;
 		this.swapFree = swapFree;
 		this.cgroups = cgroups;
 		this.aliens = aliens;
-		this.sharesTotal = sharesTotal;
-		this.sharesInuse = sharesInuse;
 		this.heartbeat = heartbeat;
 	}
 }

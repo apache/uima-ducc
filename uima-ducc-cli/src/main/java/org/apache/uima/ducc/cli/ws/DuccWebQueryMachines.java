@@ -68,10 +68,8 @@ public class DuccWebQueryMachines extends DuccWebQuery {
 				System.out.println("  "+"aliens: "+ stringify(f.aliens));
 				System.out.println("  "+"swapInuse: "+ f.swapInuse);
 				System.out.println("  "+"swapFree: "+ f.swapFree);
-				System.out.println("  "+"memoryEffective: "+ f.memoryEffective);
-				System.out.println("  "+"memoryTotal: "+ f.memoryTotal);
-				System.out.println("  "+"sharesTotal: "+ f.sharesTotal);
-				System.out.println("  "+"sharesInuse: "+ f.sharesInuse);
+				System.out.println("  "+"memoryTotal: "+ f.memTotal);
+				System.out.println("  "+"memoryFree: "+ f.memFree);
 				System.out.println("  "+"ip: "+ f.ip);
 				System.out.println("  "+"heartbeat: "+ f.heartbeat);
 			}

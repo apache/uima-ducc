@@ -36,8 +36,6 @@ import com.google.gson.Gson;
 
 public class MachineFactsTest {
 	
-	private long shareSize = 15;
-	
 	private Random random = new Random();
 	
 	private String[] statusSet = { "defined", "down", "up" };
@@ -103,30 +101,6 @@ public class MachineFactsTest {
 		return aliens;
 	}
 	
-	private String createSharesTotal(String memory) {
-		String sharesTotal = "";
-		try {
-			Integer integer = new Integer(memory);
-			long shares = integer / shareSize;
-			sharesTotal = ""+shares;
-		}
-		catch(Exception e) {
-		}
-		return sharesTotal;
-	}
-	
-	private String createSharesInuse(String total) {
-		String sharesInuse = "";
-		try {
-			Integer integer = new Integer(total);
-			long shares = random.nextInt(integer+1);
-			sharesInuse = ""+shares;
-		}
-		catch(Exception e) {
-		}
-		return sharesInuse;
-	}
-	
 	private String createHeartbeat() {
 		String heartbeat = "";
 		int type = random.nextInt(100);
@@ -146,17 +120,15 @@ public class MachineFactsTest {
 		String status = createStatus();
 		String ip = createIP();
 		String name = createName();
-		String reserve = createMemory();
-		String memory = createMemory();
+		String memTotal = createMemory();
+		String memFree = createMemory();
 		String swap = createSwap();
 		String delta = createSwap();
 		String free = createFree();
 		boolean cgroups = createCgroups();
 		List<String> aliens = createAliens();
-		String sharesTotal = createSharesTotal(memory);
-		String sharesInuse = createSharesInuse(sharesTotal);
 		String heartbeat = createHeartbeat();
-		MachineFacts machineFacts = new MachineFacts(status,ip,name, reserve, memory, swap, delta, free, cgroups, aliens, sharesTotal, sharesInuse, heartbeat);
+		MachineFacts machineFacts = new MachineFacts(status,ip,name, memTotal, memFree, swap, delta, free, cgroups, aliens, heartbeat);
 		return machineFacts;
 	}
 	
@@ -164,7 +136,7 @@ public class MachineFactsTest {
 		MachineFactsList machineFactsList = new MachineFactsList();
 		for(int i=0; i<10; i++) {
 			machineFactsList.add(createMachineFacts());
-		}
+		} 
 		return machineFactsList;
 	}
 	
@@ -174,11 +146,9 @@ public class MachineFactsTest {
 			if(true
 			&& m1.heartbeat.equals(m2.heartbeat) 
 			&& m1.ip.equals(m2.ip) 
-			&& m1.memoryTotal.equals(m2.memoryTotal) 
+			&& m1.memTotal.equals(m2.memTotal) 
+			&& m1.memFree.equals(m2.memFree) 
 			&& m1.name.equals(m2.name) 
-			&& m1.memoryEffective.equals(m2.memoryEffective) 
-			&& m1.sharesInuse.equals(m2.sharesInuse) 
-			&& m1.sharesTotal.equals(m2.sharesTotal)
 			&& m1.status.equals(m2.status) 
 			&& m1.swapInuse.equals(m2.swapInuse) 
 			&& m1.swapDelta.equals(m2.swapDelta) 
