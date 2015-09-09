@@ -297,6 +297,8 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 				// Components,p2=ThirdLevelAggregateCM
 				// Components,name=Multiplier1
 				if (aem.getUniqueMBeanName().indexOf("p0=") > -1) {
+					uimaFullyQualifiedAEContext = "";
+/*
 					// check id the parent aggregate has been scaled up by
 					// looking at the last char in its name. If it is a number
 					// strip it from the name
@@ -324,6 +326,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 							}
 						}
 					}
+					*/
 				}
 				result.add(deepCopyMetrics(aem, uimaFullyQualifiedAEContext));
 			}
