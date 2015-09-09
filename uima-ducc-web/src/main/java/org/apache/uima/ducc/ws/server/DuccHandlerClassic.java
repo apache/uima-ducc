@@ -247,7 +247,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		sb.append("<td valign=\"bottom\" align=\"right\">");
 		long initFails = job.getProcessInitFailureCount();
 		if(initFails > 0) {
-			if(job.getSchedulingInfo().getLongSharesMax() < 0) {
+			if(job.getSchedulingInfo().getLongProcessesMax() < 0) {
 				DisplayStyle style = DuccCookies.getDisplayStyle(request);
 				String key = "cap.small";
 				String capFile = DuccWebServerHelper.getImageFileName(key);
@@ -309,8 +309,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Size
 		sb.append("<td valign=\"bottom\" align=\"right\">");
-		String size = job.getSchedulingInfo().getShareMemorySize();
-		MemoryUnits units = job.getSchedulingInfo().getShareMemoryUnits();
+		String size = job.getSchedulingInfo().getMemorySize();
+		MemoryUnits units = job.getSchedulingInfo().getMemoryUnits();
 		sb.append(getProcessMemorySize(duccId,type,size,units));
 		sb.append("</td>");
 		// Total
@@ -457,7 +457,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				if(user != null) {
 					DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 					String jdHostUser = dpr.getCachedProperty(DuccPropertiesResolver.ducc_jd_host_user);
-					// We presume that user is sufficient to identify JD shares
+					// We presume that user is sufficient to identify JD allocation
 					if(user.equals(jdHostUser)) {
 						disabled = "disabled=\"disabled\"";
 					}
@@ -744,8 +744,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Size
 		sb.append("<td align=\"right\">");
-		String size = duccwork.getSchedulingInfo().getShareMemorySize();
-		MemoryUnits units = duccwork.getSchedulingInfo().getShareMemoryUnits();
+		String size = duccwork.getSchedulingInfo().getMemorySize();
+		MemoryUnits units = duccwork.getSchedulingInfo().getMemoryUnits();
 		sb.append(getProcessMemorySize(duccId,type,size,units));
 		sb.append("</td>");
 		// Host Names
@@ -989,15 +989,15 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				// Share Class (or Type)
 				sb.append("<td>");
 				if(service.isPingOnly()) {
-					String shareClass = service.getShareClass();
-					sb.append("<span title=\""+shareClass+"\">");
-					String shareType = "ping-only";
+					String schedulingClass = service.getSchedulingClass();
+					sb.append("<span title=\""+schedulingClass+"\">");
+					String serviceType = "ping-only";
 					sb.append("<span>");
-					sb.append(shareType);
+					sb.append(serviceType);
 				}
 				else {
-					String shareClass = service.getShareClass();
-					sb.append(shareClass);
+					String schedulingClass = service.getSchedulingClass();
+					sb.append(schedulingClass);
 				}
 				sb.append("</td>");
 				// PgIn
@@ -1521,16 +1521,16 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		
 		int counter = 0;
 		
-		int sumMemoryEffective = 0;
-		int sumMemoryTotal = 0;
+		int sumMemTotal = 0;
+		int sumMemFree = 0;
 		int sumSwapInuse = 0;
 /*
 		int sumSwapDelta = 0;
 */
 		int sumSwapFree = 0;
 		int sumAliens = 0;
-		int sumSharesTotal = 0;
-		int sumSharesInuse = 0;
+		
+		String hover;
 		
 		ListIterator<MachineFacts> listIterator;
 		StringBuffer row;
@@ -1545,16 +1545,14 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
 				try {
-					sumMemoryEffective += Integer.parseInt(facts.memoryEffective);
-					sumMemoryTotal += Integer.parseInt(facts.memoryTotal);
+					sumMemTotal += Integer.parseInt(facts.memTotal);
+					sumMemFree += Integer.parseInt(facts.memFree);
 					sumSwapInuse += Integer.parseInt(facts.swapInuse);
 /*
 					sumSwapDelta += Integer.parseInt(facts.swapDelta);
 */
 					sumSwapFree += Integer.parseInt(facts.swapFree);
 					sumAliens += facts.aliens.size();
-					sumSharesTotal += Integer.parseInt(facts.sharesTotal);
-					sumSharesInuse += Integer.parseInt(facts.sharesInuse);
 				}
 				catch(Exception e) {
 					duccLogger.trace(methodName, jobid, e);
@@ -1562,11 +1560,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			}
 			row = new StringBuffer();
 			row.append("<tr>");
-			// Release ALL Stuck JPs
-			row.append("<td>");
-			String releaseAll = buildReleaseAll(request, factsList);
-			row.append(releaseAll);
-			row.append("</td>");
 			// Status
 			row.append("<td>");
 			row.append(""+"Total");
@@ -1580,12 +1573,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			row.append("");
 			row.append("</td>");
 			// Memory: usable
-			row.append("<td align=\"right\">");
-			row.append(""+sumMemoryEffective);
-			row.append("</td>");
-			// Memory: total
-			row.append("<td align=\"right\">");
-			row.append(""+sumMemoryTotal);
+			hover = "title=\"total="+sumMemTotal+"\"";
+			row.append("<td align=\"right\" "+hover+">");
+			row.append(""+sumMemFree);
 			row.append("</td>");
 			// Swap: inuse
 			row.append("<td align=\"right\">");
@@ -1609,14 +1599,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			row.append("<td align=\"right\">");
 			row.append(""+sumAliens);
 			row.append("</td>");
-			// Shares: total
-			row.append("<td align=\"right\">");
-			row.append(""+sumSharesTotal);
-			row.append("</td>");
-			// Shares:inuse
-			row.append("<td align=\"right\">");
-			row.append(""+sumSharesInuse);
-			row.append("</td>");
 			// Heartbeat: last
 			row.append("<td align=\"right\">");
 			row.append("");
@@ -1629,11 +1611,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				MachineFacts facts = listIterator.next();
 				row = new StringBuffer();
 				row.append((trGet(counter)));
-				// Release Machine Stuck JPs
-				row.append("<td>");
-				String releaseMachine = buildReleaseMachine(request, facts);
-				row.append(releaseMachine);
-				row.append("</td>");
 				// Status
 				StringBuffer sb = new StringBuffer();
 				String status = facts.status;
@@ -1662,13 +1639,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append(facts.name);
 				row.append("</td>");
 				// Memory: usable
-				row.append("<td align=\"right\">");
-				row.append(facts.memoryEffective);
-				row.append("</td>");
-				// Memory: total
-				row.append("<td align=\"right\">");
+				hover = "title=\"total="+facts.memTotal+"\"";
+				row.append("<td align=\"right\" "+hover+">");
 				if(!status.equals("defined")) {
-					row.append(facts.memoryTotal);
+					row.append(facts.memFree);
 				}
 				row.append("</td>");
 				// Swap: inuse
@@ -1751,36 +1725,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append("<td align=\"right\">");
 				if(!status.equals("defined")) {
 					row.append(sb);
-				}
-				row.append("</td>");
-				// Shares
-				int sharesTotal = 0;
-				int sharesInuse = 0;
-				try {
-					int total = Integer.parseInt(facts.sharesTotal);
-					int inuse = Integer.parseInt(facts.sharesInuse);
-					sharesTotal = total;
-					sharesInuse = inuse;
-				}
-				catch(Exception e) {
-				}
-				// Shares: total
-				row.append("<td align=\"right\">");
-				if(!status.equals("defined")) {
-					row.append(facts.sharesTotal);
-				}
-				row.append("</td>");
-				// Shares: inuse
-				row.append("<td align=\"right\">");
-				String span0 = "<span class=\"health_black\">";
-				String span1 = "</span>";
-				if(sharesInuse > sharesTotal) {
-					span0 = "<span class=\"health_red\">";
-				}
-				if(!status.equals("defined")) {
-					row.append(span0);
-					row.append(facts.sharesInuse);
-					row.append(span1);
 				}
 				row.append("</td>");
 				// Heartbeat: last

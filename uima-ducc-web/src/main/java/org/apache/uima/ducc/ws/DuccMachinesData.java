@@ -23,9 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -33,31 +31,18 @@ import org.apache.uima.ducc.cli.ws.json.MachineFacts;
 import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.cli.ws.json.NodePidList;
 import org.apache.uima.ducc.common.IDuccEnv;
-import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo.NodeProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
-import org.apache.uima.ducc.transport.event.common.IDuccProcess;
-import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
-import org.apache.uima.ducc.transport.event.common.IDuccReservation;
-import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
-import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
-import org.apache.uima.ducc.ws.server.DuccConstants;
-import org.apache.uima.ducc.ws.server.DuccWebProperties;
 import org.apache.uima.ducc.ws.types.Ip;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.DatedNodeMetricsUpdateDuccEvent;
-
 
 public class DuccMachinesData {
 
@@ -71,14 +56,8 @@ public class DuccMachinesData {
 	private static AtomicLong memoryTotal = new AtomicLong(0);
 	private static AtomicLong swapInuse = new AtomicLong(0);
 	private static AtomicLong swapFree = new AtomicLong(0);
-	private static AtomicLong sharesTotal = new AtomicLong(0);
-	private static AtomicLong sharesInuse = new AtomicLong(0);
-	
-	private int shareSize = DuccConstants.defaultShareSize;
 
 	private String domain = "";
-	
-	private static String defined = "defined";
 	
 	private static DuccMachinesData duccMachinesData = new DuccMachinesData();
 	
@@ -143,16 +122,10 @@ public class DuccMachinesData {
 				String memFree = "";
 				String swapInuse = "";
 				String swapFree = "";
-				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, false, null, "", "", -1, 0);
+				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, false, null, -1, 0);
 				unsortedMachines.put(machineInfo.getName(),machineInfo);
 			}
 			updateSortedMachines();
-		}
-		catch(Throwable t) {
-			logger.warn(location, jobid, t);
-		}
-		try {
-			shareSize = Integer.parseInt(DuccWebProperties.getProperty(DuccWebProperties.key_ducc_rm_share_quantum, DuccWebProperties.val_ducc_rm_share_quantum));
 		}
 		catch(Throwable t) {
 			logger.warn(location, jobid, t);
@@ -183,8 +156,6 @@ public class DuccMachinesData {
 		totals.memoryTotal = memoryTotal.get();
 		totals.swapInuse = swapInuse.get();
 		totals.swapFree = swapFree.get();
-		totals.sharesTotal = sharesTotal.get();
-		totals.sharesInuse = sharesInuse.get();
 		return totals;
 	}
 	
@@ -195,16 +166,12 @@ public class DuccMachinesData {
 			memoryTotal.addAndGet(newInfo.memoryTotal-oldInfo.memoryTotal);
 			swapInuse.addAndGet(newInfo.swapInuse-oldInfo.swapInuse);
 			swapFree.addAndGet(newInfo.swapFree-oldInfo.swapFree);
-			sharesTotal.addAndGet(newInfo.sharesTotal-oldInfo.sharesTotal);
-			sharesInuse.addAndGet(newInfo.sharesInuse-oldInfo.sharesInuse);
 		}
 		else {
 			summaryMachines.put(ip.toString(), newInfo);
 			memoryTotal.addAndGet(newInfo.memoryTotal);
 			swapInuse.addAndGet(newInfo.swapInuse);
 			swapFree.addAndGet(newInfo.swapFree);
-			sharesTotal.addAndGet(newInfo.sharesTotal);
-			sharesInuse.addAndGet(newInfo.sharesInuse);
 		}
 	}
 	
@@ -255,9 +222,6 @@ public class DuccMachinesData {
 		logger.debug(location, jobid, "node: "+machineName+" "+"memFree: "+nodeMemFree);
 		long lvalMemFree = (long) ((1.0*nodeMemFree)/(1024*1024)+0.0);  // do NOT round up!
 		String memFree = ""+lvalMemFree/*+memUnits*/;
-		// shares: total
-		msi.sharesTotal = lvalMemFree/shareSize;
-		String sharesTotal = ""+lvalMemFree/shareSize;
 		// swap: in-usewell
 		double dvalSwapTotal = nodeMetrics.getNodeMemory().getSwapTotal();
 		long lvalSwapTotal = (long) (dvalSwapTotal/(1024*1024)+0.5);
@@ -277,20 +241,9 @@ public class DuccMachinesData {
 		//String swapFree = ""+lval/*+memUnits*/;
 		msi.swapFree = lvalSwapFree;
 		String swapFree = ""+lvalSwapFree/*+memUnits*/;
-		String sharesInuse = "0";
-		Properties shareMap = getShareMap(shareSize);
-		try {
-			if(shareMap.containsKey(ip.toString())) {
-				msi.sharesInuse += (Integer)shareMap.get(ip.toString());
-				sharesInuse = ""+msi.sharesInuse;
-			}
-		}
-		catch(Throwable t) {
-			logger.warn(location, jobid, t);
-		}
 		List<ProcessInfo> alienPids = nodeMetrics.getRogueProcessInfoList();
 		boolean cGroups = nodeMetrics.getCgroups();
-		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, cGroups, alienPids, sharesTotal, sharesInuse, duccEvent.getMillis(), duccEvent.getEventSize());
+		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, cGroups, alienPids, duccEvent.getMillis(), duccEvent.getEventSize());
 		String key = normalizeMachineName(machineName);
 		MachineInfo previous = unsortedMachines.get(key);
 		if(previous != null) {
@@ -408,173 +361,6 @@ public class DuccMachinesData {
 		return retVal;
 	}
 	
-    private int toInt(String s, int deflt)
-    {
-        int retVal;
-        try {
-        	retVal = Integer.parseInt(s);
-        }
-    	catch(Throwable t) {
-    		retVal = deflt;
-    	}
-        return retVal;
-    }
-    
-    private Properties getShareMapJobs(Properties properties, int shareSize) {
-    	String location = "getShareMapJobs";
-    	try {
-			DuccData duccData = DuccData.getInstance();
-			IDuccWorkMap duccWorkMap = duccData.getLive();
-			Iterator<DuccId> iteratorJ = duccWorkMap.getJobKeySet().iterator();
-			while(iteratorJ.hasNext()) {
-				DuccId jobid = iteratorJ.next();
-				IDuccWorkJob job = (IDuccWorkJob)duccWorkMap.findDuccWork(jobid);
-				if(job.isOperational()) {
-					int pMemSize = toInt(job.getSchedulingInfo().getShareMemorySize(),1*shareSize);
-					long pShareSize = pMemSize/shareSize;
-					if(pShareSize <= 0) {
-						pShareSize = 1;
-					}
-					IDuccProcessMap processMap = job.getProcessMap();
-					Iterator<DuccId> iteratorP = processMap.keySet().iterator();
-					while(iteratorP.hasNext()) {
-						DuccId jpid = iteratorP.next();
-						IDuccProcess jp = processMap.get(jpid);
-						ProcessState processState = jp.getProcessState();
-						switch(processState) {
-						case Starting:
-						case Initializing:
-						case Running:
-							NodeIdentity nodeIdentity = jp.getNodeIdentity();
-							String key = nodeIdentity.getIp().trim();
-							Integer value = new Integer(0);
-							if(!properties.containsKey(key)) {
-								properties.put(key, value);
-							}
-							value = (Integer)properties.get(key) + (int)pShareSize;
-							properties.put(key,value);
-							break;
-						default:
-							break;
-						}
-					}
-				}
-			}
-		}
-		catch(Throwable t) {
-			logger.warn(location, jobid, t);
-		}
-    	return properties;
-    }
-    
-    private Properties getShareMapServices(Properties properties, int shareSize) {
-    	String location = "getShareMapServices";
-    	try {
-			DuccData duccData = DuccData.getInstance();
-			IDuccWorkMap duccWorkMap = duccData.getLive();
-			Iterator<DuccId> iteratorS = duccWorkMap.getServiceKeySet().iterator();
-			while(iteratorS.hasNext()) {
-				DuccId jobid = iteratorS.next();
-				IDuccWorkJob service = (IDuccWorkJob)duccWorkMap.findDuccWork(jobid);
-				if(service.isOperational()) {
-					int pMemSize = toInt(service.getSchedulingInfo().getShareMemorySize(),1*shareSize);
-					long pShareSize = pMemSize/shareSize;
-					if(pShareSize <= 0) {
-						pShareSize = 1;
-					}
-					IDuccProcessMap processMap = service.getProcessMap();
-					Iterator<DuccId> iteratorP = processMap.keySet().iterator();
-					while(iteratorP.hasNext()) {
-						DuccId jpid = iteratorP.next();
-						IDuccProcess jp = processMap.get(jpid);
-						ProcessState processState = jp.getProcessState();
-						switch(processState) {
-						case Starting:
-						case Initializing:
-						case Running:
-							NodeIdentity nodeIdentity = jp.getNodeIdentity();
-							String key = nodeIdentity.getIp().trim();
-							Integer value = new Integer(0);
-							if(!properties.containsKey(key)) {
-								properties.put(key, value);
-							}
-							value = (Integer)properties.get(key) + (int)pShareSize;
-							properties.put(key,value);
-							break;
-						default:
-							break;
-						}
-					}
-				}
-			}
-		}
-		catch(Throwable t) {
-			logger.warn(location, jobid, t);
-		}
-    	return properties;
-    }
-    
-    private Properties getShareMapReservations(Properties properties, int shareSize) {
-    	String location = "getShareMapReservations";
-    	try {
-			DuccData duccData = DuccData.getInstance();
-			IDuccWorkMap duccWorkMap = duccData.getLive();
-			Iterator<DuccId> iteratorR = duccWorkMap.getReservationKeySet().iterator();
-			while(iteratorR.hasNext()) {
-				DuccId reservationId = iteratorR.next();
-				IDuccWorkReservation reservation = (IDuccWorkReservation)duccWorkMap.findDuccWork(reservationId);
-				if(reservation.isOperational()) {
-					IDuccReservationMap reservationMap = reservation.getReservationMap();
-					Iterator<DuccId> iteratorS = reservationMap.keySet().iterator();
-					while(iteratorS.hasNext()) {
-						DuccId spid = iteratorS.next();
-						IDuccReservation rs = reservationMap.get(spid);
-						NodeIdentity nodeIdentity = rs.getNodeIdentity();
-						String key = nodeIdentity.getIp().trim();
-						Integer value = new Integer(0);
-						if(!properties.containsKey(key)) {
-							properties.put(key, value);
-						}
-						int shares = rs.getShares();
-						value = (Integer)properties.get(key) + shares;
-						properties.put(key,value);
-					}
-				}
-			}
-		}
-		catch(Throwable t) {
-			logger.warn(location, jobid, t);
-		}
-    	return properties;
-    }
-    
-	private Properties getShareMap(int shareSize) {
-		Properties properties = new Properties();
-		properties = getShareMapJobs(properties, shareSize);
-		properties = getShareMapServices(properties, shareSize);
-		properties = getShareMapReservations(properties, shareSize);
-		return properties;
-	}
-
-	private String getReserveSize(MachineInfo machineInfo) {
-		long size = 0;
-		String reserveSize = "-";
-		try {
-			long sharesTotal = Long.parseLong(machineInfo.getSharesTotal());
-			String ducc_rm_share_quantum = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_rm_share_quantum);
-			if(ducc_rm_share_quantum != null) {
-				ducc_rm_share_quantum = ducc_rm_share_quantum.trim();
-				if(ducc_rm_share_quantum.length() > 0) {
-					size = Long.parseLong(ducc_rm_share_quantum) * sharesTotal;
-					reserveSize = ""+size;
-				}
-			}
-		}
-		catch(Exception e) {
-		}
-		return reserveSize;
-	}
-	
 	public MachineFactsList getMachineFactsList() {
 		MachineFactsList factsList = new MachineFactsList();
 		ConcurrentSkipListMap<MachineInfo,String> sortedMachines = getSortedMachines();
@@ -585,47 +371,18 @@ public class DuccMachinesData {
 			String status = machineInfo.getStatus();
 			String ip = machineInfo.getIp();
 			String name = machineInfo.getName();
-			String reserve = getReserveSize(machineInfo);
-			String memory = machineInfo.getMemTotal();
+			String memTotal = machineInfo.getMemTotal();
+			String memFree = machineInfo.getMemFree();
 			String swapInuse = machineInfo.getSwapInuse();
 			String swapDelta = ""+machineInfo.getSwapDelta();
 			String swapFree = machineInfo.getSwapFree();
 			boolean cGroups = machineInfo.getCgroups();
 			List<String> aliens = machineInfo.getAliens();
-			String sharesTotal = machineInfo.getSharesTotal();
-			String sharesInuse = machineInfo.getSharesInuse();
 			String heartbeat = ""+machineInfo.getElapsed();
-			MachineFacts facts = new MachineFacts(status,ip,name,reserve,memory,swapInuse,swapDelta,swapFree,cGroups,aliens,sharesTotal,sharesInuse,heartbeat);
+			MachineFacts facts = new MachineFacts(status,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cGroups,aliens,heartbeat);
 			factsList.add(facts);
 		}
 		return factsList;
 	}
 	
-	public List<Long> getMachineSizes() {
-		String location = "getMachineSizes";
-		TreeSet<Long> machineSizes = new TreeSet<Long>();
-		ConcurrentSkipListMap<MachineInfo,String> sortedMachines = getSortedMachines();
-		Iterator<MachineInfo> iterator;
-		iterator = sortedMachines.keySet().iterator();
-		while(iterator.hasNext()) {
-			try {
-				MachineInfo machineInfo = iterator.next();
-				String status = machineInfo.getStatus();
-				if(status != null) {
-					if(!status.equals(defined)) {
-						String text = getReserveSize(machineInfo);
-						Long reserveSize = new Long(text);
-						if(!machineSizes.contains(reserveSize)) {
-							machineSizes.add(reserveSize);
-						}
-					}
-				}
-			}
-			catch(Exception e) {
-				logger.trace(location, jobid, e);
-			}
-		}
-		List<Long> list = new ArrayList<Long>(machineSizes);
-		return list;
-	}
 }

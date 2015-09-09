@@ -62,7 +62,7 @@ public interface IServiceAdapter {
 	public String getState();
 	public String getStatistics();
 	public String getUser();
-	public String getShareClass();
+	public String getSchedulingClass();
 	public String getDescription();
 	public String getDisableReason();
 	

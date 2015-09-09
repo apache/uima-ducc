@@ -1915,37 +1915,6 @@ function ducc_load_reservation_scheduling_classes() {
     }
 }
 
-var wip_reservation_memory_sizes = false;
-
-function ducc_load_reservation_memory_sizes() {
-    var fname = "ducc_load_reservation_memory_sizes";
-    var data = null;
-    if(wip_reservation_memory_sizes) {
-        ducc_console_warn(fname+" already in progress...")
-        return;
-    }
-    wip_reservation_memory_sizes = true;
-    try {
-        var servlet = "/ducc-servlet/reservation-memory-sizes";
-        var tomsecs = ms_timeout;
-        $.ajax({
-            url: servlet,
-            timeout: tomsecs
-        }).done(function(data) {
-            wip_reservation_memory_sizes = false;
-            $("#memory_sizes_area").html(data);
-            data = null;
-            ducc_console_success(fname);
-        }).fail(function(jqXHR, textStatus) {
-            wip_reservation_memory_sizes = false;
-            ducc_console_fail(fname, textStatus);
-        });                     
-    } catch (err) {
-        wip_reservation_memory_sizes = false;
-        ducc_error(fname, err);
-    }
-}
-
 var wip_reservation_memory_units = false;
 
 function ducc_load_reservation_memory_units() {
@@ -2012,7 +1981,6 @@ function ducc_load_submit_reservation_data() {
     var fname = "ducc_load_submit_reservation_data";
     try {
         ducc_load_reservation_scheduling_classes();
-        ducc_load_reservation_memory_sizes();
         ducc_load_reservation_memory_units();
         ducc_load_reservation_submit_button();
         ducc_load_common();
@@ -3377,49 +3345,8 @@ function ducc_block_jobs(id) {
     return false;
 }
 
-function ducc_release_shares(node, type) {
-    var fname = "ducc_release_shares";
-    try {
-        $.jGrowl(" Pending release...");
-        $.ajax({
-            type: 'POST',
-            url: "/ducc-servlet/release-shares-request" + "?node=" + node + "&" + "type=" + type,
-            success: function(data) {
-                $.jGrowl(data, {
-                    life: 6000
-                });
-                setTimeout(function() {
-                    window.close();
-                }, 5000);
-            }
-        });
-        setTimeout(function() {
-            window.close();
-        }, 5000);
-    } catch (err) {
-        ducc_error(fname, err);
-    }
-    return false;
-}
-
-function ducc_confirm_release_shares(node, type) {
-    var fname = "ducc_confirm_release_shares";
-    try {
-        var machine = node;
-        if (machine == "*") {
-            machine = "ALL machines"
-        }
-        var result = confirm("Release " + type + " shares on " + machine + "?");
-        if (result == true) {
-            ducc_release_shares(node, type);
-        }
-    } catch (err) {
-        ducc_error(fname, err);
-    }
-}
-
 function ducc_confirm_terminate_job(id) {
-    var fname = "ducc_confirm_release_shares";
+    var fname = "ducc_confirm_terminate_job";
     try {
         var result = confirm("Terminate job " + id + "?");
         if (result == true) {

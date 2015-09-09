@@ -77,7 +77,8 @@ class VisualizedHost
         this.name = NodeViz.strip(info.getName());
         this.ip = info.getIp();
 
-        String ns = info.getSharesTotal();
+        //TODO
+        String ns = "";
         if ( ns == "" || ns == null ) {
             this.mem = 0;
             this.shares = 0;

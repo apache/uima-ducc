@@ -25,7 +25,7 @@ under the License.
 <td valign="top"><span class="timestamptitle" id="timestamp_area"></span>
 </tr>
 <tr>
-<td valign="top" align="right" title="The percentage of shares inuse">Utilization:&nbsp
+<td valign="top" align="right" title="The percentage of memory inuse">Utilization:&nbsp
 <td valign="top"><span class="utilizationtitle" id="utilization_area">?</span>
 </tr>
 <tr>

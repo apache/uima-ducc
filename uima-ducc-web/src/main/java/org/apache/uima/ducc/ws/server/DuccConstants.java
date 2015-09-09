@@ -22,7 +22,6 @@ public class DuccConstants {
 
 	public static final int workItemsDisplayMax = 4096;
 	
-	public static final int defaultShareSize = 15;
 	public static final int[] memorySizes = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 	
 	public static final String hintPreferencesDescriptionStyleShort = "Hint: use Preferences -> Description Style [Short] to hide everything left of last /";

@@ -359,7 +359,7 @@ public class ServiceAdapter implements IServiceAdapter {
 	}
 
 	@Override
-	public String getShareClass() {
+	public String getSchedulingClass() {
 		String value = si.getSchedulingClass();
 		return value;
 	}

@@ -275,7 +275,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb = new StringBuffer();
 		long initFails = job.getProcessInitFailureCount();
 		if(initFails > 0) {
-			if(job.getSchedulingInfo().getLongSharesMax() < 0) {
+			if(job.getSchedulingInfo().getLongProcessesMax() < 0) {
 				DisplayStyle style = DuccCookies.getDisplayStyle(request);
 				String key = "cap.small";
 				String capFile = DuccWebServerHelper.getImageFileName(key);
@@ -344,8 +344,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		// Size
 		sb = new StringBuffer();
 		sb.append("<span>");
-		String size = job.getSchedulingInfo().getShareMemorySize();
-		MemoryUnits units = job.getSchedulingInfo().getShareMemoryUnits();
+		String size = job.getSchedulingInfo().getMemorySize();
+		MemoryUnits units = job.getSchedulingInfo().getMemoryUnits();
 		sb.append(getProcessMemorySize(duccId,type,size,units));
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
@@ -559,7 +559,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				if(user != null) {
 					DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 					String jdHostUser = dpr.getCachedProperty(DuccPropertiesResolver.ducc_jd_host_user);
-					// We presume that user is sufficient to identify JD shares
+					// We presume that user is sufficient to identify JD allocation
 					if(user.equals(jdHostUser)) {
 						disabled = "disabled=\"disabled\"";
 					}
@@ -843,8 +843,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		// Size
 		sb = new StringBuffer();
 		sb.append("<span>");
-		String size = duccwork.getSchedulingInfo().getShareMemorySize();
-		MemoryUnits units = duccwork.getSchedulingInfo().getShareMemoryUnits();
+		String size = duccwork.getSchedulingInfo().getMemorySize();
+		MemoryUnits units = duccwork.getSchedulingInfo().getMemoryUnits();
 		sb.append(getProcessMemorySize(duccId,type,size,units));
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
@@ -1127,15 +1127,15 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Class
 				col = new StringBuffer();
 				if(service.isPingOnly()) {
-					String shareClass = ""+service.getShareClass();
-					col.append("<span title=\""+shareClass+"\">");
-					String shareType = "ping-only";
+					String schedulingClass = ""+service.getSchedulingClass();
+					col.append("<span title=\""+schedulingClass+"\">");
+					String serviceType = "ping-only";
 					col.append("<span>");
-					col.append(shareType);
+					col.append(serviceType);
 				}
 				else {
-					String shareClass = service.getShareClass();
-					col.append(""+shareClass);
+					String schedulingClass = service.getSchedulingClass();
+					col.append(""+schedulingClass);
 				}
 				row.add(new JsonPrimitive(col.toString()));
 				// Pgin
@@ -1294,17 +1294,15 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
-		
-		int sumMemoryEffective = 0;
-		int sumMemoryTotal = 0;
+		String hover;
+		int sumMemTotal = 0;
+		int sumMemFree = 0;
 		int sumSwapInuse = 0;
 /*
 		int sumSwapDelta = 0;
 */
 		int sumSwapFree = 0;
 		int sumAliens = 0;
-		int sumSharesTotal = 0;
-		int sumSharesInuse = 0;
 		
 		ListIterator<MachineFacts> listIterator;
 		JsonArray row;
@@ -1319,25 +1317,20 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
 				try {
-					sumMemoryEffective += Integer.parseInt(facts.memoryEffective);
-					sumMemoryTotal += Integer.parseInt(facts.memoryTotal);
+					sumMemTotal += Integer.parseInt(facts.memTotal);
+					sumMemFree += Integer.parseInt(facts.memFree);
 					sumSwapInuse += Integer.parseInt(facts.swapInuse);
 /*
 					sumSwapDelta += Integer.parseInt(facts.swapDelta);
 */
 					sumSwapFree += Integer.parseInt(facts.swapFree);
 					sumAliens += facts.aliens.size();
-					sumSharesTotal += Integer.parseInt(facts.sharesTotal);
-					sumSharesInuse += Integer.parseInt(facts.sharesInuse);
 				}
 				catch(Exception e) {
 					duccLogger.trace(methodName, jobid, e);
 				}
 			}
 			row = new JsonArray();
-			// Release ALL Stuck JPs
-			String releaseAll = buildReleaseAll(request, factsList);
-			row.add(new JsonPrimitive(releaseAll));
 			// Status
 			row.add(new JsonPrimitive("Total"));
 			// IP
@@ -1345,9 +1338,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			// Name
 			row.add(new JsonPrimitive(""));
 			// Memory: usable
-			row.add(new JsonPrimitive(sumMemoryEffective));
-			// Memory: total
-			row.add(new JsonPrimitive(sumMemoryTotal));
+			hover = "title=\"total="+sumMemTotal+"\"";
+			String sumMemFreeWithHover = "<span "+hover+" >"+sumMemFree+"</span>";
+			row.add(new JsonPrimitive(sumMemFreeWithHover));
 			// Swap: inuse
 			row.add(new JsonPrimitive(sumSwapInuse));
 /*
@@ -1360,10 +1353,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(""));
 			// Alien PIDs
 			row.add(new JsonPrimitive(sumAliens));
-			// Shares: total
-			row.add(new JsonPrimitive(sumSharesTotal));
-			// Shares:inuse
-			row.add(new JsonPrimitive(sumSharesInuse));
 			// Heartbeat: last
 			row.add(new JsonPrimitive(""));
 			data.add(row);
@@ -1372,9 +1361,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
 				row = new JsonArray();
-				// Release Machine Stuck JPs
-				String releaseMachine = buildReleaseMachine(request, facts);
-				row.add(new JsonPrimitive(releaseMachine));
 				// Status
 				sb = new StringBuffer();
 				String status = facts.status;
@@ -1397,10 +1383,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Name
 				row.add(new JsonPrimitive(facts.name));
 				// Memory: usable
-				row.add(new JsonPrimitive(facts.memoryEffective));
-				// Memory: total
 				if(!status.equals("defined")) {
-					row.add(new JsonPrimitive(facts.memoryTotal));
+					hover = "title=\"total="+facts.memTotal+"\"";
+					String memFreeWithHover = "<span "+hover+" >"+facts.memFree+"</span>";
+					row.add(new JsonPrimitive(memFreeWithHover));
 				}
 				else {
 					row.add(new JsonPrimitive(""));
@@ -1482,40 +1468,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					sb.append(aliens);
 					sb.append("</span>");
 				}
-				if(!status.equals("defined")) {
-					row.add(new JsonPrimitive(sb.toString()));
-				}
-				else {
-					row.add(new JsonPrimitive(""));
-				}
-				// Shares
-				int sharesTotal = 0;
-				int sharesInuse = 0;
-				try {
-					int total = Integer.parseInt(facts.sharesTotal);
-					int inuse = Integer.parseInt(facts.sharesInuse);
-					sharesTotal = total;
-					sharesInuse = inuse;
-				}
-				catch(Exception e) {
-				}
-				// Shares: total
-				if(!status.equals("defined")) {
-					row.add(new JsonPrimitive(facts.sharesTotal));
-				}
-				else {
-					row.add(new JsonPrimitive(""));
-				}
-				// Shares: inuse
-				sb = new StringBuffer();
-				String span0 = "<span class=\"health_black\">";
-				String span1 = "</span>";
-				if(sharesInuse > sharesTotal) {
-					span0 = "<span class=\"health_red\">";
-				}
-				sb.append(span0);
-				sb.append(facts.sharesInuse);
-				sb.append(span1);
 				if(!status.equals("defined")) {
 					row.add(new JsonPrimitive(sb.toString()));
 				}
@@ -2113,7 +2065,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 								userProcesses = DuccMachinesData.getInstance().getUserProcesses(reservation.getUniqueNodes(),user);
 								list = reservation.getNodes();
 							}
-							String size = getProcessMemorySize(reservation.getDuccId(),"Reservation",reservation.getSchedulingInfo().getShareMemorySize(),reservation.getSchedulingInfo().getShareMemoryUnits());
+							String size = getProcessMemorySize(reservation.getDuccId(),"Reservation",reservation.getSchedulingInfo().getMemorySize(),reservation.getSchedulingInfo().getMemoryUnits());
 							String description = reservation.getStandardInfo().getDescription();
 							ReservationFacts facts = new ReservationFacts(id,start,end,user,rclass,state,reason,allocation,userProcesses,size,list,description);
 							factsList.add(facts);

@@ -48,8 +48,6 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private String swapFree;
 	private boolean cGroups;
 	private List<ProcessInfo> alienPids;
-	private String sharesTotal;
-	private String sharesInuse;
 	private long swapDelta;
 	private long heartbeat;
 	private long heartbeatMax;
@@ -57,7 +55,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private long pubSize;
 	private long pubSizeMax;
 	
-	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memFree, String swapInuse, String swapFree, boolean cGroups, List<ProcessInfo> alienPids, String sharesTotal, String sharesInuse, long heartbeat, long pubSize) {
+	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memFree, String swapInuse, String swapFree, boolean cGroups, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
 		this.fileDef = fileDef;
 		this.ip = ip;
 		this.name = name;
@@ -70,8 +68,6 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		if(this.alienPids == null) {
 			this.alienPids = new ArrayList<ProcessInfo>();
 		}
-		this.sharesTotal = sharesTotal;
-		this.sharesInuse = sharesInuse;
 		this.swapDelta = 0;
 		this.heartbeat = heartbeat;
 		this.heartbeatMax = 0;
@@ -184,14 +180,6 @@ public class MachineInfo implements Comparable<MachineInfo> {
 			retVal = this.alienPids.size();
 		}
 		return retVal;
-	}
-	
-	public String getSharesTotal() {
-		return this.sharesTotal;
-	}
-	
-	public String getSharesInuse() {
-		return this.sharesInuse;
 	}
 	
 	public long getSwapDelta() {
@@ -308,14 +296,6 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		if(retVal != 0) {
 			return retVal;
 		}
-		retVal = compareSharesInuse(m1, m2);
-		if(retVal != 0) {
-			return retVal;
-		}
-		retVal = compareSharesTotal(m1, m2);
-		if(retVal != 0) {
-			return retVal;
-		}
 		/*
 		retVal = compareHeartbeat(m1, m2);
 		if(retVal != 0) {
@@ -400,40 +380,6 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		try {
 			long v1 = m1.getAlienPidsCount();
 			long v2 = m2.getAlienPidsCount();
-			if(v1 > v2) {
-				return -1;
-			}
-			if(v1 < v2) {
-				return 1;
-			}
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
-	}
-	
-	private int compareSharesInuse(MachineInfo m1, MachineInfo m2) {
-		int retVal = 0;
-		try {
-			long v1 = Long.parseLong(m1.getSharesInuse());
-			long v2 = Long.parseLong(m2.getSharesInuse());
-			if(v1 > v2) {
-				return -1;
-			}
-			if(v1 < v2) {
-				return 1;
-			}
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
-	}
-	
-	private int compareSharesTotal(MachineInfo m1, MachineInfo m2) {
-		int retVal = 0;
-		try {
-			long v1 = Long.parseLong(m1.getSharesTotal());
-			long v2 = Long.parseLong(m2.getSharesTotal());
 			if(v1 > v2) {
 				return -1;
 			}

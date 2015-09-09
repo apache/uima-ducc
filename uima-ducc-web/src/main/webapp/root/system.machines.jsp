@@ -39,14 +39,11 @@ under the License.
 			"sAjaxSource": "ducc-servlet/json-format-aaData-machines",
 			aaSorting: [],
 			"fnRowCallback" : function(nRow,aData,iDisplayIndex) {
-                            $('td:eq(4)' , nRow).css( "text-align", "right" );
                             $('td:eq(5)' , nRow).css( "text-align", "right" );
                             $('td:eq(6)' , nRow).css( "text-align", "right" );
                             $('td:eq(7)' , nRow).css( "text-align", "right" );
                             $('td:eq(8)' , nRow).css( "text-align", "right" );
-                            $('td:eq(9)' , nRow).css( "text-align", "right" );
-                            $('td:eq(10)' , nRow).css( "text-align", "right" );      
-                            $('td:eq(11)' , nRow).css( "text-align", "right" );     
+                            $('td:eq(9)' , nRow).css( "text-align", "right" );   
 							$('td:eq(12)' , nRow).css( "text-align", "right" );                         
                             return nRow;
 			},
@@ -103,18 +100,14 @@ if (table_style.equals("scroll")) {
 	<table id="machines-table" width="100%">
 	<thead>
 	<tr class="ducc-header">
-	<th class="ducc-col-terminate"></th>
 	<th align="left" title="The current status">Status</th>
 	<th align="left" title="The host IP">IP</th>
 	<th align="left" title="The host name">Name</th>
-	<th align="left" title="The host effective memory size, in GB (hint: specify this size to reserve entire machine)" >Memory(GB):usable</th>
-	<th align="left" title="The host actual memory size, in GB" >Memory(GB):total</th>
+	<th align="left" title="The host usable memory size, in GB" >Memory(GB):usable</th>
 	<th align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
 	<th align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
 	<th align="left" title="The host C-Groups status" >C-Groups</th>
 	<th align="left" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>
-	<th align="left" title="The number of system shares" >Shares:total</th>
-	<th align="left" title="The number of system shares inuse" >Shares:inuse</th>
 	<th align="left" title="The elapsed time (in seconds) since the last heartbeat" >Heartbeat (last)</th>
 	</tr>
 	</thead>
@@ -134,18 +127,14 @@ if (table_style.equals("classic")) {
       <table class="sortable">
 		<thead>
 		<tr class="ducc-head">
-		<th class="ducc-col-terminate"></th>
 		<th align="left" title="The current status">Status</th>
 		<th align="left" title="The host IP">IP</th>
 		<th align="left" title="The host name">Name</th>
-		<th class="sorttable_numeric" align="left" title="The host effective memory size, in GB (hint: specify this size to reserve entire machine)" >Memory(GB):usable</th>
-		<th class="sorttable_numeric" align="left" title="The host actual memory size, in GB" >Memory(GB):total</th>
+		<th class="sorttable_numeric" align="left" title="The host usable memory size, in GB" >Memory(GB):usable</th>
 		<th class="sorttable_numeric" align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
 		<th class="sorttable_numeric" align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
 		<th align="left" title="The host C-Groups status" >C-Groups</th>
 		<th class="sorttable_numeric" align="left" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>
-		<th class="sorttable_numeric" align="left" title="The number of system shares" >Shares:total</th>
-		<th class="sorttable_numeric" align="left" title="The number of system shares inuse" >Shares:inuse</th>
 		<th class="sorttable_numeric" align="left" title="The elapsed time (in seconds) since the last heartbeat" >Heartbeat (last)</th>
 		</tr>
 		</thead>

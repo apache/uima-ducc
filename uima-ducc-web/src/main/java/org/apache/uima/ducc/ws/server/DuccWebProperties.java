@@ -27,25 +27,6 @@ import java.util.Properties;
 import org.apache.uima.ducc.common.utils.Utils;
 
 public class DuccWebProperties {
-
-	/*
-	public static Properties properties = new Properties();
-	
-	public static String key_MaxRecordsJobs = "MaxRecordsJobs";
-	public static String key_MaxRecordsReservations = "MaxRecordsReservations";
-	
-	static {
-		properties.setProperty(key_MaxRecordsJobs, "12");
-		properties.setProperty(key_MaxRecordsReservations, "5");
-	}
-	
-	public static Properties instance() {
-		return (Properties)properties.clone();
-	}
-	*/
-	
-	public static String key_ducc_rm_share_quantum = "ducc.rm.share.quantum";
-	public static String val_ducc_rm_share_quantum = "15";
 	
 	private static String dir_home = Utils.findDuccHome();
 	private static String dir_resources = "resources";

@@ -22,15 +22,12 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.uima.ducc.cli.ws.json.MachineFacts;
-import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -52,7 +49,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.DuccMachinesData;
-import org.apache.uima.ducc.ws.JobProcessInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
@@ -666,7 +662,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 				int usableProcessCount = job.getProcessMap().getUsableProcessCount();
 				if(usableProcessCount > 0) {
 					if(completed > 0) {
-						int threadsPerProcess = schedulingInfo.getIntThreadsPerShare();
+						int threadsPerProcess = schedulingInfo.getIntThreadsPerProcess();
 						int totalThreads = usableProcessCount * threadsPerProcess;
 						double remainingIterations = remainingWorkItems / totalThreads;
 						double avgMillis = perWorkItemStatistics.getMean();
@@ -1083,54 +1079,4 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return sb;
 	}
 	
-	private boolean isAtLeastOneJobProcessStuck(MachineFactsList factsList) {
-		boolean retVal = false;
-		if(factsList.size() > 0) {
-			ListIterator<MachineFacts> listIterator = factsList.listIterator();
-			while(listIterator.hasNext()) {
-				MachineFacts facts = listIterator.next();
-				String nodeStatus = facts.status;
-				if(!nodeStatus.equals("up")) {
-					ArrayList<JobProcessInfo> list = DuccDataHelper.getInstance().getJobProcessInfoList(facts.name);
-					if(!list.isEmpty()) {
-						retVal = true;
-						break;
-					}
-				}
-			}
-		}
-		return retVal;
-	}
-	
-	public String buildReleaseAll(HttpServletRequest request, MachineFactsList factsList) {
-		String retVal = "";
-		if(isAtLeastOneJobProcessStuck(factsList)) {
-			String hover = getDisabledWithHover(request,"");
-			String node = "'"+"*"+"'";
-			String type = "'"+"jobs"+"'";
-			if(node != null) {
-				retVal = "<input type=\"button\" onclick=\"ducc_confirm_release_shares("+node+","+type+")\" value=\"Release *ALL* Stuck Job Shares\" "+hover+"/>";
-			}
-		}
-		return retVal;
-	}
-	
-	public String buildReleaseMachine(HttpServletRequest request, MachineFacts facts) {
-		String retVal = "";
-		String nodeStatus = facts.status;
-		if(!nodeStatus.equals("up")) {
-			ArrayList<JobProcessInfo> list = DuccDataHelper.getInstance().getJobProcessInfoList(facts.name);
-			if(terminateEnabled) {
-				if(!list.isEmpty()) {
-					String hover = getDisabledWithHover(request,"");
-					String node = "'"+facts.name+"'";
-					String type = "'"+"jobs"+"'";
-					if(node != null) {
-						retVal = "<input type=\"button\" onclick=\"ducc_confirm_release_shares("+node+","+type+")\" value=\"Release Machine Stuck Job Shares\" "+hover+"/>";
-					}
-				}
-			}
-		}
-		return retVal;
-	}
 }

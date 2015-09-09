@@ -43,8 +43,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.uima.ducc.cli.ws.json.MachineFacts;
-import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.CancelReasons.CancelReason;
 import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
@@ -90,7 +88,6 @@ import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.DuccMachinesData;
-import org.apache.uima.ducc.ws.JobProcessInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.MachineSummaryInfo;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
@@ -126,7 +123,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private static DuccId jobid = null;
 	
 	private enum DetailsType { Job, Reservation, Service };
-	private enum ShareType { JD, MR, SPC, SPU, UIMA };
+	private enum AllocationType { JD, MR, SPC, SPU, UIMA };
 	private enum LogType { POP, UIMA };
 	
 	private DuccAuthenticator duccAuthenticator = DuccAuthenticator.getInstance();
@@ -183,8 +180,6 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private String duccServiceUpdate   				= duccContext+"/service-update-request";
 	
-	private String duccReleaseShares   				= duccContext+"/release-shares-request";
-	
 	private String jsonMachinesData 				= duccContext+"/json-machines-data";
 	private String jsonSystemClassesData 			= duccContext+"/json-system-classes-data";
 	private String jsonSystemDaemonsData 			= duccContext+"/json-system-daemons-data";
@@ -197,7 +192,6 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccServiceUpdateFormButton  	= duccContext+"/service-update-get-form-button";
 	
 	private String duccReservationSchedulingClasses     = duccContext+"/reservation-scheduling-classes";
-	private String duccReservationInstanceMemorySizes   = duccContext+"/reservation-memory-sizes";
 	private String duccReservationInstanceMemoryUnits   = duccContext+"/reservation-memory-units";
 	
 	protected String headProvider = "Provider";
@@ -355,7 +349,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 	*/
 	
-	private String buildLogFileName(IDuccWorkJob job, IDuccProcess process, ShareType type) {
+	private String buildLogFileName(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
 		String retVal = "";
 		if(process != null) {
 			switch(type) {
@@ -586,7 +580,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		return sb.toString();
 	}
 	
-	private String getTimeInit(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+	private String getTimeInit(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		String location = "getTimeInit";
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -669,7 +663,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		return sb.toString();
 	}
 	
-	private String getTimeRun(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+	private String getTimeRun(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		String location = "getTimeRun";
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -728,7 +722,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private SynchronizedSimpleDateFormat dateFormat = new SynchronizedSimpleDateFormat("HH:mm:ss");
 	
-	private String getTimeGC(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+	private String getTimeGC(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
 			switch(sType) {
@@ -751,7 +745,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		return sb.toString();
 	}
 	
-	private String getPgIn(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+	private String getPgIn(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
 			switch(sType) {
@@ -773,7 +767,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private DecimalFormat formatter = new DecimalFormat("##0.0");
 	
-	private String getSwap(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+	private String getSwap(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
 			switch(sType) {
@@ -906,7 +900,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		return sb.toString();
 	}
 	
-	private String getJConsole(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+	private String getJConsole(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
 			switch(process.getProcessState()) {
@@ -953,7 +947,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		return retVal;
 	}
 	
-	private void buildJobProcessListEntry(EffectiveUser eu, StringBuffer pb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter, Map<String, FileInfo> fileInfoMap) {
+	private void buildJobProcessListEntry(EffectiveUser eu, StringBuffer pb, DuccWorkJob job, IDuccProcess process, DetailsType dType, AllocationType sType, int counter, Map<String, FileInfo> fileInfoMap) {
 		StringBuffer rb = new StringBuffer();
 		int COLS = 26;
 		switch(sType) {
@@ -1540,7 +1534,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				DuccId processId = iterator.next();
 				IDuccProcess process = job.getDriver().getProcessMap().get(processId);
 				StringBuffer bb = new StringBuffer();
-				buildJobProcessListEntry(eu, bb, job, process, DetailsType.Job, ShareType.JD, counter, fileInfoMap);
+				buildJobProcessListEntry(eu, bb, job, process, DetailsType.Job, AllocationType.JD, counter, fileInfoMap);
 				if(bb.length() > 0) {
 					sb.append(bb.toString());
 					counter++;
@@ -1559,7 +1553,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				JobDetailsProcesses jdp = sortedIterator.next();
 				IDuccProcess process = jdp.getProcess();
 				StringBuffer bb = new StringBuffer();
-				buildJobProcessListEntry(eu, bb, job, process, DetailsType.Job, ShareType.UIMA, counter, fileInfoMap);
+				buildJobProcessListEntry(eu, bb, job, process, DetailsType.Job, AllocationType.UIMA, counter, fileInfoMap);
 				if(bb.length() > 0) {
 					sb.append(bb.toString());
 					counter++;
@@ -2197,7 +2191,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private void buildServiceFilesListEntry(Request baseRequest,HttpServletRequest request, StringBuffer sb, DuccWorkJob job, IDuccProcess process, ShareType type, int counter, Map<String, FileInfo> map) {
+	private void buildServiceFilesListEntry(Request baseRequest,HttpServletRequest request, StringBuffer sb, DuccWorkJob job, IDuccProcess process, AllocationType type, int counter, Map<String, FileInfo> map) {
 		EffectiveUser eu = EffectiveUser.create(request);
 		if(job != null) {
 			try {
@@ -2274,11 +2268,11 @@ public class DuccHandler extends DuccAbstractHandler {
 				Iterator<DuccId> iterator = null;
 				iterator = duccWorkMap.getServiceKeySet().iterator();
 				int counter = 0;
-				ShareType type = ShareType.SPU;
+				AllocationType type = AllocationType.SPU;
 				String service_type = properties.getProperty(IServicesRegistry.service_type);
 				if(service_type != null) {
 					if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
-						type = ShareType.SPC;
+						type = AllocationType.SPC;
 					}
 				}
 				EffectiveUser eu = EffectiveUser.create(request);
@@ -2426,7 +2420,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						String key = "cap.large";
 						String capFile = DuccWebServerHelper.getImageFileName(key);
 						if(capFile != null) {
-							if(job.getSchedulingInfo().getLongSharesMax() < 0) {
+							if(job.getSchedulingInfo().getLongProcessesMax() < 0) {
 								data.append("<tr>");
 								data.append("<td>");
 								sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
@@ -2444,7 +2438,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						DuccId processId = processIterator.next();
 						IDuccProcess process = processMap.get(processId);
 						String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-						String logfile = buildLogFileName(job, process, ShareType.UIMA);
+						String logfile = buildLogFileName(job, process, AllocationType.UIMA);
 						String link = logfile;
 						String reason = process.getReasonForStoppingProcess();
 						if(reason != null) {
@@ -2494,7 +2488,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						DuccId processId = processIterator.next();
 						IDuccProcess process = processMap.get(processId);
 						String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-						String logfile = buildLogFileName(job, process, ShareType.UIMA);
+						String logfile = buildLogFileName(job, process, AllocationType.UIMA);
 						String link = logfile;
 						String reason = process.getReasonForStoppingProcess();
 						if(reason != null) {
@@ -2518,7 +2512,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private void buildServiceProcessListEntry(EffectiveUser eu, StringBuffer sb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter, Map<String, FileInfo> fileInfoMap) {
+	private void buildServiceProcessListEntry(EffectiveUser eu, StringBuffer sb, DuccWorkJob job, IDuccProcess process, DetailsType dType, AllocationType sType, int counter, Map<String, FileInfo> fileInfoMap) {
 		buildJobProcessListEntry(eu, sb, job, process, dType, sType, counter, fileInfoMap);
 	}
 	
@@ -2554,7 +2548,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = managedReservation.getProcessMap().get(processId);
-				buildServiceProcessListEntry(eu, sb, managedReservation, process, DetailsType.Reservation, ShareType.MR, ++counter, fileInfoMap);
+				buildServiceProcessListEntry(eu, sb, managedReservation, process, DetailsType.Reservation, AllocationType.MR, ++counter, fileInfoMap);
 			}
 		}
 		if(sb.length() == 0) {
@@ -2654,11 +2648,11 @@ public class DuccHandler extends DuccAbstractHandler {
 			IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 			List<DuccWorkJob> servicesList = duccWorkMap.getServices(implementors);
 			int counter = 0;
-			ShareType type = ShareType.SPU;
+			AllocationType type = AllocationType.SPU;
 			String service_type = properties.getProperty(IServicesRegistry.service_type);
 			if(service_type != null) {
 				if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
-					type = ShareType.SPC;
+					type = AllocationType.SPC;
 				}
 			}
 			EffectiveUser eu = EffectiveUser.create(request);
@@ -3105,8 +3099,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		long swapInuse = 0;
 		long swapFree = 0;
 		long alienPids = 0;
-		long sharesTotal = 0;
-		long sharesInuse = 0;
 		while(iterator.hasNext()) {
 			MachineInfo machineInfo = iterator.next();
 			try {
@@ -3124,14 +3116,6 @@ public class DuccHandler extends DuccAbstractHandler {
 				if(alienPidsList != null) {
 					alienPids += alienPidsList.size();
 				}
-			}
-			catch(Exception e) {};
-			try {
-				sharesTotal += Long.parseLong(machineInfo.getSharesTotal());
-			}
-			catch(Exception e) {};
-			try {
-				sharesInuse += Long.parseLong(machineInfo.getSharesInuse());
 			}
 			catch(Exception e) {};
 		}
@@ -3153,10 +3137,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(quote(""+swapFree));
 		sb.append(",");
 		sb.append(quote(""+alienPids));
-		sb.append(",");
-		sb.append(quote(""+sharesTotal));
-		sb.append(",");
-		sb.append(quote(""+sharesInuse));
 		sb.append(",");
 		sb.append(quote(""));
 		
@@ -3199,10 +3179,6 @@ public class DuccHandler extends DuccAbstractHandler {
 				}
 			}
 			sb.append(quote(alienPidsDisplay));
-			sb.append(",");
-			sb.append(quote(machineInfo.getSharesTotal()));
-			sb.append(",");
-			sb.append(quote(machineInfo.getSharesInuse()));
 			sb.append(",");
 			sb.append(quote(machineInfo.getElapsed()));
 			
@@ -3651,6 +3627,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
 	
+	private long KB = 1000;
+	private long MB = 1000*KB;
+	private long GB = 1000*MB;
+	
 	private void handleDuccServletClusterUtilization(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -3663,8 +3643,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		DecimalFormat percentageFormatter = new DecimalFormat("##0.0");
 		
 		String utilization = "0%";
-		if(msi.sharesTotal > 0) {
-			double percentage = (((1.0) * msi.sharesInuse) / ((1.0) * msi.sharesTotal)) * 100.0;
+		
+		long memoryTotal = msi.memoryTotal * GB;
+		long memoryInuse = DuccData.getInstance().getLive().getMemoryInuse();
+		
+		if(memoryTotal > 0) {
+			double percentage = (((1.0) * memoryInuse) / ((1.0) * memoryTotal)) * 100.0;
 			utilization = percentageFormatter.format(percentage)+"%";
 		}
 		
@@ -3704,20 +3688,6 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 		}
 		sb.append("</select>");
-		response.getWriter().println(sb);
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletReservationInstanceMemorySizes(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleDuccServletReservationInstanceMemorySizes";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		StringBuffer sb = new StringBuffer();
-		List<Long> machineSizes = DuccMachinesData.getInstance().getMachineSizes();
-		for(Long machineSize : machineSizes) {
-			sb.append("<option value=\""+machineSize+"\">");
-		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
@@ -4562,109 +4532,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}		
 	
-	private void handleDuccServletReleaseShares(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleDuccServletReleaseShares";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		
-		String result = "";
-		
-		if(!isAuthenticated(request,response)) {
-			result = "error: not authenticated";
-			response.getWriter().println(result);
-			duccLogger.debug(methodName, null, result);
-		}
-		else if(!isAdministrator(request,response)) {
-			result = "error: not administrator";
-			response.getWriter().println(result);
-			duccLogger.debug(methodName, null, result);
-		}
-		else {
-			String node = request.getParameter("node");
-			String type = request.getParameter("type");
-			duccLogger.info(methodName, null, "node:"+node+" "+"type:"+type);
-			
-			if(node != null) {
-				node = node.trim();
-			}
-			else {
-				node = "";
-			}
-			
-			if(type != null) {
-				type = type.trim();
-			}
-			else {
-				type = "";
-			}
-			
-			if(node.length() < 1) {
-				result = "error: node missing";
-				response.getWriter().println(result);
-			}
-			else if(type.length() < 1) {
-				result = "error: type missing";
-				response.getWriter().println(result);
-			}
-			else {
-				if(type.equalsIgnoreCase("jobs")) {
-					ArrayList<String> nodeList = new ArrayList<String>();
-					MachineFactsList mfl = DuccMachinesData.getInstance().getMachineFactsList();
-					Iterator<MachineFacts> mfIterator = mfl.iterator();
-					while(mfIterator.hasNext()) {
-						MachineFacts mf = mfIterator.next();
-						if(mf.status != null) {
-							if(mf.status != "up") {
-								if(mf.name != null) {
-									if(node.equals("*")) {
-										nodeList.add(mf.name);
-									}
-									else if(node.equals(mf.name)) {
-										nodeList.add(mf.name);
-									}
-								}
-								
-							}
-						}
-					}
-					ArrayList<JobProcessInfo> list = DuccDataHelper.getInstance().getJobProcessIds(nodeList);
-					if(list.isEmpty()) {
-						result = "info: no job processes found on node";
-						response.getWriter().println(result);
-					}
-					else {
-						Iterator<JobProcessInfo> iterator = list.iterator();
-						String userId = getUserIdFromRequest(request);
-						String cp = System.getProperty("java.class.path");
-						String java = "/bin/java";
-						String jclass = "org.apache.uima.ducc.cli.DuccJobCancel";
-						String jhome = System.getProperty("java.home");
-						while(iterator.hasNext()) {
-							JobProcessInfo jpi = iterator.next();
-							String arg1 = "--id";
-							String arg2 = ""+jpi.jobId.getFriendly();
-							String arg3 = "--dpid";
-							String arg4 = ""+jpi.procid.getFriendly();
-							String arg5 = "--"+SpecificationProperties.key_role_administrator;
-							String arg6 = "--"+SpecificationProperties.key_reason;
-							String arg7 = "\"administrator "+userId+" released shares for this machine\"";
-							String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, arg5, arg6, arg7 };
-							result = DuccAsUser.duckling(userId, arglistAdministrator);
-							response.getWriter().println(result);
-						}
-					}
-				}
-				else {
-					result = "error: type invalid";
-					response.getWriter().println(result);
-				}
-			}
-		}
-		
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}		
-	
 	private void handleDuccRequest(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws Exception
 	{
@@ -4857,17 +4724,8 @@ public class DuccHandler extends DuccAbstractHandler {
 				handleDuccServletServiceUpdate(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
-			else if(reqURI.startsWith(duccReleaseShares)) {
-				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
-				handleDuccServletReleaseShares(target, baseRequest, request, response);
-				DuccWebUtil.noCache(response);
-			}
 			else if(reqURI.startsWith(duccReservationSchedulingClasses)) {
 				handleDuccServletReservationSchedulingClasses(target, baseRequest, request, response);
-				DuccWebUtil.noCache(response);
-			}
-			else if(reqURI.startsWith(duccReservationInstanceMemorySizes)) {
-				handleDuccServletReservationInstanceMemorySizes(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccReservationInstanceMemoryUnits)) {

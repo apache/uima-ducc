@@ -190,7 +190,7 @@ public class NodeViz
 
             String              user    = si.getUser();
             String              duccid  = service_id == null ? Long.toString(w.getDuccId().getFriendly()) : service_id;     // UIMA-4209
-            int                 jobmem  = Integer.parseInt(sti.getShareMemorySize());
+            int                 jobmem  = Integer.parseInt(sti.getMemorySize());
 
             String              sclass = sti.getSchedulingClass();
             int                 quantum = default_quantum;
