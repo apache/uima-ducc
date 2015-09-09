@@ -3644,11 +3644,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		
 		String utilization = "0%";
 		
-		long memoryTotal = msi.memoryTotal * GB;
-		long memoryInuse = DuccData.getInstance().getLive().getMemoryInuse();
+		long memFree = msi.memFree * GB;
+		long memInuse = DuccData.getInstance().getLive().getMemoryInuse();
 		
-		if(memoryTotal > 0) {
-			double percentage = (((1.0) * memoryInuse) / ((1.0) * memoryTotal)) * 100.0;
+		if(memFree > 0) {
+			double percentage = (((1.0) * memInuse) / ((1.0) * memFree)) * 100.0;
 			utilization = percentageFormatter.format(percentage)+"%";
 		}
 		

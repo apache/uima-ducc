@@ -20,7 +20,8 @@ package org.apache.uima.ducc.ws;
 
 public class MachineSummaryInfo {
 
-	public long memoryTotal = 0;
+	public long memTotal = 0;
+	public long memFree = 0;
 	public long swapInuse = 0;
 	public long swapFree = 0;
 }

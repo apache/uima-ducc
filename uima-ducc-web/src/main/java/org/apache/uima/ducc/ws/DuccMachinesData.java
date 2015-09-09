@@ -53,7 +53,8 @@ public class DuccMachinesData {
 	private static ConcurrentSkipListMap<String,MachineInfo> unsortedMachines = new ConcurrentSkipListMap<String,MachineInfo>();
 	private static ConcurrentSkipListMap<String,MachineSummaryInfo> summaryMachines = new ConcurrentSkipListMap<String,MachineSummaryInfo>();
 	
-	private static AtomicLong memoryTotal = new AtomicLong(0);
+	private static AtomicLong memTotal = new AtomicLong(0);
+	private static AtomicLong memFree = new AtomicLong(0);
 	private static AtomicLong swapInuse = new AtomicLong(0);
 	private static AtomicLong swapFree = new AtomicLong(0);
 
@@ -153,7 +154,8 @@ public class DuccMachinesData {
 	
 	public MachineSummaryInfo getTotals() {
 		MachineSummaryInfo totals = new MachineSummaryInfo();
-		totals.memoryTotal = memoryTotal.get();
+		totals.memTotal = memTotal.get();
+		totals.memFree = memFree.get();
 		totals.swapInuse = swapInuse.get();
 		totals.swapFree = swapFree.get();
 		return totals;
@@ -163,13 +165,15 @@ public class DuccMachinesData {
 		if(summaryMachines.containsKey(ip.toString())) {
 			MachineSummaryInfo oldInfo = summaryMachines.get(ip.toString());
 			summaryMachines.put(ip.toString(), newInfo);
-			memoryTotal.addAndGet(newInfo.memoryTotal-oldInfo.memoryTotal);
+			memTotal.addAndGet(newInfo.memTotal-oldInfo.memTotal);
+			memFree.addAndGet(newInfo.memFree-oldInfo.memFree);
 			swapInuse.addAndGet(newInfo.swapInuse-oldInfo.swapInuse);
 			swapFree.addAndGet(newInfo.swapFree-oldInfo.swapFree);
 		}
 		else {
 			summaryMachines.put(ip.toString(), newInfo);
-			memoryTotal.addAndGet(newInfo.memoryTotal);
+			memTotal.addAndGet(newInfo.memTotal);
+			memFree.addAndGet(newInfo.memFree);
 			swapInuse.addAndGet(newInfo.swapInuse);
 			swapFree.addAndGet(newInfo.swapFree);
 		}
@@ -215,12 +219,13 @@ public class DuccMachinesData {
 		long nodeMemTotal = nodeMetrics.getNodeMemory().getMemTotal();
 		logger.debug(location, jobid, "node: "+machineName+" "+"memTotal: "+nodeMemTotal);
 		long lvalMemTotal = (long) ((1.0*nodeMemTotal)/(1024*1024)+0.5);
-		msi.memoryTotal = lvalMemTotal;
+		msi.memTotal = lvalMemTotal;
 		String memTotal = ""+lvalMemTotal/*+memUnits*/;
 		// mem: free
 		long nodeMemFree = nodeMetrics.getNodeMemory().getMemFree();
 		logger.debug(location, jobid, "node: "+machineName+" "+"memFree: "+nodeMemFree);
 		long lvalMemFree = (long) ((1.0*nodeMemFree)/(1024*1024)+0.0);  // do NOT round up!
+		msi.memFree = lvalMemFree;
 		String memFree = ""+lvalMemFree/*+memUnits*/;
 		// swap: in-usewell
 		double dvalSwapTotal = nodeMetrics.getNodeMemory().getSwapTotal();
