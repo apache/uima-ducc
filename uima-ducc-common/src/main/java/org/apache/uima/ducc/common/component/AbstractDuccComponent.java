@@ -319,7 +319,9 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 	    this.service = service;
 	    if (System.getProperty("ducc.deploy.components") != null
 	            && !System.getProperty("ducc.deploy.components").equals("uima-as")
-	             && !System.getProperty("ducc.deploy.components").equals("jd")
+	            && !System.getProperty("ducc.deploy.components").equals("job-process")
+	            && !System.getProperty("ducc.deploy.components").equals("service")
+	            && !System.getProperty("ducc.deploy.components").equals("jd")
 	            && (endpoint = System.getProperty("ducc.admin.endpoint")) != null) {
 	        logger.info("start", null, ".....Starting Admin Channel on endpoint:" + endpoint);
             startAdminChannel(endpoint, this);
