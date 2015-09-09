@@ -36,7 +36,7 @@ public class JdReservationBean implements Serializable {
 	private DuccId jdReservationDuccId = null;
 	private NodeIdentity nodeIdentity;
 	private ReservationState reservationState = null;
-	private Long shareSize = new Long(30*GB);
+	private Long reservationSize = new Long(30*GB);
 	private Long sliceSize = new Long(300*MB);
 	
 	private ConcurrentHashMap<DuccId, Long> map = new ConcurrentHashMap<DuccId, Long>();
@@ -73,12 +73,12 @@ public class JdReservationBean implements Serializable {
 		return reservationState;
 	}
 	
-	public void setShareSize(Long value) {
-		shareSize = value;
+	public void setReservationSize(Long value) {
+		reservationSize = value;
 	}
 	
-	public Long getShareSize() {
-		return shareSize;
+	public Long getReservationSize() {
+		return reservationSize;
 	}
 	
 	public void setSliceSize(Long value) {

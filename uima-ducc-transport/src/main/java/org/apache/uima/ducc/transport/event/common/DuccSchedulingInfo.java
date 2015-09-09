@@ -35,16 +35,16 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	private static final long serialVersionUID = 1L;
 	private String schedulingClass = defaultSchedulingClass;
 	private String schedulingPriority = defaultSchedulingPriority;
-	private String shareMemorySize = defaultShareMemorySize;
-	private MemoryUnits shareMemoryUnits = defaultShareMemoryUnits;
+	private String memorySize = defaultMemorySize;
+	private MemoryUnits memoryUnits = defaultMemoryUnits;
 	private String instancesCount = defaultInstancesCount;
 	
 	@Deprecated
 	private String machinesCount = defaultMachinesCount;
 	
-	private String sharesMax = defaultSharesMax;
-	private String sharesMin = defaultSharesMin;
-	private String threadsPerShare = defaultThreadsPerShare;
+	private String processesMax = defaultProcessesMax;
+	private String processesMin = defaultProcessesMin;
+	private String threadsPerProcess = defaultThreadsPerProcess;
 	
 	private String workItemsTotal = defaultWorkItemsTotal;
 	private String workItemsCompleted = defaultWorkItemsCompleted;
@@ -117,83 +117,101 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	}
 	
 	
-	public String getShareMemorySize() {
-		return shareMemorySize;
+	public String getMemorySize() {
+		return memorySize;
 	}
+	
+	private static long KB = 1000;
+	private static long MB = 1000*KB;
+	private static long GB = 1000*MB;
 
-	
-	public void setShareMemorySize(String size) {
-		if(size != null) {
-			this.shareMemorySize = size;
-		}
-	}
-
-	
-	public MemoryUnits getShareMemoryUnits() {
-		return shareMemoryUnits;
-	}
-
-	
-	public void setShareMemoryUnits(MemoryUnits units) {
-		if(units != null) {
-			this.shareMemoryUnits = units;
-		}
-	}
-	
-	
-	public long getLongSharesMax() {
-		long retVal = -1;
+	public long getMemorySizeInBytes() {
+		long retVal = 0;
 		try {
-			retVal = Long.parseLong(sharesMax);
+			long value = Long.parseLong(getMemorySize());
+			switch(memoryUnits) {
+			case GB:
+				retVal = value * GB;
+				break;
+			case MB:
+				retVal = value * MB;
+				break;	
+			case KB:
+				retVal = value * KB;
+				break;
+			}
 		}
-		catch(Throwable t) {
+		catch(Exception e) {
 		}
 		return retVal;
 	}
 	
 	
-	public void setLongSharesMax(long shares) {
-		this.sharesMax = ""+shares;
-	}
-	
-	
-	public String getSharesMax() {
-		return sharesMax;
-	}
-
-	
-	public void setSharesMax(String shares) {
-		if(shares != null) {
-			this.sharesMax = shares.trim();
+	public void setMemorySize(String size) {
+		if(size != null) {
+			this.memorySize = size;
 		}
 	}
 
 	
-	public String getSharesMin() {
-		return this.sharesMin;
+	public MemoryUnits getMemoryUnits() {
+		return memoryUnits;
 	}
 
 	
-	public void setSharesMin(String shares) {
-		if(shares != null) {
-			this.sharesMin = shares;
+	public void setMemoryUnits(MemoryUnits units) {
+		if(units != null) {
+			this.memoryUnits = units;
 		}
 	}
 	
-	
-	public String getThreadsPerShare() {
-		return threadsPerShare;
+
+	public String getThreadsPerProcess() {
+		return threadsPerProcess;
 	}
 	
 	
-	public int getIntThreadsPerShare() {
-		return Integer.parseInt(threadsPerShare);
+	public long getLongProcessesMax() {
+		return Long.parseLong(processesMax);
+	}
+	
+	
+	public void setLongProcessesMax(long number) {
+		this.processesMax = ""+number;
+	}
+	
+	
+	public String getProcessesMax() {
+		return processesMax;
 	}
 
 	
-	public void setThreadsPerShare(String number) {
+	public void setProcessesMax(String number) {
 		if(number != null) {
-			this.threadsPerShare = number;
+			this.processesMax = number.trim();
+		}
+	}
+
+	
+	public String getProcessesMin() {
+		return this.processesMin;
+	}
+
+	
+	public void setProcessesMin(String number) {
+		if(number != null) {
+			this.processesMin = number;
+		}
+	}
+	
+	public int getIntThreadsPerProcess() {
+		return Integer.parseInt(threadsPerProcess);
+	}
+
+	
+	public void setThreadsPerProcess(String number) {
+		if(number != null) {
+			this.threadsPerProcess = number;
 		}
 	}
 	
@@ -395,16 +413,12 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 				+ ((schedulingPriority == null) ? 0 : schedulingPriority
 						.hashCode());
 		result = prime * result
-				+ ((shareMemorySize == null) ? 0 : shareMemorySize.hashCode());
+				+ ((memorySize == null) ? 0 : memorySize.hashCode());
 		result = prime
 				* result
-				+ ((shareMemoryUnits == null) ? 0 : shareMemoryUnits.hashCode());
+				+ ((memoryUnits == null) ? 0 : memoryUnits.hashCode());
 		result = prime * result
-				+ ((sharesMax == null) ? 0 : sharesMax.hashCode());
-		result = prime * result
-				+ ((sharesMin == null) ? 0 : sharesMin.hashCode());
-		result = prime * result
-				+ ((threadsPerShare == null) ? 0 : threadsPerShare.hashCode());
+				+ ((threadsPerProcess == null) ? 0 : threadsPerProcess.hashCode());
 		result = prime
 				* result
 				+ ((workItemsCompleted == null) ? 0 : workItemsCompleted
@@ -454,27 +468,17 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 				return false;
 		} else if (!schedulingPriority.equals(other.schedulingPriority))
 			return false;
-		if (shareMemorySize == null) {
-			if (other.shareMemorySize != null)
+		if (memorySize == null) {
+			if (other.memorySize != null)
 				return false;
-		} else if (!shareMemorySize.equals(other.shareMemorySize))
+		} else if (!memorySize.equals(other.memorySize))
 			return false;
-		if (shareMemoryUnits != other.shareMemoryUnits)
+		if (memoryUnits != other.memoryUnits)
 			return false;
-		if (sharesMax == null) {
-			if (other.sharesMax != null)
+		if (threadsPerProcess == null) {
+			if (other.threadsPerProcess != null)
 				return false;
-		} else if (!sharesMax.equals(other.sharesMax))
-			return false;
-		if (sharesMin == null) {
-			if (other.sharesMin != null)
-				return false;
-		} else if (!sharesMin.equals(other.sharesMin))
-			return false;
-		if (threadsPerShare == null) {
-			if (other.threadsPerShare != null)
-				return false;
-		} else if (!threadsPerShare.equals(other.threadsPerShare))
+		} else if (!threadsPerProcess.equals(other.threadsPerProcess))
 			return false;
 		if (workItemsCompleted == null) {
 			if (other.workItemsCompleted != null)
@@ -510,49 +514,5 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 			return false;
 		return true;
 	}
-	
-	// **********
-	
-//	
-//	public int hashCode() {
-//		final int prime = 31;
-//		int result = 1;
-//		result = prime * result + ((getSchedulingClass() == null) ? 0 : getSchedulingClass().hashCode());
-//		result = prime * result + ((getSchedulingPriority() == null) ? 0 : getSchedulingPriority().hashCode());
-//		result = prime * result + ((getSharesMax() == null) ? 0 : getSharesMax().hashCode());
-//		result = prime * result + ((getSharesMin() == null) ? 0 : getSharesMin().hashCode());
-//		result = prime * result + ((getShareMemorySize() == null) ? 0 : getShareMemorySize().hashCode());
-//		result = prime * result + ((getShareMemoryUnits() == null) ? 0 : getShareMemoryUnits().hashCode());
-//		result = prime * result + ((getThreadsPerShare() == null) ? 0 : getThreadsPerShare().hashCode());
-//		result = prime * result + super.hashCode();
-//		return result;
-//	}
-//	
-//	public boolean equals(Object obj) {
-//		boolean retVal = false;
-//		if(this == obj) {
-//			retVal = true;
-//		}
-//		else if(getClass() == obj.getClass()) {
-//			DuccSchedulingInfo that = (DuccSchedulingInfo)obj;
-//			if( 	Util.compare(this.getSchedulingClass(),that.getSchedulingClass()) 
-//				&&	Util.compare(this.getSchedulingPriority(),that.getSchedulingPriority()) 
-//				&&	Util.compare(this.getSharesMax(),that.getSharesMax()) 
-//				&&	Util.compare(this.getSharesMin(),that.getSharesMin()) 
-//			//	These don't change:
-//			//	&&	Util.compare(this.getShareMemorySize(),that.getShareMemorySize()) 
-//			//	&&	Util.compare(this.getShareMemoryUnits(),that.getShareMemoryUnits()) 
-//			//	&&	Util.compare(this.getInstancesCount(),that.getInstancesCount()) 
-//			//	&&	Util.compare(this.getThreadsPerShare(),that.getThreadsPerShare()) 
-////				&&	super.equals(obj)
-//				) 
-//			{
-//				retVal = true;
-//			}
-//		}
-//		return retVal;
-//	}
-	
-	
-	
+
 }

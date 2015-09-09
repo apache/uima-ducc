@@ -36,8 +36,8 @@ public interface IDuccReservation extends Serializable {
 	public NodeIdentity getNodeIdentity();
 	public void setNodeIdentity(NodeIdentity nodeIdentity);
 	
-	public int getShares();
-	public void setShares(int shares);
+	public int getBytes();
+	public void setBytes(int bytes);
 	
 	public ITimeWindow getTimeWindow();
 	public void setTimeWindow(ITimeWindow timeWindow);

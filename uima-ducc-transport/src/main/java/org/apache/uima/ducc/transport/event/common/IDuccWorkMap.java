@@ -52,4 +52,9 @@ public interface IDuccWorkMap extends Serializable, Map {
 	
 	public void addDuccWork(IDuccWork duccWork);
 	public void removeDuccWork(DuccId duccId);
+	
+	public long getMemoryInuseJobs();
+	public long getMemoryInuseServices();
+	public long getMemoryInuseReservations();
+	public long getMemoryInuse();
 }

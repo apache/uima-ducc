@@ -51,9 +51,4 @@ public interface IResource extends Serializable
      * If true, this share has been purged because its node went AWOL.
      */
     boolean isPurged();
-
-    /**
-     * Returns the number of quantum shares this resource occupies.
-     */
-    int countShares();
 }

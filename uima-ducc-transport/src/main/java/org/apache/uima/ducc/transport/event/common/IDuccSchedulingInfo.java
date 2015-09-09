@@ -30,19 +30,19 @@ public interface IDuccSchedulingInfo extends Serializable {
 	
 	public static final String defaultSchedulingClass = "normal";
 	public static final String defaultSchedulingPriority = "0";
-	public static final String defaultShareMemorySize = "13";
-	public static final MemoryUnits defaultShareMemoryUnits = MemoryUnits.GB;
+	public static final String defaultMemorySize = "13";
+	public static final MemoryUnits defaultMemoryUnits = MemoryUnits.GB;
 	public static final String defaultInstancesCount = "1";
 	
 	@Deprecated
 	public static final String defaultMachinesCount = "0";
 	
-	public static final String defaultSharesMax = "0";
-	public static final String defaultSharesMin = "0";
-	public static final String defaultThreadsPerShare = "1";
+	public static final String defaultProcessesMax = "0";
+	public static final String defaultProcessesMin = "0";
+	public static final String defaultThreadsPerProcess = "1";
 	
-	public static final String minThreadsPerShare = "1";
-	public static final String maxThreadsPerShare = "100";
+	public static final String minThreadsPerProcess = "1";
+	public static final String maxThreadsPerProcess = "100";
 	
 	public static final String defaultWorkItemsTotal = "unknown";
 	public static final String defaultWorkItemsCompleted = "0";
@@ -62,11 +62,13 @@ public interface IDuccSchedulingInfo extends Serializable {
 	public String getSchedulingPriority();
 	public void setSchedulingPriority(String schedulingPriority);
 	
-	public String getShareMemorySize();
-	public void setShareMemorySize(String size);
+	public String getMemorySize();
+	public void setMemorySize(String size);
 	
-	public MemoryUnits getShareMemoryUnits();
-	public void setShareMemoryUnits(MemoryUnits units);
+	public long getMemorySizeInBytes();
+	
+	public MemoryUnits getMemoryUnits();
+	public void setMemoryUnits(MemoryUnits units);
 	
 	// reservations
 	
@@ -80,19 +82,19 @@ public interface IDuccSchedulingInfo extends Serializable {
 	
 	// processes
 	
-	public long getLongSharesMax();
-	public void setLongSharesMax(long shares);
+	public long getLongProcessesMax();
+	public void setLongProcessesMax(long number);
 	
-	public String getSharesMax();
-	public void setSharesMax(String shares);
+	public String getProcessesMax();
+	public void setProcessesMax(String number);
 	
-	public String getSharesMin();
-	public void setSharesMin(String shares);
+	public String getProcessesMin();
+	public void setProcessesMin(String number); 
 	
-	public String getThreadsPerShare();
-	public void setThreadsPerShare(String number);
+	public String getThreadsPerProcess();
+	public void setThreadsPerProcess(String number);
 	
-	public int getIntThreadsPerShare();
+	public int getIntThreadsPerProcess();
 	
 	public String getWorkItemsTotal();
 	public void setWorkItemsTotal(String number);

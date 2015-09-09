@@ -187,6 +187,51 @@ public class DuccWorkMap implements IDuccWorkMap {
 		return retVal;
 	}
 	
+	//
+	
+	public long getMemoryInuseJobs() {
+		long size = 0;
+		Set<DuccId> keys = getJobKeySet();
+		for(DuccId key : keys) {
+			IDuccWorkJob job = (IDuccWorkJob)concurrentWorkMap.get(key);
+			long bytesPerProcess = job.getSchedulingInfo().getMemorySizeInBytes();
+			long numberOfProcesses = job.getAliveProcessCount();
+			size += bytesPerProcess * numberOfProcesses;
+		}
+		return size;
+	}
+	
+	public long getMemoryInuseServices() {
+		long size = 0;
+		Set<DuccId> keys = getServiceKeySet();
+		for(DuccId key : keys) {
+			IDuccWorkService service = (IDuccWorkService)concurrentWorkMap.get(key);
+			long bytesPerProcess = service.getSchedulingInfo().getMemorySizeInBytes();
+			long numberOfProcesses = 1;
+			size += bytesPerProcess * numberOfProcesses;
+		}
+		return size;
+	}
+	
+	public long getMemoryInuseReservations() {
+		long size = 0;
+		Set<DuccId> keys = getReservationKeySet();
+		for(DuccId key : keys) {
+			IDuccWorkReservation reservation = (IDuccWorkReservation)concurrentWorkMap.get(key);
+			long bytesPerReservation = reservation.getSchedulingInfo().getMemorySizeInBytes();
+			long numberOfReservations = 1;
+			size += bytesPerReservation * numberOfReservations;
+		}
+		return size;
+	}
+	
+	public long getMemoryInuse() {
+		long retVal = getMemoryInuseJobs()+getMemoryInuseServices()+getMemoryInuseReservations();
+		return retVal;
+	}
+	
+	//
+	
 	public ConcurrentHashMap<DuccId,IDuccWork> getMap() {
 		return concurrentWorkMap;
 	}
