@@ -338,7 +338,7 @@ public class JobManagerConverter
             int total_work     = toInt(si.getWorkItemsTotal(), scheduler.getDefaultNTasks());
             int completed_work = toInt(si.getWorkItemsCompleted(), 0)  + toInt(si.getWorkItemsError(), 0);
 
-            int max_shares     = toInt(si.getSharesMax(), Integer.MAX_VALUE);
+            int max_shares     = toInt(si.getProcessesMax(), Integer.MAX_VALUE);
             int existing_max_shares = j.getMaxShares();
 
             int remaining_work = Math.max(total_work - completed_work, 0);
@@ -363,7 +363,7 @@ public class JobManagerConverter
             if ( max_shares != existing_max_shares ) {
                 j.setMaxShares(max_shares);
                 logger.info(methodName, job.getDuccId(), "Max shares adjusted from", existing_max_shares, "to", max_shares, "(incoming)",
-                            si.getSharesMax());
+                            si.getProcessesMax());
             } 
                 
             j.setNQuestions(total_work, remaining_work, arith_mean);
@@ -515,7 +515,7 @@ public class JobManagerConverter
         j.setUserName(user_name);
         j.setJobName(name);
 
-        int threads       = toInt(si.getThreadsPerShare(), scheduler.getDefaultNThreads());
+        int threads       = toInt(si.getThreadsPerProcess(), scheduler.getDefaultNThreads());
         int user_priority = toInt(si.getSchedulingPriority(), 100);
 
         int total_work    =  toInt(si.getWorkItemsTotal(), scheduler.getDefaultNTasks());
@@ -525,7 +525,7 @@ public class JobManagerConverter
 
         logger.info(methodName, job.getDuccId(), "total_work", total_work, "completed_work", completed_work,"remaining_work", remaining_work);
 
-        int memory        = toInt(si.getShareMemorySize(), scheduler.getDefaultMemory());
+        int memory        = toInt(si.getMemorySize(), scheduler.getDefaultMemory());
         String className  = si.getSchedulingClass();
         if ( className == null ) {
             switch ( job.getDuccType() ) {
@@ -549,7 +549,7 @@ public class JobManagerConverter
         j.setNQuestions(total_work, remaining_work, 0.0);
         j.setClassName(className);
 
-        switch (si.getShareMemoryUnits()) {
+        switch (si.getMemoryUnits()) {
             case GB:
                 break;
             default:
@@ -649,7 +649,7 @@ public class JobManagerConverter
               break;
           case Job:              
               // instance and share count are a function of the class
-              max_processes    = toInt(si.getSharesMax(), DEFAULT_PROCESSES);
+              max_processes    = toInt(si.getProcessesMax(), DEFAULT_PROCESSES);
               switch ( rescl.getPolicy() ) {
                   case FAIR_SHARE:
                       j.setMaxShares(max_processes);
