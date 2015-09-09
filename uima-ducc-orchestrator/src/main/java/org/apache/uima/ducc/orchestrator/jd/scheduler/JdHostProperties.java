@@ -35,7 +35,7 @@ public class JdHostProperties {
 	private String hostMemorySize = null;			// size, with postfix { KB, MB, GB, TB }
 	private String hostNumberOfMachines = null;
 	private String hostUser = null;					// name, nominally "System"
-	private String shareQuantum = null;				// size, in MB
+	private String jdShareQuantum = null;			// size, in MB
 	private String slicesReserve = null;			// count, trigger for more
 	
 	public JdHostProperties() {
@@ -62,8 +62,8 @@ public class JdHostProperties {
 		return hostUser;
 	}
 	
-	public String getShareQuantum() {
-		return shareQuantum;
+	public String getJdShareQuantum() {
+		return jdShareQuantum;
 	}
 	
 	public String getSlicesReserve() {
@@ -143,12 +143,12 @@ public class JdHostProperties {
 		key = DuccPropertiesResolver.ducc_jd_share_quantum;
 		value = dpr.getFileProperty(key);
 		if(value != null) {
-			if(shareQuantum == null) {
-				shareQuantum = value;
+			if(jdShareQuantum == null) {
+				jdShareQuantum = value;
 				logger.trace(methodName, jobid, key+"="+value);
 			}
-			else if(!shareQuantum.equals(value)) {
-				shareQuantum = value;
+			else if(!jdShareQuantum.equals(value)) {
+				jdShareQuantum = value;
 				logger.trace(methodName, jobid, key+"="+value);
 			}
 		}

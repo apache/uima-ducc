@@ -90,16 +90,9 @@ public class StateManager {
 		return stateManager;
 	}
 	
-	private long quantum_size_in_bytes = 0;
-	
 	public StateManager() {
-		String ducc_rm_share_quantum = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_rm_share_quantum);
-		long oneKB = 1024;
-		long oneMB = 1024*oneKB;
-		long oneGB = 1024*oneMB;
-		quantum_size_in_bytes = Long.parseLong(ducc_rm_share_quantum) * oneGB;
 	}
-	
+
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private Messages messages = orchestratorCommonArea.getSystemMessages();
 	private DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
@@ -688,13 +681,13 @@ public class StateManager {
 		if(sum > 0) {
 			long capacity = job.getWorkItemCapacity();
 			long todo = total - (done + error);
-			long tps = job.getSchedulingInfo().getIntThreadsPerShare();
+			long tpp = job.getSchedulingInfo().getIntThreadsPerProcess();
 			long numShares = 0;
-			if(todo%tps > 0) {
+			if(todo%tpp > 0) {
 				numShares = 1;
 			}
-			numShares += todo / tps;
-			long adjTodo = numShares * tps;
+			numShares += todo / tpp;
+			long adjTodo = numShares * tpp;
 			if(capacity > 0) {
 				if(adjTodo < capacity) {
 					retVal = true;
@@ -924,8 +917,8 @@ public class StateManager {
 						logger.trace(methodName, duccId, messages.fetch("processing job..."));
 						DuccWorkJob duccWorkJob = (DuccWorkJob) duccWork;
 						processPurger(duccWorkJob,rmResourceState.getResources());
-						changes += processMapResourcesAdd(duccWorkJob,rmResourceState.getPendingAdditions());
-						changes += processMapResourcesDel(duccWorkJob,rmResourceState.getPendingRemovals());
+						changes += processMapResourcesAdd(duccWorkJob,rmResourceState.memoryGbPerProcess(),rmResourceState.getPendingAdditions());
+						changes += processMapResourcesDel(duccWorkJob,rmResourceState.memoryGbPerProcess(),rmResourceState.getPendingRemovals());
 						JobState jobState = duccWorkJob.getJobState();
 						logger.trace(methodName, duccId, messages.fetchLabel("job state")+jobState);
 						switch(jobState) {
@@ -975,8 +968,8 @@ public class StateManager {
 					case Reservation:
 						logger.trace(methodName, duccId, messages.fetch("processing reservation..."));
 						DuccWorkReservation duccWorkReservation = (DuccWorkReservation) duccWork;
-						changes += reservationMapResourcesAdd(duccWorkReservation,rmResourceState.getPendingAdditions());
-						changes += reservationMapResourcesDel(duccWorkReservation,rmResourceState.getPendingRemovals());
+						changes += reservationMapResourcesAdd(duccWorkReservation,rmResourceState.memoryGbPerProcess(),rmResourceState.getPendingAdditions());
+						changes += reservationMapResourcesDel(duccWorkReservation,rmResourceState.memoryGbPerProcess(),rmResourceState.getPendingRemovals());
 						ReservationState reservationState = duccWorkReservation.getReservationState();
 						logger.trace(methodName, duccId, messages.fetchLabel("reservation state")+reservationState);
 						switch(reservationState) {
@@ -1038,8 +1031,8 @@ public class StateManager {
 						logger.trace(methodName, duccId, messages.fetch("processing service..."));
 						DuccWorkJob duccWorkService = (DuccWorkJob) duccWork;
 						int processPurged = processPurger(duccWorkService,rmResourceState.getResources());
-						changes += processMapResourcesAdd(duccWorkService,rmResourceState.getPendingAdditions());
-						changes += processMapResourcesDel(duccWorkService,rmResourceState.getPendingRemovals());
+						changes += processMapResourcesAdd(duccWorkService,rmResourceState.memoryGbPerProcess(),rmResourceState.getPendingAdditions());
+						changes += processMapResourcesDel(duccWorkService,rmResourceState.memoryGbPerProcess(),rmResourceState.getPendingRemovals());
 						JobState serviceState = duccWorkService.getJobState();
 						logger.trace(methodName, duccId, messages.fetchLabel("service state")+serviceState);
 						switch(serviceState) {
@@ -1148,7 +1141,11 @@ public class StateManager {
 		return changes;
 	}
 	
-	private int processMapResourcesAdd(DuccWorkJob duccWorkJob,Map<DuccId,IResource> resourceMap) {
+	private int KB = 1000;
+	private int MB = 1000*KB;
+	private int GB = 1000*MB;
+	
+	private int processMapResourcesAdd(DuccWorkJob duccWorkJob, int memoryGbPerProcess, Map<DuccId,IResource> resourceMap) {
 		String methodName = "processMapResourcesAdd";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		int changes = 0;
@@ -1160,7 +1157,6 @@ public class StateManager {
 			Iterator<DuccId> resourceMapIterator = resourceMap.keySet().iterator();
 			while(resourceMapIterator.hasNext()) {
 				DuccId duccId = resourceMapIterator.next();
-				IResource resource = resourceMap.get(duccId);
 				Node node = resourceMap.get(duccId).getNode();
 				NodeIdentity nodeId = node.getNodeIdentity();
 				if(!processMap.containsKey(duccId)) {
@@ -1176,7 +1172,7 @@ public class StateManager {
 						break;
 					}
 					DuccProcess process = new DuccProcess(duccId, node, processType);
-					long process_max_size_in_bytes = quantum_size_in_bytes * resource.countShares();
+					long process_max_size_in_bytes = memoryGbPerProcess * GB;
 					CGroupManager.assign(duccWorkJob.getDuccId(), process, process_max_size_in_bytes);
 					orchestratorCommonArea.getProcessAccounting().addProcess(duccId, duccWorkJob.getDuccId());
 					processMap.addProcess(process);
@@ -1229,7 +1225,7 @@ public class StateManager {
 		return changes;
 	}
 	
-	private int processMapResourcesDel(DuccWorkJob duccWorkJob,Map<DuccId,IResource> resourceMap) {
+	private int processMapResourcesDel(DuccWorkJob duccWorkJob, int memoryGbPerProcess, Map<DuccId,IResource> resourceMap) {
 		String methodName = "processMapResourcesDel";
 		logger.trace(methodName, duccWorkJob.getDuccId(), messages.fetch("enter"));
 		int changes = 0;
@@ -1286,7 +1282,7 @@ public class StateManager {
 		return changes;
 	}
 
-	private int reservationMapResourcesAdd(DuccWorkReservation duccWorkReservation,Map<DuccId,IResource> resourceMap) {
+	private int reservationMapResourcesAdd(DuccWorkReservation duccWorkReservation,int memoryGbPerProcess,Map<DuccId,IResource> resourceMap) {
 		String methodName = "reservationMapResourcesAdd";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		int changes = 0;
@@ -1298,9 +1294,9 @@ public class StateManager {
 				IResource resource = resourceMap.get(duccId);
 				Node node = resource.getNode();
 				NodeIdentity nodeId = node.getNodeIdentity();
-				int shares = resource.countShares();
 				if(!reservationMap.containsKey(duccId)) {
-					DuccReservation reservation = new DuccReservation(duccId, node, shares);
+					int bytes = memoryGbPerProcess * GB;
+					DuccReservation reservation = new DuccReservation(duccId, node, bytes);
 					reservationMap.addReservation(reservation);
 					logger.info(methodName, duccId, messages.fetch("add resource")+" "+messages.fetchLabel("name")+nodeId.getName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
 					changes++;
@@ -1314,7 +1310,7 @@ public class StateManager {
 		return changes;
 	}
 	
-	private int reservationMapResourcesDel(DuccWorkReservation duccWorkReservation,Map<DuccId,IResource> resourceMap) {
+	private int reservationMapResourcesDel(DuccWorkReservation duccWorkReservation,int memoryGbPerProcess,Map<DuccId,IResource> resourceMap) {
 		String methodName = "processMapResourcesDel";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		int changes = 0;

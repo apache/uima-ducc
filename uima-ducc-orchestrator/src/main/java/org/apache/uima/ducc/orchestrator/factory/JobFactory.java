@@ -75,14 +75,8 @@ public class JobFactory implements IJobFactory {
 	public static IJobFactory getInstance() {
 		return jobFactory;
 	}
-	
-	private long driver_max_size_in_bytes = 0;
 
 	private JobFactory() {
-		String ducc_jd_share_quantum = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_share_quantum);
-		long oneKB = 1024;
-		long oneMB = 1024*oneKB;
-		driver_max_size_in_bytes = Long.parseLong(ducc_jd_share_quantum) * oneMB;
 	}
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
@@ -419,6 +413,7 @@ public class JobFactory implements IJobFactory {
 			throw new ResourceUnavailableForJobDriverException();
 		}
 		DuccProcess driverProcess = new DuccProcess(jdId,nodeIdentity,ProcessType.Pop);
+		long driver_max_size_in_bytes = JobFactoryHelper.getByteSizeJobDriver();
 		CGroupManager.assign(job.getDuccId(), driverProcess, driver_max_size_in_bytes);
 		OrUtil.setResourceState(job, driverProcess, ResourceState.Allocated);
 		driverProcess.setNodeIdentity(nodeIdentity);
@@ -441,12 +436,12 @@ public class JobFactory implements IJobFactory {
         if (limit <= 0) {
             return;
         }
-        int threads_per_share = schedulingInfo.getIntThreadsPerShare();
-        long sharesLimit = limit / threads_per_share;
-        long maxShares = schedulingInfo.getLongSharesMax();
-        if (maxShares == 0 || maxShares > sharesLimit) {
-            logger.info(methodName, job.getDuccId(), "change max-shares from "+maxShares+" to " + sharesLimit);
-            schedulingInfo.setSharesMax(String.valueOf(sharesLimit));
+        int threads_per_process = schedulingInfo.getIntThreadsPerProcess();
+        long processesLimit = limit / threads_per_process;
+        long maxProcesses = schedulingInfo.getLongProcessesMax();
+        if (maxProcesses == 0 || maxProcesses > processesLimit) {
+            logger.info(methodName, job.getDuccId(), "change max-processes from "+maxProcesses+" to " + processesLimit);
+            schedulingInfo.setProcessesMax(String.valueOf(processesLimit));
         }
 	}
 	
@@ -521,21 +516,18 @@ public class JobFactory implements IJobFactory {
 		}
 		// scheduling info
 		DuccSchedulingInfo schedulingInfo = new DuccSchedulingInfo();
-		String ducc_rm_share_quantum = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_rm_share_quantum);
-		if(ducc_rm_share_quantum != null) {
-			ducc_rm_share_quantum = ducc_rm_share_quantum.trim();
-			if(ducc_rm_share_quantum.length() > 0) {
-				schedulingInfo.setShareMemorySize(ducc_rm_share_quantum);
-			}
-		}
 		job.setSchedulingInfo(schedulingInfo);
+		long jpGB = JobFactoryHelper.getByteSizeJobProcess() / JobFactoryHelper.GB;
+		if(jpGB > 0) {
+			schedulingInfo.setMemorySize(""+jpGB);
+		}
 		schedulingInfo.setSchedulingClass(jobRequestProperties.getProperty(JobSpecificationProperties.key_scheduling_class));
 		schedulingInfo.setSchedulingPriority(jobRequestProperties.getProperty(JobSpecificationProperties.key_scheduling_priority));
-		schedulingInfo.setSharesMax(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_deployments_max));
-		schedulingInfo.setSharesMin(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_deployments_min));
-		schedulingInfo.setThreadsPerShare(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
-		schedulingInfo.setShareMemorySize(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_memory_size));
-		schedulingInfo.setShareMemoryUnits(MemoryUnits.GB);
+		schedulingInfo.setProcessesMax(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_deployments_max));
+		schedulingInfo.setProcessesMin(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_deployments_min));
+		schedulingInfo.setThreadsPerProcess(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
+		schedulingInfo.setMemorySize(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_memory_size));
+		schedulingInfo.setMemoryUnits(MemoryUnits.GB);
 		
 		if (job.getDuccType() == DuccType.Job){ 
 		    checkSchedulingLimits(job, schedulingInfo);
@@ -579,7 +571,7 @@ public class JobFactory implements IJobFactory {
 				// UIMA aggregate
 				String name = common.jdQueuePrefix+job.getDuccId().toString();
 				String description = job.getStandardInfo().getDescription();
-				int threadCount = Integer.parseInt(job.getSchedulingInfo().getThreadsPerShare());
+				int threadCount = Integer.parseInt(job.getSchedulingInfo().getThreadsPerProcess());
 				String brokerURL = job.getjobBroker();;
 				String endpoint = job.getjobQueue();
 				ArrayList<IDuccUimaAggregateComponent> components = new ArrayList<IDuccUimaAggregateComponent>();

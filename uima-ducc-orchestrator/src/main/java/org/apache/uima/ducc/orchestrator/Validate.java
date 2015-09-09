@@ -122,9 +122,9 @@ public class Validate {
 		retVal = integer(retVal,
 				properties,
 				JobSpecificationProperties.key_process_thread_count,
-				IDuccSchedulingInfo.defaultThreadsPerShare,
-				IDuccSchedulingInfo.minThreadsPerShare,
-				IDuccSchedulingInfo.maxThreadsPerShare);
+				IDuccSchedulingInfo.defaultThreadsPerProcess,
+				IDuccSchedulingInfo.minThreadsPerProcess,
+				IDuccSchedulingInfo.maxThreadsPerProcess);
 		// scheduling class
 		key = JobRequestProperties.key_scheduling_class;
 		value = (String) properties.get(key);
@@ -221,9 +221,9 @@ public class Validate {
 		retVal = integer(retVal,
 				properties,
 				JobSpecificationProperties.key_process_thread_count,
-				IDuccSchedulingInfo.defaultThreadsPerShare,
-				IDuccSchedulingInfo.minThreadsPerShare,
-				IDuccSchedulingInfo.maxThreadsPerShare);
+				IDuccSchedulingInfo.defaultThreadsPerProcess,
+				IDuccSchedulingInfo.minThreadsPerProcess,
+				IDuccSchedulingInfo.maxThreadsPerProcess);
 		// scheduling class
 		key = ServiceRequestProperties.key_scheduling_class;
 		value = (String) properties.get(key);

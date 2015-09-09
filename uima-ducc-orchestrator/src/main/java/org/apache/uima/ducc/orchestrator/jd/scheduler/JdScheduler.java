@@ -180,20 +180,20 @@ public class JdScheduler {
 								ReservationState reservationState = dwr.getReservationState();
 								switch(reservationState) {
 								case Assigned:
-									shareUp(dwr, jdHostProperties);
+									reservationUp(dwr, jdHostProperties);
 									break;
 								case Completed:
-									shareDown(dwr);
+									reservationDown(dwr);
 									break;
 								case Received:	
 								case Undefined:
-									shareOther(dwr, jdHostProperties);
+									reservationOther(dwr, jdHostProperties);
 									break;
 								case WaitingForResources:
 									pendingFlag = true;
 									break;
 								default:
-									shareOther(dwr, jdHostProperties);
+									reservationOther(dwr, jdHostProperties);
 									break;
 								}
 							}
@@ -203,7 +203,7 @@ public class JdScheduler {
 				}
 			}
 			for(DuccId jdReservationDuccId : known) {
-				shareVanished(jdReservationDuccId);
+				reservationVanished(jdReservationDuccId);
 			}
 		}
 		if(pendingFlag) {
@@ -212,7 +212,7 @@ public class JdScheduler {
 		else {
 			requestPending.set(false);
 		}
-		logger.trace(location, jobid, "total: "+countSharesTotal()+" "+"up: "+countSharesUp());
+		logger.trace(location, jobid, "total: "+countReservationsTotal()+" "+"up: "+countReservationsUp());
 	}
 	
 	private long getSlicesReserveDesired(JdHostProperties jdHostProperties) {
@@ -225,7 +225,7 @@ public class JdScheduler {
 		return slicesReserveActual;
 	}
 	
-	private boolean isShareDivestable(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
+	private boolean isReservationDivestable(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		boolean retVal = false;
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
 		long slicesReserveActual = getSlicesReserveActual(jdHostProperties);
@@ -253,19 +253,19 @@ public class JdScheduler {
 			logger.debug(location, jobid, "desired: "+slicesReserveDesired+" "+"actual: "+slicesReserveActual);
 			if(slicesReserveActual < slicesReserveDesired) {
 				if(requestPending.get()) {
-					sharePending(dwm, jdHostProperties);
+					reservationPending(dwm, jdHostProperties);
 				}
 				else {
-					shareAcquire(dwm, jdHostProperties);
+					reservationAcquire(dwm, jdHostProperties);
 				}
 			}
-			else if(isShareDivestable(dwm, jdHostProperties)) {
-				while(isShareDivestable(dwm, jdHostProperties)) {
-					shareDivest(dwm, jdHostProperties);
+			else if(isReservationDivestable(dwm, jdHostProperties)) {
+				while(isReservationDivestable(dwm, jdHostProperties)) {
+					reservationDivest(dwm, jdHostProperties);
 				}
 			}
 			else {
-				shareNoChange(dwm, jdHostProperties);
+				reservationNoChange(dwm, jdHostProperties);
 			}
 		}
 		else {
@@ -273,15 +273,15 @@ public class JdScheduler {
 		}
 	}
 	
-	private void sharePending(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
-		String location = "sharePending";
+	private void reservationPending(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
+		String location = "reservationPending";
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
 		long slicesReserveActual = getSlicesReserveActual(jdHostProperties);
 		logger.debug(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
-	private void shareAcquire(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
-		String location = "shareAcquire";
+	private void reservationAcquire(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
+		String location = "reservationAcquire";
 		CommonConfiguration common = null;
 		ReservationRequestProperties reservationRequestProperties = new ReservationRequestProperties();
 		//
@@ -321,8 +321,8 @@ public class JdScheduler {
 		logger.debug(location, duccId, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
-	private void shareDivest(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
-		String location = "shareDivest";
+	private void reservationDivest(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
+		String location = "reservationDivest";
 		DuccId jdReservationDuccId = null;
 		synchronized(map) {
 			for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
@@ -352,8 +352,8 @@ public class JdScheduler {
 		logger.debug(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
-	private void shareNoChange(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
-		String location = "shareNoChange";
+	private void reservationNoChange(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
+		String location = "reservationNoChange";
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
 		long slicesReserveActual = getSlicesReserveActual(jdHostProperties);
 		logger.trace(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
@@ -383,12 +383,12 @@ public class JdScheduler {
 		return jdReservationBeanList;
 	}
 	
-	public int countSharesTotal() {
+	public int countReservationsTotal() {
 		int count = map.size();
 		return count;
 	}
 	
-	public int countSharesUp() {
+	public int countReservationsUp() {
 		int count = 0;
 		for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 			JdReservation jdReservation = entry.getValue();
@@ -399,21 +399,21 @@ public class JdScheduler {
 		return count;
 	}
 	
-	private void shareUp(IDuccWorkReservation dwr, JdHostProperties jdHostProperties) {
-		String location = "shareUp";
+	private void reservationUp(IDuccWorkReservation dwr, JdHostProperties jdHostProperties) {
+		String location = "reservationUp";
 		DuccId duccId = dwr.getDuccId();
 		DuccId jdReservationDuccId = (DuccId) duccId;
 		JdReservation jdReservation = null;
-		long shareSizeMB = JdHelper.getShareSize(jdHostProperties);
+		long reservationSizeMB = JdHelper.getReservationSize(jdHostProperties);
 		long sliceSizeMB = JdHelper.getSliceSize(jdHostProperties);
 		synchronized(map) {
 			jdReservation = map.get(jdReservationDuccId);
 			if(jdReservation == null) {
-				jdReservation = new JdReservation(dwr, shareSizeMB, sliceSizeMB);
+				jdReservation = new JdReservation(dwr, reservationSizeMB, sliceSizeMB);
 				map.put(jdReservationDuccId, jdReservation);
 			}
 			else if(!jdReservation.isUp()) {
-				jdReservation = new JdReservation(dwr, shareSizeMB, sliceSizeMB);
+				jdReservation = new JdReservation(dwr, reservationSizeMB, sliceSizeMB);
 				map.put(jdReservationDuccId, jdReservation);
 			}
 			else {
@@ -425,8 +425,8 @@ public class JdScheduler {
 		}
 	}
 	
-	private void shareDown(IDuccWorkReservation dwr) {
-		String location = "shareDown";
+	private void reservationDown(IDuccWorkReservation dwr) {
+		String location = "reservationDown";
 		DuccId duccId = dwr.getDuccId();
 		DuccId jdReservationDuccId = (DuccId) duccId;
 		JdReservation jdReservation = null;
@@ -444,25 +444,25 @@ public class JdScheduler {
 		}
 	}
 	
-	private void shareOther(IDuccWorkReservation dwr, JdHostProperties jdHostProperties) {
-		String location = " shareOther";
+	private void reservationOther(IDuccWorkReservation dwr, JdHostProperties jdHostProperties) {
+		String location = " reservationOther";
 		DuccId duccId = dwr.getDuccId();
 		DuccId jdReservationDuccId = (DuccId) duccId;
 		JdReservation jdReservation = null;
-		long shareSizeMB = JdHelper.getShareSize(jdHostProperties);
+		long reservationSizeMB = JdHelper.getReservationSize(jdHostProperties);
 		long sliceSizeMB = JdHelper.getSliceSize(jdHostProperties);
 		synchronized(map) {
 			jdReservation = map.get(jdReservationDuccId);
 			if(jdReservation == null) {
-				jdReservation = new JdReservation(dwr, shareSizeMB, sliceSizeMB);
+				jdReservation = new JdReservation(dwr, reservationSizeMB, sliceSizeMB);
 				map.put(jdReservationDuccId, jdReservation);
 			}
 		}
-		logger.trace(location, duccId, "total: "+countSharesTotal()+" "+"up: "+countSharesUp());
+		logger.trace(location, duccId, "total: "+countReservationsTotal()+" "+"up: "+countReservationsUp());
 	}
 	
-	private void shareVanished(DuccId jdReservationDuccId) {
-		String location = "shareVanished";
+	private void reservationVanished(DuccId jdReservationDuccId) {
+		String location = "reservationVanished";
 		List<JdReservation> list = new ArrayList<JdReservation>();
 		synchronized(map) {
 			JdReservation jdReservation = map.get(jdReservationDuccId);

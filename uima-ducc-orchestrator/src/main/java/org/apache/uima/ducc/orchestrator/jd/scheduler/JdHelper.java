@@ -87,7 +87,7 @@ public class JdHelper {
 		return count;	
 	}
 	
-	public static long getShareSize(JdHostProperties jdHostProperties) {
+	public static long getReservationSize(JdHostProperties jdHostProperties) {
 		long retVal = 0;
 		try {
 			if(jdHostProperties != null) {
@@ -103,7 +103,7 @@ public class JdHelper {
 	public static long getSliceSize(JdHostProperties jdHostProperties) {
 		long retVal = 0;
 		if(jdHostProperties != null) {
-			String value = jdHostProperties.getShareQuantum();
+			String value = jdHostProperties.getJdShareQuantum();
 			retVal = parseSize(value+"MB");
 		}
 		return retVal;

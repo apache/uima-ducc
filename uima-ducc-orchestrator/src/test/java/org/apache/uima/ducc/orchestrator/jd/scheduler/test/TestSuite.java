@@ -107,8 +107,8 @@ public class TestSuite {
 	private Random random = new Random(seed);
 	
 	private void assign(IDuccWorkMap dwm) {
-		for(DuccId shareId : dwm.getReservationKeySet()) {
-			IDuccWork dw = dwm.findDuccWork(shareId);
+		for(DuccId reservationId : dwm.getReservationKeySet()) {
+			IDuccWork dw = dwm.findDuccWork(reservationId);
 			IDuccWorkReservation dwr = (IDuccWorkReservation) dw;
 			switch(dwr.getReservationState()) {
 			case WaitingForResources:
@@ -152,35 +152,35 @@ public class TestSuite {
 			jdScheduler.handle(null);
 			IDuccWorkMap dwm = new DuccWorkMap();
 			jdScheduler.handle(dwm);
-			assertTrue(jdScheduler.countSharesTotal() == 0);
-			assertTrue(jdScheduler.countSharesUp() == 0);
+			assertTrue(jdScheduler.countReservationsTotal() == 0);
+			assertTrue(jdScheduler.countReservationsUp() == 0);
 			//
 			IDuccWorkReservation dwr = null;
 			//
 			dwr = TestHelper.getDWR(jdHostProperties);
 			dwm.addDuccWork(dwr);
 			jdScheduler.handle(dwm);
-			assertTrue(jdScheduler.countSharesTotal() == 1);
-			assertTrue(jdScheduler.countSharesUp() == 0);
+			assertTrue(jdScheduler.countReservationsTotal() == 1);
+			assertTrue(jdScheduler.countReservationsUp() == 0);
 			//
 			dwr = TestHelper.getDWR(jdHostProperties);
 			dwr.setReservationState(ReservationState.Assigned);
 			dwm.addDuccWork(dwr);
 			jdScheduler.handle(dwm);
-			assertTrue(jdScheduler.countSharesTotal() == 2);
-			assertTrue(jdScheduler.countSharesUp() == 1);
+			assertTrue(jdScheduler.countReservationsTotal() == 2);
+			assertTrue(jdScheduler.countReservationsUp() == 1);
 			//
 			dwr = TestHelper.getDWR(jdHostProperties);
 			dwr.setReservationState(ReservationState.Assigned);
 			dwm.addDuccWork(dwr);
 			jdScheduler.handle(dwm);
-			assertTrue(jdScheduler.countSharesTotal() == 3);
-			assertTrue(jdScheduler.countSharesUp() == 2);
+			assertTrue(jdScheduler.countReservationsTotal() == 3);
+			assertTrue(jdScheduler.countReservationsUp() == 2);
 			//
 			dwm.removeDuccWork(dwr.getDuccId());
 			jdScheduler.handle(dwm);
-			assertTrue(jdScheduler.countSharesTotal() == 2);
-			assertTrue(jdScheduler.countSharesUp() == 1);
+			assertTrue(jdScheduler.countReservationsTotal() == 2);
+			assertTrue(jdScheduler.countReservationsUp() == 1);
 			//
 			assertTrue(jdScheduler.countSlicesTotal() > 0);
 			assertTrue(jdScheduler.countSlicesInuse() == 0);
@@ -199,8 +199,8 @@ public class TestSuite {
 			JdScheduler jdScheduler = new JdScheduler();
 			//
 			jdScheduler.handle(null);
-			assertTrue(jdScheduler.countSharesTotal() == 0);
-			assertTrue(jdScheduler.countSharesUp() == 0);
+			assertTrue(jdScheduler.countReservationsTotal() == 0);
+			assertTrue(jdScheduler.countReservationsUp() == 0);
 			
 			IDuccWorkMap dwm = new DuccWorkMap();
 			jdScheduler.handle(dwm);

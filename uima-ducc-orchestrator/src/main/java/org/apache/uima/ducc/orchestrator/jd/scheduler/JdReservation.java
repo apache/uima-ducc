@@ -33,18 +33,18 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 	
 	private static DuccLogger logger = new DuccLogger(JdReservation.class);
 	
-	public JdReservation(IDuccWorkReservation dwr, Long shareSizeMB, Long sliceSizeMB) {
-		initialize(dwr, shareSizeMB, sliceSizeMB);
+	public JdReservation(IDuccWorkReservation dwr, Long reservationSizeMB, Long sliceSizeMB) {
+		initialize(dwr, reservationSizeMB, sliceSizeMB);
 	}
 	
-	private void initialize(IDuccWorkReservation dwr, Long shareSize, Long sliceSize) {
+	private void initialize(IDuccWorkReservation dwr, Long reservationSize, Long sliceSize) {
 		if(dwr != null) {
 			DuccId jdReservationId = (DuccId) dwr.getDuccId();
 			setJdReservationId(jdReservationId);
 			setNodeIdentity(JdHelper.getNodeIdentity(dwr));
 			setReservationState(dwr.getReservationState());
-			if(shareSize != null) {
-				setShareSize(shareSize);
+			if(reservationSize != null) {
+				setReservationSize(reservationSize);
 			}
 			if(sliceSize != null) {
 				setSliceSize(sliceSize);
@@ -77,9 +77,9 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 	}
 	
 	public Long getSlicesTotal() {
-		Long shareSize = getShareSize();
+		Long reservationSize = getReservationSize();
 		Long sliceSize = getSliceSize();
-		Long retVal = shareSize / sliceSize;
+		Long retVal = reservationSize / sliceSize;
 		return retVal;
 	}
 	

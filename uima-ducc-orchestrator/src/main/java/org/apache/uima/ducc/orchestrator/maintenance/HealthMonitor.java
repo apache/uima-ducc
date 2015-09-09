@@ -228,8 +228,8 @@ public class HealthMonitor {
 						long initFails = job.getProcessInitFailureCount();
 						// if current number of initialization failures exceeds specified cap
 						if(initFails > cap) {
-							// set job's max shares to -1, indicating stop process expansion to RM
-							job.getSchedulingInfo().setLongSharesMax(-1);
+							// set job's max processes to -1, indicating stop process expansion to RM
+							job.getSchedulingInfo().setLongProcessesMax(-1);
 						}
 					}
 				}
@@ -275,8 +275,8 @@ public class HealthMonitor {
 						long initFails = service.getProcessInitFailureCount();
 						// if current number of initialization failures exceeds specified cap
 						if(initFails > cap) {
-							// set job's max shares to -1, indicating stop process expansion to RM
-							service.getSchedulingInfo().setLongSharesMax(-1);
+							// set job's max processes to -1, indicating stop process expansion to RM
+							service.getSchedulingInfo().setLongProcessesMax(-1);
 						}
 					}
 				}
