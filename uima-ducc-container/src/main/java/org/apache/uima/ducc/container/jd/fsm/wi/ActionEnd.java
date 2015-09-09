@@ -102,13 +102,17 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 	private String keyUniqueName = "uniqueName";
 	private String keyAnalysisTime = "analysisTime";
 	
+	private boolean oldFormat = false;
+	
 	private String normalizeUniqueName(String uniqueName) {
 		String retVal = uniqueName;
-		try {
-			// expected format: <thread-number> Components /<annotators-path>
-			retVal = uniqueName.trim().split("\\s++", 3)[2];
-		}
-		catch(Exception e) {
+		if(oldFormat) {
+			try {
+				// expected format: <thread-number> Components /<annotators-path>
+				retVal = uniqueName.trim().split("\\s++", 3)[2];
+			}
+			catch(Exception e) {
+			}
 		}
 		return retVal;
 	}
