@@ -218,6 +218,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 				p.setProperty("numProcessed",
 						String.valueOf(metrics.getNumProcessed()));
 				metricsList.add(p);
+				System.out.println(">>>>> Metrics Unique Name::"+metrics.getUniqueName());
 			}
 			
 			return metricsList;
@@ -420,10 +421,12 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 			}
 			// Primitive AE will not have "X Components" prefix, but it is required
 			// by the DUCC JD to be there. Prepend it to the unique name.
+			/*
 			if (uimaFullyQualifiedAEContext.indexOf(" Components ") == -1) {
 				uimaFullyQualifiedAEContext = index + " Components "
 						+ uimaFullyQualifiedAEContext;
 			}
+			*/
 			return new AnalysisEnginePerformanceMetrics(aem.getName(),
 					uimaFullyQualifiedAEContext, aem.getAnalysisTime(),
 					aem.getNumberOfCASesProcessed());
