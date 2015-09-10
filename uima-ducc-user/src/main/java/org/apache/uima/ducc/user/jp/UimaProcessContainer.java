@@ -218,7 +218,6 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 				p.setProperty("numProcessed",
 						String.valueOf(metrics.getNumProcessed()));
 				metricsList.add(p);
-				System.out.println(">>>>> Metrics Unique Name::"+metrics.getUniqueName());
 			}
 			
 			return metricsList;
