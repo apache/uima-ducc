@@ -50,16 +50,21 @@ public class JobFactoryHelper {
 			String ducc_rm_share_quantum = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_rm_share_quantum);
 			long sizeNew = Long.parseLong(ducc_rm_share_quantum) * GB;
 			if(sizeNew > 0) {
-				long sizeOld = jdSize.get();
+				long sizeOld = jpSize.get();
 				if(sizeNew != sizeOld) {
 					jpSize.set(sizeNew);
 					logger.info(location, jobid, "old: "+sizeOld+" "+"new: "+sizeNew);
 				}
+				retVal = sizeNew;
+			}
+			else {
+				logger.warn(location, jobid, DuccPropertiesResolver.ducc_rm_share_quantum+"="+ducc_rm_share_quantum+" "+"invalid");
 			}
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
 		}
+		logger.debug(location, jobid, retVal);
 		return retVal;
 	}
 	
@@ -81,11 +86,16 @@ public class JobFactoryHelper {
 					jdSize.set(sizeNew);
 					logger.info(location, jobid, "old: "+sizeOld+" "+"new: "+sizeNew);
 				}
+				retVal = sizeNew;
+			}
+			else {
+				logger.warn(location, jobid, DuccPropertiesResolver.ducc_jd_share_quantum+"="+ducc_jd_share_quantum+" "+"invalid");
 			}
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
 		}
+		logger.debug(location, jobid, retVal);
 		return retVal;
 	}
 }
