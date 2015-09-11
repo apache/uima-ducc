@@ -343,9 +343,17 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		row.add(new JsonPrimitive(sb.toString()));
 		// Size
 		sb = new StringBuffer();
-		sb.append("<span>");
-		SizeBytes size = new SizeBytes(SizeBytes.Type.Bytes,job.getSchedulingInfo().getMemorySizeAllocatedInBytes());
-		sb.append(getProcessMemorySize(duccId,size));
+		IDuccSchedulingInfo si;
+		SizeBytes sizeBytes;
+		String requested;
+		String actual;
+		si = job.getSchedulingInfo();
+		sizeBytes = new SizeBytes(SizeBytes.Type.Bytes, si.getMemorySizeAllocatedInBytes());
+		actual = getProcessMemorySize(duccId,sizeBytes);
+		sizeBytes = new SizeBytes(si.getMemoryUnits().name(), Long.parseLong(si.getMemorySizeRequested()));
+		requested = getProcessMemorySize(duccId,sizeBytes);
+		sb.append("<span title=\""+"requested: "+requested+"\">");
+		sb.append(actual);
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Total

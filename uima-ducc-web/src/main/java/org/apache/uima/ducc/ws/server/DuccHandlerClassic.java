@@ -308,9 +308,19 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		sb.append(displaySwapMax);
 		sb.append("</td>");
 		// Size
+		IDuccSchedulingInfo si;
+		SizeBytes sizeBytes;
+		String requested;
+		String actual;
+		si = job.getSchedulingInfo();
+		sizeBytes = new SizeBytes(SizeBytes.Type.Bytes, si.getMemorySizeAllocatedInBytes());
+		actual = getProcessMemorySize(duccId,sizeBytes);
+		sizeBytes = new SizeBytes(si.getMemoryUnits().name(), Long.parseLong(si.getMemorySizeRequested()));
+		requested = getProcessMemorySize(duccId,sizeBytes);
 		sb.append("<td valign=\"bottom\" align=\"right\">");
-		SizeBytes size = new SizeBytes(SizeBytes.Type.Bytes,job.getSchedulingInfo().getMemorySizeAllocatedInBytes());
-		sb.append(getProcessMemorySize(duccId,size));
+		sb.append("<span title=\""+"requested: "+requested+"\">");
+		sb.append(actual);
+		sb.append("</span>");
 		sb.append("</td>");
 		// Total
 		sb.append("<td valign=\"bottom\" align=\"right\">");

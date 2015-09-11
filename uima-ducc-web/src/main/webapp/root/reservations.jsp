@@ -116,7 +116,7 @@ if (table_style.equals("scroll")) {
 			<th title="The current state of this reservation">State</th>
 			<th title="The reason for the final state of this reservation, normally CanceledByUser">Reason</th>
 			<th title="The combined number of PIDs on the assigned resource(s) for user">User<br>Processes</th>
-			<th title="The memory allocation for this reservation, in GB">Size<br/><small>(given)</small></th>
+			<th title="The memory allocation for this reservation, in GB">Size<br/><small>(actual)</small></th>
 			<th title="The memory request for this reservation, in GB">Size<br/><small>(requested)</small></th>
 			<th title="The machine(s) assigned to this reservation">Host<br>Names</th>
 			<th title="The user specified description of this reservation">Description</th>
@@ -148,7 +148,7 @@ if (table_style.equals("classic")) {
 			<th title="The current state of this reservation">State</th>
 			<th title="The reason for the final state of this reservation, normally CanceledByUser">Reason</th>
 			<th title="The combined number of PIDs on the assigned resource(s) for user">User<br>Processes</th>
-			<th title="The memory allocation for this reservation, in GB">Size<br/><small>(given)</small></th>
+			<th title="The memory allocation for this reservation, in GB">Size<br/><small>(actual)</small></th>
 			<th title="The memory request for this reservation, in GB">Size<br/><small>(requested)</small></th>
 			<th title="The machine(s) assigned to this reservation">Host<br>Names</th>
 			<th title="The user specified description of this reservation">Description</th>
