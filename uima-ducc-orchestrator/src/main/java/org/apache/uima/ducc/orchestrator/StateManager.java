@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
@@ -1141,14 +1142,11 @@ public class StateManager {
 		return changes;
 	}
 	
-	private int KB = 1000;
-	private int MB = 1000*KB;
-	private int GB = 1000*MB;
-	
 	private int processMapResourcesAdd(DuccWorkJob duccWorkJob, int memoryGbPerProcess, Map<DuccId,IResource> resourceMap) {
 		String methodName = "processMapResourcesAdd";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		int changes = 0;
+		duccWorkJob.getSchedulingInfo().setMemorySizeAllocatedInBytes(memoryGbPerProcess*SizeBytes.GB);
 		if(resourceMap == null) {
 			logger.info(methodName, duccWorkJob.getDuccId(), messages.fetch("no map found"));
 		}
@@ -1172,7 +1170,7 @@ public class StateManager {
 						break;
 					}
 					DuccProcess process = new DuccProcess(duccId, node, processType);
-					long process_max_size_in_bytes = memoryGbPerProcess * GB;
+					long process_max_size_in_bytes = memoryGbPerProcess * SizeBytes.GB;
 					CGroupManager.assign(duccWorkJob.getDuccId(), process, process_max_size_in_bytes);
 					orchestratorCommonArea.getProcessAccounting().addProcess(duccId, duccWorkJob.getDuccId());
 					processMap.addProcess(process);
@@ -1286,6 +1284,7 @@ public class StateManager {
 		String methodName = "reservationMapResourcesAdd";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		int changes = 0;
+		duccWorkReservation.getSchedulingInfo().setMemorySizeAllocatedInBytes(memoryGbPerProcess*SizeBytes.GB);
 		IDuccReservationMap reservationMap = duccWorkReservation.getReservationMap();
 		if(resourceMap != null) {
 			Iterator<DuccId> resourceMapIterator = resourceMap.keySet().iterator();
@@ -1295,7 +1294,7 @@ public class StateManager {
 				Node node = resource.getNode();
 				NodeIdentity nodeId = node.getNodeIdentity();
 				if(!reservationMap.containsKey(duccId)) {
-					int bytes = memoryGbPerProcess * GB;
+					long bytes = memoryGbPerProcess * SizeBytes.GB;
 					DuccReservation reservation = new DuccReservation(duccId, node, bytes);
 					reservationMap.addReservation(reservation);
 					logger.info(methodName, duccId, messages.fetch("add resource")+" "+messages.fetchLabel("name")+nodeId.getName()+" "+messages.fetchLabel("ip")+nodeId.getIp());

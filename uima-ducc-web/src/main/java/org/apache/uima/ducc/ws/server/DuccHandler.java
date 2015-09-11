@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.uima.ducc.common.CancelReasons.CancelReason;
 import org.apache.uima.ducc.common.NodeConfiguration;
+import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -3627,10 +3628,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
 	
-	private long KB = 1000;
-	private long MB = 1000*KB;
-	private long GB = 1000*MB;
-	
 	private void handleDuccServletClusterUtilization(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -3644,7 +3641,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		
 		String utilization = "0%";
 		
-		long memFree = msi.memFree * GB;
+		long memFree = msi.memFree * SizeBytes.GB;
 		long memInuse = DuccData.getInstance().getLive().getMemoryInuse();
 		
 		if(memFree > 0) {

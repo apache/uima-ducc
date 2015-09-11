@@ -22,30 +22,27 @@ import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
 
 public class JdReservationBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	public static long KB = 1024;
-	public static long MB = 1024*KB;
-	public static long GB = 1024*MB;
-	public static long TB = 1024*GB;
 	
 	private DuccId jdReservationDuccId = null;
 	private NodeIdentity nodeIdentity;
 	private ReservationState reservationState = null;
-	private Long reservationSize = new Long(30*GB);
-	private Long sliceSize = new Long(300*MB);
+	private SizeBytes reservationSize = new SizeBytes(SizeBytes.Type.GBytes,30);
+	private SizeBytes sliceSize = new SizeBytes(SizeBytes.Type.MBytes,300);
 	
-	private ConcurrentHashMap<DuccId, Long> map = new ConcurrentHashMap<DuccId, Long>();
+	private ConcurrentHashMap<DuccId, SizeBytes> map = new ConcurrentHashMap<DuccId, SizeBytes>();
 	
-	public void setMap(ConcurrentHashMap<DuccId, Long> value) {
+	public void setMap(ConcurrentHashMap<DuccId, SizeBytes> value) {
 		map = value;
 	}
 	
-	public ConcurrentHashMap<DuccId, Long> getMap() {
+	public ConcurrentHashMap<DuccId, SizeBytes> getMap() {
 		return map;
 	}
 	
@@ -73,19 +70,19 @@ public class JdReservationBean implements Serializable {
 		return reservationState;
 	}
 	
-	public void setReservationSize(Long value) {
+	public void setReservationSize(SizeBytes value) {
 		reservationSize = value;
 	}
 	
-	public Long getReservationSize() {
+	public SizeBytes getReservationSize() {
 		return reservationSize;
 	}
 	
-	public void setSliceSize(Long value) {
+	public void setSliceSize(SizeBytes value) {
 		sliceSize = value;
 	}
 	
-	public Long getSliceSize() {
+	public SizeBytes getSliceSize() {
 		return sliceSize;
 	}
 	

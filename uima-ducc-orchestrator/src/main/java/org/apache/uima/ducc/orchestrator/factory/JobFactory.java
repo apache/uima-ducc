@@ -519,14 +519,14 @@ public class JobFactory implements IJobFactory {
 		job.setSchedulingInfo(schedulingInfo);
 		long jpGB = JobFactoryHelper.getByteSizeJobProcess() / JobFactoryHelper.GB;
 		if(jpGB > 0) {
-			schedulingInfo.setMemorySize(""+jpGB);
+			schedulingInfo.setMemorySizeRequested(""+jpGB);
 		}
 		schedulingInfo.setSchedulingClass(jobRequestProperties.getProperty(JobSpecificationProperties.key_scheduling_class));
 		schedulingInfo.setSchedulingPriority(jobRequestProperties.getProperty(JobSpecificationProperties.key_scheduling_priority));
 		schedulingInfo.setProcessesMax(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_deployments_max));
 		schedulingInfo.setProcessesMin(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_deployments_min));
 		schedulingInfo.setThreadsPerProcess(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
-		schedulingInfo.setMemorySize(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_memory_size));
+		schedulingInfo.setMemorySizeRequested(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_memory_size));
 		schedulingInfo.setMemoryUnits(MemoryUnits.GB);
 		
 		if (job.getDuccType() == DuccType.Job){ 

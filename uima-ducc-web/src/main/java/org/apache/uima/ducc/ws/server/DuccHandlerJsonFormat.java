@@ -44,6 +44,7 @@ import org.apache.uima.ducc.cli.ws.json.ReservationFacts;
 import org.apache.uima.ducc.cli.ws.json.ReservationFactsList;
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeConfiguration;
+import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -64,8 +65,8 @@ import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
+import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
-import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IRationale;
@@ -126,7 +127,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	}
 	
 	private JsonArray buildJobRow(HttpServletRequest request, IDuccWorkJob job, DuccData duccData, long now, ServicesRegistry servicesRegistry) {
-		String type="Job";
 		JsonArray row = new JsonArray();
 		StringBuffer sb;
 		DuccId duccId = job.getDuccId();
@@ -344,9 +344,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		// Size
 		sb = new StringBuffer();
 		sb.append("<span>");
-		String size = job.getSchedulingInfo().getMemorySize();
-		MemoryUnits units = job.getSchedulingInfo().getMemoryUnits();
-		sb.append(getProcessMemorySize(duccId,type,size,units));
+		SizeBytes size = new SizeBytes(SizeBytes.Type.Bytes,job.getSchedulingInfo().getMemorySizeAllocatedInBytes());
+		sb.append(getProcessMemorySize(duccId,size));
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Total
@@ -540,7 +539,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	
 	
 	private JsonArray buildReservationRow(HttpServletRequest request, IDuccWork duccwork, DuccData duccData, long now) {
-		String type="Reservation";
 		JsonArray row = new JsonArray();
 		String reservationType = "Unmanaged";
 		if(duccwork instanceof DuccWorkJob) {
@@ -840,12 +838,21 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			}
 		}
 		row.add(new JsonPrimitive(sb.toString()));
-		// Size
+		//
+		IDuccSchedulingInfo si = duccwork.getSchedulingInfo();
+		SizeBytes size;
+		// Size (given)
 		sb = new StringBuffer();
 		sb.append("<span>");
-		String size = duccwork.getSchedulingInfo().getMemorySize();
-		MemoryUnits units = duccwork.getSchedulingInfo().getMemoryUnits();
-		sb.append(getProcessMemorySize(duccId,type,size,units));
+		size = new SizeBytes(SizeBytes.Type.Bytes,duccwork.getSchedulingInfo().getMemorySizeAllocatedInBytes());
+		sb.append(getProcessMemorySize(duccId,size));
+		sb.append("</span>");
+		row.add(new JsonPrimitive(sb.toString()));
+		// Size (requested)
+		sb = new StringBuffer();
+		sb.append("<span>");
+		size = new SizeBytes(si.getMemoryUnits().name(),Long.parseLong(si.getMemorySizeRequested()));
+		sb.append(getProcessMemorySize(duccId,size));
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// List
@@ -2065,7 +2072,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 								userProcesses = DuccMachinesData.getInstance().getUserProcesses(reservation.getUniqueNodes(),user);
 								list = reservation.getNodes();
 							}
-							String size = getProcessMemorySize(reservation.getDuccId(),"Reservation",reservation.getSchedulingInfo().getMemorySize(),reservation.getSchedulingInfo().getMemoryUnits());
+							SizeBytes resSize = new SizeBytes(SizeBytes.Type.Bytes,reservation.getSchedulingInfo().getMemorySizeAllocatedInBytes());
+							String size = ""+getProcessMemorySize(reservation.getDuccId(),resSize);
 							String description = reservation.getStandardInfo().getDescription();
 							ReservationFacts facts = new ReservationFacts(id,start,end,user,rclass,state,reason,allocation,userProcesses,size,list,description);
 							factsList.add(facts);

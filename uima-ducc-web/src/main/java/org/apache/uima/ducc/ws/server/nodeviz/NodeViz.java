@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeConfiguration;
+import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -190,7 +191,7 @@ public class NodeViz
 
             String              user    = si.getUser();
             String              duccid  = service_id == null ? Long.toString(w.getDuccId().getFriendly()) : service_id;     // UIMA-4209
-            int                 jobmem  = Integer.parseInt(sti.getMemorySize());
+            int                 jobmem  = (int) (sti.getMemorySizeAllocatedInBytes()/SizeBytes.GB);
 
             String              sclass = sti.getSchedulingClass();
             int                 quantum = default_quantum;

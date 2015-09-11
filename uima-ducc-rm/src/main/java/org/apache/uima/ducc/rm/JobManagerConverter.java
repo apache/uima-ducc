@@ -525,7 +525,7 @@ public class JobManagerConverter
 
         logger.info(methodName, job.getDuccId(), "total_work", total_work, "completed_work", completed_work,"remaining_work", remaining_work);
 
-        int memory        = toInt(si.getMemorySize(), scheduler.getDefaultMemory());
+        int memory        = toInt(si.getMemorySizeRequested(), scheduler.getDefaultMemory());
         String className  = si.getSchedulingClass();
         if ( className == null ) {
             switch ( job.getDuccType() ) {

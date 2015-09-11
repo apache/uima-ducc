@@ -20,7 +20,7 @@ package org.apache.uima.ducc.transport.event.common;
 
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
-public class DuccWorkService extends ADuccWorkExecutable {
+public class DuccWorkService extends ADuccWorkExecutable implements IDuccWorkService {
 	
 	/**
 	 * please increment this sUID when removing or modifying a field 

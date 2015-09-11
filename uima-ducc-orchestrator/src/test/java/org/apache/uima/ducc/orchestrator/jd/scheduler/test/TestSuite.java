@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -35,8 +36,12 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorCheckpoint;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdHostProperties;
+import org.apache.uima.ducc.orchestrator.jd.scheduler.JdReservation;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdScheduler;
+import org.apache.uima.ducc.transport.event.common.DuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
@@ -106,6 +111,16 @@ public class TestSuite {
 	private int seed = 0;
 	private Random random = new Random(seed);
 	
+	private long KB = 1024;
+	private long MB = 1024*KB;
+	private long GB = 1024*MB;
+	
+	private void rmAssign(IDuccWorkReservation dwr) {
+		IDuccSchedulingInfo si = dwr.getSchedulingInfo();
+		long size = 15 *GB;
+		si.setMemorySizeAllocatedInBytes(size);
+	}
+	
 	private void assign(IDuccWorkMap dwm) {
 		for(DuccId reservationId : dwm.getReservationKeySet()) {
 			IDuccWork dw = dwm.findDuccWork(reservationId);
@@ -114,6 +129,7 @@ public class TestSuite {
 			case WaitingForResources:
 				TestHelper.assign(dwr);
 				// state: WaitingForResources
+				rmAssign(dwr);
 				dwr.stateChange(ReservationState.Assigned);
 				OrchestratorCheckpoint.getInstance().saveState();
 				break;
@@ -142,6 +158,28 @@ public class TestSuite {
 	}
 	
 	@Test
+	public void testJdReservation() {
+		try {
+			IDuccWorkReservation dwr = new DuccWorkReservation();
+			DuccId duccId = new DuccId(1);
+			dwr.setDuccId(duccId);
+			dwr.setReservationState(ReservationState.Assigned);
+			IDuccSchedulingInfo si = new DuccSchedulingInfo();
+			dwr.setSchedulingInfo(si);
+			si.setMemorySizeAllocatedInBytes(15*SizeBytes.GB);
+			//
+			SizeBytes reservationSize = new SizeBytes(SizeBytes.Type.GBytes,15);
+			SizeBytes sliceSize = new SizeBytes(SizeBytes.Type.MBytes,300);
+			JdReservation jdReservation = new JdReservation(dwr,reservationSize,sliceSize);
+			assertTrue(jdReservation.getSlicesAvailable() > 0);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+	
+	@Test
 	public void testJdSchedulerStatic() {
 		try {
 			JdHostProperties jdHostProperties = new JdHostProperties();
@@ -154,6 +192,7 @@ public class TestSuite {
 			jdScheduler.handle(dwm);
 			assertTrue(jdScheduler.countReservationsTotal() == 0);
 			assertTrue(jdScheduler.countReservationsUp() == 0);
+			assertTrue(jdScheduler.countSlicesTotal() == 0);
 			//
 			IDuccWorkReservation dwr = null;
 			//
@@ -162,15 +201,19 @@ public class TestSuite {
 			jdScheduler.handle(dwm);
 			assertTrue(jdScheduler.countReservationsTotal() == 1);
 			assertTrue(jdScheduler.countReservationsUp() == 0);
+			assertTrue(jdScheduler.countSlicesTotal() == 0);
 			//
 			dwr = TestHelper.getDWR(jdHostProperties);
+			rmAssign(dwr);
 			dwr.setReservationState(ReservationState.Assigned);
 			dwm.addDuccWork(dwr);
 			jdScheduler.handle(dwm);
 			assertTrue(jdScheduler.countReservationsTotal() == 2);
 			assertTrue(jdScheduler.countReservationsUp() == 1);
+			assertTrue(jdScheduler.countSlicesTotal() > 0);
 			//
 			dwr = TestHelper.getDWR(jdHostProperties);
+			rmAssign(dwr);
 			dwr.setReservationState(ReservationState.Assigned);
 			dwm.addDuccWork(dwr);
 			jdScheduler.handle(dwm);

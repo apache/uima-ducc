@@ -21,13 +21,18 @@ package org.apache.uima.ducc.orchestrator.jd.scheduler;
 import java.util.Map.Entry;
 
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.SizeBytes;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 
 public class JdHelper {
-
+	
+	private static DuccLogger logger = new DuccLogger(JdHelper.class);
+	private static DuccId jobid = null;
+	
 	public static NodeIdentity getNodeIdentity(IDuccWorkReservation dwr) {
 		NodeIdentity retVal = null;
 		if(dwr != null) {
@@ -42,41 +47,7 @@ public class JdHelper {
 		return retVal;
 	}
 	
-	public static long KB = 1024;
-	public static long MB = 1024*KB;
-	public static long GB = 1024*MB;
-	public static long TB = 1024*GB;
-	
-	public static long parseSize(String value) {
-		long size = 0;
-		try {
-			String tValue = value.trim();
-			if(tValue.endsWith("KB")) {
-				tValue = tValue.substring(0, tValue.length() - 2);
-				size = new Long(tValue) * KB;
-			}
-			else if(tValue.endsWith("MB")) {
-				tValue = tValue.substring(0, tValue.length() - 2);
-				size = new Long(tValue) * MB;
-			}
-			else if(tValue.endsWith("GB")) {
-				tValue = tValue.substring(0, tValue.length() - 2);
-				size = new Long(tValue) * GB;
-			}
-			else if(tValue.endsWith("TB")) {
-				tValue = tValue.substring(0, tValue.length() - 2);
-				size = new Long(tValue) * TB;
-			}
-			else {
-				size = new Long(tValue);
-			}
-		}
-		catch(Exception e) {
-		}
-		return size;
-	}
-	
-	public static long parseCount(String value) {
+	private static long parseCount(String value) {
 		long count = 0;
 		try {
 			String tValue = value.trim();
@@ -87,24 +58,26 @@ public class JdHelper {
 		return count;	
 	}
 	
-	public static long getReservationSize(JdHostProperties jdHostProperties) {
-		long retVal = 0;
+	public static SizeBytes getReservationSize(IDuccWorkReservation dwr) {
+		String location = "getReservationSize";
+		SizeBytes retVal = null;
 		try {
-			if(jdHostProperties != null) {
-				String value = jdHostProperties.getHostMemorySize();
-				retVal = parseSize(value);
-			}
+			long sizeBytes = dwr.getSchedulingInfo().getMemorySizeAllocatedInBytes();
+			retVal = new SizeBytes(SizeBytes.Type.Bytes, sizeBytes);
+			logger.trace(location, dwr.getDuccId(), retVal.getGBytes()+" GB");
 		}
 		catch(Exception e) {
 		}
 		return retVal;
 	}
 	
-	public static long getSliceSize(JdHostProperties jdHostProperties) {
-		long retVal = 0;
+	public static SizeBytes getSliceSize(JdHostProperties jdHostProperties) {
+		String location = "getSliceSize";
+		SizeBytes retVal = null;
 		if(jdHostProperties != null) {
 			String value = jdHostProperties.getJdShareQuantum();
-			retVal = parseSize(value+"MB");
+			retVal = new SizeBytes(SizeBytes.Type.MBytes, Long.parseLong(value));
+			logger.trace(location, jobid, retVal.getMBytes()+" MB");
 		}
 		return retVal;
 	}
@@ -112,13 +85,16 @@ public class JdHelper {
 	public static long SlicesReserveDefault = 2;
 	
 	public static long getSlicesReserve(JdHostProperties jdHostProperties) {
+		String location = "getSlicesReserve";
 		long retVal = 0;
 		if(jdHostProperties != null) {
 			String value = jdHostProperties.getSlicesReserve();
 			retVal = parseCount(value);
+			logger.trace(location, jobid, retVal+" "+"specified");
 		}
 		if(retVal < 1) {
 			retVal = SlicesReserveDefault;
+			logger.trace(location, jobid, retVal+" "+"default");
 		}
 		return retVal;
 	}

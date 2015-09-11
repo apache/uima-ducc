@@ -31,10 +31,10 @@ public class DuccReservation implements IDuccReservation {
 	private DuccId duccId = null;
 	private Node  node = null;
 	private NodeIdentity  nodeIdentity = null;
-	private int bytes = 0;
+	private long bytes = 0;
 	private ITimeWindow timeWindow = null;
 	
-	public DuccReservation(DuccId duccId, Node node, int bytes) {
+	public DuccReservation(DuccId duccId, Node node, long bytes) {
 		setDuccId(duccId);
 		setNode(node);
 		NodeIdentity nodeIdentity = node.getNodeIdentity();
@@ -42,7 +42,7 @@ public class DuccReservation implements IDuccReservation {
 		setBytes(bytes);
 	}
 	
-	public DuccReservation(DuccId duccId, NodeIdentity nodeIdentity, int bytes) {
+	public DuccReservation(DuccId duccId, NodeIdentity nodeIdentity, long bytes) {
 		setDuccId(duccId);
 		setNodeIdentity(nodeIdentity);
 		setBytes(bytes);
@@ -64,8 +64,8 @@ public class DuccReservation implements IDuccReservation {
 	}
 
 	
-	public int getBytes() {
-		int retVal = 0;
+	public long getBytes() {
+		long retVal = 0;
 		try {
 			retVal = bytes;
 		}
@@ -75,7 +75,7 @@ public class DuccReservation implements IDuccReservation {
 	}
 
 	
-	public void setBytes(int bytes) {
+	public void setBytes(long bytes) {
 		this.bytes = bytes;
 	}
 	

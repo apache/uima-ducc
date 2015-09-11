@@ -35,8 +35,11 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	private static final long serialVersionUID = 1L;
 	private String schedulingClass = defaultSchedulingClass;
 	private String schedulingPriority = defaultSchedulingPriority;
+	@Deprecated
 	private String memorySize = defaultMemorySize;
+	private String memorySizeRequested = defaultMemorySize;
 	private MemoryUnits memoryUnits = defaultMemoryUnits;
+	private long memorySizeAllocatedInBytes = 0;
 	private String instancesCount = defaultInstancesCount;
 	
 	@Deprecated
@@ -102,29 +105,22 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 		}
 	}
 	
-	@Deprecated
 	
+	@Deprecated
 	public String getMachinesCount() {
 		return machinesCount;
 	}
 
-	@Deprecated
 	
+	@Deprecated
 	public void setMachinesCount(String machinesCount) {
 		if(machinesCount != null) {
 			this.machinesCount = machinesCount;
 		}
 	}
-	
-	
-	public String getMemorySize() {
-		return memorySize;
-	}
-	
-	private static long KB = 1000;
-	private static long MB = 1000*KB;
-	private static long GB = 1000*MB;
 
+/*	
+	@Deprecated
 	public long getMemorySizeInBytes() {
 		long retVal = 0;
 		try {
@@ -147,12 +143,42 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	}
 	
 	
+	@Deprecated
+	public String getMemorySize() {
+		return memorySize;
+	}
+
+	
+	@Deprecated
 	public void setMemorySize(String size) {
 		if(size != null) {
 			this.memorySize = size;
 		}
 	}
+*/
+	
+	
+	public String getMemorySizeRequested() {
+		return memorySizeRequested;
+	}
 
+	
+	public void setMemorySizeRequested(String size) {
+		if(size != null) {
+			this.memorySizeRequested = size;
+		}
+	}
+	
+	
+	public long getMemorySizeAllocatedInBytes() {
+		return memorySizeAllocatedInBytes;
+	}
+
+	
+	public void setMemorySizeAllocatedInBytes(long value) {
+		this.memorySizeAllocatedInBytes = value;
+	}
+	
 	
 	public MemoryUnits getMemoryUnits() {
 		return memoryUnits;

@@ -41,6 +41,7 @@ import org.apache.uima.ducc.cli.ws.json.MachineFacts;
 import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeConfiguration;
+import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -61,7 +62,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
-import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
+import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IRationale;
@@ -110,7 +111,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	}
 	
 	private void buildJobsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWorkJob job, DuccData duccData, long now, ServicesRegistry servicesRegistry) {
-		String type="Job";
 		String id = normalize(duccId);
 		// Terminate
 		sb.append("<td valign=\"bottom\" class=\"ducc-col-terminate\">");
@@ -309,9 +309,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Size
 		sb.append("<td valign=\"bottom\" align=\"right\">");
-		String size = job.getSchedulingInfo().getMemorySize();
-		MemoryUnits units = job.getSchedulingInfo().getMemoryUnits();
-		sb.append(getProcessMemorySize(duccId,type,size,units));
+		SizeBytes size = new SizeBytes(SizeBytes.Type.Bytes,job.getSchedulingInfo().getMemorySizeAllocatedInBytes());
+		sb.append(getProcessMemorySize(duccId,size));
 		sb.append("</td>");
 		// Total
 		sb.append("<td valign=\"bottom\" align=\"right\">");
@@ -443,7 +442,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	}	
 	
 	private void buildReservationsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWork duccwork, DuccData duccData, long now) {
-		String type="Reservation";
 		String id = normalize(duccId);
 		String reservationType = "Unmanaged";
 		if(duccwork instanceof DuccWorkJob) {
@@ -742,11 +740,18 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			}
 		}
 		sb.append("</td>");
-		// Size
+		//
+		IDuccSchedulingInfo si = duccwork.getSchedulingInfo();
+		SizeBytes size;
+		// Size (given)
 		sb.append("<td align=\"right\">");
-		String size = duccwork.getSchedulingInfo().getMemorySize();
-		MemoryUnits units = duccwork.getSchedulingInfo().getMemoryUnits();
-		sb.append(getProcessMemorySize(duccId,type,size,units));
+		size = new SizeBytes(SizeBytes.Type.Bytes,si.getMemorySizeAllocatedInBytes());
+		sb.append(getProcessMemorySize(duccId,size));
+		sb.append("</td>");
+		// Size (requested)
+		sb.append("<td align=\"right\">");
+		size = new SizeBytes(si.getMemoryUnits().name(),Long.parseLong(si.getMemorySizeRequested()));
+		sb.append(getProcessMemorySize(duccId,size));
 		sb.append("</td>");
 		// Host Names
 		sb.append("<td>");

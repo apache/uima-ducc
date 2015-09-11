@@ -194,7 +194,7 @@ public class DuccWorkMap implements IDuccWorkMap {
 		Set<DuccId> keys = getJobKeySet();
 		for(DuccId key : keys) {
 			IDuccWorkJob job = (IDuccWorkJob)concurrentWorkMap.get(key);
-			long bytesPerProcess = job.getSchedulingInfo().getMemorySizeInBytes();
+			long bytesPerProcess = job.getSchedulingInfo().getMemorySizeAllocatedInBytes();
 			long numberOfProcesses = job.getAliveProcessCount();
 			size += bytesPerProcess * numberOfProcesses;
 		}
@@ -206,7 +206,7 @@ public class DuccWorkMap implements IDuccWorkMap {
 		Set<DuccId> keys = getServiceKeySet();
 		for(DuccId key : keys) {
 			IDuccWorkService service = (IDuccWorkService)concurrentWorkMap.get(key);
-			long bytesPerProcess = service.getSchedulingInfo().getMemorySizeInBytes();
+			long bytesPerProcess = service.getSchedulingInfo().getMemorySizeAllocatedInBytes();
 			long numberOfProcesses = 1;
 			size += bytesPerProcess * numberOfProcesses;
 		}
@@ -218,7 +218,7 @@ public class DuccWorkMap implements IDuccWorkMap {
 		Set<DuccId> keys = getReservationKeySet();
 		for(DuccId key : keys) {
 			IDuccWorkReservation reservation = (IDuccWorkReservation)concurrentWorkMap.get(key);
-			long bytesPerReservation = reservation.getSchedulingInfo().getMemorySizeInBytes();
+			long bytesPerReservation = reservation.getSchedulingInfo().getMemorySizeAllocatedInBytes();
 			long numberOfReservations = 1;
 			size += bytesPerReservation * numberOfReservations;
 		}

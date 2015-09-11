@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -220,7 +221,7 @@ public class JdScheduler {
 		return slicesReserveDesired;
 	}
 	
-	private long getSlicesReserveActual(JdHostProperties jdHostProperties) {
+	private long getSlicesReserveActual() {
 		long slicesReserveActual = countSlicesAvailable();
 		return slicesReserveActual;
 	}
@@ -228,7 +229,7 @@ public class JdScheduler {
 	private boolean isReservationDivestable(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		boolean retVal = false;
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
-		long slicesReserveActual = getSlicesReserveActual(jdHostProperties);
+		long slicesReserveActual = getSlicesReserveActual();
 		if(map.size() > 1) {
 			if(slicesReserveActual > (2 * slicesReserveDesired)) {
 				synchronized(map) {
@@ -249,8 +250,8 @@ public class JdScheduler {
 		String location = "resourceAdjustment";
 		if(autoManage.get()) {
 			long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
-			long slicesReserveActual = getSlicesReserveActual(jdHostProperties);
-			logger.debug(location, jobid, "desired: "+slicesReserveDesired+" "+"actual: "+slicesReserveActual);
+			long slicesReserveActual = getSlicesReserveActual();
+			logger.debug(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 			if(slicesReserveActual < slicesReserveDesired) {
 				if(requestPending.get()) {
 					reservationPending(dwm, jdHostProperties);
@@ -276,7 +277,7 @@ public class JdScheduler {
 	private void reservationPending(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		String location = "reservationPending";
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
-		long slicesReserveActual = getSlicesReserveActual(jdHostProperties);
+		long slicesReserveActual = getSlicesReserveActual();
 		logger.debug(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
@@ -316,7 +317,7 @@ public class JdScheduler {
 		OrchestratorCheckpoint.getInstance().saveState();
 		//
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
-		long slicesReserveActual = getSlicesReserveActual(jdHostProperties);
+		long slicesReserveActual = getSlicesReserveActual();
 		DuccId duccId = dwr.getDuccId();
 		logger.debug(location, duccId, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
@@ -348,14 +349,14 @@ public class JdScheduler {
 			}
 		}
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
-		long slicesReserveActual = getSlicesReserveActual(jdHostProperties);
+		long slicesReserveActual = getSlicesReserveActual();
 		logger.debug(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
 	private void reservationNoChange(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		String location = "reservationNoChange";
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
-		long slicesReserveActual = getSlicesReserveActual(jdHostProperties);
+		long slicesReserveActual = getSlicesReserveActual();
 		logger.trace(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
@@ -404,16 +405,16 @@ public class JdScheduler {
 		DuccId duccId = dwr.getDuccId();
 		DuccId jdReservationDuccId = (DuccId) duccId;
 		JdReservation jdReservation = null;
-		long reservationSizeMB = JdHelper.getReservationSize(jdHostProperties);
-		long sliceSizeMB = JdHelper.getSliceSize(jdHostProperties);
+		SizeBytes reservationSize = JdHelper.getReservationSize(dwr);
+		SizeBytes sliceSize = JdHelper.getSliceSize(jdHostProperties);
 		synchronized(map) {
 			jdReservation = map.get(jdReservationDuccId);
 			if(jdReservation == null) {
-				jdReservation = new JdReservation(dwr, reservationSizeMB, sliceSizeMB);
+				jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
 				map.put(jdReservationDuccId, jdReservation);
 			}
 			else if(!jdReservation.isUp()) {
-				jdReservation = new JdReservation(dwr, reservationSizeMB, sliceSizeMB);
+				jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
 				map.put(jdReservationDuccId, jdReservation);
 			}
 			else {
@@ -449,12 +450,12 @@ public class JdScheduler {
 		DuccId duccId = dwr.getDuccId();
 		DuccId jdReservationDuccId = (DuccId) duccId;
 		JdReservation jdReservation = null;
-		long reservationSizeMB = JdHelper.getReservationSize(jdHostProperties);
-		long sliceSizeMB = JdHelper.getSliceSize(jdHostProperties);
+		SizeBytes reservationSize = JdHelper.getReservationSize(dwr);
+		SizeBytes sliceSize = JdHelper.getSliceSize(jdHostProperties);
 		synchronized(map) {
 			jdReservation = map.get(jdReservationDuccId);
 			if(jdReservation == null) {
-				jdReservation = new JdReservation(dwr, reservationSizeMB, sliceSizeMB);
+				jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
 				map.put(jdReservationDuccId, jdReservation);
 			}
 		}
@@ -547,56 +548,68 @@ public class JdScheduler {
 	}
 	
 	public int countSlicesTotal(DuccId duccId) {
+		String location = "countSlicesTotal";
 		int count = 0;
 		JdReservation jdReservation = map.get(duccId);
 		if(jdReservation != null) {
 			count += jdReservation.getSlicesTotal();
 		}
+		logger.trace(location, duccId, count);
 		return count;
 	}
 	
 	public int countSlicesInuse(DuccId duccId) {
+		String location = "countSlicesInuse";
 		int count = 0;
 		JdReservation jdReservation = map.get(duccId);
 		if(jdReservation != null) {
 			count += jdReservation.getSlicesInuse();
 		}
+		logger.trace(location, duccId, count);
 		return count;
 	}
 	
 	public int countSlicesAvailable(DuccId duccId) {
+		String location = "countSlicesAvailable";
 		int count = 0;
 		JdReservation jdReservation = map.get(duccId);
 		if(jdReservation != null) {
 			count += jdReservation.getSlicesAvailable();
 		}
+		logger.trace(location, duccId, count);
 		return count;
 	}
 	
 	public int countSlicesTotal() {
+		String location = "countSlicesTotal";
 		int count = 0;
 		for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 			JdReservation jdReservation = entry.getValue();
 			count += jdReservation.getSlicesTotal();
 		}
+		logger.trace(location, jobid, count);
 		return count;
 	}
 	
 	public int countSlicesInuse() {
+		String location = "countSlicesInuse";
 		int count = 0;
 		for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 			JdReservation jdReservation = entry.getValue();
 			count += jdReservation.getSlicesInuse();
 		}
+		logger.trace(location, jobid, count);
 		return count;
 	}
 	
 	public int countSlicesAvailable() {
+		String location = "countSlicesAvailable";
 		int count = 0;
 		for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 			JdReservation jdReservation = entry.getValue();
 			count += jdReservation.getSlicesAvailable();
 		}
+		logger.trace(location, jobid, count);
 		return count;
 	}
 

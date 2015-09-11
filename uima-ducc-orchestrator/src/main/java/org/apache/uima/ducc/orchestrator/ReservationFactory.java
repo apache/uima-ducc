@@ -66,13 +66,13 @@ public class ReservationFactory {
 		schedulingInfo.setSchedulingClass(reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_scheduling_class));
 		String memorySize = reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_memory_size);
 		MemorySpecification memorySpecification = new MemorySpecification(memorySize);
-		schedulingInfo.setMemorySize(memorySpecification.getSize());
+		schedulingInfo.setMemorySizeRequested(memorySpecification.getSize());
 		schedulingInfo.setMemoryUnits(memorySpecification.getMemoryUnits());
 		logger.info(methodName, duccWorkReservation.getDuccId(), messages.fetchLabel("user")+standardInfo.getUser());
 		logger.info(methodName, duccWorkReservation.getDuccId(), messages.fetchLabel("description")+standardInfo.getDescription());
 		logger.info(methodName, duccWorkReservation.getDuccId(), messages.fetchLabel("class")+schedulingInfo.getSchedulingClass());
 		logger.info(methodName, duccWorkReservation.getDuccId(), messages.fetchLabel("priority")+schedulingInfo.getSchedulingPriority());
-		logger.info(methodName, duccWorkReservation.getDuccId(), messages.fetchLabel("memory")+schedulingInfo.getMemorySize()+schedulingInfo.getMemoryUnits());
+		logger.info(methodName, duccWorkReservation.getDuccId(), messages.fetchLabel("memory")+schedulingInfo.getMemorySizeRequested()+schedulingInfo.getMemoryUnits());
 		logger.info(methodName, duccWorkReservation.getDuccId(), messages.fetchLabel("instances")+schedulingInfo.getInstancesCount());
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return duccWorkReservation;

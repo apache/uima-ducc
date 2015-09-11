@@ -30,7 +30,7 @@ public interface IDuccSchedulingInfo extends Serializable {
 	
 	public static final String defaultSchedulingClass = "normal";
 	public static final String defaultSchedulingPriority = "0";
-	public static final String defaultMemorySize = "13";
+	public static final String defaultMemorySize = "1";
 	public static final MemoryUnits defaultMemoryUnits = MemoryUnits.GB;
 	public static final String defaultInstancesCount = "1";
 	
@@ -62,10 +62,11 @@ public interface IDuccSchedulingInfo extends Serializable {
 	public String getSchedulingPriority();
 	public void setSchedulingPriority(String schedulingPriority);
 	
-	public String getMemorySize();
-	public void setMemorySize(String size);
+	public String getMemorySizeRequested();
+	public void setMemorySizeRequested(String size);
 	
-	public long getMemorySizeInBytes();
+	public void setMemorySizeAllocatedInBytes(long value);
+	public long getMemorySizeAllocatedInBytes();
 	
 	public MemoryUnits getMemoryUnits();
 	public void setMemoryUnits(MemoryUnits units);

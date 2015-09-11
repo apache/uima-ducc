@@ -21,6 +21,7 @@ package org.apache.uima.ducc.orchestrator.jd.scheduler;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
@@ -32,12 +33,13 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 	private static final long serialVersionUID = 1L;
 	
 	private static DuccLogger logger = new DuccLogger(JdReservation.class);
+	private static DuccId jobid = null;
 	
-	public JdReservation(IDuccWorkReservation dwr, Long reservationSizeMB, Long sliceSizeMB) {
-		initialize(dwr, reservationSizeMB, sliceSizeMB);
+	public JdReservation(IDuccWorkReservation dwr, SizeBytes reservationSize, SizeBytes sliceSize) {
+		initialize(dwr, reservationSize, sliceSize);
 	}
 	
-	private void initialize(IDuccWorkReservation dwr, Long reservationSize, Long sliceSize) {
+	private void initialize(IDuccWorkReservation dwr, SizeBytes reservationSize, SizeBytes sliceSize) {
 		if(dwr != null) {
 			DuccId jdReservationId = (DuccId) dwr.getDuccId();
 			setJdReservationId(jdReservationId);
@@ -77,20 +79,26 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 	}
 	
 	public Long getSlicesTotal() {
-		Long reservationSize = getReservationSize();
-		Long sliceSize = getSliceSize();
-		Long retVal = reservationSize / sliceSize;
+		String location = "getSlicesTotal";
+		SizeBytes reservationSize = getReservationSize();
+		SizeBytes sliceSize = getSliceSize();
+		Long retVal = (long) (reservationSize.getBytes() / (1.0 * sliceSize.getBytes()));
+		logger.trace(location, jobid, retVal);
 		return retVal;
 	}
 	
 	public Long getSlicesInuse() {
-		ConcurrentHashMap<DuccId, Long> map = getMap();
+		String location = "getSlicesInuse";
+		ConcurrentHashMap<DuccId, SizeBytes> map = getMap();
 		long retVal = new Long(map.size());
+		logger.trace(location, jobid, retVal);
 		return retVal;
 	}
 	
 	public Long getSlicesAvailable() {
+		String location = "getSlicesAvailable";
 		Long retVal = getSlicesTotal() - getSlicesInuse();
+		logger.trace(location, jobid, retVal);
 		return retVal;
 	}
 	
@@ -109,10 +117,10 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 		return retVal;
 	}
 	
-	protected NodeIdentity allocate(DuccId jdId, DuccId jobId, Long size) {
+	protected NodeIdentity allocate(DuccId jdId, DuccId jobId, SizeBytes size) {
 		String location = "allocate";
 		NodeIdentity retVal = null;
-		ConcurrentHashMap<DuccId, Long> map = getMap();
+		ConcurrentHashMap<DuccId, SizeBytes> map = getMap();
 		if(jdId != null) {
 			synchronized(map) {
 				if(!map.containsKey(jdId)) {
@@ -132,7 +140,7 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 	protected NodeIdentity deallocate(DuccId jdId, DuccId jobId) {
 		String location = "deallocate";
 		NodeIdentity retVal = null;
-		ConcurrentHashMap<DuccId, Long> map = getMap();
+		ConcurrentHashMap<DuccId, SizeBytes> map = getMap();
 		if(jdId != null) {
 			synchronized(map) {
 				if(map.containsKey(jdId)) {

@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -42,7 +43,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
-import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
@@ -325,6 +325,21 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return getUsers(cookie);
 	}
 	
+	public String getProcessMemorySize(DuccId id, SizeBytes size) {
+		String methodName = "getProcessMemorySize";
+		String retVal = "?";
+		try {
+			double dSize = size.getGBytes();
+			DecimalFormat formatter = new DecimalFormat("###0");
+			retVal = formatter.format(dSize);
+		}
+		catch(Exception e) {
+			duccLogger.trace(methodName, id, e);
+		}
+		return retVal;
+	}
+	
+	/*
 	public String getProcessMemorySize(DuccId id, String type, String size, MemoryUnits units) {
 		String methodName = "getProcessMemorySize";
 		String retVal = "?";
@@ -353,6 +368,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;	
 	}
+	*/
 	
 	public RequestStateType getStateTypeParameter(HttpServletRequest request) {
 		RequestStateType requestStateType = requestStateTypeDefault;

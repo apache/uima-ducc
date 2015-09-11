@@ -155,7 +155,7 @@ implements ProcessManager {
 	        //  Create process list for each job
 	        List<IDuccProcess> jobProcessList = new ArrayList<IDuccProcess>();
 	        
-	        long normalizedProcessMemoryRequirements = normalizeMemory(dcj.getSchedulingInfo().getMemorySize(),dcj.getSchedulingInfo().getMemoryUnits());
+	        long normalizedProcessMemoryRequirements = normalizeMemory(dcj.getSchedulingInfo().getMemorySizeRequested(),dcj.getSchedulingInfo().getMemoryUnits());
 	        int shares = getShares(normalizedProcessMemoryRequirements);
 	        long processAdjustedMemorySize = shares * shareQuantum * 1024;  
 	        ProcessMemoryAssignment pma = new ProcessMemoryAssignment();
@@ -180,7 +180,7 @@ implements ProcessManager {
 	        processAdjustedMemorySize += (processAdjustedMemorySize * ((double)fudgeFactor/100));
 	        pma.setMaxMemoryWithFudge(processAdjustedMemorySize);
 	        
-	        logger.debug(methodName,dcj.getDuccId(),"--------------- User Requested Memory For Process:"+dcj.getSchedulingInfo().getMemorySize()+dcj.getSchedulingInfo().getMemoryUnits()+" PM Calculated Memory Assignment of:"+processAdjustedMemorySize);
+	        logger.debug(methodName,dcj.getDuccId(),"--------------- User Requested Memory For Process:"+dcj.getSchedulingInfo().getMemorySizeRequested()+dcj.getSchedulingInfo().getMemoryUnits()+" PM Calculated Memory Assignment of:"+processAdjustedMemorySize);
 	        
 	        ICommandLine driverCmdLine = null;
 	        ICommandLine processCmdLine = null;
