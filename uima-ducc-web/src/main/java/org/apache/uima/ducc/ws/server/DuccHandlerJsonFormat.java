@@ -341,7 +341,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb.append(displaySwapMax);
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
-		// Size
+		// Memory
 		sb = new StringBuffer();
 		IDuccSchedulingInfo si;
 		SizeBytes sizeBytes;
@@ -846,21 +846,19 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			}
 		}
 		row.add(new JsonPrimitive(sb.toString()));
-		//
-		IDuccSchedulingInfo si = duccwork.getSchedulingInfo();
-		SizeBytes size;
-		// Size (given)
+		// Memory
 		sb = new StringBuffer();
-		sb.append("<span>");
-		size = new SizeBytes(SizeBytes.Type.Bytes,duccwork.getSchedulingInfo().getMemorySizeAllocatedInBytes());
-		sb.append(getProcessMemorySize(duccId,size));
-		sb.append("</span>");
-		row.add(new JsonPrimitive(sb.toString()));
-		// Size (requested)
-		sb = new StringBuffer();
-		sb.append("<span>");
-		size = new SizeBytes(si.getMemoryUnits().name(),Long.parseLong(si.getMemorySizeRequested()));
-		sb.append(getProcessMemorySize(duccId,size));
+		IDuccSchedulingInfo si;
+		SizeBytes sizeBytes;
+		String requested;
+		String actual;
+		si = duccwork.getSchedulingInfo();
+		sizeBytes = new SizeBytes(SizeBytes.Type.Bytes, si.getMemorySizeAllocatedInBytes());
+		actual = getProcessMemorySize(duccId,sizeBytes);
+		sizeBytes = new SizeBytes(si.getMemoryUnits().name(), Long.parseLong(si.getMemorySizeRequested()));
+		requested = getProcessMemorySize(duccId,sizeBytes);
+		sb.append("<span title=\""+"requested: "+requested+"\">");
+		sb.append(actual);
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// List

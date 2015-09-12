@@ -307,7 +307,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		String displaySwapMax = formatter.format(swap);
 		sb.append(displaySwapMax);
 		sb.append("</td>");
-		// Size
+		// Memory
 		IDuccSchedulingInfo si;
 		SizeBytes sizeBytes;
 		String requested;
@@ -750,18 +750,20 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			}
 		}
 		sb.append("</td>");
-		//
-		IDuccSchedulingInfo si = duccwork.getSchedulingInfo();
-		SizeBytes size;
-		// Size (given)
-		sb.append("<td align=\"right\">");
-		size = new SizeBytes(SizeBytes.Type.Bytes,si.getMemorySizeAllocatedInBytes());
-		sb.append(getProcessMemorySize(duccId,size));
-		sb.append("</td>");
-		// Size (requested)
-		sb.append("<td align=\"right\">");
-		size = new SizeBytes(si.getMemoryUnits().name(),Long.parseLong(si.getMemorySizeRequested()));
-		sb.append(getProcessMemorySize(duccId,size));
+		// Memory
+		IDuccSchedulingInfo si;
+		SizeBytes sizeBytes;
+		String requested;
+		String actual;
+		si = duccwork.getSchedulingInfo();
+		sizeBytes = new SizeBytes(SizeBytes.Type.Bytes, si.getMemorySizeAllocatedInBytes());
+		actual = getProcessMemorySize(duccId,sizeBytes);
+		sizeBytes = new SizeBytes(si.getMemoryUnits().name(), Long.parseLong(si.getMemorySizeRequested()));
+		requested = getProcessMemorySize(duccId,sizeBytes);
+		sb.append("<td valign=\"bottom\" align=\"right\">");
+		sb.append("<span title=\""+"requested: "+requested+"\">");
+		sb.append(actual);
+		sb.append("</span>");
 		sb.append("</td>");
 		// Host Names
 		sb.append("<td>");

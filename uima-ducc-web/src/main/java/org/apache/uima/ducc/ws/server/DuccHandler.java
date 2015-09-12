@@ -76,6 +76,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
+import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
@@ -954,7 +955,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		switch(sType) {
 		case SPC:
 		case SPU:
-			COLS++;
+			COLS++;	// Services
+			COLS++;	// Memory
 			break;
 		default:
 			break;
@@ -1054,36 +1056,59 @@ public class DuccHandler extends DuccAbstractHandler {
 		cbList[index].append(pid);
 		logAppend(index,"pid",pid);
 		cbList[index].append("</td>");
+		// Memory
+		switch(sType) {
+		case SPC:
+		case SPU:
+			index++; // jp.05
+			cbList[index].append("<td align=\"right\">");
+			DuccId duccId = job.getDuccId();
+			IDuccSchedulingInfo si;
+			SizeBytes sizeBytes;
+			String requested;
+			String actual;
+			si = job.getSchedulingInfo();
+			sizeBytes = new SizeBytes(SizeBytes.Type.Bytes, si.getMemorySizeAllocatedInBytes());
+			actual = getProcessMemorySize(duccId,sizeBytes);
+			sizeBytes = new SizeBytes(si.getMemoryUnits().name(), Long.parseLong(si.getMemorySizeRequested()));
+			requested = getProcessMemorySize(duccId,sizeBytes);
+			cbList[index].append("<span title=\""+"requested: "+requested+"\">");
+			cbList[index].append(actual);
+			cbList[index].append("</span>");
+			logAppend(index,"actual",actual);
+			logAppend(index,"requested",requested);
+			break;
+		}
 		// State:scheduler
-		index++; // jp.05
+		index++; // jp.06
 		cbList[index].append("<td>");
 		String stateScheduler = getStateScheduler(job,process);
 		cbList[index].append(stateScheduler);
 		logAppend(index,"stateScheduler",stateScheduler);
 		cbList[index].append("</td>");
 		// Reason:scheduler
-		index++; // jp.06
+		index++; // jp.07
 		cbList[index].append("<td>");
 		String reasonScheduler = getReasonScheduler(job,process);
 		cbList[index].append(reasonScheduler);
 		logAppend(index,"reasonScheduler",reasonScheduler);
 		cbList[index].append("</td>");
 		// State:agent
-		index++; // jp.07
+		index++; // jp.08
 		cbList[index].append("<td>");
 		String stateAgent = getStateAgent(job,process);
 		cbList[index].append(stateAgent);
 		logAppend(index,"stateAgent",stateAgent);
 		cbList[index].append("</td>");
 		// Reason:agent
-		index++; // jp.08
+		index++; // jp.09
 		cbList[index].append("<td>");
 		String reasonAgent = getReasonAgent(job,process);
 		cbList[index].append(reasonAgent);
 		logAppend(index,"reasonAgent",reasonAgent);
 		cbList[index].append("</td>");
 		// Exit
-		index++; // jp.09
+		index++; // jp.10
 		cbList[index].append("<td>");
 		String exit = getExit(job,process);
 		cbList[index].append(exit);
@@ -1094,7 +1119,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		case MR:
 			break;
 		default:
-			index++; // jp.10
+			index++; // jp.11
 			cbList[index].append("<td align=\"right\">");
 			String timeInit = getTimeInit(job,process,sType);
 			cbList[index].append(timeInit);
@@ -1103,7 +1128,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			break;
 		}
 		// Time:run
-		index++; // jp.11
+		index++; // jp.12
 		cbList[index].append("<td align=\"right\">");
 		String timeRun = getTimeRun(job,process,sType);
 		cbList[index].append(timeRun);
@@ -1114,7 +1139,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		case MR:
 			break;
 		default:
-			index++; // jp.12
+			index++; // jp.13
 			cbList[index].append("<td align=\"right\">");
 			String timeGC = getTimeGC(job,process,sType);
 			cbList[index].append(timeGC);
@@ -1127,7 +1152,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		case MR:
 			break;
 		default:
-			index++; // jp.13
+			index++; // jp.14
 			cbList[index].append("<td align=\"right\">");
 			String pgin = getPgIn(job,process,sType);
 			cbList[index].append(pgin);
@@ -1140,7 +1165,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		case MR:
 			break;
 		default:
-			index++; // jp.14
+			index++; // jp.15
 			cbList[index].append("<td align=\"right\">");
 			String swap = getSwap(job,process,sType);
 			cbList[index].append(swap);
@@ -1149,14 +1174,14 @@ public class DuccHandler extends DuccAbstractHandler {
 			break;
 		}
 		// %cpu
-		index++; // jp.15
+		index++; // jp.16
 		cbList[index].append("<td align=\"right\">");
 		String pctCPU = getPctCPU(job,process);
 		cbList[index].append(pctCPU);
 		logAppend(index,"%cpu",pctCPU);
 		cbList[index].append("</td>");	
 		// rss
-		index++; // jp.16
+		index++; // jp.17
 		cbList[index].append("<td align=\"right\">");
 		String rss = getRSS(job,process);
 		cbList[index].append(rss);
@@ -1172,7 +1197,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			break;
 		default:
 			// Time:avg
-			index++; // jp.17
+			index++; // jp.18
 			String timeAvg = "";
 			IDuccProcessWorkItems pwi = process.getProcessWorkItems();
 			cbList[index].append("<td align=\"right\">");
@@ -1192,7 +1217,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			logAppend(index,"timeAvg",timeAvg);
 			cbList[index].append("</td>");
 			// Time:max
-			index++; // jp.18
+			index++; // jp.19
 			cbList[index].append("<td align=\"right\">");
 			String timeMax = "";
 			if(pwi != null) {
@@ -1202,7 +1227,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			logAppend(index,"timeMax",timeMax);
 			cbList[index].append("</td>");
 			// Time:min
-			index++; // jp.19
+			index++; // jp.20
 			cbList[index].append("<td align=\"right\">");
 			String timeMin = "";
 			if(pwi != null) {
@@ -1212,7 +1237,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			logAppend(index,"timeMin",timeMin);
 			cbList[index].append("</td>");
 			// Done
-			index++; // jp.20
+			index++; // jp.21
 			cbList[index].append("<td align=\"right\">");
 			String done = "";
 			if(pwi != null) {
@@ -1222,7 +1247,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			logAppend(index,"done",done);
 			cbList[index].append("</td>");
 			// Error
-			index++; // jp.21
+			index++; // jp.22
 			cbList[index].append("<td align=\"right\">");
 			String error = "";
 			if(pwi != null) {
@@ -1234,7 +1259,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			// Dispatch
 			switch(dType) {
 			case Job:
-				index++; // jp.22
+				index++; // jp.23
 				cbList[index].append("<td align=\"right\">");
 				String dispatch = "";
 				if(pwi != null) {
@@ -1253,7 +1278,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				break;
 			}
 			// Retry
-			index++; // jp.23
+			index++; // jp.24
 			cbList[index].append("<td align=\"right\">");
 			String retry = "";
 			if(pwi != null) {
@@ -1263,7 +1288,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			logAppend(index,"retry",retry);
 			cbList[index].append("</td>");
 			// Preempt
-			index++; // jp.24
+			index++; // jp.25
 			cbList[index].append("<td align=\"right\">");
 			String preempt = "";
 			if(pwi != null) {
@@ -1279,7 +1304,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		case MR:
 			break;
 		default:
-			index++; // jp.24
+			index++; // jp.26
 			cbList[index].append("<td>");
 			String jConsole = getJConsole(job,process,sType);
 			cbList[index].append(jConsole);

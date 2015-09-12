@@ -27,9 +27,10 @@ under the License.
 	<th title="The state of this service instance">State</th>
 	<th title="The current state of service dependencies">Services</th>
 	<th title="The log file name associated with this process">Log</th>
-	<th title="The log file size, in MB">Size</th>
+	<th title="The log file size, in MB">Log<br/>Size</th>
 	<th title="The host for this process">Host<br>Name</th>
-	<th title="The OS assigned PID for this process"class="sorttable_numeric">PID</th>
+	<th class="sorttable_numeric" title="The OS assigned PID for this process">PID</th>
+	<th class="sorttable_numeric" title="The service process actual memory size (GB)">Memory</th>
 	<th title="Process scheduling state">State<br>Scheduler</th>
 	<th title="Process scheduling reason (for scheduling state)">Reason<br>Scheduler<br><small>or extraordinary status</small></th>
 	<th title="Process agent state">State<br>Agent</th>

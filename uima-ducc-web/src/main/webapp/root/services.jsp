@@ -120,7 +120,7 @@ if (table_style.equals("scroll")) {
 		<th title="The service scheduling class">Class</th>
 		<th title="The count for all service processes of major faults which required loading a memory page from disk">Pgin</th>
 		<th title="The GB swapped out to disk for all initializing/running service processes">Swap</th>
-		<th title="The service process memory size (GB)">Size</th>
+		<th title="The service process registered memory size (GB)">Memory<br><small>(registered)</small></th>
 		<th title="The number of active Jobs that depend on this service">Jobs</th>
 		<th title="The number of active Services that depend on this service">Ser-<br>vices</th>
 		<th title="The number of active Reservations that depend on this service">Reser-<br>vations</th>
@@ -156,7 +156,7 @@ if (table_style.equals("classic")) {
 		<th title="The service scheduling class">Class</th>
 		<th class="sorttable_numeric" title="The count for all service processes of major faults which required loading a memory page from disk">Pgin</th>
 		<th class="sorttable_numeric" title="The GB swapped out to disk for all initializing/running service processes">Swap</th>
-		<th class="sorttable_numeric" title="The service process memory size (GB)">Size</th>
+		<th class="sorttable_numeric" title="The service process registered memory size (GB)">Memory<br/><small>(registered)</small></th>
 		<th class="sorttable_numeric" title="The number of active Jobs that depend on this service">Jobs</th>
 		<th class="sorttable_numeric" title="The number of active Services that depend on this service">Ser-<br>vices</th>
 		<th class="sorttable_numeric" title="The number of active Reservations that depend on this service">Reser-<br>vations</th>

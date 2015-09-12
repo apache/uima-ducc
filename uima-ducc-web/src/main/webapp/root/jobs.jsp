@@ -123,7 +123,7 @@ if (table_style.equals("scroll")) {
 	<th title="The number of job processes that failed during runtime (post-initialization)">Run<br>Fails</th>
 	<th title="The count for all job processes of major faults which required loading a memory page from disk">Pgin</th>
 	<th title="The GB swapped out to disk for all job processes, current if state=running or maximum if state=completed">Swap</th>
-	<th title="Each job process size, in GB">Size</th>
+	<th title="Each job process size, in GB">Memory</th>
 	<th title="The total number of work items for this job">Total</th>
 	<th title="The number of work items that completed successfully">Done</th>
 	<th title="The number of work items that failed to complete successfully">Error</th>
@@ -163,7 +163,7 @@ if (table_style.equals("classic")) {
 		<th title="The number of job processes that failed during runtime (post-initialization)">Run<br>Fails</th>
 		<th title="The count for all job processes of major faults which required loading a memory page from disk">Pgin</th>
 		<th title="The GB swapped out to disk for all job processes, current if state=running or maximum if state=completed">Swap</th>
-		<th title="Each job process size, in GB">Size</th>
+		<th title="Each job process size, in GB">Memory</th>
 		<th title="The total number of work items for this job">Total</th>
 		<th title="The number of work items that completed successfully">Done</th>
 		<th title="The number of work items that failed to complete successfully">Error</th>
