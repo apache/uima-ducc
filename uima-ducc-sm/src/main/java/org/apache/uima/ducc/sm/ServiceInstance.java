@@ -22,8 +22,11 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
@@ -162,31 +165,46 @@ class ServiceInstance
 //         this.state = dwj.getJobState();
 //     }
 
-    long start(String spec, DuccProperties meta_props)
+    String[] genArgs(DuccProperties props)
+    {
+        List<String> args = new ArrayList<String>();
+
+        args.add(System.getProperty("ducc.agent.launcher.ducc_spawn_path"));
+        args.add("-u");
+        args.add(user);
+        args.add("--");
+        args.add(System.getProperty("ducc.jvm"));
+        args.add("-cp");
+        args.add(api_classpath);
+        args.add("org.apache.uima.ducc.cli.DuccServiceSubmit");
+        args.add("--service_id");
+        args.add(sset.getId().toString());
+
+        @SuppressWarnings("rawtypes")
+		Enumeration keys = props.propertyNames();
+        while ( keys.hasMoreElements() ) {
+            String k = (String) keys.nextElement();
+            // System.out.println("------ Set argument " + k + " to " + ((String)props.get(k)));
+            String v = (String) props.get(k);
+
+            args.add("--" + k);
+            args.add(v);
+        }
+        return args.toArray(new String[args.size()]);
+    }
+
+    long start(DuccProperties svc_props, DuccProperties meta_props)
     {
     	String methodName = "start";
 
         logger.info(methodName, sset.getId(), "START INSTANCE");
         setStopped(false);
-        this.user = meta_props.getProperty("user");
+        this.user = meta_props.getProperty(IStateServices.SvcProps.user.pname());
 
         // Simple use of ducc_ling, just submit as the user.  The specification will have the working directory
         // and classpath needed for the service, handled by the Orchestrator and Job Driver.
-        String[] args = {
-            System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
-            "-u",
-            user,
-            "--",
-            System.getProperty("ducc.jvm"),
-            "-cp",
-            api_classpath,
-            "org.apache.uima.ducc.cli.DuccServiceSubmit",
-            "--specification",
-            spec,
-            "--service_id",
-            sset.getId().toString(),
-        };
-            
+        String[] args = genArgs(svc_props);    
+        
         for ( int i = 0; i < args.length; i++ ) { 
             if ( i > 0 && (args[i-1].equals("-cp") ) ) {
                 // The classpaths can be just awful filling the logs with junk.  It will end up in the agent log
@@ -228,7 +246,11 @@ class ServiceInstance
 
 		} catch (Throwable t) {
             logger.error(methodName, sset.getId(), t);
-            sset.setErrorString(t.toString());
+            try {
+                sset.setErrorString(t.toString());
+            } catch ( Exception e ) {
+                logger.warn(methodName, sset.getId(), "Error updating meta properties:", e);
+            }
             return -1;
 		}
 
@@ -272,7 +294,11 @@ class ServiceInstance
                     started = true;
                     logger.info(methodName, null, "Request to start service " + sset.getId().toString() + " accepted as service instance ", numeric_id);
                 } catch ( NumberFormatException e ) {
-                    sset.setErrorString("Request to start service " + sset.getId().toString() + " failed, can't interpret submit response.: " + s);
+                    try {
+                        sset.setErrorString("Request to start service " + sset.getId().toString() + " failed, can't interpret submit response.: " + s);
+                    } catch ( Exception ee ) {
+                        logger.warn(methodName, sset.getId(), "Error updating meta properties:", ee);
+                    }
                     logger.warn(methodName, null,  "Request to start service " + sset.getId().toString() + " failed, can't interpret response.: " + s);
                 }
 
@@ -281,10 +307,10 @@ class ServiceInstance
 
         if ( ! started ) {
             logger.warn(methodName, sset.getId(), "Request to start service " + sset.getId().toString() + " failed.");
-            meta_props.put("submit-error", submit_buffer.toString());
+            meta_props.put(IStateServices.SvcProps.submit_error.pname(), submit_buffer.toString());
             sset.log_errors(stdout_lines, stderr_lines);
         } else {
-            meta_props.remove("submit-error");
+            meta_props.remove(IStateServices.SvcProps.submit_error.pname());
             state = JobState.Received;
         }
         logger.info(methodName, sset.getId(), "START INSTANCE COMPLETE");

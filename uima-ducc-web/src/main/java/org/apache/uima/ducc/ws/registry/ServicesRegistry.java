@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.ws.registry;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -75,10 +74,10 @@ public class ServicesRegistry {
 		String location = "refreshCache";
 		try {
 			ServicesRegistryMap mapRevised = new ServicesRegistryMap();
-			IStateServices iss = StateServicesFactory.getInstance();
+			IStateServices iss = StateServicesFactory.getInstance(this.getClass().getName(), "WS");
 			StateServicesDirectory ssd = iss.getStateServicesDirectory();
 			if(!ssd.getDescendingKeySet().isEmpty()) {
-				for(Integer key : ssd.getDescendingKeySet()) {
+				for(Long key : ssd.getDescendingKeySet()) {
 					StateServicesSet entry = ssd.get(key);
 					Properties propertiesSvc = entry.get(IServicesRegistry.svc);
 					Properties propertiesMeta = entry.get(IServicesRegistry.meta);
@@ -92,7 +91,7 @@ public class ServicesRegistry {
 			logger.debug(location, jobid, "size: "+map.size());
 			ServicesSortCache.getInstance().update(map);
 		}
-		catch(IOException e) {
+		catch(Exception e) {
 			logger.error(location, jobid, e);
 		}
 	}
@@ -149,7 +148,7 @@ public class ServicesRegistry {
 		try {
 			logger.debug(location, jobid, "size: "+map.size());
 			logger.debug(location, jobid, "search: "+name);
-			for(Integer key : map.keySet()) {
+			for(Long key : map.keySet()) {
 				ServicesRegistryMapPayload payload = map.get(key);
 				Properties meta = payload.meta;
 				if(meta != null) {
@@ -176,7 +175,7 @@ public class ServicesRegistry {
 	public String findServiceUser(String id) {
 		String retVal = null;
 		try {
-			for(Integer key : map.keySet()) {
+			for(Long key : map.keySet()) {
 				ServicesRegistryMapPayload payload = map.get(key);
 				Properties meta = payload.meta;
 				if(meta != null) {
@@ -200,7 +199,7 @@ public class ServicesRegistry {
 		String retVal = null;
 		try {
 			long id = duccId.getFriendly();
-			for(Integer key : map.keySet()) {
+			for(Long key : map.keySet()) {
 				ServicesRegistryMapPayload payload = map.get(key);
 				Properties meta = payload.meta;
 				if(meta != null) {

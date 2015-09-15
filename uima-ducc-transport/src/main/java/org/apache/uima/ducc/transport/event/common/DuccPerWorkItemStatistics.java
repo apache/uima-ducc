@@ -37,7 +37,11 @@ public class DuccPerWorkItemStatistics implements IDuccPerWorkItemStatistics {
 		this.stddev = stddev;
 	}
 
-	
+    public void setStandardDeviation(double s)
+    {
+        this.stddev = s;
+    }
+
 	public double getMax() {
 		return max;
 	}

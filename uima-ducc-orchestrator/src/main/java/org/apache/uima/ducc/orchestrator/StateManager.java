@@ -203,11 +203,11 @@ public class StateManager {
 		try {
 			switch(duccWorkJob.getDuccType()) {
 			case Job:
-				hpm.jobSave(duccWorkJob);
+				hpm.saveJob(duccWorkJob);
 				retVal = true;
 				break;
 			case Service:
-				hpm.serviceSave((IDuccWorkService)duccWorkJob);
+				hpm.saveService((IDuccWorkService)duccWorkJob);
 				retVal = true;
 				break;
 			}
@@ -224,7 +224,7 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("enter"));
 		boolean retVal = false;
 		try {
-			hpm.reservationSave(duccWorkReservation);
+			hpm.saveReservation(duccWorkReservation);
 			retVal = true;
 		}
 		catch(Exception e) {

@@ -44,6 +44,10 @@ from properties import Properties
 from ducc       import Ducc
 from ducc_util  import ThreadPool
 
+# multi-threaded start can overwhelm ssh if going to the same target host.  We inject
+# a short sleep between starts to make it better.  This is how long to sleep.
+global SLEEP_TIME
+SLEEP_TIME = .1
 
 class StartSim(DuccUtil):
 
@@ -58,17 +62,6 @@ class StartSim(DuccUtil):
         broker_host = self.ducc_properties.get('ducc.broker.hostname')
         print 'broker host', broker_host
         lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', "'")
-        while 1:
-            line = lines.readline().strip()
-            if ( not line ):
-                break
-            #print '[] ' + line
-            if ( line.startswith('PID') ):
-                toks = line.split(' ')    # get the PID
-                print "Broker on", broker_host, 'PID', toks[1]
-                self.pids.put('broker@' + broker_host, toks[1])
-                lines.close()
-                break
 
         for i in range(0, 9):
             if ( self.is_amq_active() ):
@@ -128,7 +121,7 @@ class StartSim(DuccUtil):
             line = lines.readline().strip()
             if ( not line ):
                 break
-        # print '[] ' + line
+            #print '[] ' + line
             if ( line.startswith('PID') ):
                 toks = line.split(' ')    # get the PID
                 self.pidlock.acquire();
@@ -226,7 +219,7 @@ class StartSim(DuccUtil):
             ip = '192.168.4.' + index
             pnode = node + '-' + index
             self.threadpool.invoke(self.startOneAgent, node, cmd, mem, ip, pnode, index)
-            time.sleep(.1)
+            time.sleep(SLEEP_TIME)
 
     def usage(self, msg):
         if (msg != None):
@@ -383,15 +376,34 @@ class StartSim(DuccUtil):
                 self.invalid("Running with a nodelist is not compatible with running a single agent.");
 
             try:
+                specials = ['broker', 'db']
+                sc = set(components)
+                sb = set(specials)
+                specials_only = False
+                if ( sc.issubset(sb) ):
+                    read_pids = True
+
+                print '-------- start broker'
                 if ( components.get('broker') != None ):
                     self.start_broker()
     
+                print '-------- start database'
+                if ( components.get('db') != None ):
+                    if ( self.db_start() ):
+                        self.db_init()
+
+                print '-------- specials_only', specials_only
+                if ( specials_only ):
+                    return
+
+                print '-------- start agents'
                 if ( node_config != None ):
                     self.startAgents(node_config, instances)
     
                 for (com, com) in components.items():
-                    if ( com != 'broker' ):    # started separately
+                    if ( not com in specials ):    # specials start with different rules
                         self.threadpool.invoke(self.startComponent, com, or_parms)
+                        time.sleep(SLEEP_TIME)
 
             except:
                 pass

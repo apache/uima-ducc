@@ -23,15 +23,15 @@ import java.util.NavigableSet;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ServicesRegistryMap extends ConcurrentHashMap<Integer,ServicesRegistryMapPayload> {
+public class ServicesRegistryMap extends ConcurrentHashMap<Long,ServicesRegistryMapPayload> {
 
 	private static final long serialVersionUID = 1L;
 
-	public NavigableSet<Integer> getDescendingKeySet() {
-		TreeMap<Integer,ServicesRegistryMapPayload> tMap = new TreeMap<Integer,ServicesRegistryMapPayload>();
-		Iterator<java.util.Map.Entry<Integer, ServicesRegistryMapPayload>> iterator = entrySet().iterator();
+	public NavigableSet<Long> getDescendingKeySet() {
+		TreeMap<Long,ServicesRegistryMapPayload> tMap = new TreeMap<Long,ServicesRegistryMapPayload>();
+		Iterator<java.util.Map.Entry<Long, ServicesRegistryMapPayload>> iterator = entrySet().iterator();
 		while(iterator.hasNext()) {
-			java.util.Map.Entry<Integer, ServicesRegistryMapPayload> entry = iterator.next();
+			java.util.Map.Entry<Long, ServicesRegistryMapPayload> entry = iterator.next();
 			tMap.put(entry.getKey(), entry.getValue());
 		}
 		return tMap.descendingKeySet();

@@ -35,7 +35,7 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final DuccLogger logger = DuccService.getDuccLogger(DuccWorkReservation.class.getName());
+	private transient DuccLogger logger = null;
 	private IDuccReservationMap duccReservationMap = new DuccReservationMap();
 	private IRationale completionRationale = null;
 	private boolean waitForAssignment = false;
@@ -50,8 +50,18 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 	public DuccWorkReservation(DuccId duccId) {
 		init(duccId);
 	}
+
 	
+    public void initLogger()
+    {
+        // xstream won't call constructors, and the logger needs to be transient, so there's no other way
+        // to get it initialized.  gson does call the default constructor, correctly.
+        // So when DuccWorkReservation is loaded from a checkpoint file by xstream this needs to be called.
+        if (DuccService.getDuccLogger() != null ) logger = DuccService.getDuccLogger(DuccWorkReservation.class.getName());
+    }
+
 	private void init(DuccId duccId) {
+        initLogger();
 		setDuccType(DuccType.Reservation);
 		setDuccId(duccId);
 		setStateObject(IDuccState.ReservationState.Undefined);

@@ -69,6 +69,7 @@ under the License.
         <include>org.apache.uima:uima-ducc-orchestrator</include>
         <include>org.apache.uima:uima-ducc-web</include>
         <include>org.apache.uima:uima-ducc-container</include>
+        <include>org.apache.uima:uima-ducc-database</include>
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
       <outputDirectory>lib/uima-ducc</outputDirectory>
@@ -128,6 +129,80 @@ under the License.
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
+
+    <!-- orientdb -->
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>com.tinkerpop.gremlin:gremlin-groovy</include>
+      </includes>      
+      <outputDirectory>lib/orientdb</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>com.tinkerpop.blueprints:blueprints-core</include>
+      </includes>      
+      <outputDirectory>lib/orientdb</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru</include>
+      </includes>      
+      <outputDirectory>lib/orientdb</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>com.orientechnologies:orientdb-graphdb</include>
+        <include>com.orientechnologies:orientdb-core</include>
+        <include>com.orientechnologies:orientdb-client</include>
+        <include>com.orientechnologies:orientdb-server</include>
+        <include>com.orientechnologies:orientdb-tools</include>
+        <include>com.orientechnologies:orientdb-enterprise</include>
+      </includes>      
+      <outputDirectory>lib/orientdb</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>com.tinkerpop.gremlin:gremlin-groovy</include>
+      </includes>      
+      <outputDirectory>lib/orientdb</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+    <!-- dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>com.orientechnologies:orientdb-lucene</include>
+      </includes>      
+      <outputDirectory>database/plugins</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet -->
+
+    <!-- end orientdb -->
 
 	<!-- xmlbeans is in UIMA-AS 2.6.0 package -->
     

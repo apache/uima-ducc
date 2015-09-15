@@ -37,6 +37,8 @@ from ducc_base import which
 
 from ducc import Ducc
 
+import database as db
+
 class PostInstall():
 
     def usage(self, msg):
@@ -77,6 +79,24 @@ class PostInstall():
         print 'WARNING', ' '.join(msg)
         print 'WARNING'
         print ''
+
+    def configure_database(self):
+        self.ducc_default_properties = Properties()
+        self.ducc_default_properties.load(self.DUCC_HOME + '/resources/default.ducc.properties')
+        self.ducc_default_properties.put('ducc.head', self.ducc_head)
+
+        dburl    = self.ducc_default_properties.get('ducc.database.url')
+        dbconfig = self.DUCC_HOME + '/' + self.ducc_default_properties.get('ducc.database.config.file')
+        print 'Configuring database at', dburl, 'from', dbconfig 
+        print ''
+
+        dbpw = ''
+        while ( dbpw == '' ):
+            dbpw = raw_input('Enter password for database root:')
+
+        print ''
+        db.configure(dbconfig, self.ducc_head, dbpw)
+
 
     def get_keystore_pw(self, prompt):
 
@@ -353,6 +373,8 @@ class PostInstall():
 
         self.setup_ducc_head()
         self.check_nodes()
+
+        self.configure_database()
 
         # As of DUCC 2.0, always set here on installation
         print 'ActiveMQ is automanaged on node ', self.localhost

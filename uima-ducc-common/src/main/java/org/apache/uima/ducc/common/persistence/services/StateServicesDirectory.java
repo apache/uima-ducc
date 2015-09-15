@@ -23,17 +23,17 @@ import java.util.TreeMap;
 
 public class StateServicesDirectory {
 
-	private TreeMap<Integer,StateServicesSet> map = new TreeMap<Integer,StateServicesSet>();
+	private TreeMap<Long,StateServicesSet> map = new TreeMap<Long,StateServicesSet>();
 	
-	public void put(Integer key, StateServicesSet value) {
+	public void put(Long key, StateServicesSet value) {
 		map.put(key, value);
 	}
 	
-	public StateServicesSet get(Integer key) {
+	public StateServicesSet get(Long key) {
 		return map.get(key);
 	}
 	
-	public NavigableSet<Integer> getDescendingKeySet() {
+	public NavigableSet<Long> getDescendingKeySet() {
 		return map.descendingKeySet();
 	}
 }

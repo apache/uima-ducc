@@ -24,6 +24,7 @@ import java.io.FileOutputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -36,6 +37,10 @@ import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.crypto.Crypto.AccessType;
 import org.apache.uima.ducc.common.main.DuccService;
+import org.apache.uima.ducc.common.persistence.services.IStateServices;
+import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
+import org.apache.uima.ducc.common.persistence.services.StateServicesFactory;
+import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapDifference;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapValueDifference;
@@ -93,6 +98,7 @@ public class ServiceManagerComponent
     private String stateEndpoint;
 
     private ServiceHandler handler = null;
+    IStateServices stateHandler = null;
 
     //HashMap<String, BaseUimaAsService> services = new HashMap<String, BaseUimaAsService>();	
 
@@ -108,7 +114,7 @@ public class ServiceManagerComponent
 
     private String state_dir = null;
     private String state_file = null;
-    private String descriptor_dir = null;
+
     private DuccProperties sm_props = null;
     private String service_seqno = "service.seqno";
     private DuccIdFactory idFactory = new DuccIdFactory();
@@ -126,7 +132,7 @@ public class ServiceManagerComponent
     //    1.1.4 - dynamic mod of all registration parms.  Add debug and max-init-time parms.
     //    1.1.0 - resync with release, sigh.
     //    2.0.0 - Update for new release.
-    String version = "2.0.0";
+    String version = "2.1.0";
 
 	public ServiceManagerComponent(CamelContext context) 
     {
@@ -139,7 +145,7 @@ public class ServiceManagerComponent
 	{
 		return logger;
 	}
-	
+
     /**
      * Initialization tasks:
      * - read all the service descriptors
@@ -149,71 +155,76 @@ public class ServiceManagerComponent
     	throws Exception
     {
     	String methodName = "init";
-        try {
-			File descdir = new File(serviceFileLocation());
-			if ( ! descdir.exists() ) {
-				descdir.mkdirs();
-			}
-			File histdir = new File(serviceHistoryLocation());
-			if ( ! histdir.exists() ) {
-				histdir.mkdirs();
-			}
-			String[] desclist = descdir.list();
-			for ( String d : desclist) {
-                if ( d.endsWith(".svc") ) {
-                    int ndx = d.lastIndexOf(".");
-                    String stem = d.substring(0, ndx);
-                    
-                    DuccProperties props = new DuccProperties();
-                    String props_filename = serviceFileKey(d);
-                    props.load(props_filename);
-                                        
-                    DuccProperties metaprops = new DuccProperties();
-                    String meta_filename = serviceFileKey(stem + ".meta");
-                    metaprops.load(meta_filename);                    
-                    
-                    int friendly = 0;
-					String uuid = "";
-					try {
-						// these gets will throw if the requisite objects aren't found
-						friendly = metaprops.getIntProperty("numeric_id");
-						uuid = metaprops.getStringProperty("uuid");                        
-					} catch (MissingPropertyException e1) {
-						// Ugly, but shouldn't have to be fatal
-						logger.error(methodName, null, "Cannot restore DuccId for", d, "Friendly id:", friendly, "uuid:", uuid);
-						continue;
-					}
-                    
-                    DuccId id = new DuccId(friendly);
-                    id.setUUID(UUID.fromString(uuid));
-                    logger.debug(methodName, id, "Unique:", id.getUnique());
-                    
-                    try {
-                        handler.register(id, props_filename, meta_filename, props, metaprops);
-                    } catch (IllegalStateException e ) {                 // happens on duplicate service
-                        logger.error(methodName, id, e.getMessage());  // message has all I need.
-                    }
-                        
-                }
-            }
 
-		} catch (Throwable e) {
-            // If we get here we aren't startable.
-			logger.error(methodName, null, "Cannot initialize service manger: ", e.getMessage());
-			System.exit(1);
-		}
+        // recover the registry
+        StateServicesDirectory all = stateHandler.getStateServicesDirectory();
+        NavigableSet<Long>     svcs = all.getDescendingKeySet();
+
+        for ( Long l : svcs ) {
+            StateServicesSet sss = all.get(l);
+            DuccProperties svcprops = sss.get(IStateServices.svc);
+            DuccProperties metaprops = sss.get(IStateServices.meta);
+
+            int friendly = 0;
+            String uuid = "";
+            try {
+                // these gets will throw if the requisite objects aren't found
+                friendly = metaprops.getIntProperty("numeric_id");
+                uuid = metaprops.getStringProperty("uuid");                        
+            } catch (MissingPropertyException e1) {
+                // Ugly, but shouldn't have to be fatal
+                logger.error(methodName, null, "Cannot restore DuccId for service", l, "Friendly id:", friendly, "uuid:", uuid);
+                continue;
+            }
+            
+            DuccId id = new DuccId(friendly);
+            id.setUUID(UUID.fromString(uuid));
+            logger.debug(methodName, id, "Unique:", id.getUnique());
+            
+            try {
+                handler.register(id, svcprops, metaprops, true);
+            } catch (IllegalStateException e ) {                 // happens on duplicate service
+                logger.error(methodName, id, e.getMessage());  // message has all I need.
+            }
+            
+        }
+
+        // try {
+		// 	File histdir = new File(serviceHistoryLocation());
+		// 	if ( ! histdir.exists() ) {
+		// 		histdir.mkdirs();
+		// 	}
+
+        //     Map<Long, Properties> sprops = h.getPropertiesForType(DbVertex.Service);
+        //     Map<Long, Properties> mprops = h.getPropertiesForType(DbVertex.ServiceMeta);
+            
+        //     for ( Long k : sprops.keySet() ) {
+        //         DuccProperties svcprops  = (DuccProperties) sprops.get(k);
+        //         DuccProperties metaprops = (DuccProperties) mprops.get(k);
+                
+        //         String uuid = metaprops.getProperty("uuid");
+                
+        //         DuccId id = new DuccId(k);
+        //         id.setUUID(UUID.fromString(uuid));
+        //         logger.debug(methodName, id, "Unique:", id.getUnique());
+                
+        //         try {
+        //             handler.register(id, svcprops, metaprops, true);
+        //         } catch (IllegalStateException e ) {                 // happens on duplicate service
+        //             logger.error(methodName, id, e);  // message has all I need.
+        //         }                
+        //     }
+
+		// } catch (Throwable e) {
+        //     // If we get here we aren't startable.
+		// 	logger.error(methodName, null, "Cannot initialize service manger: ", e);
+		// 	System.exit(1);
+		// } finally {
+        //     h.close();
+        // }
 
         state_dir = System.getProperty("DUCC_HOME") + "/state";
         state_file = state_dir + "/sm.properties";
-        descriptor_dir = state_dir + "/services";
-        File ddir = new File(descriptor_dir);
-        if ( ddir.exists() ) {
-            if ( ! ddir.isDirectory() ) {
-                throw new IllegalStateException("Service descriptor location is not a directory: " + descriptor_dir);
-            }
-        } else {
-            ddir.mkdirs();
-        }
 
         sm_props = new DuccProperties();
         File sf = new File(state_file);
@@ -331,7 +342,28 @@ public class ServiceManagerComponent
         logger.info(methodName, null, "------------------------------------------------------------------------------------");
 
         readAdministrators();
+        
+        stateHandler = StateServicesFactory.getInstance(this.getClass().getName(), COMPONENT_NAME);
 
+        // // String dbname = System.getProperty("ducc.db.name");
+        // String dburl  = System.getProperty("ducc.state.database.url"); // "remote:localhost:2424/DuccState"
+        
+		// try {
+        //     // verify, and possibly set up the schema if it's the first time
+		// 	databaseHandler = new DbManager(dburl);
+        //     databaseHandler.init();
+		// } catch (Throwable e) {
+        //     logger.fatal(methodName, null, "Cannot create database at", dburl, ":", e);
+        //     Runtime.getRuntime().halt(1);
+		// } 
+
+        // if ( databaseHandler == null ) {
+        //     logger.error(methodName, null, "Cannot open database at", dburl);
+        // } else {
+        //     logger.info(methodName, null, "Opened database at", dburl);
+        // }
+        handler.setStateHandler(stateHandler);
+        
         // Here is a good place to do any pre-start stuff
 
         // Start the main processing loop
@@ -687,6 +719,7 @@ public class ServiceManagerComponent
         notify();
     }
 
+    // @deprecated
     static String serviceFileLocation()
     {
         return System.getProperty("DUCC_HOME") + "/state/services";
@@ -695,11 +728,6 @@ public class ServiceManagerComponent
     static String serviceHistoryLocation()
     {
         return System.getProperty("DUCC_HOME") + "/history/services-registry/";
-    }
-
-    private String serviceFileKey(String fn)
-    {
-        return serviceFileLocation() + "/" + fn;
     }
 
 	private boolean check_signature(String user, byte[] auth_block)
@@ -807,9 +835,7 @@ public class ServiceManagerComponent
             meta.setProperty("autostart", "false");
         }
 
-        String desc_name = descriptor_dir + "/" + id + ".svc";
-        String meta_name = descriptor_dir + "/" + id + ".meta";
-        ServiceReplyEvent reply = handler.register(id, desc_name, meta_name, props, meta);
+        ServiceReplyEvent reply = handler.register(id, props, meta, false);
         ev.setReply(reply);
 
         // Draw attentipn in the log on registration failures

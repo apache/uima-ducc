@@ -26,4 +26,5 @@ public interface IDuccPerWorkItemStatistics extends Serializable {
 	public double getMin();
 	public double getMean();
 	public double getStandardDeviation();
+	public void   setStandardDeviation(double s);
 }

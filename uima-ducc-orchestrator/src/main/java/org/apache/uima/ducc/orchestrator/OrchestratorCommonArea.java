@@ -119,6 +119,7 @@ public class OrchestratorCommonArea {
 	
 	private void init() {
 		// <Jira 3414>
+        String methodName="init";
 		DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 		Boolean use_lock_file = new Boolean(dpr.getProperty(DuccPropertiesResolver.ducc_orchestrator_use_lock_file));
 		if(use_lock_file) {
@@ -133,7 +134,13 @@ public class OrchestratorCommonArea {
 		OrchestratorCheckpoint.getInstance().switchOnOff(commonConfiguration.orchestratorCheckpoint);
 		OrchestratorCheckpoint.getInstance().restoreState();
 		jdScheduler = JdScheduler.getInstance();
-		historyPersistenceManager = HistoryFactory.getInstance();
+        try {
+            historyPersistenceManager = HistoryFactory.getInstance(this.getClass().getName());
+        } catch ( Exception e ) {
+            logger.error(methodName, null, "Cannot acquire the history manager", e);
+            System.exit(1);       // what should we do here? exit or acquire the NullHistoryManager?
+        }
+        logger.info(methodName, null, "Got history manager of class", historyPersistenceManager.getClass().getName());
 	}
 	
 	public String getStateDirectory() {

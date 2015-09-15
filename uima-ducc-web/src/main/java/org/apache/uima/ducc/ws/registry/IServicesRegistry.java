@@ -26,28 +26,28 @@ public class IServicesRegistry {
 	public static final String svc = IStateServices.svc;
 	
 	// meta
-	public static final String autostart = IStateServices.autostart;
-	public static final String reference = IStateServices.reference;
-	public static final String enabled = IStateServices.enabled;
-	public static final String disable_reason = IStateServices.disable_reason;
-	public static final String endpoint = IStateServices.endpoint;
-	public static final String implementors = IStateServices.implementors;
-	public static final String instances = IStateServices.instances;
-	public static final String numeric_id = IStateServices.numeric_id;
-	public static final String ping_active = IStateServices.ping_active;
-	public static final String ping_only = IStateServices.ping_only;
-	public static final String service_alive = IStateServices.service_alive;
-	public static final String service_class = IStateServices.service_class;
-	public static final String service_dependency = IStateServices.service_dependency;
-	public static final String service_healthy = IStateServices.service_healthy;
-	public static final String service_state = IStateServices.service_state;
-	public static final String last_use = IStateServices.last_use;
-	public static final String service_statistics = IStateServices.service_statistics;
-	public static final String service_type = IStateServices.service_type;
-	public static final String submit_error = IStateServices.submit_error;
-	public static final String user = IStateServices.user;
+	public static final String autostart = IStateServices.SvcProps.autostart.pname();
+	public static final String reference = IStateServices.SvcProps.reference.pname();
+	public static final String enabled = IStateServices.SvcProps.enabled.pname();
+	public static final String disable_reason = IStateServices.SvcProps.disable_reason.pname();
+	public static final String endpoint = IStateServices.SvcProps.endpoint.pname();
+	public static final String implementors = IStateServices.SvcProps.implementors.pname();
+	public static final String instances = IStateServices.SvcProps.instances.pname();
+	public static final String numeric_id = IStateServices.SvcProps.numeric_id.pname();
+	public static final String ping_active = IStateServices.SvcProps.ping_active.pname();
+	public static final String ping_only = IStateServices.SvcProps.ping_only.pname();
+	public static final String service_alive = IStateServices.SvcProps.service_alive.pname();
+	public static final String service_class = IStateServices.SvcProps.service_class.pname();
+	public static final String service_dependency = IStateServices.SvcProps.service_dependency.pname();
+	public static final String service_healthy = IStateServices.SvcProps.service_healthy.pname();
+	public static final String service_state = IStateServices.SvcProps.service_state.pname();
+	public static final String last_use = IStateServices.SvcProps.last_use.pname();
+	public static final String service_statistics = IStateServices.SvcProps.service_statistics.pname();
+	public static final String service_type = IStateServices.SvcProps.service_type.pname();
+	public static final String submit_error = IStateServices.SvcProps.submit_error.pname();
+	public static final String user = IStateServices.SvcProps.user.pname();
 	
-	public static final String service_type_CUSTOM = "CUSTOM";
+	public static final String service_type_CUSTOM = IStateServices.SvcProps.CUSTOM.pname();
 	
 	public static final String constant_Available = "Available";
 	public static final String constant_true = "true";
@@ -60,9 +60,9 @@ public class IServicesRegistry {
 	public static final String constant_OK = "OK";
 	
 	// svc
-	public static final String description = IStateServices.description;
-	public static final String process_memory_size = IStateServices.process_memory_size;
-	public static final String scheduling_class = IStateServices.scheduling_class;
-	public static final String log_directory = IStateServices.log_directory;
+	public static final String description = IStateServices.SvcProps.description.pname();
+	public static final String process_memory_size = IStateServices.SvcProps.process_memory_size.pname();
+	public static final String scheduling_class = IStateServices.SvcProps.scheduling_class.pname();
+	public static final String log_directory = IStateServices.SvcProps.log_directory.pname();
 	
 }

@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.sm;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -29,6 +28,7 @@ import java.util.Set;
 import org.apache.uima.ducc.cli.DuccServiceApi;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -68,6 +68,8 @@ public class ServiceHandler
     private ServiceStateHandler serviceStateHandler = new ServiceStateHandler();
 	private ServiceMap serviceMap = new ServiceMap();       // note this is the sync object for publish
 
+    private IStateServices stateHandler;
+
     private Map<DuccId, IDuccWork> newJobs = new HashMap<DuccId, IDuccWork>();
     private Map<DuccId, IDuccWork> newServices = new HashMap<DuccId, IDuccWork>();
     
@@ -96,6 +98,11 @@ public class ServiceHandler
         }
     }
 
+    void setStateHandler(IStateServices handler)
+    {
+        this.stateHandler = handler;
+    }
+
     public synchronized void run()
     {
     	String methodName = "run";
@@ -120,6 +127,7 @@ public class ServiceHandler
      */
     void bootImplementors(Map<DuccId, DuccWorkJob> incoming)
     {
+    	String methodName = "bootImplementors";
         for ( DuccId id : incoming.keySet() ) {
             DuccWorkJob j = incoming.get(id);
             String ep = j.getServiceEndpoint();
@@ -133,7 +141,11 @@ public class ServiceHandler
         }
         List<ServiceSet> services = serviceStateHandler.getServices();
         for ( ServiceSet sset : services ) {
-            sset.bootComplete();
+            try {
+                sset.bootComplete();
+            } catch ( Exception e ) {
+                logger.warn(methodName, sset.getId(), "Error updating meta properties:", e);
+            }
             if ( sset.countImplementors() > 0 ) {            // if something was running, let's make sure all the starts are done
                 sset.start();
             }
@@ -884,6 +896,7 @@ public class ServiceHandler
 
     synchronized ServiceReplyEvent disable(ServiceDisableEvent ev)
     {
+    	String methodName = "disable";
         long   id = ev.getFriendly();
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
@@ -900,12 +913,18 @@ public class ServiceHandler
         }
 
         sset.disable("Disabled by owner or administrator " + ev.getUser());
-        sset.saveMetaProperties();
+        try {
+            sset.updateMetaProperties();
+        } catch ( Exception e ) {
+            logger.warn(methodName, sset.getId(), "Error updating meta properties:", e);
+        }
+
         return ServiceManagerComponent.makeResponse(true, "Disabled", sset.getKey(), sset.getId().getFriendly());
     }
 
     synchronized ServiceReplyEvent enable(ServiceEnableEvent ev)
     {
+    	String methodName = "enable";
         long   id = ev.getFriendly();
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
@@ -922,7 +941,11 @@ public class ServiceHandler
         }
 
         sset.enable();
-        sset.saveMetaProperties();
+        try {
+            sset.updateMetaProperties();
+        } catch ( Exception e ) {
+            logger.warn(methodName, sset.getId(), "Error updating meta properties:", e);
+        }
         return ServiceManagerComponent.makeResponse(true, "Enabled.", sset.getKey(), sset.getId().getFriendly());
     }
 
@@ -981,7 +1004,7 @@ public class ServiceHandler
         return ServiceManagerComponent.makeResponse(true, "Observing references.", sset.getKey(), sset.getId().getFriendly());
     }
 
-    synchronized ServiceReplyEvent register(DuccId id, String props_filename, String meta_filename, DuccProperties props, DuccProperties meta)
+    synchronized ServiceReplyEvent register(DuccId id, DuccProperties props, DuccProperties meta, boolean isRecovered)
     {
     	String methodName = "register";
 
@@ -996,7 +1019,7 @@ public class ServiceHandler
         }
 
         try {
-            sset = new ServiceSet(this, id, props_filename, meta_filename, props, meta);
+            sset = new ServiceSet(this, this.stateHandler, id, props, meta);
         } catch (Throwable t) {
             // throws because endpoint is not parsable
             error = t.getMessage();
@@ -1004,22 +1027,14 @@ public class ServiceHandler
         }
 
         try {
-            sset.saveServiceProperties();
+            // if it's a "fresh" reservation it must go into the db.  otherwise it is already
+            // in the db and doesn't need to be inserted
+            sset.storeProperties(isRecovered);
         } catch ( Exception e ) {
             error = ("Internal error; unable to store service descriptor. " + url); 
             logger.error(methodName, id, e);
-            must_deregister = true;
         }
         
-        try {
-            if ( ! must_deregister ) {
-                sset.saveMetaProperties();
-            }
-        } catch ( Exception e ) {
-            error = ("Internal error; unable to store service meta-descriptor. " + url);
-            logger.error(methodName, id, e);
-            must_deregister = true;
-        }
 
         // must check for cycles or we can deadlock
         if ( ! must_deregister ) {
@@ -1036,16 +1051,11 @@ public class ServiceHandler
             serviceStateHandler.registerService(id.getFriendly(), url, sset);
             return ServiceManagerComponent.makeResponse(true, "Registered", url, id.getFriendly());
         } else {
-            File mf = new File(meta_filename);
-            mf.delete();
-            
-            File pf = new File(props_filename);
-            pf.delete();
             return ServiceManagerComponent.makeResponse(false, error, url, id.getFriendly());
         }
     }
 
-    synchronized public ServiceReplyEvent modify(ServiceModifyEvent ev)
+    synchronized ServiceReplyEvent modify(ServiceModifyEvent ev)
     {
         long  id   = ev.getFriendly();
         String url = ev.getEndpoint();
@@ -1059,7 +1069,7 @@ public class ServiceHandler
         }
         
         pendingRequests.add(new ApiHandler(ev, this));
-        return ServiceManagerComponent.makeResponse(true, "Modifying", sset.getKey(), sset.getId().getFriendly());
+        return ServiceManagerComponent.makeResponse(true, "Modify accepted:", sset.getKey(), sset.getId().getFriendly());
     }
 
     boolean restart_pinger = false;
@@ -1189,8 +1199,11 @@ public class ServiceHandler
         }
         
         sset.resetRuntimeErrors();
-        sset.saveServiceProperties();
-        sset.saveMetaProperties();
+        try {
+			sset.updateSvcProperties();
+		} catch (Exception e) {
+			logger.error(methodName, sset.getId(), "Cannot store properties:", e);
+		}
 
         if ( restart_pinger ) {
             sset.restartPinger();
@@ -1200,7 +1213,7 @@ public class ServiceHandler
         // restart_service - not yet
     }
 
-    synchronized public ServiceReplyEvent unregister(ServiceUnregisterEvent ev)
+    synchronized ServiceReplyEvent unregister(ServiceUnregisterEvent ev)
     {
         //String methodName = "unregister";
         long id = ev.getFriendly();
@@ -1244,7 +1257,11 @@ public class ServiceHandler
         if ( sset.isPingOnly() ) {
             logger.info(methodName, sset.getId(), "Unregister ping-only setvice:", friendly, url);
             serviceStateHandler.removeService(sset);
-            sset.deleteProperties();
+            try {
+				sset.deleteProperties();
+			} catch (Exception e) {
+				logger.error(methodName, sset.getId(), "Cannot delete service from DB:", e);
+			}
         } else if ( sset.countImplementors() > 0 ) {
             logger.debug(methodName, sset.getId(), "Stopping implementors:", friendly, url);
         } else {
@@ -1410,14 +1427,21 @@ public class ServiceHandler
     {
         ServiceShutdown() 
         {
+        	System.out.println("Setting shutdown hook");
         }
 
         public void run()
         {
+            System.out.println("Running shutdown hook");
             List<ServiceSet> allServices = serviceStateHandler.getServices();
             for (ServiceSet sset : allServices) {
                 sset.stopMonitor();
             }            
+            try {
+                stateHandler.shutdown();
+            } catch ( Exception e ) {
+            	logger.warn("ServicShutdown.run", null, "Error closing database: ", e);
+            }
         }
 
     }

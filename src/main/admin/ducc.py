@@ -27,8 +27,54 @@ import time
 
 from ducc_util import DuccUtil
 from local_hooks import verify_slave_node
+import database as db
+
+from properties import Properties
+from properties import Property
 
 class Ducc(DuccUtil):
+
+
+    def run_db(self, background):
+        # The dom gets loaded by the import above - or not
+        if ( not db.domloaded ):            
+            print "Unable to read database configuration; insure the installed Python supports xml.dom.minidom"
+            print "Note that Python must be at least version 2.6 but not 3.x.  You are running version", sys.version_info
+            return
+
+        print '(re)Starting the database'
+
+        # first write this out so it's easy to find in java without having to parse xml
+        (jvm_parms, classpath, db_rt, dburl, dbrest, dbroot) = self.db_parms
+        db_pw_file = Properties()
+        comment = []
+        comment.append('# Do not modify this file, it is auto-generated.')
+        comment.append('# This is extracted from the database configuration and written to this file on every boot of the db')
+        p = Property('db_password', dbroot, comment)
+        db_pw_file.put_property(p)
+        db_pw_filename = self.DUCC_HOME + '/resources.private/db_password'
+        db_pw_file.write(db_pw_filename)
+        os.chmod(db_pw_filename, 0700)
+        
+        main = 'com.orientechnologies.orient.server.OServerMain'
+
+        jp = ''
+        for k in jvm_parms.keys():
+            v = jvm_parms[k]
+            if ( v == None ):
+                jp = jp + k + ' '
+            else:
+                jp = jp + k + '=' + v + ' '
+
+        cmd = ' '.join(['nohup', self.java(), jp, '-cp', classpath, main, '&'])
+        print cmd
+
+        here = os.getcwd()
+        os.chdir(db_rt)
+        pid = self.spawn(cmd)
+        os.chdir(here)
+
+        print 'OK'
 
     def run_broker(self, component):
         broker_port = self.ducc_properties.get('ducc.broker.port')
@@ -149,6 +195,7 @@ class Ducc(DuccUtil):
                 self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/jsp/*')
+                self.add_to_classpath(ducc_home + '/lib/orientdb/*')       
 
             if ( c == 'orchestrator' ):
                 if ( or_parms != None ):
@@ -157,6 +204,7 @@ class Ducc(DuccUtil):
                     jvm_opts.append(self.or_jvm_args)
                 self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')       
+                self.add_to_classpath(ducc_home + '/lib/orientdb/*')       
 
             if ( c == 'pm' ):
                 if ( self.pm_jvm_args != None ):
@@ -168,6 +216,7 @@ class Ducc(DuccUtil):
                 self.add_to_classpath(ducc_home + '/apache-uima/apache-activemq/lib/optional/*')
                 self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')       
+                self.add_to_classpath(ducc_home + '/lib/orientdb/*')       
 
         if (component != 'agent'):
             service = 'org.apache.uima.ducc.common.main.DuccService'
@@ -290,10 +339,17 @@ class Ducc(DuccUtil):
         if ( component == None ):
             self.usage("Must specify component")
 
+        if ( component == 'db' ):
+            self.run_db(background)
+            return
+
         if ( component == 'broker' ):
             self.run_broker(background)
-        else:
-            self.run_component(component, or_parms, numagents, rmoverride, background, nodup, localdate)
+            return
+
+        # fall-through, runs one of the ducc components proper
+        self.run_component(component, or_parms, numagents, rmoverride, background, nodup, localdate)
+
         return
 
     def __call__(self, *args):

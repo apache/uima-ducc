@@ -121,6 +121,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-database</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-user</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -175,6 +180,10 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-database</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-user</artifactId>
 		</dependency>
 		<dependency>
@@ -182,27 +191,12 @@
 			<artifactId>uima-ducc-container</artifactId>
 		</dependency>
 	</dependencies>
-	
-        <build>
-
-
-         <!--resources>
-            <resource>
-               <directory>${baseidr}/src/main/resources</directory>
-               <includes>
-                  <include>README</include>
-                  <include>RELEASE_NOTES.html</include>
-               </includes>
-               <filtering>true</filtering>
-               <targetPath>${basedir}/target</targetPath>
-            </resource>
-	 </resources-->
-
+	<build>
+		<resources />
 
 
 
 		<plugins>
-
 
 			<!-- This java doc config is for building the ones distributed with the 
 				bin packaging, and also posted on our website. -->
@@ -466,9 +460,6 @@
   </plugin -->
 		</plugins>
 		<!-- /pluginManagement -->
-
-
-
 	</build>
 
 	<!-- Include all ducc modules -->
@@ -485,6 +476,7 @@
 		<module>uima-ducc-duccdocs</module>
 		<module>uima-ducc-web</module>
 		<module>uima-ducc-examples</module>
+		<module>uima-ducc-database</module>
 		<module>uima-ducc-spawn</module>
 		<module>uima-ducc-user</module>
 		<!-- Note: uima-ducc-container has a test dependency on uima-ducc-user so must be built after it -->

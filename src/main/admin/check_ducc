@@ -51,6 +51,16 @@ class CheckDucc(DuccUtil):
 
         return
 
+    def verify_database(self):
+        if ( self.db_parms == self.db_disabled ):
+            return True
+
+        ret = self.db_alive()
+        if ( ret ):
+            print 'The database is running'
+        else:
+            print 'The database is not running'
+
     def verify_activemq(self):
         if ( self.is_amq_active() ):
             print 'ActiveMQ is found listening at', self.broker_protocol + "://" + self.broker_host + ':' + self.broker_port
@@ -266,6 +276,8 @@ class CheckDucc(DuccUtil):
 
         if ( not self.verify_activemq() ):
             print 'ActiveMQ broker is not running on', self.broker_protocol + "://" + self.broker_host + ':' + self.broker_port
+
+        self.verify_database() 
 
         # init the PID file
         self.pids = Properties()

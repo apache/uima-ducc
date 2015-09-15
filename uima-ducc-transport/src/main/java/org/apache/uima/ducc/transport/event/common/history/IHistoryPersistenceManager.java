@@ -18,35 +18,39 @@
 */
 package org.apache.uima.ducc.transport.event.common.history;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 
 
-public interface IHistoryPersistenceManager {
+public interface IHistoryPersistenceManager 
+{
+	public void                       saveJob(IDuccWorkJob duccWorkJob) throws Exception;
+	public IDuccWorkJob               restoreJob(long friendly_id)      throws Exception;
+	public List<IDuccWorkJob>         restoreJobs(long max)             throws Exception;
+	
+	public void                       saveReservation(IDuccWorkReservation reservation) throws Exception;
+	public IDuccWorkReservation       restoreReservation(long friendly_id)              throws Exception;
+	public List<IDuccWorkReservation> restoreReservations(long max)                     throws Exception;
 
-	public void jobSaveConditional(IDuccWorkJob duccWorkJob) throws IOException;
-	public void jobSave(IDuccWorkJob duccWorkJob) throws IOException;
-	public IDuccWorkJob jobRestore(String fileName);
-	public IDuccWorkJob jobRestore(DuccId duccId);
-	public ArrayList<String> jobList();
-	public ArrayList<IDuccWorkJob> jobRestore() throws IOException, ClassNotFoundException;
-	
-	public void reservationSaveConditional(IDuccWorkReservation duccWorkReservation) throws IOException;
-	public void reservationSave(IDuccWorkReservation duccWorkReservation) throws IOException;
-	public IDuccWorkReservation reservationRestore(String fileName);
-	public IDuccWorkReservation reservationRestore(DuccId duccId);
-	public ArrayList<String> reservationList();
-	public ArrayList<IDuccWorkReservation> reservationRestore() throws IOException, ClassNotFoundException;
-	
-	public void serviceSaveConditional(IDuccWorkService duccWorkService) throws IOException;
-	public void serviceSave(IDuccWorkService duccWorkService) throws IOException;
-	public IDuccWorkService serviceRestore(String fileName);
-	public IDuccWorkService serviceRestore(DuccId duccId);
-	public ArrayList<String> serviceList();
-	public ArrayList<IDuccWorkService> serviceRestore() throws IOException, ClassNotFoundException;
+	public void                       saveService(IDuccWorkService duccWorkService) throws Exception;
+	public IDuccWorkService           restoreService(long friendly_id)              throws Exception;
+	public List<IDuccWorkService>     restoreServices(long max)                     throws Exception;
+
+    public boolean checkpoint(DuccWorkMap work, Map<DuccId, DuccId> processToJob)   throws Exception;
+    public boolean restore(DuccWorkMap work, Map<DuccId, DuccId> processToJob)      throws Exception;
+
+    public void setLogger(DuccLogger logger);
+	//public void serviceSaveConditional(IDuccWorkService duccWorkService) throws Exception;
+	// public void serviceSave(IDuccWorkService duccWorkService) throws Exception;
+	//public IDuccWorkService serviceRestore(String fileName);
+	//public IDuccWorkService serviceRestore(DuccId duccId);
+	//public ArrayList<String> serviceList();
+	//public ArrayList<IDuccWorkService> serviceRestore() throws IOException, ClassNotFoundException;
 }

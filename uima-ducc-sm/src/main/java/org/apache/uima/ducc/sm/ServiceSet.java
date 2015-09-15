@@ -18,10 +18,6 @@
 */
 package org.apache.uima.ducc.sm;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Timestamp;
@@ -31,6 +27,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -41,6 +38,7 @@ import org.apache.uima.ducc.cli.UimaAsPing;
 import org.apache.uima.ducc.cli.UimaAsServiceMonitor;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.TcpStreamHandler;
+import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -53,7 +51,6 @@ import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
 import org.apache.uima.ducc.transport.event.sm.ServiceDescription;
 import org.apache.uima.util.Level;
-
 
 /**
  * Represents the collection of process, jobs, and such that implement a given service.
@@ -68,7 +65,8 @@ public class ServiceSet
 
 	private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), COMPONENT_NAME);	
     private ServiceHandler handler;
-    
+    private IStateServices stateHandler;
+
     // key is unique id of descriptor.  The descriptor inherites key from a Job's DuccId, or from
     // a unique-to SM key for implicit references.
 
@@ -84,8 +82,8 @@ public class ServiceSet
     // For a registered service, here is my registered id
     DuccId id;
     HashMap<Long, DuccId> friendly_ids = new HashMap<Long, DuccId>();
-    String history_key = "work-instances";
-    String implementors_key = "implementors";
+    String history_key = IStateServices.SvcProps.work_instances.pname();
+    String implementors_key = IStateServices.SvcProps.implementors.pname();
 
     // incoming nodes, for dup checking
     List<ServiceSet> predecessors = new ArrayList<ServiceSet>();
@@ -138,17 +136,8 @@ public class ServiceSet
 
     // registered services state files
     private DuccProperties job_props  = null;
-    String props_filename = null;
-    String props_filename_temp = null;
-    File props_file;
-    File props_file_temp;
-
     private DuccProperties meta_props = null;
 
-    String meta_filename = null;
-    String meta_filename_temp = null;
-    File meta_file;
-    File meta_file_temp;
     boolean deregistered = false;
 
     ServiceType  service_type  = ServiceType.Undefined;
@@ -173,41 +162,36 @@ public class ServiceSet
     boolean inShutdown = false;
 
     String[] coOwners = null;
+
+    static final String archive_key = "is_archived";
+    static final String archive_flag = "true";
+
     //
     // Constructor for a registered service
     //
-    public ServiceSet(ServiceHandler handler, DuccId id, String props_filename, String meta_filename, DuccProperties props, DuccProperties meta)
+    public ServiceSet(ServiceHandler handler, IStateServices stateHandler, DuccId id, DuccProperties props, DuccProperties meta)
     {
         this.handler = handler;
+        this.stateHandler = stateHandler;
         this.job_props = props;
         this.meta_props = meta;
         this.id = id;
 
-        this.props_filename = props_filename;
-        this.props_filename_temp = props_filename + ".tmp";
-        this.props_file = new File(props_filename);
-        this.props_file_temp = new File(props_filename_temp);        
-        
-        this.meta_filename = meta_filename;
-        this.meta_filename_temp = meta_filename + ".tmp";
-        this.meta_file = new File(meta_filename);
-        this.meta_file_temp = new File(meta_filename_temp);
-
         this.service_state = ServiceState.Stopped;
         this.linger_time = props.getLongProperty(UiOption.ServiceLinger.pname(), linger_time);
-        this.key = meta.getProperty("endpoint");
+        this.key = meta.getProperty(IStateServices.SvcProps.endpoint.pname());
 
         parseEndpoint(key);
 
-        this.user = meta.getProperty("user");
-        this.instances = meta.getIntProperty("instances", 1);
+        this.user = meta.getProperty(IStateServices.SvcProps.user.pname());
+        this.instances = meta.getIntProperty(IStateServices.SvcProps.instances.pname(), 1);
         this.registered_instances = this.instances;
-        this.autostart = meta.getBooleanProperty("autostart", false);
-        this.ping_only = meta.getBooleanProperty("ping-only", false);
-        this.enabled   = meta.getBooleanProperty("enabled", enabled);
+        this.autostart = meta.getBooleanProperty(IStateServices.SvcProps.autostart.pname(), false);
+        this.ping_only = meta.getBooleanProperty(IStateServices.SvcProps.ping_only.pname(), false);
+        this.enabled   = meta.getBooleanProperty(IStateServices.SvcProps.enabled.pname(), enabled);
         this.service_class = ServiceClass.Registered;
-        this.init_failure_max = props.getIntProperty("instance_init_failures_limit", init_failure_max);
-        this.reference_start = meta.getBooleanProperty("reference", this.reference_start);
+        this.init_failure_max = props.getIntProperty(IStateServices.SvcProps.instance_init_failures_limit.pname(), init_failure_max);
+        this.reference_start = meta.getBooleanProperty(IStateServices.SvcProps.reference.pname(), this.reference_start);
 
         
         
@@ -224,28 +208,28 @@ public class ServiceSet
 
         parseIndependentServices();
 
-        meta_props.remove("references");          // Will get refreshred in upcoming OR state messages
-        meta_props.remove("stopped");             // obsolete flag, clean out of older registrations
+        meta_props.remove(IStateServices.SvcProps.references.pname());          // Will get refreshred in upcoming OR state messages
+        meta_props.remove(IStateServices.SvcProps.stopped.pname());             // obsolete flag, clean out of older registrations
 
-        meta_props.put("service-class", ""+service_class.decode());
-        meta_props.put("service-type", ""+service_type.decode());
-        meta_props.put("enabled", "" + enabled);         // may not have been there in the first place
-        meta_props.put("service-state", ""+getState());
-        meta_props.put("ping-active", "false");
-        meta_props.put("service-alive",      "false");
-        meta_props.put("service-healthy",    "false");
-        meta_props.put("service-statistics", "N/A");
+        meta_props.put(IStateServices.SvcProps.service_class.pname(), ""+service_class.decode());
+        meta_props.put(IStateServices.SvcProps.service_type.pname(), ""+service_type.decode());
+        meta_props.put(IStateServices.SvcProps.enabled.pname(), "" + enabled);         // may not have been there in the first place
+        meta_props.put(IStateServices.SvcProps.service_state.pname(), ""+getState());
+        meta_props.put(IStateServices.SvcProps.ping_active.pname(), "false");
+        meta_props.put(IStateServices.SvcProps.service_alive.pname(),      "false");
+        meta_props.put(IStateServices.SvcProps.service_healthy.pname(),    "false");
+        meta_props.put(IStateServices.SvcProps.service_statistics.pname(), "N/A");
         setReferenced(this.reference_start);
 
-        setLastUse(meta_props.getLongProperty("last-use", 0L));
-        setLastPing(meta_props.getLongProperty("last-ping", 0L));
-        setLastRunnable(meta_props.getLongProperty("last-runnable", 0L));
+        setLastUse(meta_props.getLongProperty(IStateServices.SvcProps.last_use.pname(), 0L));
+        setLastPing(meta_props.getLongProperty(IStateServices.SvcProps.last_ping.pname(), 0L));
+        setLastRunnable(meta_props.getLongProperty(IStateServices.SvcProps.last_runnable.pname(), 0L));
 
         if ( (!job_props.containsKey(UiOption.ProcessExecutable.pname())) && (service_type != ServiceType.UimaAs) ) {
-            meta_props.put("ping-only", "true");
+            meta_props.put(IStateServices.SvcProps.ping_only.pname(), "true");
             this.ping_only = true;
         } else {
-            meta_props.put("ping-only", "false");
+            meta_props.put(IStateServices.SvcProps.ping_only.pname(), "false");
             this.ping_only = false;
         }
 
@@ -315,24 +299,6 @@ public class ServiceSet
             this.endpoint = ep.substring(ndx+1);
         }
 
-    }
-
-    synchronized void deleteProperties()
-    {
-        String methodName = "deleteProperties";
-
-        // be sure to move any services that seem not to have croaked yet to history
-        String history = meta_props.getStringProperty(history_key, "");
-        for ( Long id : friendly_ids.keySet() ) {
-            history = history + " " + id.toString();
-        }
-        meta_props.put(history_key, history);
-        meta_props.remove(implementors_key);
-
-        logger.info(methodName, id, "Deleting properties for unregistered service.");
-        ServiceManagerComponent.deleteProperties(id.toString(), meta_filename, meta_props, props_filename, job_props);
-        meta_filename = null;
-        props_filename = null;
     }
 
     synchronized Long[] getImplementors()
@@ -489,8 +455,9 @@ public class ServiceSet
      * Second phase, update history, and physical metaprops.
      */
     void bootComplete()
+        throws Exception
     {
-        String methodName = "bootComplete";
+        //String methodName = "bootComplete";
         //
         // During boot, inactive implementors are removed.  Here we cull the implementors list to
         // remove stuff that didn't come in.
@@ -505,39 +472,8 @@ public class ServiceSet
         // 
         // must update history against stuff we used to have and don't any more
         //
-        String old_impls = meta_props.getProperty(implementors_key);
-        logger.info(methodName, id, "Old implementors :", old_impls);
-        if ( old_impls != null ) {
-            Map<String, String> ip = new HashMap<String, String>();
-            String[]   keys = old_impls.split("\\s+");
-            for ( String k : keys ) ip.put(k, k);
-
-            String history = meta_props.getProperty(history_key);
-            Map<String, String> hp = new HashMap<String, String>();
-            if ( history != null ) {
-                keys = history.split("\\s+");
-                for ( String k : keys ) hp.put(k, k);
-            }
-
-            // here, bop through the things we used to know about, and if
-            // it's missing from what checked in, it's history.
-            for ( String k : ip.keySet() ) {
-                Long iid = Long.parseLong(k);
-                if ( ! implementors.containsKey(iid) ) {
-                    hp.put(k, k);
-                }
-            }
-
-            // now put the history string back into the meta props
-            if ( hp.size() > 0 ) {
-                StringBuffer sb = new StringBuffer();
-                for (String s : hp.keySet() ) {
-                    sb.append(s);
-                    sb.append(" ");
-                }
-                meta_props.setProperty(history_key, sb.toString().trim());
-            }
-        }
+        // TODO: update the history record in the meta
+        //
 
         // UIMA-4258 restore instance ID if this is a hot restart
         if ( pending_instances.size() != 0 ) {
@@ -562,7 +498,7 @@ public class ServiceSet
         if ( isReferencedStart() && (countImplementors() == 0 ) ) {
             this.reference_start = false;
         }
-        saveMetaProperties();
+        updateMetaProperties();
     }
 
     
@@ -631,11 +567,11 @@ public class ServiceSet
     synchronized void setLastUse(long lu)
     {
         this.last_use = lu;
-        meta_props.put("last-use", Long.toString(lu));
+        meta_props.put(IStateServices.SvcProps.last_use.pname(), Long.toString(lu));
         if ( last_use == 0 ) {
-            meta_props.put("last-use-readable", "Unknown");
+            meta_props.put(IStateServices.SvcProps.last_use_readable.pname(), "Unknown");
         } else {
-            meta_props.put("last-use-readable", (new Date(lu)).toString());
+            meta_props.put(IStateServices.SvcProps.last_use_readable.pname(), (new Date(lu)).toString());
         }
     }
 
@@ -643,11 +579,11 @@ public class ServiceSet
     synchronized void setLastPing(long lp)
     {
         this.last_ping = lp;
-        meta_props.put("last-ping", Long.toString(lp));
+        meta_props.put(IStateServices.SvcProps.last_ping.pname(), Long.toString(lp));
         if ( last_ping == 0 ) {
-            meta_props.put("last-ping-readable", "Unknown");
+            meta_props.put(IStateServices.SvcProps.last_ping_readable.pname(), "Unknown");
         } else {
-            meta_props.put("last-ping-readable", (new Date(lp)).toString());
+            meta_props.put(IStateServices.SvcProps.last_ping_readable.pname(), (new Date(lp)).toString());
         }
     }
 
@@ -655,11 +591,11 @@ public class ServiceSet
     synchronized void setLastRunnable(long lr)
     {
         this.last_runnable = lr;
-        meta_props.put("last-runnable", Long.toString(lr));
+        meta_props.put(IStateServices.SvcProps.last_runnable.pname(), Long.toString(lr));
         if ( last_runnable == 0 ) {
-            meta_props.put("last-runnable-readable", "Unknown");
+            meta_props.put(IStateServices.SvcProps.last_runnable_readable.pname(), "Unknown");
         } else {
-            meta_props.put("last-runnable-readable", (new Date(lr)).toString());
+            meta_props.put(IStateServices.SvcProps.last_runnable_readable.pname(), (new Date(lr)).toString());
         }
     }
 
@@ -668,13 +604,13 @@ public class ServiceSet
         run_failures = 0;
         ping_failures = 0;
         init_failures = 0;
-        meta_props.remove("submit-error");
+        meta_props.remove(IStateServices.SvcProps.submit_error.pname());
         excessiveRunFailures = false;
     }
 
     synchronized void setAutostart(boolean auto)
     {
-        meta_props.setProperty("autostart", auto ? "true" : "false");
+        meta_props.setProperty(IStateServices.SvcProps.autostart.pname(), auto ? "true" : "false");
         this.autostart = auto;
         if ( auto ) {
             // turning this on gives benefit of the doubt on failure management
@@ -760,13 +696,13 @@ public class ServiceSet
 
     synchronized void disable(String reason)
     {
-        meta_props.put("disable-reason", reason);
+        meta_props.put(IStateServices.SvcProps.disable_reason.pname(), reason);
         this.enabled = false;
     }
 
     synchronized void enable()
     {
-        meta_props.remove("disable-reason");
+        meta_props.remove(IStateServices.SvcProps.disable_reason.pname());
         resetRuntimeErrors();
         this.enabled = true;
     }
@@ -778,7 +714,7 @@ public class ServiceSet
 
     synchronized String getDisableReason()
     {
-        return meta_props.getStringProperty("disable-reason", "Unknown");
+        return meta_props.getStringProperty(IStateServices.SvcProps.disable_reason.pname(), "Unknown");
     }
 
     /**
@@ -817,16 +753,6 @@ public class ServiceSet
         deregistered = true;
     }
 
-    String getMetaFilename()
-    {
-        return meta_filename;
-    }
-
-    String getPropsFilename()
-    {
-        return props_filename;
-    }
-
     // /**
     //  * Returns the number of currently running instances
     //  */
@@ -842,73 +768,83 @@ public class ServiceSet
     {
         return registered_instances;
     }
-    
-    private boolean writeProperties(DuccProperties props, File pfile, File pfile_tmp, String type)
-    {
-    	
-    	String methodName = "saveProperties";
-        FileOutputStream fos = null;
 
-        long original_size = pfile.length();
+    /**
+     * Service is unregistered, remove props from main DB, write them into the history DB.
+     */
+    synchronized void deleteProperties()
+        throws Exception
+    {
+    	String methodName = "deleteProperties";
+
+        String ak = meta_props.getProperty(archive_key);
+        if ( (ak != null ) && ak.equals(archive_flag) ) { // (Migth not be set, that's ok)
+            // Because of races and stuff we can get called more than once but should only
+            //  archive once.
+            logger.info(methodName, id, "Bypassing move to history; already moved.");
+            return;
+        }
+
+        String history = meta_props.getStringProperty(history_key, "");
+        for ( Long id : friendly_ids.keySet() ) {
+            history = history + " " + id.toString();
+        }
+        meta_props.put(history_key, history);
+        meta_props.put(archive_key, archive_flag);
+
         try {
-            if ( (!pfile.exists()) || pfile.renameTo(pfile_tmp) ) {
-                fos = new FileOutputStream(pfile);
-                props.store(fos, type + " Descriptor");
-            } else {
-                logger.warn(methodName, id, "Cannot save", type, "properties, rename of", pfile, "to", pfile_tmp, "fails.");
-                if ( (!pfile.exists()) && pfile_tmp.exists() ) {
-                    if ( !pfile_tmp.renameTo(pfile) ) {
-                        logger.error(methodName, id, "Cannot restore", pfile_tmp, "to", pfile, "after failed update.");
-                    }
-                }
-            }
-		} catch (FileNotFoundException e) {
-            logger.warn(methodName, id, "Cannot save", type, "properties, file does not exist.");
-		} catch (IOException e) {
-            logger.warn(methodName, id, "I/O Error saving", type, "service properties:", e);
-		} catch (Throwable t) {
-            logger.warn(methodName, id, "Unexpected Error saving", type, "service properties:", t);
-		} finally {
-            try {
-				if ( fos != null ) fos.close();
-                long updated_size = pfile.length();
-                long tmp_size = pfile_tmp.length();
-
-                logger.info(methodName, id, "-----> original size", original_size, "updated size", updated_size, "tmp size", tmp_size, "<-----");
-                // updated size must be > 0 and tmp_size must match original size
-                if ( (updated_size > 0) && (original_size == tmp_size) ) {
-                    pfile_tmp.delete();
-                } else {
-                    logger.error(methodName, id, "Update of", pfile.toString(), "failed.  Original size:", original_size, "updated size", updated_size, "temp file size", tmp_size);
-                    logger.error(methodName, id, "The updated size must be > 0 and the temp size must match the original size for sucess.");
-                    logger.error(methodName, id, "Attempting to restore", pfile.toString(), "from", pfile_tmp.toString());
-                    if ( !pfile.exists() && pfile_tmp.exists() ) {
-                        pfile_tmp.renameTo(pfile);
-                    }
-                    return false;
-                }
-			} catch (Throwable t) {
-                logger.error(methodName, id, "Cannot close", type, "properties:", t);
-                return false;
-			}
+            stateHandler.moveToHistory(id, job_props, meta_props);
+        } catch ( Exception e ) {
+            logger.error(methodName, id, "Could not move properties files to history: ", e);
         }
-        return true;
     }
 
-    private void saveProperties(DuccProperties props, File pfile, File pfile_tmp, String type)
+
+    /**
+     * Save both properties in a single transaction.
+     */
+    synchronized void storeProperties(boolean isRecovered)
+        throws Exception
     {
-    	
-    	String methodName = "saveProperties";
-        int max = 5;
-        for ( int i = 0; i < max; i++ ) {
-            if ( writeProperties(props, pfile, pfile_tmp, type) ) return;
+    	//String methodName = "storeProperties";
+
+        // no, don't store if it gets deregistered this fast
+        if ( isDeregistered() ) return;
+
+        //Long strid = id.getFriendly();
+        prepareMetaProperties();     // these always need houssecleaning before storing or syncing
+
+        if ( ! isRecovered ) {       // if not recovery, no need to mess with the record
+            stateHandler.storeProperties(id, job_props, meta_props);
+        } else {                
+            stateHandler.updateJobProperties(id, (Properties) job_props);
+            stateHandler.updateMetaProperties(id, meta_props);
         }
-        logger.error(methodName, id, "Cannot write", pfile, "after", max, "tries.  The service may not be viable after restart or in web server status.");
     }
 
-    synchronized void saveMetaProperties()
+    synchronized void updateSvcProperties()
+        throws Exception
     {
-        String methodName = "saveMetaProperties";
+        // no more changes
+        if ( isDeregistered() ) return;
+
+        stateHandler.updateJobProperties(id, (Properties) job_props);
+    }
+
+    synchronized void updateMetaProperties()
+    	throws Exception
+    {
+    	// String methodName = "saveMetaProperties";
+        // UIMA-4587 Why bypass, as state can still dribble in.
+        // if ( isDeregistered() ) return;
+
+        prepareMetaProperties();
+        stateHandler.updateMetaProperties(id, meta_props);
+    }
+
+    void prepareMetaProperties()
+    {
+        // String methodName = "saveMetaProperties";
         
         // try {
         //     throw new IllegalStateException("Saving meta properties");
@@ -916,15 +852,8 @@ public class ServiceSet
         //     t.printStackTrace();
         // }
         
-        // UIMA-4587  why bypass?  State can dribble in for a while, let's update it
+        // UIMA-4587 Why bypass, as state can still dribble in.
         // if ( isDeregistered() ) return;
-
-        if ( meta_filename == null ) {
-            // if this is null it was deleted and this is some kind of lingering thread updating, that
-            // we don't really want any more
-            logger.error(methodName, id, "Meta properties is deleted, bypassing attempt to save.");
-            return;
-        }
 
         if ( implementors.size() == 0 ) {
             meta_props.remove(implementors_key);
@@ -943,42 +872,35 @@ public class ServiceSet
         }
 
         
-        meta_props.put("reference", isReferencedStart() ? "true" : "false");
-        meta_props.put("autostart", isAutostart()       ? "true" : "false");
+        meta_props.put(IStateServices.SvcProps.reference.pname(), isReferencedStart() ? "true" : "false");
+        meta_props.put(IStateServices.SvcProps.autostart.pname(), isAutostart()       ? "true" : "false");
 
-        meta_props.put("enabled", ""+enabled);
-        meta_props.put("service-state", ""+ getState());
-        meta_props.put("ping-active", "" + (serviceMeta != null));
-        meta_props.put("service-alive",      "false");
-        meta_props.put("service-healthy",    "false");
+        meta_props.put(IStateServices.SvcProps.enabled.pname(), ""+enabled);
+        meta_props.put(IStateServices.SvcProps.service_state.pname(), ""+ getState());
+        meta_props.put(IStateServices.SvcProps.ping_active.pname(), "" + (serviceMeta != null));
+        meta_props.put(IStateServices.SvcProps.service_alive.pname(),      "false");
+        meta_props.put(IStateServices.SvcProps.service_healthy.pname(),    "false");
 
         if ( excessiveFailures() ) {
-            meta_props.put("submit-error", "Service stopped by exessive failures.  Initialization failures[" + init_failures + "], Runtime failures[" + run_failures + "]");
+            meta_props.put(IStateServices.SvcProps.submit_error.pname(), "Service stopped by exessive failures.  Initialization failures[" + init_failures + "], Runtime failures[" + run_failures + "]");
         } else {
-            meta_props.put("service-statistics", "N/A");
+            meta_props.put(IStateServices.SvcProps.service_statistics.pname(), "N/A");
         }
         
         if ( serviceMeta != null ) {
             IServiceStatistics ss = serviceMeta.getServiceStatistics();
             if ( ss != null ) {
-                meta_props.put("service-alive",      "" + ss.isAlive());
-                meta_props.put("service-healthy",    "" + ss.isHealthy());
-                meta_props.put("service-statistics", "" + ss.getInfo());
+                meta_props.put(IStateServices.SvcProps.service_alive.pname(),      "" + ss.isAlive());
+                meta_props.put(IStateServices.SvcProps.service_healthy.pname(),    "" + ss.isHealthy());
+                meta_props.put(IStateServices.SvcProps.service_statistics.pname(), "" + ss.getInfo());
 
                 if ( ss.isAlive() ) {                    // UIMA-4309
                     setLastPing(System.currentTimeMillis());
                 }
             }
         }
-
-        saveProperties(meta_props, meta_file, meta_file_temp, "Meta");
-                
+        
         return;
-    }
-
-    void saveServiceProperties()
-    {
-        saveProperties(job_props, props_file, props_file_temp, "Service");
     }
 
     synchronized void updateInstance(long iid, long share_id, String host)
@@ -994,7 +916,7 @@ public class ServiceSet
 
     synchronized void updateRegisteredInstances(int n)
     {
-        meta_props.setProperty("instances", Integer.toString(n));
+        meta_props.setProperty(IStateServices.SvcProps.instances.pname(), Integer.toString(n));
         registered_instances = n;
     }
 
@@ -1053,8 +975,10 @@ public class ServiceSet
 
     synchronized void persistReferences()
     {
+        String methodName = "persistReferences";
+
         if ( references.size() == 0 ) {
-            meta_props.remove("references");
+            meta_props.remove(IStateServices.SvcProps.references.pname());
         } else {
             StringBuffer sb = new StringBuffer();
             for ( DuccId id : references.keySet() ) {
@@ -1062,9 +986,13 @@ public class ServiceSet
                 sb.append(" ");
             }
             String s = sb.toString().trim();
-            meta_props.setProperty("references", s);
+            meta_props.setProperty(IStateServices.SvcProps.references.pname(), s);
         }
-        saveMetaProperties();
+        try {
+            updateMetaProperties();
+        } catch ( Exception e ) {
+            logger.warn(methodName, id, "Cannot update meta properties:", e);
+        }
     }
 
     void clearQueue()
@@ -1082,7 +1010,11 @@ public class ServiceSet
         }
 
         handler.removeService(this);
-        deleteProperties();
+        try {
+			deleteProperties();
+		} catch (Exception e1) {
+			logger.error(methodName, id, "Cannot complete deferred delete of properties:", e1);
+		}
 
         if ( service_type != ServiceType.UimaAs ) {
             logger.info(methodName, id, "Deleting unregistered service; not clearing queue because this is not a UIMA-AS service:", key);
@@ -1145,20 +1077,21 @@ public class ServiceSet
     }
 
     public void setErrorString(String s)
+    	throws Exception
     {
-        meta_props.put("submit-error", s);
-        saveMetaProperties();
+        meta_props.put(IStateServices.SvcProps.submit_error.pname(), s);
+        updateMetaProperties();
     }
 
     public String getErrorString()
     {
-        return meta_props.getProperty("submit-error"); 
+        return meta_props.getProperty(IStateServices.SvcProps.submit_error.pname()); 
     }
 
     void setReferenced(boolean r)
     {
         this.reference_start = r;
-        meta_props.put("reference", Boolean.toString(this.reference_start));
+        meta_props.put(IStateServices.SvcProps.reference.pname(), Boolean.toString(this.reference_start));
     }
 
     public synchronized void reference(DuccId id)
@@ -1268,8 +1201,12 @@ public class ServiceSet
             instances = Math.max(0, instances - 1);   // prevent autostart and error handling from restarting things
             stop(deletions[i]);
         }
-        
-        saveMetaProperties();
+
+        try {
+            updateMetaProperties();
+        } catch ( Exception e ) {
+            logger.warn(methodName, id, "Cannot update meta properties:", e);
+        }
     }
 
     /**
@@ -1304,8 +1241,8 @@ public class ServiceSet
      */
     boolean needNextStart(JobState old, JobState current)
     {
-    	String methodName = "needNextStart";
         // UIMA-4587
+    	String methodName="needNextStart";
         if ( isDeregistered() ) {
             logger.info(methodName, id, "Bypassing instance start because service is unregistered.");
             return false;
@@ -1442,7 +1379,11 @@ public class ServiceSet
             }
         } 
 
-        if ( save_meta ) saveMetaProperties();
+        try {
+            if ( save_meta ) updateMetaProperties();
+        } catch ( Exception e ) {
+            logger.warn(methodName, id, "Error updating meta properties:", e);
+        }
         inst.setState(state);            
         signal(inst);
     }
@@ -1524,7 +1465,12 @@ public class ServiceSet
         this.service_state = new_state;
         if ( prev != new_state ) {
             logger.info(methodName, id, "State update from[" + prev + "] to[" + new_state + "] via[" + cumulative + "] Inst[" + tail + "]" );
-            saveMetaProperties();
+            try {
+                updateMetaProperties();
+            } catch ( Exception e ) {
+                logger.warn(methodName, id, "Error updating meta properties:", e);
+            }
+
         }
 
         // Execute actions that must always occur based on the new state
@@ -1862,7 +1808,7 @@ public class ServiceSet
 
             if ( isPingOnly() && (ping_failures > ping_failure_max) ) {
                 logger.warn(methodName, id, "Stopping ping-only service due to excessive falutes:", ping_failure_max);
-                meta_props.put("submit-error", "Stopping ping-only service due to excessive falutes: " + ping_failure_max);
+                meta_props.put(IStateServices.SvcProps.submit_error.pname(), "Stopping ping-only service due to excessive falutes: " + ping_failure_max);
 
                 stop(-1L);        // must be -lL Long to get the right overload
                 implementors.remove(-1L);
@@ -1889,9 +1835,10 @@ public class ServiceSet
             serviceMeta = null;
         }
 
-        if ( ! inShutdown ) {
-            saveMetaProperties();         // no i/o during shutdown, it has to be fast and clean
-                                          // things will be cleaned up and resynced on restart
+        try {
+            updateMetaProperties();
+        } catch ( Exception e ) {
+            logger.warn(methodName, id, "Error updating meta properties:", e);
         }
     }
 
@@ -2033,6 +1980,7 @@ public class ServiceSet
             return;
         }
 
+
         if ( countImplementors() >= instances ) {
             return;
         }
@@ -2063,7 +2011,7 @@ public class ServiceSet
             si.setInstanceId(find_next_instance());
             long inst_ducc_id = -1L;
             logger.info(methodName, id, "Starting instance. Current count", countImplementors(), "needed", instances);
-            if ( (inst_ducc_id = si.start(props_filename, meta_props)) >= 0 ) {
+            if ( (inst_ducc_id = si.start(job_props, meta_props)) >= 0 ) {
                 implementors.put(inst_ducc_id, si);
                 handler.addInstance(this, si);
                 signal(si);
@@ -2075,7 +2023,11 @@ public class ServiceSet
             }
         }    
 
-        saveMetaProperties();
+        try {
+            updateMetaProperties();
+        } catch ( Exception e ) {
+            logger.warn(methodName, id, "Error updating meta properties:", e);
+        }        
     }
 
     /**
@@ -2208,13 +2160,13 @@ public class ServiceSet
         sd.setLinger(linger_time);
         sd.setId(id.getFriendly());
         sd.setUser(user);
-        sd.setDisableReason(meta_props.getStringProperty("disable-reason", null));
+        sd.setDisableReason(meta_props.getStringProperty(IStateServices.SvcProps.disable_reason.pname(), null));
         sd.setLastUse(last_use);
         sd.setLastPing(last_ping);            // UIMA-4309
         sd.setLastRunnable(last_runnable);    // UIMA-4309
-        sd.setRegistrationDate(meta_props.getStringProperty("registration-date", ""));
+        sd.setRegistrationDate(meta_props.getStringProperty(IStateServices.SvcProps.registration_date.pname(), ""));
         sd.setReferenceStart(reference_start);
-        sd.setErrorString(meta_props.getStringProperty("submit-error", null));
+        sd.setErrorString(meta_props.getStringProperty(IStateServices.SvcProps.submit_error.pname(), null));
 
         if ( serviceMeta != null ) {
             sd.setQueueStatistics(serviceMeta.getServiceStatistics());
@@ -2230,20 +2182,6 @@ public class ServiceSet
     public String toString()
     {
         return endpoint;
-    }
-
-    class Starter
-        implements Runnable
-    {
-        ServiceInstance si;
-        Starter(ServiceInstance si)
-        {
-            this.si = si;
-        }
-
-        public void run() {
-            si.start(props_filename, meta_props);
-        }
     }
 
     class Stopper

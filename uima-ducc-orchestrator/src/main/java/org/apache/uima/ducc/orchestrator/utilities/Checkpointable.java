@@ -33,7 +33,7 @@ public class Checkpointable implements Serializable {
 	
 	public Checkpointable(DuccWorkMap workMap, ConcurrentHashMap<DuccId,DuccId> processToJobMap) {
 		this.workMap = workMap;
-		this.processToJobMap = processToJobMap;
+		this.processToJobMap = processToJobMap;        
 	}
 	
 	public DuccWorkMap getWorkMap() {

@@ -19,17 +19,18 @@
 package org.apache.uima.ducc.common.persistence.services;
 
 import java.util.HashMap;
-import java.util.Properties;
+
+import org.apache.uima.ducc.common.utils.DuccProperties;
 
 public class StateServicesSet {
 
-	private HashMap<String,Properties> map = new HashMap<String,Properties>();
+	private HashMap<String, DuccProperties> map = new HashMap<String, DuccProperties>();
 	
-	public void put(String key, Properties value) {
+	public void put(String key, DuccProperties value) {
 		map.put(key, value);
 	}
 	
-	public Properties get(String key) {
+	public DuccProperties get(String key) {
 		return map.get(key);
 	}
 }

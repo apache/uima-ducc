@@ -18,15 +18,62 @@
 */
 package org.apache.uima.ducc.transport.event.common.history;
 
+import org.apache.uima.ducc.common.main.DuccService;
+import org.apache.uima.ducc.common.persistence.services.IStateServices;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+
 
 
 public class HistoryFactory 
 {
 
-	private static IHistoryPersistenceManager instance = new HistoryPersistenceManager();
+	private static IHistoryPersistenceManager instance = null; //new HistoryPersistenceManager();
 	
-	public static IHistoryPersistenceManager getInstance() {
-		return instance;
+	public static IHistoryPersistenceManager getInstance(String callerClass) 
+    {
+        if ( instance != null ) return instance;
+
+        String methodName = "getInstance";
+        
+        // log4j logging annoyance.  We require the caller to give us its base package so
+        // we can configure a logger that writes to the right appender
+        int ndx = callerClass.lastIndexOf(".");
+        String stem = callerClass.substring(0, ndx);
+
+        String clname = System.getProperty("ducc.job.history.impl");
+
+        if ( clname == null ) {
+            DuccLogger logger = DuccService.getDuccLogger();
+            logger.error(methodName, null, "Job history class is not configured.");
+            instance = new NullHistoryManager();
+            return instance;
+        } 
+
+        ndx = clname.lastIndexOf(".");
+        String clfile = clname.substring(ndx+1);
+        //
+        // We try to construct the persistence object.  If it fails, we return a
+        // "null" object conforming to the interface but doing nothing to hopefully
+        // reduce NPEs.
+        //
+        DuccLogger logger = DuccLogger.getLogger(stem + "." + clfile, "DB");  // get the component logger
+
+        //
+        // We try to construct the persistence object.  If it fails, we return a
+        // "null" object conforming to the interface but doing nothing to hopefully
+        // reduce NPEs.
+        //
+
+        try {
+            @SuppressWarnings("unchecked")
+				Class<IStateServices> iss = (Class<IStateServices>) Class.forName(clname);
+            instance = (IHistoryPersistenceManager) iss.newInstance();
+            instance.setLogger(logger);
+        } catch ( Throwable t ) {
+            logger.error(methodName, null, "Cannot instantiate service persistence class", clname, ":", t);
+            instance = new NullHistoryManager();
+        }
+        return instance;
 	}
 	
 }

@@ -70,7 +70,10 @@ class DuccProcess(Thread):
         for line in f:
             toks = line.strip().split('=');
             if ( toks[0].strip() == 'threads' ):
-                threads = toks[1]
+                if ( self.runner.thread_override == None ):
+                    threads = toks[1]
+                else:
+                    threads = self.runner.thread_override
             elif (toks[0].strip() == 'class'):
                 clz = toks[1]
             elif (toks[0].strip() == 'memory'):
@@ -555,11 +558,14 @@ class RunDucc(DuccUtil):
         print '   --init_fail_cap number-of-failures.'
         print '       This is the max init failures tolerated before the system starts to cap processes. Default:', self.init_fail_cap
         print ''
-        print '   -IB'
+        print '   --IB'
         print '       The JP will leak in init() until DUCC (hopefully) kills us'
         print ''
-        print '   -PB'
+        print '   --PB'
         print '       The JP will leak in process() until DUCC (hopefully) kills us'
+        print ''
+        print '   --TO number-of-threads'
+        print '       Thread-override: force this number of threads regardless of what is in job spec.'
         print ''
         print '   -r, --range seconds'
         print '       This is the AE initializion time range over base in milliseconds. Default:', self.init_range
@@ -643,13 +649,14 @@ class RunDucc(DuccUtil):
         self.max_machines = 0
         self.use_http = False
         self.descriptor_as_file = False
+        self.thread_override = None
 
         try:
             opts, args  = getopt.getopt(argv, 'b:d:fi:m:n:op:q:r:s:t:u:v:w:x:y:z:?h', ['AE', 'DD', 'file', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
                                                                         'init_fail_cap=', 'range=', 'memory_override=', 'nmachines=', 'process_timeout=', 
                                                                         'init_timeout=', 'observe'
                                                                         'jd_uima_log=', 'jp_uima_log=',
-                                                                        'http',
+                                                                        'http', 'threads='
                                                                       ])
         except:
             print "Unknown option"
@@ -698,6 +705,8 @@ class RunDucc(DuccUtil):
                 self.init_bloat = a
             elif o in ('--PB'):
                 self.process_bloat = a
+            elif o in ('--threads'):
+                self.thread_override = a
             elif ( o == '-q'):
                 self.cr_getnext_bloat = int(a)
             elif ( o == '-s'):
@@ -752,6 +761,7 @@ class RunDucc(DuccUtil):
         print '    jd_uima_log        :', self.jd_uima_log
         print '    jp_uima_log        :', self.jp_uima_log
         print '    DUCC_HOME          :', self.DUCC_HOME
+        print '    Thread override    :', self.thread_override
 
         self.submit_package = 'org.apache.uima.ducc'
 

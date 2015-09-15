@@ -34,6 +34,25 @@ public class DuccProperties extends Properties {
   
 	protected boolean resolvePlaceholders = true;    // Disabled by CLI for JobRequestProperties
 
+
+	/**
+	 * Null constructor now requried because we have a non-null constructor below.
+	 */
+	public DuccProperties()
+	{
+		super();
+	}
+	
+    /**
+     * Convert a run-of-the-mill properties object into a handsome DuccProperties
+     */
+    public DuccProperties(Properties p)
+    {
+        for ( Object k : p.keySet() ) {
+            put(k, p.get(k));
+        }
+    }
+
 	public void load() throws Exception {
 		Properties tmp = Utils.loadPropertiesFromClasspathForResource("agent");
 		for (Iterator<Entry<Object, Object>> it = tmp.entrySet().iterator(); it

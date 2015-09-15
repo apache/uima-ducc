@@ -38,6 +38,10 @@ class StopDucc(DuccUtil):
             self.stop_broker()
             return
 
+        if ( component == 'db' ):
+            self.db_stop()
+            return
+
         #
         # If it's an unqualified management component, we need to get it's qualified name
         #
@@ -77,6 +81,7 @@ class StopDucc(DuccUtil):
         # clear the short name if it exists, and the long name
         self.pids.delete(com)
         self.pids.delete(component)
+
 
     def quiesce_agents(self, components, nodes):
         allnodes = []
@@ -134,6 +139,9 @@ class StopDucc(DuccUtil):
         print '          ws - web server'
         print '          agent - node agent'        
         print ''
+        print '   -w --wait'
+        print '        Time to wait for everything to come down, in seconds.  Default is 60.'
+        print ''
         print '   -k --kill'
         print '        Stop the component forcibly and immediately using kill -9.  Use this only if a'
         print '        normal stop does not work (e.g. the process may be hung).'
@@ -167,9 +175,10 @@ class StopDucc(DuccUtil):
         force = False
         quiesce = False
         all = False
+        wait_time = 60
 
         try:
-            opts, args = getopt.getopt(argv, 'ac:n:kn:qh?v', ['all', 'component=', 'components=', 'help', 'nodelist=', 'kill', 'quiesce', 'nothreading'])
+            opts, args = getopt.getopt(argv, 'ac:n:kn:w:qh?v', ['all', 'component=', 'components=', 'help', 'nodelist=', 'kill', 'quiesce', 'nothreading', 'wait'])
         except:
             self.invalid('Invalid arguments ' + ' '.join(argv))
         
@@ -187,6 +196,8 @@ class StopDucc(DuccUtil):
                 force = True
             elif o in ( '-q', '--quiesce' ):
                 quiesce = True
+            elif o in ( '-w', '--wait' ):
+                wait_time = int(a)
             elif o in ( '--nothreading' ):
                 self.disable_threading()
             elif ( o == '-v' ) :
@@ -222,13 +233,14 @@ class StopDucc(DuccUtil):
                 self.clean_shutdown()
 
                 # Agents may wait up to 60 secs for processes to quiesce
-                sleeptime = 60
-                print "Waiting " + str(sleeptime) + " seconds to broadcast agent shutdown."
-                time.sleep(sleeptime)
+                print "Waiting " + str(wait_time) + " seconds to broadcast agent shutdown."
+                time.sleep(wait_time)
 
                 if ( self.automanage ):
                     print "Stopping broker"
                     self.stop_broker()                
+
+                self.db_stop()
 
                 if ( os.path.exists(self.pid_file) ):
                     os.remove(self.pid_file)
@@ -237,17 +249,27 @@ class StopDucc(DuccUtil):
                 if ( len(nodefiles) == 0 ):
                     nodefiles = self.default_nodefiles
 
+
         self.pids = Properties()
-        try:
-            self.pids.load(self.pid_file)
-            pass
-        except PropertiesException, (inst):
-            print inst.msg
-            print ''
-            print 'Run check_ducc to refresh the PIDs file, or check_ducc -k to search for and',
-            print 'kill all DUCC processes.'
-            print ''
-            sys.exit(1)
+        sc = set(components)
+        sb = set(['broker', 'db'])
+        read_pids = True
+        if ( sc.issubset(sb) ):
+            read_pids = False
+    
+
+        # The broker and db do not set the pid file
+        if ( read_pids ):
+            try:
+                self.pids.load(self.pid_file)
+                pass
+            except PropertiesException, (inst):
+                print inst.msg
+                print ''
+                print 'Run check_ducc to refresh the PIDs file, or check_ducc -k to search for and',
+                print 'kill all DUCC processes.'
+                print ''
+                sys.exit(1)
 
         #
         # if not 'all', we use nodefiles and component names
@@ -278,10 +300,11 @@ class StopDucc(DuccUtil):
                 for n in nl:
                     self.stop_agents(n, force)            
 
-        if ( len(self.pids) > 0 ):
-            self.pids.write(self.pid_file)
-        else:
-            os.remove(self.pid_file)
+        if ( read_pids ):
+            if ( len(self.pids) > 0 ):
+                self.pids.write(self.pid_file)
+            else:
+                os.remove(self.pid_file)
 
         return
 

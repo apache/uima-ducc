@@ -165,6 +165,8 @@
 		<jetty.version>7.4.4.v20110707</jetty.version>
 		<orbit-org-apache-jasper.version>2.1.0.v201110031002</orbit-org-apache-jasper.version>
 		<servlet-api.version>2.5</servlet-api.version>
+        <orientdb.version>2.1.0</orientdb.version>
+        <orientdb.studio.version>2.0-M3</orientdb.studio.version>
         
 		<http.commons.client.version>4.3.5</http.commons.client.version>
 		<http.commons.client-cache.version>4.3.5</http.commons.client-cache.version>
@@ -264,6 +266,12 @@ ${uimaDUCCNoticeText}
              <dependency>
 			    <groupId>org.apache.uima</groupId>
 			    <artifactId>uima-ducc-common</artifactId>
+                <version>${project.version}</version>			
+		     </dependency>
+
+             <dependency>
+			    <groupId>org.apache.uima</groupId>
+			    <artifactId>uima-ducc-database</artifactId>
                 <version>${project.version}</version>			
 		     </dependency>
 
@@ -753,6 +761,7 @@ ${uimaDUCCNoticeText}
 										<exclude>uima-ducc-sm/**</exclude>
 										<exclude>uima-ducc-spawn/**</exclude>
 										<exclude>uima-ducc-transport/**</exclude>
+										<exclude>uima-ducc-database/**</exclude>
 										<exclude>uima-ducc-web/**</exclude>
 										<exclude>uima-ducc-user/**</exclude>
 										<exclude>uima-ducc-container/**</exclude>

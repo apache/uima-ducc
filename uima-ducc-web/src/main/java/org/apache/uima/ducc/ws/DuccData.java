@@ -70,7 +70,7 @@ public class DuccData {
 	
 	private volatile String published = null;
 	
-	private IHistoryPersistenceManager hpm = HistoryFactory.getInstance();
+	private IHistoryPersistenceManager hpm = HistoryFactory.getInstance(this.getClass().getName());
 	
 	public boolean isPublished() {
 		return published != null;
@@ -95,26 +95,32 @@ public class DuccData {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void mergeHistory(IDuccWorkMap map) {
+	private void mergeHistory(IDuccWorkMap map)
+    {
+        String methodName = "mergeHistory";
 		Iterator<DuccId> iterator = duccWorkLive.keySet().iterator();
 		while(iterator.hasNext()) {
 			DuccId duccId = iterator.next();
 			IDuccWork duccWork = duccWorkLive.findDuccWork(duccId);
 			IDuccWork history = null;
-			switch(duccWork.getDuccType()) {
-			case Job:
-				history = hpm.jobRestore(duccId);
-				break;
-			case Reservation:
-				history = hpm.reservationRestore(duccId);
-				break;
-			case Service:
-				history = hpm.serviceRestore(duccId);
-				break;
-			}
-			if(history != null) {
-				map.put(duccId, history);
-			}
+            try {
+                switch(duccWork.getDuccType()) {
+                case Job:
+                    history = hpm.restoreJob(duccId.getFriendly());
+                    break;
+                case Reservation:
+                    history = hpm.restoreReservation(duccId.getFriendly());
+                    break;
+                case Service:
+                    history = hpm.restoreService(duccId.getFriendly());
+                    break;
+                }
+                if(history != null) {
+                    map.put(duccId, history);
+                }
+            } catch ( Exception e ) {
+                logger.warn(methodName, duccId, "Cannot recover", duccWork.getDuccType(), "from database");
+            }
 		}
 	}
 	

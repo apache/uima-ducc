@@ -19,7 +19,7 @@
 package org.apache.uima.ducc.ws;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.TreeMap;
 
@@ -105,89 +105,176 @@ public class DuccBoot extends Thread {
 		return map;
 	}
 	
-	private void restoreReservations(IHistoryPersistenceManager hpm, DuccData duccData) {
-		String location = "restoreReservations";
-		ArrayList<String> duccWorkReservations = hpm.reservationList();
-		logger.info(location, jobid, messages.fetchLabel("Number of Reservations to restore")+duccWorkReservations.size());
-		TreeMap<Integer,String> map = sort(duccWorkReservations);
-		Iterator<Integer> iterator = map.descendingKeySet().iterator();
-		int i = 0;
-		int restored = 0;
-		while(iterator.hasNext() && (++i < maxReservations)) {
-			try {
-				Integer key = iterator.next();
-				logger.debug(location, jobid, messages.fetchLabel("restore")+key);
-				String fileName = map.get(key);
-				IDuccWorkReservation duccWorkReservation;
-				duccWorkReservation = hpm.reservationRestore(fileName);
-				if(duccWorkReservation != null) {
-					duccData.putIfNotPresent(duccWorkReservation);
-					duccPlugins.restore(duccWorkReservation);
-					restored++;
-				}
-			}
-			catch(Throwable t) {
-				logger.warn(location, jobid, t);
-			}
-		}
-		logger.info(location, jobid, messages.fetch("Reservations restored: "+restored));
-	}
+	// private void restoreReservations(IHistoryPersistenceManager hpm, DuccData duccData) {
+	// 	String location = "restoreReservations";
+	// 	ArrayList<String> duccWorkReservations = hpm.reservationList();
+	// 	logger.info(location, jobid, messages.fetchLabel("Number of Reservations to restore")+duccWorkReservations.size());
+	// 	TreeMap<Integer,String> map = sort(duccWorkReservations);
+	// 	Iterator<Integer> iterator = map.descendingKeySet().iterator();
+	// 	int i = 0;
+	// 	int restored = 0;
+	// 	while(iterator.hasNext() && (++i < maxReservations)) {
+	// 		try {
+	// 			Integer key = iterator.next();
+	// 			logger.debug(location, jobid, messages.fetchLabel("restore")+key);
+	// 			String fileName = map.get(key);
+	// 			IDuccWorkReservation duccWorkReservation;
+	// 			duccWorkReservation = hpm.reservationRestore(fileName);
+	// 			if(duccWorkReservation != null) {
+	// 				duccData.putIfNotPresent(duccWorkReservation);
+	// 				duccPlugins.restore(duccWorkReservation);
+	// 				restored++;
+	// 			}
+	// 		}
+	// 		catch(Throwable t) {
+	// 			logger.warn(location, jobid, t);
+	// 		}
+	// 	}
+	// 	logger.info(location, jobid, messages.fetch("Reservations restored: "+restored));
+	// }
 	
-	private void restoreJobs(IHistoryPersistenceManager hpm, DuccData duccData) {
-		String location = "restoreJobs";
-		ArrayList<String> duccWorkJobs = hpm.jobList();
-		logger.info(location, jobid, messages.fetchLabel("Number of Jobs to restore")+duccWorkJobs.size());
-		TreeMap<Integer,String> map = sort(duccWorkJobs);
-		Iterator<Integer> iterator = map.descendingKeySet().iterator();
-		int i = 0;
-		int restored = 0;
-		while(iterator.hasNext() && (++i < maxJobs)) {
-			try {
-				Integer key = iterator.next();
-				logger.debug(location, jobid, messages.fetchLabel("restore")+key);
-				String fileName = map.get(key);
-				IDuccWorkJob duccWorkJob;
-				duccWorkJob = hpm.jobRestore(fileName);
-				if(duccWorkJob != null) {
-					duccData.putIfNotPresent(duccWorkJob);
-					duccPlugins.restore(duccWorkJob);
-					restored++;
-				}
-			}
-			catch(Throwable t) {
-				logger.warn(location, jobid, t);
-			}
+	private void restoreReservations(IHistoryPersistenceManager hpm, DuccData duccData) 
+    {
+        // Replaced for database.  Both file and database now do all the looping and sorting internally.
+        String location = "restoreReservations";
+        List<IDuccWorkReservation> duccWorkReservations = null;;
+		try {
+			duccWorkReservations = hpm.restoreReservations(maxReservations);
+		} catch (Exception e) {
+            logger.warn(location, null, e);
+            return;                               // Nothing to do if this fails
 		}
-		logger.info(location, jobid, messages.fetch("Jobs restored: "+restored));
-	}
+
+        logger.info(location, jobid, messages.fetchLabel("Number of Reservations fetched from DB"), duccWorkReservations.size());
+
+        int restored = 0;
+        for ( IDuccWorkReservation duccWorkReservation : duccWorkReservations ) {
+            try {
+                logger.debug(location, duccWorkReservation.getDuccId(), messages.fetchLabel("restore"));
+                duccData.putIfNotPresent(duccWorkReservation);
+                duccPlugins.restore(duccWorkReservation);
+                restored++;
+            }
+            catch(Throwable t) {
+                logger.warn(location, duccWorkReservation.getDuccId(), t);
+            }
+        }
+        logger.info(location,null, messages.fetch("Reservations restored: "+restored));
+    }
+    
+	private void restoreJobs(IHistoryPersistenceManager hpm, DuccData duccData) 
+    {
+        // Replaced for database.  Both file and database now do all the looping and sorting internally.
+        String location = "restoreJobs";
+        List<IDuccWorkJob> duccWorkJobs = null;;
+		try {
+			duccWorkJobs = hpm.restoreJobs(maxJobs);
+		} catch (Exception e) {
+            logger.warn(location, null, e);
+            return;                               // Nothing to do if this fails
+		}
+
+        logger.info(location, jobid, messages.fetchLabel("Number of Jobs fetched from DB"), duccWorkJobs.size());
+
+        int restored = 0;
+        for ( IDuccWorkJob duccWorkJob : duccWorkJobs ) {
+            try {
+                logger.debug(location, duccWorkJob.getDuccId(), messages.fetchLabel("restore"));
+                duccData.putIfNotPresent(duccWorkJob);
+                duccPlugins.restore(duccWorkJob);
+                restored++;
+            }
+            catch(Throwable t) {
+                logger.warn(location, duccWorkJob.getDuccId(), t);
+            }
+        }
+        logger.info(location,null, messages.fetch("Jobs restored: "+restored));
+    }
 	
-	private void restoreServices(IHistoryPersistenceManager hpm, DuccData duccData) {
-		String location = "restoreServices";
-		ArrayList<String> duccWorkServices = hpm.serviceList();
-		logger.info(location, jobid, messages.fetchLabel("Number of Services to restore")+duccWorkServices.size());
-		TreeMap<Integer,String> map = sort(duccWorkServices);
-		Iterator<Integer> iterator = map.descendingKeySet().iterator();
-		int i = 0;
-		int restored = 0;
-		while(iterator.hasNext() && (++i < maxServices)) {
-			try {
-				Integer key = iterator.next();
-				logger.debug(location, jobid, messages.fetchLabel("restore")+key);
-				String fileName = map.get(key);
-				IDuccWorkService duccWorkService;
-				duccWorkService = hpm.serviceRestore(fileName);
-				if(duccWorkService != null) {
-					duccData.putIfNotPresent(duccWorkService);
-					duccPlugins.restore(duccWorkService);
-					restored++;
-				}
-			}
-			catch(Throwable t) {
-				logger.warn(location, jobid, t);
-			}
+//	private void restoreJobsX(IHistoryPersistenceManager hpm, DuccData duccData) {
+//		String location = "restoreJobs";
+//		ArrayList<String> duccWorkJobs = hpm.jobList();
+//		logger.info(location, jobid, messages.fetchLabel("Number of Jobs to restore")+duccWorkJobs.size());
+//		TreeMap<Integer,String> map = sort(duccWorkJobs);
+//		Iterator<Integer> iterator = map.descendingKeySet().iterator();
+//		int i = 0;
+//		int restored = 0;
+//		while(iterator.hasNext() && (++i < maxJobs)) {
+//			try {
+//				Integer key = iterator.next();
+//				logger.debug(location, jobid, messages.fetchLabel("restore")+key);
+//				String fileName = map.get(key);
+//				IDuccWorkJob duccWorkJob;
+//				duccWorkJob = hpm.jobRestore(fileName);
+//				if(duccWorkJob != null) {
+//					duccData.putIfNotPresent(duccWorkJob);
+//					duccPlugins.restore(duccWorkJob);
+//					restored++;
+//				}
+//			}
+//			catch(Throwable t) {
+//				logger.warn(location, jobid, t);
+//			}
+//		}
+//		logger.info(location, jobid, messages.fetch("Jobs restored: "+restored));
+//	}
+
+	private void restoreServices(IHistoryPersistenceManager hpm, DuccData duccData) 
+    {
+        // Replaced for database.  Both file and database now do all the looping and sorting internally.
+        String location = "restoreServices";
+        List<IDuccWorkService> duccWorkServices = null;;
+		try {
+			duccWorkServices = hpm.restoreServices(maxServices);
+		} catch (Exception e) {
+            logger.warn(location, null, e);
+            return;                               // Nothing to do if this fails
 		}
-		logger.info(location, jobid, messages.fetch("Services restored: "+restored));
-	}
+
+        logger.info(location, jobid, messages.fetchLabel("Number of services fetched from DB"), duccWorkServices.size());
+
+        int restored = 0;
+        for ( IDuccWorkService duccWorkService : duccWorkServices ) {
+            try {
+                logger.debug(location, duccWorkService.getDuccId(), messages.fetchLabel("restore"));
+                duccData.putIfNotPresent(duccWorkService);
+                duccPlugins.restore(duccWorkService);
+                restored++;
+            }
+            catch(Throwable t) {
+                logger.warn(location, duccWorkService.getDuccId(), t);
+            }
+        }
+        logger.info(location,null, messages.fetch("Services restored: "+restored));
+    }
+	
+	// private void restoreServices(IHistoryPersistenceManager hpm, DuccData duccData) {
+	// 	String location = "restoreServices";
+	// 	ArrayList<String> duccWorkServices = hpm.serviceList();
+	// 	logger.info(location, jobid, messages.fetchLabel("Number of Services to restore")+duccWorkServices.size());
+	// 	TreeMap<Integer,String> map = sort(duccWorkServices);
+	// 	Iterator<Integer> iterator = map.descendingKeySet().iterator();
+	// 	int i = 0;
+	// 	int restored = 0;
+	// 	while(iterator.hasNext() && (++i < maxServices)) {
+	// 		try {
+	// 			Integer key = iterator.next();
+	// 			logger.debug(location, jobid, messages.fetchLabel("restore")+key);
+	// 			String fileName = map.get(key);
+	// 			IDuccWorkService duccWorkService;
+	// 			duccWorkService = hpm.serviceRestore(fileName);
+	// 			if(duccWorkService != null) {
+	// 				duccData.putIfNotPresent(duccWorkService);
+	// 				duccPlugins.restore(duccWorkService);
+	// 				restored++;
+	// 			}
+	// 		}
+	// 		catch(Throwable t) {
+	// 			logger.warn(location, jobid, t);
+	// 		}
+	// 	}
+	// 	logger.info(location, jobid, messages.fetch("Services restored: "+restored));
+	// }
 	
 	private void initialize(CommonConfiguration commonConfiguration) {
 		String location = "initialize";
@@ -203,7 +290,7 @@ public class DuccBoot extends Thread {
 	private void restore() {
 		String location = "restore";
 		logger.info(location, jobid, messages.fetchLabel("History directory")+IDuccEnv.DUCC_HISTORY_DIR);
-		IHistoryPersistenceManager hpm = HistoryFactory.getInstance();
+		IHistoryPersistenceManager hpm = HistoryFactory.getInstance(this.getClass().getName());
 		DuccData duccData = DuccData.getInstance();
 		restoreReservations(hpm, duccData);
 		restoreJobs(hpm, duccData);

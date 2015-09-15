@@ -28,10 +28,13 @@ import grp
 import resource
 import time
 import platform
+import httplib
 
 from threading import *
 import traceback
 import Queue
+
+import database as db
 
 from  stat import *
 from local_hooks import find_other_processes
@@ -158,7 +161,190 @@ class DuccUtil(DuccBase):
         CMD = ' '.join(CMD)
         print 'Merging', base_props, 'with', site_props, 'into', run_props
         os.system(CMD)
+
+    def db_read_parms(self):
+        #
+        # common setup for orientdb management
+        #
+
+        dbhost   = self.ducc_properties.get('ducc.database.host')
+        if ( dbhost == self.db_disabled ):
+            self.db_parms = self.db_disabled
+            return self.db_parms
+
+        dburl    = self.ducc_properties.get('ducc.database.url')
+        dbrest   = self.ducc_properties.get('ducc.database.rest.url')
+        dbconfig = self.ducc_properties.get('ducc.database.config.file')
+        dbroot   = db.get_db_password(DUCC_HOME, dbconfig)
+        if ( dbroot == None ):
+            print 'Cannot find database passord in', dbconfig
+            sys.exit(1)
+
+        rt    = self.DUCC_HOME                       # (ducc runtime)
+        db_rt = rt + '/database'                     # ORIENTDB_HOME - the database "home" place
+
+        jvm_parms = {
+            '-Dfile.encoding'                 : 'UTF8',
+            '-Drhino.opt.level'               : '9',
+            '-Dprofile.enabled'               : 'true',
+            '-Djna.nosys'                     : 'true',
+            '-Djava.awt.headless'             : 'true',
+            '-Dorientdb.config.file'          : rt + '/' + dbconfig,
+            '-Dorientdb.www.path'             : db_rt + '/www',
+            '-Djava.util.logging.config.file' : rt + '/resources/database.log.config',
+            }
+        classpath = '"' + rt + '/lib/orientdb/*' 
+        classpath = classpath + ':' + rt + '/lib/jna/*' + '"'
+
+        os.environ['DUCC_HOME']                   = self.DUCC_HOME
+        os.environ['ORIENTDB_HOME']               = db_rt
+
+        self.db_parms = (jvm_parms, classpath, db_rt, dburl, dbrest, dbroot)
+
+    def db_alive(self):
+        if ( self.db_parms == self.db_disabled ):
+            return True
+
+        (jvm_parms, classpath, db_rt, dburl, dbrest, dbroot) = self.db_parms
+
+        try:
+            conn = httplib.HTTPConnection(dbrest)
+            conn.request('GET', '/listDatabases')
+        except Exception, (e):
+            print "    Checking connection: ", e
+            return False
+            
+        resp = conn.getresponse()
+        #print 'response code', resp.status, resp.reason
+        data = resp.read()
+        #print 'Data:', data
         
+        if ( resp.status == 200 ):
+            # it will be simple json that Python will see as lists and maps so we can just eval it
+            data = eval(data)
+            dblist = data['databases']
+            if ( len(dblist) == 0 ):
+                print '     Connection succeeded, no databases found.'
+                pass
+            else:
+                print 'Found these databases:'
+                for d in data['databases']:
+                    print '    ', d
+        return True
+
+    def db_start(self):
+
+        # bypass all of this for the initial delivery
+        if ( self.db_parms == self.db_disabled ):
+            return True
+
+        print 'Starting database'
+
+        self.sync_db_config() # insure db is running on head node, in case the head changed in ducc.properties
+        node = self.ducc_properties.get('ducc.head')
+
+        if ( node == 'local' ):
+            node = self.localhost
+
+        if ( self.db_alive() ):
+            print 'Database is already started.'
+            return True
+
+        max_attempts = 5
+        attempt = 0
+        while attempt < max_attempts:
+            lines = self.ssh(node, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'db', '--nodup', "'")
+            # we'll capture anything that the python shell spews because it may be useful, and then drop the
+            # pipe when we see a PID message
+            while True:
+                try:
+                    line = lines.readline().strip()
+                except:
+                    break
+                #print '[]', line
+                
+                if ( not line ):
+                    break
+                if ( line == '' ):
+                    break
+                if ( line == 'OK' ):
+                    print 'GOT OK from db start'
+                    lines.close();
+
+            print 'waiting for database to start'
+            time.sleep(5)
+            if ( self.db_alive() ):
+                return True
+
+            attempt = attempt + 1
+            print 'Did not connect to database, retrying (', attempt, 'of', max_attempts, ')'
+
+        return False
+
+    def db_init(self):
+
+        # bypass all of this for the initial delivery
+        if ( self.db_parms == self.db_disabled ):
+            return True
+
+        print 'Initializing database.'
+        main = 'org.apache.uima.ducc.database.DbCreate'
+        (jvm_parms, classpath, db_rt, dburl, dbrest, dbroot) = self.db_parms
+            
+        classpath = self.DUCC_HOME + '/lib/uima-ducc/*:' + classpath
+        dburl = self.ducc_properties.get('ducc.state.database.url') 
+        cmd = ' '.join([self.java(), '-DDUCC_HOME=/home/challngr/ducc_runtime_db', '-cp', classpath, main, dburl])
+        print cmd
+        self.spawn(cmd)
+            
+    def db_stop(self):
+        # bypass all of this for the initial delivery
+        if ( self.db_parms == self.db_disabled ):
+            return True
+
+
+        cfgfile = 'ducc.database.config.file'
+        dbconfig = self.ducc_properties.get(cfgfile)
+        if ( dbconfig == None ):
+            print 'Database is not configured:', cfgfile, 'is not found in ducc.properties'
+            return
+
+        rt    = self.DUCC_HOME                       # (ducc runtime)
+        db_rt = rt + '/database'                     # ORIENTDB_HOME - the database "home" place
+
+        jvm_parms = {
+            '-Djava.awt.headless'             : 'true',
+            '-Dorientdb.config.file'          : rt + '/' + dbconfig,
+            }
+        classpath = '"' + rt + '/lib/orientdb/*' + '"'
+
+        main = 'com.orientechnologies.orient.server.OServerShutdownMain'
+
+        jp = ''
+        for k in jvm_parms.keys():
+            v = jvm_parms[k]
+            if ( v == None ):
+                jp = jp + k + ' '
+            else:
+                jp = jp + k + '=' + v + ' '
+
+
+        os.environ['ORIENTDB_HOME'] = db_rt
+        cmd = ' '.join([self.java(), jp, '-cp', classpath, main])
+        print cmd
+
+        here = os.getcwd()
+        os.chdir(db_rt)
+        self.spawn(cmd)
+        os.chdir(here)
+
+    def sync_db_config(self):
+        dbconfig = self.DUCC_HOME + '/' + self.ducc_properties.get('ducc.database.config.file')
+        head     = self.ducc_properties.get('ducc.head')
+        print 'Sync database node with head node on', head
+        dom = db.update_head(dbconfig, head)
+        db.write_config(dbconfig, dom)
+
     def find_netstat(self):
         # don't you wish people would get together on where stuff lives?
         if ( os.path.exists('/sbin/netstat') ):
@@ -765,12 +951,13 @@ class DuccUtil(DuccBase):
         global use_threading
         DuccBase.__init__(self, merge)
 
+        self.db_disabled = '--disabled--'
         self.duccling = None
         self.broker_url = 'tcp://localhost:61616'
         self.broker_protocol = 'tcp'
         self.broker_host = 'localhost'
         self.broker_port = '61616'
-        self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'broker']
+        self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'db', 'broker']
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
 
 	if ( self.localhost == self.ducc_properties.get("ducc.head")):
@@ -782,6 +969,9 @@ class DuccUtil(DuccBase):
         self.set_classpath()
         self.os_pagesize = self.get_os_pagesize()
         self.update_properties()
+
+        self.db_read_parms()
+        
 
         manage_broker = self.ducc_properties.get('ducc.broker.automanage')
         self.automanage = False

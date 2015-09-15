@@ -24,14 +24,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.IOHelper;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.utilities.Checkpointable;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
+import org.apache.uima.ducc.transport.event.common.history.HistoryFactory;
+import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
 
 
 public class OrchestratorCheckpoint {
@@ -44,8 +51,12 @@ public class OrchestratorCheckpoint {
 	private static String fileName = orchestratorCommonArea.getStateDirectory()+File.separator+"orchestrator.ckpt";
 	
 	private static OrchestratorCheckpoint orchestratorCheckpoint = new OrchestratorCheckpoint();
-	
-	public static OrchestratorCheckpoint getInstance() {
+
+	private static boolean useDb = true;
+
+	public static OrchestratorCheckpoint getInstance() 
+    {
+        useDb = System.getProperty("ducc.job.history.impl").contains("database");
 		return orchestratorCheckpoint;
 	}
 	
@@ -140,9 +151,42 @@ public class OrchestratorCheckpoint {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return;
 	}
-	
-	public boolean saveState() {
-		String methodName = "saveState";
+
+    private boolean saveStateDb()
+    {
+		String methodName = "saveStateDb";
+        IHistoryPersistenceManager saver = HistoryFactory.getInstance(this.getClass().getName());
+		logger.trace(methodName, null, messages.fetch("enter"));
+		boolean retVal = false;
+		if(saveEnabled) {
+			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
+			TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
+			synchronized(workMap) {
+				ts.using();
+				try
+				{
+					logger.info(methodName, null, messages.fetchLabel("saving to")+fileName);
+					Checkpointable checkpointable = orchestratorCommonArea.getCheckpointable();
+                    retVal = saver.checkpoint(checkpointable.getWorkMap(), checkpointable.getProcessToJobMap());
+					logger.info(methodName, null, messages.fetchLabel("saved")+fileName);
+				}
+				catch(Exception e)
+				{
+					logger.error(methodName, null, e);
+				}
+			}
+			ts.ended();
+		}
+		else {
+			logger.debug(methodName, null, messages.fetchLabel("bypass saving to")+fileName);
+		}
+        logger.trace(methodName, null, messages.fetch("exit"));
+		return retVal;
+    }
+
+    private boolean saveStateFile()
+    {
+		String methodName = "saveStateFile";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		boolean retVal = false;
 		if(saveEnabled) {
@@ -175,9 +219,57 @@ public class OrchestratorCheckpoint {
 		}
         logger.trace(methodName, null, messages.fetch("exit"));
 		return retVal;
+    }
+
+	public boolean saveState() 
+    {
+        // we can resolve these into just one call by allowing the checkpointable to be saved in its parts for
+        // the file implementation, to avoid circular dependencies
+        if ( useDb ) return saveStateDb();
+        else         return saveStateFile();
 	}
-	
-	public boolean restoreState() {
+
+    private boolean restoreStateDb()
+    {
+		String methodName = "restoreState";
+		logger.trace(methodName, null, messages.fetch("enter"));
+        IHistoryPersistenceManager saver = HistoryFactory.getInstance(this.getClass().getName());
+		boolean retVal = false;
+		if(saveEnabled) {
+			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
+			TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
+			synchronized(workMap) {
+				ts.using();
+				try
+				{
+					logger.info(methodName, null, messages.fetchLabel("restoring from")+fileName);
+                    DuccWorkMap work = new DuccWorkMap();
+                    ConcurrentHashMap<DuccId, DuccId> processToJob = new ConcurrentHashMap<DuccId, DuccId>();
+                    Checkpointable checkpointable = new Checkpointable(work, processToJob);
+                    retVal = saver.restore(work, processToJob);
+					orchestratorCommonArea.setCheckpointable(checkpointable);
+					logger.info(methodName, null, messages.fetch("restored"));
+				}
+				catch(ClassNotFoundException e)
+				{
+					logger.error(methodName, null, e);
+				}
+
+				catch(Exception e)
+				{
+					logger.warn(methodName, null, e);
+				}
+			}
+			ts.ended();
+		}
+		else {
+			logger.info(methodName, null, messages.fetchLabel("bypass restoring from")+fileName);
+		}
+		logger.trace(methodName, null, messages.fetch("exit"));
+		return retVal;
+    }
+
+	private boolean restoreStateFile() {
 		String methodName = "restoreState";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		boolean retVal = false;
@@ -194,6 +286,15 @@ public class OrchestratorCheckpoint {
 					fis = new FileInputStream(fileName);
 					in = new ObjectInputStream(fis);
 					Checkpointable checkpointable = (Checkpointable)in.readObject();
+                    DuccWorkMap map = checkpointable.getWorkMap();
+    
+                    Set<DuccId> ids = map.getReservationKeySet();
+                    for ( DuccId id : ids ) {
+                        DuccWorkReservation r = (DuccWorkReservation) map.findDuccWork(DuccType.Reservation, ""+id.getFriendly());
+                        logger.info(methodName, id, "Looking for work: r", r);
+                        if ( r != null ) r.initLogger();
+                    }
+                
 					orchestratorCommonArea.setCheckpointable(checkpointable);
 					in.close();
 					retVal = true;
@@ -217,4 +318,13 @@ public class OrchestratorCheckpoint {
 		return retVal;
 	}
 	
+    public boolean restoreState()
+    {
+        // we can resolve these into just one call by allowing the checkpointable to be saved in its parts for
+        // the file implementation, to avoid circular dependencies
+
+        if ( useDb ) return restoreStateDb();
+        else         return restoreStateFile();
+    }
+
 }

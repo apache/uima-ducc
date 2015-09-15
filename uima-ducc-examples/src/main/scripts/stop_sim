@@ -37,6 +37,36 @@ from ducc_util  import ThreadPool
 
 class StopSim(DuccUtil):
 
+    def stop_db(self):
+
+        # disable until we're ready to turn this on
+        if ( self.db_parms == self.db_disabled ):
+            return True
+
+        (jvm_parms, classpath, db_rt, dburl, dbroot) = self.db_parms()
+
+	print 'Stopping database'
+
+        main = 'com.orientechnologies.orient.server.OServerShutdownMain'
+
+        jp = ''
+        for k in jvm_parms.keys():
+            v = jvm_parms[k]
+            if ( v == None ):
+                jp = jp + k + ' '
+            else:
+                jp = jp + k + '=' + v + ' '
+
+
+        cmd = ' '.join([self.java(), jp, '-cp', classpath, main])
+        print cmd
+
+        here = os.getcwd()
+        os.chdir(db_rt)
+        self.spawn(cmd)
+        os.chdir(here)
+
+
     def signal_process(self, args):
         inst, data_prop, signal = args
         data = data_prop
@@ -103,6 +133,7 @@ class StopSim(DuccUtil):
         instances = []
         signal = '-INT'
         stopbroker = False
+        stopdatabase = False
 
         try:
             opts, args = getopt.getopt(argv, 'c:kprvh?', ['component=', 'kill' 'pause', 'resume', 'nothreading', 'version', 'help'])
@@ -143,15 +174,19 @@ class StopSim(DuccUtil):
                     if ( signal in ('-KILL', '-INT') ):
                         pids.delete(inst)
                         stopbroker = True
+                        stopdatabase = True
     
             else:
                 for inst in instances:
+                    print 'Instance', inst
                     data = pids.get(inst)
                     if ( data == None ):
                         if ( inst == 'broker' and signal in ('-KILL', '-INT') ):
                             stopbroker = True
                         else:
                             print "WARNING - No PID found for instance", inst
+                    elif ( inst == 'db' ):
+                        stopdatabase = True
                     else:
                         self.threadpool.invoke(self.signal_process, inst, pids.get(inst), signal)
                         time.sleep(.1)
@@ -169,6 +204,9 @@ class StopSim(DuccUtil):
         sleeptime = 5
         print "Waiting " + str(sleeptime) + " seconds to broadcast agent shutdown."
         time.sleep(sleeptime)
+
+        if ( stopdatabase ) :
+            self.db_stop()
 
         if ( stopbroker and self.automanage ):
             print "Stopping broker"
