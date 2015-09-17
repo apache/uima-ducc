@@ -38,6 +38,16 @@ public interface DbConstants
         ;
     }
 
+    // Every vertex must inherit from here so we can use common indexes
+    public enum DuccVertexBase
+        implements Schema
+    {
+        VBase {
+            public String pname() { return "VDuccBase"; } 
+        },
+            ;
+    }
+
     public enum DbVertex                        
         implements Schema
     {
@@ -88,15 +98,25 @@ public interface DbConstants
 
     }
 
+    public enum DuccEdgeBase
+        implements Schema
+    {
+        EdgeBase {
+            public String pname() { return "ducc_ebase"; } 
+        },
+            ;
+    }
+
     public enum DbEdge
         implements Schema
     {
         //
         // The convention is for edges to start with lower e and then a lower
         //
-        Edge         {         // Generic edge
-            public String pname() { return "ducc_edge"; } 
-        },
+        // Edge         {         // Generic edge
+        //     public String pname() { return "ducc_edge"; } 
+        // },
+
         Classpath         {    // All record types, detached classpath
             public String pname() { return "eclasspath"; } 
         },

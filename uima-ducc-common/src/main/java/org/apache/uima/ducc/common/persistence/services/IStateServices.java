@@ -31,6 +31,10 @@ public interface IStateServices {
 	public static String svc_reg_dir = IDuccEnv.DUCC_STATE_SVCREG_DIR;
 	public static String svc_hist_dir = IDuccEnv.DUCC_HISTORY_SVCREG_DIR;
 
+
+    public static final String archive_key = "is_archived";
+    public static final String archive_flag = "true";
+
 	public static final String svc = "svc";
 	public static final String meta = "meta";
 

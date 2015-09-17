@@ -429,10 +429,8 @@ public class DbHandle
         OrientVertex ov = null;
 
         // logger.info(methodName, null, duccid, "Create new db record of type", typeName); 
-        ov = graphDb.addVertex("class:" + typeName);
-        ov.setProperties(DbConstants.DUCCID, duccid);
+        ov = graphDb.addVertex("class:" + typeName, DbConstants.DUCCID, duccid, DbConstants.DUCC_DBCAT, dbcat.pname());
         ov.setProperties(props);
-        ov.setProperty(DbConstants.DUCC_DBCAT, dbcat.pname());
         return ov;
     }
 

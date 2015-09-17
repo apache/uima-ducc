@@ -4,19 +4,26 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.database.DbConstants.DbCategory;
+import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
+
+import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 
 /**
  * Toy orientdb loader to load a historydb from ducc history
@@ -30,9 +37,10 @@ public class DbLoader
     StateServicesDb  ssd = null;
 
     // String history_url = "remote:localhost/DuccHistory";
-    String state_url   = "remote:localhost/DuccState";
+    // String state_url   = "plocal:/home/challngr/ducc_runtime_db/database/databases/DuccHistoryT";
+    String state_url   = "plocal:/users/challngr/DuccHistoryT";
 
-    // String jobHistory = System.getProperty("user.home") + "/ducc_runtime/history/jobs";
+    // String jobHistory = System.getProperty("user.home") + "/ducc_runtime_db/history/jobs";
     String jobHistory = "/home/ducc/ducc_runtime/history/jobs";
 
     // String reservationHistory = System.getProperty("user.home") + "/ducc_runtime/history/reservations";
@@ -46,6 +54,10 @@ public class DbLoader
 
     //String serviceRegistry = System.getProperty("user.home") + "/ducc_runtime/state/services";
     String serviceRegistry = "/home/ducc/ducc_runtime/state/services";
+
+    String checkpointFile = "/home/ducc/ducc_runtime/state/orchestrator.ckpt";
+    String archive_key  = IStateServices.archive_key;
+    String archive_flag = IStateServices.archive_flag;
 
     int nthreads = 40;
     AtomicInteger counter = new AtomicInteger(0);
@@ -65,16 +77,17 @@ public class DbLoader
     public void loadJobs()
     {
         String methodName = "loadJobs";
-        LinkedBlockingQueue<File> jobqueue = new LinkedBlockingQueue<File>();
+        LinkedBlockingQueue<File> queue = new LinkedBlockingQueue<File>();
 
-        int max_to_load = Integer.MAX_VALUE;  // or Integer.MAX_VALUE for 'all of them'
+        // int max_to_load = Integer.MAX_VALUE;  // or Integer.MAX_VALUE for 'all of them'
+        int max_to_load = 1000;  // or Integer.MAX_VALUE for 'all of them'
         int nth = Math.min(nthreads, max_to_load);
         JobLoader[] loader = new JobLoader[nth];
         Thread[]    threads = new Thread[nth];        
         List<Long> ids = new ArrayList<Long>();
 
         for ( int i = 0; i < nth; i++ ) {
-            loader[i] = new JobLoader(jobqueue, ids);
+            loader[i] = new JobLoader(queue, ids);
             threads[i] = new Thread(loader[i]);
             threads[i].start();
         }
@@ -88,7 +101,7 @@ public class DbLoader
             String s = f.toString();
             if ( s.endsWith(".dwj") ) {
                 logger.info(methodName, null, "Loading file", c++, ":", f);
-                jobqueue.offer(f);
+                queue.offer(f);
                 counter.getAndIncrement();
 
                 if ( c >= max_to_load ) break;
@@ -120,51 +133,35 @@ public class DbLoader
     public void loadReservations()
     {
         String methodName = "loadReservations";
-
-        LinkedBlockingQueue<IDuccWorkReservation> queue = new LinkedBlockingQueue<IDuccWorkReservation>();
+        LinkedBlockingQueue<File> queue = new LinkedBlockingQueue<File>();
         
-        int max_to_load = Integer.MAX_VALUE;
+        //int max_to_load = Integer.MAX_VALUE;
+        int max_to_load = 1000;
         int nth = Math.min(nthreads, max_to_load);
         ReservationLoader[] loader = new ReservationLoader[nth];
         Thread[] threads = new Thread[nth];
         ArrayList<Long> ids = new ArrayList<Long>();
-
+        
         for ( int i = 0; i < nth; i++ ) {
             loader[i] = new ReservationLoader(queue, ids);
             threads[i] = new Thread(loader[i]);
             threads[i].start();
         }
-
+        
         File dir = new File(reservationHistory);
-        int c   = 0;
-
         File[] files = dir.listFiles();
         logger.info(methodName, null, "Reading", files.length, "reservation instances.");
-        for ( File f : dir.listFiles() ) {
+
+        int c   = 0;        
+        for ( File f : files ) {
             String s = f.toString();
             if ( s.endsWith(".dwr") ) {
                 logger.info(methodName, null, "Loading file", c++, ":", f);
-                IDuccWorkReservation res = null;
-                FileInputStream fis = null;
-                ObjectInputStream in = null;
+                
+                queue.offer(f);
+                counter.getAndIncrement();
 
-                try {
-                    long now = System.currentTimeMillis();
-                    fis = new FileInputStream(f);
-                    in = new ObjectInputStream(fis);
-                    res =  (IDuccWorkReservation) in.readObject();
-                    logger.info(methodName, res.getDuccId(), "Time to read reservation:", System.currentTimeMillis() - now);
-                    
-                    queue.offer(res);
-                    counter.getAndIncrement();
-                } catch(Exception e) {
-                    logger.info(methodName, null, e);
-                } finally {
-                    // restoreJob(job.getDuccId().getFriendly());
-                    closeStream(in);
-                    closeStream(fis);
-                    if ( c >= max_to_load ) break;
-                }
+                if ( c >= max_to_load ) break;
             } else {
                 logger.info(methodName, null, "Can't find history file", f);
             }                              
@@ -188,23 +185,16 @@ public class DbLoader
             logger.info(methodName, null, "Joining thread (reservations).", i);
             try { threads[i].join(); } catch ( InterruptedException e ) {}
         }
-
-        // try {
-		// 	List<IDuccWorkReservation> ress = hmd.restoreReservations(c);
-        //     logger.info(methodName, null, "Recovered", ress.size(), "reservations.");
-		// } catch (Exception e) {
-		// 	// TODO Auto-generated catch block
-		// 	e.printStackTrace();
-		// }
     }
 
 
     public void loadServices()
     {
         String methodName = "loadServices";
-        LinkedBlockingQueue<IDuccWorkService> queue = new LinkedBlockingQueue<IDuccWorkService>();
+        LinkedBlockingQueue<File> queue = new LinkedBlockingQueue<File>();
         
-        int max_to_load = Integer.MAX_VALUE;
+        // int max_to_load = Integer.MAX_VALUE;
+        int max_to_load = 1000;
         int nth = Math.min(nthreads, max_to_load);
         ServiceLoader[] loader = new ServiceLoader[nth];
         Thread[] threads = new Thread[nth];
@@ -217,36 +207,19 @@ public class DbLoader
         }
 
         File dir = new File(serviceHistory);
-        int c   = 0;
-
         File[] files = dir.listFiles();
         logger.info(methodName, null, "Reading", files.length, "service instances.");
+
+        int c   = 0;
         for ( File f : files ) {
             String s = f.toString();
             if ( s.endsWith(".dws") ) {
                 logger.info(methodName, null, "Loading file", c++, ":", f);
-                IDuccWorkService svc = null;
-                FileInputStream fis = null;
-                ObjectInputStream in = null;
 
-                try {
-                    long now = System.currentTimeMillis();
-                    fis = new FileInputStream(f);
-                    in = new ObjectInputStream(fis);
-                    svc =  (IDuccWorkService) in.readObject();
-                    logger.info(methodName, svc.getDuccId(), "Time to read service:", System.currentTimeMillis() - now);
-                    
+                queue.offer(f);
+                counter.getAndIncrement();
 
-                    queue.offer(svc);
-                    counter.getAndIncrement();
-                } catch(Exception e) {
-                    logger.info(methodName, null, e);
-                } finally {
-                    // restoreJob(job.getDuccId().getFriendly());
-                    closeStream(in);
-                    closeStream(fis);
-                    if ( c >= max_to_load ) break;
-                }
+                if ( c >= max_to_load ) break;
             } else {
                 logger.info(methodName, null, "Can't find history file", f);
             }                              
@@ -254,7 +227,7 @@ public class DbLoader
 
         while ( (c = counter.get()) != 0 ) {
             try { 
-                logger.info(methodName, null, "Waiting for service loads to finish, counter is", c);
+                logger.info(methodName, null, "Waiting for loads to finish, counter is", c, "(service instances");
                 Thread.sleep(1000); 
             } 
             catch ( Exception e ) {}
@@ -270,21 +243,13 @@ public class DbLoader
             try { threads[i].join(); } catch ( InterruptedException e ) {}
         }
 
-        // try {
-		// 	List<IDuccWorkService> services = hmd.restoreServices(c);
-        //     logger.info(methodName, null, "Recovered", services.size(), "serves.");
-		// } catch (Exception e) {
-		// 	// TODO Auto-generated catch block
-		// 	e.printStackTrace();
-		// }
-
     }
 
-    public void loadServiceRegistry(String registry)
+    public void loadServiceRegistry(String registry, boolean isHistory)
     {
         String methodName = "loadServiceRegistry";
 
-        LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<String>();
+        LinkedBlockingQueue<Pair<String, Boolean>> queue = new LinkedBlockingQueue<Pair<String, Boolean>>();
 
         int max_to_load = Integer.MAX_VALUE;
         int nth = Math.min(nthreads, max_to_load);
@@ -307,7 +272,7 @@ public class DbLoader
             if ( s.endsWith(".svc") ) {
                 int ndx = s.indexOf(".svc");
                 String numeric = s.substring(0, ndx);
-                queue.offer(numeric);
+                queue.offer(new Pair<String, Boolean>(numeric, isHistory));
                 counter.getAndIncrement();
 
                 if ( ++c >= max_to_load ) break;
@@ -335,34 +300,78 @@ public class DbLoader
 
     }
 
+    void loadCheckpoint()
+    	throws Exception
+    {
+        String methodName = "loadCheckpoint";
+        
+        //Checkpointable obj = null;
+        FileInputStream fis = null;
+        ObjectInputStream in = null;
+		try {
+			fis = new FileInputStream(checkpointFile);
+			in = new ObjectInputStream(fis);
+
+			Object xobj = (Object) in.readObject();
+            Class<?> cl = xobj.getClass();
+            Field p2jfield = cl.getDeclaredField("processToJobMap");
+            p2jfield.setAccessible(true);
+            ConcurrentHashMap<DuccId, DuccId> p2jmap = (ConcurrentHashMap<DuccId, DuccId>) p2jfield.get(xobj);
+
+            Field wmField = cl.getDeclaredField("workMap");
+            wmField.setAccessible(true);
+            DuccWorkMap workMap = (DuccWorkMap) wmField.get(xobj);
+
+            hmd.checkpoint(workMap, p2jmap);
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			fis.close();
+			in.close();
+		}
+        
+    }    
+
     void run()
     	throws Exception
     {
     	String methodName = "run";
 
         DbCreate cr = new DbCreate(state_url);
-        cr.createDatabase();
+        cr.createPlocalDatabase();
 
-        // load the history db
+        logger.info(methodName, null, "storage.useWAL", System.getProperty("storage.useWAL"));
+        logger.info(methodName, null, "tx.useLog", System.getProperty("tx.useLog"));
         if ( true ) {
             try {
 
+                OGlobalConfiguration.dumpConfiguration(System.out);
+
                 hmd = new HistoryManagerDb(logger);
 
+                if ( true ) loadCheckpoint();
+
+                OGlobalConfiguration.USE_WAL.setValue(false);
+
+                OGlobalConfiguration.dumpConfiguration(System.out);
+
+
                 // ---------- Load job history
-                loadJobs();            
-                if ( true ) return;
+                if ( true ) loadJobs();            
 
                 // ---------- Load reservation history
-                loadReservations();                         
-   
+                if ( true ) loadReservations();                         
+
+
                 // ---------- Load service isntance and AP history
-                loadServices();
+                if ( true ) loadServices();
 
                 // ---------- Load service registry
                 ssd = new StateServicesDb();
                 ssd.init(logger);
-                loadServiceRegistry(serviceRegistry);
+                loadServiceRegistry(serviceRegistry, false);
                 try {
                     ssd.shutdown(); 
                 } catch ( Exception e ) {
@@ -372,7 +381,13 @@ public class DbLoader
                 // ---------- Load service registry history
                 ssd = new StateServicesDb();
                 ssd.init(logger);
-                loadServiceRegistry(serviceRegistryHistory);      
+                loadServiceRegistry(serviceRegistryHistory, true);      
+
+                OGlobalConfiguration.USE_WAL.setValue(true);
+                if ( true ) loadCheckpoint();
+
+
+
             } catch ( Exception e ) {
             	logger.error(methodName, null, e);
 
@@ -415,7 +430,6 @@ public class DbLoader
             	File  f = null;
                 IDuccWorkJob job = null;
                 try {
-                    // logger.info(methodName, null, "About to take (job).");
                     f = queue.take();
 
                     FileInputStream fis = null;
@@ -430,7 +444,6 @@ public class DbLoader
                     } catch(Exception e) {
                         logger.info(methodName, null, e);
                     } finally {
-                        // restoreJob(job.getDuccId().getFriendly());
                         closeStream(in);
                         closeStream(fis);
                     }
@@ -454,9 +467,9 @@ public class DbLoader
     class ServiceLoader
         implements Runnable
     {
-        BlockingQueue<IDuccWorkService> queue;
+        BlockingQueue<File> queue;
         List<Long> ids;
-        ServiceLoader(BlockingQueue<IDuccWorkService> queue, List<Long> ids)
+        ServiceLoader(BlockingQueue<File> queue, List<Long> ids)
         {
             this.queue = queue;
             this.ids = ids;
@@ -467,24 +480,36 @@ public class DbLoader
             String methodName = "ServiceLoader.run";
             while ( true ) {
             	IDuccWorkService svc = null;
+                File f = null;
                 try {
-                    logger.info(methodName, null, "About to take (service).");
-                    svc = queue.take();
+                    f = queue.take();
+                    FileInputStream fis = null;
+                    ObjectInputStream in = null;
+                    
+                    try {
+                        long now = System.currentTimeMillis();
+                        fis = new FileInputStream(f);
+                        in = new ObjectInputStream(fis);
+                        svc =  (IDuccWorkService) in.readObject();
+                        logger.info(methodName, svc.getDuccId(), "Time to read service:", System.currentTimeMillis() - now);                        
+                    } catch(Exception e) {
+                        logger.info(methodName, null, e);
+                    } finally {
+                        closeStream(in);
+                        closeStream(fis);
+                    }
+                    hmd.saveServiceUnsafe(svc);
+
                 } catch ( InterruptedException e ) {
                     return;
-                }
-                logger.info(methodName, svc.getDuccId(), "Took a Service");
-                try {
-                    //h = dbManager.open();
-                    hmd.saveServiceUnsafe(svc);
-                    //h.close();
-                    synchronized(ids) {
-                        ids.add(svc.getDuccId().getFriendly());
-                    }
-                    counter.getAndDecrement();
-                } catch(Exception e) {
+                } catch ( Exception e ){
                     logger.info(methodName, null, e);
-                } 
+                }
+
+                synchronized(ids) {
+                    ids.add(svc.getDuccId().getFriendly());
+                }
+                counter.getAndDecrement(); 
             }
         }
     }
@@ -492,9 +517,9 @@ public class DbLoader
     class ReservationLoader
         implements Runnable
     {
-        BlockingQueue<IDuccWorkReservation> queue;
+        BlockingQueue<File> queue;
         List<Long> ids;
-        ReservationLoader(BlockingQueue<IDuccWorkReservation> queue, List<Long> ids)
+        ReservationLoader(BlockingQueue<File> queue, List<Long> ids)
         {
             this.queue = queue;
             this.ids = ids;
@@ -505,24 +530,36 @@ public class DbLoader
             String methodName = "ReservationLoader.run";
             while ( true ) {
             	IDuccWorkReservation res = null;
+                File f = null;
                 try {
-                    logger.info(methodName, null, "About to take (reservation).");
-                    res = queue.take();
+                    f = queue.take();
+                    FileInputStream fis = null;
+                    ObjectInputStream in = null;
+
+                    try {
+                        long now = System.currentTimeMillis();
+                        fis = new FileInputStream(f);
+                        in = new ObjectInputStream(fis);
+                        res =  (IDuccWorkReservation) in.readObject();
+                        logger.info(methodName, res.getDuccId(), "Time to read reservation:", System.currentTimeMillis() - now);
+                    } catch(Exception e) {
+                        logger.info(methodName, null, e);
+                    } finally {
+                        closeStream(in);
+                        closeStream(fis);
+                    }
+                    hmd.saveReservationUnsafe(res);
+
                 } catch ( InterruptedException e ) {
                     return;
-                }
-                logger.info(methodName, res.getDuccId(), "Took a Service");
-                try {
-                    //h = dbManager.open();
-                    hmd.saveReservationUnsafe(res);
-                    //h.close();
-                    synchronized(ids) {
-                        ids.add(res.getDuccId().getFriendly());
-                    }
-                    counter.getAndDecrement();
-                } catch(Exception e) {
+                } catch ( Exception e ){
                     logger.info(methodName, null, e);
-                } 
+                }
+
+                synchronized(ids) {
+                    ids.add(res.getDuccId().getFriendly());
+                }
+                counter.getAndDecrement();
             }
         }
     }
@@ -531,9 +568,9 @@ public class DbLoader
     class ServiceRegistrationLoader
         implements Runnable
     {
-        BlockingQueue<String> queue;
+        BlockingQueue<Pair<String, Boolean>> queue;
         List<Long> ids;
-        ServiceRegistrationLoader(BlockingQueue<String> queue, List<Long> ids)
+        ServiceRegistrationLoader(BlockingQueue<Pair<String, Boolean>> queue, List<Long> ids)
         {
             this.queue = queue;
             this.ids = ids;
@@ -543,10 +580,14 @@ public class DbLoader
         {
             String methodName = "ServiceRegistrationLoader.run";
             while ( true ) {
+                Pair<String, Boolean> p = null;
                 String id = null;
+                boolean isHistory;
                 try {
                     logger.info(methodName, null, "About to take (service id).");
-                    id = queue.take();
+                    p = queue.take();
+                    id = p.first();
+                    isHistory = p.second();
                 } catch ( InterruptedException e ) {
                     return;
                 }
@@ -564,6 +605,10 @@ public class DbLoader
                     meta_in = new FileInputStream(meta_name);
                     svc_props.load(svc_in);
                     meta_props.load(meta_in);
+                    if ( isHistory ) {
+                        meta_props.setProperty(archive_key, archive_flag);
+                    }
+
                     String sid = meta_props.getProperty(IStateServices.SvcProps.numeric_id.pname());
                     if ( sid == null ) {
                         logger.warn(methodName, null, "Cannot find service id in meta file for", id);
@@ -575,8 +620,11 @@ public class DbLoader
                         }
                         DuccId did = new DuccId(Long.parseLong(sid));
                         
-                        ssd.storePropertiesUnsafe(did, svc_props, meta_props);
-                        
+                        if ( isHistory ) {
+                            ssd.storePropertiesUnsafe(did, svc_props, meta_props, DbCategory.History);
+                        } else {
+                            ssd.storePropertiesUnsafe(did, svc_props, meta_props, DbCategory.SmReg);
+                        }
                         synchronized(ids) {
                             ids.add(did.getFriendly());
                         }

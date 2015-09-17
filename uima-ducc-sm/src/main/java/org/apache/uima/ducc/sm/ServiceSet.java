@@ -163,8 +163,8 @@ public class ServiceSet
 
     String[] coOwners = null;
 
-    static final String archive_key = "is_archived";
-    static final String archive_flag = "true";
+    String archive_key  = IStateServices.archive_key;
+    String archive_flag = IStateServices.archive_flag;
 
     //
     // Constructor for a registered service

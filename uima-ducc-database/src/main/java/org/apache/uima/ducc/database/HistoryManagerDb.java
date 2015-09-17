@@ -269,7 +269,7 @@ public class HistoryManagerDb
             if ( safe ) {
                 h = dbManager.open(); 
             } else {
-                h = dbManager.open();
+                h = dbManager.openNoTx();
             }
             if ( safe && h.thingInDatabase(id, type, dbcat) ) {
                 logger.warn(methodName, j.getDuccId(), "Not overwriting saved job.");
@@ -289,6 +289,7 @@ public class HistoryManagerDb
             throw e;
         } finally {
             h.commit();
+            h.close();
         }
 	}
 
@@ -377,7 +378,7 @@ public class HistoryManagerDb
         try {
             h = dbManager.open();
             Iterable<Vertex> q =  h.select("SELECT * FROM " + DbVertex.Job.pname() + " WHERE ducc_dbid=" + friendly_id + 
-                                           " AND " + DbConstants.DUCC_DBCAT + "='" + DbCategory.History.pname());
+                                           " AND " + DbConstants.DUCC_DBCAT + "='" + DbCategory.History.pname() + "'");
             for ( Vertex v : q ) {
                 // There's only 1 unless db is broken.
                 return restoreJobInternal(h, (OrientVertex) v);
@@ -448,7 +449,7 @@ public class HistoryManagerDb
         Gson g = mkGsonForJob();
 
         String dbres = g.toJson(r);
-        logger.info(methodName, null, "------------------- Reservation JSON: " + dbres);
+        // logger.info(methodName, null, "------------------- Reservation JSON: " + dbres);
         
         // Must repair these things because OR continues to use the job after it has been
         // written to history.
@@ -481,7 +482,11 @@ public class HistoryManagerDb
 		Long id = r.getDuccId().getFriendly();
         DbHandle h = null;
         try {
-            h = dbManager.open(); 
+            if ( safe ) {
+                h = dbManager.open(); 
+            } else {
+                h = dbManager.openNoTx();
+            }
             if ( safe && h.thingInDatabase(id, DbVertex.Reservation, dbcat) ) {
                 h.close();
                 return;
@@ -528,7 +533,7 @@ public class HistoryManagerDb
         JsonObject jo = mkJsonObject(json);
 
         Gson g = mkGsonForJob();        
-        logger.info(methodName, null, g.toJson(jo));
+        // logger.info(methodName, null, g.toJson(jo));
 
         r      = g.fromJson(jo, DuccWorkReservation.class);
 
@@ -536,9 +541,9 @@ public class HistoryManagerDb
         if ( l != null ) {
             for (JdReservationBean b : l ) {
                 ConcurrentHashMap<DuccId, SizeBytes> map = b.getMap();
-                for ( DuccId k : map.keySet() ) {
-                    logger.info(methodName, null, "REST ===> " + k.getFriendly() + " " + k.getUnique() + " : " + map.get(k));
-                }
+                //for ( DuccId k : map.keySet() ) {
+                //    logger.info(methodName, null, "REST ===> " + k.getFriendly() + " " + k.getUnique() + " : " + map.get(k));
+                //}
             }
         }
         

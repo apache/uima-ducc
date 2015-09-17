@@ -38,8 +38,11 @@ class DbConsole(DuccUtil):
             print "Note that Python must be at least version 2.6 but not 3.x.  You are running version", sys.version_info
             return
 
+        if ( self.db_parms == '--disabled--' ):
+            print "Database is disabled."
+            return
 
-        (jvm_parms, classpath, db_rt, dburl, dbrest, dbroot) = self.db_parms()
+        (jvm_parms, classpath, db_rt, dburl, dbrest, dbroot) = self.db_parms
             
 
         main = 'com.orientechnologies.orient.graph.console.OGremlinConsole'

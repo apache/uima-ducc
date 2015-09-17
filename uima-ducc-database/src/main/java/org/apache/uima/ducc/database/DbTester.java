@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.database.DbConstants.DbCategory;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
@@ -570,7 +571,7 @@ public class DbTester
                         }
                         DuccId did = new DuccId(Long.parseLong(sid));
                         
-                        ssd.storePropertiesUnsafe(did, svc_props, meta_props);
+                        ssd.storePropertiesUnsafe(did, svc_props, meta_props, DbCategory.SmReg);
                         
                         synchronized(ids) {
                             ids.add(did.getFriendly());

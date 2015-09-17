@@ -164,23 +164,27 @@ public class StateServicesDb
      *       equivalent in the Java interface?  If so, we should modify this to use it
      *       and can then eliminate the 'safe' flag.
      */
-    boolean storePropertiesInternal (DuccId serviceId, Properties svc_props, Properties meta_props, boolean safe) 
+    boolean storePropertiesInternal (DuccId serviceId, Properties svc_props, Properties meta_props, boolean safe, DbCategory category) 
     {
         String methodName = "storePropertiesInternal";
         DbHandle h = null;
 
         try {
-        	h = dbManager.open();
+            if ( safe ) {
+                h = dbManager.open(); 
+            } else {
+                h = dbManager.openNoTx();
+            }
 
             Long id = serviceId.getFriendly();            
             if ( safe ) {
-                if ( h.thingInDatabase(id, DbVertex.ServiceReg, DbCategory.SmReg) ) {
+                if ( h.thingInDatabase(id, DbVertex.ServiceReg, category) ) {
                     return false;
                 }
             }
 
-            h.createPropertiesObject(svc_props, DbVertex.ServiceReg, id, DbCategory.SmReg);
-            h.createPropertiesObject(meta_props, DbVertex.ServiceMeta, id, DbCategory.SmReg);
+            h.createPropertiesObject(svc_props, DbVertex.ServiceReg, id, category);
+            h.createPropertiesObject(meta_props, DbVertex.ServiceMeta, id, category);
             h.commit();
             return true;
         } catch ( Exception e ) {
@@ -196,9 +200,9 @@ public class StateServicesDb
      * Save the props into the database, don't check to see if they're there already.  Used by the
      * loader for converting old registries to the db.
      */
-    public boolean storePropertiesUnsafe(DuccId serviceId, Properties svc_props, Properties meta_props) 
+    public boolean storePropertiesUnsafe(DuccId serviceId, Properties svc_props, Properties meta_props, DbCategory category) 
     {
-        return storePropertiesInternal(serviceId, svc_props, meta_props, false);
+        return storePropertiesInternal(serviceId, svc_props, meta_props, false, category);
     }
 
     /**
@@ -209,7 +213,7 @@ public class StateServicesDb
      */
     public boolean storeProperties(DuccId serviceId, Properties svc_props, Properties meta_props) 
     {
-        return storePropertiesInternal(serviceId, svc_props, meta_props, true);
+        return storePropertiesInternal(serviceId, svc_props, meta_props, true, DbCategory.SmReg);
     }
 
 

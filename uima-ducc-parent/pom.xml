@@ -165,7 +165,7 @@
 		<jetty.version>7.4.4.v20110707</jetty.version>
 		<orbit-org-apache-jasper.version>2.1.0.v201110031002</orbit-org-apache-jasper.version>
 		<servlet-api.version>2.5</servlet-api.version>
-        <orientdb.version>2.1.0</orientdb.version>
+        <orientdb.version>2.1.2</orientdb.version>
         <orientdb.studio.version>2.0-M3</orientdb.studio.version>
         
 		<http.commons.client.version>4.3.5</http.commons.client.version>
