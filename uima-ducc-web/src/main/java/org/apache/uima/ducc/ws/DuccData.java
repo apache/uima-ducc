@@ -119,7 +119,7 @@ public class DuccData {
                     map.put(duccId, history);
                 }
             } catch ( Exception e ) {
-                logger.warn(methodName, duccId, "Cannot recover", duccWork.getDuccType(), "from database");
+                logger.warn(methodName, duccId, "Cannot recover", duccWork.getDuccType(), "from history.");
             }
 		}
 	}
