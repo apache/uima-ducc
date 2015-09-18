@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.database.DbConstants.DbCategory;
@@ -24,7 +25,8 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
 public class DbHandle
 {
-    private DuccLogger logger = DuccLogger.getLogger(DbHandle.class, "DB");  // get the component logger
+    //private DuccLogger logger = DuccLogger.getLogger(DbHandle.class, "DB");  // get the component logger
+    private DuccLogger logger = DuccService.getDuccLogger(DbHandle.class.getName());
     
     DbManager manager;
     public OrientBaseGraph graphDb;
