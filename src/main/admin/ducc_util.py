@@ -215,9 +215,9 @@ class DuccUtil(DuccBase):
             return False
             
         resp = conn.getresponse()
-        #print 'response code', resp.status, resp.reason
+        print 'response code', resp.status, resp.reason
         data = resp.read()
-        #print 'Data:', data
+        print 'Data:', data
         
         if ( resp.status == 200 ):
             # it will be simple json that Python will see as lists and maps so we can just eval it
@@ -293,7 +293,7 @@ class DuccUtil(DuccBase):
             
         classpath = self.DUCC_HOME + '/lib/uima-ducc/*:' + classpath
         dburl = self.ducc_properties.get('ducc.state.database.url') 
-        cmd = ' '.join([self.java(), '-DDUCC_HOME=/home/challngr/ducc_runtime_db', '-cp', classpath, main, dburl])
+        cmd = ' '.join([self.java(), '-DDUCC_HOME=' + self.DUCC_HOME, '-cp', classpath, main, dburl])
         print cmd
         self.spawn(cmd)
             

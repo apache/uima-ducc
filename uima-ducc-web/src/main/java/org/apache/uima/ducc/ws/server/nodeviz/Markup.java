@@ -215,8 +215,7 @@ public class Markup
                 break;
             case Undefined:
                 out.append("<title>");
-                out.append(j.qshares); 
-                out.append(" unused shares (");
+                out.append("mem avail (");
                 out.append((j.qshares * j.quantum));
                 out.append("GB) on ");
                 out.append(h.name); 

@@ -79,7 +79,7 @@ class VisualizedHost
 
         //TODO
         String ns = "";
-        if ( ns == "" || ns == null ) {
+        if ( false && ns == "" || ns == null ) {
             this.mem = 0;
             this.shares = 0;
             this.mem_reservable = 0;
@@ -169,7 +169,7 @@ class VisualizedHost
         Collections.sort(fragments, sorter);
         float height_one_share = (float) Math.sqrt(shares * quantum) / shares;
         float foo = (float) Math.sqrt(mem) / shares;
-        logger.debug(methodName, null, name, "shares", shares, "height-one-share", height_one_share, "foo", foo);
+        logger.debug(methodName, null, name, "avail", (shares*quantum), "height-one-share", height_one_share, "foo", foo);
         float top = 0f + TITLE_ADJUSTMENT;                   // the top of the box
         logger.debug(methodName, null, name, "Draw", fragments.size(), "rectangles, box size", size, "share height", height_one_share);
 

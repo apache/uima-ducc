@@ -146,15 +146,8 @@ public class NodeViz
         NodeConfiguration nc = new NodeConfiguration(class_definitions, null, user_registry, logger);        // UIMA-4142 make the config global
         try {
 			nc.readConfiguration();
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IllegalConfigurationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (Exception e ) {
+            logger.error(methodName, null, "Cannot read node configuration.  Some information may not be quite right.");
 		}
 
         // first step, generate the viz from the OR map which seems to have everything we need
@@ -202,7 +195,7 @@ public class NodeViz
                 // but punt and try not to crash.
                 logger.warn(methodName, null, "Cannot find scheduling class or quantum for " + sclass + ". Using default quantum of " + default_quantum);
             }
-            int                 qshares = jobmem / quantum;
+            int                qshares = jobmem / quantum;
             if ( jobmem % quantum != 0 ) qshares++;
 
             switch ( type ) {
@@ -323,7 +316,6 @@ public class NodeViz
         String page = markup.close();
 
         int unoccupied_gb = total_gb - (job_gb + pop_gb + service_gb + reservation_gb);
-        int total_shares = job_shares + pop_shares + service_shares + reservation_shares;
 
 		visualization = 
             "<html>" + 
@@ -333,21 +325,14 @@ public class NodeViz
             "<i onclick=\"ducc_viz_node_sorter('size')\" id=\"ducc-viz-sort-size\" style=\"color:red\">Size </i>" +
             "<i onclick=\"ducc_viz_node_sorter('name')\" id=\"ducc-viz-sort-name\"\">Name</i>" +
             "</br>" +
-            "<b>Total shares: </b>" + total_shares + 
-            ", <b>Jobs: </b>" + job_shares +
-            ", <b>Services: </b>" + service_shares +
-            ", <b>Managed Reservations: </b>" + pop_shares +
-            ", <b>Reservations: </b>" + reservation_shares +
-            ", <b>Unoccupied: </b>" + unoccupied_gb +
-            "<br><i><small>" +
-            "<b>RAM Total:</b> " + total_gb +
-            "GB, <b>Jobs:</b> " + (job_gb) +
-            "GB, <b>Services:</b> " + (service_gb) +
-            "GB, <b>Managed Reservations:</b> " + (pop_gb) +
-            "GB, <b>Reservations:</b> " + (pop_gb) +
-            "GB, <b>Unoccupied:</b> " + (unoccupied_gb) +
-            "GB</small></i>" +
-            "</div>" +
+            "<b>Memory Available:</b> " + total_gb +
+            "GB, <b>In use: </b>" + 
+            "<b><i>Jobs:</i></b> " + (job_gb) +
+            "GB, <b><i>Services:</i></b> " + (service_gb) +
+            "GB, <b><i>Managed Reservations:</i></b> " + (pop_gb) +
+            "GB, <b><i>Reservations:</i></b> " + (reservation_gb) +
+            "GB, <b><i>Unoccupied:</i></b> " + (unoccupied_gb) +
+            "GB</div>" +
             "<br>" +
             //"<div id=\"nodelist\" style=\"background-color:e5e5e5\">" +
             "<div id=\"nodelist\" style=\"background-color:eeeeee;padding:3\">" +
