@@ -55,22 +55,14 @@ public class TestSuite {
 	private static DuccLogger logger = null;
 	
 	@Before
-	public void testBefore() {
-	}
-	
-	@After
-	public void testAfter() {
-	}
-	
-	@Test
-	public void test() {
-	}
-	
-	//@Before
 	public void before() {
 		ducc_home();
 		ducc_logger();
 		ducc_config();
+	}
+	
+	@After
+	public void after() {
 	}
 	
 	private void ducc_logger() {
@@ -114,10 +106,6 @@ public class TestSuite {
 		String value = path.replace(file, "");
 		String key = "DUCC_HOME";
 		System.setProperty(key, value);
-	}
-	
-	//@After
-	public void after() {	
 	}
 
 	private int seed = 0;
@@ -169,7 +157,7 @@ public class TestSuite {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void testJdReservation() {
 		try {
 			IDuccWorkReservation dwr = new DuccWorkReservation();
@@ -191,7 +179,7 @@ public class TestSuite {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void testJdSchedulerStatic() {
 		try {
 			JdHostProperties jdHostProperties = new JdHostProperties();
@@ -246,7 +234,7 @@ public class TestSuite {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void testJdSchedulerDynamic() {
 		try {
 			DuccId jobId = new DuccId(999);
