@@ -141,14 +141,18 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 		}
 		return retVal;
 	}
-	
+*/
 	
 	@Deprecated
 	public String getMemorySize() {
-		return memorySize;
+		String retVal = defaultMemorySize;
+		if(memorySize != null) {
+			retVal = memorySize;
+		}
+		return retVal;
 	}
 
-	
+/*
 	@Deprecated
 	public void setMemorySize(String size) {
 		if(size != null) {
@@ -159,7 +163,11 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	
 	
 	public String getMemorySizeRequested() {
-		return memorySizeRequested;
+		String retVal = memorySizeRequested;
+		if(retVal == null) {
+			retVal = getMemorySize();
+		}
+		return retVal;
 	}
 
 	
@@ -181,7 +189,11 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	
 	
 	public MemoryUnits getMemoryUnits() {
-		return memoryUnits;
+		MemoryUnits retVal = MemoryUnits.GB;
+		if(memoryUnits != null) {
+			retVal = memoryUnits;
+		}
+		return retVal;
 	}
 
 	
