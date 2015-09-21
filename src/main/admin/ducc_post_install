@@ -41,7 +41,7 @@ import database as db
 
 class PostInstall():
 
-    def usage(self, msg):
+    def usage(self, *msg):
 
         if ( msg != None ):
             print ' '.join(msg)
@@ -60,6 +60,9 @@ class PostInstall():
         print ""
         print "   [-j, --jvm] <path to java executable>"
         print "        This is the full path to java command to be used to start DUCC; e.g., /usr/bin/java"
+        print ""
+        print "   [-d --db-password] <root password for database>"
+        print "        This is the password DUCC uses to manage the database."
         print ""
         print "   [-h, -? --help]"
         print "        Prints this message."
@@ -90,12 +93,13 @@ class PostInstall():
         print 'Configuring database at', dburl, 'from', dbconfig 
         print ''
 
-        dbpw = ''
-        while ( dbpw == '' ):
-            dbpw = raw_input('Enter password for database root:')
+        if ( self.database_pw == None ):
+            self.database_pw = ''
+            while ( self.database_pw == '' ):            
+                self.database_pw = raw_input('Enter password for database root:')
 
         print ''
-        db.configure(dbconfig, self.ducc_head, dbpw)
+        db.configure(dbconfig, self.ducc_head, self.database_pw)
 
 
     def get_keystore_pw(self, prompt):
@@ -329,10 +333,11 @@ class PostInstall():
 
         self.ducc_head = None
         self.keystore_pw = None
+        self.database_pw = None
         self.path_to_java = None
 
         try:
-            opts, args = getopt.getopt(argv, 'j:k:n:h?', ['jvm=', 'keystore=', 'head-node=', 'help'])
+            opts, args = getopt.getopt(argv, 'd:j:k:n:h?', ['db-password=', 'jvm=', 'keystore=', 'head-node=', 'help'])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
 
@@ -340,12 +345,14 @@ class PostInstall():
         for ( o, a ) in opts:
             if o in ('-n', '--head-node'):
                 self.ducc_head = a
+            if o in ('-d', '--db-password'):
+                self.database_pw = a
             if o in ('-k', '--keystore'):
                 self.keystore_pw = a
             if o in ('-j', '--jvm'):
                 self.path_to_java = a
             elif o in ('-h', '-?', '--help'):
-                usage(None)
+                self.usage(None)
         
         self.DUCC_HOME = find_ducc_home()
         self.localhost = find_localhost()
