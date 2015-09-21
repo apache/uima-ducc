@@ -56,7 +56,13 @@ public class OrchestratorCheckpoint {
 
 	public static OrchestratorCheckpoint getInstance() 
     {
-        useDb = System.getProperty("ducc.job.history.impl").contains("database");
+		String jhi = System.getProperty("ducc.job.history.impl");
+		if(jhi == null) {
+			useDb = false;
+		}
+		else {
+			useDb = jhi.contains("database");
+		}
 		return orchestratorCheckpoint;
 	}
 	
