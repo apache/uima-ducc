@@ -94,6 +94,16 @@ public class DbManager
         return ret;
     }
 
+    public void drop()
+        throws Exception
+    {
+    	OrientGraphNoTx graphDb = factory.getNoTx();        // the graph instance
+        if ( graphDb == null ) {
+            throw new IllegalStateException("Cannot allocate graph instance for " + dburl);
+        }
+        graphDb.drop();
+    }
+
     public synchronized DbHandle open()
         throws Exception
     {

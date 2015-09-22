@@ -32,6 +32,8 @@ class DbConsole(DuccUtil):
         DuccUtil.__init__(self)
 
     def main(self, rgv):
+        print 'This utility is deprecated.  Use db.py (no parameters)'
+        sys.exit(1)
         # The dom gets loaded by the import above - or not
         if ( not db.domloaded ):            
             print "Unable to read database configuration; insure the installed Python supports xml.dom.minidom"

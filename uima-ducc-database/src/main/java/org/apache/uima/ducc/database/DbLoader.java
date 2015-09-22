@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+*/
 package org.apache.uima.ducc.database;
 
 import java.io.File;
@@ -16,6 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.database.DbConstants.DbCategory;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
@@ -32,41 +51,109 @@ import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 public class DbLoader
 {
     DuccLogger logger = DuccLogger.getLogger(DbLoader.class, "DBLOAD");
+    String DUCC_HOME;
 
+    boolean archive = true;        // for debug and test, bypass archive-rename
     HistoryManagerDb hmd = null;
     StateServicesDb  ssd = null;
 
     // String history_url = "remote:localhost/DuccHistory";
     // String state_url   = "plocal:/home/challngr/ducc_runtime_db/database/databases/DuccHistoryT";
-    String state_url   = "plocal:/users/challngr/DuccHistoryT";
+    String state_url   = null;
 
     // String jobHistory = System.getProperty("user.home") + "/ducc_runtime_db/history/jobs";
-    String jobHistory = "/home/ducc/ducc_runtime/history/jobs";
+    String jobHistory = "/history/jobs";
 
     // String reservationHistory = System.getProperty("user.home") + "/ducc_runtime/history/reservations";
-    String reservationHistory = "/home/ducc/ducc_runtime/history/reservations";
+    String reservationHistory = "/history/reservations";
 
     //String serviceHistory = System.getProperty("user.home") + "/ducc_runtime/history/services";
-    String serviceHistory = "/home/ducc/ducc_runtime/history/services";
+    String serviceHistory = "/history/services";
 
     //String serviceHistory = System.getProperty("user.home") + "/ducc_runtime/history/services";
-    String serviceRegistryHistory = "/home/ducc/ducc_runtime/history/services-registry";
+    String serviceRegistryHistory = "/history/services-registry";
 
     //String serviceRegistry = System.getProperty("user.home") + "/ducc_runtime/state/services";
-    String serviceRegistry = "/home/ducc/ducc_runtime/state/services";
+    String serviceRegistry = "/state/services";
 
-    String checkpointFile = "/home/ducc/ducc_runtime/state/orchestrator.ckpt";
+    String checkpointFile = "/state/orchestrator.ckpt";
     String archive_key  = IStateServices.archive_key;
     String archive_flag = IStateServices.archive_flag;
 
     int nthreads = 40;
     AtomicInteger counter = new AtomicInteger(0);
 
-    public DbLoader()
+    int joblimit = Integer.MAX_VALUE;
+    int reservationlimit = Integer.MAX_VALUE;
+    int servicelimit = Integer.MAX_VALUE;
+    int registrylimit = Integer.MAX_VALUE;
+
+    boolean dojobs         = true;
+    boolean doreservations = true;
+    boolean doservices     = true;
+    boolean doregistry     = true;
+    boolean docheckpoint   = true;
+
+    public DbLoader(String from, String to)
         throws Exception
     {
-        // System.setProperty("ducc.history.database.url", history_url);
+    	String methodName = "<ctr>";
+        DUCC_HOME = System.getProperty("DUCC_HOME");        
+        if ( DUCC_HOME == null ) {
+            System.out.println("System proprety -DDUCC_HOME must be set.");
+            System.exit(1);
+        }
+        
+        if ( System.getProperty("DONT_ARCHIVE") != null ) archive = false;
+
+        File f = new File(from);
+        if ( ! f.isDirectory() ) {
+            System.out.println("'from' must be a directory");
+            System.exit(1);
+        }
+
+        f = new File(to);
+        if ( ! f.isDirectory() ) {
+            System.out.println("'to' must be a directory");
+            System.exit(1);
+        }
+
+        String databasedir =  to + "/database/databases";
+        String databasename = databasedir + "/DuccState";
+        // We always use a non-networked version for loading
+        state_url = "plocal:" + databasedir + "/DuccState";
         System.setProperty("ducc.state.database.url", state_url);
+
+        f = new File(databasedir);
+        if ( f.exists() ) {
+            f = new File(databasename);
+            if ( f.exists() ) {
+                logger.info(methodName, null, "Dropping existing database.");
+                DbManager dbm = new DbManager(state_url, logger);
+                dbm.init();
+                dbm.drop();
+                dbm.shutdown();
+            }
+        } else {
+            try {            
+                if ( ! f.mkdirs() ) {
+                    System.out.println("Cannot create database directory: " + databasedir);
+                    System.exit(1);
+                }
+                System.out.println("Created database directory " + databasedir);
+            } catch ( Exception e ) {
+                System.out.println("Cannot create database directory: " + databasedir + ":" + e.toString());
+                System.exit(1);
+            }
+        }
+
+
+        jobHistory             = from + jobHistory;
+        reservationHistory     = from + reservationHistory;
+        serviceHistory         = from + serviceHistory;
+        serviceRegistryHistory = from + serviceRegistryHistory;
+        serviceRegistry        = from + serviceRegistry;
+        checkpointFile         = from + checkpointFile;
     }
 
     void closeStream(InputStream in)
@@ -77,11 +164,27 @@ public class DbLoader
     public void loadJobs()
     {
         String methodName = "loadJobs";
+
+        File dir = new File(jobHistory);
+        if ( !dir.isDirectory() ) {
+            logger.info(methodName, null, "Cannot find job history; skipping load of jobs.");
+            return;
+        }
+
+        File[] files = dir.listFiles();
+        if ( files.length == 0 ) {
+            logger.info(methodName, null, "No jobs to move to database.");
+            return;
+        }
+        logger.info(methodName, null, "Reading", files.length, "jobs.");
+
         LinkedBlockingQueue<File> queue = new LinkedBlockingQueue<File>();
 
-        // int max_to_load = Integer.MAX_VALUE;  // or Integer.MAX_VALUE for 'all of them'
-        int max_to_load = 1000;  // or Integer.MAX_VALUE for 'all of them'
+        int max_to_load = joblimit;
+        // int max_to_load = 1000;  // or Integer.MAX_VALUE for 'all of them'
         int nth = Math.min(nthreads, max_to_load);
+        nth = Math.min(nth, files.length);
+
         JobLoader[] loader = new JobLoader[nth];
         Thread[]    threads = new Thread[nth];        
         List<Long> ids = new ArrayList<Long>();
@@ -92,9 +195,6 @@ public class DbLoader
             threads[i].start();
         }
 
-        File dir = new File(jobHistory);
-        File[] files = dir.listFiles();
-        logger.info(methodName, null, "Reading", files.length, "jobs.");
 
         int c = 0;
         for ( File f : files) {
@@ -128,16 +228,35 @@ public class DbLoader
             try { threads[i].join(); } catch ( InterruptedException e ) {}
         }
 
+        if ( archive ) {
+            File renameTo = new File(dir + ".archive");
+            dir.renameTo(renameTo);
+        }
     }
 
     public void loadReservations()
     {
         String methodName = "loadReservations";
+
+        File dir = new File(reservationHistory);
+        if ( ! dir.isDirectory() ) {
+            logger.info(methodName, null, "No reservation directory found; skipping database load of reservations.");
+            return;
+        }
+
+        File[] files = dir.listFiles();
+        if ( files.length == 0 ) {
+            logger.info(methodName, null, "No reservation history files to convert.");
+            return;
+        }
+        logger.info(methodName, null, "Reading", files.length, "reservation instances.");
+        
         LinkedBlockingQueue<File> queue = new LinkedBlockingQueue<File>();
         
-        //int max_to_load = Integer.MAX_VALUE;
-        int max_to_load = 1000;
+        int max_to_load = reservationlimit;
+        //int max_to_load = 1000;
         int nth = Math.min(nthreads, max_to_load);
+        nth = Math.min(nth, files.length);
         ReservationLoader[] loader = new ReservationLoader[nth];
         Thread[] threads = new Thread[nth];
         ArrayList<Long> ids = new ArrayList<Long>();
@@ -146,11 +265,7 @@ public class DbLoader
             loader[i] = new ReservationLoader(queue, ids);
             threads[i] = new Thread(loader[i]);
             threads[i].start();
-        }
-        
-        File dir = new File(reservationHistory);
-        File[] files = dir.listFiles();
-        logger.info(methodName, null, "Reading", files.length, "reservation instances.");
+        }        
 
         int c   = 0;        
         for ( File f : files ) {
@@ -185,17 +300,37 @@ public class DbLoader
             logger.info(methodName, null, "Joining thread (reservations).", i);
             try { threads[i].join(); } catch ( InterruptedException e ) {}
         }
+
+        if ( archive ) {
+            File renameTo = new File(dir + ".archive");
+            dir.renameTo(renameTo);
+        }
     }
 
 
     public void loadServices()
     {
         String methodName = "loadServices";
+        File dir = new File(serviceHistory);
+        if ( ! dir.isDirectory() ) {
+            logger.info(methodName, null, "No service history directory found; skipping load of service history.");
+            return;
+        }
+
+        File[] files = dir.listFiles();
+
+        if ( files.length == 0 ) {
+            logger.info(methodName, null, "No service history files to convert.");
+            return;
+        }
+        logger.info(methodName, null, "Reading", files.length, "service instances.");
+        
         LinkedBlockingQueue<File> queue = new LinkedBlockingQueue<File>();
         
-        // int max_to_load = Integer.MAX_VALUE;
-        int max_to_load = 1000;
+        int max_to_load = servicelimit;
+        // int max_to_load = 1000;
         int nth = Math.min(nthreads, max_to_load);
+        nth = Math.min(nth, files.length);
         ServiceLoader[] loader = new ServiceLoader[nth];
         Thread[] threads = new Thread[nth];
         ArrayList<Long> ids = new ArrayList<Long>();
@@ -205,10 +340,6 @@ public class DbLoader
             threads[i] = new Thread(loader[i]);
             threads[i].start();
         }
-
-        File dir = new File(serviceHistory);
-        File[] files = dir.listFiles();
-        logger.info(methodName, null, "Reading", files.length, "service instances.");
 
         int c   = 0;
         for ( File f : files ) {
@@ -243,16 +374,34 @@ public class DbLoader
             try { threads[i].join(); } catch ( InterruptedException e ) {}
         }
 
+        if ( archive ) {
+            File renameTo = new File(dir + ".archive");
+            dir.renameTo(renameTo);
+        }
     }
 
     public void loadServiceRegistry(String registry, boolean isHistory)
     {
         String methodName = "loadServiceRegistry";
 
+        int c = 0;
+        File dir = new File(registry);
+        File[] files = dir.listFiles();
+        if ( files.length == 0 ) {
+            if ( isHistory ) {
+                logger.info(methodName, null, "Nothing in service registry history to move to database");
+            } else {
+                logger.info(methodName, null, "Nothing in service registry to move to database");
+            }
+            return;
+        }
+
         LinkedBlockingQueue<Pair<String, Boolean>> queue = new LinkedBlockingQueue<Pair<String, Boolean>>();
 
-        int max_to_load = Integer.MAX_VALUE;
+        int max_to_load = registrylimit;
         int nth = Math.min(nthreads, max_to_load);
+        nth = Math.min(nth, files.length);
+
         ServiceRegistrationLoader[] loader = new ServiceRegistrationLoader[nth];
         Thread[] threads = new Thread[nth];
         ArrayList<Long> ids = new ArrayList<Long>();
@@ -263,9 +412,6 @@ public class DbLoader
             threads[i].start();
         }
 
-        int c = 0;
-        File dir = new File(registry);
-        File[] files = dir.listFiles();
         logger.info(methodName, null, "Reading", files.length, "service files (2 per instance).");
         for ( File f : files ) {
             String s = f.toString();
@@ -298,14 +444,29 @@ public class DbLoader
             try { threads[i].join(); } catch ( InterruptedException e ) {}
         }
 
+        if ( archive ) {
+            File renameTo = new File(dir + ".archive");
+            dir.renameTo(renameTo);
+        }
     }
 
     void loadCheckpoint()
     	throws Exception
     {
         String methodName = "loadCheckpoint";
-        
-        //Checkpointable obj = null;
+
+        File f = new File(checkpointFile);
+        if ( ! f.exists() ) {
+            logger.info(methodName, null, "No checkpoint file to convert.");
+            return;
+        }
+
+        //
+        // A note - the Checkpointable object might be in the "wrong" package and can't be 
+        //          cast properly.  When putting it into database we have to pick out the
+        //          fields anyway.  So here we use introspection to get the fields and
+        //          create the database entries.
+        //
         FileInputStream fis = null;
         ObjectInputStream in = null;
 		try {
@@ -331,7 +492,11 @@ public class DbLoader
 			fis.close();
 			in.close();
 		}
-        
+
+        if ( archive ) {
+            File renameTo = new File(f + ".archive");
+            f.renameTo(renameTo);        
+        }
     }    
 
     void run()
@@ -339,7 +504,7 @@ public class DbLoader
     {
     	String methodName = "run";
 
-        DbCreate cr = new DbCreate(state_url);
+        DbCreate cr = new DbCreate(state_url, logger);
         cr.createPlocalDatabase();
 
         logger.info(methodName, null, "storage.useWAL", System.getProperty("storage.useWAL"));
@@ -351,7 +516,7 @@ public class DbLoader
 
                 hmd = new HistoryManagerDb(logger);
 
-                if ( true ) loadCheckpoint();
+                if ( docheckpoint ) loadCheckpoint();
 
                 OGlobalConfiguration.USE_WAL.setValue(false);
 
@@ -359,32 +524,34 @@ public class DbLoader
 
 
                 // ---------- Load job history
-                if ( true ) loadJobs();            
+                if ( dojobs ) loadJobs();            
 
                 // ---------- Load reservation history
-                if ( true ) loadReservations();                         
+                if ( doreservations ) loadReservations();                         
 
 
                 // ---------- Load service isntance and AP history
-                if ( true ) loadServices();
+                if ( doservices ) loadServices();
 
                 // ---------- Load service registry
-                ssd = new StateServicesDb();
-                ssd.init(logger);
-                loadServiceRegistry(serviceRegistry, false);
-                try {
-                    ssd.shutdown(); 
-                } catch ( Exception e ) {
-                    e.printStackTrace();
+                if ( doregistry ) {
+                    ssd = new StateServicesDb();
+                    ssd.init(logger);
+                    if ( false ) loadServiceRegistry(serviceRegistry, false);
+                    try {
+                        ssd.shutdown(); 
+                    } catch ( Exception e ) {
+                        e.printStackTrace();
+                    }
+                    
+                    // ---------- Load service registry history
+                    ssd = new StateServicesDb();
+                    ssd.init(logger);
+                    if ( false ) loadServiceRegistry(serviceRegistryHistory, true);                          
                 }
 
-                // ---------- Load service registry history
-                ssd = new StateServicesDb();
-                ssd.init(logger);
-                loadServiceRegistry(serviceRegistryHistory, true);      
-
                 OGlobalConfiguration.USE_WAL.setValue(true);
-                if ( true ) loadCheckpoint();
+                if ( docheckpoint ) loadCheckpoint();
 
 
 
@@ -403,9 +570,23 @@ public class DbLoader
 
     public static void main(String[] args)
     {
+        if ( args.length != 2 ) {
+            System.out.println("USage: DbLoader from to");
+            System.out.println("");
+            System.out.println("Where:");
+            System.out.println("   from");        
+            System.out.println("      is the DUCC_HOME you wish to convert");
+            System.out.println("   to");
+            System.out.println("      is the DUCC_HOME contining the new database");
+            System.out.println("");
+            System.out.println("'from' and 'to' may be the same thing");
+            System.exit(1);
+        }
+
+            
     	DbLoader dbl = null;
         try {
-            dbl = new DbLoader();
+            dbl = new DbLoader(args[0], args[1]);
             dbl.run();
         } catch ( Exception e  ) {
             e.printStackTrace();
@@ -441,13 +622,14 @@ public class DbLoader
                         in = new ObjectInputStream(fis);
                         job =  (IDuccWorkJob) in.readObject();
                         logger.info(methodName, job.getDuccId(), "Time to read job:", System.currentTimeMillis() - now);
+                        hmd.saveJobUnsafe(job);
                     } catch(Exception e) {
                         logger.info(methodName, null, e);
                     } finally {
                         closeStream(in);
                         closeStream(fis);
+                        counter.getAndDecrement();
                     }
-                    hmd.saveJobUnsafe(job);
 
                 } catch ( InterruptedException e ) {
                     return;
@@ -456,9 +638,10 @@ public class DbLoader
                 } 
 
                 synchronized(ids) {
-                    ids.add(job.getDuccId().getFriendly());
+                    if ( job != null ) {
+                        ids.add(job.getDuccId().getFriendly());
+                    }
                 }
-                counter.getAndDecrement();
             }
         }
     }
@@ -492,24 +675,28 @@ public class DbLoader
                         in = new ObjectInputStream(fis);
                         svc =  (IDuccWorkService) in.readObject();
                         logger.info(methodName, svc.getDuccId(), "Time to read service:", System.currentTimeMillis() - now);                        
+                        hmd.saveServiceUnsafe(svc);
                     } catch(Exception e) {
+                        logger.info(methodName, null, "Error reading or saving service:", f);
                         logger.info(methodName, null, e);
                     } finally {
                         closeStream(in);
                         closeStream(fis);
+                        counter.getAndDecrement(); 
                     }
-                    hmd.saveServiceUnsafe(svc);
 
                 } catch ( InterruptedException e ) {
                     return;
                 } catch ( Exception e ){
+                    logger.info(methodName, null, "Error reading or saving service:", f);
                     logger.info(methodName, null, e);
                 }
 
                 synchronized(ids) {
-                    ids.add(svc.getDuccId().getFriendly());
+                    if ( svc != null ) {
+                        ids.add(svc.getDuccId().getFriendly());
+                    }
                 }
-                counter.getAndDecrement(); 
             }
         }
     }
@@ -542,13 +729,15 @@ public class DbLoader
                         in = new ObjectInputStream(fis);
                         res =  (IDuccWorkReservation) in.readObject();
                         logger.info(methodName, res.getDuccId(), "Time to read reservation:", System.currentTimeMillis() - now);
+                        hmd.saveReservationUnsafe(res);
                     } catch(Exception e) {
                         logger.info(methodName, null, e);
                     } finally {
                         closeStream(in);
                         closeStream(fis);
+                        counter.getAndDecrement();
                     }
-                    hmd.saveReservationUnsafe(res);
+
 
                 } catch ( InterruptedException e ) {
                     return;
@@ -557,9 +746,10 @@ public class DbLoader
                 }
 
                 synchronized(ids) {
-                    ids.add(res.getDuccId().getFriendly());
+                    if ( res != null ) {
+                        ids.add(res.getDuccId().getFriendly());
+                    }
                 }
-                counter.getAndDecrement();
             }
         }
     }

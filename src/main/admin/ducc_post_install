@@ -41,7 +41,7 @@ import database as db
 
 class PostInstall():
 
-    def usage(self, *msg):
+    def usage(self, msg):
 
         if ( msg != None ):
             print ' '.join(msg)
@@ -61,7 +61,7 @@ class PostInstall():
         print "   [-j, --jvm] <path to java executable>"
         print "        This is the full path to java command to be used to start DUCC; e.g., /usr/bin/java"
         print ""
-        print "   [-d --db-password] <root password for database>"
+        print "   [-, --db-password] <root password for database>"
         print "        This is the password DUCC uses to manage the database."
         print ""
         print "   [-h, -? --help]"

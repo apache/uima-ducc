@@ -19,6 +19,7 @@
 
 package org.apache.uima.ducc.database;
 
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.database.DbConstants.DbEdge;
 import org.apache.uima.ducc.database.DbConstants.DbVertex;
 import org.apache.uima.ducc.database.DbConstants.DuccVertexBase;
@@ -34,6 +35,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
 
 public class DbCreate
 {
+    DuccLogger logger = null;
     String dburl;
     String adminid = "root";
     String adminpw = null;
@@ -45,6 +47,13 @@ public class DbCreate
         this.dburl = dburl;
     }
 
+
+    public DbCreate(String dburl, DuccLogger logger)
+    {
+        this.dburl = dburl;
+        this.logger = logger;
+    }
+
     public DbCreate(String dburl, String adminid, String adminpw)
     {
         this.dburl = dburl;
@@ -52,22 +61,46 @@ public class DbCreate
         this.adminpw = adminpw;
     }
 
+    public void doLog(String methodName, Object ... msg)
+    {        
+        if ( logger == null ) {
+
+            StringBuffer buf = new StringBuffer(methodName);
+            for ( Object o : msg ) {
+                buf.append(" ");
+                if ( o == null ) {
+                    buf.append("<null>");
+                } else {
+                    buf.append(o.toString());
+                }
+            }
+            
+            System.out.println(buf);
+        } else {
+            logger.info(methodName, null, msg);
+            return;
+        }
+
+    }
+
     void createEdgeType(OrientGraphNoTx g, DbEdge id)
     {
+        String methodName = "createEdgeType";
     	String s = id.pname();
         OrientEdgeType e = g.getEdgeType(s);
         if ( e == null ) {
-            System.out.println("Create edge " + s);
+            doLog(methodName, "Create edge", s);
             g.createEdgeType(s);
         }
     }
 
     void createVertexType(OrientGraphNoTx g, DbVertex id)
     {
+        String methodName = "createVertexType";
     	String s = id.pname();
         OrientVertexType e = g.getVertexType(s);
         if ( e == null ) {
-            System.out.println("Create vertex " + s);
+            doLog(methodName, "Create vertex " + s);
             e = g.createVertexType(s, DuccVertexBase.VBase.pname());
         }
     }
@@ -80,7 +113,7 @@ public class DbCreate
     	String base =  DuccVertexBase.VBase.pname();
         OrientVertexType e = g.getVertexType(base);
         if ( e == null ) {
-            System.out.println("Create base vertex class " + base);
+            doLog(methodName, "Create base vertex class " + base);
             e = g.createVertexType(base);
             OProperty p = e.createProperty(DbConstants.DUCCID, OType.LONG);
             p.setMandatory(true);
@@ -89,11 +122,11 @@ public class DbCreate
 
             String sql = "create index i_ducc_dbid on " + base + "(" + DbConstants.DUCCID + ") notunique";
             g.command(new OCommandSQL(sql)).execute();
-            System.out.println("(sql)Created index i_ducc_dbid on class " + base + " for " + DbConstants.DUCCID);
+            doLog(methodName, "(sql)Created index i_ducc_dbid on class " + base + " for " + DbConstants.DUCCID);
 
             sql = "create index i_ducc_dbcat on " + base + "(" + DbConstants.DUCC_DBCAT + ") notunique";
             g.command(new OCommandSQL(sql)).execute();
-            System.out.println("(sql)Created index i_ducc_dbcat on class " + base + " for " + DbConstants.DUCC_DBCAT);
+            doLog(methodName, "(sql)Created index i_ducc_dbcat on class " + base + " for " + DbConstants.DUCC_DBCAT);
 
         }
         
@@ -130,6 +163,8 @@ public class DbCreate
     boolean createDatabase()
         throws Exception
     {
+        String methodName = "createDatabase";
+
         if ( adminpw == null ) {
             adminpw = DbManager.dbPassword();
         }
@@ -139,16 +174,16 @@ public class DbCreate
             admin.connect(adminid, adminpw);               // connect to the server
 
             if ( ! admin.existsDatabase("plocal") ) {
-                System.out.println("Database " + dburl + " does not exist, attempting to create it.");
+                doLog(methodName, "Database " + dburl + " does not exist, attempting to create it.");
                 admin.createDatabase("graph", "plocal");
                 
                 if ( ! admin.existsDatabase() ) {
-                    System.out.println("Cannot create database " + dburl);
+                    doLog(methodName, "Cannot create database " + dburl);
                     return false;
                 } 
                 factory = new OrientGraphFactory(dburl);
                 if ( factory == null ) {
-                    System.out.println("Cannot create graph factory for " + dburl);
+                    doLog(methodName, "Cannot create graph factory for " + dburl);
                     return false;
                 }
                 

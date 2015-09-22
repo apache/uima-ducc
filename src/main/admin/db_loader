@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+
+import os
+import sys
+import getopt
+
+
+#
+# This is a one-time-use utility to move your history and checkpoint files
+# int the database.  It will not run if the database is already populated.
+#
+# If you need to run it again, you must first remove or drop your existing database.
+#
+from ducc_util import DuccUtil
+
+class DbConvert(DuccUtil):
+
+    def __init__(self):
+        DuccUtil.__init__(self)
+
+    def usage(self, *args):
+        if ( args[0] != None ):
+            print ''
+            print ' '.join(args)
+            print ''
+        print 'Usage:'
+        print ''
+        print 'db_loader -i in -o out [--no-archive]'
+        print ''
+        print 'Where:'
+        print '    -i in'
+        print '         Specifies the DUCC_HOME of the DUCC runtime to be moved into the database.'
+        print '    -o out'
+        print '         Specifies the DUCC_HOME of the DUCC runtime to contain the database.'
+        print '    --noarchive'
+        print '         Suppresses archival of the input files.'
+        print ''
+        print 'Notes:'
+        print '    1.  The output location is not verfied as a DUCC runtime.  The database will be created'
+        print '        in that location nonetheless.  After it is created it may be manually moved to'
+        print '        the intended runtime.'
+        print '    2.  The "in" and "out" directories may be the same.'
+        print '    3.  Archival consists of renaming relevent input directories and files by appending'
+        print '        ".archive" to their names.  It is fully non-destructive and may be reversed by'
+        print '         manually renaming them back to their original names.'
+        print '    4.  If a database already exists in the specified "out" location, it is first dropped.'
+        print '        The schema is built and the database is fully re-initialized.'
+
+        sys.exit(1);
+
+    def main(self, argv):
+
+        in_home = None
+        out_home = None
+        archive = True
+        try:
+            opts, args = getopt.getopt(argv, 'i:o:h?', ['no-archive'])
+        except:
+            self.usage("Invalid arguments", ' '.join(argv))
+
+        for ( o, a ) in opts:
+            if o in ('-i'):
+                in_home = a
+            elif o in ('-o'):
+                out_home = a
+            elif o in ('--no-archive'):
+                archive = False
+            else:
+                self.usage(None)
+
+
+        if ( in_home == None ):
+            self.usage("Missing input DUCC_HOME")
+        if ( out_home == None ):
+            self.usage("Missing output DUCC_HOME");
+
+        # DDUCC_HOME=/home/challngr/ducc_runtime_db -Xmx4G -Dstorage.useWAL=true -Dtx.useLog=false -Dstorage.wal.syncOnPageFlush=false
+        DUCC_JVM_OPTS = ''
+        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDUCC_HOME=' + self.DUCC_HOME
+        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Xmx4G'
+        if ( not archive ):
+            DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDONT_ARCHIVE'
+
+        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.database.DbLoader', in_home, out_home]
+        CMD = ' '.join(CMD)
+
+        os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ':' + self.DUCC_HOME + "/lib/orientdb/*"
+        os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ':' + self.DUCC_HOME + "/resources"
+        print os.environ['CLASSPATH']
+        os.system(CMD)
+
+                
+if __name__ == "__main__":
+    console = DbConvert()
+    console.main(sys.argv[1:])
+    
+

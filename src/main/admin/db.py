@@ -31,6 +31,8 @@ from ducc_util import DuccUtil
 from properties  import Properties
 import database as db
 
+# This presents an interactive 'main' for performing various tasks with the database
+
 class DbUtil(DuccUtil):
 
     def __init__(self):

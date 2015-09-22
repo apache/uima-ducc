@@ -21,7 +21,6 @@
 
 # This is common code to deal wiht the orientdb configuration xml
 
-
 global domloaded
 try:
     from xml.dom.minidom import parse
