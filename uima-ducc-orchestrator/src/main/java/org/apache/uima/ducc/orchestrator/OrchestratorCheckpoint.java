@@ -237,7 +237,7 @@ public class OrchestratorCheckpoint {
 
     private boolean restoreStateDb()
     {
-		String methodName = "restoreState";
+		String methodName = "restoreStateDb";
 		logger.trace(methodName, null, messages.fetch("enter"));
         IHistoryPersistenceManager saver = HistoryFactory.getInstance(this.getClass().getName());
 		boolean retVal = false;
@@ -276,7 +276,7 @@ public class OrchestratorCheckpoint {
     }
 
 	private boolean restoreStateFile() {
-		String methodName = "restoreState";
+		String methodName = "restoreStateFile";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		boolean retVal = false;
 		if(saveEnabled) {
@@ -326,11 +326,18 @@ public class OrchestratorCheckpoint {
 	
     public boolean restoreState()
     {
+    	String methodName = "restoreState";
+    	boolean retVal = false;
         // we can resolve these into just one call by allowing the checkpointable to be saved in its parts for
         // the file implementation, to avoid circular dependencies
-
-        if ( useDb ) return restoreStateDb();
-        else         return restoreStateFile();
+    	try {
+    		if ( useDb ) retVal = restoreStateDb();
+            else         retVal = restoreStateFile();
+    	}
+        catch(Exception e) {
+        	logger.error(methodName, null, e);
+        }
+    	return retVal;
     }
 
 }

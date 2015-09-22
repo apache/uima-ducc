@@ -35,21 +35,21 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 	private static DuccLogger logger = new DuccLogger(JdReservation.class);
 	private static DuccId jobid = null;
 	
-	public JdReservation(IDuccWorkReservation dwr, SizeBytes reservationSize, SizeBytes sliceSize) {
-		initialize(dwr, reservationSize, sliceSize);
+	public JdReservation(IDuccWorkReservation dwr, SizeBytes sizeOfReservation, SizeBytes sizeOfSlice) {
+		initialize(dwr, sizeOfReservation, sizeOfSlice);
 	}
 	
-	private void initialize(IDuccWorkReservation dwr, SizeBytes reservationSize, SizeBytes sliceSize) {
+	private void initialize(IDuccWorkReservation dwr, SizeBytes sizeOfReservation, SizeBytes sizeOfSlice) {
 		if(dwr != null) {
 			DuccId jdReservationId = (DuccId) dwr.getDuccId();
 			setJdReservationId(jdReservationId);
 			setNodeIdentity(JdHelper.getNodeIdentity(dwr));
 			setReservationState(dwr.getReservationState());
-			if(reservationSize != null) {
-				setReservationSize(reservationSize);
+			if(sizeOfReservation != null) {
+				setSizeOfReservation(sizeOfReservation);
 			}
-			if(sliceSize != null) {
-				setSliceSize(sliceSize);
+			if(sizeOfSlice != null) {
+				setSizeOfSlice(sizeOfSlice);
 			}
 		}
 	}
@@ -80,9 +80,9 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 	
 	public Long getSlicesTotal() {
 		String location = "getSlicesTotal";
-		SizeBytes reservationSize = getReservationSize();
-		SizeBytes sliceSize = getSliceSize();
-		Long retVal = (long) (reservationSize.getBytes() / (1.0 * sliceSize.getBytes()));
+		SizeBytes sizeOfReservation = getSizeOfReservation();
+		SizeBytes sizeOfSlice = getSizeOfSlice();
+		Long retVal = (long) (sizeOfReservation.getBytes() / (1.0 * sizeOfSlice.getBytes()));
 		logger.trace(location, jobid, retVal);
 		return retVal;
 	}
@@ -113,7 +113,7 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 	}
 	
 	protected NodeIdentity allocate(DuccId jdId, DuccId jobId) {
-		NodeIdentity retVal = allocate(jdId, jobId, getSliceSize());
+		NodeIdentity retVal = allocate(jdId, jobId, getSizeOfSlice());
 		return retVal;
 	}
 	

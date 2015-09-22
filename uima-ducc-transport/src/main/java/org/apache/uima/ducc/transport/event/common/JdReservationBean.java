@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
+import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
 
@@ -33,8 +34,13 @@ public class JdReservationBean implements Serializable {
 	private DuccId jdReservationDuccId = null;
 	private NodeIdentity nodeIdentity;
 	private ReservationState reservationState = null;
-	private SizeBytes reservationSize = new SizeBytes(SizeBytes.Type.GBytes,30);
-	private SizeBytes sliceSize = new SizeBytes(SizeBytes.Type.MBytes,300);
+	private SizeBytes sizeOfReservation = new SizeBytes(SizeBytes.Type.GBytes,30);
+	private SizeBytes sizeOfSlice = new SizeBytes(SizeBytes.Type.MBytes,300);
+	
+	@Deprecated
+	private Long reservationSize = new Long(0);
+	@Deprecated
+	private Long sliceSize = new Long(0);
 	
 	private ConcurrentHashMap<DuccId, SizeBytes> map = new ConcurrentHashMap<DuccId, SizeBytes>();
 	
@@ -70,20 +76,29 @@ public class JdReservationBean implements Serializable {
 		return reservationState;
 	}
 	
-	public void setReservationSize(SizeBytes value) {
-		reservationSize = value;
+	public void setSizeOfReservation(SizeBytes value) {
+		reservationSize = new Long(0);
+		sizeOfReservation = value;
 	}
 	
-	public SizeBytes getReservationSize() {
-		return reservationSize;
+	public SizeBytes getSizeOfReservation() {
+		if(reservationSize > 0) {
+			sizeOfReservation = new SizeBytes(Type.Bytes, reservationSize);
+			reservationSize = new Long(0);
+		}
+		return sizeOfReservation;
 	}
 	
-	public void setSliceSize(SizeBytes value) {
-		sliceSize = value;
+	public void setSizeOfSlice(SizeBytes value) {
+		sliceSize = new Long(0);
+		sizeOfSlice = value;
 	}
 	
-	public SizeBytes getSliceSize() {
-		return sliceSize;
+	public SizeBytes getSizeOfSlice() {
+		if(sliceSize > 0) {
+			sizeOfSlice = new SizeBytes(Type.Bytes, sliceSize);
+			sliceSize = new Long(0);
+		}
+		return sizeOfSlice;
 	}
-	
 }
