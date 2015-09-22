@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.ws.config;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.jms.ObjectMessage;
 
 import org.apache.activemq.command.ActiveMQMessage;
@@ -55,6 +57,8 @@ public class WebServerConfiguration {
 	
 	private DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(WebServerConfiguration.class.getName());
 	private DuccId jobid = null;
+	
+	private AtomicBoolean singleton = new AtomicBoolean(false);
 	
 	/**
 	 * Instantiate {@link WebServerEventListener} which will handle incoming messages.
@@ -103,6 +107,15 @@ public class WebServerConfiguration {
 		String methodName = "webServer";
 		WebServerComponent ws = null;
 		try {
+			if(singleton.getAndSet(true)) {
+				try {
+					throw new RuntimeException("singleton already present!");
+				}
+				catch(RuntimeException e) {
+					duccLogger.error(methodName, jobid, e);
+					throw e;
+				}
+			}
 			ws = new WebServerComponent(common.camelContext(), common);
 			DuccBoot.boot(common);
 			//	Instantiate delegate listener to receive incoming messages. 
