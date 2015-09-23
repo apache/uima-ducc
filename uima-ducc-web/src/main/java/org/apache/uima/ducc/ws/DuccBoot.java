@@ -145,7 +145,7 @@ public class DuccBoot extends Thread {
             return;                               // Nothing to do if this fails
 		}
 
-        logger.info(location, jobid, messages.fetchLabel("Number of Reservations fetched from DB"), duccWorkReservations.size());
+        logger.info(location, jobid, messages.fetchLabel("Number of Reservations fetched from history"), duccWorkReservations.size());
 
         int restored = 0;
         for ( IDuccWorkReservation duccWorkReservation : duccWorkReservations ) {
@@ -174,7 +174,7 @@ public class DuccBoot extends Thread {
             return;                               // Nothing to do if this fails
 		}
 
-        logger.info(location, jobid, messages.fetchLabel("Number of Jobs fetched from DB"), duccWorkJobs.size());
+        logger.info(location, jobid, messages.fetchLabel("Number of Jobs fetched from history"), duccWorkJobs.size());
 
         int restored = 0;
         for ( IDuccWorkJob duccWorkJob : duccWorkJobs ) {
@@ -231,7 +231,7 @@ public class DuccBoot extends Thread {
             return;                               // Nothing to do if this fails
 		}
 
-        logger.info(location, jobid, messages.fetchLabel("Number of services fetched from DB"), duccWorkServices.size());
+        logger.info(location, jobid, messages.fetchLabel("Number of services fetched from history"), duccWorkServices.size());
 
         int restored = 0;
         for ( IDuccWorkService duccWorkService : duccWorkServices ) {
