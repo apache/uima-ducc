@@ -210,7 +210,14 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	
 	
 	public long getLongProcessesMax() {
-		return Long.parseLong(processesMax);
+		long retVal = 0;
+		try {
+			retVal = Long.parseLong(processesMax);
+		}
+		catch(Exception e) {
+			
+		}
+		return retVal;
 	}
 	
 	

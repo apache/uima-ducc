@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -134,15 +133,21 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
     public IDuccWorkJob restoreJob(long duccid)
         throws Exception
     {
-        //String methodName = "jobRestore";
+        String location = "jobRestore";
         IDuccWorkJob job = null;
-        String fileName = ""+duccid + "." + dwj;
-        FileInputStream fis = null;
-        ObjectInputStream in = null;
-        fis = new FileInputStream(historyDirectory_jobs+File.separator+fileName);
-        in = new ObjectInputStream(fis);
-        job = (IDuccWorkJob) in.readObject();
-        in.close();        
+        try {
+            String fileName = ""+duccid + "." + dwj;
+            logger.trace(location, new DuccId(duccid), fileName);
+            FileInputStream fis = null;
+            DeserializerObjectInputStream in = null;
+            fis = new FileInputStream(historyDirectory_jobs+File.separator+fileName);
+            in = new DeserializerObjectInputStream(fis);
+            job = (IDuccWorkJob) in.readObject();
+            in.close();      
+        }
+        catch(Exception e) {
+        	logger.error(location, new DuccId(duccid), e);
+        }
         return job;
     }
 
@@ -247,16 +252,21 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
     public IDuccWorkReservation restoreReservation(long duccid)
         throws Exception
     {
-        //String methodName = "reservationRestore";
+        String location = "reservationRestore";
         IDuccWorkReservation reservation = null;
-        FileInputStream fis = null;
-        ObjectInputStream in = null;
-        String fileName = ""+duccid + "." + dwr;
-
-        fis = new FileInputStream(historyDirectory_reservations+File.separator+fileName);
-        in = new ObjectInputStream(fis);
-        reservation = (IDuccWorkReservation) in.readObject();
-        in.close();
+        try {
+        	FileInputStream fis = null;
+            DeserializerObjectInputStream in = null;
+            String fileName = ""+duccid + "." + dwr;
+            logger.trace(location, new DuccId(duccid), fileName);
+            fis = new FileInputStream(historyDirectory_reservations+File.separator+fileName);
+            in = new DeserializerObjectInputStream(fis);
+            reservation = (IDuccWorkReservation) in.readObject();
+            in.close();
+        }
+        catch(Exception e) {
+        	logger.error(location, new DuccId(duccid), e);
+        }
         return reservation;
     }
 
@@ -381,16 +391,21 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
     public IDuccWorkService restoreService(long duccid)
         throws Exception
     {
-        //String methodName = "restoreService";
+        String location = "restoreService";
         IDuccWorkService service = null;
-        FileInputStream fis = null;
-        ObjectInputStream in = null;
-        String fileName = ""+duccid + "." + dws;
-
-        fis = new FileInputStream(historyDirectory_services+File.separator+fileName);
-        in = new ObjectInputStream(fis);
-        service = (IDuccWorkService) in.readObject();
-        in.close();
+        try {
+        	FileInputStream fis = null;
+            DeserializerObjectInputStream in = null;
+            String fileName = ""+duccid + "." + dws;
+            logger.trace(location, new DuccId(duccid), fileName);
+            fis = new FileInputStream(historyDirectory_services+File.separator+fileName);
+            in = new DeserializerObjectInputStream(fis);
+            service = (IDuccWorkService) in.readObject();
+            in.close();
+        }
+        catch(Exception e) {
+        	logger.error(location, new DuccId(duccid), e);
+        }
         return service;
     }
 
@@ -468,9 +483,9 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
         try {
             logger.trace(methodName, null, "restore:"+fileName);
             FileInputStream fis = null;
-            ObjectInputStream in = null;
+            DeserializerObjectInputStream in = null;
             fis = new FileInputStream(historyDirectory_services+File.separator+fileName);
-            in = new ObjectInputStream(fis);
+            in = new DeserializerObjectInputStream(fis);
             service = (IDuccWorkService) in.readObject();
             in.close();
         }

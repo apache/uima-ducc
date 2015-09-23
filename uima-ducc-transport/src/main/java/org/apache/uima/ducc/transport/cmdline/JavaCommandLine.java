@@ -21,8 +21,10 @@ package org.apache.uima.ducc.transport.cmdline;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("serial")
 public class JavaCommandLine extends ACommandLine {
+	
+	private static final long serialVersionUID = 1L;
+	
 	private String className;
 	private String classpath;
 	protected List<String> options = new ArrayList<String>();

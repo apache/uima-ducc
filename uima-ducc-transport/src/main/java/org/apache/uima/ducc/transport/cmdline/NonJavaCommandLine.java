@@ -18,8 +18,10 @@
 */
 package org.apache.uima.ducc.transport.cmdline;
 
-@SuppressWarnings("serial")
 public class NonJavaCommandLine extends ACommandLine {
+	
+	private static final long serialVersionUID = 1L;
+	
 	public NonJavaCommandLine(String executable) {
 		super(executable);
 	}
