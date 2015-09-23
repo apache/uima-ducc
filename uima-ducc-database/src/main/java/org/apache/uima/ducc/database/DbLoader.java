@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.database.DbConstants.DbCategory;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
@@ -450,7 +449,8 @@ public class DbLoader
         }
     }
 
-    void loadCheckpoint()
+    @SuppressWarnings("unchecked")
+	void loadCheckpoint()
     	throws Exception
     {
         String methodName = "loadCheckpoint";
@@ -537,7 +537,7 @@ public class DbLoader
                 if ( doregistry ) {
                     ssd = new StateServicesDb();
                     ssd.init(logger);
-                    if ( false ) loadServiceRegistry(serviceRegistry, false);
+                    loadServiceRegistry(serviceRegistry, false);
                     try {
                         ssd.shutdown(); 
                     } catch ( Exception e ) {
@@ -547,7 +547,7 @@ public class DbLoader
                     // ---------- Load service registry history
                     ssd = new StateServicesDb();
                     ssd.init(logger);
-                    if ( false ) loadServiceRegistry(serviceRegistryHistory, true);                          
+                    loadServiceRegistry(serviceRegistryHistory, true);                          
                 }
 
                 OGlobalConfiguration.USE_WAL.setValue(true);

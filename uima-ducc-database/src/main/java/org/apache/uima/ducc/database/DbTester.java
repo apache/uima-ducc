@@ -381,7 +381,6 @@ public class DbTester
 
                 // ---------- Load job history
                 loadJobs();            
-                if ( true ) return;
 
                 // ---------- Load reservation history
                 loadReservations();                         

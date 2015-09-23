@@ -525,7 +525,7 @@ public class HistoryManagerDb
     private IDuccWorkReservation restoreReservationInternal(DbHandle h, OrientVertex v)
         throws Exception
     {
-        String methodName = "restoreReservationInternal";
+        // String methodName = "restoreReservationInternal";
         IDuccWorkReservation r = null;
 
         ODocument d = v.getRecord();
@@ -537,15 +537,15 @@ public class HistoryManagerDb
 
         r      = g.fromJson(jo, DuccWorkReservation.class);
 
-        List<JdReservationBean> l = r.getJdReservationBeanList();
-        if ( l != null ) {
-            for (JdReservationBean b : l ) {
-                ConcurrentHashMap<DuccId, SizeBytes> map = b.getMap();
+        //List<JdReservationBean> l = r.getJdReservationBeanList();
+        //if ( l != null ) {
+            //for (JdReservationBean b : l ) {
+                //ConcurrentHashMap<DuccId, SizeBytes> map = b.getMap();
                 //for ( DuccId k : map.keySet() ) {
                 //    logger.info(methodName, null, "REST ===> " + k.getFriendly() + " " + k.getUnique() + " : " + map.get(k));
                 //}
-            }
-        }
+            //}
+        //}
         
         IDuccReservationMap rm = r.getReservationMap();              // seems to get set by default when job is recovered
         Iterable<Edge> ed = v.getEdges(Direction.OUT, DbEdge.JpProcess.pname());
