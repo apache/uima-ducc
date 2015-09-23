@@ -22,10 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JavaCommandLine extends ACommandLine {
-	
-	private static final long serialVersionUID = 1L;
-	
-	private String className;
+	/**
+     * Assign the generated ID so will (hopefully) match the one assigned when serialized 
+     */
+    private static final long serialVersionUID = 7377333447388157462L;
+    private String className;
 	private String classpath;
 	protected List<String> options = new ArrayList<String>();
 

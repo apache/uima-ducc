@@ -19,10 +19,11 @@
 package org.apache.uima.ducc.transport.cmdline;
 
 public class NonJavaCommandLine extends ACommandLine {
-	
-	private static final long serialVersionUID = 1L;
-	
-	public NonJavaCommandLine(String executable) {
+	/**
+     * Assign the generated ID so will (hopefully) match the one assigned when serialized 
+     */
+    private static final long serialVersionUID = 4905426747918479474L;
+    public NonJavaCommandLine(String executable) {
 		super(executable);
 	}
 	public String[] getCommandLine() {
