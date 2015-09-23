@@ -521,8 +521,6 @@ public class StateManager {
 			String sid = ""+duccId.getFriendly();
 			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, sid, this, methodName);
 			if(duccWorkJob != null) {
-				addJdUrlToJpCommandLine(duccWorkJob, jdStatusReport);
-				addDeployableToJpCommandLine(duccWorkJob, jdStatusReport);
 				//
 				String jdJmxUrl = jdStatusReport.getJdJmxUrl();
 				setJdJmxUrl(duccWorkJob, jdJmxUrl);
@@ -561,6 +559,12 @@ public class StateManager {
 					case Initializing:	
 						switch(duccWorkJob.getJobState()) {
 						case WaitingForDriver: 
+						    addJdUrlToJpCommandLine(duccWorkJob, jdStatusReport);
+						    addDeployableToJpCommandLine(duccWorkJob, jdStatusReport);
+						    if(!duccWorkJob.isJdURLSpecified()) {
+						        logger.debug(methodName, duccId, "No JdURL provided yet - still waitingForDriver");
+						        break;
+	                        }
 							JobState nextState = JobState.WaitingForServices;
 							if(duccWorkJob.getServiceDependencies() == null) {
 								String message = messages.fetch("bypass")+" "+nextState;
