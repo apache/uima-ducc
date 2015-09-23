@@ -391,7 +391,7 @@ public abstract class DuccMonitor {
 					flag_cancel_on_interrupt.set(false);
 					message.append(details(monitorInfo));
 				}
-				else if (state.equals(StateAssigned)) {       // A reservation has completed
+				else if (context == DuccContext.Reservation && state.equals(StateAssigned)) {       // A reservation has completed
 					flag_cancel_on_interrupt.set(false);
 					message.append(details(monitorInfo));
 				}
@@ -427,7 +427,7 @@ public abstract class DuccMonitor {
 						}
 					}
 				}
-				if (state.equals(StateAssigned)) {
+				if (context == DuccContext.Reservation && state.equals(StateAssigned)) {
 					if(monitorInfo.nodes != null) {
 						if(monitorInfo.nodes.size() > 0) {
 							StringBuffer sb = new StringBuffer();
