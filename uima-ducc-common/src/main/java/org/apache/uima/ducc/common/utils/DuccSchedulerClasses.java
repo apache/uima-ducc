@@ -33,20 +33,25 @@ public class DuccSchedulerClasses {
 	public static final String JobDriver = "JobDriver";
 	
 	private static DuccSchedulerClasses instance = null;
-
+	 
 	private long lastModified = 0;
-    NodeConfiguration nodeConfiguration = null;
-    DuccLogger logger = null;
+	private DuccLogger logger = null;
+	private NodeConfiguration nodeConfiguration = null;
 
 	private String fileName = null;
 	
 	public static DuccSchedulerClasses getInstance() {
-		if(instance == null) {
-			instance = new DuccSchedulerClasses();
+	    // Use double check locking for safety
+		if (instance == null) {
+		    synchronized(DuccSchedulerClasses.class){
+                if (instance == null) {
+                    instance = new DuccSchedulerClasses();
+                }
+		    }
 		}
 		return instance;
 	}
-	
+
 	private DuccSchedulerClasses() {
 	    String dir_home = Utils.findDuccHome();  // Ensure DUCC_HOME is in the System properties
 		String key = DuccPropertiesResolver.ducc_rm_class_definitions;
@@ -69,32 +74,29 @@ public class DuccSchedulerClasses {
 	public NodeConfiguration readConfiguration() 
         throws Exception
     {
-        instance = getInstance();
-
         File file = new File(fileName);
         if ( lastModified != file.lastModified() ) {         // reread if it looks like it changed
             synchronized(this) {    // Ensure parallel threads see a valid nodeConfiguration 
-                nodeConfiguration = new NodeConfiguration(fileName, null, null, logger); // UIMA-4275 use single common constructor
-                nodeConfiguration.readConfiguration();
-                lastModified = file.lastModified();   // Update this AFTER the nodeConfiguration is valid
+                if ( lastModified != file.lastModified() ) { // an earlier thread may have already done the work
+                    nodeConfiguration = new NodeConfiguration(fileName, null, null, logger); // UIMA-4275 use single common constructor
+                    nodeConfiguration.readConfiguration();
+                    lastModified = file.lastModified();   // Update this AFTER the nodeConfiguration is valid
+                }
             }
         }
-
 		return nodeConfiguration;
 	}
     
     public Map<String, DuccProperties> getClasses()
     	throws Exception
     {
-        readConfiguration();
-        return nodeConfiguration.getClasses();
+        return readConfiguration().getClasses();
     }
 
   public boolean isPreemptable(String class_name) throws Exception {
     boolean retVal = false;
-    readConfiguration();
 
-    DuccProperties properties = nodeConfiguration.getClass(class_name);
+    DuccProperties properties = readConfiguration().getClass(class_name);
     if (properties == null) {
       throw new IllegalArgumentException("Invalid scheduling_class: " + class_name);
     }
@@ -109,8 +111,7 @@ public class DuccSchedulerClasses {
 	    throws Exception
 	{
 		String retVal = null;
-        readConfiguration();
-        DuccProperties properties = nodeConfiguration.getDefaultFairShareClass();
+        DuccProperties properties = readConfiguration().getDefaultFairShareClass();
         if ( properties != null ) {
             retVal = properties.getProperty("name");
         }
@@ -122,8 +123,7 @@ public class DuccSchedulerClasses {
      */
     public String getDebugClassDefaultName() throws Exception {
         String retVal = null;
-        readConfiguration();
-        DuccProperties properties = nodeConfiguration.getDefaultFixedClass();
+        DuccProperties properties = readConfiguration().getDefaultFixedClass();
         if (properties != null) {
             retVal = properties.getProperty("name");
         }
@@ -134,8 +134,7 @@ public class DuccSchedulerClasses {
 	    throws Exception
 	{
 		String retVal = null;
-        readConfiguration();
-        DuccProperties properties = nodeConfiguration.getClass(class_name);
+        DuccProperties properties = readConfiguration().getClass(class_name);
         if ( properties != null ) {
             retVal = properties.getProperty("debug");
         }
@@ -148,8 +147,7 @@ public class DuccSchedulerClasses {
 	public String[] getReserveClasses()
         throws Exception
     {
-        readConfiguration();
-        Map<String, DuccProperties> allClasses = nodeConfiguration.getClasses();
+        Map<String, DuccProperties> allClasses = readConfiguration().getClasses();
         ArrayList<String> classList = new ArrayList<String>();
         for ( DuccProperties p : allClasses.values() ) {
             String pol = p.getProperty("policy");
@@ -166,8 +164,7 @@ public class DuccSchedulerClasses {
 	public String[] getFixedClasses()
         throws Exception
     {
-        readConfiguration();
-        Map<String, DuccProperties> allClasses = nodeConfiguration.getClasses();
+        Map<String, DuccProperties> allClasses = readConfiguration().getClasses();
         ArrayList<String> classList = new ArrayList<String>();
         for ( DuccProperties p : allClasses.values() ) {
             String pol = p.getProperty("policy");
@@ -185,8 +182,7 @@ public class DuccSchedulerClasses {
 		throws Exception
 	{
 		String retVal = "";
-        readConfiguration();
-        DuccProperties properties = nodeConfiguration.getDefaultReserveClass();
+        DuccProperties properties = readConfiguration().getDefaultReserveClass();
         if ( properties != null ) {
             retVal = properties.getProperty("name");
         }
