@@ -19,8 +19,6 @@
 
 package org.apache.uima.ducc.ws.server.nodeviz;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -33,7 +31,6 @@ import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
@@ -125,11 +122,6 @@ public class NodeViz
 
         IDuccWorkMap jobmap = ev.getWorkMap();
 
-        int job_shares = 0;
-        int service_shares = 0;
-        int pop_shares = 0;
-        int reservation_shares = 0;
-
         int job_gb = 0;
         int service_gb = 0;
         int pop_gb = 0;
@@ -189,7 +181,7 @@ public class NodeViz
             String              sclass = sti.getSchedulingClass();
             int                 quantum = default_quantum;
             try {
-                quantum = nc.getShareQuantum(sclass);
+                quantum = nc.getQuantumForClass(sclass);
             } catch ( Exception e ) {
                 // this most likely caused by a reconfigure so that a job's class no longer exists.  nothing to do about it
                 // but punt and try not to crash.
@@ -219,15 +211,12 @@ public class NodeViz
 
                         switch ( type ) {
                             case Job:
-                                job_shares += qshares;
                                 job_gb += jobmem;
                                 break;
-                            case Pop:
-                                pop_shares += qshares;
+                            case Pop:                                
                                 pop_gb += jobmem;
                                 break;
-                            case Service:
-                                service_shares += qshares;
+                            case Service:                                
                                 service_gb += jobmem;
                                 break;
                         }
@@ -253,7 +242,6 @@ public class NodeViz
                     IDuccReservationMap  rm = de.getReservationMap();
                     
                     logger.debug(methodName, w.getDuccId(), "Receive:", type, w.getStateObject(), "processes[", rm.size(), "] Completed:", w.isCompleted());
-                    reservation_shares += qshares;
                     reservation_gb += jobmem;
                     
                     for ( IDuccReservation r: rm.values()) {
@@ -298,9 +286,7 @@ public class NodeViz
 
             String key = strip(s);             // our key, possibly with domain stripped
             if ( ! hosts.containsKey(key) ) {
-                // System.out.println("Set host from MachineInfo with key :" + key + ":");
-
-                VisualizedHost vh = new VisualizedHost(mi, default_quantum);
+                VisualizedHost vh = new VisualizedHost(mi, nc.getQuantumForNode(s));
                 hosts.put(key, vh);
             }
         }

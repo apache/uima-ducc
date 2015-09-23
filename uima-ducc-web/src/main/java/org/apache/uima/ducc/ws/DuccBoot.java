@@ -18,10 +18,7 @@
 */
 package org.apache.uima.ducc.ws;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.TreeMap;
 
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
@@ -87,23 +84,6 @@ public class DuccBoot extends Thread {
 		return limit;
 	}
 	
-	private static TreeMap<Integer,String> sort(ArrayList<String> list) {
-		String location = "sort";
-		TreeMap<Integer,String> map = new TreeMap<Integer,String>();
-		ListIterator<String> listIterator = list.listIterator();
-		while(listIterator.hasNext()) {
-			try {
-				String value = listIterator.next().trim();
-				int index = value.indexOf('.');
-				Integer key = Integer.parseInt(value.substring(0,index));
-				map.put(key, value);
-			}
-			catch(Throwable t) {
-				logger.warn(location, jobid, t);
-			}
-		}
-		return map;
-	}
 	
 	// private void restoreReservations(IHistoryPersistenceManager hpm, DuccData duccData) {
 	// 	String location = "restoreReservations";

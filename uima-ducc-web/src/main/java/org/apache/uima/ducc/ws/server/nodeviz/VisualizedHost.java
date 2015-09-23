@@ -77,18 +77,9 @@ class VisualizedHost
         this.name = NodeViz.strip(info.getName());
         this.ip = info.getIp();
 
-        //TODO
-        String ns = "";
-        if ( false && ns == "" || ns == null ) {
-            this.mem = 0;
-            this.shares = 0;
-            this.mem_reservable = 0;
-        } else {
-            this.mem = Integer.parseInt(info.getMemFree());
-            this.shares = (mem / quantum);
-            this.mem_reservable = shares * quantum;
-        }
-
+        this.mem = Integer.parseInt(info.getMemFree());
+        this.shares = (mem / quantum);
+        this.mem_reservable = shares * quantum;
         this.shares_free = shares;        
     }
 

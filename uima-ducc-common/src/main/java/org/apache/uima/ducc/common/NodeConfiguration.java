@@ -65,14 +65,16 @@ public class NodeConfiguration
     Map<String, DuccProperties> usermap  = new HashMap<String, DuccProperties>();         // all users, by name UIMA-4275
     ArrayList<String> independentClasses = new ArrayList<String>();                       // all classes that don't derive from something
 
-    Map<String, String> allNodes   = new HashMap<String, String>();                        // map node           -> nodepool name, map for dup checking
+    Map<String, String> allNodes   = new HashMap<String, String>();                        // map node           -> nodefile name, map for dup checking
     Map<String, DuccProperties> poolsByNodefile = new HashMap<String, DuccProperties>();   // nodepool node file -> nodepool props
+    Map<String, DuccProperties> poolsByNodeName = new HashMap<String, DuccProperties>();   // Nodepools, by node
 
     Map<String, String> allImports = new HashMap<String, String>();                        // map nodefile -> importer, map for dup checking
     Map<String, String> referrers  = new HashMap<String, String>();                        // map nodefile -> referring nodepool, for dup checking
 
     DuccLogger logger;
     String defaultDomain = null;
+    int    defaultQuantum = 15;
     String firstNodepool = null;
 
     boolean fairShareExists = false;
@@ -651,7 +653,7 @@ public class NodeConfiguration
         for (DuccProperties props : independentNodepools ) {
             String q = props.getProperty("share-quantum");
             if ( q == null ) {
-                props.setProperty("share-quantum", ""+SystemPropertyResolver.getIntProperty("ducc.rm.share.quantum", 15));
+                props.setProperty("share-quantum", "" + defaultQuantum);
             } else {
                 try {
 					Integer.parseInt(q);      // insure it's a number
@@ -797,6 +799,7 @@ public class NodeConfiguration
                 }
                 allNodes.put(node, nodefile); // for dup checking - we only get to read a node once
                 nodes.put(node, nodefile);    // UIMA-4142 map host -> domain
+                poolsByNodeName.put(node, p); // So we can find pool-related things for the node
 
                 // include fully and non-fully qualified names to allow sloppiness of config
                 ndx = node.indexOf(".");
@@ -998,7 +1001,18 @@ public class NodeConfiguration
         return reserveDefault;
     }
 
-    public int getShareQuantum(String classname)
+    public int getQuantumForNode(String node)
+    {
+        DuccProperties np = poolsByNodeName.get(node);
+        if ( np == null ) {
+            // it has to be the default np, so use the default quantum
+            return defaultQuantum;
+        }
+        // otherwise it's required that the quantum for the nodepool is set to something
+        return Integer.parseInt(np.getProperty("share-quantum"));
+    }
+
+    public int getQuantumForClass(String classname)
         throws IllegalConfigurationException
     {
         // to find the quantum for a class - 
@@ -1051,6 +1065,7 @@ public class NodeConfiguration
             throw new IllegalConfigurationException("DUCC_HOME must be defined as a system property.");
         }
         defaultDomain = getDomainName();
+        defaultQuantum = SystemPropertyResolver.getIntProperty("ducc.rm.share.quantum", 15);
 
         try {
             String tconfig_file_name = resolve(config_file_name);
