@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import org.apache.uima.ducc.common.DuccEnvironmentHelper;
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -79,7 +81,18 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
         String retVal = id;
         return retVal;
     }
-        
+    
+    private ObjectInputStream getObjectInputStream(FileInputStream fis) throws SecurityException, IOException {
+    	ObjectInputStream retVal = null;
+    	if(DuccEnvironmentHelper.isTolerateSerialVersionUidMismatch()) {
+    		retVal = new DeserializerObjectInputStream(fis);
+    	}
+    	else {
+    		retVal = new ObjectInputStream(fis);
+    	}
+    	return retVal;
+    }  
+    
     public void saveJob(IDuccWorkJob duccWorkJob) throws IOException {
         String id = normalize(""+duccWorkJob.getDuccId().getFriendly());
         String fileName = historyDirectory_jobs+File.separator+id+"."+dwj;
@@ -139,9 +152,9 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
             String fileName = ""+duccid + "." + dwj;
             logger.trace(location, new DuccId(duccid), fileName);
             FileInputStream fis = null;
-            DeserializerObjectInputStream in = null;
+            ObjectInputStream in = null;
             fis = new FileInputStream(historyDirectory_jobs+File.separator+fileName);
-            in = new DeserializerObjectInputStream(fis);
+            in = getObjectInputStream(fis);
             job = (IDuccWorkJob) in.readObject();
             in.close();      
         }
@@ -256,11 +269,11 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
         IDuccWorkReservation reservation = null;
         try {
         	FileInputStream fis = null;
-            DeserializerObjectInputStream in = null;
+            ObjectInputStream in = null;
             String fileName = ""+duccid + "." + dwr;
             logger.trace(location, new DuccId(duccid), fileName);
             fis = new FileInputStream(historyDirectory_reservations+File.separator+fileName);
-            in = new DeserializerObjectInputStream(fis);
+            in = getObjectInputStream(fis);
             reservation = (IDuccWorkReservation) in.readObject();
             in.close();
         }
@@ -395,11 +408,11 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
         IDuccWorkService service = null;
         try {
         	FileInputStream fis = null;
-            DeserializerObjectInputStream in = null;
+            ObjectInputStream in = null;
             String fileName = ""+duccid + "." + dws;
             logger.trace(location, new DuccId(duccid), fileName);
             fis = new FileInputStream(historyDirectory_services+File.separator+fileName);
-            in = new DeserializerObjectInputStream(fis);
+            in = getObjectInputStream(fis);
             service = (IDuccWorkService) in.readObject();
             in.close();
         }
@@ -483,9 +496,9 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
         try {
             logger.trace(methodName, null, "restore:"+fileName);
             FileInputStream fis = null;
-            DeserializerObjectInputStream in = null;
+            ObjectInputStream in = null;
             fis = new FileInputStream(historyDirectory_services+File.separator+fileName);
-            in = new DeserializerObjectInputStream(fis);
+            in = getObjectInputStream(fis);
             service = (IDuccWorkService) in.readObject();
             in.close();
         }
