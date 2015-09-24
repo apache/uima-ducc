@@ -1912,7 +1912,8 @@ public class DuccHandler extends DuccAbstractHandler {
 				    // pass 2
 				    for (int i = 0; i < numstats; ++i) {
 				    	sb.append(trGet(counter++));
-						sb.append("<td>");
+				    	String title = "title="+"\""+uimaStats.get(i).getLongName()+"\"";
+						sb.append("<td "+title+">");
 						sb.append(uimaStats.get(i).getShortName());
 						double time;
 						// Total
