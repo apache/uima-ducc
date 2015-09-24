@@ -43,7 +43,9 @@ import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
-import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceKeeper;
+import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceIndividualKeeper;
+import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceSummaryKeeper;
+import org.apache.uima.ducc.container.jd.wi.perf.WorkItemPerformanceIndividualKeeper;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
@@ -100,6 +102,17 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 	private String keyUniqueName = "uniqueName";
 	private String keyAnalysisTime = "analysisTime";
 	
+	private String normalizeUniqueName(String uniqueName) {
+		String retVal = uniqueName;
+		try {
+			// expected format: <thread-number> Components /<annotators-path>
+			retVal = uniqueName.trim().split("\\s++", 3)[2];
+		}
+		catch(Exception e) {
+		}
+		return retVal;
+	}
+	
 	private void updatePerformanceMetrics(IActionData actionData, IWorkItem wi) {
 		String location = "updatePerformanceMetrics";
 		if(wi != null) {
@@ -113,11 +126,14 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 						if(list !=  null) {
 							size = list.size();
 							JobDriver jd = JobDriver.getInstance();
-							IWorkItemPerformanceKeeper wipk = jd.getWorkItemPerformanceKeeper();
-							wipk.count();
+							String logdir = jd.getLogDir();
+							String wiNo = ""+wi.getSeqNo();
+							IWorkItemPerformanceIndividualKeeper wipik = new WorkItemPerformanceIndividualKeeper(logdir, wiNo);
+							IWorkItemPerformanceSummaryKeeper wipsk = jd.getWorkItemPerformanceSummaryKeeper();
+							wipsk.count();
 							for(Properties properties : list) {
 								String name = properties.getProperty(keyName);
-								String uniqueName = properties.getProperty(keyUniqueName);
+								String uniqueName = normalizeUniqueName(properties.getProperty(keyUniqueName));
 								String analysisTime = properties.getProperty(keyAnalysisTime);
 								long time = 0;
 								try {
@@ -126,7 +142,8 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 								catch(Exception e) {
 									logger.error(location, ILogger.null_id, e);
 								}
-								wipk.dataAdd(name, uniqueName, time);
+								wipik.dataAdd(name, uniqueName, time);
+								wipsk.dataAdd(name, uniqueName, time);
 								for(Entry<Object, Object> entry : properties.entrySet()) {
 									String key = (String) entry.getKey();
 									String value = (String) entry.getValue();
@@ -136,6 +153,7 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 									logger.debug(location, ILogger.null_id, mb.toString());
 								}
 							}
+							wipik.publish();
 						}
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						mb.append(Standardize.Label.size.get()+size);

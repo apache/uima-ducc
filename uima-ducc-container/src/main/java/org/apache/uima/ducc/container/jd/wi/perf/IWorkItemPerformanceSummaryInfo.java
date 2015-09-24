@@ -16,13 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common;
+package org.apache.uima.ducc.container.jd.wi.perf;
 
-public interface IJdConstants {
+public interface IWorkItemPerformanceSummaryInfo {
 
-	public enum DeallocateReason { WorkItemTimeout };
-	
-	public String folderNameWorkItemPerformance = "work-item-performance";
-	
-	public String environmentVariableNameWorkItemPerformance = "DUCC_WORK_ITEM_PERFORMANCE";
+	public String getName();
+	public String getUniqueName();
+	public double getCount();
+	public double getTime();
+	public double getPctOfTime();
+	public double getAvg();
+	public double getMin();
+	public double getMax();
 }
