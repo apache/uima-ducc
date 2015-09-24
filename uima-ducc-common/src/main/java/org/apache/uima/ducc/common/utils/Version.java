@@ -42,7 +42,7 @@ package org.apache.uima.ducc.common.utils;
 public class Version
 {
     private static final int major = 2;       // Major version
-    private static final int minor = 0;       // Minor - may be API changes, or new function
+    private static final int minor = 1;       // Minor - may be API changes, or new function
     private static final int ptf   = 0;       // Fix level, fully compatible with previous, no relevent new function
     private static final String id = null;    // A short decoration, optional
 
