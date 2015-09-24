@@ -683,6 +683,30 @@ ${uimaDUCCNoticeText}
 
 		<!-- define common plugins that are shared by every pom -->
 		<plugins>
+
+
+
+<plugin>
+  <groupId>org.codehaus.mojo</groupId>
+  <artifactId>buildnumber-maven-plugin</artifactId>
+  <version>1.3</version>
+  <executions>
+    <execution>
+      <phase>validate</phase>
+      <goals>
+        <goal>create</goal>
+      </goals>
+    </execution>
+  </executions>
+  <configuration>
+    <doCheck>false</doCheck>
+    <doUpdate>true</doUpdate>
+  </configuration>
+</plugin>
+
+
+
+
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
@@ -706,14 +730,33 @@ ${uimaDUCCNoticeText}
 							<Ducc-Bassedir>${basedir}</Ducc-Bassedir>
 							<Ducc-Java-Vendor>${java.vendor}</Ducc-Java-Vendor>
 							<Project-Title>Apache UIMA DUCC</Project-Title>
+        <SCM-Revision>${buildNumber}</SCM-Revision>
 						</manifestEntries>
 					</archive>
 				</configuration>
 			</plugin>
 		</plugins>
+
 	</build>
 
+
+
 	<profiles>
+
+		<profile>
+			<id>bundle-source-code</id>
+			<build>
+                            <resources>
+                               <resource>
+                                   <directory>src/main/java</directory>
+                                   <includes>
+                                         <include>**/*.java</include>
+                                    </includes>
+                               </resource>
+                            </resources>
+	                </build>
+		</profile>
+
 		<profile>
 			<id>apache-release</id>
 			<build>
