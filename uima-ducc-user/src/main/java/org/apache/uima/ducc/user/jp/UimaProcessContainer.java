@@ -457,7 +457,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 					}
 					//String uniqueName =  
 					AnalysisEnginePerformanceMetrics metrics = new AnalysisEnginePerformanceMetrics(
-							after.getName(), after.getUniqueName(),
+							after.getName(), uniqueName,
 							after.getAnalysisTime() - before.getAnalysisTime(),
 							after.getNumProcessed());
 					// System.out.println("********************"+metrics.getUniqueName());
