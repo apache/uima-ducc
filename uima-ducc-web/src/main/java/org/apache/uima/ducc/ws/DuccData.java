@@ -94,34 +94,40 @@ public class DuccData {
 		}
 	}
 	
+	//<UIMA-4606>
+	private boolean merge = false;
+	//</UIMA-4606>
+	
 	@SuppressWarnings("unchecked")
 	private void mergeHistory(IDuccWorkMap map)
     {
         String methodName = "mergeHistory";
-		Iterator<DuccId> iterator = duccWorkLive.keySet().iterator();
-		while(iterator.hasNext()) {
-			DuccId duccId = iterator.next();
-			IDuccWork duccWork = duccWorkLive.findDuccWork(duccId);
-			IDuccWork history = null;
-            try {
-                switch(duccWork.getDuccType()) {
-                case Job:
-                    history = hpm.restoreJob(duccId.getFriendly());
-                    break;
-                case Reservation:
-                    history = hpm.restoreReservation(duccId.getFriendly());
-                    break;
-                case Service:
-                    history = hpm.restoreService(duccId.getFriendly());
-                    break;
+        if(merge) {
+        	Iterator<DuccId> iterator = duccWorkLive.keySet().iterator();
+    		while(iterator.hasNext()) {
+    			DuccId duccId = iterator.next();
+    			IDuccWork duccWork = duccWorkLive.findDuccWork(duccId);
+    			IDuccWork history = null;
+                try {
+                    switch(duccWork.getDuccType()) {
+                    case Job:
+                        history = hpm.restoreJob(duccId.getFriendly());
+                        break;
+                    case Reservation:
+                        history = hpm.restoreReservation(duccId.getFriendly());
+                        break;
+                    case Service:
+                        history = hpm.restoreService(duccId.getFriendly());
+                        break;
+                    }
+                    if(history != null) {
+                        map.put(duccId, history);
+                    }
+                } catch ( Exception e ) {
+                    logger.warn(methodName, duccId, "Cannot recover", duccWork.getDuccType(), "from history.");
                 }
-                if(history != null) {
-                    map.put(duccId, history);
-                }
-            } catch ( Exception e ) {
-                logger.warn(methodName, duccId, "Cannot recover", duccWork.getDuccType(), "from history.");
-            }
-		}
+    		}
+        }
 	}
 	
 	public void put(IDuccWorkMap map) {
