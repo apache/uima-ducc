@@ -424,25 +424,64 @@ public class JobFactory implements IJobFactory {
 		job.setDriver(driver);
 	}
 	
+	private void check_max_job_pipelines(DuccWorkJob job, DuccSchedulingInfo schedulingInfo) {
+		String methodName = "check_max_job_pipelines";
+		long ducc_limit = 0;
+		String p_limit;
+		p_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_job_max_pipelines_count);
+		if(p_limit == null) {
+			p_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_threads_limit);
+		}
+		if (p_limit != null) {
+			if (!p_limit.equals("unlimited")) {
+				try {
+					ducc_limit = Long.parseLong(p_limit);
+				}
+				catch(Exception e) {
+					logger.error(methodName, job.getDuccId(), e);
+				}
+			}
+		}
+		if (ducc_limit <= 0) {
+			return;
+		}
+		long user_limit = schedulingInfo.getLongProcessesMax();
+		logger.trace(methodName, job.getDuccId(), "user_limit"+"="+user_limit+" "+"ducc_limit"+"="+ducc_limit);
+		if(user_limit > ducc_limit) {
+			logger.info(methodName, job.getDuccId(), "change max job pipelines from "+user_limit+" to " + ducc_limit);
+			schedulingInfo.setLongProcessesMax(ducc_limit);
+		}
+	}
+	
+	private void check_max_process_pipelines(DuccWorkJob job, DuccSchedulingInfo schedulingInfo) {
+		String methodName = "check_max_process_pipelines";
+		int ducc_limit = 0;
+		String p_limit;
+		p_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_process_max_pipelines_count);
+		if (p_limit != null) {
+			if (!p_limit.equals("unlimited")) {
+				try {
+					ducc_limit = Integer.parseInt(p_limit);
+				}
+				catch(Exception e) {
+					logger.error(methodName, job.getDuccId(), e);
+				}
+			}
+		}
+		if (ducc_limit <= 0) {
+			return;
+		}
+		int user_limit = schedulingInfo.getIntThreadsPerProcess();
+		logger.trace(methodName, job.getDuccId(), "user_limit"+"="+user_limit+" "+"ducc_limit"+"="+ducc_limit);
+		if(user_limit > ducc_limit) {
+			logger.info(methodName, job.getDuccId(), "change max process pipelines from "+user_limit+" to " + ducc_limit);
+			schedulingInfo.setIntThreadsPerProcess(ducc_limit);
+		}
+	}
+	
 	private void checkSchedulingLimits(DuccWorkJob job, DuccSchedulingInfo schedulingInfo) {
-	    String methodName = "checkSchedulingLimits";
-        long limit = 0;
-        String p_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_threads_limit);
-        if (p_limit != null) {
-            if (!p_limit.equals("unlimited")) {
-                limit = Long.parseLong(p_limit);
-            }
-        }
-        if (limit <= 0) {
-            return;
-        }
-        int threads_per_process = schedulingInfo.getIntThreadsPerProcess();
-        long processesLimit = limit / threads_per_process;
-        long maxProcesses = schedulingInfo.getLongProcessesMax();
-        if (maxProcesses == 0 || maxProcesses > processesLimit) {
-            logger.info(methodName, job.getDuccId(), "change max-processes from "+maxProcesses+" to " + processesLimit);
-            schedulingInfo.setProcessesMax(String.valueOf(processesLimit));
-        }
+		check_max_job_pipelines(job, schedulingInfo);
+		check_max_process_pipelines(job, schedulingInfo);
 	}
 	
 	public DuccWorkJob createJob(CommonConfiguration common, JobRequestProperties jobRequestProperties) throws ResourceUnavailableForJobDriverException {

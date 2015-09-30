@@ -80,7 +80,7 @@ public class Validate {
 		return retVal;
 	}
 	 
-	public static boolean integer(boolean retVal, Properties properties, String key, String defaultValue, String minValue, String maxValue) {
+	public static boolean integer(boolean retVal, Properties properties, String key, String defaultValue, String minValue) {
 		String value = (String)properties.get(key);
 		if(value == null) {
 			String reason = createReason("default",key,defaultValue);
@@ -90,14 +90,8 @@ public class Validate {
 			try {
 				int specified_value = Integer.parseInt(value);
 				int min_value = Integer.parseInt(minValue);
-				int max_value = Integer.parseInt(maxValue);
 				if(specified_value < min_value) {
 					String reason = createReason("invalid, under "+minValue,key,value);
-					addError(properties,reason);
-					retVal = false;
-				}
-				if(specified_value > max_value) {
-					String reason = createReason("invalid, above "+maxValue,key,value);
 					addError(properties,reason);
 					retVal = false;
 				}
@@ -123,8 +117,7 @@ public class Validate {
 				properties,
 				JobSpecificationProperties.key_process_thread_count,
 				IDuccSchedulingInfo.defaultThreadsPerProcess,
-				IDuccSchedulingInfo.minThreadsPerProcess,
-				IDuccSchedulingInfo.maxThreadsPerProcess);
+				IDuccSchedulingInfo.minThreadsPerProcess);
 		// scheduling class
 		key = JobRequestProperties.key_scheduling_class;
 		value = (String) properties.get(key);
@@ -222,8 +215,7 @@ public class Validate {
 				properties,
 				JobSpecificationProperties.key_process_thread_count,
 				IDuccSchedulingInfo.defaultThreadsPerProcess,
-				IDuccSchedulingInfo.minThreadsPerProcess,
-				IDuccSchedulingInfo.maxThreadsPerProcess);
+				IDuccSchedulingInfo.minThreadsPerProcess);
 		// scheduling class
 		key = ServiceRequestProperties.key_scheduling_class;
 		value = (String) properties.get(key);
