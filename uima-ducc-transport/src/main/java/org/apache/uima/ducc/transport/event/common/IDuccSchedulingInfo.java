@@ -42,7 +42,6 @@ public interface IDuccSchedulingInfo extends Serializable {
 	public static final String defaultThreadsPerProcess = "1";
 	
 	public static final String minThreadsPerProcess = "1";
-	public static final String maxThreadsPerProcess = "100";
 	
 	public static final String defaultWorkItemsTotal = "unknown";
 	public static final String defaultWorkItemsCompleted = "0";

@@ -252,7 +252,10 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	public int getIntThreadsPerProcess() {
 		return Integer.parseInt(threadsPerProcess);
 	}
-
+	
+	public void setIntThreadsPerProcess(int number) {
+		this.threadsPerProcess = ""+number;
+	}
 	
 	public void setThreadsPerProcess(String number) {
 		if(number != null) {
