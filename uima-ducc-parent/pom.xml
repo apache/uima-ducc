@@ -751,7 +751,9 @@ ${uimaDUCCNoticeText}
 
 	<profiles>
 
-		<profile>
+		<!--profile>
+                   currently disabled. It packages java source files but doesnt package xml and other resource files when building
+                   causing runtime problems.  
 			<id>bundle-source-code</id>
 			<build>
                             <resources>
@@ -761,9 +763,15 @@ ${uimaDUCCNoticeText}
                                          <include>**/*.java</include>
                                     </includes>
                                </resource>
+                                <resource>
+                                   <directory>src</directory>
+                                   <includes>
+                                         <include>**/*.xml</include>
+                                    </includes>
+                               </resource>
                             </resources>
 	                </build>
-		</profile>
+		</profile -->
 
 		<profile>
 			<id>apache-release</id>
