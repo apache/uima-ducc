@@ -460,12 +460,11 @@
 
 
        \item[ducc.job.max.pipelines.count] \hfill \\
-         This enforces a maximum number of pipeline threads per job, over all its processes. No 
+         This enforces a maximum number of pipelines per job, over all its processes. No 
          job will have more active work-items than this dispatched.
 
-         The value represents the size of the underlying CAS pool in the Job Driver and therefore
-         is related to the size of the Job Driver heap and the real memory consumed by JD.  If
-         the JD is consuming too much memory, try setting or reducing this value.
+         The value is related to the size of the Job Driver heap and the real memory consumed by JD.
+         If the JD is consuming too much memory, try reducing this value.
          
          Note: formerly ducc.threads.limit
          
@@ -475,7 +474,7 @@
          \end{description}
 
       \item[ducc.process.max.pipelines.count] \hfill \\
-         This enforces a maximum number of pipeline threads per process.
+         This enforces a maximum number of pipelines per process.
 
          \begin{description}
            \item[Default] 100
