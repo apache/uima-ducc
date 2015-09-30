@@ -83,7 +83,14 @@ public class DuccPropertiesResolver {
     
     public static final String ducc_private_resources = "ducc.private.resources";
     
+    //Legacy, replaced by: ducc_job_max_pipelines_count
     public static final String ducc_threads_limit = "ducc.threads.limit";
+    
+    //<UIMA-4612>
+    public static final String ducc_job_max_pipelines_count = "ducc.job.max.pipelines.count";
+    public static final String ducc_process_max_pipelines_count = "ducc.process.max.pipelines.count";
+    //</UIMA-4612>
+    
     public static final String ducc_driver_jvm_args = "ducc.driver.jvm.args";
     public static final String ducc_process_jvm_args = "ducc.process.jvm.args";
     public static final String ducc_environment_propagated = "ducc.environment.propagated";
