@@ -208,14 +208,14 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 		return threadsPerProcess;
 	}
 	
-	
+	// get processesMax or zero if not (or illegally) specified
 	public long getLongProcessesMax() {
 		long retVal = 0;
 		try {
 			retVal = Long.parseLong(processesMax);
 		}
 		catch(Exception e) {
-			
+			// no worries
 		}
 		return retVal;
 	}
