@@ -38,8 +38,8 @@ import org.apache.uima.ducc.user.common.ExceptionHelper;
 import org.apache.uima.ducc.user.dgen.DeployableGenerator;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregate;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregateComponent;
-import org.apache.uima.ducc.user.dgen.IDuccUimaAggregateComponent;
-import org.apache.uima.ducc.user.dgen.IDuccUimaDeployableConfiguration;
+import org.apache.uima.ducc.user.dgen.IDuccGeneratorUimaAggregateComponent;
+import org.apache.uima.ducc.user.dgen.IDuccGeneratorUimaDeployableConfiguration;
 import org.apache.uima.ducc.user.dgen.iface.DeployableGeneration;
 import org.apache.uima.ducc.user.jd.JdUserCollectionReader;
 import org.apache.uima.ducc.user.jd.JdUserMetaCas;
@@ -371,21 +371,21 @@ public class TestSuite {
 		}
 	}
 	
-	private IDuccUimaDeployableConfiguration getIDuccUimaDeployableConfiguration() {
+	private IDuccGeneratorUimaDeployableConfiguration getIDuccUimaDeployableConfiguration() {
 		String aeName = "name";
 		String aeDescription = "description";
 		int aeThreadCount = 1;
 		String aeBrokerURL = "brokerURL";
 		String aeEndpoint = "endpoint";
 		String aeFlowController = "flowController";
-		ArrayList<IDuccUimaAggregateComponent> aeComponents = new ArrayList<IDuccUimaAggregateComponent>();
+		ArrayList<IDuccGeneratorUimaAggregateComponent> aeComponents = new ArrayList<IDuccGeneratorUimaAggregateComponent>();
 		URL url = this.getClass().getResource("/CR100.xml");
 		File file = new File(url.getFile());
 		String aeDescriptor = file.getAbsolutePath();
 		List<String> aeOverrides = null;
 		DuccUimaAggregateComponent aeComponent = new DuccUimaAggregateComponent(aeDescriptor, aeOverrides);
 		aeComponents.add(aeComponent);
-		IDuccUimaDeployableConfiguration configuration = new DuccUimaAggregate(aeName, aeDescription, aeThreadCount, aeBrokerURL, aeEndpoint, aeFlowController, aeComponents);
+		IDuccGeneratorUimaDeployableConfiguration configuration = new DuccUimaAggregate(aeName, aeDescription, aeThreadCount, aeBrokerURL, aeEndpoint, aeFlowController, aeComponents);
 		return configuration;
 	}
 	
@@ -416,7 +416,7 @@ public class TestSuite {
 			delete(working);
 			working.mkdir();
 			DeployableGenerator aeGenerator = new DeployableGenerator(working.getAbsolutePath());
-			IDuccUimaDeployableConfiguration configuration = getIDuccUimaDeployableConfiguration();
+			IDuccGeneratorUimaDeployableConfiguration configuration = getIDuccUimaDeployableConfiguration();
 			String jobId = "12345";
 			String ae = aeGenerator.generate(configuration, jobId);
 			debug(ae);

@@ -20,7 +20,7 @@ package org.apache.uima.ducc.user.dgen;
 
 import java.util.List;
 
-public class DuccUimaAggregateComponent implements IDuccUimaAggregateComponent {
+public class DuccUimaAggregateComponent implements IDuccGeneratorUimaAggregateComponent {
 
 	/**
 	 * please increment this sUID when removing or modifying a field 

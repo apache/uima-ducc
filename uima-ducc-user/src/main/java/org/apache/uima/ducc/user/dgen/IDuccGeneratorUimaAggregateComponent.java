@@ -19,8 +19,13 @@
 package org.apache.uima.ducc.user.dgen;
 
 import java.io.Serializable;
+import java.util.List;
 
-public interface IIdentity extends Serializable {
-	public String getName();
-	public String getIP();
+public interface IDuccGeneratorUimaAggregateComponent extends Serializable {
+
+	public String getDescriptor();
+	public void setDescriptor(String descriptor);
+	
+	public List<String> getOverrides();
+	public void setOverrides(List<String> overrides);
 }

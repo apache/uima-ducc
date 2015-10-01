@@ -18,12 +18,10 @@
 */
 package org.apache.uima.ducc.user.dgen;
 
-import java.util.List;
+public interface IDuccGeneratorUimaReferenceByName extends IDuccGeneratorUimaDeployableConfiguration {
 
-public interface IDuccUimaAggregate extends IDuccUimaDeployableConfiguration {
-
-	public List<IDuccUimaAggregateComponent> getComponents();
-	public void setComponents(List<IDuccUimaAggregateComponent> components);
+	public String getReferenceByName();
+	public void setReferenceByName(String referenceByName);
 	
 	public String getName();
 	public void setName(String name);

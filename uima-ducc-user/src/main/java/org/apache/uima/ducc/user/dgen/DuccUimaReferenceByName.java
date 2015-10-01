@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.user.dgen;
 
-public class DuccUimaReferenceByName implements IDuccUimaReferenceByName {
+public class DuccUimaReferenceByName implements IDuccGeneratorUimaReferenceByName {
 
 	/**
 	 * please increment this sUID when removing or modifying a field 

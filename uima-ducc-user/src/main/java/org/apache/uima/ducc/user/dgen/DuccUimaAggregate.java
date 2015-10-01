@@ -21,14 +21,14 @@ package org.apache.uima.ducc.user.dgen;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DuccUimaAggregate implements IDuccUimaAggregate {
+public class DuccUimaAggregate implements IDuccGeneratorUimaAggregate {
 
 	/**
 	 * please increment this sUID when removing or modifying a field 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private List<IDuccUimaAggregateComponent> components = new ArrayList<IDuccUimaAggregateComponent>();
+	private List<IDuccGeneratorUimaAggregateComponent> components = new ArrayList<IDuccGeneratorUimaAggregateComponent>();
 	
 	private String name;
 	private String description;
@@ -46,7 +46,7 @@ public class DuccUimaAggregate implements IDuccUimaAggregate {
 		setFlowController(flowController);
 	}
 	
-	public DuccUimaAggregate(String name, String description, int threadCount, String brokerURL, String endpoint, String flowController, List<IDuccUimaAggregateComponent> components) {
+	public DuccUimaAggregate(String name, String description, int threadCount, String brokerURL, String endpoint, String flowController, List<IDuccGeneratorUimaAggregateComponent> components) {
 		setName(name);
 		setDescription(description);
 		setThreadCount(threadCount);
@@ -57,12 +57,12 @@ public class DuccUimaAggregate implements IDuccUimaAggregate {
 	}
 	
 	
-	public List<IDuccUimaAggregateComponent> getComponents() {
+	public List<IDuccGeneratorUimaAggregateComponent> getComponents() {
 		return components;
 	}
 	
 	
-	public void setComponents(List<IDuccUimaAggregateComponent> components) {
+	public void setComponents(List<IDuccGeneratorUimaAggregateComponent> components) {
 		this.components = components;
 	}
 	

@@ -18,7 +18,28 @@
 */
 package org.apache.uima.ducc.user.dgen;
 
-import java.io.Serializable;
+import java.util.List;
 
-public interface IDuccUimaDeployableConfiguration extends Serializable {
+public interface IDuccGeneratorUimaAggregate extends IDuccGeneratorUimaDeployableConfiguration {
+
+	public List<IDuccGeneratorUimaAggregateComponent> getComponents();
+	public void setComponents(List<IDuccGeneratorUimaAggregateComponent> components);
+	
+	public String getName();
+	public void setName(String name);
+	
+	public String getDescription();
+	public void setDescription(String description);
+	
+	public int getThreadCount();
+	public void setThreadCount(int threadCount);
+	
+	public String getBrokerURL();
+	public void setBrokerURL(String brokerURL);
+	
+	public String getEndpoint();
+	public void setEndpoint(String endpoint);
+	
+	public String getFlowController();
+	public void setFlowController(String flowController);
 }

@@ -52,25 +52,25 @@ public class DeployableGenerator {
 		userLogDir = value;
 	}
 	
-	public String generate(IDuccUimaDeployableConfiguration configuration, String jobId) throws Exception {
+	public String generate(IDuccGeneratorUimaDeployableConfiguration configuration, String jobId) throws Exception {
 		String retVal = null;
 		if(configuration != null) {
-			if(configuration instanceof IDuccUimaReferenceByName) {
-				IDuccUimaReferenceByName referrenceByNameConfiguration = (IDuccUimaReferenceByName) configuration;
+			if(configuration instanceof IDuccGeneratorUimaReferenceByName) {
+				IDuccGeneratorUimaReferenceByName referrenceByNameConfiguration = (IDuccGeneratorUimaReferenceByName) configuration;
 				retVal = generateDd(referrenceByNameConfiguration, jobId);
 			}
-			else if(configuration instanceof IDuccUimaAggregate) {
-				IDuccUimaAggregate aggregateConfiguration = (IDuccUimaAggregate) configuration;
+			else if(configuration instanceof IDuccGeneratorUimaAggregate) {
+				IDuccGeneratorUimaAggregate aggregateConfiguration = (IDuccGeneratorUimaAggregate) configuration;
 				retVal = generateAe(aggregateConfiguration, jobId);
 			}
 		}
 		return retVal;
 	}
 	
-	private String generateAe(IDuccUimaAggregate aggregateConfiguration, String jobId) throws Exception {
+	private String generateAe(IDuccGeneratorUimaAggregate aggregateConfiguration, String jobId) throws Exception {
 		List<String> descriptorPaths = new ArrayList<String>();
 		List<List<String>> overrides = new ArrayList<List<String>>();
-		for( IDuccUimaAggregateComponent component: aggregateConfiguration.getComponents()) {
+		for( IDuccGeneratorUimaAggregateComponent component: aggregateConfiguration.getComponents()) {
 			descriptorPaths.add(component.getDescriptor());
 			overrides.add(component.getOverrides());
 		}
@@ -126,7 +126,7 @@ public class DeployableGenerator {
 		return file.getAbsolutePath();
 	}
 	
-	private String generateDd(IDuccUimaReferenceByName configuration, String jobId) throws Exception {
+	private String generateDd(IDuccGeneratorUimaReferenceByName configuration, String jobId) throws Exception {
 		//  parse DD into DOM 
 		Document doc = parse(configuration.getReferenceByName());
 		//  locate the <inputQueue node within the xml
