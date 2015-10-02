@@ -257,7 +257,7 @@ class DuccProcess(Thread):
         CMD = CMD + ' --classpath '                           + self.runner.examples_classpath
         
         CMD = CMD + ' --process_jvm_args '                    + jvm_process_args
-        CMD = CMD + ' --process_thread_count '                + nthreads
+        CMD = CMD + ' --process_pipeline_count '              + nthreads
         CMD = CMD + ' --scheduling_class '                    + pclass
         
         CMD = CMD + ' --process_per_item_time_max '           + self.runner.process_timeout  # in minutes

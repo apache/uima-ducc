@@ -163,7 +163,7 @@ public class DuccManagedReservationSubmit
         
         // Create a copy to be saved later without these 3 "ducclet" properties required by DUCC
         ServiceRequestProperties serviceProperties = (ServiceRequestProperties)serviceRequestProperties.clone();
-        serviceRequestProperties.setProperty(UiOption.ProcessThreadCount.pname(), "1");
+        serviceRequestProperties.setProperty(UiOption.ProcessPipelineCount.pname(), "1");
         serviceRequestProperties.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");     
         serviceRequestProperties.setProperty(UiOption.ServiceTypeOther.pname(), "");
         

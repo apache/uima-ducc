@@ -515,9 +515,9 @@ public interface IUiOptions
             public String example()     { return "30"; }
         },            
 
-        ProcessThreadCount { 
-            public String pname()       { return JobSpecificationProperties.key_process_thread_count; }
-            public String description() { return "Number of pipelines per deployment (i.e. UIMA pipelines per UIMA-AS service copy)."; }
+        ProcessPipelineCount { 
+            public String pname()       { return JobSpecificationProperties.key_process_pipeline_count; }
+            public String description() { return "Number of pipelines per process (i.e. simultaneously processed work-items)."; }
             public String argname()     { return "integer"; }
             public String deflt()       { return "4"; }
         },            

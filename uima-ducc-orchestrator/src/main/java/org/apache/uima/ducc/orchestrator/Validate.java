@@ -115,7 +115,7 @@ public class Validate {
 		//
 		retVal = integer(retVal,
 				properties,
-				JobSpecificationProperties.key_process_thread_count,
+				JobSpecificationProperties.key_process_pipeline_count,
 				IDuccSchedulingInfo.defaultThreadsPerProcess,
 				IDuccSchedulingInfo.minThreadsPerProcess);
 		// scheduling class
@@ -213,7 +213,7 @@ public class Validate {
 		//
 		retVal = integer(retVal,
 				properties,
-				JobSpecificationProperties.key_process_thread_count,
+				JobSpecificationProperties.key_process_pipeline_count,
 				IDuccSchedulingInfo.defaultThreadsPerProcess,
 				IDuccSchedulingInfo.minThreadsPerProcess);
 		// scheduling class

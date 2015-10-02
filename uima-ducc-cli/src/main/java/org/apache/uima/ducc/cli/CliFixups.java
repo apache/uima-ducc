@@ -37,6 +37,9 @@ import org.apache.uima.ducc.common.utils.Utils;
  *   
  * Additionally since services registered under DUCC 1.x may be relying on UIMA jars that are no longer supplied,
  * their classpath will be augmented ... triggered by the deprecated classpath_order option. 
+ * 
+ * For DUCC 2.1.0 changed (without warning):
+ *   process_thread_count   ->  process_pipeline_count
  */
 
 public class CliFixups {
@@ -58,6 +61,9 @@ public class CliFixups {
                 System.out.println("CLI ignored deprecated option: " + arg);
                 args[i] = null;
                 if (++i < args.length && !args[i].startsWith("--")) args[i] = null; 
+            } else if (arg.equals("--process_thread_count")) {
+                args[i] = "--process_pipeline_count";
+                System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
             }
         }
     }
@@ -86,6 +92,7 @@ public class CliFixups {
     	changeOption("instance_memory_size", "memory_size", props);
     	changeOption("classpath_order", null, props);
     	changeOption("number_of_instances", null, props);
+    	changeOption("process_thread_count", "process_pipeline_count", props);
     }
     
 	static private void changeOption(String oldKey, String newKey, Properties props) {

@@ -338,7 +338,7 @@ public class DuccUiConstants {
 	public static final String exmp_process_failures_limit = "20";
 	public static final String dval_process_failures_limit = "20";
 	
-	public static final String name_process_thread_count = JobSpecificationProperties.key_process_thread_count;
+	public static final String name_process_thread_count = JobSpecificationProperties.key_process_pipeline_count;
 	public static final String parm_process_thread_count = "integer";
 	public static final String desc_process_thread_count = "Number of pipelines per deployment (i.e. UIMA pipelines per UIMA-AS service copy).";
 	public static final String labl_process_thread_count = "Threads";

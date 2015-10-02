@@ -134,7 +134,7 @@ class RunJob(Thread,Config):
         spArgs.append(self.helper.getClass())
         spArgs.append('--process_memory_size')
         spArgs.append(self.helper.getMemory())
-        spArgs.append('--process_thread_count')
+        spArgs.append('--process_pipeline_count')
         spArgs.append(self.helper.getThreads())
         spArgs.append('--log_directory')
         subdir = str(randint(1,1000000000))

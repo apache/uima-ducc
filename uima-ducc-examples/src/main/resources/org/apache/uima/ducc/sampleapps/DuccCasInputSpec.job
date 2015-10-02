@@ -22,7 +22,7 @@ process_descriptor_CM   org.apache.uima.ducc.sampleapps.DuccCasCM
 process_descriptor_AE   org.apache.uima.ducc.sampleapps.DuccSampleAE
 process_descriptor_CC   org.apache.uima.ducc.sampleapps.DuccCasCC
 process_memory_size     2
-process_thread_count    8
+process_pipeline_count  8
 process_deployments_max 4
 process_jvm_args        -Xmx1G -XX:+UseCompressedOops
 scheduling_class        normal

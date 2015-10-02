@@ -22,7 +22,7 @@ process_descriptor_CM           org.apache.uima.ducc.sampleapps.DuccTextCM
 process_descriptor_AE           ${OPENNLP_HOME}/desc/OpenNlpTextAnalyzer.xml
 process_descriptor_CC           org.apache.uima.ducc.sampleapps.DuccCasCC
 process_memory_size             4
-process_thread_count            8
+process_pipeline_count          8
 process_jvm_args                -Xmx3G -XX:+UseCompressedOops -Djava.util.logging.config.file=${MyAppDir}/ConsoleLogger.properties -Duima.datapath=${OPENNLP_HOME}/models
 scheduling_class                normal
 working_directory               ${MyAppDir}

@@ -327,7 +327,7 @@ public class JobFactory implements IJobFactory {
 		addDashD(jcl, FlagsHelper.Name.JpDdName, name);
 		//TODO
 		addDashD(jcl, FlagsHelper.Name.JpDdDescription, description);
-		addDashD(jcl, FlagsHelper.Name.JpThreadCount, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
+		addDashD(jcl, FlagsHelper.Name.JpThreadCount, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_pipeline_count));
 		addDashD(jcl, FlagsHelper.Name.JpDdBrokerURL,  FlagsHelper.Name.JpDdBrokerURL.getDefaultValue());
 		addDashD(jcl, FlagsHelper.Name.JpDdBrokerEndpoint, FlagsHelper.Name.JpDdBrokerEndpoint.getDefaultValue());
 		//
@@ -564,7 +564,7 @@ public class JobFactory implements IJobFactory {
 		schedulingInfo.setSchedulingPriority(jobRequestProperties.getProperty(JobSpecificationProperties.key_scheduling_priority));
 		schedulingInfo.setProcessesMax(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_deployments_max));
 		schedulingInfo.setProcessesMin(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_deployments_min));
-		schedulingInfo.setThreadsPerProcess(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
+		schedulingInfo.setThreadsPerProcess(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_pipeline_count));
 		schedulingInfo.setMemorySizeRequested(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_memory_size));
 		schedulingInfo.setMemoryUnits(MemoryUnits.GB);
 		
@@ -665,7 +665,7 @@ public class JobFactory implements IJobFactory {
 				addDashD(pipelineCommandLine, FlagsHelper.Name.JpType, "uima");
 			}
 			
-			String process_thread_count = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count);
+			String process_thread_count = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_pipeline_count);
 			if(process_thread_count != null) {
 				addDashD(pipelineCommandLine, FlagsHelper.Name.JpThreadCount, process_thread_count);
 			}

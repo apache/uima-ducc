@@ -243,7 +243,7 @@ public class DuccServiceSubmit
             enrich_parameters_for_debug(requestProperties);
         }
 
-        requestProperties.put(UiOption.ProcessThreadCount.pname(), "1");         // enforce this - OR will complain if it's missing
+        requestProperties.put(UiOption.ProcessPipelineCount.pname(), "1");         // enforce this - OR will complain if it's missing
 
         SubmitServiceDuccEvent      ev    = new SubmitServiceDuccEvent(requestProperties, CliVersion.getVersion());
         SubmitServiceReplyDuccEvent reply = null;

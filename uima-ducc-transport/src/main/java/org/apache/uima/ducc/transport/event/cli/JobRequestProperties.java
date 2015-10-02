@@ -75,7 +75,7 @@ public class JobRequestProperties extends JobSpecificationProperties implements 
 			key_process_deployments_min,
 			key_process_initialization_failures_cap,
 			key_process_failures_limit,
-			key_process_thread_count,
+			key_process_pipeline_count,
 			/*
 			key_process_get_meta_time_max,
 			*/

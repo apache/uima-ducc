@@ -64,7 +64,7 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 	public static String key_process_deployments_min = "process_deployments_min";
 	public static String key_process_initialization_failures_cap = "process_initialization_failures_cap";
 	public static String key_process_failures_limit = "process_failures_limit";
-	public static String key_process_thread_count = "process_thread_count";
+	public static String key_process_pipeline_count = "process_pipeline_count";
 	
 	/*
 	public static String key_process_get_meta_time_max = "process_get_meta_time_max";
@@ -111,7 +111,7 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 		key_process_deployments_min,
 		key_process_initialization_failures_cap,
 		key_process_failures_limit,
-		key_process_thread_count,
+		key_process_pipeline_count,
 		key_process_initialization_time_max,
 		key_process_per_item_time_max,
         key_service_dependency,

@@ -27,7 +27,7 @@ process_descriptor_DD          org.apache.uima.ducc.test.randomsleep.DDSleepDesc
 process_memory_size            2
 classpath                      ${DUCC_HOME}/lib/uima-ducc/examples/*:${DUCC_HOME}/apache-uima/lib/*:${DUCC_HOME}/apache-uima/apache-activemq/lib/*:${DUCC_HOME}/apache-uima/apache-activemq/lib/optional/*
 process_jvm_args               -Xmx100M 
-process_thread_count           2
+process_pipeline_count         2
 process_per_item_time_max      5
 environment                    AE_INIT_TIME=5 AE_INIT_RANGE=5 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path
 process_deployments_max        999

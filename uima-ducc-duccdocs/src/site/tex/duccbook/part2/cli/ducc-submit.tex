@@ -288,14 +288,16 @@ ducc.submit.environment.propagated
 --process_per_item_time_max 60 
              \end{verbatim}
              
-           \item[$--$process\_thread\_count {[integer]} ] This specifies the number of threads per
-             process to be deployed. It is used by the Resource Manager to determine how many
+           \item[$--$process\_pipeline\_count {[integer]} ] This specifies the number of pipelines per
+             process to be deployed, i.e. the number of work-items each JP will process simultaneously. 
+             It is used by the Resource Manager to determine how many
              processes are needed, by the Job Process wrapper to determine how many threads to
              spawn, and by the Job Driver to determine how many CASs to dispatch. If not specified,
              the default is 4. Example:
              \begin{verbatim}
---process_thread_count 7 
+--process_pipeline_count 7 
              \end{verbatim}
+             Alias:  $--$process\_thread\_count
              
            \item[$--$scheduling\_class {[classname]} ] This specifies the name of the scheduling class
              the RM will use to determine the resource allocation for each process. The names of the
