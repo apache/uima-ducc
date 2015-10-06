@@ -284,7 +284,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 	private void getLeafManagementObjects(AnalysisEngineManagement aem,
 			List<AnalysisEnginePerformanceMetrics> result,
 			String uimaFullyQualifiedAEContext) {
-
+//		System.out.println("----------- 1 getLeafManagementObjects() - Unique Name:"+aem.getUniqueMBeanName()+" UniqueContext:"+uimaFullyQualifiedAEContext);
 		if (aem.getComponents().isEmpty()) {
 			// skip Flow Controller
 			if (!aem.getName().equals("Fixed Flow Controller")) {
@@ -297,36 +297,20 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 				// Components,p2=ThirdLevelAggregateCM
 				// Components,name=Multiplier1
 				if (aem.getUniqueMBeanName().indexOf("p0=") > -1) {
-					uimaFullyQualifiedAEContext = "";
-/*
-					// check id the parent aggregate has been scaled up by
-					// looking at the last char in its name. If it is a number
-					// strip it from the name
-					if (Character.isDigit(uimaFullyQualifiedAEContext
-							.charAt(uimaFullyQualifiedAEContext.length() - 1))
-							&& uimaFullyQualifiedAEContext.lastIndexOf(" ") > -1) {
-						String indx = uimaFullyQualifiedAEContext
-								.substring(uimaFullyQualifiedAEContext
-										.lastIndexOf(" "));
-						if (indx != null) {
-							int value = -1;
-							try {
-								value = Integer.parseInt(indx.trim());
-								// Prepend "X Components" to the unique name
-								// with X stripped.
-								uimaFullyQualifiedAEContext = value
-										+ " Components "
-										+ uimaFullyQualifiedAEContext
-												.substring(
-														0,
-														uimaFullyQualifiedAEContext
-																.lastIndexOf(" "));
-							} catch (NumberFormatException ex) {
+				    int p1indx = aem.getUniqueMBeanName().indexOf("p1=");
+				    if ( p1indx > -1 ) {
+				    	String tmp = aem.getUniqueMBeanName().substring(p1indx);
+				    	String[] parts = tmp.split(",");
+				    	for( String part : parts ) {
+				    		if ( part.startsWith("name=") ) {
+				    			uimaFullyQualifiedAEContext += "/"+part.substring(5);
+				    			break;
+				    		}
+				    	}
+				    } else {
+						uimaFullyQualifiedAEContext = "";
+				    }
 
-							}
-						}
-					}
-					*/
 				}
 				result.add(deepCopyMetrics(aem, uimaFullyQualifiedAEContext));
 			}
@@ -437,19 +421,26 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 			List<AnalysisEnginePerformanceMetrics> afterAnalysisManagementObjects,
 			List<AnalysisEnginePerformanceMetrics> beforeAnalysisManagementObjects)
 			throws Exception {
-		// Create a List to hold per CAS analysisTime and total number of CASes
-		// processed
-		// by each AE. This list will be serialized and sent to the client
+		// Create a List to hold per CAS analysisTime and total number of CASes processed by each AE. 
+		// This list will be serialized and sent to the client
 		List<AnalysisEnginePerformanceMetrics> performanceList = new ArrayList<AnalysisEnginePerformanceMetrics>();
-		// Diff the before process() performance metrics with post process
-		// performance
-		// metrics
+		// Diff the before process() performance metrics with post process performance metrics
 		for (AnalysisEnginePerformanceMetrics after : afterAnalysisManagementObjects) {
 			for (AnalysisEnginePerformanceMetrics before : beforeAnalysisManagementObjects) {
+				String uniqueName = after.getUniqueName();
 				if (before.getUniqueName().equals(after.getUniqueName())) {
+					/*
+					int p1 = after.getUniqueName().indexOf("DUCC.Job");
+					if ( p1 >-1 ) {
+						int p2 = after.getUniqueName().indexOf("/",p1);
+						if ( p2 >-1 ) {
+							uniqueName = after.getUniqueName().substring(p2);
+						}
+					}
+					*/
 
 					AnalysisEnginePerformanceMetrics metrics = new AnalysisEnginePerformanceMetrics(
-							after.getName(), after.getUniqueName(),
+							after.getName(), uniqueName,
 							after.getAnalysisTime() - before.getAnalysisTime(),
 							after.getNumProcessed());
 					// System.out.println("********************"+metrics.getUniqueName());
