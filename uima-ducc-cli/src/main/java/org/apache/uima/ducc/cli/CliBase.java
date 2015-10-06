@@ -97,6 +97,7 @@ public abstract class CliBase
 
     /*
      * Get log directory or employ default log directory if not specified
+     * UIMA-4617 Make it relative to the run-time working directory, not HOME
      */
     String getLogDirectory()
     {
@@ -105,17 +106,20 @@ public abstract class CliBase
         if(log_directory == null) {
             // no log directory was specified - default to user's home + "/ducc/logs"
             log_directory = System.getProperty("user.home") + IDucc.userLogsSubDirectory;
+        } 
+        
+        File f;
+        if (log_directory.startsWith(File.separator)) {
+            f = new File(log_directory);
         } else {
-            if(log_directory.startsWith(File.separator)) {
-                // absolute log directory was specified
-            } else {
-                // relative log directory was specified - default to user's home + relative directory
-                if(log_directory.endsWith(File.separator)) {
-                    log_directory = System.getProperty("user.home") + log_directory;
-                }
-                else {
-                    log_directory = System.getProperty("user.home") + File.separator+log_directory;
-                }
+            // Make the log directory relative to the run-time working directory
+            // NOTE: the working-directory is ALWAYS present when the logging-directory is specified
+            String working_directory = cli_props.getProperty(UiOption.WorkingDirectory.pname());
+            f = new File(working_directory, log_directory);
+            try {
+                log_directory = f.getCanonicalPath();
+            } catch (IOException e) {
+                throw new IllegalArgumentException("getLogDirectory: Cannot get full name of log directory " + log_directory);
             }
         }
 
@@ -125,8 +129,6 @@ public abstract class CliBase
          * make sure the logdir is actually legal.
          * JD may also be creating it so to reduce any race or NFS delay blindly create and then test
          */
-        File f = new File(log_directory);
-
         f.mkdirs();
         if ( ! f.exists() ) {
             throw new IllegalArgumentException("getLogDirectory: Cannot create log directory " + log_directory);
@@ -316,10 +318,11 @@ public abstract class CliBase
         // This is not used by DUCC ... allows ducc-mon to display the origin of a job
         cli_props.setProperty(UiOption.SubmitPid.pname(), ManagementFactory.getRuntimeMXBean().getName());
 
+        // First set working-directory as the log-directory may be relative to it
+        setWorkingDirectory();
         if ( load_defaults && (getLogDirectory() == null) ) {
             throw new IllegalArgumentException("Cannot access log directory.");
         }
-        setWorkingDirectory();
         setUser();
 
         //NodeIdentity ni = new NodeIdentity(); UIMA-3899, use getHostAddress() directly.  jrc
