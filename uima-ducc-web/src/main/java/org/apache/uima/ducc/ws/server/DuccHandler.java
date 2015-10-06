@@ -1035,7 +1035,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		// Log Size (in MB)
 		index++; // jp.02
 		cbList[index].append("<td align=\"right\">");
-		String fileSize = normalizeFileSize(getLogFileSize(logfile, fileInfoMap));
+		String fileSize = normalizeFileSize(getLogFileSize(file_name, fileInfoMap));
 		cbList[index].append(fileSize);
 		logAppend(index,"fileSize",fileSize);
 		cbList[index].append("</td>");
