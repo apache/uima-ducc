@@ -203,7 +203,7 @@
    </category>
    
    <category name="org.apache.camel.impl.converter">
-     <priority value="warn"/>
+     <priority value="error"/>
    </category>
 
    <category name="org.apache.uima.ducc.cli" additivity="false">
