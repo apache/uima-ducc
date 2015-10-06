@@ -421,13 +421,10 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 			List<AnalysisEnginePerformanceMetrics> afterAnalysisManagementObjects,
 			List<AnalysisEnginePerformanceMetrics> beforeAnalysisManagementObjects)
 			throws Exception {
-		// Create a List to hold per CAS analysisTime and total number of CASes
-		// processed
-		// by each AE. This list will be serialized and sent to the client
+		// Create a List to hold per CAS analysisTime and total number of CASes processed by each AE. 
+	    // This list will be serialized and sent to the client
 		List<AnalysisEnginePerformanceMetrics> performanceList = new ArrayList<AnalysisEnginePerformanceMetrics>();
-		// Diff the before process() performance metrics with post process
-		// performance
-		// metrics
+		// Diff the before process() performance metrics with post process performance metrics
 		for (AnalysisEnginePerformanceMetrics after : afterAnalysisManagementObjects) {
 			for (AnalysisEnginePerformanceMetrics before : beforeAnalysisManagementObjects) {
 				String uniqueName = after.getUniqueName();
@@ -441,7 +438,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 						}
 					}
 					*/
-					System.out.println("getAEMetricsForCAS() - Unique Name:"+uniqueName);
+					//System.out.println("getAEMetricsForCAS() - Unique Name:"+uniqueName);
 					//String uniqueName =  
 					AnalysisEnginePerformanceMetrics metrics = new AnalysisEnginePerformanceMetrics(
 							after.getName(), uniqueName,
