@@ -126,7 +126,7 @@
 	<properties>
 	    <uima.ducc>Apache UIMA DUCC:</uima.ducc>
 		<!-- Ducc jira version -->
-		<jiraVersion>12328879</jiraVersion>
+		<jiraVersion>12333626</jiraVersion>
 		<maven.build.timestamp.format>MM-dd-yyyy HH:mm</maven.build.timestamp.format>
 		<ducc.version>${project.version}</ducc.version>
 		<org.springframework.version>3.0.7.RELEASE</org.springframework.version>

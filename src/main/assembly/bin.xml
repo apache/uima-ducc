@@ -315,7 +315,7 @@ under the License.
         <!-- JIRAs bug prevents more than 100 jiras in the report produced -->
         <!-- by maven changes plugin. Workaround is to generate report     -->
         <!-- manually and add it to the svn                                -->
-        <!-- include>issuesFixed/**</include -->
+        <include>issuesFixed/**</include>
       </includes>
       <!-- The NOTICE and LICENSE for binary distro will be copied from src/main/legal  -->
       <excludes>
