@@ -18,8 +18,16 @@
 */
 package org.apache.uima.ducc.container.jd.wi.perf;
 
-public class PerfKey implements Comparable<Object> {
+import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 
+public class PerfKey implements Comparable<Object> {
+	
+	private static Logger logger = Logger.getLogger(PerfKey.class, IComponent.Id.JD.name());
+	
 	private String name;
 	private String uniqueName;
 	
@@ -36,14 +44,34 @@ public class PerfKey implements Comparable<Object> {
 	}
 	
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((uniqueName == null) ? 0 : uniqueName.hashCode());
+		return result;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		return compareTo(o) == 0;
+	}
+	
+	@Override
 	public int compareTo(Object o) {
+		String location = "compareTo";
 		int retVal = 0;
 		if(o != null) {
 			if(o instanceof PerfKey) {
 				PerfKey that = (PerfKey) o;
-				retVal = this.name.compareTo(that.name);
+				retVal = this.uniqueName.compareTo(that.uniqueName);
 				if(retVal == 0) {
-					retVal = this.uniqueName.compareTo(that.uniqueName);
+					int expect0 = this.name.compareTo(that.name);
+					if(expect0 != 0) {
+						MessageBuffer mb = new MessageBuffer();
+						mb.append(Standardize.Label.name.get()+this.name);
+						mb.append(Standardize.Label.name.get()+that.name);
+						logger.warn(location, ILogger.null_id, mb.toString());
+					}
 				}
 			}
 		}
