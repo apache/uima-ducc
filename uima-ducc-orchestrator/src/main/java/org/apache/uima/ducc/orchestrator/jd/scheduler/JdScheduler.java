@@ -306,6 +306,7 @@ public class JdScheduler {
 		reservationRequestProperties.setProperty(key, value);
 		//
 		DuccWorkReservation dwr = reservationFactory.create(common, reservationRequestProperties);
+		dwr.setJdReservation();
 		//
 		DuccWorkMap workMap = (DuccWorkMap) dwm;
 		WorkMapHelper.addDuccWork(workMap, dwr, this, location);

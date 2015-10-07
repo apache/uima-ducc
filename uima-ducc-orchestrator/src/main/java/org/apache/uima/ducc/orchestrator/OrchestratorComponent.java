@@ -277,8 +277,6 @@ implements Orchestrator {
 			StartType startType = getStartType(args);
 			logger.info(methodName, null, "##### "+startType+" #####");
 			boolean saveState = false;
-			DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
-			String jdHostClass = dpr.getCachedProperty(DuccPropertiesResolver.ducc_jd_host_class);
 			TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 			synchronized(workMap) {
 				ts.using();
@@ -310,7 +308,7 @@ implements Orchestrator {
 							saveState = true;
 							break;
 						case warm:
-							if(jdHostClass.equals(reservation.getSchedulingInfo().getSchedulingClass())) {
+							if(reservation.isJdReservation()) {
 								cancel(reservation);
 								saveState = true;
 							}

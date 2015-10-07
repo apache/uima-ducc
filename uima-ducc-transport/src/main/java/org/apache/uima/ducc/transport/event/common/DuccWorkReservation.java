@@ -39,6 +39,7 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 	private IDuccReservationMap duccReservationMap = new DuccReservationMap();
 	private IRationale completionRationale = null;
 	private boolean waitForAssignment = false;
+	private boolean jdReservationFlag = false;
 	
 	// for JD Reservations only
 	private List<JdReservationBean> jdReservationBeanList = null;
@@ -68,6 +69,21 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 		setCompletionTypeObject(IDuccCompletionType.ReservationCompletionType.Undefined);
 	}
 
+	public void setJdReservation() {
+		jdReservationFlag = true;
+	}
+	
+	public boolean isJdReservation() {
+		boolean retVal = false;
+		try {
+			retVal = jdReservationFlag;
+		}
+		catch(Exception e) {
+			// must be legacy - no worries
+		}
+		return retVal;
+	}
+	
 	public void setJdReservationBeanList(List<JdReservationBean> value) {
 		jdReservationBeanList = value;
 	}
