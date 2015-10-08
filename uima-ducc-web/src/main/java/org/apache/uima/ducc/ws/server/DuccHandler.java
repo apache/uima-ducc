@@ -1872,8 +1872,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					ArrayList <UimaStatistic> uimaStats = new ArrayList<UimaStatistic>();
 				    uimaStats.clear();
 				    long analysisTime = 0;
+				    PerformanceMetricsSummaryItem summaryValues = null;
 				    for (Entry<String, PerformanceMetricsSummaryItem> entry : performanceMetricsSummaryMap.entrySet()) {
 				    	PerformanceMetricsSummaryItem item = entry.getValue();
+				    	// UIMA-4641 Totals are passed as if a delegate with an empty name
+				    	if (entry.getKey().isEmpty()) {
+				    	    summaryValues = item;
+				    	    continue;
+				    	}
 				    	String shortname = item.getDisplayName();
 				    	long anTime = item.getAnalysisTime();
 				    	long anMinTime = item.getAnalysisTimeMin();
@@ -1886,10 +1892,6 @@ public class DuccHandler extends DuccAbstractHandler {
 				    int numstats = uimaStats.size();
 				    DecimalFormat formatter = new DecimalFormat("##0.0");
 				    // pass 1
-				    double time_total = 0;
-				    for (int i = 0; i < numstats; ++i) {
-						time_total += (uimaStats.get(i).getAnalysisTime());
-					}
 				    int counter = 0;
 				    sb.append(trGet(counter++));
 				    // Totals
@@ -1898,8 +1900,10 @@ public class DuccHandler extends DuccAbstractHandler {
 					long ltime = 0;
 					// Total
 					sb.append("<td align=\"right\">");
-					ltime = (long)time_total;
-					sb.append(FormatHelper.duration(ltime,Precision.Tenths));
+					if (summaryValues != null) {
+					    analysisTime = summaryValues.getAnalysisTime();
+					}
+					sb.append(FormatHelper.duration(analysisTime,Precision.Tenths));
 					// % of Total
 					sb.append("<td align=\"right\">");
 					sb.append(formatter.format(100));
@@ -1908,36 +1912,27 @@ public class DuccHandler extends DuccAbstractHandler {
 					sb.append("<span class=\"health_purple\" title=\"average processing time per completed work item\">");
 					long avgMillis = 0;
 					if(casCount > 0) {
-						avgMillis = (long) (analysisTime  / (1.0 * casCount));
+						avgMillis = analysisTime  / casCount;    // No need to round up as will display only 10ths
 					}
-					try {
-						//ltime = job.getWiMillisAvg();
-						ltime = avgMillis;
-					}
-					catch(Exception e) {
-						ltime = (long)workItemStateReader.getMin();
-					}
-					sb.append(FormatHelper.duration(ltime,Precision.Tenths));
+					sb.append(FormatHelper.duration(avgMillis,Precision.Tenths));
 					sb.append("</span>");
 					// Min
 					sb.append("<td align=\"right\">");
 					sb.append("<span class=\"health_purple\" title=\"minimum processing time for any completed work item\">");
-					try {
+					if (summaryValues != null) {
+					    ltime = summaryValues.getAnalysisTimeMin();
+					} else {
 						ltime = job.getWiMillisMin();
-					}
-					catch(Exception e) {
-						ltime = (long)workItemStateReader.getMin();
 					}
 					sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 					sb.append("</span>");
 					// Max
 					sb.append("<td align=\"right\">");
 					sb.append("<span class=\"health_purple\" title=\"maximum processing time for any completed work item\">");
-					try {
+					if (summaryValues != null) {
+					    ltime = summaryValues.getAnalysisTimeMax();
+					} else {
 						ltime = job.getWiMillisMax();
-					}
-					catch(Exception e) {
-						ltime = (long)workItemStateReader.getMin();
 					}
 					sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 					sb.append("</span>");
@@ -1955,7 +1950,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 						// % of Total
 						sb.append("<td align=\"right\">");
-						double dtime = (time/time_total)*100;
+						double dtime = (time/analysisTime)*100;
 						sb.append(formatter.format(dtime));
 						// Avg
 						sb.append("<td align=\"right\">");

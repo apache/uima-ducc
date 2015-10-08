@@ -135,6 +135,7 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 							IWorkItemPerformanceIndividualKeeper wipik = new WorkItemPerformanceIndividualKeeper(logdir, wiNo);
 							IWorkItemPerformanceSummaryKeeper wipsk = jd.getWorkItemPerformanceSummaryKeeper();
 							wipsk.count();
+							long total_time = 0;
 							for(Properties properties : list) {
 								String name = properties.getProperty(keyName);
 								String uniqueName = normalizeUniqueName(properties.getProperty(keyUniqueName));
@@ -156,8 +157,11 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 									mb.append(Standardize.Label.value.get()+value);
 									logger.debug(location, ILogger.null_id, mb.toString());
 								}
+								total_time += time;
 							}
 							wipik.publish();
+							// Add the aggregate values as if a no-name delegate
+							wipsk.dataAdd("TOTALS", "", total_time);
 						}
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						mb.append(Standardize.Label.size.get()+size);
