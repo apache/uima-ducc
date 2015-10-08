@@ -319,6 +319,9 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 					}
 
 				} catch (Exception exc) {
+					if (!collectStats(process.getProcessState())) {
+						return;
+					}
 					logger.error("LinuxProcessMetricsProcessor.process", null,
 							exc);
 				}
@@ -489,6 +492,9 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 									}
 								}
 							} catch (Exception ee) {
+								if (!collectStats(process.getProcessState())) {
+									return;
+								}
 								logger.error("process", null, ee);
 							}
 							return;
@@ -515,6 +521,10 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 				}
 
 			} catch (Exception ex) {
+				// if the child process is not running dont log the exception.
+				if (!collectStats(process.getProcessState())) {
+					return;
+				}
 				logger.error("process", null, e);
 				ex.printStackTrace();
 			}
