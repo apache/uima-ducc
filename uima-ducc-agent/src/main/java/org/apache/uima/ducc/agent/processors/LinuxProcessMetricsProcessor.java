@@ -557,7 +557,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 			while ((line = reader.readLine()) != null) {
 				String tokens[] = line.split(regex);
 				if (tokens.length > 0) {
-					logger.info("collectProcessCurrentCPU", null, line
+					logger.info("collectProcessCurrentCPU", null, " PID:"+pid+" " +line
 							+ " == CPUTIME:" + tokens[0]);
 					cpuTime = tokens[0];
 				}
