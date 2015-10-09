@@ -20,6 +20,7 @@ package org.apache.uima.ducc.agent.launcher;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -47,7 +48,18 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
  */
 public class CGroupsManager {
 	private DuccLogger agentLogger = null;
+	enum CGroupCommand {
+   	 CGSET("cgset"),
+   	 CGCREATE("cgcreate");
 
+   	 String cmd;
+   	 CGroupCommand(String cmd  ) {
+   		 this.cmd = cmd;
+   	 }
+   	 public String cmd() {
+   		 return cmd;
+   	 }
+    };
 	private Set<String> containerIds = new LinkedHashSet<String>();
 	private String cgroupBaseDir = "";
 	private String cgroupUtilsDir=null;
@@ -91,6 +103,9 @@ public class CGroupsManager {
 		this.cgroupSubsystems = cgroupSubsystems;
 		this.agentLogger = agentLogger;
 		this.maxTimeToWaitForProcessToStop = maxTimeToWaitForProcessToStop;
+	}
+	public Validator validator( String cgroupsBaseDir,String containerId, String uid, boolean useDuccling) {
+		return new Validator(this, cgroupsBaseDir, containerId, uid, useDuccling);
 	}
 	public String[] getPidsInCgroup(String cgroupName) throws Exception {
 		File f = new File(cgroupBaseDir + "/" + cgroupName + "/cgroup.procs");
@@ -463,7 +478,7 @@ public class CGroupsManager {
 				return true;
 			} else {
 				agentLogger.info("setContainerCpuShares", null, ">>>>"
-						+ "FAILURE - Unable To Create CGroup Container:"
+						+ "FAILURE - Unable To Set CPU shares on CGroup Container:"
 						+ containerId);
 				return false;
 			}
@@ -743,5 +758,107 @@ public class CGroupsManager {
 			this.userid = userid;
 		}
 
+	}
+	public class CGroupsException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+        private String command;
+        private String msg;
+        
+        public CGroupsException() {
+        }
+        public CGroupsException(Exception e) {
+        	super(e);
+        }
+        public CGroupsException addCommand(String command) {
+        	this.command = command;
+        	return this;
+        }
+        public CGroupsException addMessage(String msg) {
+        	this.msg = msg;
+        	return this;
+        }
+        public String getCommand() {
+        	return command;
+        }
+        public String getMessage() {
+        	return msg;
+        }
+		
+	}
+ 	public class Validator {
+		private CGroupsManager cgmgr=null;
+		String containerId;
+		String uid;
+		boolean useDuccling;
+		String cgroupsBaseDir;
+	    
+		
+		
+		Validator(CGroupsManager instance, String cgroupsBaseDir,String containerId, String uid, boolean useDuccling) {
+			cgmgr = instance;
+			this.containerId = containerId;
+			this.uid = uid;
+			this.useDuccling = useDuccling;
+			this.cgroupsBaseDir = cgroupsBaseDir;
+		}
+		public Validator cgcreate() throws CGroupsException {
+			String msg1 = "------- CGroups cgcreate failed to create a cgroup - disabling cgroups";
+			String msg2 = "------- CGroups cgcreate failed to validate a cgroup - disabling cgroups";
+			String msg3 = "------- CGroups cgcreate failed - disabling cgroups";
+			try {
+				if ( !cgmgr.createContainer(containerId, uid, useDuccling) ) {
+					throw new CGroupsException().addCommand(CGroupCommand.CGCREATE.cmd())
+							                     .addMessage(msg1);
+				}
+				if (!cgmgr.cgroupExists(cgroupsBaseDir + "/" + containerId)) {
+					throw new CGroupsException().addCommand(CGroupCommand.CGCREATE.cmd())
+	                .addMessage(msg2);
+				}
+			} catch( Exception e) {
+				throw new CGroupsException(e).addCommand(CGroupCommand.CGCREATE.cmd())
+                .addMessage(msg3);
+			}
+			return this;
+		}
+		public Validator cgset(  long cpuShares) throws CGroupsException {
+			String msg1 = "------- Check cgconfig.conf CPU control. The cgset failed to set cpu.shares";
+			String msg2 = "------- Check cgconfig.conf CPU control. The cgset failed to find cpu.shares file";
+			String msg3 = "------- Check cgconfig.conf CPU control. The cgset failed to write to cpu.shares file. Expected 100 shares found ";
+			
+		    BufferedReader reader = null;
+			String shares = "";
+			try {
+				if (!cgmgr.setContainerCpuShares(containerId, uid, useDuccling, cpuShares) ) {
+					throw new CGroupsException().addCommand(CGroupCommand.CGSET.cmd())
+	                .addMessage(msg1);
+				}
+	  		    // now try to read created file 
+	  		    File f = new File(cgroupsBaseDir + "/" + "test/cpu.shares");
+ 			    reader = new BufferedReader(new FileReader(f));
+				// read 1st line. It should be equal to cpuShares
+    			shares = reader.readLine().trim();
+    			System.out.println("----- Cgroup cgset verifier - cpu.shares read from file:"+shares);
+    			if ( !String.valueOf(cpuShares).equals(shares)) {
+    					throw new CGroupsException().addCommand(CGroupCommand.CGSET.cmd())
+    	                .addMessage(msg3+shares);
+    			} 
+			} catch( FileNotFoundException e ) {
+				//e.printStackTrace();
+				throw new CGroupsException(e).addCommand(CGroupCommand.CGSET.cmd())
+                    .addMessage(msg2);
+			} catch(Exception e) {
+				//e.printStackTrace();
+					throw new CGroupsException(e).addCommand(CGroupCommand.CGSET.cmd())
+	                .addMessage(msg3+shares);
+				  
+			} finally {
+				  if ( reader != null ) {
+					  try {
+						  reader.close();
+					  } catch( Exception ee) {}
+				  }
+			}
+			return this;
+		}
 	}
 }

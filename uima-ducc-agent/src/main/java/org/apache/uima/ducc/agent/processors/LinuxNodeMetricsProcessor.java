@@ -24,6 +24,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.camel.Exchange;
 import org.apache.uima.ducc.agent.Agent;
@@ -46,7 +47,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 		NodeMetricsProcessor {
 	DuccLogger logger = DuccLogger.getLogger(this.getClass(), Agent.COMPONENT_NAME);
     public static String[] MeminfoTargetFields = new String[] {"MemTotal:","MemFree:","SwapTotal:","SwapFree:"};
-
+        
 	private NodeAgent agent;
 	private final ExecutorService pool;
 	private RandomAccessFile memInfoFile;
@@ -94,7 +95,16 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
   public void process(Exchange e) {
 		String methodName = "process";
 		try {
-		  
+			// every 10th node metrics publication log the status of CGroups
+			if ( ( NodeAgent.logCounter.incrementAndGet() % 10 ) == 0 ) {
+				if ( agent.useCgroups ) {
+				    logger.info(methodName, null, "\t****\n\t**** Agent CGroups status: enabled");
+					
+				} else {
+				    logger.info(methodName, null, "\t****\n\t**** Agent CGroups status: disabled. Reason:"+NodeAgent.cgroupFailureReason);
+					
+				}
+			}
 
 			NodeMemInfoCollector memCollector = new NodeMemInfoCollector(MeminfoTargetFields);
 			Future<NodeMemory> nmiFuture = pool.submit(memCollector);

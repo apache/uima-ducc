@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Processor;
@@ -93,6 +94,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   public static int SIGKILL=9;
   public static int SIGTERM=15;
   
+  //for LinuxNodeMetrics logging
+  public static AtomicLong logCounter = new AtomicLong();
+  public static String cgroupFailureReason;
   // Map of known processes this agent is managing. This map is published
   // at regular intervals as part of agent's inventory update.
   private Map<DuccId, IDuccProcess> inventory = new HashMap<DuccId, IDuccProcess>();
@@ -234,6 +238,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             logger.info("nodeAgent", null,
                     "------- Node Explicitly Excluded From Using CGroups. Check File:"
                             + exclusionFile);
+            cgroupFailureReason = "------- Node Explicitly Excluded From Using CGroups. Check File:"
+                    + exclusionFile;
           }
           System.out.println("excludeNodeFromCGroups=" + excludeNodeFromCGroups + " excludeAPs="
                   + excludeAPs);
@@ -295,32 +301,38 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
                   }
                   try {
-                	  // Test cgroups by creating a dummy container
-                      if ( cgroupsManager.createContainer("test", "duck", false) ) {
-                    	  if (cgroupsManager.cgroupExists(cgroupsBaseDir + "/" + "test")) {
-                    		  useCgroups = true;
-                              try {
-                            	  // remove dummy container
-                            	  cgroupsManager.destroyContainer("test","duck", SIGKILL);
-                              } catch( Exception eee ) {}
-                              logger.info("nodeAgent", null, "------- Agent Running with CGroups Enabled");
-                    	  } else {
-                    		  useCgroups = false;
-                              logger.warn("nodeAgent", null, "------- CGroups cgcreate failed to create a cgroup - disabling cgroups");
-                    	  }
-                                                }
-                  } catch( Exception ee) {
+                	  String containerId = "test";
+                	  String uid = "ducc";
+                	  // validate cgroups by creating a dummy cgroup. The code checks if cgroup actually got created by
+                	  // verifying existence of test cgroup file. The second step in verification is to check if 
+                	  // CPU control is working. Configured in cgconfig.conf, the CPU control allows for setting 
+                	  // cpu.shares. The code will attempt to set the shares and subsequently tries to read the
+                	  // value from cpu.shares file to make sure the values match. Any exception in the above steps
+                	  // will cause cgroups to be disabled.
+                	  //
+                	  cgroupsManager.validator(cgroupsBaseDir, containerId, uid,false)
+                	              .cgcreate()
+                	              .cgset(100);   // write cpu.shares=100 and validate
+                	  
+                	  // cleanup dummy cgroup
+                	  cgroupsManager.destroyContainer(containerId, uid, SIGKILL);
+                	  useCgroups = true;
+                  } catch( CGroupsManager.CGroupsException ee) {
+                	  logger.info("nodeAgent", null, ee);
+                	  cgroupFailureReason = ee.getMessage();
                 	  useCgroups = false;
                   }
 
                 } else {
                   logger.info("nodeAgent", null, "------- CGroups Not Installed on this Machine");
+                  cgroupFailureReason = "------- CGroups Not Installed on this Machine";
                 }
             }
         }
       }
     } else {
       logger.info("nodeAgent", null, "------- CGroups Not Enabled on this Machine");
+      cgroupFailureReason = "------- CGroups Not Enabled on this Machine - check ducc.properties: ducc.agent.launcher.cgroups.enable ";
     }
     logger.info("nodeAgent", null, "CGroup Support=" + useCgroups + " excludeNodeFromCGroups="
             + excludeNodeFromCGroups + " excludeAPs=" + excludeAPs+" CGroups utils Dir:"+cgUtilsPath);
