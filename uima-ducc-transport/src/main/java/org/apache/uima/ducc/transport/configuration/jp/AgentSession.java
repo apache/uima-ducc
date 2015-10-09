@@ -54,6 +54,8 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 	
 	private volatile boolean stopped=false;
 	
+	private volatile boolean log = true;  
+	
 	/**
 	 * JMS based adapter C'tor
 	 * 
@@ -107,7 +109,11 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 			//	send the process update to the remote
 			dispatcher.dispatch(duccEvent, System.getenv("IP"));
 			String jmx = state.getProcessJmxUrl() == null ? "N/A" : state.getProcessJmxUrl();
-			logger.info("notifyAgentWithStatus",null,"... Job Process State Changed - PID:"+pid+". Process State: "+state.getState().toString()+". JMX Url:"+jmx+" Dispatched State Update Event to Agent with IP:"+System.getenv("IP"));
+			// only log on transition from Initializing to Running
+			if ( state.getState().equals(ProcessState.Running) && log ) {
+				log = false;
+				logger.info("notifyAgentWithStatus",null,"... Job Process State Changed - PID:"+pid+". Process State: "+state.getState().toString()+". JMX Url:"+jmx+" Dispatched State Update Event to Agent with IP:"+System.getenv("IP"));
+			}
 		} catch( Exception e) {
 			e.printStackTrace();
 		}
