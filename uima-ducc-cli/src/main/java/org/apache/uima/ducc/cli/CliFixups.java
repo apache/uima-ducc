@@ -38,8 +38,11 @@ import org.apache.uima.ducc.common.utils.Utils;
  * Additionally since services registered under DUCC 1.x may be relying on UIMA jars that are no longer supplied,
  * their classpath will be augmented ... triggered by the deprecated classpath_order option. 
  * 
- * For DUCC 2.1.0 changed (without warning):
+ * For DUCC 2.1.0 changed:
  *   process_thread_count   ->  process_pipeline_count
+ * Deprecated messages removed -- old options will be treated as aliases
+ *   classpath_order will be silently accepted and ignored 
+ *   number_of_instances is now rejected
  */
 
 public class CliFixups {
@@ -49,21 +52,21 @@ public class CliFixups {
             String arg = args[i];
             if (arg.equals("--process_DD")) {
                 args[i] = "--process_descriptor_DD";
-                System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
+                //System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
             } else if (arg.equals("--instance_memory_size")) {
                 args[i] = "--memory_size";
-                System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
+                //System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
             } else if (arg.equals("--classpath_order")) {
-                System.out.println("CLI ignored deprecated option: " + arg);
+                //System.out.println("CLI ignored deprecated option: " + arg);
                 args[i] = null;
                 if (++i < args.length && !args[i].startsWith("--")) args[i] = null; 
-            } else if (arg.equals("--number_of_instances")) {
+/*            } else if (arg.equals("--number_of_instances")) {
                 System.out.println("CLI ignored deprecated option: " + arg);
                 args[i] = null;
-                if (++i < args.length && !args[i].startsWith("--")) args[i] = null; 
+                if (++i < args.length && !args[i].startsWith("--")) args[i] = null; */
             } else if (arg.equals("--process_thread_count")) {
                 args[i] = "--process_pipeline_count";
-                System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
+                //System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
             }
         }
     }
@@ -91,7 +94,7 @@ public class CliFixups {
     	changeOption("process_DD", "process_descriptor_DD", props);
     	changeOption("instance_memory_size", "memory_size", props);
     	changeOption("classpath_order", null, props);
-    	changeOption("number_of_instances", null, props);
+    	/* changeOption("number_of_instances", null, props);*/
     	changeOption("process_thread_count", "process_pipeline_count", props);
     }
     
@@ -100,10 +103,10 @@ public class CliFixups {
 		if (val != null) {
 			props.remove(oldKey);
 			if (newKey == null) {
-				System.out.println("CLI ignored deprecated option: " + oldKey);
+				//System.out.println("CLI ignored deprecated option: " + oldKey);
 			} else {
 				props.put(newKey, val);
-				System.out.println("CLI replaced deprecated option: " + oldKey + " with: " + newKey);
+				//System.out.println("CLI replaced deprecated option: " + oldKey + " with: " + newKey);
 			}
 		}
 	}
