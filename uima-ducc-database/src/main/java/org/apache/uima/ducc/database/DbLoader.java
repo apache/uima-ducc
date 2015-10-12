@@ -530,7 +530,7 @@ public class DbLoader
             try {
 
                 OGlobalConfiguration.USE_WAL.setValue(false);
-                OGlobalConfiguration.USE_LOG.setValue(false);
+                // OGlobalConfiguration.USE_LOG.setValue(false);
 
                 OGlobalConfiguration.dumpConfiguration(System.out);
 
