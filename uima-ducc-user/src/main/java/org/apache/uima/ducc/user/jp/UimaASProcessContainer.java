@@ -103,11 +103,14 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		if ( "uima-as".equals(jobType)) {
 			System.out.println("UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
         } 
-		// enable performance breakdown reporting for uima AS version > 2.6.0
-		if ( UimaAsVersion.getMajorVersion() >=2 && UimaAsVersion.getMinorVersion() >= 6 && UimaAsVersion.getBuildRevision() > 0) {
-     	    enablePerformanceBreakdownReporting = true;
-		}
-		
+		// enable performance breakdown reporting when support is added in the next UIMA AS release after 2.6.0
+		// (assumes the fix will be after the current 2.6.1-SNAPSHOT level)
+        if (UimaAsVersion.getMajorVersion() > 2 || (UimaAsVersion.getMajorVersion() == 2 &&
+                (UimaAsVersion.getMinorVersion() > 6 || (UimaAsVersion.getMinorVersion() == 6 && 
+                UimaAsVersion.getBuildRevision() > 1)))) {
+            enablePerformanceBreakdownReporting = true;
+        }
+
 		// generate Spring context file once
 		synchronized( UimaASProcessContainer.class) {
 			if ( !initialized ) {
