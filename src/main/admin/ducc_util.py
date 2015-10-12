@@ -241,6 +241,7 @@ class DuccUtil(DuccBase):
 
         # bypass all of this for the initial delivery
         if ( self.db_parms == self.db_disabled ):
+            print '   (Bypass database start because ducc.database.host =', self.db_disabled + ')'
             return True
 
         print 'Starting database'
@@ -404,7 +405,7 @@ class DuccUtil(DuccBase):
 
     def nohup(self, cmd, showpid=True):
         cmd = ' '.join(cmd)
-        print '**** nohup', cmd, '****'
+        # print '**** nohup', cmd, '****'
         devnw = open(os.devnull, 'w')
         devnr = open(os.devnull, 'r')
         ducc = subprocess.Popen(cmd, shell=True, stdin=devnr, stdout=devnw, stderr=devnw)
@@ -417,7 +418,7 @@ class DuccUtil(DuccBase):
     def ssh(self, host, do_wait, *CMD):
 
         cmd = ' '.join(CMD)
-        print 'ssh -o BatchMode=yes -o ConnectTimeout=10', host, cmd
+        # print 'ssh -o BatchMode=yes -o ConnectTimeout=10', host, cmd
         if ( do_wait ):
             return self.popen('ssh -q -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
         else:
