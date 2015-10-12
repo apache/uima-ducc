@@ -90,7 +90,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   public static DuccLogger logger = DuccLogger.getLogger(NodeAgent.class, COMPONENT_NAME);
 
   public static final String ProcessStateUpdatePort = "ducc.agent.process.state.update.port";
-
+  public static int SIGKILL=9;
+  public static int SIGTERM=15;
+  
   // Map of known processes this agent is managing. This map is published
   // at regular intervals as part of agent's inventory update.
   private Map<DuccId, IDuccProcess> inventory = new HashMap<DuccId, IDuccProcess>();
@@ -272,7 +274,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 if (cgroupsSubsystems == null) {
                   cgroupsSubsystems = "memory,cpu";
                 }
-                cgroupsManager = new CGroupsManager(cgUtilsPath, cgroupsBaseDir, cgroupsSubsystems, logger);
+        		long maxTimeToWaitForProcessToStop = 60000; // default 1 minute
+        		if (configurationFactory.processStopTimeout != null) {
+        			maxTimeToWaitForProcessToStop = Long
+        					.valueOf(configurationFactory.processStopTimeout);
+        		}
+
+                cgroupsManager = new CGroupsManager(cgUtilsPath, cgroupsBaseDir, cgroupsSubsystems, logger, maxTimeToWaitForProcessToStop);
                 // check if cgroups base directory exists in the filesystem
                 // which means that cgroups
                 // and cgroups convenience package are installed and the
@@ -293,7 +301,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     		  useCgroups = true;
                               try {
                             	  // remove dummy container
-                            	  cgroupsManager.destroyContainer("test");
+                            	  cgroupsManager.destroyContainer("test","duck", SIGKILL);
                               } catch( Exception eee ) {}
                               logger.info("nodeAgent", null, "------- Agent Running with CGroups Enabled");
                     	  } else {
