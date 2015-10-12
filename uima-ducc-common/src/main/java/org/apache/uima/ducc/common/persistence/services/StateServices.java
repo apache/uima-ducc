@@ -237,21 +237,21 @@ public class StateServices implements IStateServices {
         return ok;
     }
 
-    private boolean updateProperties(DuccId serviceId, Properties props, String type)
+    private boolean updateProperties(Object dbid, DuccId serviceId, Properties props, String type)
     {
         File f  = new File(mkfilename(serviceId, type));
         File tmpf = new File(f.toString() + ".tmp");
         return saveProperties(serviceId, props, f, tmpf, type);
     }
 
-    public boolean updateJobProperties(DuccId serviceId, Properties props)
+    public boolean updateJobProperties(Object dbid, DuccId serviceId, Properties props)
     {
-        return updateProperties(serviceId, props, svc);
+        return updateProperties(dbid, serviceId, props, svc);
     }
 
-    public boolean updateMetaProperties(DuccId serviceId, Properties props)
+    public boolean updateMetaProperties(Object dbid, DuccId serviceId, Properties props)
     {
-        return updateProperties(serviceId, props, meta);
+        return updateProperties(dbid, serviceId, props, meta);
     }
 
     public void deleteProperties(long serviceId)

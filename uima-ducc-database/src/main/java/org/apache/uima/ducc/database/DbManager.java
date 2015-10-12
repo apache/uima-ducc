@@ -29,6 +29,7 @@ import org.apache.uima.ducc.database.DbConstants.DbEdge;
 import org.apache.uima.ducc.database.DbConstants.DbVertex;
 
 import com.orientechnologies.orient.client.remote.OServerAdmin;
+import com.orientechnologies.orient.core.intent.OIntent;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
@@ -97,11 +98,24 @@ public class DbManager
     public void drop()
         throws Exception
     {
-    	OrientGraphNoTx graphDb = factory.getNoTx();        // the graph instance
-        if ( graphDb == null ) {
-            throw new IllegalStateException("Cannot allocate graph instance for " + dburl);
+        if ( dburl.startsWith("remote") ) {
+            OServerAdmin admin = null;
+            try {
+                String pw = dbPassword();
+            	admin = new OServerAdmin(dburl);
+                admin.connect("root", pw);               // connect to the server
+                admin.dropDatabase("plocal");           
+                admin.close();
+            } finally {
+                if ( admin != null ) admin.close();
+            }
+        } else  {
+            OrientGraphNoTx graphDb = factory.getNoTx();        // the graph instance
+            if ( graphDb == null ) {
+                throw new IllegalStateException("Cannot allocate graph instance for " + dburl);
+            }
+            graphDb.drop();
         }
-        graphDb.drop();
     }
 
     public synchronized DbHandle open()
@@ -112,6 +126,20 @@ public class DbManager
             throw new IllegalStateException("Cannot allocate graph instance for " + dburl);
         }
         
+        graphDb.setUseLightweightEdges(true);
+        return new DbHandle(this, graphDb);
+    }
+
+    public synchronized DbHandle openNoLog()
+        throws Exception
+    {
+    	OrientGraph graphDb = factory.getTx();        // the graph instance
+        if ( graphDb == null ) {
+            throw new IllegalStateException("Cannot allocate graph instance for " + dburl);
+        }
+        
+        graphDb.setUseLightweightEdges(true);
+        graphDb.getRawGraph().getTransaction().setUsingLog(false);
         return new DbHandle(this, graphDb);
     }
 
@@ -123,7 +151,7 @@ public class DbManager
         if ( graphDb == null ) {
             throw new IllegalStateException("Cannot allocate graph instance for " + dburl);
         }
-        
+        graphDb.setUseLightweightEdges(true);        
         return new DbHandle(this, graphDb);
     }
 
@@ -148,6 +176,11 @@ public class DbManager
         } 
         logger.info(methodName, null, "Database is opened:", dburl);
         factory.setupPool(1,20);        
+    }
+
+    public synchronized void declareIntent(OIntent intent)
+    {
+        factory.declareIntent(intent);
     }
 
     public synchronized void shutdown()

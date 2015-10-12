@@ -18,29 +18,18 @@
 */
 package org.apache.uima.ducc.database;
 
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.uima.ducc.common.DuccNode;
-import org.apache.uima.ducc.common.IIdentity;
-import org.apache.uima.ducc.common.Node;
-import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.common.utils.id.IDuccId;
 import org.apache.uima.ducc.database.DbConstants.DbCategory;
 import org.apache.uima.ducc.database.DbConstants.DbEdge;
 import org.apache.uima.ducc.database.DbConstants.DbVertex;
-import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
-import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.event.common.ADuccWork;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
 import org.apache.uima.ducc.transport.event.common.DuccProcessMap;
@@ -54,41 +43,21 @@ import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.Reservati
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
-import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
-import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
-import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
-import org.apache.uima.ducc.transport.event.common.IDuccUimaAggregateComponent;
-import org.apache.uima.ducc.transport.event.common.IDuccUimaDeployableConfiguration;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
-import org.apache.uima.ducc.transport.event.common.IRationale;
-import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.JdReservationBean;
 import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.InstanceCreator;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
-import com.google.gson.TypeAdapter;
-import com.google.gson.TypeAdapterFactory;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
+import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
@@ -119,6 +88,9 @@ public class HistoryManagerDb
         try {
             dbManager = new DbManager(dburl, logger);
             dbManager.init();
+            // TODO TODO
+            dbManager.declareIntent(new OIntentMassiveInsert());
+            logger.warn("<CTR>.HistoryManagerDb", null, "****MUST FIX DECLARE INTENT****");
         } catch ( Exception e ) {
             logger.error("HisstoryManagerDb", null, "Cannot open the history database:", e);
         }        
@@ -132,66 +104,30 @@ public class HistoryManagerDb
     // ----------------------------------------------------------------------------------------------------
     // Jobs section
 
-    Gson mkGsonForJob()
-    {
-        // We need to define Instance creators and such so we do it in a common place
-        GsonBuilder gb = new GsonBuilder();
-
-        GenericInterfaceAdapter customAdapter = new GenericInterfaceAdapter();
-        gb.serializeSpecialFloatingPointValues().setPrettyPrinting();
-        gb.enableComplexMapKeySerialization();
-
-        gb.registerTypeAdapter(Node.class, new NodeInstanceCreator());
-        gb.registerTypeAdapter(NodeIdentity.class, new NodeIdentityCreator());
-
-        //gb.registerTypeAdapter(IIdentity.class, new IdentityInstanceCreator());
-        gb.registerTypeAdapter(IIdentity.class, customAdapter);
-
-        gb.registerTypeAdapter(IDuccId.class, customAdapter);
-        gb.registerTypeAdapter(ITimeWindow.class, customAdapter);
-        gb.registerTypeAdapter(IDuccProcessWorkItems.class, customAdapter);
-        gb.registerTypeAdapter(IDuccUimaAggregateComponent.class, customAdapter);
-        gb.registerTypeAdapter(IUimaPipelineAEComponent.class, customAdapter);
-        gb.registerTypeAdapter(IRationale.class, customAdapter);
-        gb.registerTypeAdapter(IDuccUimaDeployableConfiguration.class, customAdapter);
-        gb.registerTypeAdapter(IDuccStandardInfo.class, customAdapter);
-        gb.registerTypeAdapter(IDuccSchedulingInfo.class, customAdapter);
-        gb.registerTypeAdapter(IDuccPerWorkItemStatistics.class, customAdapter);
-        gb.registerTypeAdapter(IDuccReservationMap.class, customAdapter);
-        gb.registerTypeAdapter(JdReservationBean.class, customAdapter);
-
-        //ConcurrentHashMap<DuccId, Long> x = new ConcurrentHashMap<DuccId, Long>();
-        //gb.registerTypeAdapter(x.getClass(), new MapAdaptor());
-
-        //gb.registerTypeAdapterFactory(new DuccTypeFactory());
-        //Object obj = new ArrayList<IJdReservation>();
-        //gb.registerTypeAdapter(obj.getClass(), customAdapter);
-        Gson g = gb.create();
-        return g;
-    }
-
     /**
      * Common code to save a job in an open handle.  Caller will commit or fail as needed.
      */
-    private void saveJobNoCommit(DbHandle h, IDuccWorkJob j, DbVertex type, DbCategory dbcat)
+    void saveJobNoCommit(DbHandle h, IDuccWorkJob j, DbVertex type, DbCategory dbcat)
         throws Exception
     {
     	String methodName = "saveJobNoCommit";
         Long nowP =  System.currentTimeMillis();
         // Nuke the command lines
         DuccWorkPopDriver driver = j.getDriver();
-        ICommandLine driverCl = null;
+        //ICommandLine driverCl = null;
         IDuccProcessMap jdProcessMap = null;
 
+        int size = 0;
+
         if ( driver != null ) {
-            driverCl = driver.getCommandLine();
-            driver.setCommandLine(null);
+            //driverCl = driver.getCommandLine();
+            //driver.setCommandLine(null);
             jdProcessMap =  driver.getProcessMap();
             driver.setProcessMap(null);
         }
 
-        ICommandLine jobCl    = j.getCommandLine();
-        j.setCommandLine(null);
+        //ICommandLine jobCl    = j.getCommandLine();
+        //j.setCommandLine(null);
 
         IDuccPerWorkItemStatistics stats = j.getSchedulingInfo().getPerWorkItemStatistics();
 
@@ -205,28 +141,30 @@ public class HistoryManagerDb
         IDuccProcessMap processMap = j.getProcessMap();
         j.setProcessMap(null);
 
-        Gson g = mkGsonForJob();
+        Gson g = DbHandle.mkGsonForJob();
 
         String dbJob = g.toJson(j);
-        
+        size += dbJob.length();
+
         // Must repair these things because OR continues to use the job after it has been
         // written to history.
         j.setProcessMap(processMap);
-        j.setCommandLine(jobCl);
+        //j.setCommandLine(jobCl);
         if ( driver != null ) {
-            driver.setCommandLine(driverCl);
+            //driver.setCommandLine(driverCl);
             driver.setProcessMap(jdProcessMap);
         }
         
-        Object savedJob = h.saveObject(type, j.getDuccId().getFriendly(), dbJob, dbcat);
+        OrientVertex savedJob = h.saveObject(type, j.getDuccId().getFriendly(), dbJob, dbcat);
     
-        List<Object> savedJPs = new ArrayList<Object>();
-        List<Object> savedJDs = new ArrayList<Object>();
+        List<OrientVertex> savedJPs = new ArrayList<OrientVertex>();
+        List<OrientVertex> savedJDs = new ArrayList<OrientVertex>();
         for (DuccId did : processMap.keySet()) {
             Long pid = did.getFriendly();
             
             IDuccProcess p = processMap.get(did);
             String proc = g.toJson(p);
+            size += proc.length();
             
             savedJPs.add(h.saveObject(DbVertex.Process, pid, proc, dbcat));
             // logger.info(methodName, p.getDuccId(), "2 ----------> Time to save process", System.currentTimeMillis() - nowP);
@@ -239,6 +177,7 @@ public class HistoryManagerDb
                 
                 IDuccProcess p = jdProcessMap.get(did);
                 String proc = g.toJson(p);
+                size += proc.length();
                 
                 savedJDs.add(h.saveObject(DbVertex.Process, pid, proc, dbcat));
                 // logger.info(methodName, p.getDuccId(), "2 ----------> Time to save process", System.currentTimeMillis() - nowP);
@@ -249,7 +188,7 @@ public class HistoryManagerDb
         
         h.addEdges(savedJob, savedJPs, DbEdge.JpProcess);
 
-        logger.info(methodName, j.getDuccId(), "----------> Time to save job", System.currentTimeMillis() - nowP);
+        logger.info(methodName, j.getDuccId(), "----------> Time to save job", System.currentTimeMillis() - nowP, "json size", size, "nprocesses", processMap.size());
         
     }
     
@@ -266,11 +205,13 @@ public class HistoryManagerDb
 		Long id = j.getDuccId().getFriendly();
         DbHandle h = null;
         try {
+
             if ( safe ) {
                 h = dbManager.open(); 
             } else {
-                h = dbManager.openNoTx();
+                h = dbManager.openNoLog();
             }
+
             if ( safe && h.thingInDatabase(id, type, dbcat) ) {
                 logger.warn(methodName, j.getDuccId(), "Not overwriting saved job.");
                 h.close();
@@ -288,7 +229,9 @@ public class HistoryManagerDb
             logger.error(methodName, j.getDuccId(), "Cannot store job", e);
             throw e;
         } finally {
+            Long nowP =  System.currentTimeMillis();
             h.commit();
+            logger.info(methodName, j.getDuccId(), "Time to commit", System.currentTimeMillis() - nowP);
             h.close();
         }
 	}
@@ -322,7 +265,7 @@ public class HistoryManagerDb
         String json = d.toJSON();
         JsonObject jo = mkJsonObject(json);
 
-        Gson g = mkGsonForJob();        
+        Gson g = DbHandle.mkGsonForJob();        
         j      = g.fromJson(jo, DuccWorkJob.class);
 
         // System.out.println(g.toJson(jo));
@@ -424,6 +367,7 @@ public class HistoryManagerDb
         throws Exception 
     {
         String methodName = "saveReservationNoCommit";
+        long now = System.currentTimeMillis();
 
         List<JdReservationBean> l = r.getJdReservationBeanList();
         if ( l != null ) {
@@ -436,7 +380,7 @@ public class HistoryManagerDb
         }
 
 
-        long now = System.currentTimeMillis();
+
 
 		Long id = r.getDuccId().getFriendly();
         logger.info(methodName, r.getDuccId(), "Saving.");
@@ -446,7 +390,7 @@ public class HistoryManagerDb
         IDuccReservationMap resmap = r.getReservationMap();
         r.setReservationMap(null);
 
-        Gson g = mkGsonForJob();
+        Gson g = DbHandle.mkGsonForJob();
 
         String dbres = g.toJson(r);
         // logger.info(methodName, null, "------------------- Reservation JSON: " + dbres);
@@ -455,9 +399,9 @@ public class HistoryManagerDb
         // written to history.
         r.setReservationMap(resmap);
         
-        Object savedRes = h.saveObject(DbVertex.Reservation, id, dbres, dbcat);
+        OrientVertex savedRes = h.saveObject(DbVertex.Reservation, id, dbres, dbcat);
         
-        List<Object> savedHosts = new ArrayList<Object>();
+        List<OrientVertex> savedHosts = new ArrayList<OrientVertex>();
         for (DuccId did : resmap.keySet()) {
             Long pid = did.getFriendly();
             
@@ -532,7 +476,7 @@ public class HistoryManagerDb
         String json = d.toJSON();
         JsonObject jo = mkJsonObject(json);
 
-        Gson g = mkGsonForJob();        
+        Gson g = DbHandle.mkGsonForJob();        
         // logger.info(methodName, null, g.toJson(jo));
 
         r      = g.fromJson(jo, DuccWorkReservation.class);
@@ -705,6 +649,7 @@ public class HistoryManagerDb
         throws Exception
     {
         String methodName = "checkpoint";
+        long now = System.currentTimeMillis();
         boolean ret = true;
 
         DbHandle h = null;
@@ -730,6 +675,10 @@ public class HistoryManagerDb
                    saveJobNoCommit(h, (IDuccWorkJob) w, DbVertex.ServiceInstance, DbCategory.Checkpoint);
                    break;
                case Reservation:
+                   if ( w.getDuccId().getFriendly() == 282282 ) {
+                       int x = 0;
+                       x++;
+                   }
                    saveReservationNoCommit(h, (IDuccWorkReservation) w, DbCategory.Checkpoint);
                    break;
                default:
@@ -737,7 +686,7 @@ public class HistoryManagerDb
                }
            } 
            
-           Gson g = mkGsonForJob();
+           Gson g = DbHandle.mkGsonForJob();
            ProcessToJobList l = new ProcessToJobList(processToJob);
            String json = g.toJson(l, l.getClass());
            // logger.info(methodName, null, "ProcessToJob:", json);
@@ -751,7 +700,9 @@ public class HistoryManagerDb
             if ( h != null ) h.close();
             if ( ret ) logger.info(methodName, null, "Saved Orchestrator Checkpoint");
         }
-        return ret;
+
+       logger.info(methodName, null, "Total time to save checkpoint:", System.currentTimeMillis() - now);
+       return ret;
     }
 
     /**
@@ -805,7 +756,7 @@ public class HistoryManagerDb
                 String json = d.toJSON();
                 logger.info(methodName, null, json);
 
-                Gson g = mkGsonForJob();
+                Gson g = DbHandle.mkGsonForJob();
 
                 ProcessToJobList l = g.fromJson(json, ProcessToJobList.class);
                 l.fill(processToJob);
@@ -844,168 +795,4 @@ public class HistoryManagerDb
     // End of common
     // ----------------------------------------------------------------------------------------------------
 		
-
-    // ----------------------------------------------------------------------------------------------------
-    // Instance creators and adaptors for GSON
-    // ----------------------------------------------------------------------------------------------------
-
-    // We need these for the DuccNode and NodeIdentity because they don't have no-arg
-    // Constructors.  
-    //
-    // @TODO after merge, consult with Jerry about adding in those constructors
-    private class NodeInstanceCreator implements InstanceCreator<Node> {
-        public Node createInstance(Type type) {
-            //            System.out.println("DuccNode");
-            return new DuccNode(null, null, false);
-        }
-    }
-
-    private class NodeIdentityCreator implements InstanceCreator<NodeIdentity> {
-        public NodeIdentity createInstance(Type type) {
-            //            System.out.println("DuccNodeIdentity");
-            try { return new NodeIdentity(null, null); } catch ( Exception e ) {}
-            return null;
-        }
-    }
-
-    /**
-     * JSON helper for our complex objects.  Gson doesn't save type information in the json so
-     * it doesn't know how to construct things declared as interfaces.
-     *
-     * This class is a Gson adapter that saves the actual object type in the json on serialization,
-     * and uses that information on deserialization to construct the right thing.
-     */
-    private class GenericInterfaceAdapter
-        implements
-            JsonSerializer<Object>, 
-            JsonDeserializer<Object> 
-    {
-
-        private static final String DUCC_META_CLASS = "DUCC_META_CLASS";
-        
-        @Override
-        public Object deserialize(JsonElement jsonElement, 
-                                  Type type,
-                                  JsonDeserializationContext jsonDeserializationContext)
-        throws JsonParseException 
-        {
-            // Reconstitute the "right" class based on the actual class it came from as
-            // found in metadata
-            JsonObject  obj    = jsonElement.getAsJsonObject();
-            JsonElement clElem= obj.get(DUCC_META_CLASS);
-
-            if ( clElem== null ) {
-                throw new IllegalStateException("Cannot determine concrete class for " + type + ". Must register explicit type adapter for it.");
-            }
-            String clName = clElem.getAsString();
-
-            //System.out.println("----- elem: " + clName + " clElem: " + obj);
-            try {
-                Class<?> clz = Class.forName(clName);
-                return jsonDeserializationContext.deserialize(jsonElement, clz);
-            } catch (ClassNotFoundException e) {
-                throw new JsonParseException(e);
-            }
-        }
-        
-        @Override
-        public JsonElement serialize(Object object, 
-                                     Type type,
-                                     JsonSerializationContext jsonSerializationContext) 
-        {
-            // Add the mete element indicating what kind of concrete class is this came from
-            //String n = object.getClass().getCanonicalName();
-            //System.out.println("**** Serialize object A " + n + " of type " + type);
-            //if ( n.contains("Concurrent") ) {
-             //   int stop = 1;
-               // stop++;
-            //}
-
-            JsonElement ele = jsonSerializationContext.serialize(object, object.getClass());
-            //System.out.println("**** Serialize object B " + object.getClass().getCanonicalName() + " of type " + type + " : ele " + ele);
-            ele.getAsJsonObject().addProperty(DUCC_META_CLASS, object.getClass().getCanonicalName());
-            return ele;
-        }
-    }
-
-    @SuppressWarnings("unused")
-	private class DuccTypeFactory 
-        implements TypeAdapterFactory
-    {
-
-        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) 
-        {
-            //System.out.println("TYPETOKEN: " + typeToken + " raw type: " + typeToken.getRawType().getName());
-            Class<?> cl = typeToken.getRawType();
-            //System.out.println("         Canonical name: " + cl.getCanonicalName());
-            Type type = typeToken.getType();
-            if ( typeToken.getRawType() != ConcurrentHashMap.class ) {
-                //System.out.println("Skipping type " + typeToken);
-                return null;
-            }
-
-            if ( type instanceof ParameterizedType ) {
-                
-                ParameterizedType pt = (ParameterizedType) type;
-                Type[] types = pt.getActualTypeArguments();
-                //for ( Type tt : types ) {
-                    // System.out.println("     TYPE ARGUMENTS: " + tt);
-                //}
-                Type tt = types[0];
-                Class<?> cll = (Class<?>) tt;
-                
-            }
-            return null;
-        }
-
-    }
-
-    @SuppressWarnings("unused")
-	private class MapAdaptor
-        extends TypeAdapter<ConcurrentHashMap<DuccId, Long>>
-    {
-            
-        public void write(JsonWriter out, ConcurrentHashMap<DuccId, Long> map) throws IOException {
-            System.out.println("***************** Writing");
-            if (map == null) {
-                out.nullValue();
-                return;
-            }
-
-            out.beginArray();
-            for (DuccId k : map.keySet() ) {
-                out.beginObject();
-                out.value(k.getFriendly());
-                out.value(k.getUnique());
-                out.value(map.get(k));
-                out.endObject();
-            }
-            out.endArray();
-        }
-                
-        public ConcurrentHashMap<DuccId, Long> read(JsonReader in) throws IOException {
-            System.out.println("***************** reading");
-            if (in.peek() == JsonToken.NULL) {
-                in.nextNull();
-                return null;
-            }
-                    
-            ConcurrentHashMap<DuccId, Long> ret = new ConcurrentHashMap<DuccId, Long>();
-            in.beginArray();
-            while (in.hasNext()) {
-                in.beginObject();
-                Long friendly = in.nextLong();
-                String unique = in.nextString();
-
-                Long val = in.nextLong();
-                in.endObject();
-                DuccId id = new DuccId(friendly);
-                id.setUUID(UUID.fromString(unique));
-                ret.put(id, val);
-            }
-            in.endArray();
-            return ret;
-        }
-    }
-
 }

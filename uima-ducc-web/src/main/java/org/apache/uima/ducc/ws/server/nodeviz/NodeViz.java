@@ -248,6 +248,8 @@ public class NodeViz
                         Node n = r.getNode();                        
                         if ( n == null ) {
                             logger.debug(methodName, w.getDuccId(),  "Node [N/A] mem[N/A");
+                        } else if ( n.getNodeIdentity() == null ) {
+                            logger.debug(methodName, w.getDuccId(),  "NodeIdentity [N/A] mem[N/A");
                         } else {
                             String key = strip(n.getNodeIdentity().getName());
                             VisualizedHost vh = hosts.get(key);

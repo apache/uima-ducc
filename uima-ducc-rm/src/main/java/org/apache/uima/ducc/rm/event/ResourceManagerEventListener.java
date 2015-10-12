@@ -20,6 +20,7 @@ package org.apache.uima.ducc.rm.event;
 
 import org.apache.camel.Body;
 import org.apache.uima.ducc.common.ANodeStability;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.rm.ResourceManager;
 import org.apache.uima.ducc.rm.scheduler.SchedConstants;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
@@ -33,7 +34,7 @@ public class ResourceManagerEventListener
     implements DuccEventDelegateListener,
                SchedConstants
 {
-    //private static DuccLogger logger = DuccLogger.getLogger(ResourceManagerEventListener.class, COMPONENT_NAME);
+    private static DuccLogger logger = DuccLogger.getLogger(ResourceManagerEventListener.class, COMPONENT_NAME);
 
 	private String targetEndpoint;
     private ResourceManager rm;
@@ -99,8 +100,8 @@ public class ResourceManagerEventListener
      */
     public void onOrchestratorStateUpdateEvent(@Body OrchestratorStateDuccEvent duccEvent) throws Exception 
     {
-    	//String methodName = "onOrchestratorStateUpdateEvent";
-        //logger.info(methodName, null, "Event arrives");
+    	String methodName = "onOrchestratorStateUpdateEvent";
+        logger.info(methodName, null, "Event arrives");
         rm.onOrchestratorStateUpdate(duccEvent.getWorkMap());
     }
 

@@ -38,6 +38,7 @@ import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.crypto.Crypto.AccessType;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
+import org.apache.uima.ducc.common.persistence.services.IStateServices.SvcProps;
 import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
 import org.apache.uima.ducc.common.persistence.services.StateServicesFactory;
 import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
@@ -116,7 +117,7 @@ public class ServiceManagerComponent
     private String state_file = null;
 
     private DuccProperties sm_props = null;
-    private String service_seqno = "service.seqno";
+    private String service_seqno = SvcProps.service_seqno.pname();
     private DuccIdFactory idFactory = new DuccIdFactory();
     
     private boolean signature_required = true;
@@ -177,6 +178,8 @@ public class ServiceManagerComponent
                 continue;
             }
             
+            System.out.println("Meta id " + metaprops.get("meta_dbid"));
+            System.out.println("Svc id " + metaprops.get("svc_dbid"));
             DuccId id = new DuccId(friendly);
             id.setUUID(UUID.fromString(uuid));
             logger.debug(methodName, id, "Unique:", id.getUnique());
@@ -332,6 +335,9 @@ public class ServiceManagerComponent
         logger.info(methodName, null, "    Service ping timeout    : ", meta_ping_timeout);
         logger.info(methodName, null, "    Service ping stability  : ", meta_ping_stability);
         logger.info(methodName, null, "    Default ping class      : ", default_ping_class);
+        logger.info(methodName, null, "");
+        logger.info(methodName, null, "    database enabled        : ", !System.getProperty("ducc.database.host").equals("--disabled--"));
+        logger.info(methodName, null, "    database implementation : ", System.getProperty("ducc.service.persistence.impl"));
         logger.info(methodName, null, "");
         logger.info(methodName, null, "    Init Failure Max        : ", init_failure_max);
         logger.info(methodName, null, "    Instance Failure Max    : ", failure_max);
@@ -821,18 +827,18 @@ public class ServiceManagerComponent
         props.put(UiOption.LogDirectory.pname(), logdir);
 
         DuccProperties meta = new DuccProperties();
-        meta.setProperty("user", user);
-        meta.setProperty("instances", ""+instances);
-        meta.setProperty("endpoint", endpoint);
-        meta.setProperty("numeric_id", id.toString());
-        meta.setProperty("uuid", id.getUnique());
-        meta.setProperty("registration-date-millis", Long.toString(regdate));
-        meta.setProperty("registration-date", regdate_readable);
+        meta.setProperty(SvcProps.user.pname(), user);
+        meta.setProperty(SvcProps.instances.pname(), ""+instances);
+        meta.setProperty(SvcProps.endpoint.pname(), endpoint);
+        meta.setProperty(SvcProps.numeric_id.pname(), id.toString());
+        meta.setProperty(SvcProps.uuid.pname(), id.getUnique());
+        meta.setProperty(SvcProps.registration_date_millis.pname(), Long.toString(regdate));
+        meta.setProperty(SvcProps.registration_date.pname(), regdate_readable);
 
         if ( autostart == Trinary.True ) {            
-            meta.setProperty("autostart", "true");
+            meta.setProperty(SvcProps.autostart.pname(), "true");
         } else {
-            meta.setProperty("autostart", "false");
+            meta.setProperty(SvcProps.autostart.pname(), "false");
         }
 
         ServiceReplyEvent reply = handler.register(id, props, meta, false);

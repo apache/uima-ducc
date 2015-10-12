@@ -56,6 +56,14 @@ public class NodeStability
     {
     	String methodName = "missedNode";
         logger.warn(methodName, null, "*** Missed heartbeat ***", n.getNodeIdentity().getName(), "count[", c, "]");
+        scheduler.nodeHb(n, c);
+    }
+
+    public void nodeRecovers(Node n)
+    {
+    	String methodName = "nodeRecovers";
+        logger.info(methodName, null, "*** Node recovers ***", n.getNodeIdentity().getName());
+        scheduler.nodeHb(n, 0);
     }
 
     public void nodeArrives(Node n)

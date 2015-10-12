@@ -66,6 +66,10 @@ class Ducc(DuccUtil):
             else:
                 jp = jp + k + '=' + v + ' '
 
+
+        if ( self.db_jvm_args != None ):
+            jp = jp + ' ' + self.db_jvm_args
+
         cmd = ' '.join(['nohup', self.java(), jp, '-cp', classpath, main, '&'])
         print cmd
 
@@ -177,6 +181,7 @@ class Ducc(DuccUtil):
                     jvm_opts.append("-Dducc.rm.override.dram=" + rmoverride)
                 if ( self.rm_jvm_args != None ):
                     jvm_opts.append(self.rm_jvm_args)
+                self.add_to_classpath(ducc_home + '/lib/orientdb/*')       
                 
             if ( c == 'ws' ):
                 #see if the ws jsp compilation directory is specified
@@ -251,7 +256,7 @@ class Ducc(DuccUtil):
         if ( args != None ):
             cmd.append(args)
 
-        #print 'CMD', cmd
+        print 'CMD', cmd
 
         if ( pid == None ):
             if ( background ):

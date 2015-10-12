@@ -52,4 +52,7 @@ public class AgentMonitor extends ANodeStability{
   public void ping(Node node) {
     super.nodeArrives(node);
   }
+  
+  public void nodeRecovers(Node n) {}
+  
 }

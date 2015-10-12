@@ -38,6 +38,8 @@ import org.apache.uima.ducc.common.admin.event.RmQueriedClass;
 import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
 import org.apache.uima.ducc.common.admin.event.RmQueriedNodepool;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
+import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -92,6 +94,7 @@ public class Scheduler
 
     //HashMap<Node, Node> incomingNodes  = new HashMap<Node, Node>();         // node updates
     Map<Node, Node> deadNodes      = new HashMap<Node, Node>();           // missed too many heartbeats
+    Map<Node, Integer> illNodes    = new HashMap<Node, Integer>();        // starting to miss, keep track of how many for the db
     // HashMap<Node, Node> allNodes       = new HashMap<Node, Node>();           // the guys we know
     Map<String, NodePool>    nodepoolsByNode = new HashMap<String, NodePool>(); // all nodes, and their associated pool
     Map<String, String>      shortToLongNode = new HashMap<String, String>();   // 
@@ -234,6 +237,8 @@ public class Scheduler
         logger.info(methodName, null, "                       class definition file   : ", class_definitions);
         logger.info(methodName, null, "                       default domain          : ", defaultDomain);      // UIMA-4142
         logger.info(methodName, null, "                       eviction policy         : ", evictionPolicy);
+        logger.info(methodName, null, "                       database enabled        : ", !System.getProperty("ducc.database.host").equals("--disabled--"));
+        logger.info(methodName, null, "                       database implementation : ", System.getProperty("ducc.rm.persistence.impl"));
         logger.info(methodName, null, "                       use prediction          : ", SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true));
         logger.info(methodName, null, "                       prediction fudge factor : ", SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 10000));
         logger.info(methodName, null, "                       node stability          : ", nodeStability);
@@ -259,6 +264,8 @@ public class Scheduler
         logger.info(methodName, null, "                       RM Version              : ", ""+ rmversion_major   + "." 
                                                                                              + rmversion_minor   + "." 
                                                                                              + rmversion_ptf);
+        IRmPersistence persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
+        persistence.clear();
         initialized = true;
     }
 
@@ -794,6 +801,34 @@ public class Scheduler
         stability = true;
     }
 
+    protected void handleIllNodes()
+    {
+    	String methodName = "handleIllNodes";
+    	
+        if ( ! isInitialized() ) {
+            logger.info(methodName, null, "Waiting for (re)initialization.");
+            return;
+        }
+
+        HashMap<Node, Integer> nodeUpdates = new HashMap<Node, Integer>();
+        synchronized(deadNodes) {
+            nodeUpdates.putAll(illNodes);
+            illNodes.clear();
+        }
+        
+        synchronized(this) {
+            for ( Node n : nodeUpdates.keySet() ) {
+                Machine m = getMachine(n);
+                int count = nodeUpdates.get(n);
+                if ( count == 0 ) {
+                    m.heartbeatArrives();
+                } else {
+                    m.heartbeatMissed(count);
+                }
+            }
+        }
+    }
+
     protected void handleDeadNodes()
     {
     	String methodName = "handleDeadNodes";
@@ -855,6 +890,7 @@ public class Scheduler
         // tracking the OR hang problem - are topics being delivered?
         logger.info("nodeArrives", null, "Total arrivals:", total_arrivals);
 
+        handleIllNodes();
         handleDeadNodes();
         resetNodepools();
 
@@ -1097,6 +1133,10 @@ public class Scheduler
             return;
         }
 
+        synchronized(illNodes) {        // stop flagging it as a problem
+            illNodes.remove(node);
+        }
+
     	// String methodName = "nodeArrives";
         // The first block insures the node is in the scheduler's records as soon as possible
 
@@ -1120,6 +1160,14 @@ public class Scheduler
         
         max_order = Math.max(share_order, max_order);
         m = np.nodeArrives(node, share_order);                         // announce to the nodepools
+        m.heartbeatArrives();
+    }
+
+    public void nodeHb(Node n, int count)
+    {
+        synchronized(illNodes) {
+            illNodes.put(n, count);
+        }
     }
 
     public void nodeDeath(Map<Node, Node> nodes)

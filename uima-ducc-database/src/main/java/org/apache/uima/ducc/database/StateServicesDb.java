@@ -32,6 +32,8 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.database.DbConstants.DbCategory;
 import org.apache.uima.ducc.database.DbConstants.DbVertex;
 
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+
 public class StateServicesDb
     implements IStateServices
 {
@@ -122,6 +124,8 @@ public class StateServicesDb
         throws Exception
     {
         String methodName = "getStateServicesDirectory";
+        long now = System.currentTimeMillis();
+
         StateServicesDirectory ret = new StateServicesDirectory();
 
         if ( dbManager== null ) {
@@ -129,10 +133,10 @@ public class StateServicesDb
             return ret;    // avoid NPE in caller
         }
 
-        DbHandle h = dbManager.open();
+        DbHandle h = dbManager.openNoTx();
         try {
-            Map<Long, Properties> svcset  = h.getPropertiesForType(DbVertex.ServiceReg    , DbCategory.SmReg);
-            Map<Long, Properties> metaset = h.getPropertiesForType(DbVertex.ServiceMeta, DbCategory.SmReg);
+            Map<Long, Properties> svcset  = h.getPropertiesForTypeSel(DbVertex.ServiceReg , DbCategory.SmReg);
+            Map<Long, Properties> metaset = h.getPropertiesForTypeSel(DbVertex.ServiceMeta, DbCategory.SmReg);
 
             for ( Long k : svcset.keySet() ) {
                 logger.trace(methodName, null, "Handling key", k);
@@ -147,7 +151,8 @@ public class StateServicesDb
         } finally {
             if ( h != null ) h.close();
         }
-
+        
+        logger.info(methodName, null, "Time to read service registy", System.currentTimeMillis() - now);
         return ret;
     }
 
@@ -176,15 +181,20 @@ public class StateServicesDb
                 h = dbManager.openNoTx();
             }
 
-            Long id = serviceId.getFriendly();            
-            if ( safe ) {
-                if ( h.thingInDatabase(id, DbVertex.ServiceReg, category) ) {
-                    return false;
-                }
-            }
+            if ( meta_props.containsKey("meta_dbid")) return false; // if it's assigned, it came from the db so we know it's already there            
 
-            h.createPropertiesObject(svc_props, DbVertex.ServiceReg, id, category);
-            h.createPropertiesObject(meta_props, DbVertex.ServiceMeta, id, category);
+            Long id = serviceId.getFriendly();            
+            OrientVertex ov_svc = h.createProperties(DbConstants.DUCCID, id, DbVertex.ServiceReg , category, svc_props);
+            OrientVertex ov_meta = h.createProperties(DbConstants.DUCCID, id, DbVertex.ServiceMeta, category, meta_props);
+
+            Object dbid = ov_svc.getId();
+            meta_props.put("svc_dbid", dbid);
+            ov_meta.setProperty("svc_dbid", dbid);
+
+            dbid = ov_meta.getId();
+            meta_props.put("meta_dbid", dbid);
+            ov_meta.setProperty("meta_dbid", dbid);
+
             h.commit();
             return true;
         } catch ( Exception e ) {
@@ -224,14 +234,21 @@ public class StateServicesDb
     {
         // All we need to do is re-sync the final properties, and be sure to set DUCC_HISTORY to false
         String methodName = "moveToHistory";
-   		Long id = serviceId.getFriendly();
         DbHandle h = null;
         try {
         
             h = dbManager.open();        // get new connection from the pool
-            h.syncProperties(job_props, DbVertex.ServiceReg, id, DbCategory.History);
-            h.syncProperties(meta_props, DbVertex.ServiceMeta, id, DbCategory.History);
+            Object svc_dbid = meta_props.get("svc_dbid");
+            Object meta_dbid = meta_props.get("meta_dbid");
+            OrientVertex obj_reg  = h.updateProperties(svc_dbid, job_props);
+            OrientVertex obj_meta = h.updateProperties(meta_dbid, meta_props);
+
+            h.changeCategory(obj_reg,  DbCategory.History);
+            h.changeCategory(obj_meta, DbCategory.History);
             h.commit();
+
+            // h.syncProperties(job_props, DbVertex.ServiceReg, id, DbCategory.History);
+            // h.syncProperties(meta_props, DbVertex.ServiceMeta, id, DbCategory.History);
         }  catch ( Exception e ) {
             logger.error(methodName, serviceId, "ROLLBACK: ", e);
             if ( h != null ) h.rollback();
@@ -249,20 +266,24 @@ public class StateServicesDb
      *              the service is being modified, it could also be the registration.
      * @param type The type enum, ususally Service or ServiceMeta.
      */
-    private boolean updateProperties(DuccId serviceId, Properties props, DbVertex type)
+    private boolean updateProperties(Object dbid, DuccId serviceId, Properties props, DbVertex type)
     {
         String methodName = "updatePropeties";
         DbHandle h = null;
         try {            
             h = dbManager.open();
-            h.syncProperties(props, type, serviceId.getFriendly(), DbCategory.SmReg);            
+            h.updateProperties(dbid, props);
+            // h.synchronizeProperties(DbConstants.DUCCID, serviceId.getFriendly(), type,  DbCategory.SmReg, props);
+            // h.synchronizeProperties(dbid, props);
+
             h.commit();
+            // h.syncProperties(props, type, serviceId.getFriendly(), DbCategory.SmReg);            
             return true;
         } catch ( Exception e ) {
             logger.error(methodName, serviceId, "ROLLBACK:", e);
             if ( h != null ) h.rollback();
             return false;            
-        } finally {
+        } finally {            
             if ( h != null ) h.close();
         }
     }
@@ -270,17 +291,17 @@ public class StateServicesDb
     /**
      * Update the service registration.
      */
-    public boolean updateJobProperties(DuccId serviceId, Properties props) 
+    public boolean updateJobProperties(Object dbid, DuccId serviceId, Properties props) 
     {
-        return updateProperties(serviceId, props, DbVertex.ServiceReg);
+        return updateProperties(dbid, serviceId, props, DbVertex.ServiceReg);
     }
 
     /**
      * Update the service meta data.
      */
-    public boolean updateMetaProperties(DuccId serviceId, Properties props) 
+    public boolean updateMetaProperties(Object dbid, DuccId serviceId, Properties props) 
     {
-        return updateProperties(serviceId, props, DbVertex.ServiceMeta);
+        return updateProperties(dbid, serviceId, props, DbVertex.ServiceMeta);
     }
 
     /**

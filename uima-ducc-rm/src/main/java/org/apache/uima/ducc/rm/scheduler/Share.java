@@ -36,9 +36,10 @@ public class Share
 	implements SchedConstants
 {
     //private transient DuccLogger logger = DuccLogger.getLogger(Share.class, COMPONENT_NAME);
-    private Machine machine;               // machine associatede with this share, assigned after "what-of"
+    
+    private transient Machine machine;               // machine associatede with this share, assigned after "what-of"
     private DuccId id = null;              // unique *within this machine*         assigned after "what-of"
-    private IRmJob job = null;;            // job executing in this share, if any, assigned after "what-of"
+    private transient IRmJob job = null;;            // job executing in this share, if any, assigned after "what-of"
     private DuccId bljobid = null;         // UIMA-4142 ID of blacklisted job
     private int share_order;               // may not be same as machine's order
 

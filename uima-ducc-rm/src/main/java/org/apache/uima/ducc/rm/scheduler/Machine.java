@@ -25,6 +25,9 @@ import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
 import org.apache.uima.ducc.common.admin.event.RmQueriedShare;
+import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
+import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmPropName;
+import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
@@ -36,10 +39,10 @@ public class Machine
     private static DuccLogger logger = DuccLogger.getLogger(Machine.class, COMPONENT_NAME);
 
     private String id;
-    private int hbcounter = 0;           // heartbeat counter
 
     private long memory;            // in Kb
     private int share_order = 1;
+    private int heartbeats = 0;
 
     private NodePool nodepool;
 
@@ -72,12 +75,15 @@ public class Machine
     Node node;   
 
     private HashMap<Share, Share> activeShares = new HashMap<Share, Share>();
+    private IRmPersistence persistence = null;
+    Object dbid = null;
 
     public Machine(Node node)
     {
         this.node = node;
         this.memory =  node.getNodeMetrics().getNodeMemory().getMemTotal();
         this.id = node.getNodeIdentity().getName();
+        this.persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
     }
 
 //    public Machine(String id, long memory)
@@ -162,19 +168,44 @@ public class Machine
         return blacklistedWork.size() > 0;
     }
 
-    public synchronized void heartbeat_down()
+    public synchronized void heartbeatArrives()
     {
-        hbcounter = 0;
+        String methodName = "heartbeatArrives";
+        long now = System.currentTimeMillis();
+        if ( heartbeats == 0 ) return;               // no need to rereset it
+        try {
+            logger.info(methodName, null, "Reset heartbeat to 0");
+			persistence.setProperty(dbid, id, RmPropName.Heartbeats, 0);
+            logger.info(methodName, null, "Time to reset heartbeat", System.currentTimeMillis() - now);
+		} catch (Exception e) {
+            logger.warn(methodName, null, "Cannot update heartbeat count in database:", e);
+		}
     }
 
-    public synchronized void heartbeat_up()
+    public synchronized void heartbeatMissed(int c)
     {
-        hbcounter++;
+        String methodName = "heartbeatMissed";
+        long now = System.currentTimeMillis();
+
+        if ( c < 2 ) return;                    // we allow a couple because timing and races can create false negatives
+        try {
+            heartbeats = c;
+            logger.info(methodName, null, "Missed heartbeat count", c);
+			persistence.setProperty(dbid, id, RmPropName.Heartbeats, c);
+            logger.info(methodName, null, "Time to record misssed heartbeat", System.currentTimeMillis() - now);
+		} catch (Exception e) {
+            logger.warn(methodName, null, "Cannot update heartbeat count in database:", e);
+		}
     }
 
-    public synchronized int get_heartbeat()
+    Object getDbId()
     {
-        return hbcounter;
+        return this.dbid;
+    }
+
+    void setDbId(Object dbid)
+    {
+        this.dbid = dbid;
     }
 
     public NodeIdentity getNodeIdentity()
@@ -225,12 +256,6 @@ public class Machine
     public int countProcesses()
     {
         return activeShares.size();
-    }
-
-    public void assignShare(Share s)
-    {
-        activeShares.put(s, s);
-        shares_left -= s.getShareOrder();
     }
 
     HashMap<Share, Share> getActiveShares()
@@ -296,11 +321,35 @@ public class Machine
         this.virtual_share_order = share_order - blacklisted_shares;
     }
 
+    public void assignShare(Share s)
+    {
+    	String methodName = "assignShare";
+        long now = System.currentTimeMillis();
+        activeShares.put(s, s);
+        shares_left -= s.getShareOrder();
+        try {
+			persistence.setProperties(dbid, id, RmPropName.Assignments.pname(), activeShares.size(), RmPropName.SharesLeft.pname(), shares_left);
+            logger.info(methodName, null, "Time to assign share in db", System.currentTimeMillis() - now);
+		} catch (Exception e) {
+            logger.warn(methodName, null, "Cannot save state; shares_left", shares_left);
+		}
+
+    }
+
     public void removeShare(Share s)
     {
+    	String methodName = "removeShare";
+        long now = System.currentTimeMillis();
+
         activeShares.remove(s);
         nodepool.removeShare(s);
         shares_left += s.getShareOrder();
+        try {
+			persistence.setProperties(dbid, id, RmPropName.Assignments.pname(), activeShares.size(), RmPropName.SharesLeft.pname(), shares_left);
+            logger.info(methodName, null, "Time to remove share in db", System.currentTimeMillis() - now);
+		} catch (Exception e) {
+            logger.warn(methodName, null, "Cannot save state; shares_left", shares_left);
+		}
     }
 
     /**

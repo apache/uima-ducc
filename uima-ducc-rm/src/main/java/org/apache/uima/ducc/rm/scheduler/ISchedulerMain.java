@@ -46,6 +46,7 @@ public interface ISchedulerMain
 
     void nodeArrives(Node n);
     void nodeDeath(Map<Node, Node> n);
+    void nodeHb(Node n, int count);
     void signalCompletion(DuccId id);
     void signalInitialized(IRmJob id);
     void signalCompletion(IRmJob job, Share share);

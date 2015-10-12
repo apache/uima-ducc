@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.database.DbConstants;
 import org.apache.uima.ducc.database.DbConstants.DbCategory;
 import org.apache.uima.ducc.database.DbConstants.DbEdge;
 import org.apache.uima.ducc.database.DbConstants.DbVertex;
@@ -13,8 +14,11 @@ import org.apache.uima.ducc.database.DbHandle;
 import org.apache.uima.ducc.database.DbLoader;
 import org.apache.uima.ducc.database.DbManager;
 
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+
 /**
  * Toy orientdb loader to load a service registry into OrientDb
+ * WARNING: No longer correct.
  */
 
 public class SmLoader
@@ -71,14 +75,14 @@ public class SmLoader
             String cps = (String) svc_props.remove("classpath");
             //String ping_cps = (String) svc_props.remove("service_ping_classpath");
             h = dbManager.open(); 
-            Object svc = h.createPropertiesObject(svc_props, DbVertex.ServiceInstance, id, dbcat);
-            Object meta = h.createPropertiesObject(meta_props, DbVertex.ServiceMeta, id, dbcat);
+            OrientVertex svc  = h.createProperties(DbConstants.DUCCID, id, DbVertex.ServiceReg, dbcat, svc_props);
+            OrientVertex meta = h.createProperties(DbConstants.DUCCID, id, DbVertex.ServiceMeta, dbcat, meta_props);
             h.addEdge(svc, meta, DbEdge.ServiceMeta);
 
             if ( cps != null ) {
                 Properties cp_props = new Properties();
                 cp_props.put("classpath", cps);
-                Object cp = h.createPropertiesObject(cp_props, DbVertex.Classpath, id, dbcat);
+                OrientVertex cp = h.createProperties(DbConstants.DUCCID, id, DbVertex.Classpath, dbcat, cp_props);
                 h.addEdge(svc, cp, DbEdge.Classpath);
             }
 

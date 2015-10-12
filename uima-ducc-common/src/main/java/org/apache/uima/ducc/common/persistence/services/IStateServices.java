@@ -49,6 +49,8 @@ public interface IStateServices {
 
         implementors        { public String pname() { return "implementors"; } },
         numeric_id          { public String pname() { return "numeric_id"; } },
+        uuid                { public String pname() { return "uuid"; } }, 
+        service_seqno       { public String pname() { return "service.seqno"; } },
         ping_active         { public String pname() { return "ping_active"; } },
         ping_only           { public String pname() { return "ping_only"; } },
 
@@ -79,6 +81,7 @@ public interface IStateServices {
         last_runnable_readable { public String pname() { return "last_runnable_readable"; } },
         work_instances      { public String pname() { return "work_instances"; } },
         registration_date   { public String pname() { return "registration_date"; } },
+        registration_date_millis { public String pname() { return "registration_date_millis"; } },
 
         instance_init_failures_limit { public String pname() { return "instance_init_failures_limit"; } },
 
@@ -140,8 +143,8 @@ public interface IStateServices {
 	public StateServicesDirectory getStateServicesDirectory() throws Exception;    // all the registy in one blow
 
     public boolean storeProperties (DuccId serviceId, Properties svc, Properties meta) throws Exception;   // save svc and meta in a transaction
-    public boolean updateJobProperties (DuccId serviceId, Properties props)            throws Exception;   // update just job props
-    public boolean updateMetaProperties(DuccId serviceId, Properties props)            throws Exception;   // update just metaprops
+    public boolean updateJobProperties (Object dbid, DuccId serviceId, Properties props)            throws Exception;   // update just job props
+    public boolean updateMetaProperties(Object dbid, DuccId serviceId, Properties props)            throws Exception;   // update just metaprops
     public void    moveToHistory(DuccId serviceId, Properties svc, Properties meta)    throws Exception;
     
     public void shutdown()                 throws Exception;    

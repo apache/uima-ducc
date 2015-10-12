@@ -183,6 +183,7 @@ class DuccUtil(DuccBase):
         rt    = self.DUCC_HOME                       # (ducc runtime)
         db_rt = rt + '/database'                     # ORIENTDB_HOME - the database "home" place
 
+
         jvm_parms = {
             '-Dfile.encoding'                 : 'UTF8',
             '-Drhino.opt.level'               : '9',
@@ -192,6 +193,10 @@ class DuccUtil(DuccBase):
             '-Dorientdb.config.file'          : rt + '/' + dbconfig,
             '-Dorientdb.www.path'             : db_rt + '/www',
             '-Djava.util.logging.config.file' : rt + '/resources/database.log.config',
+            '-Dcom.sun.management.jmxremote'  : None,
+            '-Dcom.sun.management.jmxremote.ssl' : 'false',
+            '-Dcom.sun.management.jmxremote.authenticate': 'false',
+            '-Dcom.sun.management.jmxremote.port': '1098',
             }
         classpath = '"' + rt + '/lib/orientdb/*' 
         classpath = classpath + ':' + rt + '/lib/jna/*' + '"'
@@ -261,7 +266,7 @@ class DuccUtil(DuccBase):
                     line = lines.readline().strip()
                 except:
                     break
-                #print '[]', line
+                print '[]', line
                 
                 if ( not line ):
                     break
@@ -399,7 +404,7 @@ class DuccUtil(DuccBase):
 
     def nohup(self, cmd, showpid=True):
         cmd = ' '.join(cmd)
-        # print '**** nohup', cmd, '****'
+        print '**** nohup', cmd, '****'
         devnw = open(os.devnull, 'w')
         devnr = open(os.devnull, 'r')
         ducc = subprocess.Popen(cmd, shell=True, stdin=devnr, stdout=devnw, stderr=devnw)
@@ -412,7 +417,7 @@ class DuccUtil(DuccBase):
     def ssh(self, host, do_wait, *CMD):
 
         cmd = ' '.join(CMD)
-        #print 'ssh -o BatchMode=yes -o ConnectTimeout=10', host, cmd
+        print 'ssh -o BatchMode=yes -o ConnectTimeout=10', host, cmd
         if ( do_wait ):
             return self.popen('ssh -q -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
         else:

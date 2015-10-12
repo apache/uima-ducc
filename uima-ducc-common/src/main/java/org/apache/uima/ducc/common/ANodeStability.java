@@ -61,6 +61,9 @@ public abstract class ANodeStability
      */
     public synchronized void nodeArrives(Node n)
     {
+        if ( heartbeats.containsKey(n) && (heartbeats.get(n) > 1) ) {
+            nodeRecovers(n);
+        }
         heartbeats.put(n, 0);
     }
 
@@ -69,6 +72,11 @@ public abstract class ANodeStability
      * such as logging the event.  OK to do nothing. Implementor must synchronize if desired.
      */
     public abstract void missedNode(Node n, int c);
+
+    /**
+     * Called when removing a node had missed heartbeats but has recovered.
+     */
+    public abstract void nodeRecovers(Node n);
 
     /**
      * Graceful shutdown of the thread.
@@ -103,11 +111,11 @@ public abstract class ANodeStability
             }
             
             if ( deadNodes.size() > 0 ) {
-                nodeDeath(deadNodes);                 // tell implementors
-                for ( Node n : deadNodes.keySet() ) {          // clear from list of known nodes
-                    heartbeats.remove(n);             //   so we don't keep harassing implementors
+                nodeDeath(deadNodes);                  // tell implementors
+                for ( Node n : deadNodes.keySet() ) {  // clear from list of known nodes
+                    heartbeats.remove(n);              //   so we don't keep harassing implementors
                 }
-                deadNodes.clear();                    // and clear our own list 
+                deadNodes.clear();                     // and clear our own list 
             }
 
             try {

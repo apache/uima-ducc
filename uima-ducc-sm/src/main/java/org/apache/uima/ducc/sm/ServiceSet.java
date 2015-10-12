@@ -817,8 +817,8 @@ public class ServiceSet
         if ( ! isRecovered ) {       // if not recovery, no need to mess with the record
             stateHandler.storeProperties(id, job_props, meta_props);
         } else {                
-            stateHandler.updateJobProperties(id, (Properties) job_props);
-            stateHandler.updateMetaProperties(id, meta_props);
+            stateHandler.updateJobProperties(meta_props.get("svc_dbid"), id, (Properties) job_props);
+            stateHandler.updateMetaProperties(meta_props.get("meta_dbid"), id, meta_props);
         }
     }
 
@@ -828,7 +828,7 @@ public class ServiceSet
         // no more changes
         if ( isDeregistered() ) return;
 
-        stateHandler.updateJobProperties(id, (Properties) job_props);
+        stateHandler.updateJobProperties(meta_props.get("svc_dbid"), id, (Properties) job_props);
     }
 
     synchronized void updateMetaProperties()
@@ -839,7 +839,7 @@ public class ServiceSet
         // if ( isDeregistered() ) return;
 
         prepareMetaProperties();
-        stateHandler.updateMetaProperties(id, meta_props);
+        stateHandler.updateMetaProperties(meta_props.get("meta_dbid"), id, meta_props);
     }
 
     void prepareMetaProperties()

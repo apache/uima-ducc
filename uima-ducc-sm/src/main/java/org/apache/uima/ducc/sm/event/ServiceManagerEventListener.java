@@ -219,7 +219,7 @@ public class ServiceManagerEventListener
         throws Exception 
     {
 		String methodName = "onOrchestratorStateDuccEvent";
-		// System.out.println("......... Service Manager Received OrchestratorStateDuccEvent.");
+		System.out.println("......... Service Manager Received OrchestratorStateDuccEvent.");
 		// serviceManager.evaluateServiceRequirements(duccEvent.getWorkMap());
         try {
             serviceManager.orchestratorStateArrives(duccEvent.getWorkMap());

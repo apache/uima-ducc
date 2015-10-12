@@ -79,8 +79,13 @@ public class DbLoader
     String archive_key  = IStateServices.archive_key;
     String archive_flag = IStateServices.archive_flag;
 
-    int nthreads = 40;
+    int nthreads = 20;
     AtomicInteger counter = new AtomicInteger(0);
+
+    //int joblimit         = 10000;
+    //int reservationlimit = 10000;
+    //int servicelimit     = 10000;
+    //int registrylimit    = 10000;
 
     int joblimit = Integer.MAX_VALUE;
     int reservationlimit = Integer.MAX_VALUE;
@@ -111,6 +116,13 @@ public class DbLoader
             System.exit(1);
         }
 
+        jobHistory             = from + jobHistory;
+        reservationHistory     = from + reservationHistory;
+        serviceHistory         = from + serviceHistory;
+        serviceRegistryHistory = from + serviceRegistryHistory;
+        serviceRegistry        = from + serviceRegistry;
+        checkpointFile         = from + checkpointFile;
+
         f = new File(to);
         if ( ! f.isDirectory() ) {
             System.out.println("'to' must be a directory");
@@ -120,39 +132,26 @@ public class DbLoader
         String databasedir =  to + "/database/databases";
         String databasename = databasedir + "/DuccState";
         // We always use a non-networked version for loading
-        state_url = "plocal:" + databasedir + "/DuccState";
+        //state_url = "plocal:" + databasedir + "/DuccState";
+        state_url = "remote:bluej538/DuccState";
         System.setProperty("ducc.state.database.url", state_url);
 
-        f = new File(databasedir);
-        if ( f.exists() ) {
-            f = new File(databasename);
-            if ( f.exists() ) {
-                logger.info(methodName, null, "Dropping existing database.");
-                DbManager dbm = new DbManager(state_url, logger);
-                dbm.init();
-                dbm.drop();
-                dbm.shutdown();
-            }
-        } else {
-            try {            
-                if ( ! f.mkdirs() ) {
-                    System.out.println("Cannot create database directory: " + databasedir);
+        if ( state_url.startsWith("plocal") ) {
+            f = new File(databasedir);
+            if ( !f.exists() ) {
+                try {            
+                    if ( ! f.mkdirs() ) {
+                        System.out.println("Cannot create database directory: " + databasedir);
+                        System.exit(1);
+                    }
+                    System.out.println("Created database directory " + databasedir);
+                } catch ( Exception e ) {
+                    System.out.println("Cannot create database directory: " + databasedir + ":" + e.toString());
                     System.exit(1);
                 }
-                System.out.println("Created database directory " + databasedir);
-            } catch ( Exception e ) {
-                System.out.println("Cannot create database directory: " + databasedir + ":" + e.toString());
-                System.exit(1);
             }
         }
 
-
-        jobHistory             = from + jobHistory;
-        reservationHistory     = from + reservationHistory;
-        serviceHistory         = from + serviceHistory;
-        serviceRegistryHistory = from + serviceRegistryHistory;
-        serviceRegistry        = from + serviceRegistry;
-        checkpointFile         = from + checkpointFile;
     }
 
     void closeStream(InputStream in)
@@ -164,6 +163,7 @@ public class DbLoader
     {
         String methodName = "loadJobs";
 
+        logger.info(methodName, null, " -------------------- Load jobs ----------------");
         File dir = new File(jobHistory);
         if ( !dir.isDirectory() ) {
             logger.info(methodName, null, "Cannot find job history; skipping load of jobs.");
@@ -237,6 +237,7 @@ public class DbLoader
     {
         String methodName = "loadReservations";
 
+        logger.info(methodName, null, " -------------------- Load reservations ----------------");
         File dir = new File(reservationHistory);
         if ( ! dir.isDirectory() ) {
             logger.info(methodName, null, "No reservation directory found; skipping database load of reservations.");
@@ -310,6 +311,8 @@ public class DbLoader
     public void loadServices()
     {
         String methodName = "loadServices";
+
+        logger.info(methodName, null, " -------------------- Load services ----------------");
         File dir = new File(serviceHistory);
         if ( ! dir.isDirectory() ) {
             logger.info(methodName, null, "No service history directory found; skipping load of service history.");
@@ -382,6 +385,8 @@ public class DbLoader
     public void loadServiceRegistry(String registry, boolean isHistory)
     {
         String methodName = "loadServiceRegistry";
+
+        logger.info(methodName, null, " -------------------- Load registry; isHistory", isHistory, " ----------------");
 
         int c = 0;
         File dir = new File(registry);
@@ -503,38 +508,60 @@ public class DbLoader
     	throws Exception
     {
     	String methodName = "run";
+        long now = System.currentTimeMillis();
+
+        DbManager dbm = new DbManager(state_url, logger);
+        if ( dbm.checkForDatabase() ) {
+            dbm.init();
+            dbm.drop();
+            dbm.shutdown();
+        }
 
         DbCreate cr = new DbCreate(state_url, logger);
-        cr.createPlocalDatabase();
+        if ( state_url.startsWith("plocal") ) {
+            cr.createPlocalDatabase();
+        } else {
+            cr.createDatabase();
+        }
 
         logger.info(methodName, null, "storage.useWAL", System.getProperty("storage.useWAL"));
         logger.info(methodName, null, "tx.useLog", System.getProperty("tx.useLog"));
         if ( true ) {
             try {
 
+                OGlobalConfiguration.USE_WAL.setValue(false);
+                OGlobalConfiguration.USE_LOG.setValue(false);
+
                 OGlobalConfiguration.dumpConfiguration(System.out);
 
                 hmd = new HistoryManagerDb(logger);
 
+                long nowt = System.currentTimeMillis();
                 if ( docheckpoint ) loadCheckpoint();
-
-                OGlobalConfiguration.USE_WAL.setValue(false);
+                logger.info(methodName, null, "***** Time to load checkpoint A ****", System.currentTimeMillis() - nowt);
 
                 OGlobalConfiguration.dumpConfiguration(System.out);
 
 
                 // ---------- Load job history
+                nowt = System.currentTimeMillis();
                 if ( dojobs ) loadJobs();            
+                logger.info(methodName, null, "**** Time to load jobs**** ", System.currentTimeMillis() - nowt);
 
                 // ---------- Load reservation history
+                nowt = System.currentTimeMillis();
                 if ( doreservations ) loadReservations();                         
+                logger.info(methodName, null, "**** Time to load reservations ****", System.currentTimeMillis() - nowt);
 
 
                 // ---------- Load service isntance and AP history
+                nowt = System.currentTimeMillis();
                 if ( doservices ) loadServices();
+                logger.info(methodName, null, "**** Time to load service instances ****", System.currentTimeMillis() - nowt);
 
                 // ---------- Load service registry
                 if ( doregistry ) {
+                    nowt = System.currentTimeMillis();
                     ssd = new StateServicesDb();
                     ssd.init(logger);
                     loadServiceRegistry(serviceRegistry, false);
@@ -543,17 +570,21 @@ public class DbLoader
                     } catch ( Exception e ) {
                         e.printStackTrace();
                     }
+                    logger.info(methodName, null, "**** Time to load Service registry ****", System.currentTimeMillis() - nowt);
                     
                     // ---------- Load service registry history
+                    nowt = System.currentTimeMillis();
                     ssd = new StateServicesDb();
                     ssd.init(logger);
                     loadServiceRegistry(serviceRegistryHistory, true);                          
+                    logger.info(methodName, null, "**** Time to load Service history ****", System.currentTimeMillis() - nowt);
                 }
 
-                OGlobalConfiguration.USE_WAL.setValue(true);
+                nowt = System.currentTimeMillis();
+                logger.info(methodName, null, "**** Total load time ****", System.currentTimeMillis() - now);
+
                 if ( docheckpoint ) loadCheckpoint();
-
-
+                logger.info(methodName, null, "**** Time to reload checkpoint B ****", System.currentTimeMillis() - nowt);
 
             } catch ( Exception e ) {
             	logger.error(methodName, null, e);

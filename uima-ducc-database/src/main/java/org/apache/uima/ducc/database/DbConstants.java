@@ -19,6 +19,8 @@
 
 package org.apache.uima.ducc.database;
 
+import com.orientechnologies.orient.core.metadata.schema.OType;
+
 /**
  * This enum defines the classes and constants used in the db schema
  */
@@ -26,16 +28,51 @@ package org.apache.uima.ducc.database;
 public interface DbConstants
 {
 
-    static final String DUCCID    = "ducc_dbid";                 // DB-unique name for the duccid
-    static final String DUCC_DBCAT = "ducc_dbcat";                // The ducc database category: history, checkpoint, sm registry
+    static final String DUCCID        = "ducc_dbid";                 // DB-unique name for the duccid
+    static final String DUCC_DBCAT    = "ducc_dbcat";                // The ducc database category: history, checkpoint, sm registry
+    static final String DUCC_DBNODE   = "ducc_dbnode";
 
-    public interface Schema
+    // for all vertices we need to know the base and the name
+    public interface VSchema
     {
-        String pname();
+        String pname();           // the name of the ODB class
+        VSchema parent();         // parent class, if any. if none, then V
+        Index[] indices();        // indices to define on the class
+    }
+
+    // for all indices we need to know the name, the base class, the property, and the type
+    public interface Index
+    {
+        String pname();       // index name
+        String propname();    // name of the property it is applied to,, must exist in base
+        OType  type();        // datatype
+    }
+
+    public enum DuccIndex
+        implements Index 
+    {
+        IDuccId {
+            public String pname()    { return "i_duccid"; }
+            public String propname() { return DUCCID; }
+            public OType  type()     { return OType.LONG; }
+        },
+
+        ICategory {
+            public String pname()    { return "i_category"; }
+            public String propname()    { return DUCC_DBCAT; }
+            public OType  type()     { return OType.STRING; }
+        },
+
+        INodeName {
+            public String pname()    { return "i_nodename"; }
+            public String propname() { return DUCC_DBNODE; }
+            public OType  type()     { return OType.STRING; }
+        },
+        ;
+        
     }
 
     public enum DbCategory
-    	implements Schema
     {
     	Any {
     		// All categories - don't qualify the search
@@ -53,27 +90,40 @@ public interface DbConstants
             // Active service registration
             public String pname() { return "smreg"; }
         },
-
-        ;
-    }
-
-    // Every vertex must inherit from here so we can use common indexes
-    public enum DuccVertexBase
-        implements Schema
-    {
-        VBase {
-            public String pname() { return "VDuccBase"; } 
+        RmState {
+            // RM transient state.  Nodes, shares, etc.
+            public String pname() { return "rmstate"; }
         },
-            ;
+        ;   
+        public abstract String pname();
+        
     }
 
     public enum DbVertex                        
-        implements Schema
+        implements VSchema
     {
+        VBase {
+        	public String pname()    { return "VBase"; }
+            public DbVertex parent() { return null; }
+            public Index[] indices() { return new Index[] { DuccIndex.ICategory }; }
+        },
+
+        VWork {
+        	public String pname()    { return "VWork"; }
+            public DbVertex parent() { return VBase; }
+            public Index[] indices() { return new Index[] { DuccIndex.IDuccId } ; }
+        },
+
+        RmNode {
+        	public String pname()    { return "VRmNode"; }
+            public DbVertex parent() { return VBase; }
+            public Index[] indices() { return new Index[] { DuccIndex.INodeName }; }
+        },
+
         //
         // The convention is for vertices to start with Capital V and then a Capital
         //
-        Job {                                                  // The serialized job instance from OR
+        Job {
             public String pname() { return "VJob"; } 
         },
 
@@ -112,22 +162,20 @@ public interface DbConstants
         ProcessToJob     {                                     // For checkpoints, the process - to - job id map
             public String pname() { return "VProcessToJob"; } 
         },
-
         ;
 
+        public DbVertex parent() { return VWork; }
+        public Index[] indices() { return null; }
     }
 
-    public enum DuccEdgeBase
-        implements Schema
+    public interface ESchema
     {
-        EdgeBase {
-            public String pname() { return "ducc_ebase"; } 
-        },
-            ;
+        String pname();           // the name of the ODB class
+        ESchema parent();
     }
 
     public enum DbEdge
-        implements Schema
+        implements ESchema
     {
         //
         // The convention is for edges to start with lower e and then a lower
@@ -135,6 +183,11 @@ public interface DbConstants
         // Edge         {         // Generic edge
         //     public String pname() { return "ducc_edge"; } 
         // },
+
+        EBase {
+            public String pname() { return "ducc_ebase"; } 
+            public ESchema parent() { return null; }
+        },
 
         Classpath         {    // All record types, detached classpath
             public String pname() { return "eclasspath"; } 
@@ -153,6 +206,8 @@ public interface DbConstants
         },
 
         ;
+
+        public ESchema parent() { return EBase; }
 
     }
 }
