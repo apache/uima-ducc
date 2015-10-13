@@ -20,7 +20,7 @@
 #
 # To use this to execute your Eclipse workspace, install as a symbolic
 # link in your JRE/bin directory, with any name other than 'viaducc',
-# for instance, java-viaducc,, linking back to the base version of
+# for instance, java_viaducc,, linking back to the base version of
 # viaducc in your ducc_runtime.
 #
 # Then configre your Eclipse's launch JRE to use java_viaducc in place
@@ -70,6 +70,9 @@ def usage():
         print "   -DJAVA_BIN=specific-java-bin-directory"
         print "       For use with java_viaducc.  Details follow."
         print "       The default is -DJAVA_BIN=" + default_jvm
+    print ""
+    print "   -DDUCC_DESRIPTION=user-description-string"
+    print "       The default description is the program name: viaducc or java_viaducc"
     print ""
     print "   -DDUCC_NO_CANCEL_ON_INTERRUPT"
     print "       To disable process cancellation when the submitting process terminates."

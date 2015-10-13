@@ -78,5 +78,9 @@
          \item[-DJAVA\_BIN] This species the exact ``java'' command to use, for ``java\_viaducc''.  it
            must be a full path to some JRE that is known to be installed on all the DUCC nodes.  If not
            specified, the JRE used to run ducc is uses.
+         \item[-DDUCC\_DESCRIPTION] The description string to use for the submission.
+           If not specified, the description defaults to the executable name, viaducc or java\_viaducc.
+         \item[-DDUCC\_NO\_CANCEL\_ON\_INTERRUPT] If specified this no-argument option disables 
+           automatic process cancellation when the submitting process terminates before the remote process.
     \end{description}
         
