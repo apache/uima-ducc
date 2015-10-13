@@ -208,7 +208,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 									.getMajorFaults();
 							RandomAccessFile raf = null;
 							try {
-								System.out.println("------------------ Opening stat file for PID:"+pid);
 								raf = new RandomAccessFile("/proc/" + pid + "/stat", "r");
 								ProcessCpuUsageCollector processCpuUsageCollector = new ProcessCpuUsageCollector(
 										logger, pid, raf, 42, 0);
