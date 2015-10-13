@@ -143,6 +143,7 @@ def main():
     ducc_class = 'fixed'
     java_cmd   = None
     ducc_env   = ''
+    ducc_desc  = os.path.basename(sys.argv[0])
     enable_cancel = True
 
     # remember to add the '=' at the end if following value
@@ -152,6 +153,7 @@ def main():
     p_ducc_home = '-DDUCC_HOME='
     p_env       = '-DDUCC_ENVIRONMENT='
     p_no_int    = '-DDUCC_NO_CANCEL_ON_INTERRUPT'
+    p_desc      = '-DDUCC_DESCRIPTION='
 
     need_java = False
     if ( os.path.basename(sys.argv[0]) != 'viaducc' ):
@@ -183,6 +185,9 @@ def main():
         elif (arg.startswith(p_env) ):
             ducc_env = ' --environment "' + arg[len(p_env):] + '"'
 
+        elif (arg.startswith(p_desc) ):
+            ducc_desc = '"' + arg[len(p_desc):] +'"'
+
         elif (arg.startswith(p_no_int) ):
             enable_cancel = False
 
@@ -207,7 +212,7 @@ def main():
     CMD = CMD +       ' --attach_console'
     CMD = CMD +       ' --process_memory_size ' + str(ducc_mem_size)
     CMD = CMD +       ' --scheduling_class ' + ducc_class
-    CMD = CMD +       ' --description ' + os.path.basename(sys.argv[0])
+    CMD = CMD +       ' --description ' + ducc_desc
     CMD = CMD +       ' --wait_for_completion'
     if (enable_cancel):
         CMD = CMD +       ' --cancel_on_interrupt'
