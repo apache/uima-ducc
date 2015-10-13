@@ -26,13 +26,27 @@ import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGenerationException;
 import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGeneration;
+import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGenerationException;
 
 public class DgenManager {
 
 	private static Logger logger = Logger.getLogger(DgenManager.class, IComponent.Id.JD.name());
-
+	
+	private static DgenManager instance = null;
+	
+	public synchronized static DgenManager getInstance() {
+		String location = "getInstance";
+		if(instance == null) {
+			try {
+				instance = new DgenManager();
+			} catch (DgenException e) {
+				logger.error(location, ILogger.null_id, e);
+			}
+		}
+		return instance;
+	}
+	
 	private String deployable = null;
 	
 	private ProxyDeployableGeneration proxy = null;

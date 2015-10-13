@@ -32,7 +32,6 @@ import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.container.dgen.DgenManager;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
@@ -81,7 +80,6 @@ public class JobDriver {
 	private CasManager cm = null;
 	private ProxyJobDriverErrorHandler pjdeh = null;
 	private IMessageHandler mh = null; // new MessageHandler();
-	private DgenManager ddManager = null;
 	
 	private IWorkItemStateKeeper wisk = null;
 	private IWorkItemPerformanceSummaryKeeper wipsk = null;
@@ -112,7 +110,6 @@ public class JobDriver {
 			wipsk = new WorkItemPerformanceSummaryKeeper(logDir);
 			cm = new CasManager();
 			pjdeh = new ProxyJobDriverErrorHandler();
-			ddManager = new DgenManager();
 			mh = new MessageHandler();
 		}
 		catch(Exception e) {
@@ -174,10 +171,6 @@ public class JobDriver {
 	
 	public IMessageHandler getMessageHandler() {
 		return mh;
-	}
-	
-	public DgenManager getDdManager() {
-		return ddManager;
 	}
 	
 	public long getWorkItemTimeoutMillis() {
