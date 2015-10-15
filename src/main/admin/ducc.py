@@ -256,7 +256,7 @@ class Ducc(DuccUtil):
         if ( args != None ):
             cmd.append(args)
 
-        print 'CMD', cmd
+        #print 'CMD', cmd
 
         if ( pid == None ):
             if ( background ):
