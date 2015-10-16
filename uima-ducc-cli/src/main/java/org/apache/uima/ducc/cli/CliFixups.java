@@ -60,10 +60,12 @@ public class CliFixups {
                 //System.out.println("CLI ignored deprecated option: " + arg);
                 args[i] = null;
                 if (++i < args.length && !args[i].startsWith("--")) args[i] = null; 
-/*            } else if (arg.equals("--number_of_instances")) {
-                System.out.println("CLI ignored deprecated option: " + arg);
-                args[i] = null;
-                if (++i < args.length && !args[i].startsWith("--")) args[i] = null; */
+            } else if (arg.equals("--number_of_instances")) {
+                // Remove --number_of_instaces only if = 1
+                if (++i < args.length && args[i].trim().equals("1")) {
+                  args[i] = null; 
+                  args[i-1] = null;
+                }
             } else if (arg.equals("--process_thread_count")) {
                 args[i] = "--process_pipeline_count";
                 //System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
@@ -94,8 +96,12 @@ public class CliFixups {
     	changeOption("process_DD", "process_descriptor_DD", props);
     	changeOption("instance_memory_size", "memory_size", props);
     	changeOption("classpath_order", null, props);
-    	/* changeOption("number_of_instances", null, props);*/
     	changeOption("process_thread_count", "process_pipeline_count", props);
+    	// Ignore option if number_of_instances = 1 ... reject any other value
+    	String val = props.getProperty("number_of_instances");
+    	if (val != null && val.trim().equals("1")) {
+    	  changeOption("number_of_instances", null, props);  
+    	}
     }
     
 	static private void changeOption(String oldKey, String newKey, Properties props) {
