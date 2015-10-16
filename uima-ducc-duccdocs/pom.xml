@@ -51,13 +51,21 @@
         </pluginRepository>
     </pluginRepositories>
     
-    <!-- By default ducc-duccdocs is not built. To enable the build, first install latex   -->
+    <!-- By default ducc-duccdocs is not built. To enable the build, first install latex    -->
     <!-- and run maven as follows: mvn clean install -Pbuild-duccdocs                       -->
     <!-- The above defines a profile build-duccdocs which triggers the latex plugin defined -->
     <!-- below to do the actual latex build.                                                -->
-    <profiles>
+    <!-- If the environment variable BUILD_DUCCDOCS is defined the default will be to build -->
+    <!-- the documents, unless the profile is explicitly deactivated with -P-build-duccdocs -->
+  <profiles>
+
     <profile>
       <id>build-duccdocs</id>
+		<activation>
+		  <property>
+			<name>env.BUILD_DUCCDOCS</name>
+		  </property>
+		</activation>
       <build>
         <plugins>
           
@@ -164,11 +172,12 @@
                     <delete file="target/site/duccbook-install/installation.dvi" />
                     <echo message="Completed duccbook Installation Text file as INSTALL" />
 
-
                     <echo message="Building duccbook PDF" />
+
                     <mkdir dir="target/site/duccbook-pdf" />
-                    <exec executable="pdflatex" dir="src/site/tex/duccbook" output="/dev/null"> 
+                    <exec executable="pdflatex" dir="src/site/tex/duccbook" output="target/site/duccbook-pdf/duccbook.cons" failonerror="true"> 
                       <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="-interaction=errorstopmode" />
                       <arg value="duccbook.tex" />
                     </exec>
 
@@ -183,162 +192,19 @@
                     <delete file="target/site/duccbook-pdf/duccbook.log" />
                     <delete file="target/site/duccbook-pdf/duccbook.out" />
                     <delete file="target/site/duccbook-pdf/duccbook.toc" />
+                    <delete file="target/site/duccbook-pdf/duccbook.cons" />
                     <echo message="Completed duccbook PDF" />
-
-
                   </target>
                 </configuration>
               </execution>
             </executions>
           </plugin>
-
-        </plugins>
-      </build>
-    
-    </profile>
-        <profile>
-      <id>apache-release</id>
-      <build>
-        <plugins>
-
-
-          <!-- Run latex commands pdflatex and htlatex to produce pdf and html -->
-          <!-- for the various documents authored in latex -->
-          <plugin>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>latex-to-pdf-and-html-for-duccdocs</id>
-                <phase>package</phase>
-                <goals><goal>run</goal></goals>
-                <configuration>
-                  <target>
-
-
-                    <echo message="Building duccbook HTML" />
-                    <mkdir dir="target/site/duccbook-html" />
-                    <mkdir dir="target/site/duccbook-html/images" />
-                    <mkdir dir="target/site/duccbook-install" />
-
-                    <exec executable="htlatex" dir="src/site/tex/duccbook">
-                      <arg value="duccbook.tex" />
-                    </exec>
-                    <move todir="target/site/duccbook-html" overwrite="true">
-                      <fileset dir="src/site/tex/duccbook">
-                        <include name="duccbook.html" />
-                        <include name="duccbook.css" />
-                      </fileset>
-                    </move>
-                    <copy todir="target/site/duccbook-html/images" overwrite="true">
-                      <fileset dir="src/site/tex/duccbook/images/" />
-                    </copy>
-
-                    <delete file="src/site/tex/duccbook/duccbook.4ct" />
-                    <delete file="src/site/tex/duccbook/duccbook.4tc" />
-                    <delete file="src/site/tex/duccbook/duccbook.aux" />
-                    <delete file="src/site/tex/duccbook/duccbook.dvi" />
-                    <delete file="src/site/tex/duccbook/duccbook.idv" />
-                    <delete file="src/site/tex/duccbook/duccbook.lg" />
-                    <delete file="src/site/tex/duccbook/duccbook.log" />
-                    <delete file="src/site/tex/duccbook/duccbook.tmp" />
-                    <delete file="src/site/tex/duccbook/duccbook.xref" />
-                    <echo message="Completed duccbook HTML" />
-
-                    <echo message="Building duccbook Installation HTML" />
-                    <mkdir dir="target/site/duccbook-html" />
-                    <exec executable="htlatex" dir="src/site/tex/duccbook" failonerror="true">
-                      <arg value="installation.tex" />
-                    </exec>
-                    <move todir="target/site/duccbook-html" overwrite="true">
-                      <fileset dir="src/site/tex/duccbook">
-                        <include name="installation.html" />
-                        <include name="installation.css" />
-                      </fileset>
-                    </move>
-                    <delete file="src/site/tex/duccbook/installation.4ct" />
-                    <delete file="src/site/tex/duccbook/installation.4tc" />
-                    <delete file="src/site/tex/duccbook/installation.aux" />
-                    <delete file="src/site/tex/duccbook/installation.dvi" />
-                    <delete file="src/site/tex/duccbook/installation.idv" />
-                    <delete file="src/site/tex/duccbook/installation.lg" />
-                    <delete file="src/site/tex/duccbook/installation.log" />
-                    <delete file="src/site/tex/duccbook/installation.tmp" />
-                    <delete file="src/site/tex/duccbook/installation.xref" />
-                    <echo message="Completed installation HTML" />
-
-                    <echo message="Building duccbook Installation PDF" />
-                    <mkdir dir="target/site/duccbook-pdf" />
-                    <exec executable="pdflatex" dir="src/site/tex/duccbook" failonerror="true">
-                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
-                      <arg value="-interaction=errorstopmode" />
-                      <arg value="installation.tex" />
-                    </exec>
-
-                    <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
-                    <!-- htlatex by default runs enough to get xrefs and TOC -->
-                    <exec executable="pdflatex" dir="src/site/tex/duccbook">
-                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
-                      <arg value="installation.tex" />
-                    </exec>
-
-                    <echo message="Completed duccbook Installation PDF" />
-
-                    <exec executable="latex" dir="src/site/tex/duccbook">
-                      <arg value="-output-directory=../../../../target/site/duccbook-install" />
-                      <arg value="installation.tex" />
-                    </exec>
-                    <delete file="target/site/duccbook-pdf/installation.aux" />
-                    <delete file="target/site/duccbook-pdf/installation.log" />
-                    <delete file="target/site/duccbook-pdf/installation.out" />
-                    <echo message="Completed duccbook Installation PDF" />
-
-                    <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
-                    <!-- htlatex by default runs enough to get xrefs and TOC -->
-                    <exec executable="dvi2tty" dir="target/site/duccbook-install">
-                      <arg value="-oINSTALL" />
-                      <arg value="-w132" />
-                      <arg value="-l" />
-                      <arg value="installation.dvi" />
-                    </exec>
-                    <delete file="target/site/duccbook-install/installation.aux" />
-                    <delete file="target/site/duccbook-install/installation.log" />
-                    <delete file="target/site/duccbook-install/installation.out" />
-                    <delete file="target/site/duccbook-install/installation.dvi" />
-                    <echo message="Completed duccbook Installation Text file as INSTALL" />
-
-
-                    <echo message="Building duccbook PDF" />
-                    <mkdir dir="target/site/duccbook-pdf" />
-                    <exec executable="pdflatex" dir="src/site/tex/duccbook">
-                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
-                      <arg value="duccbook.tex" />
-                    </exec>
-
-                    <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
-                    <!-- htlatex by default runs enough to get xrefs and TOC -->
-                    <exec executable="pdflatex" dir="src/site/tex/duccbook">
-                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
-                      <arg value="duccbook.tex" />
-                    </exec>
-                    <delete file="target/site/duccbook-pdf/duccbook.aux" />
-                    <delete file="target/site/duccbook-pdf/duccbook.lof" />
-                    <delete file="target/site/duccbook-pdf/duccbook.log" />
-                    <delete file="target/site/duccbook-pdf/duccbook.out" />
-                    <delete file="target/site/duccbook-pdf/duccbook.toc" />
-                    <echo message="Completed duccbook PDF" />
-
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
 
         </plugins>
       </build>
     
     </profile>
   
-    </profiles>
+  </profiles>
 
 </project>
