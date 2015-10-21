@@ -18,10 +18,12 @@
 */
 package org.apache.uima.ducc.ws;
 
+import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.camel.CamelContext;
+import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
@@ -107,6 +109,8 @@ implements IWebServer {
 	private void init() {
 		String methodName = "init";
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
+		File file = new File(IDuccEnv.DUCC_LOGS_WEBSERVER_DIR);
+		file.mkdirs();
 		webServerStart();
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}

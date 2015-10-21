@@ -57,7 +57,7 @@ public class DuccWebServer {
 	private DuccId jobid = null;
 	
 	/**
-	 * The default port can be overridden in ducc.proerties file, for example:
+	 * The default port can be overridden in ducc.properties file, for example:
 	 * 		ducc.ws.port = 41233
 	 */
 	private int port = 42133;
