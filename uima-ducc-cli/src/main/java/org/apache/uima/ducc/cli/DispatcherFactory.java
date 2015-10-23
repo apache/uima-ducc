@@ -25,7 +25,8 @@ public class DispatcherFactory {
 
 	public static IDuccEventDispatcher create(Object specs) throws Exception {
 		IDuccEventDispatcher retVal = null;
-		String targetUrl = (String) specs;
+        String servlet = (String) specs;
+		String targetUrl = DuccUiUtilities.dispatchUrl(servlet);
 		retVal = new DuccEventHttpDispatcherCl(targetUrl, -1);
 		return retVal;
 	}

@@ -330,9 +330,7 @@ public abstract class CliBase
         
         initConsoleListener();
 
-        String targetUrl = DuccUiUtilities.dispatchUrl(servlet);
-
-        dispatcher = DispatcherFactory.create(targetUrl);
+        dispatcher = DispatcherFactory.create(servlet);
         
         init_done = true;
     }
