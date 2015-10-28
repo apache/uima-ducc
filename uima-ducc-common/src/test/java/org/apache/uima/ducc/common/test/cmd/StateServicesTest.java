@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.common.test.cmd;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.NavigableSet;
 import java.util.Properties;
@@ -45,14 +44,16 @@ public class StateServicesTest
 			return;
 		}
 		IStateServices ss = StateServicesFactory.getInstance(StateServicesTest.class.getName(), "TEST");
-		List<Long> svcList = ss.getSvcList();
-		for(Long fname : svcList) {
-			System.out.println(fname);
-		}
-		List<Long> metaList = ss.getMetaList();
-		for(Long fname : metaList) {
-			System.out.println(fname);
-		}
+		
+		// These two routines are never used except in this test!  Removing them pending complaints.
+//		List<Long> svcList = ss.getSvcList();
+//		for(Long fname : svcList) {
+//			System.out.println(fname);
+//		}
+//		List<Long> metaList = ss.getMetaList();
+//		for(Long fname : metaList) {
+//			System.out.println(fname);
+//		}
 		StateServicesDirectory ssd = ss.getStateServicesDirectory();
 		NavigableSet<Long> keySet = ssd.getDescendingKeySet();
 		Iterator<Long> iterator = keySet.iterator();

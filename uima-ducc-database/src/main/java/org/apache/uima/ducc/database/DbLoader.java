@@ -23,9 +23,11 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -33,15 +35,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
+import org.apache.uima.ducc.common.persistence.services.IStateServices.SvcMetaProps;
+import org.apache.uima.ducc.common.persistence.services.IStateServices.SvcRegProps;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.database.DbConstants.DbCategory;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 
-import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.SimpleStatement;
 
 /**
  * Toy orientdb loader to load a historydb from ducc history
@@ -51,7 +55,10 @@ public class DbLoader
 {
     DuccLogger logger = DuccLogger.getLogger(DbLoader.class, "DBLOAD");
     String DUCC_HOME;
+    String SVC_HISTORY_KEY = SvcRegProps.is_archived.columnName();
+    String META_HISTORY_KEY = SvcMetaProps.is_archived.columnName();
 
+    DbManager dbManager = null;
     boolean archive = true;        // for debug and test, bypass archive-rename
     HistoryManagerDb hmd = null;
     StateServicesDb  ssd = null;
@@ -76,32 +83,37 @@ public class DbLoader
     String serviceRegistry = "/state/services";
 
     String checkpointFile = "/state/orchestrator.ckpt";
-    String archive_key  = IStateServices.archive_key;
-    String archive_flag = IStateServices.archive_flag;
 
     int nthreads = 20;
     AtomicInteger counter = new AtomicInteger(0);
 
-    //int joblimit         = 10000;
-    //int reservationlimit = 10000;
-    //int servicelimit     = 10000;
-    //int registrylimit    = 10000;
+    //int joblimit         = 10;
+    //int reservationlimit = 10;
+    //int servicelimit     = 10;
+    //int registrylimit    = 1;
 
     int joblimit = Integer.MAX_VALUE;
     int reservationlimit = Integer.MAX_VALUE;
     int servicelimit = Integer.MAX_VALUE;
     int registrylimit = Integer.MAX_VALUE;
 
-    boolean dojobs         = true;
-    boolean doreservations = true;
-    boolean doservices     = true;
+    boolean dojobs         = false;
+    boolean doreservations = false;
+    boolean doservices     = false;
     boolean doregistry     = true;
-    boolean docheckpoint   = true;
+    boolean docheckpoint   = false;
+
+    long jobBytes = 0;
+    long resBytes = 0;
+    long svcBytes = 0;
+    long svcRegBytes= 0;
+
+    AtomicInteger skippedServices = new AtomicInteger(0);
 
     public DbLoader(String from, String to)
         throws Exception
     {
-    	String methodName = "<ctr>";
+    	//String methodName = "<ctr>";
         DUCC_HOME = System.getProperty("DUCC_HOME");        
         if ( DUCC_HOME == null ) {
             System.out.println("System proprety -DDUCC_HOME must be set.");
@@ -130,10 +142,10 @@ public class DbLoader
         }
 
         String databasedir =  to + "/database/databases";
-        String databasename = databasedir + "/DuccState";
+
         // We always use a non-networked version for loading
         //state_url = "plocal:" + databasedir + "/DuccState";
-        state_url = "remote:bluej538/DuccState";
+        state_url = "bluej538";
         System.setProperty("ducc.state.database.url", state_url);
 
         if ( state_url.startsWith("plocal") ) {
@@ -160,6 +172,7 @@ public class DbLoader
     }
 
     public void loadJobs()
+    	throws Exception
     {
         String methodName = "loadJobs";
 
@@ -234,6 +247,7 @@ public class DbLoader
     }
 
     public void loadReservations()
+        throws Exception
     {
         String methodName = "loadReservations";
 
@@ -309,6 +323,7 @@ public class DbLoader
 
 
     public void loadServices()
+    	throws Exception
     {
         String methodName = "loadServices";
 
@@ -390,7 +405,13 @@ public class DbLoader
 
         int c = 0;
         File dir = new File(registry);
+        if ( ! dir.isDirectory() ) {
+            logger.error(methodName, null, registry, "is not a directory and cannot be loaded.");
+            return;
+        }
+
         File[] files = dir.listFiles();
+        
         if ( files.length == 0 ) {
             if ( isHistory ) {
                 logger.info(methodName, null, "Nothing in service registry history to move to database");
@@ -504,84 +525,120 @@ public class DbLoader
         }
     }    
 
+    void test()
+    	throws Exception
+    {
+    	String methodName = "foo";
+        DbHandle h = dbManager.open();
+        SimpleStatement s = new SimpleStatement("SELECT * from " + HistoryManagerDb.JOB_TABLE + " limit 5000");
+        //SimpleStatement s = new SimpleStatement("SELECT * from " + HistoryManagerDb.RES_TABLE + " limit 5000");
+        //SimpleStatement s = new SimpleStatement("SELECT * from " + HistoryManagerDbB.SVC_TABLE + " limit 5000");
+        logger.info(methodName, null, "Fetch size", s.getFetchSize());
+        s.setFetchSize(100);
+        long now = System.currentTimeMillis();
+
+        try {
+            int counter = 0;
+            int nbytes = 0;
+            ResultSet rs = h.execute(s);
+            for ( Row r : rs ) {
+                counter++;
+                ByteBuffer b = r.getBytes("work");
+                nbytes += b.array().length;
+                logger.info(methodName, null, "found", r.getLong("ducc_dbid"), "of type", r.getString("type"));
+            }
+            
+            logger.info(methodName, null, "Found", counter, "results. Total bytes", nbytes);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        logger.info(methodName, null, "Time to select:", System.currentTimeMillis() - now);
+    }
+
+
     void run()
     	throws Exception
     {
     	String methodName = "run";
         long now = System.currentTimeMillis();
 
-        DbManager dbm = new DbManager(state_url, logger);
-        if ( dbm.checkForDatabase() ) {
-            dbm.init();
-            dbm.drop();
-            dbm.shutdown();
+        if ( false ) {
+            try {
+                dbManager = new DbManager(state_url, logger);
+                dbManager.init();
+                
+                test();
+                if ( true ) return;
+            } finally {
+                dbManager.shutdown();
+            }
+            return;
+
         }
 
-        DbCreate cr = new DbCreate(state_url, logger);
-        if ( state_url.startsWith("plocal") ) {
-            cr.createPlocalDatabase();
-        } else {
-            cr.createDatabase();
-        }
+        dbManager = new DbManager(state_url, logger);
+        dbManager.init();
 
-        logger.info(methodName, null, "storage.useWAL", System.getProperty("storage.useWAL"));
-        logger.info(methodName, null, "tx.useLog", System.getProperty("tx.useLog"));
+//        DbCreate cr = new DbCreate(state_url, logger);
+//        if ( state_url.startsWith("plocal") ) {
+//            cr.createPlocalDatabase();
+//        } else {
+//            cr.createDatabase();
+//        }
+        
+
+
         if ( true ) {
             try {
 
-                OGlobalConfiguration.USE_WAL.setValue(false);
-                // OGlobalConfiguration.USE_LOG.setValue(false);
-
-                OGlobalConfiguration.dumpConfiguration(System.out);
-
-                hmd = new HistoryManagerDb(logger);
-
+                hmd = new HistoryManagerDb();
+                hmd.init(logger, dbManager);
+                
                 long nowt = System.currentTimeMillis();
                 if ( docheckpoint ) loadCheckpoint();
                 logger.info(methodName, null, "***** Time to load checkpoint A ****", System.currentTimeMillis() - nowt);
 
-                OGlobalConfiguration.dumpConfiguration(System.out);
-
-
                 // ---------- Load job history
                 nowt = System.currentTimeMillis();
                 if ( dojobs ) loadJobs();            
-                logger.info(methodName, null, "**** Time to load jobs**** ", System.currentTimeMillis() - nowt);
+                logger.info(methodName, null, "**** Time to load jobs**** ", System.currentTimeMillis() - nowt, "Total bytes loaded:", jobBytes);
 
                 // ---------- Load reservation history
                 nowt = System.currentTimeMillis();
                 if ( doreservations ) loadReservations();                         
-                logger.info(methodName, null, "**** Time to load reservations ****", System.currentTimeMillis() - nowt);
+                logger.info(methodName, null, "**** Time to load reservations ****", System.currentTimeMillis() - nowt, "Total bytes loaded:", resBytes);
 
 
                 // ---------- Load service isntance and AP history
                 nowt = System.currentTimeMillis();
                 if ( doservices ) loadServices();
-                logger.info(methodName, null, "**** Time to load service instances ****", System.currentTimeMillis() - nowt);
+                logger.info(methodName, null, "**** Time to load services instances ****", System.currentTimeMillis() - nowt, "Total bytes loaded:", svcBytes);
+
 
                 // ---------- Load service registry
+                long totalSvcBytes = 0;
                 if ( doregistry ) {
                     nowt = System.currentTimeMillis();
                     ssd = new StateServicesDb();
-                    ssd.init(logger);
+                    ssd.init(logger,dbManager);
                     loadServiceRegistry(serviceRegistry, false);
-                    try {
-                        ssd.shutdown(); 
-                    } catch ( Exception e ) {
-                        e.printStackTrace();
-                    }
-                    logger.info(methodName, null, "**** Time to load Service registry ****", System.currentTimeMillis() - nowt);
+                    logger.info(methodName, null, "**** Time to load Service registry ****", System.currentTimeMillis() - nowt, "Total bytes loaded:", svcRegBytes);
+                    totalSvcBytes = svcRegBytes;
                     
                     // ---------- Load service registry history
+                    svcRegBytes = 0;
                     nowt = System.currentTimeMillis();
-                    ssd = new StateServicesDb();
-                    ssd.init(logger);
                     loadServiceRegistry(serviceRegistryHistory, true);                          
-                    logger.info(methodName, null, "**** Time to load Service history ****", System.currentTimeMillis() - nowt);
+                    logger.info(methodName, null, "**** Time to load Service history ****", System.currentTimeMillis() - nowt, "Total bytes loaded:", svcRegBytes);
+                    totalSvcBytes = svcRegBytes;
+
+                    logger.info(methodName, null, "**** Skipped services:", skippedServices);
+                    // don't shutdown the ssm.  we'll close the db in the 'finally' below
                 }
 
                 nowt = System.currentTimeMillis();
-                logger.info(methodName, null, "**** Total load time ****", System.currentTimeMillis() - now);
+                logger.info(methodName, null, "**** Total load time ****", System.currentTimeMillis() - now, "Total bytes loaded:", (jobBytes + resBytes + svcBytes + totalSvcBytes));
 
                 if ( docheckpoint ) loadCheckpoint();
                 logger.info(methodName, null, "**** Time to reload checkpoint B ****", System.currentTimeMillis() - nowt);
@@ -590,8 +647,7 @@ public class DbLoader
             	logger.error(methodName, null, e);
 
             } finally {
-                if ( hmd != null ) hmd.shutdown();
-                if ( ssd != null ) ssd.shutdown();
+                if ( dbManager!= null ) dbManager.shutdown();
             }
         }
 
@@ -627,12 +683,17 @@ public class DbLoader
     class JobLoader
         implements Runnable
     {
+        PreparedStatement statement = null;
         BlockingQueue<File> queue;
         List<Long> ids;
         JobLoader(BlockingQueue<File> queue, List<Long> ids)
+                throws Exception
         {
             this.queue = queue;
             this.ids = ids;
+
+            DbHandle h = dbManager.open();
+            statement = h.prepare("INSERT INTO " + HistoryManagerDb.JOB_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?);");            
         }
 
         public void run()
@@ -640,22 +701,44 @@ public class DbLoader
             String methodName = "JobLoader.run";
             while ( true ) {
             	File  f = null;
-                IDuccWorkJob job = null;
+                long nbytes = 0;
+                long duccid = 0;
+                DuccId did = null;
                 try {
                     f = queue.take();
-
                     FileInputStream fis = null;
                     ObjectInputStream in = null;
 
                     try {
                         long now = System.currentTimeMillis();
+                        
+                        String s = f.getName();
+                        int ndx = s.indexOf(".");
+                        duccid = Long.parseLong(s.substring(0, ndx));
+                        did = new DuccId(duccid);
+                        nbytes = f.length();
+                        if ( nbytes > 16*1024*1024) {
+                            logger.warn(methodName, did, "Skipping outsized job", duccid, "length=", nbytes);
+                            nbytes = 0;
+                            continue;
+                        }
+
+                        byte[] buf = new byte[(int)nbytes];
                         fis = new FileInputStream(f);
-                        in = new ObjectInputStream(fis);
-                        job =  (IDuccWorkJob) in.readObject();
-                        logger.info(methodName, job.getDuccId(), "Time to read job:", System.currentTimeMillis() - now);
-                        hmd.saveJobUnsafe(job);
+                        fis.read(buf);
+
+                        ByteBuffer bb = ByteBuffer.wrap(buf);
+                        logger.info(methodName, did, "Time to read job:", System.currentTimeMillis() - now+" MS", "bytes:", nbytes);
+                        logger.info(methodName, did, "Job", duccid, "Store CQL:", statement.getQueryString());
+                        long now1 = System.currentTimeMillis();
+                        BoundStatement boundStatement = new BoundStatement(statement);
+                        BoundStatement bound = boundStatement.bind(duccid, "job", true, bb);
+                        DbHandle h = dbManager.open();
+
+                        h.execute(bound);
+                        logger.info(methodName, did, "Time to store job", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
                     } catch(Exception e) {
-                        logger.info(methodName, null, e);
+                        logger.info(methodName, did, e);
                     } finally {
                         closeStream(in);
                         closeStream(fis);
@@ -666,11 +749,13 @@ public class DbLoader
                     return;
                 } catch(Exception e) {
                     logger.info(methodName, null, e);
-                } 
+                } finally {
 
-                synchronized(ids) {
-                    if ( job != null ) {
-                        ids.add(job.getDuccId().getFriendly());
+                    synchronized(ids) {
+                        if ( nbytes > 0 ) {
+                            ids.add(duccid);
+                            jobBytes += nbytes;
+                        }
                     }
                 }
             }
@@ -681,20 +766,26 @@ public class DbLoader
     class ServiceLoader
         implements Runnable
     {
+        PreparedStatement statement = null;
         BlockingQueue<File> queue;
         List<Long> ids;
         ServiceLoader(BlockingQueue<File> queue, List<Long> ids)
+        	throws Exception
         {
             this.queue = queue;
             this.ids = ids;
+            DbHandle h = dbManager.open();
+            statement = h.prepare("INSERT INTO " + HistoryManagerDb.SVC_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?);");            
         }
 
         public void run()
         {
             String methodName = "ServiceLoader.run";
             while ( true ) {
-            	IDuccWorkService svc = null;
                 File f = null;
+                long nbytes = 0;
+                long duccid = 0;
+                DuccId did = null;
                 try {
                     f = queue.take();
                     FileInputStream fis = null;
@@ -702,30 +793,50 @@ public class DbLoader
                     
                     try {
                         long now = System.currentTimeMillis();
+                        
+                        String s = f.getName();
+                        int ndx = s.indexOf(".");
+                        duccid = Long.parseLong(s.substring(0, ndx));
+                        did = new DuccId(duccid);
+                        nbytes = f.length();
+                        if ( nbytes > 16*1024*1024) {
+                            logger.warn(methodName, did, "Skipping outsized service", duccid, "length=", nbytes);
+                            nbytes = 0;
+                            continue;
+                        }
+
+                        byte[] buf = new byte[(int)nbytes];
                         fis = new FileInputStream(f);
-                        in = new ObjectInputStream(fis);
-                        svc =  (IDuccWorkService) in.readObject();
-                        logger.info(methodName, svc.getDuccId(), "Time to read service:", System.currentTimeMillis() - now);                        
-                        hmd.saveServiceUnsafe(svc);
+                        fis.read(buf);
+
+                        ByteBuffer bb = ByteBuffer.wrap(buf);
+                        logger.info(methodName, did, "Time to read service", duccid, ":", System.currentTimeMillis() - now + " MS", "bytes:", nbytes);
+                        logger.info(methodName, did, "Service", duccid, "Store CQL:", statement.getQueryString());
+                        long now1 = System.currentTimeMillis();
+                        BoundStatement boundStatement = new BoundStatement(statement);
+                        BoundStatement bound = boundStatement.bind(duccid, "service", true, bb);
+                        DbHandle h = dbManager.open();
+
+                        h.execute(bound);
+                        logger.info(methodName, did, "Time to store service", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
                     } catch(Exception e) {
-                        logger.info(methodName, null, "Error reading or saving service:", f);
-                        logger.info(methodName, null, e);
+                        logger.info(methodName, did, e);
                     } finally {
                         closeStream(in);
                         closeStream(fis);
-                        counter.getAndDecrement(); 
+                        counter.getAndDecrement();
                     }
-
                 } catch ( InterruptedException e ) {
                     return;
-                } catch ( Exception e ){
-                    logger.info(methodName, null, "Error reading or saving service:", f);
-                    logger.info(methodName, null, e);
-                }
+                } catch(Exception e) {
+                    logger.info(methodName, did, e);
+                } finally {
 
-                synchronized(ids) {
-                    if ( svc != null ) {
-                        ids.add(svc.getDuccId().getFriendly());
+                    synchronized(ids) {
+                        if ( nbytes > 0 ) {
+                            ids.add(duccid);
+                            svcBytes += nbytes;
+                        }
                     }
                 }
             }
@@ -735,20 +846,26 @@ public class DbLoader
     class ReservationLoader
         implements Runnable
     {
+        PreparedStatement statement = null;
         BlockingQueue<File> queue;
         List<Long> ids;
         ReservationLoader(BlockingQueue<File> queue, List<Long> ids)
+        	throws Exception
         {
             this.queue = queue;
-            this.ids = ids;
+            this.ids = ids;            
+            DbHandle h = dbManager.open();
+            statement = h.prepare("INSERT INTO " + HistoryManagerDb.RES_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?);");
         }
 
         public void run()
         {
             String methodName = "ReservationLoader.run";
             while ( true ) {
-            	IDuccWorkReservation res = null;
                 File f = null;
+                long nbytes = 0;
+                long duccid = 0;
+                DuccId did = null;
                 try {
                     f = queue.take();
                     FileInputStream fis = null;
@@ -756,13 +873,35 @@ public class DbLoader
 
                     try {
                         long now = System.currentTimeMillis();
+
+                        String s = f.getName();
+                        int ndx = s.indexOf(".");
+                        duccid = Long.parseLong(s.substring(0, ndx));
+                        did = new DuccId(duccid);
+                        nbytes = f.length();
+                        if ( nbytes > 16*1024*1024) {
+                            logger.warn(methodName, did, "Skipping outsized reservation", duccid, "length=", nbytes);
+                            nbytes = 0;
+                            continue;
+                        }
+
+                        byte[] buf = new byte[(int)nbytes];
                         fis = new FileInputStream(f);
-                        in = new ObjectInputStream(fis);
-                        res =  (IDuccWorkReservation) in.readObject();
-                        logger.info(methodName, res.getDuccId(), "Time to read reservation:", System.currentTimeMillis() - now);
-                        hmd.saveReservationUnsafe(res);
+                        fis.read(buf);
+
+                        ByteBuffer bb = ByteBuffer.wrap(buf);
+                        logger.info(methodName, did, "Time to read reservation", duccid, ":", System.currentTimeMillis() - now+" MS", "bytes:", nbytes);
+                        logger.info(methodName, did, "Reservation", duccid, "Store CQL:", statement.getQueryString());
+                        long now1 = System.currentTimeMillis();
+                        BoundStatement boundStatement = new BoundStatement(statement);
+                        BoundStatement bound = boundStatement.bind(duccid, "reservation", true, bb);
+                        DbHandle h = dbManager.open();
+
+                        h.execute(bound);
+                        logger.info(methodName, did, "Time to store reservation", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
+
                     } catch(Exception e) {
-                        logger.info(methodName, null, e);
+                        logger.info(methodName, did, e);
                     } finally {
                         closeStream(in);
                         closeStream(fis);
@@ -774,11 +913,12 @@ public class DbLoader
                     return;
                 } catch ( Exception e ){
                     logger.info(methodName, null, e);
-                }
-
-                synchronized(ids) {
-                    if ( res != null ) {
-                        ids.add(res.getDuccId().getFriendly());
+                } finally {
+                    synchronized(ids) {
+                        if ( nbytes > 0 ) {
+                            ids.add(duccid);
+                            resBytes += nbytes;
+                        }
                     }
                 }
             }
@@ -803,6 +943,7 @@ public class DbLoader
             while ( true ) {
                 Pair<String, Boolean> p = null;
                 String id = null;
+                int nbytes = 0;
                 boolean isHistory;
                 try {
                     logger.info(methodName, null, "About to take (service id).");
@@ -822,40 +963,41 @@ public class DbLoader
                     String svc_name = id + ".svc";
                     String meta_name = id + ".meta";
 
-                    svc_in = new FileInputStream(svc_name);
-                    meta_in = new FileInputStream(meta_name);
+                    File svc_file = new File(svc_name);
+                    File meta_file = new File(meta_name);
+                    nbytes += (svc_file.length() + meta_file.length());
+                    svc_in = new FileInputStream(svc_file);
+                    meta_in = new FileInputStream(meta_file);
                     svc_props.load(svc_in);
                     meta_props.load(meta_in);
-                    if ( isHistory ) {
-                        meta_props.setProperty(archive_key, archive_flag);
-                    }
 
-                    String sid = meta_props.getProperty(IStateServices.SvcProps.numeric_id.pname());
+                    String sid = meta_props.getProperty(IStateServices.SvcMetaProps.numeric_id.pname());
                     if ( sid == null ) {
-                        logger.warn(methodName, null, "Cannot find service id in meta file for", id);
+                        logger.error(methodName, null, "Cannot find service id in meta file for", id, "skipping load.");
+                        skippedServices.getAndIncrement();
                     } else {
                         if ( id.indexOf(sid) < 0 ) {
                             // must do index of because the 'id' is a full path, not just the numeric id.  so we
                             // are satisfied with making sure the id is in the path.
                             throw new IllegalStateException("Service id and internal id do not match.");
                         }
-                        DuccId did = new DuccId(Long.parseLong(sid));
-                        
+                        DuccId did = new DuccId(Long.parseLong(sid));                        
+                        ssd.storeProperties(did, svc_props, meta_props);     // always stores as not history
                         if ( isHistory ) {
-                            ssd.storePropertiesUnsafe(did, svc_props, meta_props, DbCategory.History);
-                        } else {
-                            ssd.storePropertiesUnsafe(did, svc_props, meta_props, DbCategory.SmReg);
+                            ssd.moveToHistory(did, svc_props, meta_props);       // updates a single column in each
                         }
+
                         synchronized(ids) {
                             ids.add(did.getFriendly());
+                            svcRegBytes += nbytes;
                         }
                     }
-                    counter.getAndDecrement();
                 } catch(Exception e) {
                     logger.info(methodName, null, e);
                 } finally {
                     closeStream(svc_in);
                     closeStream(meta_in);
+                    counter.getAndDecrement();
                 }
 
             }

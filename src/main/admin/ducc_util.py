@@ -239,6 +239,7 @@ class DuccUtil(DuccBase):
 
     def db_start(self):
 
+        return True
         # bypass all of this for the initial delivery
         if ( self.db_parms == self.db_disabled ):
             print '   (Bypass database start because ducc.database.host =', self.db_disabled + ')'
@@ -288,7 +289,7 @@ class DuccUtil(DuccBase):
         return False
 
     def db_init(self):
-
+        return True
         # bypass all of this for the initial delivery
         if ( self.db_parms == self.db_disabled ):
             return True
@@ -304,6 +305,7 @@ class DuccUtil(DuccBase):
         self.spawn(cmd)
             
     def db_stop(self):
+        return True
         # bypass all of this for the initial delivery
         if ( self.db_parms == self.db_disabled ):
             return True

@@ -24,9 +24,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -249,12 +251,16 @@ public class OrchestratorCheckpoint {
 				try
 				{
 					logger.info(methodName, null, messages.fetchLabel("restoring from")+fileName);
-                    DuccWorkMap work = new DuccWorkMap();
-                    ConcurrentHashMap<DuccId, DuccId> processToJob = new ConcurrentHashMap<DuccId, DuccId>();
-                    Checkpointable checkpointable = new Checkpointable(work, processToJob);
-                    retVal = saver.restore(work, processToJob);
-					orchestratorCommonArea.setCheckpointable(checkpointable);
-					logger.info(methodName, null, messages.fetch("restored"));
+                    Pair<DuccWorkMap, Map<DuccId, DuccId>> ret = saver.restore();
+                    if ( ret.first() != null ) {
+                        //Checkpointable checkpointable = new Checkpointable(ret.first(), (ConcurrentHashMap<DuccId, DuccId>) ret.second());
+                        Checkpointable checkpointable = new Checkpointable(ret.first(), (ConcurrentHashMap<DuccId, DuccId>) ret.second());
+                        
+                        orchestratorCommonArea.setCheckpointable(checkpointable);
+                        logger.info(methodName, null, messages.fetch("restored"));
+                    } else {
+                        logger.info(methodName, null, "No checkpoint found.");
+                    }
 				}
 				catch(ClassNotFoundException e)
 				{

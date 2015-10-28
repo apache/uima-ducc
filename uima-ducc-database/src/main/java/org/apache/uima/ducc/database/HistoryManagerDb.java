@@ -18,52 +18,33 @@
 */
 package org.apache.uima.ducc.database;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
-import org.apache.uima.ducc.common.SizeBytes;
-import org.apache.uima.ducc.common.main.DuccService;
+import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.database.DbConstants.DbCategory;
-import org.apache.uima.ducc.database.DbConstants.DbEdge;
-import org.apache.uima.ducc.database.DbConstants.DbVertex;
-import org.apache.uima.ducc.transport.event.common.ADuccWork;
-import org.apache.uima.ducc.transport.event.common.DuccProcess;
-import org.apache.uima.ducc.transport.event.common.DuccProcessMap;
-import org.apache.uima.ducc.transport.event.common.DuccReservation;
-import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.ReservationCompletionType;
-import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
-import org.apache.uima.ducc.transport.event.common.IDuccProcess;
-import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
-import org.apache.uima.ducc.transport.event.common.IDuccReservation;
-import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
-import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
-import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
-import org.apache.uima.ducc.transport.event.common.JdReservationBean;
 import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
 
-import com.google.gson.Gson;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.SimpleStatement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
-import com.orientechnologies.orient.core.record.impl.ODocument;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientEdge;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
 
 public class HistoryManagerDb 
@@ -72,179 +53,207 @@ public class HistoryManagerDb
 
 	
 	private DuccLogger logger = null;
-    private String dburl;
     private DbManager dbManager;
+
+    PreparedStatement jobPrepare = null;
+    PreparedStatement reservationPrepare = null;
+    PreparedStatement servicePrepare = null;
+    PreparedStatement ckptPrepare = null;
+    static final String JOB_TABLE = "ducc." + OrWorkProps.JOB_TABLE.pname();
+    static final String RES_TABLE = "ducc." + OrWorkProps.RESERVATION_TABLE.pname();
+    static final String SVC_TABLE = "ducc." + OrWorkProps.SERVICE_TABLE.pname();
+    static final String CKPT_TABLE = "ducc." + OrCkptProps.CKPT_TABLE.pname();
 		
     public HistoryManagerDb()
     {
-        this(DuccService.getDuccLogger(HistoryManagerDb.class.getName()));
     }
-
-	public HistoryManagerDb(DuccLogger logger) 
-    {
-        
-        this.logger = logger;
-        dburl = System.getProperty("ducc.state.database.url");
+    
+    
+	private boolean init(String dburl, DbManager dbm)
+        throws Exception
+    {        
+		String methodName = "init";
+        boolean ret = true;
+        logger.info(methodName, null, "Initializing OR persistence over the database");
         try {
-            dbManager = new DbManager(dburl, logger);
-            dbManager.init();
-            // TODO TODO
-            dbManager.declareIntent(new OIntentMassiveInsert());
-            logger.warn("<CTR>.HistoryManagerDb", null, "****MUST FIX DECLARE INTENT****");
+            if ( dbm != null ) {
+                this.dbManager = dbm;
+            } else {
+                dbManager = new DbManager(dburl, logger);
+                dbManager.init();
+            }
+
+            // prepare some statements
+            DbHandle h = dbManager.open();
+            jobPrepare         = h.prepare("INSERT INTO " + JOB_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
+            reservationPrepare = h.prepare("INSERT INTO " + RES_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
+            servicePrepare     = h.prepare("INSERT INTO " + SVC_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
+            ckptPrepare = h.prepare("INSERT INTO " + CKPT_TABLE + " (id, work, p2jmap) VALUES (?, ?, ?);");            
+
         } catch ( Exception e ) {
-            logger.error("HisstoryManagerDb", null, "Cannot open the history database:", e);
-        }        
+            logger.error(methodName, null, "Cannot open the history database:", e);
+            throw e;
+        }
+        return ret;
 	}
 
-    public void setLogger(DuccLogger logger)
+    public boolean init(DuccLogger logger)
+        throws Exception
     {
         this.logger = logger;
+        String historyUrl = System.getProperty("ducc.state.database.url");
+        return init(historyUrl, null);
+    }
+
+    // package only, for the loader
+    boolean init(DuccLogger logger, DbManager dbManager)
+    	throws Exception
+    {
+    	this.logger = logger;
+        String stateUrl = System.getProperty("ducc.state.database.url");
+        return init(stateUrl, dbManager);
+    }
+
+
+    /**
+     * Schema gen.  Do anything you want to make the schema, but notice that DbUtil has a few convenience methods if
+     * you want to define your schema in a magic enum.
+     */
+    static ArrayList<SimpleStatement> mkSchema(String tablename)
+    	throws Exception
+    {
+        ArrayList<SimpleStatement> ret = new ArrayList<SimpleStatement>();
+
+        StringBuffer buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + tablename + " (");
+        buf.append(DbUtil.mkSchema(OrWorkProps.values()));
+        buf.append(")");
+        buf.append("WITH CLUSTERING ORDER BY (ducc_dbid desc)");
+
+        ret.add(new SimpleStatement(buf.toString()));
+        ret.add(new SimpleStatement("CREATE INDEX IF NOT EXISTS ON " +  tablename + "(ducc_dbid)"));
+        ret.add(new SimpleStatement("CREATE INDEX IF NOT EXISTS ON " +  tablename + "(history)"));
+
+        return ret;
+    }
+
+    static ArrayList<SimpleStatement> mkSchema()
+    	throws Exception
+    {
+        ArrayList<SimpleStatement> ret = new ArrayList<SimpleStatement>();
+
+        ret.addAll(mkSchema(JOB_TABLE));
+        ret.addAll(mkSchema(RES_TABLE));
+        ret.addAll(mkSchema(SVC_TABLE));
+
+        StringBuffer buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + CKPT_TABLE + " (");
+        buf.append(DbUtil.mkSchema(OrCkptProps.values()));
+        buf.append(")");
+        ret.add(new SimpleStatement(buf.toString()));
+
+        return ret;
     }
 
     // ----------------------------------------------------------------------------------------------------
     // Jobs section
 
-    /**
-     * Common code to save a job in an open handle.  Caller will commit or fail as needed.
-     */
-    void saveJobNoCommit(DbHandle h, IDuccWorkJob j, DbVertex type, DbCategory dbcat)
+    void saveWork(PreparedStatement s, IDuccWork w, boolean isHistory)
         throws Exception
     {
-    	String methodName = "saveJobNoCommit";
+    	String methodName = "saveWork";
         Long nowP =  System.currentTimeMillis();
-        // Nuke the command lines
-        DuccWorkPopDriver driver = j.getDriver();
-        //ICommandLine driverCl = null;
-        IDuccProcessMap jdProcessMap = null;
-
-        int size = 0;
-
-        if ( driver != null ) {
-            //driverCl = driver.getCommandLine();
-            //driver.setCommandLine(null);
-            jdProcessMap =  driver.getProcessMap();
-            driver.setProcessMap(null);
+        String type = null;
+        if ( w instanceof IDuccWorkJob ) {
+            type = "job";
+        } else if ( w instanceof IDuccWorkReservation ) {
+            type = "reservation";
+        } else if ( w instanceof IDuccWorkService ) {
+            type = "service";
+        } else {
+        	throw new IllegalArgumentException("Improper object passed to saveWork");
         }
 
-        //ICommandLine jobCl    = j.getCommandLine();
-        //j.setCommandLine(null);
+        logger.info(methodName, w.getDuccId(), "-------- saving " + type);
 
-        IDuccPerWorkItemStatistics stats = j.getSchedulingInfo().getPerWorkItemStatistics();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(baos);
+        out.writeObject(w);
+        out.close();
+        byte[] bytes = baos.toByteArray();
+        ByteBuffer buf = ByteBuffer.wrap(bytes);
 
-        if ( stats != null ) {
-            if (Double.isNaN(stats.getStandardDeviation()) ) {
-                stats.setStandardDeviation(0.0);
-            }
-        }
+        DbHandle h = dbManager.open();
+        h.saveObject(jobPrepare,  w.getDuccId().getFriendly(), type, isHistory, buf);
 
-        // Pull process map so we can put processes in their own records
-        IDuccProcessMap processMap = j.getProcessMap();
-        j.setProcessMap(null);
-
-        Gson g = DbHandle.mkGsonForJob();
-
-        String dbJob = g.toJson(j);
-        size += dbJob.length();
-
-        // Must repair these things because OR continues to use the job after it has been
-        // written to history.
-        j.setProcessMap(processMap);
-        //j.setCommandLine(jobCl);
-        if ( driver != null ) {
-            //driver.setCommandLine(driverCl);
-            driver.setProcessMap(jdProcessMap);
-        }
-        
-        OrientVertex savedJob = h.saveObject(type, j.getDuccId().getFriendly(), dbJob, dbcat);
-    
-        List<OrientVertex> savedJPs = new ArrayList<OrientVertex>();
-        List<OrientVertex> savedJDs = new ArrayList<OrientVertex>();
-        for (DuccId did : processMap.keySet()) {
-            Long pid = did.getFriendly();
-            
-            IDuccProcess p = processMap.get(did);
-            String proc = g.toJson(p);
-            size += proc.length();
-            
-            savedJPs.add(h.saveObject(DbVertex.Process, pid, proc, dbcat));
-            // logger.info(methodName, p.getDuccId(), "2 ----------> Time to save process", System.currentTimeMillis() - nowP);
-                         
-        }
-        
-        if ( driver != null ) {
-            for (DuccId did : jdProcessMap.keySet()) {
-                Long pid = did.getFriendly();
-                
-                IDuccProcess p = jdProcessMap.get(did);
-                String proc = g.toJson(p);
-                size += proc.length();
-                
-                savedJDs.add(h.saveObject(DbVertex.Process, pid, proc, dbcat));
-                // logger.info(methodName, p.getDuccId(), "2 ----------> Time to save process", System.currentTimeMillis() - nowP);
-                
-            }
-            h.addEdges(savedJob, savedJDs, DbEdge.JdProcess);
-        }
-        
-        h.addEdges(savedJob, savedJPs, DbEdge.JpProcess);
-
-        logger.info(methodName, j.getDuccId(), "----------> Time to save job", System.currentTimeMillis() - nowP, "json size", size, "nprocesses", processMap.size());
-        
+        logger.info(methodName, w.getDuccId(), "----------> Time to save", type, ":", System.currentTimeMillis() - nowP, "Size:", bytes.length, "bytes.");        
     }
-    
-    private void saveJobInternal(IDuccWorkJob j, DbVertex type, boolean safe, DbCategory dbcat)
-        throws Exception 
-    {
-
-        // It seems that services instances are represented as jobs without drivers.  So we use
-        // the common code here, passing in the vertex type, for both jobs and services.
-
-        String methodName = "saveJob";
-        logger.info(methodName, j.getDuccId(), "Saving: type:", type.pname(), "safe:", safe, "DbCategory:", dbcat);
-
-		Long id = j.getDuccId().getFriendly();
-        DbHandle h = null;
-        try {
-
-            if ( safe ) {
-                h = dbManager.open(); 
-            } else {
-                h = dbManager.openNoLog();
-            }
-
-            if ( safe && h.thingInDatabase(id, type, dbcat) ) {
-                logger.warn(methodName, j.getDuccId(), "Not overwriting saved job.");
-                h.close();
-                return;
-            } 
-        } catch ( Exception e ) {
-            if ( h != null ) h.close();
-            throw e;
-        }
-
-        try {
-            saveJobNoCommit(h, j, type, dbcat);
-        } catch ( Exception e ) {
-            h.rollback();
-            logger.error(methodName, j.getDuccId(), "Cannot store job", e);
-            throw e;
-        } finally {
-            Long nowP =  System.currentTimeMillis();
-            h.commit();
-            logger.info(methodName, j.getDuccId(), "Time to commit", System.currentTimeMillis() - nowP);
-            h.close();
-        }
-	}
 
     /**
-     * For use by the loader, load it without the existence check; the assumption this is a first-time load
-     * and the check isn't needed.  This saves history only.
+     * Part of history management, recover ths indicated job from history.
      */
-    public void saveJobUnsafe(IDuccWorkJob j)
+    <T> T restoreWork(Class<T> cl, String tablename, long friendly_id)
         throws Exception
     {
-        saveJobInternal(j, DbVertex.Job, false, DbCategory.History);
+    	String methodName = "restoreWork";
+        T ret = null;
+        DbHandle h = null;
+
+        h = dbManager.open();
+        String cql = "SELECT WORK FROM " + tablename + " WHERE DUCC_DBID=" + Long.toString(friendly_id);
+        ResultSet rs = h.execute(cql);
+        for ( Row r : rs ) {
+            logger.info(methodName, null, "----- Restoring", friendly_id); 
+            ByteBuffer bbWork = r.getBytes("work");
+            
+            byte[] workbytes = bbWork.array();
+            ByteArrayInputStream bais = new ByteArrayInputStream(workbytes);
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            ret= (T) ois.readObject();
+            ois.close();            
+        } 
+        
+        return ret;
     }
+    
+    /**
+     * Part of history management, recover ths indicated jobs from history.
+     *
+     * Reminder to self, we need to pass Clas<T> cl so compiler can infer T.
+     */
+    public <T> ArrayList<T> restoreSeveralThings(Class<T> cl, String tablename, long max)
+        throws Exception
+    {
+    	String methodName = "restoreSeveralThings";
+
+        ArrayList<T> ret = new ArrayList<T>();
+        DbHandle h = dbManager.open();
+        SimpleStatement s = new SimpleStatement("SELECT * from " + tablename + " limit " + max);
+        s.setFetchSize(100);
+        long now = System.currentTimeMillis();
+
+        try {
+            int count = 0;
+            int nbytes = 0;
+            ResultSet rs = h.execute(s);
+            for ( Row r : rs ) {
+                count++;
+                ByteBuffer b = r.getBytes("work");
+                byte[] workbytes = b.array();
+                nbytes += workbytes.length;
+
+                ByteArrayInputStream bais = new ByteArrayInputStream(workbytes);
+                ObjectInputStream ois = new ObjectInputStream(bais);
+                ret.add( (T) ois.readObject());
+                ois.close();            
+                count++;
+            }
+            
+            logger.info(methodName, null, "Found", count, "results. Total bytes", nbytes, "Time:",  System.currentTimeMillis() - now);
+		} catch (Exception e) {
+            logger.error(methodName, null, "Error fetching history:", e);
+		}
+        return ret;
+    }
+
 
     /**
      * For use by normal operation: forces an existence check.  This saves history only.
@@ -252,85 +261,17 @@ public class HistoryManagerDb
 	public void saveJob(IDuccWorkJob j)
         throws Exception 
     {
-        saveJobInternal(j, DbVertex.Job, true, DbCategory.History);
+        saveWork(jobPrepare, j, true);
     }
 
 	
-    private IDuccWorkJob restoreJobInternal(DbHandle h, OrientVertex v)
-        throws Exception
-    {
-        IDuccWorkJob j = null;
-
-        ODocument d = v.getRecord();
-        String json = d.toJSON();
-        JsonObject jo = mkJsonObject(json);
-
-        Gson g = DbHandle.mkGsonForJob();        
-        j      = g.fromJson(jo, DuccWorkJob.class);
-
-        // System.out.println(g.toJson(jo));
-        
-        IDuccProcessMap pm = j.getProcessMap();              // seems to get set by default when job is recovered
-        Iterable<Edge> ed = v.getEdges(Direction.OUT, DbEdge.JpProcess.pname());
-        for ( Edge e : ed ) {
-            OrientEdge   oe = (OrientEdge) e;
-            OrientVertex ov = oe.getVertex(Direction.IN);
-            
-            ODocument    pd    = ov.getRecord();
-            String       pjson = pd.toJSON();
-            
-            IDuccProcess pe = g.fromJson(pjson, DuccProcess.class);
-            pm.addProcess(pe);
-        }
-
-        DuccWorkPopDriver driver = j.getDriver();
-        if ( driver != null ) {
-            pm = new DuccProcessMap();
-            driver.setProcessMap(pm);                     // seems NOT to get set when driver is reconstituted
-            ed = v.getEdges(Direction.OUT, DbEdge.JdProcess.pname());
-            for ( Edge e : ed ) {
-                OrientEdge   oe = (OrientEdge) e;
-                OrientVertex ov = oe.getVertex(Direction.IN);
-                
-                ODocument    pd    = ov.getRecord();
-                String       pjson = pd.toJSON();
-                
-                IDuccProcess pe = g.fromJson(pjson, DuccProcess.class);
-                pm.addProcess(pe);
-            }
-        }
-
-        // Now must hack around becase this 'n that and JSON can't work out some things
-        String ct = (String) ((ADuccWork)j).getCompletionTypeObject();
-        j.setCompletionType(JobCompletionType.valueOf(ct));
-
-        String so = (String) ((ADuccWork)j).getStateObject();
-        j.setJobState(JobState.valueOf(so));
-        
-        return j;
-    }
-
     /**
      * Part of history management, recover ths indicated job from history.
      */
     public IDuccWorkJob restoreJob(long friendly_id)
         throws Exception
     {
-        DuccWorkJob ret = null;
-        DbHandle h = null;
-        try {
-            h = dbManager.open();
-            Iterable<Vertex> q =  h.select("SELECT * FROM " + DbVertex.Job.pname() + " WHERE ducc_dbid=" + friendly_id + 
-                                           " AND " + DbConstants.DUCC_DBCAT + "='" + DbCategory.History.pname() + "'");
-            for ( Vertex v : q ) {
-                // There's only 1 unless db is broken.
-                return restoreJobInternal(h, (OrientVertex) v);
-            }
-        } finally {
-            h.close();
-        }
-
-        return ret;
+        return (IDuccWorkJob) restoreWork(IDuccWorkJob.class, JOB_TABLE, friendly_id);
     }
     
     /**
@@ -339,22 +280,7 @@ public class HistoryManagerDb
     public ArrayList<IDuccWorkJob> restoreJobs(long max)
         throws Exception
     {
-        ArrayList<IDuccWorkJob> ret = new ArrayList<IDuccWorkJob>();
-        DbHandle h = null;
-        try {
-            h = dbManager.open();
-            Iterable<Vertex> q =  h.select("SELECT * FROM " + DbVertex.Job.pname() + 
-                                           " where " + DbConstants.DUCC_DBCAT +"='" + DbCategory.History.pname() + 
-                                           "' ORDER BY ducc_dbid DESC LIMIT "+ max);
-            for ( Vertex v : q ) {
-                IDuccWorkJob j = restoreJobInternal(h, (OrientVertex) v);
-                ret.add(j);
-            }
-        } finally {
-            h.close();
-        }
-
-        return ret;
+        return restoreSeveralThings(IDuccWorkJob.class, JOB_TABLE, max);
     }
     // End of jobs section
     // ----------------------------------------------------------------------------------------------------
@@ -363,179 +289,21 @@ public class HistoryManagerDb
     // ----------------------------------------------------------------------------------------------------
     // Reservations section
 
-	private void saveReservationNoCommit(DbHandle h, IDuccWorkReservation r, DbCategory dbcat)
-        throws Exception 
-    {
-        String methodName = "saveReservationNoCommit";
-        long now = System.currentTimeMillis();
-
-        List<JdReservationBean> l = r.getJdReservationBeanList();
-        if ( l != null ) {
-            for (JdReservationBean b : l ) {
-                ConcurrentHashMap<DuccId, SizeBytes> map = b.getMap();
-                for ( DuccId k : map.keySet() ) {
-                    logger.info(methodName, null, "SAVE ===> " + k.getFriendly() + " " + k.getUnique() + " : " + map.get(k));
-                }
-            }
-        }
-
-
-
-
-		Long id = r.getDuccId().getFriendly();
-        logger.info(methodName, r.getDuccId(), "Saving.");
-   
-        // Nuke the command lines
-
-        IDuccReservationMap resmap = r.getReservationMap();
-        r.setReservationMap(null);
-
-        Gson g = DbHandle.mkGsonForJob();
-
-        String dbres = g.toJson(r);
-        // logger.info(methodName, null, "------------------- Reservation JSON: " + dbres);
-        
-        // Must repair these things because OR continues to use the job after it has been
-        // written to history.
-        r.setReservationMap(resmap);
-        
-        OrientVertex savedRes = h.saveObject(DbVertex.Reservation, id, dbres, dbcat);
-        
-        List<OrientVertex> savedHosts = new ArrayList<OrientVertex>();
-        for (DuccId did : resmap.keySet()) {
-            Long pid = did.getFriendly();
-            
-            IDuccReservation p = resmap.get(did);
-            String proc = g.toJson(p);
-            
-            savedHosts.add(h.saveObject(DbVertex.Process, pid, proc, dbcat));
-            // logger.info(methodName, p.getDuccId(), "2 ----------> Time to save process", System.currentTimeMillis() - nowP);
-            
-        }
-        
-        h.addEdges(savedRes, savedHosts, DbEdge.JpProcess);
-        logger.info(methodName, r.getDuccId(), "----------> Total reservation save time:", System.currentTimeMillis() - now, "nPE", resmap.size());
-
-	}
-
-    private void saveReservationInternal(IDuccWorkReservation r, boolean safe, DbCategory dbcat)
-        throws Exception 
-    {
-        String methodName = "saveReservation";
-
-		Long id = r.getDuccId().getFriendly();
-        DbHandle h = null;
-        try {
-            if ( safe ) {
-                h = dbManager.open(); 
-            } else {
-                h = dbManager.openNoTx();
-            }
-            if ( safe && h.thingInDatabase(id, DbVertex.Reservation, dbcat) ) {
-                h.close();
-                return;
-            } 
-        } catch ( Exception e ) {
-            logger.warn(methodName, r.getDuccId(), e);
-            h.close();
-            return;
-        }
-
-        try {
-            saveReservationNoCommit(h, r, dbcat);
-        } catch ( Exception e ) {
-            h.rollback();
-            logger.error(methodName, r.getDuccId(), "Cannot store reservation:", e);
-        } finally {
-            h.commit();
-            h.close();
-        }
-
-	}
-
     // Save to history only
 	public void saveReservation(IDuccWorkReservation r) 
         throws Exception 
     {
-        saveReservationInternal(r, true, DbCategory.History);
+        saveWork(reservationPrepare, r, true);
     }
 
-	public void saveReservationUnsafe(IDuccWorkReservation r) 
-        throws Exception 
-    {
-        saveReservationInternal(r, false, DbCategory.History);
-    }
-
-    private IDuccWorkReservation restoreReservationInternal(DbHandle h, OrientVertex v)
-        throws Exception
-    {
-        // String methodName = "restoreReservationInternal";
-        IDuccWorkReservation r = null;
-
-        ODocument d = v.getRecord();
-        String json = d.toJSON();
-        JsonObject jo = mkJsonObject(json);
-
-        Gson g = DbHandle.mkGsonForJob();        
-        // logger.info(methodName, null, g.toJson(jo));
-
-        r      = g.fromJson(jo, DuccWorkReservation.class);
-
-        //List<JdReservationBean> l = r.getJdReservationBeanList();
-        //if ( l != null ) {
-            //for (JdReservationBean b : l ) {
-                //ConcurrentHashMap<DuccId, SizeBytes> map = b.getMap();
-                //for ( DuccId k : map.keySet() ) {
-                //    logger.info(methodName, null, "REST ===> " + k.getFriendly() + " " + k.getUnique() + " : " + map.get(k));
-                //}
-            //}
-        //}
-        
-        IDuccReservationMap rm = r.getReservationMap();              // seems to get set by default when job is recovered
-        Iterable<Edge> ed = v.getEdges(Direction.OUT, DbEdge.JpProcess.pname());
-        for ( Edge e : ed ) {
-            OrientEdge   oe = (OrientEdge) e;
-            OrientVertex ov = oe.getVertex(Direction.IN);
-            
-            ODocument    pd    = ov.getRecord();
-            String       pjson = pd.toJSON();
-            
-            IDuccReservation rr = g.fromJson(pjson, DuccReservation.class);
-            rm.addReservation(rr);
-        }
-
-        // Now must hack around becase this 'n that and JSON can't work out some things
-        String ct = (String) ((ADuccWork)r).getCompletionTypeObject();
-        r.setCompletionType(ReservationCompletionType.valueOf(ct));
-
-        String so = (String) ((ADuccWork)r).getStateObject();
-        r.setReservationState(ReservationState.valueOf(so));
-        
-        return r;
-    }
-	
     /**
      * Part of history management, recover ths indicated reservation from history.
      */
 	public IDuccWorkReservation restoreReservation(long duccid)
         throws Exception
     {
-        DuccWorkReservation ret = null;
-        DbHandle h = null;
-        try {
-            h = dbManager.open();
-            Iterable<Vertex> q =  h.select("SELECT * FROM " + DbVertex.Reservation.pname() + " WHERE ducc_dbid=" + duccid + 
-                                           " AND " + DbConstants.DUCC_DBCAT +"='" + DbCategory.History.pname() + "'");
-            for ( Vertex v : q ) {
-                // There's only 1 unless db is broken.
-                return restoreReservationInternal(h, (OrientVertex) v);
-            }
-        } finally {
-            h.close();
-        }
-
-        return ret;
-	}
+        return (IDuccWorkReservation) restoreWork(IDuccWorkReservation.class, RES_TABLE, duccid);
+    }
 	
     /**
      * Part of history management, recover ths indicated reservations from history.
@@ -543,44 +311,20 @@ public class HistoryManagerDb
 	public ArrayList<IDuccWorkReservation> restoreReservations(long max) 
 		throws Exception
     {
-        ArrayList<IDuccWorkReservation> ret = new ArrayList<IDuccWorkReservation>();
-        DbHandle h = null;
-        try {
-            h = dbManager.open();
-            Iterable<Vertex> q =  h.select("SELECT * FROM " + DbVertex.Reservation.pname() + 
-                                           " WHERE " + DbConstants.DUCC_DBCAT + "='" + DbCategory.History.pname() + "'" + 
-                                           " ORDER BY ducc_dbid DESC LIMIT "+ max);
-            for ( Vertex v : q ) {
-                IDuccWorkReservation j = restoreReservationInternal(h, (OrientVertex) v);
-                ret.add(j);
-            }
-        } finally {
-            h.close();
-        }
+        return restoreSeveralThings(IDuccWorkReservation.class, RES_TABLE, max);
+    }
 
-        return ret;
-	}
     // End of reservations section
     // ----------------------------------------------------------------------------------------------------
 	
 
     // ----------------------------------------------------------------------------------------------------
     // Services section
-    // public void serviceSave(IDuccWorkService s) 
-    //     throws Exception
-    // {
-    // }
 
     public void saveService(IDuccWorkService s)
     	throws Exception
     {
-        saveJobInternal((IDuccWorkJob)s, DbVertex.ServiceInstance, true, DbCategory.History);
-    }
-
-    public void saveServiceUnsafe(IDuccWorkService s)
-    	throws Exception
-    {
-        saveJobInternal((IDuccWorkJob)s, DbVertex.ServiceInstance, false, DbCategory.History);
+        saveWork(servicePrepare, s, true);
     }
 
 	
@@ -590,19 +334,7 @@ public class HistoryManagerDb
 	public IDuccWorkService restoreService(long duccid)
 		throws Exception
     {
-        DbHandle h = null;
-        try {
-            h = dbManager.open();
-            Iterable<Vertex> q =  h.select("SELECT * FROM " + DbVertex.ServiceInstance.pname() + " WHERE ducc_dbid=" + duccid + 
-                                           " AND " + DbConstants.DUCC_DBCAT + "='" + DbCategory.History.pname() + "'");
-            for ( Vertex v : q ) {
-                return restoreJobInternal(h, (OrientVertex) v);
-            }
-        } finally {
-            h.close();
-        }
-
-        return null;
+        return (IDuccWorkService) restoreWork(IDuccWorkService.class, SVC_TABLE, duccid);
 	}
 	
     /**
@@ -611,23 +343,7 @@ public class HistoryManagerDb
 	public ArrayList<IDuccWorkService> restoreServices(long max) 
 		throws Exception
     {
-        ArrayList<IDuccWorkService> ret = new ArrayList<IDuccWorkService>();
-        DbHandle h = null;
-        try {
-            h = dbManager.open();
-            Iterable<Vertex> q =  h.select("SELECT * FROM " + DbVertex.ServiceInstance.pname() + 
-                                           " WHERE " + DbConstants.DUCC_DBCAT +"='" + DbCategory.History.pname() + "'" +
-                                           " ORDER BY ducc_dbid DESC LIMIT "+ max);
-            for ( Vertex v : q ) {
-                IDuccWorkService j = restoreJobInternal(h, (OrientVertex) v);
-                ret.add(j);
-            }
-        } finally {
-            h.close();
-        }
-
-        return ret;
-
+        return restoreSeveralThings(IDuccWorkService.class, SVC_TABLE, max);
 	}
     // End of services section
     // ----------------------------------------------------------------------------------------------------
@@ -652,127 +368,92 @@ public class HistoryManagerDb
         long now = System.currentTimeMillis();
         boolean ret = true;
 
-        DbHandle h = null;
-        try {
-            h = dbManager.open(); 
-        } catch ( Exception e ) {
-            logger.warn(methodName, null, "Cannot open database.", e);
-            if ( h != null ) h.close();
-            return false;
-        }
-
         // We transactionally delete the old checkpoint, and then save the new one.  If something gows wrong we
         // rollback and thus don't lose stuff.  In theory.
-       try {
-           h.execute("DELETE VERTEX V where " + DbConstants.DUCC_DBCAT + "='" + DbCategory.Checkpoint.pname() + "'");
-           Map<DuccId, IDuccWork> map = work.getMap();
-           for (IDuccWork w : map.values() ) {
-               switch(w.getDuccType()) {
-               case Job:
-                   saveJobNoCommit(h, (IDuccWorkJob) w, DbVertex.Job, DbCategory.Checkpoint);
-                   break;
-               case Service:
-                   saveJobNoCommit(h, (IDuccWorkJob) w, DbVertex.ServiceInstance, DbCategory.Checkpoint);
-                   break;
-               case Reservation:
-                   if ( w.getDuccId().getFriendly() == 282282 ) {
-                       int x = 0;
-                       x++;
-                   }
-                   saveReservationNoCommit(h, (IDuccWorkReservation) w, DbCategory.Checkpoint);
-                   break;
-               default:
-                   break;
-               }
-           } 
-           
-           Gson g = DbHandle.mkGsonForJob();
-           ProcessToJobList l = new ProcessToJobList(processToJob);
-           String json = g.toJson(l, l.getClass());
-           // logger.info(methodName, null, "ProcessToJob:", json);
-           h.saveObject(DbVertex.ProcessToJob, null, json, DbCategory.Checkpoint);
-           h.commit();
+        
+        // TODO: make the truncate and insert transactional
+        DbHandle h = dbManager.open();
+        h.truncate("ducc.orckpt");
+
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream out = new ObjectOutputStream(baos);
+            out.writeObject(work);
+            out.close();
+            byte[] bytes = baos.toByteArray();
+            ByteBuffer workbuf = ByteBuffer.wrap(bytes);
+
+            baos = new ByteArrayOutputStream();
+            out= new ObjectOutputStream(baos);
+            out.writeObject(processToJob);
+            out.close();
+            bytes = baos.toByteArray();
+            ByteBuffer mapbuf = ByteBuffer.wrap(bytes);
+            
+            h = dbManager.open();
+            h.saveObject(ckptPrepare, 0, workbuf, mapbuf);       
+
         } catch ( Exception e ) {
-            if ( h != null ) h.rollback();
             logger.error(methodName, null, "Cannot save ProcessToJob map", e);
             ret = false;
         } finally {
-            if ( h != null ) h.close();
             if ( ret ) logger.info(methodName, null, "Saved Orchestrator Checkpoint");
         }
 
-       logger.info(methodName, null, "Total time to save checkpoint:", System.currentTimeMillis() - now);
-       return ret;
+        logger.info(methodName, null, "Total time to save checkpoint:", System.currentTimeMillis() - now);
+        return ret;
     }
 
     /**
      * Orchestrator checkpoint.  Restore the checkpoint from the DB.  Caller must initialize
      * empty maps, which we fill in.
      */
-    public boolean restore(DuccWorkMap work, Map<DuccId, DuccId> processToJob)
+    public Pair<DuccWorkMap, Map<DuccId, DuccId>>  restore()
         throws Exception
     {
-    	String methodName = "restore";
+        String methodName = "restore";
         DbHandle h = null;
-        boolean ret = true;
+        Pair<DuccWorkMap, Map<DuccId, DuccId>> ret = new Pair<DuccWorkMap, Map<DuccId, DuccId>>();
         try {
             h = dbManager.open();
-            // Select all the "top level" objects ith DUCC_LIVE=true.  When they get restored the
-            // attached object will get collected.
+            String cql = "SELECT * FROM ducc.orckpt WHERE id=0";
+            ResultSet rs = h.execute(cql);
+            for ( Row r : rs ) {
+                logger.info(methodName, null, "Found checkpoint.");
+                ByteBuffer bbWork = r.getBytes("work");
+                ByteBuffer bbmap = r.getBytes("p2jmap");
 
-            Iterable<Vertex> q =  h.select("SELECT * FROM V WHERE (" +
-                                            "@CLASS ='" + DbVertex.Job.pname() +
-                                            "' OR " + 
-                                            "@CLASS ='" + DbVertex.Reservation.pname() + 
-                                            "' OR " +  
-                                            "@CLASS ='" + DbVertex.ServiceInstance.pname() + 
-                                            "') AND "   + DbConstants.DUCC_DBCAT + "='" + DbCategory.Checkpoint.pname() + "'");
+                byte[] workbytes = bbWork.array();
+                ByteArrayInputStream bais = new ByteArrayInputStream(workbytes);
+                ObjectInputStream ois = new ObjectInputStream(bais);
+                DuccWorkMap work = (DuccWorkMap) ois.readObject();
+                Map<DuccId, IDuccWork> map = work.getMap();
+                ois.close();
 
-            IDuccWork w = null;
-            for ( Vertex v : q ) {
-                String l = ((OrientVertex) v).getLabel();
-                if ( l.equals(DbVertex.Job.pname()) || l.equals(DbVertex.ServiceInstance.pname()) ) {
-                    w = restoreJobInternal(h, (OrientVertex) v);
-                } else if ( l.equals(DbVertex.Reservation.pname()) ) {
-                    w = restoreReservationInternal(h, (OrientVertex) v);
-                } else {
-                    logger.warn(methodName, null, "Unexpected record of type", l, "in checkpoint restore.");
+                workbytes = bbmap.array();
+                bais = new ByteArrayInputStream(workbytes);
+                ois = new ObjectInputStream(bais);
+                Map<DuccId, DuccId> processToJob = (Map<DuccId, DuccId>) ois.readObject();
+                ois.close();
+
+                // hack because java serializion is stupid and won't call the no-args constructor - need
+                // to restore sometransient fields
+                Set<DuccId> ids = work.getReservationKeySet();
+                for ( DuccId id : ids ) {
+                    DuccWorkReservation res = (DuccWorkReservation) work.findDuccWork(DuccType.Reservation, ""+id.getFriendly());
+                    if ( r != null ) res.initLogger();
                 }
                 
-                work.addDuccWork(w);
+                ret = new Pair(work, processToJob);
             }
 
-            q = h.select("SELECT FROM " + DbVertex.ProcessToJob.pname());
-            
-            int count = 0;
-            for ( Vertex vv : q ) {
-                if ( count > 1 ) {
-                    logger.error(methodName, null, "Oops - we have multiple ProcessToJob records.  Using the first one but it may be wrong.");
-                    break;
-                }
-
-                OrientVertex v = (OrientVertex) vv;
-                ODocument d = v.getRecord();
-                String json = d.toJSON();
-                logger.info(methodName, null, json);
-
-                Gson g = DbHandle.mkGsonForJob();
-
-                ProcessToJobList l = g.fromJson(json, ProcessToJobList.class);
-                l.fill(processToJob);
-            }
-
-        } catch ( Exception e ) {
+       } catch ( Exception e ) {
             logger.error(methodName, null, "Error restoring checkpoint:", e);
-            ret = false;
-        } finally {
-            if ( h != null ) h.close();
-        }
-
-
+        } 
+        
         return ret;
     }
-
+    
     // End of OR checkpoint save and restore
     // ----------------------------------------------------------------------------------------------------
     

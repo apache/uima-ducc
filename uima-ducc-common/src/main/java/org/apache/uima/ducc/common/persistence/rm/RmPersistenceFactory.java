@@ -59,7 +59,7 @@ public class RmPersistenceFactory
             ret = (IRmPersistence) iss.newInstance();
             ret.init(logger);
         } catch ( Throwable t ) {
-            logger.error(methodName, null, "Cannot instantiate RM persistence class", clname, ":", t);
+            logger.error(methodName, null, "Cannot instantiate RM persistence class", clname, ":", t, "Using NullRmStatePersistance as default.");
             ret = new NullRmStatePersistence();
         }
 

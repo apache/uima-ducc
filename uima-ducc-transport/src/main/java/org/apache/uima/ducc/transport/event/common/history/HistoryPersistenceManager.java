@@ -32,6 +32,7 @@ import java.util.Map;
 
 import org.apache.uima.ducc.common.DuccEnvironmentHelper;
 import org.apache.uima.ducc.common.IDuccEnv;
+import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.IOHelper;
@@ -66,9 +67,10 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
         mkdirs();
     }
     
-    public void setLogger(DuccLogger logger)
+    public boolean init(DuccLogger logger)
     {
     	this.logger = logger;
+    	return true;
     }
     
     private void mkdirs() {
@@ -560,10 +562,10 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
         return false;
     }
 
-    public boolean restore(DuccWorkMap m, Map<DuccId, DuccId> processToJob)
+    public Pair<DuccWorkMap, Map<DuccId, DuccId>> restore()
         throws Exception
     {
-        return false;
+        return null;
     }
 
     private static int doJobs(HistoryPersistenceManager hpm) 

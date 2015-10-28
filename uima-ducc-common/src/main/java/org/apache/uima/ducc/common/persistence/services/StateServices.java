@@ -89,14 +89,14 @@ public class StateServices implements IStateServices {
 	}
 
 	
-	public ArrayList<Long> getSvcList() {
+	private ArrayList<Long> getSvcList() {
 		return getList(IStateServices.svc);
 	}
 
 	
-	public ArrayList<Long> getMetaList() {
-		return getList(IStateServices.meta);
-	}
+//	private ArrayList<Long> getMetaList() {
+//		return getList(IStateServices.meta);
+//	}
 	
 	private DuccProperties getProperties(String name) {
 		String location = "getProperties";
@@ -237,21 +237,21 @@ public class StateServices implements IStateServices {
         return ok;
     }
 
-    private boolean updateProperties(Object dbid, DuccId serviceId, Properties props, String type)
+    private boolean updateProperties(DuccId serviceId, Properties props, String type)
     {
         File f  = new File(mkfilename(serviceId, type));
         File tmpf = new File(f.toString() + ".tmp");
         return saveProperties(serviceId, props, f, tmpf, type);
     }
 
-    public boolean updateJobProperties(Object dbid, DuccId serviceId, Properties props)
+    public boolean updateJobProperties(DuccId serviceId, Properties props)
     {
-        return updateProperties(dbid, serviceId, props, svc);
+        return updateProperties(serviceId, props, svc);
     }
 
-    public boolean updateMetaProperties(Object dbid, DuccId serviceId, Properties props)
+    public boolean updateMetaProperties(DuccId serviceId, Properties props)
     {
-        return updateProperties(dbid, serviceId, props, meta);
+        return updateProperties(serviceId, props, meta);
     }
 
     public void deleteProperties(long serviceId)
@@ -272,11 +272,12 @@ public class StateServices implements IStateServices {
     }
 
 
-    public void moveToHistory(DuccId id, Properties svc, Properties meta)
+    public boolean moveToHistory(DuccId id, Properties svc, Properties meta)
         throws Exception
     {
         String methodName = "moveToHistory";
 
+        boolean ret = true;
         // Save a copy in history, and then delete the original
         File mfh = new File(svc_hist_dir + id + ".meta");
         try {
@@ -300,12 +301,15 @@ public class StateServices implements IStateServices {
             fos.close();
         } catch (Exception e) {
             logger.warn(methodName, null, id + ":Unable to save history to \"" + pfh.toString(), ": ", e.toString() + "\"");
+            ret = false;
         }
 
         String props_filename = svc_reg_dir + id + ".svc";
         File pf = new File(props_filename);
         pf.delete();
+        return ret;
     }
 
     public void shutdown() {}
 }
+

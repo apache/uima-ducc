@@ -134,7 +134,7 @@
 		<org.apache.camel.version>2.10.1</org.apache.camel.version>
 		<!-- org.apache.uima.version>2.6.0</org.apache.uima.version Same as uima-as-->
 		<org.apache.uima.as.version>2.6.0</org.apache.uima.as.version>
-		<com.google.guava.version>r09</com.google.guava.version>
+		<com.google.guava.version>14.0.1</com.google.guava.version>        <!-- updated from r09 for cassandra -->
 		<commons.cli.version>1.2</commons.cli.version>
 		<joda.time.version>2.1</joda.time.version>
 		<jsch.version>0.1.29</jsch.version>
@@ -146,7 +146,7 @@
 		<commons.lang.version>2.6</commons.lang.version>
 		<commons.math.version>2.0</commons.math.version>
 		<log4j.version>1.2.16</log4j.version>
-		<slf4j.version>1.6.4</slf4j.version>
+		<slf4j.version>1.7.6</slf4j.version>                <!-- updated from 1.6.4 for cassandra -->
 		<xmlbeans.version>2.5.0</xmlbeans.version>
 		<junit.version>4.8.2</junit.version>
 		<servlet.api.version>2.5</servlet.api.version>
@@ -165,8 +165,16 @@
 		<jetty.version>7.4.4.v20110707</jetty.version>
 		<orbit-org-apache-jasper.version>2.1.0.v201110031002</orbit-org-apache-jasper.version>
 		<servlet-api.version>2.5</servlet-api.version>
-        <orientdb.version>2.1.2</orientdb.version>
-        <orientdb.studio.version>2.0-M3</orientdb.studio.version>
+
+        <!-- These are all cassandra client -->
+        <cassandra.driver.version>2.1.8</cassandra.driver.version>
+        <netty.version>4.0.27.Final</netty.version>
+        <hdr.version>2.1.4</hdr.version>
+        <metrics.version>3.0.2</metrics.version>
+        <snappy.version>1.0.5</snappy.version>
+        <lz4.version>1.2.0</lz4.version>
+        <hdr.version>2.1.4</hdr.version>
+        <!-- end of cassandra client -->
         
 		<http.commons.client.version>4.3.5</http.commons.client.version>
 		<http.commons.client-cache.version>4.3.5</http.commons.client-cache.version>
@@ -390,6 +398,39 @@ ${uimaDUCCNoticeText}
 				<artifactId>joda-time</artifactId>
 				<version>${joda.time.version}</version>
 			</dependency>
+
+            <!-- cassandra RT -->
+            <dependency>
+              <groupId>io.netty</groupId>
+              <artifactId>netty-handler</artifactId>
+              <version>${netty.version}</version>
+            </dependency>
+
+            <dependency>
+              <groupId>com.codahale.metrics</groupId>
+              <artifactId>metrics-core</artifactId>
+              <version>${metrics.version}</version>
+            </dependency>
+            
+            <dependency>
+	          <groupId>org.xerial.snappy</groupId>
+	          <artifactId>snappy-java</artifactId>
+              <version>${snappy.version}</version>
+            </dependency>
+            
+            <dependency>
+              <groupId>net.jpountz.lz4</groupId>
+              <artifactId>lz4</artifactId>
+              <version>${lz4.version}</version>
+            </dependency>
+            
+            <dependency>
+              <groupId>org.hdrhistogram</groupId>
+              <artifactId>HdrHistogram</artifactId>
+              <version>${hdr.version}</version>
+            </dependency>
+
+            <!-- end of cassandra RT -->
 
 			<dependency>
 				<groupId>org.apache.uima</groupId>
@@ -695,7 +736,7 @@ ${uimaDUCCNoticeText}
 
 		  <!-- Get SVN revision number and include in the manifest.
 		       Disable the check for local changes and the svn update -->
-		  <plugin>
+		  <!-- plugin>
 			<groupId>org.codehaus.mojo</groupId>
 			<artifactId>buildnumber-maven-plugin</artifactId>
 			<version>1.3</version>
@@ -711,7 +752,7 @@ ${uimaDUCCNoticeText}
 			  <doCheck>false</doCheck>
 			  <doUpdate>false</doUpdate>
 			</configuration>
-		  </plugin>
+		  </plugin -->
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>

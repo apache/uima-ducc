@@ -26,7 +26,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
 import org.apache.uima.ducc.common.admin.event.RmQueriedShare;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
-import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmPropName;
+import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmProperty;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -76,7 +76,6 @@ public class Machine
 
     private HashMap<Share, Share> activeShares = new HashMap<Share, Share>();
     private IRmPersistence persistence = null;
-    Object dbid = null;
 
     public Machine(Node node)
     {
@@ -175,7 +174,7 @@ public class Machine
         if ( heartbeats == 0 ) return;               // no need to rereset it
         try {
             logger.info(methodName, null, "Reset heartbeat to 0");
-			persistence.setProperty(dbid, id, RmPropName.Heartbeats, 0);
+			persistence.setProperty(id, RmProperty.Heartbeats, 0);
             logger.info(methodName, null, "Time to reset heartbeat", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, null, "Cannot update heartbeat count in database:", e);
@@ -191,21 +190,11 @@ public class Machine
         try {
             heartbeats = c;
             logger.info(methodName, null, "Missed heartbeat count", c);
-			persistence.setProperty(dbid, id, RmPropName.Heartbeats, c);
+			persistence.setProperty(id, RmProperty.Heartbeats, c);
             logger.info(methodName, null, "Time to record misssed heartbeat", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, null, "Cannot update heartbeat count in database:", e);
 		}
-    }
-
-    Object getDbId()
-    {
-        return this.dbid;
-    }
-
-    void setDbId(Object dbid)
-    {
-        this.dbid = dbid;
     }
 
     public NodeIdentity getNodeIdentity()
@@ -328,7 +317,7 @@ public class Machine
         activeShares.put(s, s);
         shares_left -= s.getShareOrder();
         try {
-			persistence.setProperties(dbid, id, RmPropName.Assignments.pname(), activeShares.size(), RmPropName.SharesLeft.pname(), shares_left);
+			persistence.setProperties(id, RmProperty.Assignments, activeShares.size(), RmProperty.SharesLeft, shares_left);
             logger.info(methodName, null, "Time to assign share in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, null, "Cannot save state; shares_left", shares_left);
@@ -345,7 +334,7 @@ public class Machine
         nodepool.removeShare(s);
         shares_left += s.getShareOrder();
         try {
-			persistence.setProperties(dbid, id, RmPropName.Assignments.pname(), activeShares.size(), RmPropName.SharesLeft.pname(), shares_left);
+			persistence.setProperties(id, RmProperty.Assignments, activeShares.size(), RmProperty.SharesLeft, shares_left);
             logger.info(methodName, null, "Time to remove share in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, null, "Cannot save state; shares_left", shares_left);

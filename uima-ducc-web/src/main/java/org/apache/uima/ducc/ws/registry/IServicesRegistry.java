@@ -26,28 +26,28 @@ public class IServicesRegistry {
 	public static final String svc = IStateServices.svc;
 	
 	// meta
-	public static final String autostart = IStateServices.SvcProps.autostart.pname();
-	public static final String reference = IStateServices.SvcProps.reference.pname();
-	public static final String enabled = IStateServices.SvcProps.enabled.pname();
-	public static final String disable_reason = IStateServices.SvcProps.disable_reason.pname();
-	public static final String endpoint = IStateServices.SvcProps.endpoint.pname();
-	public static final String implementors = IStateServices.SvcProps.implementors.pname();
-	public static final String instances = IStateServices.SvcProps.instances.pname();
-	public static final String numeric_id = IStateServices.SvcProps.numeric_id.pname();
-	public static final String ping_active = IStateServices.SvcProps.ping_active.pname();
-	public static final String ping_only = IStateServices.SvcProps.ping_only.pname();
-	public static final String service_alive = IStateServices.SvcProps.service_alive.pname();
-	public static final String service_class = IStateServices.SvcProps.service_class.pname();
-	public static final String service_dependency = IStateServices.SvcProps.service_dependency.pname();
-	public static final String service_healthy = IStateServices.SvcProps.service_healthy.pname();
-	public static final String service_state = IStateServices.SvcProps.service_state.pname();
-	public static final String last_use = IStateServices.SvcProps.last_use.pname();
-	public static final String service_statistics = IStateServices.SvcProps.service_statistics.pname();
-	public static final String service_type = IStateServices.SvcProps.service_type.pname();
-	public static final String submit_error = IStateServices.SvcProps.submit_error.pname();
-	public static final String user = IStateServices.SvcProps.user.pname();
+	public static final String autostart = IStateServices.SvcMetaProps.autostart.pname();
+	public static final String reference = IStateServices.SvcMetaProps.reference.pname();
+	public static final String enabled = IStateServices.SvcMetaProps.enabled.pname();
+	public static final String disable_reason = IStateServices.SvcMetaProps.disable_reason.pname();
+	public static final String endpoint = IStateServices.SvcMetaProps.endpoint.pname();
+	public static final String implementors = IStateServices.SvcMetaProps.implementors.pname();
+	public static final String instances = IStateServices.SvcMetaProps.instances.pname();
+	public static final String numeric_id = IStateServices.SvcMetaProps.numeric_id.pname();
+	public static final String ping_active = IStateServices.SvcMetaProps.ping_active.pname();
+	public static final String ping_only = IStateServices.SvcMetaProps.ping_only.pname();
+	public static final String service_alive = IStateServices.SvcMetaProps.service_alive.pname();
+	public static final String service_class = IStateServices.SvcMetaProps.service_class.pname();
+	public static final String service_dependency = IStateServices.SvcMetaProps.service_dependency.pname();
+	public static final String service_healthy = IStateServices.SvcMetaProps.service_healthy.pname();
+	public static final String service_state = IStateServices.SvcMetaProps.service_state.pname();
+	public static final String last_use = IStateServices.SvcMetaProps.last_use.pname();
+	public static final String service_statistics = IStateServices.SvcMetaProps.service_statistics.pname();
+	public static final String service_type = IStateServices.SvcMetaProps.service_type.pname();
+	public static final String submit_error = IStateServices.SvcMetaProps.submit_error.pname();
+	public static final String user = IStateServices.SvcMetaProps.user.pname();
 	
-	public static final String service_type_CUSTOM = IStateServices.SvcProps.CUSTOM.pname();
+	public static final String service_type_CUSTOM = IStateServices.CUSTOM;
 	
 	public static final String constant_Available = "Available";
 	public static final String constant_true = "true";
@@ -60,9 +60,9 @@ public class IServicesRegistry {
 	public static final String constant_OK = "OK";
 	
 	// svc
-	public static final String description = IStateServices.SvcProps.description.pname();
-	public static final String process_memory_size = IStateServices.SvcProps.process_memory_size.pname();
-	public static final String scheduling_class = IStateServices.SvcProps.scheduling_class.pname();
-	public static final String log_directory = IStateServices.SvcProps.log_directory.pname();
+	public static final String description = IStateServices.SvcRegProps.description.pname();
+	public static final String process_memory_size = IStateServices.SvcRegProps.process_memory_size.pname();
+	public static final String scheduling_class = IStateServices.SvcRegProps.scheduling_class.pname();
+	public static final String log_directory = IStateServices.SvcRegProps.log_directory.pname();
 	
 }

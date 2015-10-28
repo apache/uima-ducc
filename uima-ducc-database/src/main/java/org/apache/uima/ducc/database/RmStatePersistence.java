@@ -19,17 +19,16 @@
 
 package org.apache.uima.ducc.database;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.database.DbConstants.DbCategory;
-import org.apache.uima.ducc.database.DbConstants.DbVertex;
 
-import com.google.gson.Gson;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import com.datastax.driver.core.SimpleStatement;
 
 /**
  * Manage saving and fetching of transient RM state.  The primary consumer is
@@ -67,6 +66,11 @@ public class RmStatePersistence
         init(stateUrl);
     }
 
+    public void shutdown()
+    {
+        dbManager.shutdown();
+    }
+
     public void clear()
         throws Exception
     {
@@ -74,41 +78,55 @@ public class RmStatePersistence
         DbHandle h = null;
         try {
             h = dbManager.open();
-            h.execute("DELETE VERTEX V where " + DbConstants.DUCC_DBCAT + "='" + DbCategory.RmState.pname() + "'");
+            h.execute("TRUNCATE ducc.rmnodes");
         } catch ( Exception e ) {
             logger.error(methodName, null, "Cannot clear the database.", e);
-        } finally {
-            if ( h != null ) h.close();
-        }
+        } 
     }
 
-    public String toGson(Object o)
+    static List<SimpleStatement> mkSchema()
+    	throws Exception
     {
-        // We need to define Instance creators and such so we do it in a common place
-        Gson g = DbHandle.mkGsonForJob();
-        return g.toJson(o);
+        List<SimpleStatement> ret = new ArrayList<SimpleStatement>();
+
+        StringBuffer buf = new StringBuffer("CREATE TABLE IF NOT EXISTS ducc." + RmProperty.TABLE_NAME.pname() + " (");
+        buf.append(DbUtil.mkSchema(RmProperty.values()));
+        buf.append(")");    
+        ret.add(new SimpleStatement(buf.toString()));
+        return ret;
     }
 
-    public Object createMachine(String m, Properties props)
+    // static String[] mkSchemaItems()
+    // {
+    //     int size = RmProperty.values().length;
+    //     String[] ret = new String[size];
+    //     int ndx = 0;
+
+    //     for ( RmProperty n: RmProperty.values() ) {
+    //         String s = n.pname();
+    //         s = s + " " + DbUtil.typeToString(n.type());
+    //         if ( n.isPrimaryKey() ) {
+    //             s = s + " PRIMARY KEY";
+    //         }
+    //         ret[ndx++] = s;
+    //     }
+    //     return ret;
+    // }
+
+    public void createMachine(String m, Map<RmProperty, Object> props)
     	throws Exception
     {
         String methodName = "createMachine";
         DbHandle h = dbManager.open();
-        Object ret = null;
         try {           
-            OrientVertex v = h.createProperties(DbConstants.DUCC_DBNODE, m, DbVertex.RmNode,  DbCategory.RmState, props);
-            ret = v.getId();
-            h.commit();
+            String cql = DbUtil.mkInsert("ducc.rmnodes", props);
+            h.execute(cql);
         } catch ( Exception e ) {
-            logger.error(methodName, null, "Update", m, "ROLLBACK: ", e);
-            if ( h != null ) h.rollback();
-        } finally {
-            if ( h != null ) h.close();
-        }
-        return ret;
+            logger.error(methodName, null, "Error creating new record:", e);
+        } 
     }
 
-    public void setProperties(Object dbid, String dbk, Object... props)
+    public void setProperties(String node, Object... props)
     	throws Exception
     {
         String methodName = "setProperties";
@@ -121,37 +139,28 @@ public class RmStatePersistence
         DbHandle h = dbManager.open();
 
         try {           
-            h.updateProperties(dbid, props);
-            h.commit();
+            h.updateProperties("ducc.rmnodes", "WHERE name='" + node + "'", props);
         } catch ( Exception e ) {
-            logger.error(methodName, null, "Update", dbk, "ROLLBACK: ", e);
-            if ( h != null ) h.rollback();
-        } finally {
-            if ( h != null ) h.close();
-            logger.info(methodName, null, "Total time to update properties on", dbid.toString(), System.currentTimeMillis() - now);
+            logger.error(methodName, null, "Problem setting properties");
+        } finally {           
+            logger.info(methodName, null, "Total time to update properties on", System.currentTimeMillis() - now);
 
         }
         
     }
 
-    public void setProperty(Object dbid, String dbk, RmPropName k, Object v)
+    public void setProperty(String node, RmProperty k, Object v)
     	throws Exception
     {
         String methodName = "setProperty";
-        long now = System.currentTimeMillis();
 
         DbHandle h = dbManager.open();
 
         try {           
-            h.updateProperty(dbid, k.pname(), v);
-            h.commit();
+            h.updateProperty("ducc.rmnodes", "name='" + node + "'", k.columnName(), v);
         } catch ( Exception e ) {
-            logger.error(methodName, null, "Update", dbk, "ROLLBACK: ", e);
-            if ( h != null ) h.rollback();
-        } finally {
-            if ( h != null ) h.close();
-            logger.info(methodName, null, "Total time to update property on", dbid.toString(), System.currentTimeMillis() - now);
-        }
+            logger.error(methodName, null, "Problem setting properties.");
+        } 
         
     }
     
@@ -172,28 +181,3 @@ public class RmStatePersistence
     }
 
 }
-
-/**
-    String name;
-    String nodepoolId;
-    long memory;
-    int order;
-    boolean blacklisted;                                         // UIMA-4142
-    boolean online;                                              // UIMA-4234
-    boolean responsive;                                          // UIMA-4234
-
-
-
-
-   Properties file for a node
-   name = string
-   ip   = string
-   state = <state>
-      states: vary status: online | offline
-              reporting  : present | absent
-   nodepool = string
-   quantum = string
-   class = string
-   scheduling policy = string
-   scheduled work = list of duccids of work on the node
- */

@@ -22,6 +22,7 @@ package org.apache.uima.ducc.common.persistence.rm;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.persistence.IDbProperty;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
 public interface IRmPersistence
@@ -50,7 +51,7 @@ public interface IRmPersistence
      * @param id This is the primary key, the machine name;
      * @param properties These are the props, must be presented in the form of (String, Object) ...
      */
-    public void setProperties(Object dbid, String id, Object... properties) throws Exception;
+    public void setProperties(String id, Object... properties) throws Exception;
 
     /**
      * Set a property on an object.  If the property cannot be set the action
@@ -64,7 +65,7 @@ public interface IRmPersistence
      *         throw will originate in the DB because of some DB issue. An
      *         exception causes the action to be rolled back.
      */
-    public void setProperty(Object dbid, String id, RmPropName key, Object value) throws Exception;
+    public void setProperty(String id, RmProperty key, Object value) throws Exception;
 
     
     /**
@@ -82,7 +83,7 @@ public interface IRmPersistence
      *
      * @return The db id of the created machine.
      */
-    public Object createMachine(String id, Properties props) throws Exception;
+    public void createMachine(String id, Map<RmProperty, Object> props) throws Exception;
 
     /**
      * Fetch a machine by its id.
@@ -110,58 +111,74 @@ public interface IRmPersistence
      */
     public Map<String, Properties> getAllMachines() throws Exception;
 
-    public String toGson(Object o);
 
-    public interface RmProps
+    enum RmProperty
+        implements IDbProperty
     {
-        String pname();
-    }
-
-    enum RmPropName
-        implements RmProps
-    {
+        TABLE_NAME {
+            public String pname() { return "rmnodes"; }
+            public Type type()  { return Type.String; }
+            public boolean isPrivate() { return true;}
+            public boolean isMeta() { return true;}
+        },
         Name {
             public String pname() { return "name"; }
+            public Type type()  { return Type.String; }
+            public boolean isPrimaryKey() { return true;}
+
         },
         Responsive{
             public String pname() { return "responsive"; }
+            public Type type()  { return Type.Boolean; }
         },
         Online{
             public String pname() { return "online"; }
-        },
-        HeartBeats {
-            public String pname() { return "heartbeats"; }
+            public Type type()  { return Type.Boolean; }
         },
         Ip {
             public String pname() { return "ip"; }
+            public Type type()  { return Type.String; }
         },
         Nodepool {
             public String pname() { return "nodepool"; }
+            public Type type()  { return Type.String; }
         },
         Quantum {
             public String pname() { return "quantum"; }
+            public Type type()  { return Type.Integer; }
         },
         Memory {
             public String pname() { return "memory"; }
+            public Type type()  { return Type.Integer; }
         },
         ShareOrder {
             public String pname() { return "share_order"; }
+            public Type type()  { return Type.Integer; }
         },
         Shares{
         	public String pname() { return "shares"; }
+            public Type type()  { return Type.Integer; }
         },
         Blacklisted {
             public String pname() { return "blacklisted"; }
+            public Type type()  { return Type.Boolean; }
         },
         Heartbeats {
             public String pname() { return "heartbeats"; }
+            public Type type()  { return Type.Integer; }
         },
         SharesLeft {
             public String pname() { return "shares_left"; }
+            public Type type()  { return Type.Integer; }
         },
         Assignments {
             public String pname() { return "assignments"; }
+            public Type type()  { return Type.Integer; }
         },
         ;
+        public boolean isPrimaryKey() { return false; }
+        public boolean isPrivate()    { return false; }
+        public boolean isMeta()       { return false; }
+        public String columnName()     { return pname(); }
     }
 }

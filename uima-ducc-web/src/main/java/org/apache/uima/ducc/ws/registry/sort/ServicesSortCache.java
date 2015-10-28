@@ -62,11 +62,11 @@ public class ServicesSortCache {
 			for(Entry<SortableService, IServiceAdapter> entry : map.entrySet()) {
 				IServiceAdapter payload = entry.getValue();
 				Properties meta = payload.getMeta();
-				String key = IStateServices.SvcProps.numeric_id.pname();
+				String key = IStateServices.SvcMetaProps.numeric_id.pname();
 				String value = meta.getProperty(key);
 				int numeric_id = Integer.parseInt(value);
 				if(numeric_id == id) {
-					meta.setProperty(IStateServices.SvcProps.enabled.pname(), Boolean.toString(bool));
+					meta.setProperty(IStateServices.SvcMetaProps.enabled.pname(), Boolean.toString(bool));
 					payload.setMeta(meta);
 					break;
 				}

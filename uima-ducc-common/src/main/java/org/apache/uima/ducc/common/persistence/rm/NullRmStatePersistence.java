@@ -33,11 +33,9 @@ public class NullRmStatePersistence implements IRmPersistence
 	
     public void init(DuccLogger logger) throws Exception { }
     public void clear() {}
-    public void setProperty(Object dbid, String id, RmPropName key, Object value) { }
-    public void setProperties(Object dbid, String id, Object... props) {}
-    public Object createMachine(String id, Properties props) { return new Integer(1);}
+    public void setProperty(String id, RmProperty key, Object value) { }
+    public void setProperties(String id, Object... props) {}
+    public void createMachine(String id, Map<RmProperty, Object> props) { }
     public Properties getMachine(String id) { return null; }
     public Map<String, Properties> getAllMachines() { return new HashMap<String, Properties>(); }
-    public String toGson(Object o) { return ""; }
-
 }

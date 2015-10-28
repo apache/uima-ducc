@@ -115,6 +115,9 @@ class Ducc(DuccUtil):
     def add_to_classpath(self, lib):
         os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ":" + lib
 
+    def prepend_classpath(self, lib):
+        os.environ['CLASSPATH'] = lib + ":" + os.environ['CLASSPATH'] 
+
     def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate):
 
         if ( component == 'all' ):
@@ -181,7 +184,7 @@ class Ducc(DuccUtil):
                     jvm_opts.append("-Dducc.rm.override.dram=" + rmoverride)
                 if ( self.rm_jvm_args != None ):
                     jvm_opts.append(self.rm_jvm_args)
-                self.add_to_classpath(ducc_home + '/lib/orientdb/*')       
+                self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
                 
             if ( c == 'ws' ):
                 #see if the ws jsp compilation directory is specified
@@ -200,7 +203,7 @@ class Ducc(DuccUtil):
                 self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/jsp/*')
-                self.add_to_classpath(ducc_home + '/lib/orientdb/*')       
+                self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
 
             if ( c == 'orchestrator' ):
                 if ( or_parms != None ):
@@ -209,7 +212,7 @@ class Ducc(DuccUtil):
                     jvm_opts.append(self.or_jvm_args)
                 self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')       
-                self.add_to_classpath(ducc_home + '/lib/orientdb/*')       
+                self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
 
             if ( c == 'pm' ):
                 if ( self.pm_jvm_args != None ):
@@ -221,7 +224,7 @@ class Ducc(DuccUtil):
                 self.add_to_classpath(ducc_home + '/apache-uima/apache-activemq/lib/optional/*')
                 self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')       
-                self.add_to_classpath(ducc_home + '/lib/orientdb/*')       
+                self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
 
         if (component != 'agent'):
             service = 'org.apache.uima.ducc.common.main.DuccService'

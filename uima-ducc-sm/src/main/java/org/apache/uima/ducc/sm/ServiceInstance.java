@@ -199,7 +199,7 @@ class ServiceInstance
 
         logger.info(methodName, sset.getId(), "START INSTANCE");
         setStopped(false);
-        this.user = meta_props.getProperty(IStateServices.SvcProps.user.pname());
+        this.user = meta_props.getProperty(IStateServices.SvcMetaProps.user.pname());
 
         // Simple use of ducc_ling, just submit as the user.  The specification will have the working directory
         // and classpath needed for the service, handled by the Orchestrator and Job Driver.
@@ -307,10 +307,10 @@ class ServiceInstance
 
         if ( ! started ) {
             logger.warn(methodName, sset.getId(), "Request to start service " + sset.getId().toString() + " failed.");
-            meta_props.put(IStateServices.SvcProps.submit_error.pname(), submit_buffer.toString());
+            meta_props.put(IStateServices.SvcMetaProps.submit_error.pname(), submit_buffer.toString());
             sset.log_errors(stdout_lines, stderr_lines);
         } else {
-            meta_props.remove(IStateServices.SvcProps.submit_error.pname());
+            meta_props.remove(IStateServices.SvcMetaProps.submit_error.pname());
             state = JobState.Received;
         }
         logger.info(methodName, sset.getId(), "START INSTANCE COMPLETE");

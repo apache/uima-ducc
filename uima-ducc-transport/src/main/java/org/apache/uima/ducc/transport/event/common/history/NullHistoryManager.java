@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
@@ -38,7 +39,7 @@ public class NullHistoryManager
     {
 	}
 	
-	public void setLogger(DuccLogger logger) {}
+	public boolean init(DuccLogger logger) {return true;}
 	
 	public void saveJob(IDuccWorkJob duccWorkJob) 
         throws Exception 
@@ -126,6 +127,6 @@ public class NullHistoryManager
 	}
 
     public boolean checkpoint(DuccWorkMap work, Map<DuccId, DuccId> processToJob)   throws Exception { return false; }
-    public boolean restore(DuccWorkMap work, Map<DuccId, DuccId> processToJob)      throws Exception { return false; }
+    public Pair<DuccWorkMap, Map<DuccId, DuccId>> restore()                         throws Exception { return null; }
 	
 }

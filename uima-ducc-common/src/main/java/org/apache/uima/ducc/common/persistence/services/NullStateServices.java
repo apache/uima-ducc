@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.common.persistence.services;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -33,33 +32,19 @@ public class NullStateServices implements IStateServices
 	}
 	
     public boolean init(DuccLogger logger) throws Exception { return true; }
-	public ArrayList<Long> getSvcList() 
-        throws Exception 
-    {
-		return new ArrayList<Long>();
-	}
-
-	
-	public ArrayList<Long> getMetaList() 
-        throws Exception 
-    {
-		return new ArrayList<Long>();
-	}
-	
-	
+		
 	public StateServicesDirectory getStateServicesDirectory() 
         throws IOException 
     {
 		return new StateServicesDirectory();
 	}
 
-    public boolean storeProperties(DuccId serviceId, Properties svc, Properties meta)   throws Exception {return false;}
-    public boolean updateProperties(Object dbid, DuccId serviceId, String type, Properties props)    throws Exception {return false;}
+    public boolean storeProperties(DuccId serviceId, Properties svc, Properties meta)   throws Exception {return true;}
     public void    deleteProperties(DuccId serviceId)                                   throws Exception {}
     public void    shutdown()                                                           throws Exception {}
     public void    moveToHHistory()                                                     throws Exception {} 
-    public boolean updateJobProperties(Object dbid, DuccId serviceId, Properties props)              throws Exception {return false;}
-    public boolean updateMetaProperties(Object dbid, DuccId serviceId, Properties props)             throws Exception {return false;}
-    public void    moveToHistory(DuccId serviceId, Properties svc, Properties meta)     throws Exception {}
+    public boolean updateJobProperties(DuccId serviceId, Properties props)              throws Exception {return true;}
+    public boolean updateMetaProperties(DuccId serviceId, Properties props)             throws Exception {return true;}
+    public boolean moveToHistory(DuccId serviceId, Properties svc, Properties meta)     throws Exception {return true;}
    
 }

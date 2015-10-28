@@ -82,8 +82,8 @@ public class ServiceSet
     // For a registered service, here is my registered id
     DuccId id;
     HashMap<Long, DuccId> friendly_ids = new HashMap<Long, DuccId>();
-    String history_key = IStateServices.SvcProps.work_instances.pname();
-    String implementors_key = IStateServices.SvcProps.implementors.pname();
+    String history_key = IStateServices.SvcMetaProps.work_instances.pname();
+    String implementors_key = IStateServices.SvcMetaProps.implementors.pname();
 
     // incoming nodes, for dup checking
     List<ServiceSet> predecessors = new ArrayList<ServiceSet>();
@@ -163,8 +163,8 @@ public class ServiceSet
 
     String[] coOwners = null;
 
-    String archive_key  = IStateServices.archive_key;
-    String archive_flag = IStateServices.archive_flag;
+    String archive_key  = "true";
+    String archive_flag = IStateServices.SvcMetaProps.is_archived.columnName();
 
     //
     // Constructor for a registered service
@@ -179,19 +179,19 @@ public class ServiceSet
 
         this.service_state = ServiceState.Stopped;
         this.linger_time = props.getLongProperty(UiOption.ServiceLinger.pname(), linger_time);
-        this.key = meta.getProperty(IStateServices.SvcProps.endpoint.pname());
+        this.key = meta.getProperty(IStateServices.SvcMetaProps.endpoint.pname());
 
         parseEndpoint(key);
 
-        this.user = meta.getProperty(IStateServices.SvcProps.user.pname());
-        this.instances = meta.getIntProperty(IStateServices.SvcProps.instances.pname(), 1);
+        this.user = meta.getProperty(IStateServices.SvcMetaProps.user.pname());
+        this.instances = meta.getIntProperty(IStateServices.SvcMetaProps.instances.pname(), 1);
         this.registered_instances = this.instances;
-        this.autostart = meta.getBooleanProperty(IStateServices.SvcProps.autostart.pname(), false);
-        this.ping_only = meta.getBooleanProperty(IStateServices.SvcProps.ping_only.pname(), false);
-        this.enabled   = meta.getBooleanProperty(IStateServices.SvcProps.enabled.pname(), enabled);
+        this.autostart = meta.getBooleanProperty(IStateServices.SvcMetaProps.autostart.pname(), false);
+        this.ping_only = meta.getBooleanProperty(IStateServices.SvcMetaProps.ping_only.pname(), false);
+        this.enabled   = meta.getBooleanProperty(IStateServices.SvcMetaProps.enabled.pname(), enabled);
         this.service_class = ServiceClass.Registered;
-        this.init_failure_max = props.getIntProperty(IStateServices.SvcProps.instance_init_failures_limit.pname(), init_failure_max);
-        this.reference_start = meta.getBooleanProperty(IStateServices.SvcProps.reference.pname(), this.reference_start);
+        this.init_failure_max = props.getIntProperty(IStateServices.SvcRegProps.instance_init_failures_limit.pname(), init_failure_max);
+        this.reference_start = meta.getBooleanProperty(IStateServices.SvcMetaProps.reference.pname(), this.reference_start);
 
         
         
@@ -208,28 +208,28 @@ public class ServiceSet
 
         parseIndependentServices();
 
-        meta_props.remove(IStateServices.SvcProps.references.pname());          // Will get refreshred in upcoming OR state messages
-        meta_props.remove(IStateServices.SvcProps.stopped.pname());             // obsolete flag, clean out of older registrations
+        meta_props.remove(IStateServices.SvcMetaProps.references.pname());          // Will get refreshred in upcoming OR state messages
+        meta_props.remove(IStateServices.SvcMetaProps.stopped.pname());             // obsolete flag, clean out of older registrations
 
-        meta_props.put(IStateServices.SvcProps.service_class.pname(), ""+service_class.decode());
-        meta_props.put(IStateServices.SvcProps.service_type.pname(), ""+service_type.decode());
-        meta_props.put(IStateServices.SvcProps.enabled.pname(), "" + enabled);         // may not have been there in the first place
-        meta_props.put(IStateServices.SvcProps.service_state.pname(), ""+getState());
-        meta_props.put(IStateServices.SvcProps.ping_active.pname(), "false");
-        meta_props.put(IStateServices.SvcProps.service_alive.pname(),      "false");
-        meta_props.put(IStateServices.SvcProps.service_healthy.pname(),    "false");
-        meta_props.put(IStateServices.SvcProps.service_statistics.pname(), "N/A");
+        meta_props.put(IStateServices.SvcMetaProps.service_class.pname(), ""+service_class.decode());
+        meta_props.put(IStateServices.SvcMetaProps.service_type.pname(), ""+service_type.decode());
+        meta_props.put(IStateServices.SvcMetaProps.enabled.pname(), "" + enabled);         // may not have been there in the first place
+        meta_props.put(IStateServices.SvcMetaProps.service_state.pname(), ""+getState());
+        meta_props.put(IStateServices.SvcMetaProps.ping_active.pname(), "false");
+        meta_props.put(IStateServices.SvcMetaProps.service_alive.pname(),      "false");
+        meta_props.put(IStateServices.SvcMetaProps.service_healthy.pname(),    "false");
+        meta_props.put(IStateServices.SvcMetaProps.service_statistics.pname(), "N/A");
         setReferenced(this.reference_start);
 
-        setLastUse(meta_props.getLongProperty(IStateServices.SvcProps.last_use.pname(), 0L));
-        setLastPing(meta_props.getLongProperty(IStateServices.SvcProps.last_ping.pname(), 0L));
-        setLastRunnable(meta_props.getLongProperty(IStateServices.SvcProps.last_runnable.pname(), 0L));
+        setLastUse(meta_props.getLongProperty(IStateServices.SvcMetaProps.last_use.pname(), 0L));
+        setLastPing(meta_props.getLongProperty(IStateServices.SvcMetaProps.last_ping.pname(), 0L));
+        setLastRunnable(meta_props.getLongProperty(IStateServices.SvcMetaProps.last_runnable.pname(), 0L));
 
         if ( (!job_props.containsKey(UiOption.ProcessExecutable.pname())) && (service_type != ServiceType.UimaAs) ) {
-            meta_props.put(IStateServices.SvcProps.ping_only.pname(), "true");
+            meta_props.put(IStateServices.SvcMetaProps.ping_only.pname(), "true");
             this.ping_only = true;
         } else {
-            meta_props.put(IStateServices.SvcProps.ping_only.pname(), "false");
+            meta_props.put(IStateServices.SvcMetaProps.ping_only.pname(), "false");
             this.ping_only = false;
         }
 
@@ -439,7 +439,14 @@ public class ServiceSet
     Map<Long, ServiceInstance> pendingImplementors = new HashMap<Long, ServiceInstance>();
     void bootImplementor(DuccId id, JobState state)
     {
+    	String methodName = "bootImplementor";
         ServiceInstance si = new ServiceInstance(this);
+
+        if ( ! pending_instances.containsKey(id.getFriendly()) ) {
+            logger.warn(methodName, id, "Incoming Orchestrator state indicates active service instance but it is not in my meta data.");
+            logger.warn(methodName, id, "Instance ignored.  This is usally caused by system or database failure.");
+            return;
+        }
 
         si.setState(state);
         si.setId(id.getFriendly());
@@ -567,11 +574,11 @@ public class ServiceSet
     synchronized void setLastUse(long lu)
     {
         this.last_use = lu;
-        meta_props.put(IStateServices.SvcProps.last_use.pname(), Long.toString(lu));
+        meta_props.put(IStateServices.SvcMetaProps.last_use.pname(), Long.toString(lu));
         if ( last_use == 0 ) {
-            meta_props.put(IStateServices.SvcProps.last_use_readable.pname(), "Unknown");
+            meta_props.put(IStateServices.SvcMetaProps.last_use_readable.pname(), "Unknown");
         } else {
-            meta_props.put(IStateServices.SvcProps.last_use_readable.pname(), (new Date(lu)).toString());
+            meta_props.put(IStateServices.SvcMetaProps.last_use_readable.pname(), (new Date(lu)).toString());
         }
     }
 
@@ -579,11 +586,11 @@ public class ServiceSet
     synchronized void setLastPing(long lp)
     {
         this.last_ping = lp;
-        meta_props.put(IStateServices.SvcProps.last_ping.pname(), Long.toString(lp));
+        meta_props.put(IStateServices.SvcMetaProps.last_ping.pname(), Long.toString(lp));
         if ( last_ping == 0 ) {
-            meta_props.put(IStateServices.SvcProps.last_ping_readable.pname(), "Unknown");
+            meta_props.put(IStateServices.SvcMetaProps.last_ping_readable.pname(), "Unknown");
         } else {
-            meta_props.put(IStateServices.SvcProps.last_ping_readable.pname(), (new Date(lp)).toString());
+            meta_props.put(IStateServices.SvcMetaProps.last_ping_readable.pname(), (new Date(lp)).toString());
         }
     }
 
@@ -591,11 +598,11 @@ public class ServiceSet
     synchronized void setLastRunnable(long lr)
     {
         this.last_runnable = lr;
-        meta_props.put(IStateServices.SvcProps.last_runnable.pname(), Long.toString(lr));
+        meta_props.put(IStateServices.SvcMetaProps.last_runnable.pname(), Long.toString(lr));
         if ( last_runnable == 0 ) {
-            meta_props.put(IStateServices.SvcProps.last_runnable_readable.pname(), "Unknown");
+            meta_props.put(IStateServices.SvcMetaProps.last_runnable_readable.pname(), "Unknown");
         } else {
-            meta_props.put(IStateServices.SvcProps.last_runnable_readable.pname(), (new Date(lr)).toString());
+            meta_props.put(IStateServices.SvcMetaProps.last_runnable_readable.pname(), (new Date(lr)).toString());
         }
     }
 
@@ -604,13 +611,13 @@ public class ServiceSet
         run_failures = 0;
         ping_failures = 0;
         init_failures = 0;
-        meta_props.remove(IStateServices.SvcProps.submit_error.pname());
+        meta_props.remove(IStateServices.SvcMetaProps.submit_error.pname());
         excessiveRunFailures = false;
     }
 
     synchronized void setAutostart(boolean auto)
     {
-        meta_props.setProperty(IStateServices.SvcProps.autostart.pname(), auto ? "true" : "false");
+        meta_props.setProperty(IStateServices.SvcMetaProps.autostart.pname(), auto ? "true" : "false");
         this.autostart = auto;
         if ( auto ) {
             // turning this on gives benefit of the doubt on failure management
@@ -696,13 +703,13 @@ public class ServiceSet
 
     synchronized void disable(String reason)
     {
-        meta_props.put(IStateServices.SvcProps.disable_reason.pname(), reason);
+        meta_props.put(IStateServices.SvcMetaProps.disable_reason.pname(), reason);
         this.enabled = false;
     }
 
     synchronized void enable()
     {
-        meta_props.remove(IStateServices.SvcProps.disable_reason.pname());
+        meta_props.remove(IStateServices.SvcMetaProps.disable_reason.pname());
         resetRuntimeErrors();
         this.enabled = true;
     }
@@ -714,7 +721,7 @@ public class ServiceSet
 
     synchronized String getDisableReason()
     {
-        return meta_props.getStringProperty(IStateServices.SvcProps.disable_reason.pname(), "Unknown");
+        return meta_props.getStringProperty(IStateServices.SvcMetaProps.disable_reason.pname(), "Unknown");
     }
 
     /**
@@ -817,8 +824,8 @@ public class ServiceSet
         if ( ! isRecovered ) {       // if not recovery, no need to mess with the record
             stateHandler.storeProperties(id, job_props, meta_props);
         } else {                
-            stateHandler.updateJobProperties(meta_props.get("svc_dbid"), id, (Properties) job_props);
-            stateHandler.updateMetaProperties(meta_props.get("meta_dbid"), id, meta_props);
+            stateHandler.updateJobProperties(id, (Properties) job_props);
+            stateHandler.updateMetaProperties(id, meta_props);
         }
     }
 
@@ -828,7 +835,7 @@ public class ServiceSet
         // no more changes
         if ( isDeregistered() ) return;
 
-        stateHandler.updateJobProperties(meta_props.get("svc_dbid"), id, (Properties) job_props);
+        stateHandler.updateJobProperties(id, (Properties) job_props);
     }
 
     synchronized void updateMetaProperties()
@@ -839,7 +846,7 @@ public class ServiceSet
         // if ( isDeregistered() ) return;
 
         prepareMetaProperties();
-        stateHandler.updateMetaProperties(meta_props.get("meta_dbid"), id, meta_props);
+        stateHandler.updateMetaProperties(id, meta_props);
     }
 
     void prepareMetaProperties()
@@ -872,27 +879,27 @@ public class ServiceSet
         }
 
         
-        meta_props.put(IStateServices.SvcProps.reference.pname(), isReferencedStart() ? "true" : "false");
-        meta_props.put(IStateServices.SvcProps.autostart.pname(), isAutostart()       ? "true" : "false");
+        meta_props.put(IStateServices.SvcMetaProps.reference.pname(), isReferencedStart() ? "true" : "false");
+        meta_props.put(IStateServices.SvcMetaProps.autostart.pname(), isAutostart()       ? "true" : "false");
 
-        meta_props.put(IStateServices.SvcProps.enabled.pname(), ""+enabled);
-        meta_props.put(IStateServices.SvcProps.service_state.pname(), ""+ getState());
-        meta_props.put(IStateServices.SvcProps.ping_active.pname(), "" + (serviceMeta != null));
-        meta_props.put(IStateServices.SvcProps.service_alive.pname(),      "false");
-        meta_props.put(IStateServices.SvcProps.service_healthy.pname(),    "false");
+        meta_props.put(IStateServices.SvcMetaProps.enabled.pname(), ""+enabled);
+        meta_props.put(IStateServices.SvcMetaProps.service_state.pname(), ""+ getState());
+        meta_props.put(IStateServices.SvcMetaProps.ping_active.pname(), "" + (serviceMeta != null));
+        meta_props.put(IStateServices.SvcMetaProps.service_alive.pname(),      "false");
+        meta_props.put(IStateServices.SvcMetaProps.service_healthy.pname(),    "false");
 
         if ( excessiveFailures() ) {
-            meta_props.put(IStateServices.SvcProps.submit_error.pname(), "Service stopped by exessive failures.  Initialization failures[" + init_failures + "], Runtime failures[" + run_failures + "]");
+            meta_props.put(IStateServices.SvcMetaProps.submit_error.pname(), "Service stopped by exessive failures.  Initialization failures[" + init_failures + "], Runtime failures[" + run_failures + "]");
         } else {
-            meta_props.put(IStateServices.SvcProps.service_statistics.pname(), "N/A");
+            meta_props.put(IStateServices.SvcMetaProps.service_statistics.pname(), "N/A");
         }
         
         if ( serviceMeta != null ) {
             IServiceStatistics ss = serviceMeta.getServiceStatistics();
             if ( ss != null ) {
-                meta_props.put(IStateServices.SvcProps.service_alive.pname(),      "" + ss.isAlive());
-                meta_props.put(IStateServices.SvcProps.service_healthy.pname(),    "" + ss.isHealthy());
-                meta_props.put(IStateServices.SvcProps.service_statistics.pname(), "" + ss.getInfo());
+                meta_props.put(IStateServices.SvcMetaProps.service_alive.pname(),      "" + ss.isAlive());
+                meta_props.put(IStateServices.SvcMetaProps.service_healthy.pname(),    "" + ss.isHealthy());
+                meta_props.put(IStateServices.SvcMetaProps.service_statistics.pname(), "" + ss.getInfo());
 
                 if ( ss.isAlive() ) {                    // UIMA-4309
                     setLastPing(System.currentTimeMillis());
@@ -916,7 +923,7 @@ public class ServiceSet
 
     synchronized void updateRegisteredInstances(int n)
     {
-        meta_props.setProperty(IStateServices.SvcProps.instances.pname(), Integer.toString(n));
+        meta_props.setProperty(IStateServices.SvcMetaProps.instances.pname(), Integer.toString(n));
         registered_instances = n;
     }
 
@@ -978,7 +985,7 @@ public class ServiceSet
         String methodName = "persistReferences";
 
         if ( references.size() == 0 ) {
-            meta_props.remove(IStateServices.SvcProps.references.pname());
+            meta_props.remove(IStateServices.SvcMetaProps.references.pname());
         } else {
             StringBuffer sb = new StringBuffer();
             for ( DuccId id : references.keySet() ) {
@@ -986,7 +993,7 @@ public class ServiceSet
                 sb.append(" ");
             }
             String s = sb.toString().trim();
-            meta_props.setProperty(IStateServices.SvcProps.references.pname(), s);
+            meta_props.setProperty(IStateServices.SvcMetaProps.references.pname(), s);
         }
         try {
             updateMetaProperties();
@@ -1079,19 +1086,19 @@ public class ServiceSet
     public void setErrorString(String s)
     	throws Exception
     {
-        meta_props.put(IStateServices.SvcProps.submit_error.pname(), s);
+        meta_props.put(IStateServices.SvcMetaProps.submit_error.pname(), s);
         updateMetaProperties();
     }
 
     public String getErrorString()
     {
-        return meta_props.getProperty(IStateServices.SvcProps.submit_error.pname()); 
+        return meta_props.getProperty(IStateServices.SvcMetaProps.submit_error.pname()); 
     }
 
     void setReferenced(boolean r)
     {
         this.reference_start = r;
-        meta_props.put(IStateServices.SvcProps.reference.pname(), Boolean.toString(this.reference_start));
+        meta_props.put(IStateServices.SvcMetaProps.reference.pname(), Boolean.toString(this.reference_start));
     }
 
     public synchronized void reference(DuccId id)
@@ -1808,7 +1815,7 @@ public class ServiceSet
 
             if ( isPingOnly() && (ping_failures > ping_failure_max) ) {
                 logger.warn(methodName, id, "Stopping ping-only service due to excessive falutes:", ping_failure_max);
-                meta_props.put(IStateServices.SvcProps.submit_error.pname(), "Stopping ping-only service due to excessive falutes: " + ping_failure_max);
+                meta_props.put(IStateServices.SvcMetaProps.submit_error.pname(), "Stopping ping-only service due to excessive falutes: " + ping_failure_max);
 
                 stop(-1L);        // must be -lL Long to get the right overload
                 implementors.remove(-1L);
@@ -2160,13 +2167,13 @@ public class ServiceSet
         sd.setLinger(linger_time);
         sd.setId(id.getFriendly());
         sd.setUser(user);
-        sd.setDisableReason(meta_props.getStringProperty(IStateServices.SvcProps.disable_reason.pname(), null));
+        sd.setDisableReason(meta_props.getStringProperty(IStateServices.SvcMetaProps.disable_reason.pname(), null));
         sd.setLastUse(last_use);
         sd.setLastPing(last_ping);            // UIMA-4309
         sd.setLastRunnable(last_runnable);    // UIMA-4309
-        sd.setRegistrationDate(meta_props.getStringProperty(IStateServices.SvcProps.registration_date.pname(), ""));
+        sd.setRegistrationDate(meta_props.getStringProperty(IStateServices.SvcMetaProps.registration_date.pname(), ""));
         sd.setReferenceStart(reference_start);
-        sd.setErrorString(meta_props.getStringProperty(IStateServices.SvcProps.submit_error.pname(), null));
+        sd.setErrorString(meta_props.getStringProperty(IStateServices.SvcMetaProps.submit_error.pname(), null));
 
         if ( serviceMeta != null ) {
             sd.setQueueStatistics(serviceMeta.getServiceStatistics());

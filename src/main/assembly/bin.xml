@@ -130,79 +130,28 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-    <!-- orientdb -->
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>com.tinkerpop.gremlin:gremlin-groovy</include>
-      </includes>      
-      <outputDirectory>lib/orientdb</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
 
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
-        <include>com.tinkerpop.blueprints:blueprints-core</include>
+        <include>com.datastax.cassandra:cassandra-driver-core</include>
+        <include>com.datastax.cassandra:cassandra-driver-dse</include>
+        <include>com.datastax.cassandra:cassandra-driver-mapping</include>
+        <include>io.netty:netty-buffer</include>
+        <include>io.netty:netty-codec</include>
+        <include>io.netty:netty-common</include>
+        <include>io.netty:netty-handler</include>
+        <include>io.netty:netty-transport</include>
+        <include>com.codahale.metrics:metrics-core</include>
+        <include>org.xerial.snappy:snappy-java</include>
+        <include>net.jpountz.lz4:lz4</include>
+        <include>org.hdrhistogram:HdrHistogram</include>
       </includes>      
-      <outputDirectory>lib/orientdb</outputDirectory>
+      <outputDirectory>lib/cassandra</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
-
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru</include>
-      </includes>      
-      <outputDirectory>lib/orientdb</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
-
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>com.orientechnologies:orientdb-graphdb</include>
-        <include>com.orientechnologies:orientdb-core</include>
-        <include>com.orientechnologies:orientdb-client</include>
-        <include>com.orientechnologies:orientdb-server</include>
-        <include>com.orientechnologies:orientdb-tools</include>
-        <include>com.orientechnologies:orientdb-enterprise</include>
-      </includes>      
-      <outputDirectory>lib/orientdb</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
-
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>com.tinkerpop.gremlin:gremlin-groovy</include>
-      </includes>      
-      <outputDirectory>lib/orientdb</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
-
-    <!-- dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>com.orientechnologies:orientdb-lucene</include>
-      </includes>      
-      <outputDirectory>database/plugins</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet -->
-
-    <!-- end orientdb -->
 
 	<!-- xmlbeans is in UIMA-AS 2.6.0 package -->
     

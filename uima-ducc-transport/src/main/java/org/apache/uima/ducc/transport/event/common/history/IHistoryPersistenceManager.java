@@ -21,6 +21,8 @@ package org.apache.uima.ducc.transport.event.common.history;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.uima.ducc.common.Pair;
+import org.apache.uima.ducc.common.persistence.IDbProperty;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
@@ -44,9 +46,104 @@ public interface IHistoryPersistenceManager
 	public List<IDuccWorkService>     restoreServices(long max)                     throws Exception;
 
     public boolean checkpoint(DuccWorkMap work, Map<DuccId, DuccId> processToJob)   throws Exception;
-    public boolean restore(DuccWorkMap work, Map<DuccId, DuccId> processToJob)      throws Exception;
+    public Pair<DuccWorkMap, Map<DuccId, DuccId>>  restore()                        throws Exception;
 
-    public void setLogger(DuccLogger logger);
+    /**
+     * Establish a logger and anything else the persistence may need.
+     *
+     * @param logger This is the logger to be used.  It is usually
+     *        the same logger as the client of persistence, e.g.
+     *        org.apache.uima.ducc.rm.  The implementor is required
+     *        to adjust itself to use this logger to insure 
+     *        messages are logged into the right log.
+     */
+    public boolean init(DuccLogger logger) throws Exception;
+
+    public enum OrWorkProps    // properties for the OR work map 
+        implements IDbProperty
+    {
+    	JOB_TABLE {
+            public String pname()      { return "job_history"; } 
+            public boolean isPrivate() { return true; }    		
+            public boolean isMeta()    { return true; }    		
+    	},
+
+    	RESERVATION_TABLE {
+            public String pname()      { return "res_history"; } 
+            public boolean isPrivate() { return true; }    		
+            public boolean isMeta()    { return true; }    		
+    	},
+
+    	SERVICE_TABLE {
+            public String pname()      { return "svc_history"; } 
+            public boolean isPrivate() { return true; }    		
+            public boolean isMeta()    { return true; }    		
+    	},
+
+
+        // The order of the primary keys is important here as the Db assigns semantics to the first key in a compound PK
+        type {
+            public String pname()         { return "type"; }     // "job", "reservation", "service", ...
+            public boolean isPrimaryKey() { return true; }
+        },
+
+        ducc_dbid {
+            public String pname()         { return "ducc_dbid"; }
+            public Type type()            { return Type.Long; }
+            public boolean isPrimaryKey() { return true; }
+        },
+
+        history {
+            public String pname()  { return "history"; }        // to the future, is this a history or ckpt item?
+            public Type type()     { return Type.Boolean; }
+        },
+
+        work {
+            public String pname() { return "work"; };
+            public Type type()    { return Type.Blob; }
+        },
+
+        ;
+        public Type type() { return Type.String; }
+        public boolean isPrimaryKey() { return false; }
+        public boolean isPrivate()  { return false; }
+        public boolean isMeta()  { return false; }
+        public String columnName() { return pname(); }
+
+     };
+
+    public enum OrCkptProps    // properties for the OR checkpoint
+        implements IDbProperty
+    {
+        CKPT_TABLE {
+            public String pname()      { return "orckpt"; } 
+            public boolean isPrivate() { return true; }    		
+            public boolean isMeta()    { return true; }    		
+    	},
+
+        id {
+            public String pname()      { return "id"; }
+            public boolean isPrimaryKey() { return true; }
+            public Type type()         { return Type.Integer; }
+        },
+
+        work {
+            public String pname() { return "work"; };
+        },
+
+        p2jmap {
+            public String pname() { return "p2jmap"; };
+        },
+
+        ;
+        public Type type() { return Type.Blob; }
+        public boolean isPrimaryKey() { return false; }
+        public boolean isPrivate()  { return false; }
+        public boolean isMeta()  { return false; }
+        public String columnName() {return pname(); }
+
+     };
+
 	//public void serviceSaveConditional(IDuccWorkService duccWorkService) throws Exception;
 	// public void serviceSave(IDuccWorkService duccWorkService) throws Exception;
 	//public IDuccWorkService serviceRestore(String fileName);

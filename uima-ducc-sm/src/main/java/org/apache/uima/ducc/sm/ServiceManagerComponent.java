@@ -38,7 +38,7 @@ import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.crypto.Crypto.AccessType;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
-import org.apache.uima.ducc.common.persistence.services.IStateServices.SvcProps;
+import org.apache.uima.ducc.common.persistence.services.IStateServices.SvcMetaProps;
 import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
 import org.apache.uima.ducc.common.persistence.services.StateServicesFactory;
 import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
@@ -117,7 +117,7 @@ public class ServiceManagerComponent
     private String state_file = null;
 
     private DuccProperties sm_props = null;
-    private String service_seqno = SvcProps.service_seqno.pname();
+    private String service_seqno = IStateServices.sequenceKey;
     private DuccIdFactory idFactory = new DuccIdFactory();
     
     private boolean signature_required = true;
@@ -827,18 +827,18 @@ public class ServiceManagerComponent
         props.put(UiOption.LogDirectory.pname(), logdir);
 
         DuccProperties meta = new DuccProperties();
-        meta.setProperty(SvcProps.user.pname(), user);
-        meta.setProperty(SvcProps.instances.pname(), ""+instances);
-        meta.setProperty(SvcProps.endpoint.pname(), endpoint);
-        meta.setProperty(SvcProps.numeric_id.pname(), id.toString());
-        meta.setProperty(SvcProps.uuid.pname(), id.getUnique());
-        meta.setProperty(SvcProps.registration_date_millis.pname(), Long.toString(regdate));
-        meta.setProperty(SvcProps.registration_date.pname(), regdate_readable);
+        meta.setProperty(SvcMetaProps.user.pname(), user);
+        meta.setProperty(SvcMetaProps.instances.pname(), ""+instances);
+        meta.setProperty(SvcMetaProps.endpoint.pname(), endpoint);
+        meta.setProperty(SvcMetaProps.numeric_id.pname(), id.toString());
+        meta.setProperty(SvcMetaProps.uuid.pname(), id.getUnique());
+        meta.setProperty(SvcMetaProps.registration_date_millis.pname(), Long.toString(regdate));
+        meta.setProperty(SvcMetaProps.registration_date.pname(), regdate_readable);
 
         if ( autostart == Trinary.True ) {            
-            meta.setProperty(SvcProps.autostart.pname(), "true");
+            meta.setProperty(SvcMetaProps.autostart.pname(), "true");
         } else {
-            meta.setProperty(SvcProps.autostart.pname(), "false");
+            meta.setProperty(SvcMetaProps.autostart.pname(), "false");
         }
 
         ServiceReplyEvent reply = handler.register(id, props, meta, false);

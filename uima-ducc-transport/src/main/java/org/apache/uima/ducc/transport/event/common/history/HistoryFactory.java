@@ -68,7 +68,7 @@ public class HistoryFactory
             @SuppressWarnings("unchecked")
 				Class<IStateServices> iss = (Class<IStateServices>) Class.forName(clname);
             instance = (IHistoryPersistenceManager) iss.newInstance();
-            instance.setLogger(logger);
+            instance.init(logger);
         } catch ( Throwable t ) {
             logger.error(methodName, null, "Cannot instantiate service persistence class", clname, ":", t);
             instance = new NullHistoryManager();

@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.common.persistence.services;
 
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TreeMap;
 
@@ -35,5 +36,9 @@ public class StateServicesDirectory {
 	
 	public NavigableSet<Long> getDescendingKeySet() {
 		return map.descendingKeySet();
+	}
+
+	public Map<Long, StateServicesSet> getMap() {
+		return map;
 	}
 }
