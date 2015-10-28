@@ -272,7 +272,9 @@ public class TestSuite {
 			assertTrue(jdScheduler.countSlicesInuse() == 0);
 			assertTrue(jdScheduler.countSlicesTotal() > 0);
 			//
-			for(int i=0; i < 1000; i++) {
+			int allocations = 0;
+			int slicesPerReservation = 38;
+			while(allocations < 100) {
 				DuccId jdId = TestHelper.getJdId();
 				DuccId jdProcessDuccId = (DuccId) jdId;
 				map.put(jdId, jdId);
@@ -283,17 +285,33 @@ public class TestSuite {
 				}
 				//assertTrue(nodeIdentity != null);
 				randomPublication(jdScheduler, dwm);
+				if(nodeIdentity != null) {
+					allocations += 1;
+					long reservationsTotal = jdScheduler.countReservationsTotal();
+					long slicesTotal = jdScheduler.countSlicesTotal();
+					long slicesAvailable = jdScheduler.countSlicesAvailable();
+					long slicesInuse = jdScheduler.countSlicesInuse();
+					assertTrue(slicesTotal == (slicesAvailable+slicesInuse));
+					assertTrue(slicesTotal == (reservationsTotal*slicesPerReservation));
+				}
 			}
 			for(Entry<DuccId, DuccId> entry : map.entrySet()) {
 				DuccId jdId = entry.getKey();
 				DuccId jdProcessDuccId = (DuccId) jdId;
 				jdScheduler.deallocate(jdProcessDuccId, jobId);
 				randomPublication(jdScheduler, dwm);
+				long reservationsTotal = jdScheduler.countReservationsTotal();
+				long slicesTotal = jdScheduler.countSlicesTotal();
+				long slicesAvailable = jdScheduler.countSlicesAvailable();
+				long slicesInuse = jdScheduler.countSlicesInuse();
+				assertTrue(slicesTotal == (slicesAvailable+slicesInuse));
+				assertTrue(slicesTotal == (reservationsTotal*slicesPerReservation));
 			}
 			publication(jdScheduler, dwm);
 			assertTrue(jdScheduler.countSlicesInuse() == 0);
 			assertTrue(jdScheduler.countSlicesTotal() > 0);
 			assertTrue(jdScheduler.countSlicesAvailable() > 0);
+			assertTrue(jdScheduler.countReservationsTotal() == 1);
 		}
 		catch(Exception e) {
 			e.printStackTrace();

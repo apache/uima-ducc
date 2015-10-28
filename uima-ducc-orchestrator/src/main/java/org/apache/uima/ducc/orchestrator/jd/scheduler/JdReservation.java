@@ -35,6 +35,10 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 	private static DuccLogger logger = new DuccLogger(JdReservation.class);
 	private static DuccId jobid = null;
 	
+	// Each instance of JdReservation represents an individual DUCC Reservation
+	// that once Assigned is partitioned into smaller equal sized slices, where 
+	// each individual slice is used for a single JD.
+	
 	public JdReservation(IDuccWorkReservation dwr, SizeBytes sizeOfReservation, SizeBytes sizeOfSlice) {
 		initialize(dwr, sizeOfReservation, sizeOfSlice);
 	}
@@ -54,6 +58,8 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 		}
 	}
 	
+	// Return the Host for this JdReservation.
+	
 	public String getHost() {
 		String retVal = null;
 		NodeIdentity nodeIdentity= getNodeIdentity();
@@ -62,6 +68,8 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 		}
 		return retVal;
 	}
+	
+	// Return true if JdReservation is usable.
 	
 	public boolean isUp() {
 		boolean retVal = false;
@@ -78,6 +86,8 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 		return retVal;
 	}
 	
+	// Return the number of slices (capacity) for this JdReservation.
+	
 	public Long getSlicesTotal() {
 		String location = "getSlicesTotal";
 		SizeBytes sizeOfReservation = getSizeOfReservation();
@@ -87,6 +97,8 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 		return retVal;
 	}
 	
+	// Return the number of slices inuse for this JdReservation.
+	
 	public Long getSlicesInuse() {
 		String location = "getSlicesInuse";
 		ConcurrentHashMap<DuccId, SizeBytes> map = getMap();
@@ -95,6 +107,8 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 		return retVal;
 	}
 	
+	// Return the number of slices not inuse for this JdReservation.
+	
 	public Long getSlicesAvailable() {
 		String location = "getSlicesAvailable";
 		Long retVal = getSlicesTotal() - getSlicesInuse();
@@ -102,10 +116,14 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 		return retVal;
 	}
 	
+	// Return true if all slices for this JdReservation are inuse.
+	
 	public boolean isFull() {
 		boolean retVal = (getSlicesTotal() <= getSlicesInuse());
 		return retVal;
 	}
+	
+	// Return true if all slices for this JdReservation are not inuse.
 	
 	public boolean isEmpty() {
 		boolean retVal = (getSlicesInuse() == 0);

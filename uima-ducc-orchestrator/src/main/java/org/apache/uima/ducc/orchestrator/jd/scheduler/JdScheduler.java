@@ -67,16 +67,27 @@ public class JdScheduler {
 	private AtomicBoolean requestPending = new AtomicBoolean(false);
 	private AtomicBoolean changes = new AtomicBoolean(false);
 	
+	// Manage the allocation of JD slices, which comprises making reservations,
+	// subdividing said reservations into slices, one per JD, and returning 
+	// unused reservations.
+	
 	public JdScheduler() {	
 	}
+	
+	// Auto-manage true is nominal.
 	
 	public void setAutomanage() {
 		autoManage.set(true);
 	}
 	
+	// Auto-manage false is for testing only.
+	
 	public void resetAutomanage() {
 		autoManage.set(false);
 	}
+	
+	// Save current slice allocations within each Reservation comprising
+	// the Orchestrator's checkpoint map.
 	
 	public void ckpt() {
 		String location = "ckpt";
@@ -108,6 +119,9 @@ public class JdScheduler {
 		}
 	}
 	
+	// Restore current slice allocations within each Reservation comprising
+	// the Orchestrator's checkpoint map.
+	
 	public void restore() {
 		String location = "restore";
 		try {
@@ -128,6 +142,8 @@ public class JdScheduler {
 		}
 	}
 	
+	// Return the number of Reservations allocated for JDs.
+	
 	public int getReservationCount() {
 		int count = 0;
 		for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
@@ -142,6 +158,8 @@ public class JdScheduler {
 		}
 		return count;
 	}
+	
+	// Process an OR publication.
 	
 	public void handle(IDuccWorkMap dwm) {
 		String location = "handle";
@@ -161,6 +179,8 @@ public class JdScheduler {
 			logger.error(location, jobid, e);
 		}
 	}
+	
+	// Account for state changes for JD Reservations.
 	
 	private void resourceAccounting(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		String location = "resourceAccounting";
@@ -226,16 +246,20 @@ public class JdScheduler {
 		return slicesReserveActual;
 	}
 	
+	// Determine if at least one JD Reservation can be unreserved.
+	
 	private boolean isReservationDivestable(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		boolean retVal = false;
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
 		long slicesReserveActual = getSlicesReserveActual();
 		if(map.size() > 1) {
-			if(slicesReserveActual > (2 * slicesReserveDesired)) {
-				synchronized(map) {
-					for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
-						JdReservation jdReservation = entry.getValue();
-						if(jdReservation.isEmpty()) {
+			synchronized(map) {
+				for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
+					JdReservation jdReservation = entry.getValue();
+					if(jdReservation.isEmpty()) {
+						long slicesToRelease = jdReservation.getSlicesTotal();
+						long slicesReserveAfterRelease = slicesReserveActual - slicesToRelease;
+						if(slicesReserveAfterRelease > slicesReserveDesired) {
 							retVal = true;
 							break;
 						}
@@ -245,6 +269,8 @@ public class JdScheduler {
 		}
 		return retVal;
 	}
+	
+	// Acquire or divest JD Reservations based upon need.
 	
 	private void resourceAdjustment(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		String location = "resourceAdjustment";
@@ -280,6 +306,8 @@ public class JdScheduler {
 		long slicesReserveActual = getSlicesReserveActual();
 		logger.debug(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
+	
+	// Request a new JD Reservation.
 	
 	private void reservationAcquire(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		String location = "reservationAcquire";
@@ -323,6 +351,8 @@ public class JdScheduler {
 		logger.debug(location, duccId, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
+	// Return an unused JD Reservation.
+	
 	private void reservationDivest(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		String location = "reservationDivest";
 		DuccId jdReservationDuccId = null;
@@ -354,12 +384,16 @@ public class JdScheduler {
 		logger.debug(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
+	// Nothing to do.
+	
 	private void reservationNoChange(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		String location = "reservationNoChange";
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
 		long slicesReserveActual = getSlicesReserveActual();
 		logger.trace(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
+	
+	// Update a list of JDs (DuccId's) allocated on a JD Reservation.
 	
 	private void setJdReservationBeanList(List<JdReservationBean> jdReservationBeanList) {
 		if(jdReservationBeanList != null) {
@@ -370,6 +404,8 @@ public class JdScheduler {
 			}
 		}
 	}
+	
+	// Return a list of JDs (DuccId's) allocated on a JD Reservation.
 	
 	public List<JdReservationBean> getJdReservationBeanList(DuccId jdReservationDuccId) {
 		String location = "getJdReservationBeanList";
@@ -385,10 +421,14 @@ public class JdScheduler {
 		return jdReservationBeanList;
 	}
 	
+	// Return the number of JD Reservations.
+	
 	public int countReservationsTotal() {
 		int count = map.size();
 		return count;
 	}
+	
+	// Return the number of JD Reservations that are "up" (e.g. in Assigned state).
 	
 	public int countReservationsUp() {
 		int count = 0;
@@ -400,6 +440,8 @@ public class JdScheduler {
 		}
 		return count;
 	}
+	
+	// Handle a JD Reservation that has become available.
 	
 	private void reservationUp(IDuccWorkReservation dwr, JdHostProperties jdHostProperties) {
 		String location = "reservationUp";
@@ -427,6 +469,8 @@ public class JdScheduler {
 		}
 	}
 	
+	// Handle a JD Reservation that has become unavailable.
+	
 	private void reservationDown(IDuccWorkReservation dwr) {
 		String location = "reservationDown";
 		DuccId duccId = dwr.getDuccId();
@@ -446,6 +490,8 @@ public class JdScheduler {
 		}
 	}
 	
+	// Handle unexpected state for a JD Reservation.
+	
 	private void reservationOther(IDuccWorkReservation dwr, JdHostProperties jdHostProperties) {
 		String location = " reservationOther";
 		DuccId duccId = dwr.getDuccId();
@@ -462,6 +508,8 @@ public class JdScheduler {
 		}
 		logger.trace(location, duccId, "total: "+countReservationsTotal()+" "+"up: "+countReservationsUp());
 	}
+	
+	// Handle a JD Reservation that has disappeared for the Orchestrator publication.
 	
 	private void reservationVanished(DuccId jdReservationDuccId) {
 		String location = "reservationVanished";
@@ -480,6 +528,8 @@ public class JdScheduler {
 		}
 	}
 	
+	// Handle a list of JD Reservations that are no longer viable.
+	
 	private void defunct(List<JdReservation> list) {
 		if(list != null) {
 			if(!list.isEmpty()) {
@@ -490,6 +540,8 @@ public class JdScheduler {
 		}
 	}
 	
+	// Handle an individual JD Reservation that is no longer viable.
+	
 	private void defunct(JdReservation jdReservation) {
 		String location = "defunct";
 		//TODO phase I  = kill Job
@@ -499,6 +551,8 @@ public class JdScheduler {
 			logger.debug(location, duccId, "host: "+jdReservation.getHost());
 		}
 	}
+	
+	// Get a slice, if one is available.
 	
 	public NodeIdentity allocate(DuccId jdId, DuccId jobId) {
 		String location = "allocate";
@@ -522,6 +576,8 @@ public class JdScheduler {
 		}
 		return nodeIdentity;
 	}
+	
+	// Return a slice.
 	
 	public void deallocate(DuccId jdId, DuccId jobId) {
 		String location = "deallocate";
@@ -548,6 +604,8 @@ public class JdScheduler {
 		}
 	}
 	
+	// Return the number of slices total for the specified JD Reservation.
+	
 	public int countSlicesTotal(DuccId duccId) {
 		String location = "countSlicesTotal";
 		int count = 0;
@@ -558,6 +616,8 @@ public class JdScheduler {
 		logger.trace(location, duccId, count);
 		return count;
 	}
+	
+	// Return the number of slices inuse for the specified JD Reservation.
 	
 	public int countSlicesInuse(DuccId duccId) {
 		String location = "countSlicesInuse";
@@ -570,6 +630,8 @@ public class JdScheduler {
 		return count;
 	}
 	
+	// Return the number of slices available for the specified JD Reservation.
+	
 	public int countSlicesAvailable(DuccId duccId) {
 		String location = "countSlicesAvailable";
 		int count = 0;
@@ -580,6 +642,8 @@ public class JdScheduler {
 		logger.trace(location, duccId, count);
 		return count;
 	}
+	
+	// Return the number of slices total (for all JD Reservations).
 	
 	public int countSlicesTotal() {
 		String location = "countSlicesTotal";
@@ -592,6 +656,8 @@ public class JdScheduler {
 		return count;
 	}
 	
+	// Return the number of slices inuse (for all JD Reservations).
+	
 	public int countSlicesInuse() {
 		String location = "countSlicesInuse";
 		int count = 0;
@@ -602,6 +668,8 @@ public class JdScheduler {
 		logger.trace(location, jobid, count);
 		return count;
 	}
+	
+	// Return the number of slices available (for all JD Reservations).
 	
 	public int countSlicesAvailable() {
 		String location = "countSlicesAvailable";

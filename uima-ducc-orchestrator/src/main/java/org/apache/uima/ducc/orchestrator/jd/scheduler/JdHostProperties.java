@@ -38,6 +38,8 @@ public class JdHostProperties {
 	private String jdShareQuantum = null;			// size, in MB
 	private String slicesReserve = null;			// count, trigger for more
 	
+	// Fetch ducc.propertes applicable to JD Reservations.
+	
 	public JdHostProperties() {
 		update();
 	}
