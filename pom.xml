@@ -336,6 +336,27 @@
                       </configuration>
                     </execution>
                     
+                    <execution>
+                      <!-- use the dependency:unpack goal to unpack the 
+                         base binary uima-as distribution -->
+                      <id>unpack cassandra Bin</id>
+                      <phase>prepare-package</phase>
+                      <goals><goal>unpack</goal></goals>
+                      <configuration>
+                        <overWriteIfNewer>true</overWriteIfNewer>
+                        <artifactItems>
+                          <artifactItem>
+                            <groupId>org.apache.cassandra</groupId>
+                            <artifactId>apache-cassandra</artifactId>
+                            <version>${cassandra.server.version}</version>
+                            <type>tar.gz</type>
+                            <classifier>bin</classifier>
+                            <outputDirectory>${project.build.directory}/cassandra</outputDirectory>
+                          </artifactItem>
+                        </artifactItems>
+                      </configuration>
+                    </execution>
+                    
                     
 					<execution>
 						<!-- use the dependency:unpack goal to unpack the Jetty release -->

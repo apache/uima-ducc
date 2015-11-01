@@ -19,36 +19,43 @@
 
 package org.apache.uima.ducc.database;
 
+import java.io.FileOutputStream;
 import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
+import com.datastax.driver.core.AuthProvider;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.Metadata;
+import com.datastax.driver.core.PlainTextAuthProvider;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.SimpleStatement;
+import com.datastax.driver.core.exceptions.AuthenticationException;
 
 public class DbCreate
 {
+    static final String DUCC_KEYSPACE = "ducc";
+    static final String PASSWORD_KEY  = "db_password";
+    static final String PASSWORD_FILE = "database.password";
+
     DuccLogger logger = null;
     String dburl;
-    String adminid = "root";
+    String adminid = null;
     String adminpw = null;
 
     private Cluster cluster;
     private Session session;
 
-    public DbCreate(String dburl)
-    {
-        this.dburl = dburl;
-    }
 
-
-    public DbCreate(String dburl, DuccLogger logger)
+    public DbCreate(String dburl, DuccLogger logger, String adminid, String adminpw)
     {
         this.dburl = dburl;
         this.logger = logger;
+        this.adminid = adminid;
+        this.adminpw = adminpw;
     }
 
     public DbCreate(String dburl, String adminid, String adminpw)
@@ -59,11 +66,55 @@ public class DbCreate
     }
 
     public void connect()
+        throws Exception
     {
         String methodName = "connect";
-        cluster = Cluster.builder()
-            .addContactPoint(dburl)
-            .build();
+
+        String dh = System.getProperty("DUCC_HOME");
+        if ( dh == null ) {
+            throw new IllegalArgumentException("DUCC_HOME must be set as a system property: -DDUCC_HOME=whatever");
+        }
+
+        try {
+            // If we're here, we must first of all get rid of the cassandra su and set up our own
+
+            AuthProvider auth = new PlainTextAuthProvider("cassandra", "cassandra");
+            cluster = Cluster.builder()
+                .withAuthProvider(auth)
+                .addContactPoint(dburl)
+                .build();
+
+            session = cluster.connect();
+            session.execute("CREATE USER IF NOT EXISTS " + adminid + " with password '" + adminpw + "' SUPERUSER");
+            cluster.close();
+            doLog(methodName, "Created user " + adminid);
+
+            Properties props = new Properties();
+            props.setProperty(PASSWORD_KEY, adminpw);
+            FileOutputStream fos = new FileOutputStream(dh + "/resources.private/" + PASSWORD_FILE);
+            props.store(fos, "Db private configuration");
+            fos.close();
+
+            auth = new PlainTextAuthProvider(adminid, adminpw);
+            cluster = Cluster.builder()
+                .withAuthProvider(auth)
+                .addContactPoint(dburl)
+                .build();
+            session = cluster.connect();
+   
+            String uglypw = UUID.randomUUID().toString();
+            session.execute("ALTER USER cassandra  with password '" + uglypw + "' NOSUPERUSER");
+            doLog(methodName, "Changed default super user's password and revoked its superuser authority.");
+            doLog(methodName, "From this point, this DB can only be accessed in super user mode by user 'ducc'");
+            
+        } catch (AuthenticationException e ) {
+            // if we get here the default super user isn't working and we expect a valid id and password
+            AuthProvider auth = new PlainTextAuthProvider(adminid, adminpw);
+            cluster = Cluster.builder()
+                .withAuthProvider(auth)
+                .addContactPoint(dburl)
+                .build();
+        }
 
         Metadata metadata = cluster.getMetadata();
         doLog(methodName, "Connected to cluster: %s\n", metadata.getClusterName());
@@ -186,14 +237,14 @@ public class DbCreate
 
     public static void main(String[] args)
     {
-        if ( args.length != 1 ) {
-            System.out.println("Usage: DbCreate <database url>");
+        if ( args.length != 3 ) {
+            System.out.println("Usage: DbCreate database_url db_id db_pw");
             System.exit(1);
         }
 
         DbCreate client = null;
         try {
-            client = new DbCreate(args[0]);
+            client = new DbCreate(args[0], args[1], args[2]);
             client.connect();
             client.createSchema();
         } catch ( Throwable e ) {

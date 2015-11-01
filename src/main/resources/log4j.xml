@@ -200,6 +200,10 @@
      <appender-ref ref="jderr" /> 
    </category>
 
+   <category name="com.datastax.driver.core">
+     <priority value="warn"/>
+   </category>
+
    <category name="org.apache.activemq">
      <priority value="warn"/>
    </category>

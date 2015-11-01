@@ -37,36 +37,6 @@ from ducc_util  import ThreadPool
 
 class StopSim(DuccUtil):
 
-    def stop_db(self):
-
-        # disable until we're ready to turn this on
-        if ( self.db_parms == self.db_disabled ):
-            return True
-
-        (jvm_parms, classpath, db_rt, dburl, dbroot) = self.db_parms()
-
-	print 'Stopping database'
-
-        main = 'com.orientechnologies.orient.server.OServerShutdownMain'
-
-        jp = ''
-        for k in jvm_parms.keys():
-            v = jvm_parms[k]
-            if ( v == None ):
-                jp = jp + k + ' '
-            else:
-                jp = jp + k + '=' + v + ' '
-
-
-        cmd = ' '.join([self.java(), jp, '-cp', classpath, main])
-        print cmd
-
-        here = os.getcwd()
-        os.chdir(db_rt)
-        self.spawn(cmd)
-        os.chdir(here)
-
-
     def signal_process(self, args):
         inst, data_prop, signal = args
         data = data_prop
@@ -206,6 +176,7 @@ class StopSim(DuccUtil):
         time.sleep(sleeptime)
 
         if ( stopdatabase ) :
+            print 'Stopping database'
             self.db_stop()
 
         if ( stopbroker and self.automanage ):

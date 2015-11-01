@@ -427,7 +427,6 @@ public class HistoryManagerDb
                 ByteArrayInputStream bais = new ByteArrayInputStream(workbytes);
                 ObjectInputStream ois = new ObjectInputStream(bais);
                 DuccWorkMap work = (DuccWorkMap) ois.readObject();
-                Map<DuccId, IDuccWork> map = work.getMap();
                 ois.close();
 
                 workbytes = bbmap.array();

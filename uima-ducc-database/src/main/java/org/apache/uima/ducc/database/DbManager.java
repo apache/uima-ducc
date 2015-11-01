@@ -28,6 +28,7 @@ import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.Metadata;
+import com.datastax.driver.core.PlainTextAuthProvider;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
@@ -85,7 +86,11 @@ public class DbManager
 
         if ( cluster != null ) return;        // already initialized
 
+        String pw = dbPassword();
+        PlainTextAuthProvider auth = new PlainTextAuthProvider("ducc", pw);
+
         cluster = Cluster.builder()
+            .withAuthProvider(auth)
             .addContactPoint(dburl)
             .build();
 
@@ -154,11 +159,11 @@ public class DbManager
     {
         // logger.info(methodName, null, "Opening service database at: "  + dburl);
         Properties props = new Properties();
-        FileInputStream fis = new FileInputStream(System.getProperty("DUCC_HOME") + "/resources.private/db_password");
+        FileInputStream fis = new FileInputStream(System.getProperty("DUCC_HOME") + "/resources.private/" + DbCreate.PASSWORD_FILE);
         props.load(fis);
         fis.close();
 
-        String pw = props.getProperty("db_password");
+        String pw = props.getProperty(DbCreate.PASSWORD_KEY);
         if ( pw == null ) {
             throw new IllegalStateException("Cannot acquire the database password.");
         }

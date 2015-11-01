@@ -175,6 +175,7 @@
         <lz4.version>1.2.0</lz4.version>
         <hdr.version>2.1.4</hdr.version>
         <!-- end of cassandra client -->
+        <cassandra.server.version>2.1.11</cassandra.server.version>
         
 		<http.commons.client.version>4.3.5</http.commons.client.version>
 		<http.commons.client-cache.version>4.3.5</http.commons.client-cache.version>

@@ -298,6 +298,17 @@ under the License.
       <directoryMode>755</directoryMode>        
     </fileSet>
 
+    <!--    CASSANDRA server -->
+    <fileSet>
+      <directory>target/cassandra/apache-cassandra-2.1.11</directory>
+      <outputDirectory>cassandra-server</outputDirectory>
+      <excludes>
+        <exclude>javadac/*</exclude>
+      </excludes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+
     <!--    Unversioned CLI jar -->
     <fileSet>
       <directory>uima-ducc-cli/target</directory>

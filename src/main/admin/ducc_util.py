@@ -34,8 +34,6 @@ from threading import *
 import traceback
 import Queue
 
-import database as db
-
 from  stat import *
 from local_hooks import find_other_processes
 
@@ -138,7 +136,6 @@ class DuccUtil(DuccBase):
         self.pm_jvm_args       = self.ducc_properties.get('ducc.pm.jvm.args')
         self.rm_jvm_args       = self.ducc_properties.get('ducc.rm.jvm.args')
         self.sm_jvm_args       = self.ducc_properties.get('ducc.sm.jvm.args')
-        self.db_jvm_args       = self.ducc_properties.get('ducc.db.jvm.args')
         self.or_jvm_args       = self.ducc_properties.get('ducc.orchestrator.jvm.args')
 
 
@@ -162,113 +159,86 @@ class DuccUtil(DuccBase):
         print 'Merging', base_props, 'with', site_props, 'into', run_props
         os.system(CMD)
 
-    def db_read_parms(self):
-        #
-        # common setup for orientdb management
-        #
 
-        dbhost   = self.ducc_properties.get('ducc.database.host')
+    def db_configure(self):
+        dbhost = self.ducc_properties.get('ducc.database.host')
         if ( dbhost == self.db_disabled ):
-            self.db_parms = self.db_disabled
-            return self.db_parms
+            self.db_disabled = True
+        else:
+            self.db_disabled = False
 
-        dburl    = self.ducc_properties.get('ducc.database.url')
-        dbrest   = self.ducc_properties.get('ducc.database.rest.url')
-        dbconfig = self.ducc_properties.get('ducc.database.config.file')
-        dbroot   = db.get_db_password(DUCC_HOME, dbconfig)
-        if ( dbroot == None ):
-            print 'Cannot find database passord in', dbconfig
-            sys.exit(1)
+        dbprops = Properties()
+        dbprops.load(self.DUCC_HOME + '/resources.private/database.password')
+        self.db_password = dbprops.get('db_password')
 
-        rt    = self.DUCC_HOME                       # (ducc runtime)
-        db_rt = rt + '/database'                     # ORIENTDB_HOME - the database "home" place
+    # does the database process exist?  
+    def db_process_alive(self):
+        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
 
+        if ( not os.path.exists(pidfile) ):
+            return False
 
-        jvm_parms = {
-            '-Dfile.encoding'                 : 'UTF8',
-            '-Drhino.opt.level'               : '9',
-            '-Dprofile.enabled'               : 'true',
-            '-Djna.nosys'                     : 'true',
-            '-Djava.awt.headless'             : 'true',
-            '-Dorientdb.config.file'          : rt + '/' + dbconfig,
-            '-Dorientdb.www.path'             : db_rt + '/www',
-            '-Djava.util.logging.config.file' : rt + '/resources/database.log.config',
-            '-Dcom.sun.management.jmxremote'  : None,
-            '-Dcom.sun.management.jmxremote.ssl' : 'false',
-            '-Dcom.sun.management.jmxremote.authenticate': 'false',
-            '-Dcom.sun.management.jmxremote.port': '1098',
-            }
-        classpath = '"' + rt + '/lib/orientdb/*' 
-        classpath = classpath + ':' + rt + '/lib/jna/*' + '"'
+        f = open(self.DUCC_HOME + '/state/cassandra.pid')
+        pid = f.read();
+        f.close()
+        answer = []
+        if ( self.system == 'Darwin'):
+            ps = 'ps -eo user,pid,comm,args ' + pid
+        else:
+            ps = 'ps -eo user:14,pid,comm,args ' + pkd
+        lines = self.popen(ps)
+        
+        for line in lines:
+            line = line.strip()
+            if (pid in line):
+                return True
+        return False
 
-        os.environ['DUCC_HOME']                   = self.DUCC_HOME
-        os.environ['ORIENTDB_HOME']               = db_rt
-
-        self.db_parms = (jvm_parms, classpath, db_rt, dburl, dbrest, dbroot)
-
+    # contact the database and see how useful it seems to be
     def db_alive(self):
-        if ( self.db_parms == self.db_disabled ):
+        if ( self.db_disabled == True ):
             return True
 
-        (jvm_parms, classpath, db_rt, dburl, dbrest, dbroot) = self.db_parms
-
-        try:
-            conn = httplib.HTTPConnection(dbrest)
-            conn.request('GET', '/listDatabases')
-        except Exception, (e):
-            print "    Checking connection: ", e
+        dbnode = self.ducc_properties.get('ducc.state.database.url')
+        if ( dbnode == None ):
+            print 'No database location defined.'
             return False
-            
-        resp = conn.getresponse()
-        print 'response code', resp.status, resp.reason
-        data = resp.read()
-        print 'Data:', data
+        # get our log4j config into the path to shut up noisy logging
+        os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ':' + self.DUCC_HOME + '/resources'
         
-        if ( resp.status == 200 ):
-            # it will be simple json that Python will see as lists and maps so we can just eval it
-            data = eval(data)
-            dblist = data['databases']
-            if ( len(dblist) == 0 ):
-                print '     Connection succeeded, no databases found.'
-                pass
-            else:
-                print 'Found these databases:'
-                for d in data['databases']:
-                    print '    ', d
-        return True
+        CMD = [self.java(), 'org.apache.uima.ducc.database.DbAlive', dbnode, 'ducc', self.db_password]
 
+        CMD = ' '.join(CMD)
+        rc = os.system(CMD)
+        if ( rc == 0 ):
+            return True
+        else:
+            return False
+
+            
     def db_start(self):
 
-        return True
         # bypass all of this for the initial delivery
-        if ( self.db_parms == self.db_disabled ):
+        if ( self.db_disabled == True) :
             print '   (Bypass database start because ducc.database.host =', self.db_disabled + ')'
             return True
 
         print 'Starting database'
-
-        self.sync_db_config() # insure db is running on head node, in case the head changed in ducc.properties
-        node = self.ducc_properties.get('ducc.head')
-
-        if ( node == 'local' ):
-            node = self.localhost
-
-        if ( self.db_alive() ):
-            print 'Database is already started.'
-            return True
+        dbnode = self.ducc_properties.get('ducc.state.database.url')
 
         max_attempts = 5
         attempt = 0
         while attempt < max_attempts:
-            lines = self.ssh(node, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'db', '--nodup', "'")
+            lines = self.ssh(dbnode, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'db', '--nodup', "'")
             # we'll capture anything that the python shell spews because it may be useful, and then drop the
             # pipe when we see a PID message
+
             while True:
                 try:
                     line = lines.readline().strip()
                 except:
                     break
-                print '[]', line
+                # print '[]', line
                 
                 if ( not line ):
                     break
@@ -279,7 +249,6 @@ class DuccUtil(DuccBase):
                     lines.close();
 
             print 'waiting for database to start'
-            time.sleep(5)
             if ( self.db_alive() ):
                 return True
 
@@ -288,70 +257,18 @@ class DuccUtil(DuccBase):
 
         return False
 
-    def db_init(self):
-        return True
-        # bypass all of this for the initial delivery
-        if ( self.db_parms == self.db_disabled ):
-            return True
-
-        print 'Initializing database.'
-        main = 'org.apache.uima.ducc.database.DbCreate'
-        (jvm_parms, classpath, db_rt, dburl, dbrest, dbroot) = self.db_parms
-            
-        classpath = self.DUCC_HOME + '/lib/uima-ducc/*:' + classpath
-        dburl = self.ducc_properties.get('ducc.state.database.url') 
-        cmd = ' '.join([self.java(), '-DDUCC_HOME=' + self.DUCC_HOME, '-cp', classpath, main, dburl])
-        print cmd
-        self.spawn(cmd)
-            
     def db_stop(self):
-        return True
-        # bypass all of this for the initial delivery
-        if ( self.db_parms == self.db_disabled ):
+
+        if ( self.db_disabled == True) :
+            print '   (Bypass database start because ducc.database.host =', self.db_disabled + ')'
             return True
 
+        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
 
-        cfgfile = 'ducc.database.config.file'
-        dbconfig = self.ducc_properties.get(cfgfile)
-        if ( dbconfig == None ):
-            print 'Database is not configured:', cfgfile, 'is not found in ducc.properties'
-            return
-
-        rt    = self.DUCC_HOME                       # (ducc runtime)
-        db_rt = rt + '/database'                     # ORIENTDB_HOME - the database "home" place
-
-        jvm_parms = {
-            '-Djava.awt.headless'             : 'true',
-            '-Dorientdb.config.file'          : rt + '/' + dbconfig,
-            }
-        classpath = '"' + rt + '/lib/orientdb/*' + '"'
-
-        main = 'com.orientechnologies.orient.server.OServerShutdownMain'
-
-        jp = ''
-        for k in jvm_parms.keys():
-            v = jvm_parms[k]
-            if ( v == None ):
-                jp = jp + k + ' '
-            else:
-                jp = jp + k + '=' + v + ' '
-
-
-        os.environ['ORIENTDB_HOME'] = db_rt
-        cmd = ' '.join([self.java(), jp, '-cp', classpath, main])
-        print cmd
-
-        here = os.getcwd()
-        os.chdir(db_rt)
-        self.spawn(cmd)
-        os.chdir(here)
-
-    def sync_db_config(self):
-        dbconfig = self.DUCC_HOME + '/' + self.ducc_properties.get('ducc.database.config.file')
-        head     = self.ducc_properties.get('ducc.head')
-        print 'Sync database node with head node on', head
-        dom = db.update_head(dbconfig, head)
-        db.write_config(dbconfig, dom)
+        # for cassandra, just send it a terminate signal.  a pidfile is written on startup
+        CMD = ['kill', '-TERM', '`cat ' + pidfile + '`']
+        CMD = ' '.join(CMD)
+        os.system(CMD)
 
     def find_netstat(self):
         # don't you wish people would get together on where stuff lives?
@@ -420,7 +337,6 @@ class DuccUtil(DuccBase):
     def ssh(self, host, do_wait, *CMD):
 
         cmd = ' '.join(CMD)
-        # print 'ssh -o BatchMode=yes -o ConnectTimeout=10', host, cmd
         if ( do_wait ):
             return self.popen('ssh -q -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
         else:
@@ -452,6 +368,7 @@ class DuccUtil(DuccBase):
         CLASSPATH = CLASSPATH + ':' + LIB + 'jna/*'
         CLASSPATH = CLASSPATH + ':' + LIB + 'libpam4j/*'
         CLASSPATH = CLASSPATH + ':' + LIB + 'uima-ducc/*'
+        CLASSPATH = CLASSPATH + ':' + LIB + 'cassandra/*'
 
         # CLASSPATH = CLASSPATH + ':' + DH  + 'resources'  UIMA-4168 Use API, not classpath to configure log4j
     
@@ -978,7 +895,7 @@ class DuccUtil(DuccBase):
         self.os_pagesize = self.get_os_pagesize()
         self.update_properties()
 
-        self.db_read_parms()
+        self.db_configure()
         
 
         manage_broker = self.ducc_properties.get('ducc.broker.automanage')

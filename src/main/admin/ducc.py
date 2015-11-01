@@ -27,7 +27,6 @@ import time
 
 from ducc_util import DuccUtil
 from local_hooks import verify_slave_node
-import database as db
 
 from properties import Properties
 from properties import Property
@@ -35,50 +34,43 @@ from properties import Property
 class Ducc(DuccUtil):
 
 
-    def run_db(self, background):
-        # The dom gets loaded by the import above - or not
-        if ( not db.domloaded ):            
-            print "Unable to read database configuration; insure the installed Python supports xml.dom.minidom"
-            print "Note that Python must be at least version 2.6 but not 3.x.  You are running version", sys.version_info
+    def run_db(self):
+        
+        print '-------- starting the database'
+        if ( self.db_disabled ):
+            print 'Database is disabled; not starting it.'
+            print 'OK'
+            return 
+
+        if ( not os.path.exists(self.DUCC_HOME + "/database/data" )):
+            print 'Database is missing.  You must initialize the database with DbCreate.'
+            print 'NOTOK'
             return
 
-        print '(re)Starting the database'
-
-        # first write this out so it's easy to find in java without having to parse xml
-        (jvm_parms, classpath, db_rt, dburl, dbrest, dbroot) = self.db_parms
-        db_pw_file = Properties()
-        comment = []
-        comment.append('# Do not modify this file, it is auto-generated.')
-        comment.append('# This is extracted from the database configuration and written to this file on every boot of the db')
-        p = Property('db_password', dbroot, comment)
-        db_pw_file.put_property(p)
-        db_pw_filename = self.DUCC_HOME + '/resources.private/db_password'
-        db_pw_file.write(db_pw_filename)
-        os.chmod(db_pw_filename, 0700)
-        
-        main = 'com.orientechnologies.orient.server.OServerMain'
-
-        jp = ''
-        for k in jvm_parms.keys():
-            v = jvm_parms[k]
-            if ( v == None ):
-                jp = jp + k + ' '
-            else:
-                jp = jp + k + '=' + v + ' '
-
-
-        if ( self.db_jvm_args != None ):
-            jp = jp + ' ' + self.db_jvm_args
-
-        cmd = ' '.join(['nohup', self.java(), jp, '-cp', classpath, main, '&'])
-        print cmd
+        # check for the pid to see if the DB is running.
+        if ( self.db_process_alive() ) :
+            print 'Database is already running.'
+            print 'OK'
+            return
 
         here = os.getcwd()
-        os.chdir(db_rt)
-        pid = self.spawn(cmd)
-        os.chdir(here)
+        os.chdir(self.DUCC_HOME + "/cassandra-server")
+        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
+        CMD = "bin/cassandra -p "+  pidfile + " > /dev/null 2>&1"
+        print '------- Running', CMD
 
-        print 'OK'
+        os.system(CMD);
+        print "Database is started.  Waiting for initialization";
+
+        # DB (cassandra) starts and take a moment before anything works.  DbAlive retries for a while
+        # to (a) connect as (b) ducc with (c) initialized database
+        if ( self.db_alive() ):
+            print "OK"
+        else:
+            # The database MIGHT be started but not configured or otherwise faulty.  db_alive() prints
+            # some useful hints.  we indicate failure here though so you don't proceed too far before
+            # fixing it.
+            print "NOTOK"
 
     def run_broker(self, component):
         broker_port = self.ducc_properties.get('ducc.broker.port')
@@ -348,7 +340,7 @@ class Ducc(DuccUtil):
             self.usage("Must specify component")
 
         if ( component == 'db' ):
-            self.run_db(background)
+            self.run_db()
             return
 
         if ( component == 'broker' ):
