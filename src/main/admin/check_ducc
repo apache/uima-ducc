@@ -52,7 +52,7 @@ class CheckDucc(DuccUtil):
         return
 
     def verify_database(self):
-        if ( self.db_parms == self.db_disabled ):
+        if ( self.db_bypass == True ):
             return True
 
         ret = self.db_alive()

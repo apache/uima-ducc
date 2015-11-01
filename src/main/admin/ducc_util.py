@@ -163,9 +163,10 @@ class DuccUtil(DuccBase):
     def db_configure(self):
         dbhost = self.ducc_properties.get('ducc.database.host')
         if ( dbhost == self.db_disabled ):
-            self.db_disabled = True
+            self.db_bypass = True
+            return;
         else:
-            self.db_disabled = False
+            self.db_bypass = False
 
         dbprops = Properties()
         dbprops.load(self.DUCC_HOME + '/resources.private/database.password')
@@ -196,7 +197,7 @@ class DuccUtil(DuccBase):
 
     # contact the database and see how useful it seems to be
     def db_alive(self):
-        if ( self.db_disabled == True ):
+        if ( self.db_bypass == True ):
             return True
 
         dbnode = self.ducc_properties.get('ducc.state.database.url')
@@ -219,7 +220,7 @@ class DuccUtil(DuccBase):
     def db_start(self):
 
         # bypass all of this for the initial delivery
-        if ( self.db_disabled == True) :
+        if ( self.db_bypass == True) :
             print '   (Bypass database start because ducc.database.host =', self.db_disabled + ')'
             return True
 
@@ -259,8 +260,8 @@ class DuccUtil(DuccBase):
 
     def db_stop(self):
 
-        if ( self.db_disabled == True) :
-            print '   (Bypass database start because ducc.database.host =', self.db_disabled + ')'
+        if ( self.db_bypass == True) :
+            print '   (Bypass database stop because ducc.database.host =', self.db_disabled + ')'
             return True
 
         pidfile = self.DUCC_HOME + '/state/cassandra.pid'
