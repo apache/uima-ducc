@@ -842,8 +842,10 @@ public class ServiceSet
     	throws Exception
     {
     	// String methodName = "saveMetaProperties";
-        // UIMA-4587 Why bypass, as state can still dribble in.
-        // if ( isDeregistered() ) return;
+        if ( isDeregistered() ) return;                // we may have deleted the properties but stuff
+                                                       // lingers out of our control.  no more updates
+                                                       // which can leave junk in the registry directory
+                                                       // for file-based registry.
 
         prepareMetaProperties();
         stateHandler.updateMetaProperties(id, meta_props);
