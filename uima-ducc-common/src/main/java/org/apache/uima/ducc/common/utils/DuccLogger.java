@@ -18,10 +18,13 @@
 */
 package org.apache.uima.ducc.common.utils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.log4j.Appender;
 import org.apache.log4j.Category;
@@ -47,7 +50,7 @@ public class DuccLogger
 
     private static DuccLoggingThread log_thread = null;
     private static LinkedBlockingQueue<DuccLoggingEvent> events = null;
-    private static boolean threaded = false;
+    private static AtomicBoolean threaded = new AtomicBoolean(false);
     private static boolean watchdogStarted = false;
 
     private final static String DEFAULT_COMPONENT = "DUCC";
@@ -130,12 +133,13 @@ public class DuccLogger
 
     static public void setUnthreaded()
     {
-        threaded = false;
+        //threaded.set(true);
+        System.out.println("setUnthreaded is not supported.");
     }
 
     static public void setThreaded()
     {
-        threaded = false;;
+    	threaded.set(true);
     }
 
     public DuccLogger(String claz, String component)
@@ -374,7 +378,7 @@ public class DuccLogger
     public void doAppend(Level level, String method, DuccId jobid, String msg, Throwable t)
     {
         DuccLoggingEvent ev = new DuccLoggingEvent(logger, component, level, method, jobid, msg, t, Thread.currentThread().getId(), Thread.currentThread().getName());
-        if ( threaded ) {
+        if ( threaded.get() ) {
             events.offer(ev);
         } else {
             doLog(ev);
@@ -384,7 +388,7 @@ public class DuccLogger
     public void doAppend(Level level, String method, DuccId jobid, String msg)
     {
         DuccLoggingEvent ev = new DuccLoggingEvent(logger, component, level, method, jobid, msg, null, Thread.currentThread().getId(), Thread.currentThread().getName());
-        if ( threaded ) {
+        if ( threaded.get() ) {
             events.offer(ev);
         } else {
             doLog(ev);
@@ -564,7 +568,7 @@ public class DuccLogger
      */
     public void shutdown()
     {
-        if ( threaded ) {
+        if ( threaded.get() ) {
             DuccLoggingEvent ev = new DuccLoggingEvent(null, null, null, null, null, null, null, 0, null);
             ev.done = true;
             events.offer(ev);
@@ -629,9 +633,17 @@ public class DuccLogger
             }
         } catch (Throwable t) {
             loggingError = null;
-            System.out.println("Disabling logging due to logging exception.");
-            disable_logger = true;
-            throw new LoggingException("Error writing to DUCC logs", t);
+            if( threaded.get() ) {
+            	System.out.println("Disabling logging due to logging exception.");
+                disable_logger = true;
+                throw new LoggingException("Error writing to DUCC logs", t);
+            }
+            else {
+            	StringWriter errors = new StringWriter();
+                t.printStackTrace(new PrintWriter(errors));
+                System.out.println(errors.toString());
+                System.out.println("Unable to log due to logging exception.");
+            }
         }        
     }
 
