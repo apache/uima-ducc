@@ -37,8 +37,6 @@ from ducc_base import which
 
 from ducc import Ducc
 
-import database as db
-
 class PostInstall():
 
     def usage(self, msg):
