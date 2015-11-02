@@ -149,7 +149,7 @@ public class StateServices implements IStateServices {
 	}
 
     // Try to write properties file, using a temp file as backup in case it fails.
-    private boolean writeProperties(DuccId id, Properties props, File pfile, File pfile_tmp, String type)
+    private synchronized boolean writeProperties(DuccId id, Properties props, File pfile, File pfile_tmp, String type)
     {
     	
     	String methodName = "saveProperties";

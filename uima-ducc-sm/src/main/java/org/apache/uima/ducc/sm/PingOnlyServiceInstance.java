@@ -46,7 +46,7 @@ class PingOnlyServiceInstance
 //         this.state = dwj.getJobState();
 //     }
 
-    long start(String spec, DuccProperties meta_props)
+    long start(DuccProperties svc_props, DuccProperties meta_props)
     {
     	String methodName = "start";
 
