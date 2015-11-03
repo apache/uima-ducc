@@ -18,14 +18,14 @@
 */
 package org.apache.uima.ducc.cli;
 
+import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcherCl;
 import org.apache.uima.ducc.transport.dispatcher.IDuccEventDispatcher;
 
 public class DispatcherFactory {
 
-	public static IDuccEventDispatcher create(Object specs) throws Exception {
+	public static IDuccEventDispatcher create(DuccProperties cli_props, String servlet) throws Exception {
 		IDuccEventDispatcher retVal = null;
-        String servlet = (String) specs;
 		String targetUrl = DuccUiUtilities.dispatchUrl(servlet);
 		retVal = new DuccEventHttpDispatcherCl(targetUrl, -1);
 		return retVal;

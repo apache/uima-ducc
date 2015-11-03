@@ -330,7 +330,7 @@ public abstract class CliBase
         
         initConsoleListener();
 
-        dispatcher = DispatcherFactory.create(servlet);
+        dispatcher = DispatcherFactory.create(cli_props, servlet);
         
         init_done = true;
     }
