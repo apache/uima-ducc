@@ -556,7 +556,8 @@ public class JobFactory implements IJobFactory {
 		// scheduling info
 		DuccSchedulingInfo schedulingInfo = new DuccSchedulingInfo();
 		job.setSchedulingInfo(schedulingInfo);
-		long jpGB = JobFactoryHelper.getByteSizeJobProcess() / JobFactoryHelper.GB;
+		String memory_process_size = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_memory_size);
+		long jpGB = JobFactoryHelper.getByteSizeJobProcess(memory_process_size) / JobFactoryHelper.GB;
 		if(jpGB > 0) {
 			schedulingInfo.setMemorySizeRequested(""+jpGB);
 		}

@@ -41,25 +41,11 @@ public class JobFactoryHelper {
 		return defaultBytesSizeJobProcess;
 	}
 	
-	private static AtomicLong jpSize = new AtomicLong(0);
-	
-	public static long getByteSizeJobProcess() {
+	public static long getByteSizeJobProcess(String process_memory_size) {
 		String location = "getByteSizeJobProcess";
 		long retVal = getDefaultByteSizeJobProcess();
 		try {
-			String ducc_rm_share_quantum = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_rm_share_quantum);
-			long sizeNew = Long.parseLong(ducc_rm_share_quantum) * GB;
-			if(sizeNew > 0) {
-				long sizeOld = jpSize.get();
-				if(sizeNew != sizeOld) {
-					jpSize.set(sizeNew);
-					logger.info(location, jobid, "old: "+sizeOld+" "+"new: "+sizeNew);
-				}
-				retVal = sizeNew;
-			}
-			else {
-				logger.warn(location, jobid, DuccPropertiesResolver.ducc_rm_share_quantum+"="+ducc_rm_share_quantum+" "+"invalid");
-			}
+			retVal = Long.parseLong(process_memory_size);
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
