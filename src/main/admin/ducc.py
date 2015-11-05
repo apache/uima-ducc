@@ -37,15 +37,10 @@ class Ducc(DuccUtil):
     def run_db(self):
         
         print '-------- starting the database'
-        if ( self.db_disabled ):
+        if ( self.db_bypass ):
             print 'Database is disabled; not starting it.'
             print 'OK'
             return 
-
-        if ( not os.path.exists(self.DUCC_HOME + "/database/data" )):
-            print 'Database is missing.  You must initialize the database with DbCreate.'
-            print 'NOTOK'
-            return
 
         # check for the pid to see if the DB is running.
         if ( self.db_process_alive() ) :

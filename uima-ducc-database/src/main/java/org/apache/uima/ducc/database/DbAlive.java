@@ -131,17 +131,24 @@ public class DbAlive
 
     static void usage()
     {
-        System.out.println("Usage: DbAlive database_url id pw");
+        System.out.println("Usage: DbAlive database_url id pw retry-count");
         System.exit(1);
     }
 
     public static void main(String[] args)
     {
-        if ( args.length != 3 ) {
+        if ( args.length != 4 ) {
             usage();
         }
 
-        int max = 10;                         // we'll wait up to 60 seconds: 20 x 3 seconds
+        int max = 0;
+        try {
+            max = Integer.parseInt(args[3]);                         // we'll wait up to 60 seconds: 20 x 3 seconds
+        } catch ( NumberFormatException e ) {
+            System.out.println("Retry count must be numeric.");
+            System.exit(1);
+        }
+
         DbAlive client = null;
         RC rc = RC.OK;
         try {

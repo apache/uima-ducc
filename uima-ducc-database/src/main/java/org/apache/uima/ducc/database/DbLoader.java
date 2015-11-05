@@ -97,11 +97,11 @@ public class DbLoader
     int servicelimit = Integer.MAX_VALUE;
     int registrylimit = Integer.MAX_VALUE;
 
-    boolean dojobs         = false;
-    boolean doreservations = false;
-    boolean doservices     = false;
+    boolean dojobs         = true;
+    boolean doreservations = true;
+    boolean doservices     = true;
     boolean doregistry     = true;
-    boolean docheckpoint   = false;
+    boolean docheckpoint   = true;
 
     long jobBytes = 0;
     long resBytes = 0;
@@ -110,13 +110,14 @@ public class DbLoader
 
     AtomicInteger skippedServices = new AtomicInteger(0);
 
-    public DbLoader(String from, String to)
+    public DbLoader(String from, String state_url)
         throws Exception
     {
     	//String methodName = "<ctr>";
+        this.state_url = state_url;
         DUCC_HOME = System.getProperty("DUCC_HOME");        
         if ( DUCC_HOME == null ) {
-            System.out.println("System proprety -DDUCC_HOME must be set.");
+            System.out.println("System property -DDUCC_HOME must be set.");
             System.exit(1);
         }
         
@@ -135,35 +136,7 @@ public class DbLoader
         serviceRegistry        = from + serviceRegistry;
         checkpointFile         = from + checkpointFile;
 
-        f = new File(to);
-        if ( ! f.isDirectory() ) {
-            System.out.println("'to' must be a directory");
-            System.exit(1);
-        }
-
-        String databasedir =  to + "/database/databases";
-
-        // We always use a non-networked version for loading
-        //state_url = "plocal:" + databasedir + "/DuccState";
-        state_url = "bluej538";
         System.setProperty("ducc.state.database.url", state_url);
-
-        if ( state_url.startsWith("plocal") ) {
-            f = new File(databasedir);
-            if ( !f.exists() ) {
-                try {            
-                    if ( ! f.mkdirs() ) {
-                        System.out.println("Cannot create database directory: " + databasedir);
-                        System.exit(1);
-                    }
-                    System.out.println("Created database directory " + databasedir);
-                } catch ( Exception e ) {
-                    System.out.println("Cannot create database directory: " + databasedir + ":" + e.toString());
-                    System.exit(1);
-                }
-            }
-        }
-
     }
 
     void closeStream(InputStream in)
@@ -580,15 +553,6 @@ public class DbLoader
         dbManager = new DbManager(state_url, logger);
         dbManager.init();
 
-//        DbCreate cr = new DbCreate(state_url, logger);
-//        if ( state_url.startsWith("plocal") ) {
-//            cr.createPlocalDatabase();
-//        } else {
-//            cr.createDatabase();
-//        }
-        
-
-
         if ( true ) {
             try {
 
@@ -662,11 +626,9 @@ public class DbLoader
             System.out.println("");
             System.out.println("Where:");
             System.out.println("   from");        
-            System.out.println("      is the DUCC_HOME you wish to convert");
+            System.out.println("      is the DUCC_HOME you wish to convert.");
             System.out.println("   to");
-            System.out.println("      is the DUCC_HOME contining the new database");
-            System.out.println("");
-            System.out.println("'from' and 'to' may be the same thing");
+            System.out.println("      is the datbase URL.");
             System.exit(1);
         }
 

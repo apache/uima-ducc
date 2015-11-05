@@ -34,12 +34,14 @@ import com.datastax.driver.core.PlainTextAuthProvider;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.SimpleStatement;
 import com.datastax.driver.core.exceptions.AuthenticationException;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
 
 public class DbCreate
 {
     static final String DUCC_KEYSPACE = "ducc";
     static final String PASSWORD_KEY  = "db_password";
     static final String PASSWORD_FILE = "database.password";
+    static final int RETRY = 10;
 
     DuccLogger logger = null;
     String dburl;
@@ -47,10 +49,10 @@ public class DbCreate
     String adminpw = null;
 
     private Cluster cluster;
-    private Session session;
+    private Session session = null;
 
 
-    public DbCreate(String dburl, DuccLogger logger, String adminid, String adminpw)
+    DbCreate(String dburl, DuccLogger logger, String adminid, String adminpw)
     {
         this.dburl = dburl;
         this.logger = logger;
@@ -58,14 +60,21 @@ public class DbCreate
         this.adminpw = adminpw;
     }
 
-    public DbCreate(String dburl, String adminid, String adminpw)
+    DbCreate(String dburl, String adminid, String adminpw)
     {
         this.dburl = dburl;
         this.adminid = adminid;
         this.adminpw = adminpw;
     }
 
-    public void connect()
+    void close()
+    {
+        if ( cluster != null ) cluster.close();
+        session = null;
+        cluster = null;
+    }
+
+    boolean connect()
         throws Exception
     {
         String methodName = "connect";
@@ -75,47 +84,62 @@ public class DbCreate
             throw new IllegalArgumentException("DUCC_HOME must be set as a system property: -DDUCC_HOME=whatever");
         }
 
-        try {
-            // If we're here, we must first of all get rid of the cassandra su and set up our own
+        // If we're here, we must first of all get rid of the cassandra su and set up our own
 
-            AuthProvider auth = new PlainTextAuthProvider("cassandra", "cassandra");
-            cluster = Cluster.builder()
-                .withAuthProvider(auth)
-                .addContactPoint(dburl)
-                .build();
+        AuthProvider auth = new PlainTextAuthProvider("cassandra", "cassandra");
+        for ( int i = 0; i < RETRY; i++ ) {
+            try {
+                cluster = Cluster.builder()
+                    .withAuthProvider(auth)
+                    .addContactPoint(dburl)
+                    .build();
 
-            session = cluster.connect();
-            session.execute("CREATE USER IF NOT EXISTS " + adminid + " with password '" + adminpw + "' SUPERUSER");
-            cluster.close();
-            doLog(methodName, "Created user " + adminid);
+                session = cluster.connect();
+                session.execute("CREATE USER IF NOT EXISTS " + adminid + " with password '" + adminpw + "' SUPERUSER");
+                cluster.close();
+                doLog(methodName, "Created user " + adminid);                    
 
-            Properties props = new Properties();
-            props.setProperty(PASSWORD_KEY, adminpw);
-            FileOutputStream fos = new FileOutputStream(dh + "/resources.private/" + PASSWORD_FILE);
-            props.store(fos, "Db private configuration");
-            fos.close();
-
-            auth = new PlainTextAuthProvider(adminid, adminpw);
-            cluster = Cluster.builder()
-                .withAuthProvider(auth)
-                .addContactPoint(dburl)
-                .build();
-            session = cluster.connect();
-   
-            String uglypw = UUID.randomUUID().toString();
-            session.execute("ALTER USER cassandra  with password '" + uglypw + "' NOSUPERUSER");
-            doLog(methodName, "Changed default super user's password and revoked its superuser authority.");
-            doLog(methodName, "From this point, this DB can only be accessed in super user mode by user 'ducc'");
-            
-        } catch (AuthenticationException e ) {
-            // if we get here the default super user isn't working and we expect a valid id and password
-            AuthProvider auth = new PlainTextAuthProvider(adminid, adminpw);
-            cluster = Cluster.builder()
-                .withAuthProvider(auth)
-                .addContactPoint(dburl)
-                .build();
+                Properties props = new Properties();
+                props.setProperty(PASSWORD_KEY, adminpw);
+                FileOutputStream fos = new FileOutputStream(dh + "/resources.private/" + PASSWORD_FILE);
+                props.store(fos, "Db private configuration");
+                fos.close();
+                    
+                auth = new PlainTextAuthProvider(adminid, adminpw);
+                cluster = Cluster.builder()
+                    .withAuthProvider(auth)
+                    .addContactPoint(dburl)
+                    .build();
+                session = cluster.connect();
+                    
+                String uglypw = UUID.randomUUID().toString();
+                session.execute("ALTER USER cassandra  with password '" + uglypw + "' NOSUPERUSER");
+                doLog(methodName, "Changed default super user's password and revoked its superuser authority.");
+                doLog(methodName, "From this point, this DB can only be accessed in super user mode by user 'ducc'");
+                    
+                return true;
+            } catch ( NoHostAvailableException e ) {
+                doLog("Waiting for database to boot ...");
+                session = null;
+                cluster = null;
+            } catch ( AuthenticationException e ) {
+                doLog("Waiting for default authentication ...");
+                session = null;
+                cluster = null;
+            } catch ( Exception e ) {
+                doLog("Unknown problem contacting database.");
+                session = null;
+                cluster = null;
+                e.printStackTrace();
+                return false;
+            } 
+            Thread.sleep(3000);
         }
-
+            
+        if ( cluster == null ) {
+            doLog(methodName, "Excessive retries.  Database may not be initialized.");
+            return false;
+        }
         Metadata metadata = cluster.getMetadata();
         doLog(methodName, "Connected to cluster: %s\n", metadata.getClusterName());
         
@@ -123,18 +147,10 @@ public class DbCreate
             doLog(methodName, "Datatacenter: %s; Host: %s; Rack: %s\n", host.getDatacenter(), host.getAddress(), host.getRack());
         } 
         session = cluster.connect();
+        return true;
     }
 
-    public void close() {
-        cluster.close();
-    }
-    
-    public Session getSession()
-    {
-        return this.session;
-    }
-
-    public void doLog(String methodName, Object ... msg)
+    void doLog(String methodName, Object ... msg)
     {        
         if ( logger == null ) {
 
@@ -155,20 +171,20 @@ public class DbCreate
 
     }
 
-    String mkTableCreate(String tableName, String[] fields)
-    {
-        int max = fields.length - 1;
-        int current = 0;
-        StringBuffer buf = new StringBuffer("CREATE TABLE IF NOT EXISTS ");
-        buf.append(tableName);
-        buf.append(" (");
-        for (String s : fields) {
-            buf.append(s);
-            if ( current++ < max) buf.append(", ");
-        }
-        buf.append(") WITH CLUSTERING ORDER BY (ducc_dbid desc)");
-        return buf.toString();                   
-    }
+    // String mkTableCreate(String tableName, String[] fields)
+    // {
+    //     int max = fields.length - 1;
+    //     int current = 0;
+    //     StringBuffer buf = new StringBuffer("CREATE TABLE IF NOT EXISTS ");
+    //     buf.append(tableName);
+    //     buf.append(" (");
+    //     for (String s : fields) {
+    //         buf.append(s);
+    //         if ( current++ < max) buf.append(", ");
+    //     }
+    //     buf.append(") WITH CLUSTERING ORDER BY (ducc_dbid desc)");
+    //     return buf.toString();                   
+    // }
 
     void createSchema()
     {
@@ -245,15 +261,17 @@ public class DbCreate
         DbCreate client = null;
         try {
             client = new DbCreate(args[0], args[1], args[2]);
-            client.connect();
-            client.createSchema();
+            if ( client.connect() ) {
+                client.createSchema();
+                client.close();
+            } else {
+                System.exit(1);
+            }
         } catch ( Throwable e ) {
             System.out.println("Errors creating database");
             e.printStackTrace();
             System.exit(1);
-        } finally {
-            if ( client != null ) client.close();
-        }
+        } 
 
         System.exit(0);
     }

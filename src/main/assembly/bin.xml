@@ -300,11 +300,25 @@ under the License.
 
     <!--    CASSANDRA server -->
     <fileSet>
-      <directory>target/cassandra/apache-cassandra-2.1.11</directory>
+      <directory>target/cassandra/apache-cassandra-${cassandra.server.version}</directory>
       <outputDirectory>cassandra-server</outputDirectory>
       <excludes>
         <exclude>javadac/*</exclude>
+        <exclude>conf/cassandra-env.sh</exclude>
+        <exclude>conf/cassandra.yaml</exclude>
       </excludes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+
+    <fileSet>
+      <directory>src/main/resources</directory>
+      <!-- Two files that post_install or some hapless human needs to set up with local information -->
+      <outputDirectory>cassandra-server/conf</outputDirectory>
+      <includes>
+        <include>cassandra-env.sh</include>
+        <include>cassandra.yaml</include>
+      </includes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
@@ -329,6 +343,8 @@ under the License.
       <excludes>
 		<exclude>private/*</exclude>
 		<exclude>private</exclude>
+		<exclude>cassandra-env.sh</exclude>
+		<exclude>cassandra.yaml</exclude>
 	  </excludes>
     </fileSet>
 

@@ -196,7 +196,7 @@ class DuccUtil(DuccBase):
         return False
 
     # contact the database and see how useful it seems to be
-    def db_alive(self):
+    def db_alive(self, retry=10):
         if ( self.db_bypass == True ):
             return True
 
@@ -207,7 +207,7 @@ class DuccUtil(DuccBase):
         # get our log4j config into the path to shut up noisy logging
         os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ':' + self.DUCC_HOME + '/resources'
         
-        CMD = [self.java(), 'org.apache.uima.ducc.database.DbAlive', dbnode, 'ducc', self.db_password]
+        CMD = [self.java(), 'org.apache.uima.ducc.database.DbAlive', dbnode, 'ducc', self.db_password, str(retry)]
 
         CMD = ' '.join(CMD)
         rc = os.system(CMD)

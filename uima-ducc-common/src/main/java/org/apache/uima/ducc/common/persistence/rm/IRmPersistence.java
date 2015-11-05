@@ -121,11 +121,25 @@ public interface IRmPersistence
             public boolean isPrivate() { return true;}
             public boolean isMeta() { return true;}
         },
+        Memory {
+            public String pname() { return "memory"; }
+            public Type type()  { return Type.Integer; }
+            public boolean isPrimaryKey() { return true;}
+        },
+        Nodepool {
+            public String pname() { return "nodepool"; }
+            public Type type()  { return Type.String; }
+            public boolean isPrimaryKey() { return true;}
+        },
         Name {
             public String pname() { return "name"; }
             public Type type()  { return Type.String; }
             public boolean isPrimaryKey() { return true;}
-
+        },
+        SharesLeft {
+            public String pname() { return "shares_left"; }
+            public Type type()  { return Type.Integer; }
+            public boolean isPrimaryKey() { return true;}
         },
         Responsive{
             public String pname() { return "responsive"; }
@@ -139,16 +153,8 @@ public interface IRmPersistence
             public String pname() { return "ip"; }
             public Type type()  { return Type.String; }
         },
-        Nodepool {
-            public String pname() { return "nodepool"; }
-            public Type type()  { return Type.String; }
-        },
         Quantum {
             public String pname() { return "quantum"; }
-            public Type type()  { return Type.Integer; }
-        },
-        Memory {
-            public String pname() { return "memory"; }
             public Type type()  { return Type.Integer; }
         },
         ShareOrder {
@@ -165,10 +171,6 @@ public interface IRmPersistence
         },
         Heartbeats {
             public String pname() { return "heartbeats"; }
-            public Type type()  { return Type.Integer; }
-        },
-        SharesLeft {
-            public String pname() { return "shares_left"; }
             public Type type()  { return Type.Integer; }
         },
         Assignments {

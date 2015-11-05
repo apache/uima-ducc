@@ -1013,9 +1013,9 @@ class NodePool
         props.put(RmProperty.Name, nid.getName());
         props.put(RmProperty.Ip, nid.getIp());
         props.put(RmProperty.Nodepool, id);
-        props.put(RmProperty.Quantum, share_quantum);
+        props.put(RmProperty.Quantum, share_quantum / ( 1024*1024));
         
-        props.put(RmProperty.Memory       , m.getMemory());
+        props.put(RmProperty.Memory       , m.getMemory() / (1024*1024));
         props.put(RmProperty.ShareOrder  , m.getShareOrder());
         props.put(RmProperty.Blacklisted  , m.isBlacklisted());
 

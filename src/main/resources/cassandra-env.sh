@@ -94,6 +94,8 @@ jvmver=`echo "$java_ver_output" | grep '[openjdk|java] version' | awk -F'"' 'NR=
 JVM_VERSION=${jvmver%_*}
 JVM_PATCH_VERSION=${jvmver#*_}
 
+# DUCC: These checks don't work with the IBM Jvm.  Ducc requires a 'high-enough' level of JVM
+#       so those checks will suffice.
 #if [ "$JVM_VERSION" \< "1.7" ] ; then
 #    echo "Cassandra 2.0 and later require Java 7u25 or later."
 #    exit 1;

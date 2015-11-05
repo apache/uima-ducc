@@ -36,6 +36,7 @@ from ducc_base import find_localhost
 from ducc_base import which
 
 from ducc import Ducc
+import db_util as dbu
 
 class PostInstall():
 
@@ -99,23 +100,26 @@ class PostInstall():
         # Note this is a bootstrap routine and doesn't try to use common code that may depend on
         # things being initialized correctly.
 
-        return
+
         if ( os.path.exists(self.DUCC_HOME + "/database/data") ):
             print 'Database is already defined.  Not configuring'
             return
 
-        db_pw = raw_input("Enter database password OR 'disable' to disable database support:")
+        db_pw = raw_input("Enter database password OR 'bypass' to disable database support:")
         if ( db_pw == '' ):
             print "Must enter a DB password to continue."
             sys.exit(1);
 
-        if ( db_pw == 'disable' ):
+        if ( db_pw == 'bypass' ):
             print 'Database support will be disabled'
             self.update_property('ducc.database.host', '--disabled--', '# Database support is disabled')
             return;
         else:
             self.update_property('ducc.database.host', self.ducc_head, '# Database location')
             
+        dbu.configure_database(self.DUCC_HOME, self.ducc_head, self.path_to_java, db_pw)
+        return
+
         config =  self.DUCC_HOME + '/cassandra-server/conf/cassandra.yaml'
         esc_home = self.DUCC_HOME.replace("/", "\/");
         print "------ escaped home", esc_home
