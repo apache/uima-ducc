@@ -169,8 +169,11 @@ class DuccUtil(DuccBase):
             self.db_bypass = False
 
         dbprops = Properties()
-        dbprops.load(self.DUCC_HOME + '/resources.private/database.password')
+        dbprops.load(self.DUCC_HOME + '/resources.private/ducc.private.properties')
         self.db_password = dbprops.get('db_password')
+        if ( self.db_password == None ):
+            print "bypassing database becase no password is set."
+            self.db_bypass = True
 
     # does the database process exist?  
     def db_process_alive(self):

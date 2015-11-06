@@ -91,7 +91,7 @@ public class RmStatePersistence
 
         StringBuffer buf = new StringBuffer("CREATE TABLE IF NOT EXISTS ducc." + RmProperty.TABLE_NAME.pname() + " (");
         buf.append(DbUtil.mkSchema(RmProperty.values()));
-        buf.append(") WITH CLUSTERING ORDER BY (memory desc)");
+        buf.append(") WITH CLUSTERING ORDER BY (memory desc, name asc, shares_left desc)");
 
         ret.add(new SimpleStatement(buf.toString()));
         return ret;

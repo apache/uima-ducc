@@ -118,45 +118,13 @@ class PostInstall():
             self.update_property('ducc.database.host', self.ducc_head, '# Database location')
             
         dbu.configure_database(self.DUCC_HOME, self.ducc_head, self.path_to_java, db_pw)
+        private_props_name = self.DUCC_HOME + '/resources.private/ducc.private.properties'
+        private_properties = Properties()
+        private_properties.load(private_props_name)
+        private_properties.put('db_password', self.database_pw, ['#Db password']);
+        private_properties.write(private_props_name)
+
         return
-
-        config =  self.DUCC_HOME + '/cassandra-server/conf/cassandra.yaml'
-        esc_home = self.DUCC_HOME.replace("/", "\/");
-        print "------ escaped home", esc_home
-
-        ch_head = "sed -i .bak s'/DUCC_HEAD/" + self.ducc_head + "'/ " + config
-        self.execute(ch_head)
-        ch_home = "sed -i .bak s'/DUCC_HOME/" + esc_home + "'/ " + config
-        self.execute(ch_home)
-
-        here = os.getcwd()
-        os.chdir(self.DUCC_HOME + "/cassandra-server")
-        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
-        CMD = "bin/cassandra -p "+  pidfile + " > /dev/null 2>&1";
-        os.system(CMD);
-        print "Database is started.  Waiting for initialization";
-        
-        # Now start the db and create the schema
-        CLASSPATH = ''
-        CLASSPATH = self.addToCp(CLASSPATH, 'lib/cassandra/*')
-        CLASSPATH = self.addToCp(CLASSPATH, 'lib/guava/*')
-        CLASSPATH = self.addToCp(CLASSPATH, 'lib/apache-log4j/*')
-        CLASSPATH = self.addToCp(CLASSPATH, 'lib/uima-ducc/*')
-        CLASSPATH = self.addToCp(CLASSPATH, 'apache-uima/apache-activemq/lib/*')
-        os.environ['CLASSPATH'] = CLASSPATH
-
-        # First time - use built-in password and id.  These get changed and then disabled with DbCreate.
-        CMD = [self.path_to_java, 'org.apache.uima.ducc.database.DbAlive', self.ducc_head, 'cassandra', 'cassandra']
-        CMD = ' '.join(CMD)
-        self.execute(CMD)
-
-        CMD = [self.path_to_java, '-DDUCC_HOME=' + self.DUCC_HOME, 'org.apache.uima.ducc.database.DbCreate', self.ducc_head, 'ducc', db_pw]
-        CMD = ' '.join(CMD)
-        self.execute(CMD)
-        
-        CMD = ['kill', '-TERM', '`cat ' + pidfile + '`']
-        CMD = ' '.join(CMD)
-        self.execute(CMD)
 
     def get_keystore_pw(self, prompt):
 

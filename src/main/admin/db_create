@@ -60,9 +60,6 @@ class DbCreate(DuccUtil):
         print "        If no options prompts are given for expected parameters."
         print ""
         print "Options:"
-        print "   [-n, --head-node] <ducc head node>"
-        print "        This is the name of the host that will run the DUCC management processes."
-        print ""
         print "   [-, --db-password] <root password for database>"
         print "        This is the password DUCC uses to manage the database."
         print ""
@@ -76,30 +73,40 @@ class DbCreate(DuccUtil):
         self.database_pw = None
 
         try:
-            opts, args = getopt.getopt(argv, 'd:n:h?', ['db-password=', 'head-node=', 'help'])
+            opts, args = getopt.getopt(argv, 'd:n:h?', ['db-password=', 'help'])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
 
 
         for ( o, a ) in opts:
-            if o in ('-n', '--head-node'):
-                self.ducc_head = a
             if o in ('-d', '--db-password'):
                 self.database_pw = a
             elif o in ('-h', '-?', '--help'):
                 self.usage(None)
         
 
+        if ( self.database_pw == None ):
+            self.usage("Must specify your database password.");
+
         # start with merged properties
         self.merge_properties();
 
         # configure the database for local system and initialize the schema
         db_node = self.ducc_properties.get("ducc.head")
-        dbu.configure_database(self.DUCC_HOME, db_node, self.jvm, 'doodle')
-        return
+        if ( dbu.configure_database(self.DUCC_HOME, db_node, self.jvm, self.database_pw)):
+            ducc_site_properties = Properties();
+            site_props_name = self.DUCC_HOME + '/resources/site.ducc.properties'
+            ducc_site_properties.load(site_props_name)
+            ducc_site_properties.put('ducc.database.host', db_node);
+            # if we don't die before this we need to enable db in site.ducc.properties and set the
+            # db password into resources.private/ducc.private.properties
+            ducc_site_properties.write(site_props_name)
 
-        # write update site.ducc.properties with db installation
-        self.ducc_site_properties.write(self.site_properties_name)
+            private_props_name = self.DUCC_HOME + '/resources.private/ducc.private.properties'
+            private_properties = Properties()
+            private_properties.load(private_props_name)
+            private_properties.put('db_password', self.database_pw, ['#Db password']);
+            private_properties.write(private_props_name)
 
         # remerge to insure it's all correct and ready to go
         self.merge_properties();

@@ -121,14 +121,14 @@ public interface IRmPersistence
             public boolean isPrivate() { return true;}
             public boolean isMeta() { return true;}
         },
-        Memory {
-            public String pname() { return "memory"; }
-            public Type type()  { return Type.Integer; }
-            public boolean isPrimaryKey() { return true;}
-        },
         Nodepool {
             public String pname() { return "nodepool"; }
             public Type type()  { return Type.String; }
+            public boolean isPrimaryKey() { return true;}
+        },
+        Memory {
+            public String pname() { return "memory"; }
+            public Type type()  { return Type.Integer; }
             public boolean isPrimaryKey() { return true;}
         },
         Name {

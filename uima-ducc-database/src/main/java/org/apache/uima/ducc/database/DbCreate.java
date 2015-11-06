@@ -40,7 +40,7 @@ public class DbCreate
 {
     static final String DUCC_KEYSPACE = "ducc";
     static final String PASSWORD_KEY  = "db_password";
-    static final String PASSWORD_FILE = "database.password";
+    static final String PASSWORD_FILE = "ducc.private.properties";
     static final int RETRY = 10;
 
     DuccLogger logger = null;
@@ -98,12 +98,6 @@ public class DbCreate
                 session.execute("CREATE USER IF NOT EXISTS " + adminid + " with password '" + adminpw + "' SUPERUSER");
                 cluster.close();
                 doLog(methodName, "Created user " + adminid);                    
-
-                Properties props = new Properties();
-                props.setProperty(PASSWORD_KEY, adminpw);
-                FileOutputStream fos = new FileOutputStream(dh + "/resources.private/" + PASSWORD_FILE);
-                props.store(fos, "Db private configuration");
-                fos.close();
                     
                 auth = new PlainTextAuthProvider(adminid, adminpw);
                 cluster = Cluster.builder()
