@@ -27,7 +27,10 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.SimpleStatement;
 
 /**
@@ -40,6 +43,8 @@ public class RmStatePersistence
 
     DbManager dbManager = null;
     DuccLogger logger = null;
+    static final String RM_NODE_TABLE = RmNodes.TABLE_NAME.pname();
+
     public RmStatePersistence()
     {
     }
@@ -66,9 +71,10 @@ public class RmStatePersistence
         init(stateUrl);
     }
 
-    public void shutdown()
+    public void close()
     {
         dbManager.shutdown();
+        dbManager = null;
     }
 
     public void clear()
@@ -78,7 +84,7 @@ public class RmStatePersistence
         DbHandle h = null;
         try {
             h = dbManager.open();
-            h.execute("TRUNCATE ducc.rmnodes");
+            h.execute("TRUNCATE " + RM_NODE_TABLE);
         } catch ( Exception e ) {
             logger.error(methodName, null, "Cannot clear the database.", e);
         } 
@@ -88,46 +94,32 @@ public class RmStatePersistence
     	throws Exception
     {
         List<SimpleStatement> ret = new ArrayList<SimpleStatement>();
-
-        StringBuffer buf = new StringBuffer("CREATE TABLE IF NOT EXISTS ducc." + RmProperty.TABLE_NAME.pname() + " (");
-        buf.append(DbUtil.mkSchema(RmProperty.values()));
-        buf.append(") WITH CLUSTERING ORDER BY (memory desc, name asc, shares_left desc)");
-
+        
+        StringBuffer buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + RM_NODE_TABLE + " (");
+        buf.append(DbUtil.mkSchema(RmNodes.values()));
+        buf.append(")");
         ret.add(new SimpleStatement(buf.toString()));
+        List<String> indexes = DbUtil.mkIndices(RmNodes.values(), RM_NODE_TABLE);
+        for ( String s : indexes ) {
+            ret.add(new SimpleStatement(s));
+        }
         return ret;
     }
 
-    // static String[] mkSchemaItems()
-    // {
-    //     int size = RmProperty.values().length;
-    //     String[] ret = new String[size];
-    //     int ndx = 0;
-
-    //     for ( RmProperty n: RmProperty.values() ) {
-    //         String s = n.pname();
-    //         s = s + " " + DbUtil.typeToString(n.type());
-    //         if ( n.isPrimaryKey() ) {
-    //             s = s + " PRIMARY KEY";
-    //         }
-    //         ret[ndx++] = s;
-    //     }
-    //     return ret;
-    // }
-
-    public void createMachine(String m, Map<RmProperty, Object> props)
+    public void createMachine(String m, Map<RmNodes, Object> props)
     	throws Exception
     {
         String methodName = "createMachine";
         DbHandle h = dbManager.open();
         try {           
-            String cql = DbUtil.mkInsert("ducc.rmnodes", props);
+            String cql = DbUtil.mkInsert(RM_NODE_TABLE, props);
             h.execute(cql);
         } catch ( Exception e ) {
             logger.error(methodName, null, "Error creating new record:", e);
         } 
     }
 
-    public void setProperties(String node, Object... props)
+    public void setNodeProperties(String node, Object... props)
     	throws Exception
     {
         String methodName = "setProperties";
@@ -140,9 +132,9 @@ public class RmStatePersistence
         DbHandle h = dbManager.open();
 
         try {           
-            h.updateProperties("ducc.rmnodes", "WHERE name='" + node + "'", props);
+            h.updateProperties(RM_NODE_TABLE, "name='" + node + "'", props);
         } catch ( Exception e ) {
-            logger.error(methodName, null, "Problem setting properties");
+            logger.error(methodName, null, "Problem setting properties", e);
         } finally {           
             logger.info(methodName, null, "Total time to update properties on", System.currentTimeMillis() - now);
 
@@ -150,7 +142,7 @@ public class RmStatePersistence
         
     }
 
-    public void setProperty(String node, RmProperty k, Object v)
+    public void setNodeProperty(String node, RmNodes k, Object v)
     	throws Exception
     {
         String methodName = "setProperty";
@@ -158,23 +150,71 @@ public class RmStatePersistence
         DbHandle h = dbManager.open();
 
         try {           
-            h.updateProperty("ducc.rmnodes", "name='" + node + "'", k.columnName(), v);
+            h.updateProperty(RM_NODE_TABLE, "name='" + node + "'", k.columnName(), v);
         } catch ( Exception e ) {
-            logger.error(methodName, null, "Problem setting properties.");
+            logger.error(methodName, null, "Problem setting properties:", e);
         } 
         
     }
-    
+
+    public void addAssignment(String node, DuccId jobid, DuccId shareid)
+    {
+    }
+
+    public void removeAssignment(String node, DuccId jobid, DuccId shareid)
+    {
+    }
+
     public Properties getMachine(String m)
     	throws Exception
     {
     	return null;
     }
     
-    public Map<String, Properties> getAllMachines()
+    public Map<String, Map<String, Object>> getAllMachines()
     	throws Exception
-   {
-    	return new HashMap<String, Properties>();
+    {
+    	String methodName = "getAllMachiens";
+        Map<String, Map<String, Object>> ret = new HashMap<String, Map<String, Object>>();
+        String cql = "SELECT * FROM " + RM_NODE_TABLE;
+        DbHandle h = dbManager.open();
+        ResultSet rs = h.execute(cql);
+        for ( Row r : rs ) {
+            Map<String, Object> mach = new HashMap<String, Object>();
+            // We don't expect any nulls in this table
+            for ( RmNodes n : RmNodes.values() ) {
+                if ( n.isPrivate() ) continue;
+                if ( n.isMeta()    ) continue;
+                switch ( n.type() ) {
+
+                    case String: {
+                        String  v = r.getString(n.columnName());
+                        mach.put(n.pname(), v);
+                        if ( n == RmNodes.Name ) {
+                            ret.put(v, mach);                            
+                        }
+                    }
+                    break;
+
+                    case Integer: {
+                        int v = r.getInt(n.columnName());
+                        mach.put(n.pname(), v);
+                    }
+                    break;
+
+                    case Boolean: {
+                        boolean v = r.getBool(n.columnName());
+                        mach.put(n.pname(), v);
+                    }
+                    break;
+
+                    default:
+                        logger.warn(methodName, null, "Unexpected value in db:", n.pname(), "type", n.type(), "is not recognized.");
+                        break;
+                }
+            }
+        }
+        return ret;
    }
     
     public static void main(String[] args)

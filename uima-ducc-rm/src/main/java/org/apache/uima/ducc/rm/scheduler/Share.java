@@ -18,6 +18,9 @@
 */
 package org.apache.uima.ducc.rm.scheduler;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -61,6 +64,19 @@ public class Share
      @SuppressWarnings("unused")
  	private String pid = "<none>";
 
+    Map<String, Object> getShareProperties()
+    {
+        Map<String, Object> ret = new HashMap<String, Object>();
+        ret.put("numeric_id", id.getFriendly());
+        ret.put("uuid", id.getUnique());
+        ret.put("share_order", share_order);
+        ret.put("init_time", init_time.getElapsedMillis());
+        ret.put("evicted", evicted);
+        ret.put("purged", purged);
+        ret.put("fixed", fixed);
+        ret.put("investment", investment);
+        return ret;
+    }
 
     /**
      * This constructor is used during recovery ONLY.

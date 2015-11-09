@@ -162,6 +162,7 @@ class DuccUtil(DuccBase):
 
     def db_configure(self):
         dbhost = self.ducc_properties.get('ducc.database.host')
+        print '----- dbhost', dbhost
         if ( dbhost == self.db_disabled ):
             self.db_bypass = True
             return;
@@ -189,12 +190,12 @@ class DuccUtil(DuccBase):
         if ( self.system == 'Darwin'):
             ps = 'ps -eo user,pid,comm,args ' + pid
         else:
-            ps = 'ps -eo user:14,pid,comm,args ' + pkd
+            ps = 'ps -eo user:14,pid,comm,args ' + pid
         lines = self.popen(ps)
         
         for line in lines:
             line = line.strip()
-            if (pid in line):
+            if (pid in line and 'cassandra' in line):
                 return True
         return False
 
@@ -242,7 +243,7 @@ class DuccUtil(DuccBase):
                     line = lines.readline().strip()
                 except:
                     break
-                # print '[]', line
+                #print '[]', line
                 
                 if ( not line ):
                     break

@@ -86,7 +86,6 @@ public class DbAlive
 
             Metadata metadata = cluster.getMetadata();
             System.out.println("Connected to cluster: " + metadata.getClusterName());
-            String x = DbCreate.DUCC_KEYSPACE;
             KeyspaceMetadata  duccKs = metadata.getKeyspace(DbCreate.DUCC_KEYSPACE);
             if ( duccKs == null ) {
                 System.out.println("DUCC keyspace not found.");

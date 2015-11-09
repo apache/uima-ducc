@@ -40,7 +40,12 @@ public class RmPersistenceFactory
         String clname = System.getProperty("ducc.rm.persistence.impl");
         if ( clname == null ) {
         	DuccLogger logger = DuccService.getDuccLogger();
-        	logger.warn(methodName, null, "RM persistence manager is not configured.  Returning null instance.");
+            if ( logger == null ) {
+                //Can happen when called from command-line utilities
+                System.out.println("RM persistence manager is not configured.  Returning null instance.");
+            } else {
+                logger.warn(methodName, null, "RM persistence manager is not configured.  Returning null instance.");
+            }
             return new NullRmStatePersistence();
         }
         ndx = clname.lastIndexOf(".");

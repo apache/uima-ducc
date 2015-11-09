@@ -111,6 +111,7 @@ public interface IStateServices {
         public boolean isPrimaryKey() { return false; }
         public boolean isPrivate()  { return false; }
         public boolean isMeta()  { return false; }
+        public boolean isIndex()  { return false; }
         public String columnName() { return pname(); }
     };
 
@@ -244,8 +245,8 @@ public interface IStateServices {
         public boolean isPrimaryKey() { return false; }
         public boolean isPrivate()  { return false; }
         public boolean isMeta()  { return false; }
+        public boolean isIndex()  { return false; }
         public String columnName() { return pname(); }
-
 
      };
 	

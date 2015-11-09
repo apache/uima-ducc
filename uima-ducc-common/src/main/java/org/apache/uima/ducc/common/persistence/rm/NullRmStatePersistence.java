@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
 public class NullRmStatePersistence implements IRmPersistence
@@ -33,9 +34,12 @@ public class NullRmStatePersistence implements IRmPersistence
 	
     public void init(DuccLogger logger) throws Exception { }
     public void clear() {}
-    public void setProperty(String id, RmProperty key, Object value) { }
-    public void setProperties(String id, Object... props) {}
-    public void createMachine(String id, Map<RmProperty, Object> props) { }
+    public void close() {}
+    public void setNodeProperty(String id, RmNodes key, Object value) { }
+    public void setNodeProperties(String id, Object... props) {}
+    public void createMachine(String id, Map<RmNodes, Object> props) { }
+    public void addAssignment(String id, DuccId jobid, DuccId shareid) {}
+    public void removeAssignment(String id, DuccId jobid, DuccId shareid) {}
     public Properties getMachine(String id) { return null; }
-    public Map<String, Properties> getAllMachines() { return new HashMap<String, Properties>(); }
+    public Map<String, Map<String, Object>> getAllMachines() { return new HashMap<String, Map<String, Object>>(); }
 }

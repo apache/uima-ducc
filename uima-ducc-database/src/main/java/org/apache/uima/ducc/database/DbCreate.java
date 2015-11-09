@@ -19,9 +19,7 @@
 
 package org.apache.uima.ducc.database;
 
-import java.io.FileOutputStream;
 import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -111,7 +109,7 @@ public class DbCreate
                 doLog(methodName, "Changed default super user's password and revoked its superuser authority.");
                 doLog(methodName, "From this point, this DB can only be accessed in super user mode by user 'ducc'");
                     
-                return true;
+                break;
             } catch ( NoHostAvailableException e ) {
                 doLog("Waiting for database to boot ...");
                 session = null;
@@ -186,6 +184,7 @@ public class DbCreate
 
         // A 'keyspace' is what we usually think of as a database.
         session.execute("CREATE KEYSPACE IF NOT EXISTS ducc WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};");
+        session.execute("USE " + DUCC_KEYSPACE);
 
         try {
             List<SimpleStatement>rmSchema = RmStatePersistence.mkSchema();

@@ -39,8 +39,9 @@ public interface IDbProperty
                                      //     than does SQL, we define a translation from the "properties" key to
                                      //     legal SQL syntactic names.  DB does not translate, user must provide
                                      //     a suitable translation.
+    boolean isIndex();            // If true, create a secondary index.
 
-    // If we update this we may have to update db methods that use it
+    // If we update this we may have to update db methods that use it.  We'll try to avoid collections for now.
     public enum Type {
         String,            // Java String
             Blob,          // Java serialized object or other binary

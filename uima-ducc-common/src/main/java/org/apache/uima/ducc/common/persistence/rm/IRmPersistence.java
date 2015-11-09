@@ -24,6 +24,7 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.common.persistence.IDbProperty;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public interface IRmPersistence
 {
@@ -51,7 +52,7 @@ public interface IRmPersistence
      * @param id This is the primary key, the machine name;
      * @param properties These are the props, must be presented in the form of (String, Object) ...
      */
-    public void setProperties(String id, Object... properties) throws Exception;
+    public void setNodeProperties(String id, Object... properties) throws Exception;
 
     /**
      * Set a property on an object.  If the property cannot be set the action
@@ -65,7 +66,7 @@ public interface IRmPersistence
      *         throw will originate in the DB because of some DB issue. An
      *         exception causes the action to be rolled back.
      */
-    public void setProperty(String id, RmProperty key, Object value) throws Exception;
+    public void setNodeProperty(String id, RmNodes key, Object value) throws Exception;
 
     
     /**
@@ -83,7 +84,23 @@ public interface IRmPersistence
      *
      * @return The db id of the created machine.
      */
-    public void createMachine(String id, Map<RmProperty, Object> props) throws Exception;
+    public void createMachine(String id, Map<RmNodes, Object> props) throws Exception;
+
+    /**
+     * Assign a share to this machine.
+     * @param id The node name
+     * @param jobid The duccid of the job owning the new shoare
+     * @param shareid The DuccId of the new share.
+     */
+    public void addAssignment(String id, DuccId jobid, DuccId shareid);
+
+    /**
+     * Remove a share from the machine.
+     * @param id The node name
+     * @param jobid The duccid of the job owning the new shoare
+     * @param shareid The DuccId of the new share.
+     */
+    public void removeAssignment(String id, DuccId jobid, DuccId shareid);
 
     /**
      * Fetch a machine by its id.
@@ -109,10 +126,15 @@ public interface IRmPersistence
      * @throws Exception.  Anything that goes wrong throws.  Usually the
      *         throw will originate in the DB because of some DB issue. 
      */
-    public Map<String, Properties> getAllMachines() throws Exception;
+    public Map<String, Map<String, Object>> getAllMachines() throws Exception;
 
-
-    enum RmProperty
+    /**
+     * Shutdown the connection to the DB;
+     * 
+     */
+    public void close();
+    
+    enum RmNodes
         implements IDbProperty
     {
         TABLE_NAME {
@@ -121,33 +143,37 @@ public interface IRmPersistence
             public boolean isPrivate() { return true;}
             public boolean isMeta() { return true;}
         },
-        Nodepool {
-            public String pname() { return "nodepool"; }
+        Name {
+            public String pname() { return "name"; }
             public Type type()  { return Type.String; }
             public boolean isPrimaryKey() { return true;}
         },
         Memory {
             public String pname() { return "memory"; }
             public Type type()  { return Type.Integer; }
-            public boolean isPrimaryKey() { return true;}
         },
-        Name {
-            public String pname() { return "name"; }
+        Nodepool {
+            public String pname() { return "nodepool"; }
             public Type type()  { return Type.String; }
-            public boolean isPrimaryKey() { return true;}
         },
         SharesLeft {
             public String pname() { return "shares_left"; }
             public Type type()  { return Type.Integer; }
-            public boolean isPrimaryKey() { return true;}
         },
         Responsive{
             public String pname() { return "responsive"; }
             public Type type()  { return Type.Boolean; }
+            public boolean isIndex() { return true; }
         },
         Online{
             public String pname() { return "online"; }
             public Type type()  { return Type.Boolean; }
+            public boolean isIndex() { return true; }
+        },
+        Reservable{
+            public String pname() { return "reservable"; }
+            public Type type()  { return Type.Boolean; }
+            public boolean isIndex() { return true; }
         },
         Ip {
             public String pname() { return "ip"; }
@@ -157,12 +183,12 @@ public interface IRmPersistence
             public String pname() { return "quantum"; }
             public Type type()  { return Type.Integer; }
         },
+        Classes {
+            public String pname() { return "classes"; }
+            public Type type()  { return Type.String; }
+        },
         ShareOrder {
             public String pname() { return "share_order"; }
-            public Type type()  { return Type.Integer; }
-        },
-        Shares{
-        	public String pname() { return "shares"; }
             public Type type()  { return Type.Integer; }
         },
         Blacklisted {
@@ -181,6 +207,7 @@ public interface IRmPersistence
         public boolean isPrimaryKey() { return false; }
         public boolean isPrivate()    { return false; }
         public boolean isMeta()       { return false; }
-        public String columnName()     { return pname(); }
+        public String  columnName()   { return pname(); }
+        public boolean isIndex()      { return false; }
     }
 }

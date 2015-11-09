@@ -26,7 +26,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
 import org.apache.uima.ducc.common.admin.event.RmQueriedShare;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
-import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmProperty;
+import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmNodes;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -171,10 +171,11 @@ public class Machine
     {
         String methodName = "heartbeatArrives";
         long now = System.currentTimeMillis();
-        if ( heartbeats == 0 ) return;               // no need to rereset it
+        if ( heartbeats == 0 ) return;
+        heartbeats = 0;
         try {
-            logger.info(methodName, null, "Reset heartbeat to 0");
-			persistence.setProperty(id, RmProperty.Heartbeats, 0);
+            logger.info(methodName, null, "Reset heartbeat to 0 from", heartbeats);
+			persistence.setNodeProperty(id, RmNodes.Heartbeats, 0);
             logger.info(methodName, null, "Time to reset heartbeat", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, null, "Cannot update heartbeat count in database:", e);
@@ -187,10 +188,10 @@ public class Machine
         long now = System.currentTimeMillis();
 
         if ( c < 2 ) return;                    // we allow a couple because timing and races can create false negatives
+        heartbeats = c;
         try {
-            heartbeats = c;
             logger.info(methodName, null, "Missed heartbeat count", c);
-			persistence.setProperty(id, RmProperty.Heartbeats, c);
+			persistence.setNodeProperty(id, RmNodes.Heartbeats, c);
             logger.info(methodName, null, "Time to record misssed heartbeat", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, null, "Cannot update heartbeat count in database:", e);
@@ -317,7 +318,9 @@ public class Machine
         activeShares.put(s, s);
         shares_left -= s.getShareOrder();
         try {
-			persistence.setProperties(id, RmProperty.Assignments, activeShares.size(), RmProperty.SharesLeft, shares_left);
+            // Not transactional.  If this turns into a problem we'll have to find a way
+			persistence.setNodeProperties(id, RmNodes.Assignments, activeShares.size(), RmNodes.SharesLeft, shares_left);
+			persistence.addAssignment(id, s.getJob().getId(), s.getId()); // update jobs on machine and specific shares
             logger.info(methodName, null, "Time to assign share in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, null, "Cannot save state; shares_left", shares_left);
@@ -334,7 +337,9 @@ public class Machine
         nodepool.removeShare(s);
         shares_left += s.getShareOrder();
         try {
-			persistence.setProperties(id, RmProperty.Assignments, activeShares.size(), RmProperty.SharesLeft, shares_left);
+            // Not transactional.  If this turns into a problem we'll have to find a way
+			persistence.setNodeProperties(id, RmNodes.Assignments, activeShares.size(), RmNodes.SharesLeft, shares_left);
+			persistence.removeAssignment(id, s.getJob().getId(), s.getId());  // update jobs on machine and specific shares
             logger.info(methodName, null, "Time to remove share in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, null, "Cannot save state; shares_left", shares_left);

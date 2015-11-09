@@ -68,6 +68,26 @@ class DbUtil
         return buf.toString();
     }
 
+    static List<String> mkIndices(IDbProperty[] props, String tablename)
+    {
+        List<String> ret = new ArrayList<String>();
+        for ( IDbProperty p : props ) {
+            if ( p.isIndex() ) {
+                StringBuffer buf = new StringBuffer("CREATE INDEX ");
+                buf.append(tablename);
+                buf.append("_");
+                buf.append(p.pname());
+                buf.append("_idx ON ");
+                buf.append(tablename);
+                buf.append("(");
+                buf.append(p.pname());
+                buf.append(")");
+                ret.add(buf.toString());
+            }
+        }
+        return ret;
+    }
+
     static String mkFields(StringBuffer buf, String[] fields)
     {
         int max = fields.length - 1;
@@ -120,7 +140,7 @@ class DbUtil
 
             String k = ok.columnName();
             buf.append(k);
-            vals.append(rep(ok.type(), props.get(ok)));
+            vals.append(rep(ok, props.get(ok)));
 
             if ( current++ < max ) {
                 buf.append(",");
@@ -152,7 +172,7 @@ class DbUtil
 
             String k = ok.columnName();
             buf.append(k);
-            vals.append(rep(ok.type(), props.get(ok)));
+            vals.append(rep(ok, props.get(ok)));
 
             if ( current++ < max ) {
                 buf.append(",");
@@ -182,7 +202,7 @@ class DbUtil
 
                 buf.append(prop.columnName());
                 buf.append("=");
-                buf.append(rep(prop.type(), props[i+1]));
+                buf.append(rep(prop, props[i+1]));
                 if ( i + 2 < len ) {
                     buf.append(",");
                 }  
@@ -196,15 +216,14 @@ class DbUtil
     /**
      * Return the correct representation for CQL update, of val, for the indicated type, for this database.
      */
-    static String rep(Type t, Object val)
+    static String rep(IDbProperty p, Object val)
     {
-        switch ( t ) {
-        case String:
-            return "'" + val.toString() + "'";
-        default:
-            return val.toString();
+        switch ( p.type() ) {
+            case String:
+                return "'" + val.toString() + "'";
+            default:
+                return val.toString();
         }
-
     }
 
     /**
@@ -218,7 +237,7 @@ class DbUtil
             case Blob:
                 return  "blob";
             case String:
-                return  "text";
+                return  "varchar";
             case Boolean:
                 return "boolean";
             case Integer:

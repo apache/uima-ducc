@@ -108,6 +108,7 @@ public interface IHistoryPersistenceManager
         public boolean isPrimaryKey() { return false; }
         public boolean isPrivate()  { return false; }
         public boolean isMeta()  { return false; }
+        public boolean isIndex()  { return false; }
         public String columnName() { return pname(); }
 
      };
@@ -140,7 +141,9 @@ public interface IHistoryPersistenceManager
         public boolean isPrimaryKey() { return false; }
         public boolean isPrivate()  { return false; }
         public boolean isMeta()  { return false; }
+        public boolean isIndex()  { return false; }
         public String columnName() {return pname(); }
+        public Type listType() { return Type.String; }
 
      };
 

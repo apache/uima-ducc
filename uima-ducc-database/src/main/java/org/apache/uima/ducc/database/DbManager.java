@@ -74,6 +74,7 @@ public class DbManager
     {
         if ( session == null ) {
             session = cluster.connect();
+            session.execute(new SimpleStatement("USE " + DbCreate.DUCC_KEYSPACE));
         }
 
         return new DbHandle(this);

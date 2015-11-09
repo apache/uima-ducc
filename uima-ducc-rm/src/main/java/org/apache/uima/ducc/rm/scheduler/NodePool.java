@@ -31,7 +31,7 @@ import java.util.Map;
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
-import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmProperty;
+import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmNodes;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
@@ -69,7 +69,7 @@ class NodePool
     HashMap<Node, Machine>                   preemptables    = new HashMap<Node, Machine>();                   // candidates for preemption for reservations
     int total_shares = 0;
 
-    Map<ResourceClass, ResourceClass>       allClasses       = new HashMap<ResourceClass, ResourceClass>();    // all the classes directly serviced by me
+    Map<ResourceClass, ResourceClass>        allClasses      = new HashMap<ResourceClass, ResourceClass>();    // all the classes directly serviced by me
     //
     // There are "theoretical" shares based on actual capacities of
     // the machines.  They are used for the "how much" part of the
@@ -101,6 +101,7 @@ class NodePool
     GlobalOrder maxorder = null;
 
     IRmPersistence persistence = null;
+    boolean canReserve = false;       // if we contain a class with policy Reserve, then stuff in this pool is reservable
 
 //     NodePool(NodePool parent, String id, EvictionPolicy ep, int order)
 //     {
@@ -138,6 +139,7 @@ class NodePool
     void addResourceClass(ResourceClass cl)
     {  // UIMA-4065
         allClasses.put(cl, cl);
+        if ( cl.getPolicy() == Policy.RESERVE) canReserve = true;
     }
 
     NodePool getParent()
@@ -994,86 +996,46 @@ class NodePool
     }
 
 
-    void signalDb(Machine m, RmProperty key, Object value)
+    void signalDb(Machine m, RmNodes key, Object value)
     {
     	String methodName = "signalDb";
         try {
-			persistence.setProperty(m.getNode().getNodeIdentity().getName(), key, value);
+			persistence.setNodeProperty(m.getNode().getNodeIdentity().getName(), key, value);
 		} catch (Exception e) {
 			logger.warn(methodName, null, "Cannot update DB property", key, "for machine", m);
 		}
     }
 
-    Map<RmProperty, Object> initDbProperties(Machine m)
+    Map<RmNodes, Object> initDbProperties(Machine m)
     {
         Node n = m.getNode();
         NodeIdentity nid = n.getNodeIdentity();
         
-        Map<RmProperty, Object> props = new HashMap<RmProperty, Object>();
-        props.put(RmProperty.Name, nid.getName());
-        props.put(RmProperty.Ip, nid.getIp());
-        props.put(RmProperty.Nodepool, id);
-        props.put(RmProperty.Quantum, share_quantum / ( 1024*1024));
+        Map<RmNodes, Object> props = new HashMap<RmNodes, Object>();
+        props.put(RmNodes.Name, nid.getName());
+        props.put(RmNodes.Ip, nid.getIp());
+        props.put(RmNodes.Nodepool, id);
+        props.put(RmNodes.Quantum, share_quantum / ( 1024*1024));
         
-        props.put(RmProperty.Memory       , m.getMemory() / (1024*1024));
-        props.put(RmProperty.ShareOrder  , m.getShareOrder());
-        props.put(RmProperty.Blacklisted  , m.isBlacklisted());
+        props.put(RmNodes.Memory       , m.getMemory() / (1024*1024));
+        props.put(RmNodes.ShareOrder  , m.getShareOrder());
+        props.put(RmNodes.Blacklisted  , m.isBlacklisted());
 
         // init these here, but must be maintained by machine
-        props.put(RmProperty.Heartbeats   , 0);
-        props.put(RmProperty.SharesLeft   , m.countFreeShares());     // qshares remaining
-        props.put(RmProperty.Assignments  , m.countProcesses());      // processes
+        props.put(RmNodes.Heartbeats   , 0);
+        props.put(RmNodes.SharesLeft   , m.countFreeShares());     // qshares remaining
+        props.put(RmNodes.Assignments  , m.countProcesses());      // processes
         
+        props.put(RmNodes.Reservable   , canReserve);
+
+        StringBuffer buf = new StringBuffer();
+        for ( ResourceClass cl : allClasses.keySet() ) {
+            buf.append(cl.getName());
+            buf.append(" ");
+        }
+        props.put(RmNodes.Classes, buf.toString());
         return props;
     }
-
-    // /**
-    //  * On init, seed the database with everything we know about nodes.
-    //  * TODO: not used - do we care?
-    //  */
-    // void initializeDbx()
-    // {
-    // 	String methodName = "initializeDb";
-    //     for ( NodePool np : children.values() ) {
-    //         np.initializeDbx();
-    //     }
-
-    //     for (Node n : allMachines.keySet()) {
-    //     	Machine m = allMachines.get(n);
-    //         Properties props = initDbProperties(m);
-    //         props.put(RmPropName.Responsive.pname(), true);
-    //         props.put(RmPropName.Online.pname(), true);
-    //         try {
-	// 			persistence.createMachine(m.getId(), props);
-	// 		} catch (Exception e) {
-    //             logger.warn(methodName, null, "Cannot store (online) node", m.getId(), "in db:", e);
-	// 		}
-    //     }
-    //     for (Node n : unresponsiveMachines.keySet()) {
-    //     	Machine m = unresponsiveMachines.get(n);
-    //         Properties props = initDbProperties(m);
-    //         props.setProperty(RmPropName.Responsive.pname(), "false");
-    //         props.setProperty(RmPropName.Online.pname(), "true");                              
-    //         try {
-	// 			persistence.createMachine(m.getId(), props);
-	// 		} catch (Exception e) {
-    //             logger.warn(methodName, null, "Cannot store (unresponsive) node", m.getId(), "in db:", e);
-	// 		}
-    //     }
-    //     for (Node n : offlineMachines.keySet()) {
-    //     	Machine m = offlineMachines.get(n);
-    //         Properties props = initDbProperties(m);
-    //         props.setProperty(RmPropName.Responsive.pname(), "unknown");
-    //         props.setProperty(RmPropName.Online.pname(), "false");                              
-    //         try {
-	// 			persistence.createMachine(m.getId(), props);
-	// 		} catch (Exception e) {
-    //             logger.warn(methodName, null, "Cannot store (offline) node", m.getId(), "in db:", e);
-	// 		}
-    //     }
-
-    // }
-
 
     /**
      * Handle a new node update.
@@ -1099,7 +1061,7 @@ class NodePool
 
         if ( offlineMachines.containsKey(node) ) {               // if it's offline it can't be restored like this.
             Machine m = offlineMachines.get(node);
-            signalDb(m, RmProperty.Responsive, true);
+            signalDb(m, RmNodes.Responsive, true);
             logger.trace(methodName, null, "Node ", m.getId(), " is offline, not activating.");
             return m;
         }
@@ -1111,7 +1073,6 @@ class NodePool
                 m.setShareOrder(order);                          //    hardware changes.
             }
 
-            // TODO soon ... can I just combine this with the code directly below:
             allMachines.put(node, m);
             machinesByName.put(m.getId(), m);
             machinesByIp.put(m.getIp(), m);
@@ -1124,7 +1085,7 @@ class NodePool
             mlist.put(m.key(), m);     
    
             total_shares += order;     //      UIMA-3939
-            signalDb(m, RmProperty.Responsive, true);
+            signalDb(m, RmNodes.Responsive, true);
             logger.info(methodName, null, "Nodepool:", id, "Host reactivated ", m.getId(), String.format("shares %2d total %4d:", order, total_shares), m.toString());
             return m;
         }
@@ -1152,9 +1113,9 @@ class NodePool
                     String.format("shares %2d total %4d:", order, total_shares), machine.toString()); 
         updated++;
 
-        Map<RmProperty, Object> props = initDbProperties(allMachines.get(key));
-        props.put(RmProperty.Responsive, true);
-        props.put(RmProperty.Online, true);
+        Map<RmNodes, Object> props = initDbProperties(allMachines.get(key));
+        props.put(RmNodes.Responsive, true);
+        props.put(RmNodes.Online, true);
         try {
 			persistence.createMachine(machine.getId(), props);
 		} catch (Exception e) {
@@ -1231,7 +1192,7 @@ class NodePool
     void nodeLeaves(Machine m)
     {
         disable(m, unresponsiveMachines);
-        signalDb(m, RmProperty.Responsive, false);
+        signalDb(m, RmNodes.Responsive, false);
     }
 
     // UIMA-4142
@@ -1272,7 +1233,7 @@ class NodePool
                     Node key = mm.key();
                     iter.remove();
                     offlineMachines.put(key, mm);
-                    signalDb(m, RmProperty.Online, false);
+                    signalDb(m, RmNodes.Online, false);
                     return "VaryOff: Nodepool " + id + " - Unresponsive machine, marked offline: " + node;
                 }
             }
@@ -1281,7 +1242,7 @@ class NodePool
         }
 
         disable(m, offlineMachines);
-        signalDb(m, RmProperty.Online, false);
+        signalDb(m, RmNodes.Online, false);
         return "VaryOff: " + node + " - OK.";
     }
 
@@ -1300,7 +1261,7 @@ class NodePool
             Machine mm = iter.next();
             if ( mm.getId().equals(node) ) {
                 iter.remove();
-                signalDb(mm, RmProperty.Online, true);
+                signalDb(mm, RmNodes.Online, true);
                 return "VaryOn: Nodepool " + id + " - Machine marked online: " + node;
             }
         }
@@ -1309,7 +1270,7 @@ class NodePool
         while ( iter.hasNext() ) {
             Machine mm = iter.next();
             if ( mm.getId().equals(node) ) {
-                signalDb(mm, RmProperty.Online, true);
+                signalDb(mm, RmNodes.Online, true);
                 return "VaryOn: Nodepool " + id + " - Machine is online but not responsive: " + node;
             }
         }
