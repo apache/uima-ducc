@@ -414,9 +414,6 @@ class PostInstall():
         # insure java is configured and installed
         self.java_bindir = self.get_java_bindir()
 
-        # configure the database for local system and initialize the schema
-        self.configure_database()
-
         # As of DUCC 2.0, always set here on installation
         print 'ActiveMQ is automanaged on node ', self.localhost
 
@@ -432,6 +429,9 @@ class PostInstall():
             os.mkdir(logwsdir)
         if ( not os.path.exists(historydir) ):
             os.mkdir(historydir)
+
+        # configure the database for local system and initialize the schema
+        self.configure_database()
 
         self.keytool = self.get_java_keytool(self.java_bindir)
         print 'Java version:', self.get_java_version()
