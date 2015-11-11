@@ -74,7 +74,8 @@ def configure_database(DUCC_HOME, DUCC_HEAD, java, db_pw):
     CMD = "bin/cassandra -p "+  pidfile + " > /dev/null 2>&1";
     os.system(CMD);
     print "Database is started.  Waiting for initialization";
-    
+    os.chdir(here) 
+
     # Now start the db and create the schema
     CLASSPATH = ''
     CLASSPATH = addToCp(CLASSPATH, DUCC_HOME + '/lib/cassandra/*')
