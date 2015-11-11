@@ -94,6 +94,9 @@ class DbCreate(DuccUtil):
         # configure the database for local system and initialize the schema
         db_node = self.ducc_properties.get("ducc.head")
         if ( dbu.configure_database(self.DUCC_HOME, db_node, self.jvm, self.database_pw)):
+            private_props_name = self.DUCC_HOME + '/resources.private/ducc.private.properties'
+
+            print 'Writing database password to', private_props_name
             ducc_site_properties = Properties();
             site_props_name = self.DUCC_HOME + '/resources/site.ducc.properties'
             ducc_site_properties.load(site_props_name)

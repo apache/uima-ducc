@@ -60,7 +60,7 @@ class PostInstall():
         print "   [-j, --jvm] <path to java executable>"
         print "        This is the full path to java command to be used to start DUCC; e.g., /usr/bin/java"
         print ""
-        print "   [-, --db-password] <root password for database>"
+        print "   [-d, --db-password] <root password for database>"
         print "        This is the password DUCC uses to manage the database."
         print ""
         print "   [-h, -? --help]"
@@ -105,24 +105,30 @@ class PostInstall():
             print 'Database is already defined.  Not configuring'
             return
 
-        db_pw = raw_input("Enter database password OR 'bypass' to disable database support:")
-        if ( db_pw == '' ):
-            print "Must enter a DB password to continue."
-            sys.exit(1);
+        if ( self.database_pw == None ):
+            db_pw = raw_input("Enter database password OR 'bypass' to disable database support:")
+            if ( db_pw == '' ):
+                print "Must enter a DB password to continue."
+                sys.exit(1);
+        else:
+            db_pw = self.database_pw
 
         if ( db_pw == 'bypass' ):
             print 'Database support will be disabled'
             self.update_property('ducc.database.host', '--disabled--', '# Database support is disabled')
             return;
-        else:
-            self.update_property('ducc.database.host', self.ducc_head, '# Database location')
             
-        dbu.configure_database(self.DUCC_HOME, self.ducc_head, self.path_to_java, db_pw)
-        private_props_name = self.DUCC_HOME + '/resources.private/ducc.private.properties'
-        private_properties = Properties()
-        private_properties.load(private_props_name)
-        private_properties.put('db_password', self.database_pw, ['#Db password']);
-        private_properties.write(private_props_name)
+        if ( dbu.configure_database(self.DUCC_HOME, self.ducc_head, self.path_to_java, db_pw) ):
+            print 'Configuring DUCC to use the database.'
+
+            self.update_property('ducc.database.host', self.ducc_head, '# Database location')
+            self.update_property('ducc.service.persistence.impl', 'org.apache.uima.ducc.database.StateServicesDb', '# Service manager persistence')
+            self.update_property('ducc.job.history.impl', 'org.apache.uima.ducc.database.HistoryManagerDb', '# History and checkpoint')
+            self.update_property('ducc.rm.persistence.impl', 'org.apache.uima.ducc.database.RmStatePersistence', '# RM state persistence')
+
+            self.ducc_private_properties.delete('db_password')
+            self.ducc_private_properties.put('db_password', db_pw, ['#Db password']);
+
 
         return
 
@@ -395,7 +401,7 @@ class PostInstall():
         keystore_properties_name = self.DUCC_HOME + '/resources.private/ducc.private.properties'
         self.ducc_private_properties = Properties()
         self.ducc_private_properties.load(keystore_properties_name)
-
+ 
         self.ducc_site_properties = Properties()
 
         py_version = sys.version_info

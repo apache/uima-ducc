@@ -70,6 +70,7 @@ def configure_database(DUCC_HOME, DUCC_HEAD, java, db_pw):
     here = os.getcwd()
     os.chdir(DUCC_HOME + "/cassandra-server")
     pidfile = DUCC_HOME + '/state/cassandra.pid'
+    print 'Starting the database.  This might take a few moments if it is the first time.'
     CMD = "bin/cassandra -p "+  pidfile + " > /dev/null 2>&1";
     os.system(CMD);
     print "Database is started.  Waiting for initialization";
