@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -43,6 +44,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.SimpleStatement;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -75,24 +77,30 @@ public class HistoryManagerDb
 		String methodName = "init";
         boolean ret = true;
         logger.info(methodName, null, "Initializing OR persistence over the database");
-        try {
-            if ( dbm != null ) {
-                this.dbManager = dbm;
-            } else {
-                dbManager = new DbManager(dburl, logger);
-                dbManager.init();
-            }
-
-            // prepare some statements
-            DbHandle h = dbManager.open();
-            jobPrepare         = h.prepare("INSERT INTO " + JOB_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
-            reservationPrepare = h.prepare("INSERT INTO " + RES_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
-            servicePrepare     = h.prepare("INSERT INTO " + SVC_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
-            ckptPrepare = h.prepare("INSERT INTO " + CKPT_TABLE + " (id, work, p2jmap) VALUES (?, ?, ?);");            
-
-        } catch ( Exception e ) {
-            logger.error(methodName, null, "Cannot open the history database:", e);
-            throw e;
+        while ( true ) {
+            try {
+                if ( dbm != null ) {
+                    this.dbManager = dbm;
+                } else {
+                    dbManager = new DbManager(dburl, logger);
+                    dbManager.init();
+                }
+                
+                // prepare some statements
+                DbHandle h = dbManager.open();
+                jobPrepare         = h.prepare("INSERT INTO " + JOB_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
+                reservationPrepare = h.prepare("INSERT INTO " + RES_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
+                servicePrepare     = h.prepare("INSERT INTO " + SVC_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
+                ckptPrepare        = h.prepare("INSERT INTO " + CKPT_TABLE + " (id, work, p2jmap) VALUES (?, ?, ?);");            
+                break;
+            } catch ( NoHostAvailableException e ) {
+                logger.error(methodName, null, "Cannot contact database.  Retrying in 5 seconds.");
+                Thread.sleep(5000);
+            } catch ( Exception e ) {
+                logger.error(methodName, null, "Errors contacting database.  No connetion made.", e);
+                ret = false;
+                break;
+            }            
         }
         return ret;
 	}
@@ -182,7 +190,7 @@ public class HistoryManagerDb
         ByteBuffer buf = ByteBuffer.wrap(bytes);
 
         DbHandle h = dbManager.open();
-        h.saveObject(jobPrepare,  w.getDuccId().getFriendly(), type, isHistory, buf);
+        h.saveObject(s,  w.getDuccId().getFriendly(), type, isHistory, buf);
 
         logger.info(methodName, w.getDuccId(), "----------> Time to save", type, ":", System.currentTimeMillis() - nowP, "Size:", bytes.length, "bytes.");        
     }
@@ -383,6 +391,14 @@ public class HistoryManagerDb
             byte[] bytes = baos.toByteArray();
             ByteBuffer workbuf = ByteBuffer.wrap(bytes);
 
+            if ( logger.isTrace() ) {
+                ConcurrentHashMap<DuccId, IDuccWork> map = work.getMap();
+                for ( DuccId id : map.keySet() ) {
+                    IDuccWork w = map.get(id);
+                    logger.trace(methodName, id, "Checkpointing", w.getClass());
+                }
+            }
+
             baos = new ByteArrayOutputStream();
             out= new ObjectOutputStream(baos);
             out.writeObject(processToJob);
@@ -441,6 +457,13 @@ public class HistoryManagerDb
                 for ( DuccId id : ids ) {
                     DuccWorkReservation res = (DuccWorkReservation) work.findDuccWork(DuccType.Reservation, ""+id.getFriendly());
                     if ( r != null ) res.initLogger();
+                }
+
+                // only gets called once per boot and might be useful, let's leave at info
+                ConcurrentHashMap<DuccId, IDuccWork> map = work.getMap();
+                for ( DuccId id : map.keySet() ) {
+                    IDuccWork w = map.get(id);
+                    logger.info(methodName, id, "Restored", w.getClass());
                 }
                 
                 ret = new Pair(work, processToJob);

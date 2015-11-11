@@ -229,8 +229,6 @@ class ServiceInstance
 		try {
 			Process p = pb.start();
 
-            // TODO: we should attach these streams to readers in threads because too much output
-            //       can cause blocking, deadlock, ugliness.
 			InputStream stdout = p.getInputStream();
 			InputStream stderr = p.getErrorStream();
 
@@ -317,6 +315,9 @@ class ServiceInstance
         }
         logger.info(methodName, sset.getId(), "START INSTANCE COMPLETE");
 
+        stdout_lines.clear();
+        stderr_lines.clear();
+
         return numeric_id;
     }
 
@@ -355,57 +356,31 @@ class ServiceInstance
         ProcessBuilder pb = new ProcessBuilder(args);
         Map<String, String> env = pb.environment();
         env.put("DUCC_HOME", System.getProperty("DUCC_HOME"));
-            
-        ArrayList<String> stdout_lines = new ArrayList<String>();
-        ArrayList<String> stderr_lines = new ArrayList<String>();
+
+        StdioListener sin_listener = null;
+        StdioListener ser_listener = null;
+
         int rc = 0;
         try {
             Process p = pb.start();
-                
+
+            InputStream stdout = p.getInputStream();
+			InputStream stderr = p.getErrorStream();
+
+            sin_listener = new StdioListener(1, stdout, true);
+            ser_listener = new StdioListener(2, stderr, true);
+            Thread sol = new Thread(sin_listener);
+            Thread sel = new Thread(ser_listener);
+            sol.start();
+            sel.start();
+   
             rc = p.waitFor();
             logger.info(methodName, sset.getId(), "DuccServiceCancel returns with rc", rc);
 
-            if (logger.isTrace() || (rc != 0)) {
-                InputStream stdout = p.getInputStream();
-                InputStream stderr = p.getErrorStream();
-                BufferedReader stdout_reader = new BufferedReader(new InputStreamReader(stdout));
-                BufferedReader stderr_reader = new BufferedReader(new InputStreamReader(stderr));
-                
-                String line = null;
-                while ( (line = stdout_reader.readLine()) != null ) {
-                    stdout_lines.add(line);
-                }
-                
-                line = null;
-                while ( (line = stderr_reader.readLine()) != null ) {
-                    stderr_lines.add(line);
-                }
-            }
-                
+            sin_listener.stop();
+            ser_listener.stop();                
         } catch (Throwable t) {
-            // TODO Auto-generated catch block
             logger.error(methodName, null, t);
-        }
-
-        if ( logger.isTrace() || ( rc != 0) ) {
-            boolean inhibit_cp = false;
-            for ( String s : stdout_lines ) {
-                // simple logic to inhibit printing the danged classpath
-                if ( inhibit_cp ) {
-                    inhibit_cp = false;
-                    logger.info(methodName, sset.getId(), "Instance", numeric_id, "<INHIBITED CP>");
-                } else {
-                    logger.info(methodName, sset.getId(), "Instance", numeric_id, "Stop stdout:", s);
-                }
-                
-                if ( s.indexOf("-cp") >= 0 ) {
-                    inhibit_cp = true;
-                }
-            }
-            
-            for ( String s : stderr_lines ) {
-                logger.info(methodName, sset.getId(), "Instance", numeric_id, "Stop stderr:", s);
-            }
         }
     }
 
@@ -416,8 +391,9 @@ class ServiceInstance
         String tag;
         boolean done = false;
         int which = 0;
+        boolean ignore = false;
 
-        StdioListener(int which, InputStream in)
+        StdioListener(int which, InputStream in, boolean ignore)
         {
             this.in = in;
             this.which = which;
@@ -425,6 +401,13 @@ class ServiceInstance
                case 1: tag = "STDOUT: "; break;
                case 2: tag = "STDERR: "; break;
             }
+            this.ignore = ignore;
+            this.ignore = ignore;
+        }
+
+        StdioListener(int which, InputStream in)
+        {
+            this(which, in, false);
         }
 
         void stop()
@@ -450,6 +433,8 @@ class ServiceInstance
                         logger.info(methodName, sset.getId(), msg);
                         return;
                     }
+                    if ( ignore ) continue;  // just discarding it
+
                     switch ( which ) {
                         case 1:
                             stdout_lines.add(s);

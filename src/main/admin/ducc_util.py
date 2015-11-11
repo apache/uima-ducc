@@ -208,6 +208,11 @@ class DuccUtil(DuccBase):
         if ( dbnode == None ):
             print 'No database location defined.'
             return False
+
+        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
+        if ( not os.path.exists(pidfile) ):
+            print 'Database pid file does not exist.  Checking DB connectivity.'
+
         # get our log4j config into the path to shut up noisy logging
         os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ':' + self.DUCC_HOME + '/resources'
         
@@ -269,11 +274,11 @@ class DuccUtil(DuccBase):
             return True
 
         pidfile = self.DUCC_HOME + '/state/cassandra.pid'
-
-        # for cassandra, just send it a terminate signal.  a pidfile is written on startup
-        CMD = ['kill', '-TERM', '`cat ' + pidfile + '`']
-        CMD = ' '.join(CMD)
-        os.system(CMD)
+        if ( os.path.exists(pidfile) ):
+            # for cassandra, just send it a terminate signal.  a pidfile is written on startup
+            CMD = ['kill', '-TERM', '`cat ' + pidfile + '`']
+            CMD = ' '.join(CMD)
+            os.system(CMD)
 
     def find_netstat(self):
         # don't you wish people would get together on where stuff lives?

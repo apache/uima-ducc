@@ -20,11 +20,14 @@
 package org.apache.uima.ducc.database;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.persistence.IDbProperty;
 import org.apache.uima.ducc.common.persistence.IDbProperty.Type;
+
+import com.datastax.driver.core.Row;
 
 /**
  * Static common helper methods.
@@ -224,6 +227,51 @@ class DbUtil
             default:
                 return val.toString();
         }
+    }
+
+    /**
+     * Common code to pull things from a row according to the schema, into a map
+     */
+    static Map<String, Object> getProperties(IDbProperty[] props, Row r)
+    {
+        Map<String, Object> ret = new HashMap<String, Object>();
+        for ( IDbProperty p : props ) {
+            if ( p.isPrivate() ) continue;
+            if ( p.isMeta()    ) continue;
+            Object val = null;
+            switch ( p.type() ) {
+
+                case String: 
+                    val = r.getString(p.columnName());
+                    break;
+
+                case Integer: 
+                    val = r.getInt(p.columnName());
+                    break;
+
+                case Long: 
+                    val = r.getLong(p.columnName());
+                    break;
+
+                case Double: 
+                    val = r.getDouble(p.columnName());
+                    break;
+
+                case UUID: 
+                    val = r.getUUID(p.columnName());
+                    break;
+
+                case Boolean: 
+                    val = r.getBool(p.columnName());
+                    break;
+
+                case Blob: 
+                    val = r.getBytes(p.columnName());
+                    break;
+            }
+            if ( val != null ) ret.put(p.pname(), val);
+        }
+        return ret;
     }
 
     /**

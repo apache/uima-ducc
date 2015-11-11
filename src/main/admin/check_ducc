@@ -55,7 +55,7 @@ class CheckDucc(DuccUtil):
         if ( self.db_bypass == True ):
             return True
 
-        ret = self.db_alive(3)
+        ret = self.db_alive(1)
         if ( ret ):
             print 'The database is running'
         else:

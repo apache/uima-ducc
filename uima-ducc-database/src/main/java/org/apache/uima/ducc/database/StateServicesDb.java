@@ -36,6 +36,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.SimpleStatement;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
 
 public class StateServicesDb
     implements IStateServices
@@ -72,13 +73,19 @@ public class StateServicesDb
         if ( dbm != null ) {
             this.dbManager = dbm;
         } else {
-            try {
-                dbManager = new DbManager(dburl, logger);
-                dbManager.init();
-                ret = true;
-            } catch ( Exception e ) {
-                logger.error(methodName, null, "Cannot open the state database:", e);
-                throw e;
+            while ( true ) {
+                try {
+                    dbManager = new DbManager(dburl, logger);
+                    dbManager.init();
+                    break;
+                } catch ( NoHostAvailableException e ) {
+                    logger.error(methodName, null, "Cannot contact the database host, Retryng connection in 5 seconds.");
+                    Thread.sleep(5000);
+                } catch ( Exception e ) {
+                    logger.error(methodName, null, "Cannot open the database.", e);
+                    ret = false;
+                    break;
+                }
             }
         }
 
@@ -112,32 +119,24 @@ public class StateServicesDb
         s.setFetchSize(100);
         DbHandle h = dbManager.open();
         ResultSet rs = h.execute(s);
-        for ( Row r: rs ) {
-            long id = Long.parseLong(r.getString("numeric_id"));
-            DuccId did = new DuccId(id);
-            logger.debug(methodName, did, "Found properties in table", tableid);
+        for ( Row r : rs ) {
+            Map<String, Object> rowvals = DbUtil.getProperties(props, r);
             DuccProperties dp = new DuccProperties();
-            for ( IDbProperty p : props ) {
-                String val = null;
-                if ( logger.isTrace() ) {
-                    logger.info(methodName, null, "Fetching", p.pname(), "from", tableid);
-                }
-                if ( !(p.isPrivate() || p.isMeta()) ) {    // collect non-private / non-meta properties into dp
-                    val = r.getString(p.columnName());                    
-                    if ( val != null ) {
-                        dp.put(p.pname(), val);
-                    }
-                }
-                if ( p.isPrimaryKey() ) {                  // once we find the key we set the dp int return val
-                	String k = null;
-                    if ( val == null ) {
-                        k = r.getString(p.columnName());
-                    } else {
-                        k = val;
-                    }
-                    ret.put(Long.parseLong(k), dp);
-                }
+            for (String k : rowvals.keySet()) {
+                dp.put(k, rowvals.get(k));
             }
+
+            // if these don't work the DB is busted.  This set of properties is now useless.
+            try {
+                String id = r.getString(IStateServices.SvcRegProps.numeric_id.pname());
+                if ( id == null ) {
+                    throw new IllegalStateException("Missing numeric id for service properties.");
+                }
+                ret.put(Long.parseLong(id), dp);
+            } catch ( Exception e ) {
+                logger.error(methodName, null, "Fatal error recovering properties.  Discarding row.");
+            }
+
         }
     	return ret;
     }
@@ -354,7 +353,9 @@ public class StateServicesDb
             Object[] updates = new Object[props.size()*2];
             int i = 0;
             for ( IDbProperty k : map.keySet() ) {
-            	logger.info(methodName, null, "Updating", k.columnName(), "with", map.get(k));
+                if ( logger.isTrace() ) {
+                    logger.trace(methodName, null, "Updating", k.columnName(), "with", map.get(k));
+                }
                 updates[i++] = k;
                 updates[i++] = map.get(k);
             }
@@ -408,45 +409,5 @@ public class StateServicesDb
 
         return ret;
     }
-
-    // static String[] mkSchemaForReg()
-    // {
-
-    //     int size = SvcRegProps.values().length;
-    //     String[] ret = new String[size];
-
-    //     int ndx = 0;
-
-    //     for ( SvcRegProps p: SvcRegProps.values() ) {
-    //         String s = p.pname();
-    //         s = s + " " + DbUtil.typeToString(p.type());
-    //         if ( p.isPrimaryKey() ) {
-    //             s = s + " PRIMARY KEY";
-    //         }
-    //         ret[ndx++] = s;
-    //     }
-    //     return ret;
-
-    // }
-
-    // static String[] mkSchemaForMeta()
-    // {
-    //     int size = SvcMetaProps.values().length;
-    //     String[] ret = new String[size];
-
-    //     int ndx = 0;
-
-    //     for ( SvcMetaProps p: SvcMetaProps.values() ) {
-    //         String s = p.pname();
-    //         s = s + " " + DbUtil.typeToString(p.type());
-    //         if ( p.isPrimaryKey() ) {
-    //             s = s + " PRIMARY KEY";
-    //         }
-    //         ret[ndx++] = s;
-    //     }
-
-    //     return ret;
-
-    // }
 
 }

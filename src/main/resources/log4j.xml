@@ -140,12 +140,13 @@
     </layout> 
   </appender> 
   
-   <category name="org.apache.uima.ducc.rm.scheduler" additivity="true">
+   <category name="org.apache.uima.ducc.rm" additivity="true">
      <priority value="debug"/>
      <appender-ref ref="rmlog" /> 
    </category>
 
-   <category name="org.apache.uima.ducc.rm.JobManagerConverter" additivity="true">
+   <!-- Please keep these for reference as they focus on specific components of interest during debug. -->
+   <!-- category name="org.apache.uima.ducc.rm.JobManagerConverter" additivity="true">
      <priority value="info"/>
      <appender-ref ref="rmlog" /> 
    </category>
@@ -158,7 +159,7 @@
    <category name="org.apache.uima.ducc.rm.ResourceManagerComponent" additivity="true">
      <priority value="info"/>
      <appender-ref ref="rmlog" /> 
-   </category>
+   </category -->
 
    <category name="org.apache.uima.ducc.orchestrator" additivity="true">
      <priority value="info"/>
@@ -238,6 +239,11 @@
    <category name="org.apache.uima.ducc.transport.configuration.jp" additivity="false">
      <priority value="info"/>
      <appender-ref ref="jp-log" /> 
+   </category>
+
+   <!-- cassandra client -->
+   <category name="com.datastax.driver">
+     <priority value="warn"/>
    </category>
 
    <category name="org.apache.uima.ducc.database.DbLoader" additivity="true">

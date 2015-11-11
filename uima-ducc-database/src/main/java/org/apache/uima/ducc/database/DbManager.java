@@ -33,6 +33,8 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.SimpleStatement;
+import com.datastax.driver.core.policies.ConstantReconnectionPolicy;
+import com.datastax.driver.core.policies.ReconnectionPolicy;
 
 /**
  * Provide a common point for contacting the db, acquiring sessions/handles to it, managing the db,
@@ -90,9 +92,11 @@ public class DbManager
         String pw = dbPassword();
         PlainTextAuthProvider auth = new PlainTextAuthProvider("ducc", pw);
 
+        ReconnectionPolicy rp = new ConstantReconnectionPolicy(10000);  // if we lose connection, keep trying every 10 seconds
         cluster = Cluster.builder()
             .withAuthProvider(auth)
             .addContactPoint(dburl)
+            .withReconnectionPolicy(rp)
             .build();
 
         Metadata metadata = cluster.getMetadata();
@@ -107,7 +111,7 @@ public class DbManager
     {
     	String methodName = "closeDatabase";
         logger.info(methodName, null, "Closing the database.");
-        cluster.close();        
+        if ( cluster != null ) cluster.close();        
         cluster = null;
         session = null;
     }

@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.sm;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Timestamp;
@@ -31,6 +33,8 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
+
+import javax.naming.ServiceUnavailableException;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
@@ -1048,8 +1052,14 @@ public class ServiceSet
             monitor.init(null);
             monitor.clearQueues();
             monitor.stop(	);
+        } catch (IOException e) {
+            Throwable t = e.getCause();
+            // ServiceUnavailbleException means it's gone already and we're processing some sort of stale state
+            // that's still floating around.
+            if ( ! (t instanceof ServiceUnavailableException) ) {
+                logger.info(methodName, id, e);
+            }
         } catch (Throwable e) {
-            // totally not a problem, just lost it
             logger.info(methodName, id, e.toString());
         }
     }
@@ -1866,6 +1876,8 @@ public class ServiceSet
         };
 
         ProcessBuilder pb = new ProcessBuilder(args);
+        pb.redirectOutput(new File("/dev/null"));
+        pb.redirectError(new File("/dev/null"));
         try {
             Process p = pb.start();
             int rc = p.waitFor();

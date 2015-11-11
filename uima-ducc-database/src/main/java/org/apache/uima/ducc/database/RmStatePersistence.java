@@ -32,6 +32,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.SimpleStatement;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
 
 /**
  * Manage saving and fetching of transient RM state.  The primary consumer is
@@ -52,13 +53,22 @@ public class RmStatePersistence
     private boolean init(String dburl)
         throws Exception
     {
+    	String methodName = "init";
         boolean ret = false;
-        try {
-            dbManager = new DbManager(dburl, logger);
-            dbManager.init();
-            ret = true;
-        } catch ( Exception e ) {
-            throw e;
+        while ( true ) {
+            try {
+                dbManager = new DbManager(dburl, logger);
+                dbManager.init();
+                ret = true;
+                break;
+            } catch ( NoHostAvailableException e ) {
+                logger.error(methodName, null, "Cannot contact database.  Retrying in 5 seconds.");
+                Thread.sleep(5000);
+            } catch ( Exception e ) {
+                logger.error(methodName, null, "Errors contacting database.  No connetion made.", e);
+                ret = false;
+                break;
+            }
         }
         return ret;
     }
@@ -180,39 +190,8 @@ public class RmStatePersistence
         DbHandle h = dbManager.open();
         ResultSet rs = h.execute(cql);
         for ( Row r : rs ) {
-            Map<String, Object> mach = new HashMap<String, Object>();
-            // We don't expect any nulls in this table
-            for ( RmNodes n : RmNodes.values() ) {
-                if ( n.isPrivate() ) continue;
-                if ( n.isMeta()    ) continue;
-                switch ( n.type() ) {
-
-                    case String: {
-                        String  v = r.getString(n.columnName());
-                        mach.put(n.pname(), v);
-                        if ( n == RmNodes.Name ) {
-                            ret.put(v, mach);                            
-                        }
-                    }
-                    break;
-
-                    case Integer: {
-                        int v = r.getInt(n.columnName());
-                        mach.put(n.pname(), v);
-                    }
-                    break;
-
-                    case Boolean: {
-                        boolean v = r.getBool(n.columnName());
-                        mach.put(n.pname(), v);
-                    }
-                    break;
-
-                    default:
-                        logger.warn(methodName, null, "Unexpected value in db:", n.pname(), "type", n.type(), "is not recognized.");
-                        break;
-                }
-            }
+            Map<String, Object> mach = DbUtil.getProperties(RmNodes.values(), r);
+            ret.put((String)mach.get(RmNodes.Name.pname()), mach);
         }
         return ret;
    }
