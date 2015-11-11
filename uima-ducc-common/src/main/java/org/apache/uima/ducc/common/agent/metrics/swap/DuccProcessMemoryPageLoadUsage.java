@@ -36,6 +36,7 @@ public class DuccProcessMemoryPageLoadUsage implements
 		String[] command = new String[] {"/bin/ps","-o","maj_flt",pid};
 
 		ProcessBuilder builder = new ProcessBuilder(command);
+		builder.redirectErrorStream(true);
 		Process process = builder.start();
 		InputStream is = process.getInputStream();
 		InputStreamReader isr = new InputStreamReader(is);
@@ -56,9 +57,10 @@ public class DuccProcessMemoryPageLoadUsage implements
 			if (is != null) {
 				is.close();
 			}
+			process.waitFor();
 			process.destroy();
 		}
-		process.waitFor();
+		
 		if ( faults != null) {
 			return Long.parseLong(faults.trim());
 		} else {
