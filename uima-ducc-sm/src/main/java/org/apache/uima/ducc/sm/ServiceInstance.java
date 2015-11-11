@@ -19,7 +19,7 @@
 package org.apache.uima.ducc.sm;
 
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -357,28 +357,15 @@ class ServiceInstance
         Map<String, String> env = pb.environment();
         env.put("DUCC_HOME", System.getProperty("DUCC_HOME"));
 
-        StdioListener sin_listener = null;
-        StdioListener ser_listener = null;
+        pb.redirectOutput(new File("/dev/null"));
+        pb.redirectError(new File("/dev/null"));
 
         int rc = 0;
         try {
             Process p = pb.start();
-
-            InputStream stdout = p.getInputStream();
-			InputStream stderr = p.getErrorStream();
-
-            sin_listener = new StdioListener(1, stdout, true);
-            ser_listener = new StdioListener(2, stderr, true);
-            Thread sol = new Thread(sin_listener);
-            Thread sel = new Thread(ser_listener);
-            sol.start();
-            sel.start();
    
             rc = p.waitFor();
             logger.info(methodName, sset.getId(), "DuccServiceCancel returns with rc", rc);
-
-            sin_listener.stop();
-            ser_listener.stop();                
         } catch (Throwable t) {
             logger.error(methodName, null, t);
         }
