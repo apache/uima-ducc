@@ -552,7 +552,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 			pb.redirectErrorStream(true);
 			Process proc = pb.start();
-			proc.waitFor();
 			// spawn ps command and scrape the output
 			stream = proc.getInputStream();
 			reader = new BufferedReader(new InputStreamReader(stream));
@@ -571,6 +570,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 				cpuTime = cpuTime.substring(0, cpuTime.indexOf("."));
 			}
 			stream.close();
+			proc.waitFor();
 			try {
 				cpuint = Integer.valueOf(cpuTime);
 			} catch (NumberFormatException e) {
