@@ -162,7 +162,6 @@ class DuccUtil(DuccBase):
 
     def db_configure(self):
         dbhost = self.ducc_properties.get('ducc.database.host')
-        print '----- dbhost', dbhost
         if ( dbhost == self.db_disabled ):
             self.db_bypass = True
             return;
