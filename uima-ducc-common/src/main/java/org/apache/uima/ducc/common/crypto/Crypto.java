@@ -43,6 +43,7 @@ import java.security.spec.RSAPublicKeySpec;
 
 import javax.crypto.Cipher;
 
+import org.apache.uima.ducc.common.RuntimeStreamsConsumer;
 import org.apache.uima.ducc.common.utils.AlienFile;
 
 public class Crypto implements ICrypto {
@@ -182,7 +183,13 @@ public class Crypto implements ICrypto {
 		try {
 			Process process;
 			process = Runtime.getRuntime().exec(cmd);
+			RuntimeStreamsConsumer errConsumer = new RuntimeStreamsConsumer(process.getErrorStream(), System.err);
+			RuntimeStreamsConsumer outConsumer = new RuntimeStreamsConsumer(process.getErrorStream(), System.out);
+			errConsumer.start();
+			outConsumer.start();
 			process.waitFor();
+			errConsumer.join();
+			outConsumer.join();
 		}
 		catch(Exception e) {
 			throw new CryptoException(e);
