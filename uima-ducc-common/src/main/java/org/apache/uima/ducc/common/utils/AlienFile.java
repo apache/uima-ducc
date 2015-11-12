@@ -20,6 +20,7 @@ package org.apache.uima.ducc.common.utils;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.zip.GZIPInputStream;
@@ -34,6 +35,8 @@ public class AlienFile extends AlienAbstract {
 	
 	private String command_cat = "/bin/cat";
 	private String file_name;
+	
+	private File devNull = new File("/dev/null");
 	
 	protected void set_command_cat(String value) {
 		command_cat = value;
@@ -71,7 +74,7 @@ public class AlienFile extends AlienAbstract {
 		String[] command = getCommand();
 		echo(command);
 		ProcessBuilder pb = new ProcessBuilder( command );
-		pb = pb.redirectErrorStream(true);
+		pb = pb.redirectError(devNull);
 		Process p = pb.start();
 		InputStream pOut = p.getInputStream();
 		InputStreamReader isr;
@@ -103,8 +106,8 @@ public class AlienFile extends AlienAbstract {
 			String[] command = getCommand();
 			echo(command);
 			ProcessBuilder pb = new ProcessBuilder( command );
+			pb = pb.redirectError(devNull);
 			Process p = pb.start();
-			//p.waitFor();
 			InputStream pOut = p.getInputStream();
 			if(FileHelper.isGzFileType(file_name)) {
 				GZIPInputStream gis = new GZIPInputStream(pOut);
@@ -144,8 +147,8 @@ public class AlienFile extends AlienAbstract {
 			String[] command = getCommand();
 			echo(command);
 			ProcessBuilder pb = new ProcessBuilder( command );
+			pb = pb.redirectError(devNull);
 			Process p = pb.start();
-			//p.waitFor();
 			InputStream pOut = p.getInputStream();
 			if(FileHelper.isGzFileType(file_name)) {
 				GZIPInputStream gis = new GZIPInputStream(pOut);
@@ -167,8 +170,8 @@ public class AlienFile extends AlienAbstract {
 			String[] command = getCommand();
 			echo(command);
 			ProcessBuilder pb = new ProcessBuilder( command );
+			pb = pb.redirectError(devNull);
 			Process p = pb.start();
-			//p.waitFor();
 			InputStream pOut = p.getInputStream();
 			dis= new DataInputStream(pOut);
 		} 
