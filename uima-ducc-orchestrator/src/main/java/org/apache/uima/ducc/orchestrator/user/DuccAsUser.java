@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.orchestrator.user;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
@@ -37,6 +38,8 @@ public class DuccAsUser {
 	public static String magicString = "1001 Command launching...";
 	
 	public static String identity = "orchestrator";
+	
+	private static File devNull = new File("/dev/null");
 	
 	public static String duckling(String user, String file, String text) {
 		
@@ -73,10 +76,10 @@ public class DuccAsUser {
 		env.put("JobId", identity);
 		
 		try {
+			pb = pb.redirectError(devNull);
 			Process process = pb.start();
 			String line;
 			BufferedReader bri = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			BufferedReader bre = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 			boolean trigger = false;
 			duccLogger.trace(methodName, null, "read stdout: start");
 			while ((line = bri.readLine()) != null) {
@@ -91,13 +94,6 @@ public class DuccAsUser {
 			}
 			bri.close();
 			duccLogger.trace(methodName, null, "read stdout: end");
-			duccLogger.trace(methodName, null, "read stderr: start");
-			while ((line = bre.readLine()) != null) {
-				duccLogger.warn(methodName, null, "stderr: "+line);
-				retVal.append(line);
-			}
-			bre.close();
-			duccLogger.trace(methodName, null, "read stderr: end");
 			duccLogger.trace(methodName, null, "process waitfor: start");
 			process.waitFor();
 			duccLogger.trace(methodName, null, "process waitfor: end");
