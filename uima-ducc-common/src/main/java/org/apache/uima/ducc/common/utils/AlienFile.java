@@ -71,8 +71,8 @@ public class AlienFile extends AlienAbstract {
 		String[] command = getCommand();
 		echo(command);
 		ProcessBuilder pb = new ProcessBuilder( command );
+		pb = pb.redirectErrorStream(true);
 		Process p = pb.start();
-		//p.waitFor();
 		InputStream pOut = p.getInputStream();
 		InputStreamReader isr;
 		if(FileHelper.isGzFileType(file_name)) {
@@ -84,12 +84,13 @@ public class AlienFile extends AlienAbstract {
 		}
 		BufferedReader br = new BufferedReader(isr);
 		int size = 0;
-        int rc = 0;
-        while(rc >= 0) {
-			rc = br.read();
+        int readChar = 0;
+        while(readChar >= 0) {
+			readChar = br.read();
 	        size++;
 		}
-        String text = ""+size;
+        int rc = p.waitFor();
+        String text = "rc="+rc+" "+"size="+size;
         duccLogger.debug(methodName, duccId, text);
         return size;
 	}
