@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
@@ -48,6 +49,8 @@ public class AlienTextFile extends AlienAbstract {
 	private static int page_bytes = 64*4096;
 	
 	private String file_name;
+	
+	private File devNull = new File("/dev/null");
 	
 	public AlienTextFile(EffectiveUser eu, String file_name) {
 		init(eu.get(), file_name);
@@ -124,6 +127,7 @@ public class AlienTextFile extends AlienAbstract {
 		try {
 			trace(command);
 			ProcessBuilder pb = new ProcessBuilder( command );
+			pb = pb.redirectError(devNull);
 			Process process = pb.start();
 			InputStream is = process.getInputStream();
 	        InputStreamReader isr = new InputStreamReader(is);
