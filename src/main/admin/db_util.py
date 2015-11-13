@@ -26,6 +26,24 @@ def manual_config(DUCC_HOME, DUCC_HEAD):
     print ''
     print 'Note that one occurance of DUCC_HEAD will be quoted: you must preserve these quotes, e.g. as "' + DUCC_HEAD + '".'
 
+def update_cassandra_config(DUCC_HOME, DUCC_HEAD):
+    # Read cassandra.yaml and change the things necessary to configure it correctly
+    config = DUCC_HOME + '/cassandra-server/conf/cassandra.yaml'
+    f = open(config)
+    lines = []
+    for line in f:
+        if ( line.startswith('listen_address:') ):
+            line = line.strip();
+            print 'Database host is configured at', line
+            if ( not DUCC_HEAD in line ):
+                print 'Must reconfigure listen_address to', DUCC_HEAD
+                parts = line.strip().split(':')
+                old = parts[1].strip()
+                ch_head = "sed -i.bak s'/" + old + "/" + DUCC_HEAD + "'/ " + config
+                os.system(ch_head)
+        
+
+
 def configure_database(DUCC_HOME, DUCC_HEAD, java, db_pw):
     # for cassandra:
     # in ducc_runtime/cassandra-server/conf we need to update cassandra.yaml to establish
@@ -50,22 +68,7 @@ def configure_database(DUCC_HOME, DUCC_HEAD, java, db_pw):
         print 'Database support will be bypassed'
         return True
         
-    config =  DUCC_HOME + '/cassandra-server/conf/cassandra.yaml'
-    esc_home = DUCC_HOME.replace("/", "\/")    # for sed
-
-    # must configure the database node to be the same as the ducc head, and the database location
-    # to be DUCC_HEAD
-    ch_head = "sed -i.bak s'/DUCC_HEAD/" + DUCC_HEAD + "'/ " + config
-    if ( execute(ch_head) != 0 ):
-        print 'Could not configure', config + '.  You may need to recover it from', config+'.bak.'
-        manual_config(DUCC_HOME, DUCC_HEAD)
-        return False
-
-    ch_home = "sed -i.bak s'/DUCC_HOME/" + esc_home + "'/ " + config
-    if ( execute(ch_home) != 0):
-        print 'Could not configure', config + '.  You may need to recover it from', config+'.bak.'
-        manual_config(DUCC_HOME, DUCC_HEAD)
-        return False
+    update_cassandra_config(DUCC_HOME, DUCC_HEAD)
 
     here = os.getcwd()
     os.chdir(DUCC_HOME + "/cassandra-server")

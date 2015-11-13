@@ -350,7 +350,10 @@ class CheckDucc(DuccUtil):
         self.threadpool.quit()
 
         if ( self.kill_signal != None ):
+            print 'Stopping broker'
             self.stop_broker()
+            print 'Stopping database'
+            self.db_stop()
                 
         if ( len(self.pids) == 0):
             if ( os.path.exists(self.pid_file) ):

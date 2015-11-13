@@ -50,6 +50,8 @@ sys.path.append(DUCC_HOME + '/bin')
 from ducc_base import DuccBase
 from properties import Properties
 
+import db_util as dbu
+
 global use_threading
 use_threading = True
 
@@ -234,6 +236,7 @@ class DuccUtil(DuccBase):
 
         print 'Starting database'
         dbnode = self.ducc_properties.get('ducc.state.database.url')
+        dbu.update_cassandra_config(self.DUCC_HOME, dbnode)
 
         max_attempts = 5
         attempt = 0

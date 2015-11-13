@@ -55,7 +55,7 @@ class DbLoader(DuccUtil):
         print '         Specifies the DUCC_HOME of the DUCC runtime to be moved into the database.'
         print '    -o dburl'
         print '         Specifies the database URL to contact to store the items.'
-        print '    --noarchive'
+        print '    --no-archive'
         print '         Suppresses archival of the input files.'
         print ''
         print 'Notes:'

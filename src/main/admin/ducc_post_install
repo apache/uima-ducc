@@ -310,7 +310,7 @@ class PostInstall():
         for f in spot_checked_directories:
             if ( not os.path.exists(f) ):
                 print 'ERROR: Directory', f, 'cannot be found.'
-                ret = false
+                ret = False
                 continue
 
             stat = os.stat(f)

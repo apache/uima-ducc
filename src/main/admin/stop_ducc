@@ -39,6 +39,7 @@ class StopDucc(DuccUtil):
             return
 
         if ( component == 'db' ):
+            print 'Stopping database'
             self.db_stop()
             return
 
@@ -240,6 +241,7 @@ class StopDucc(DuccUtil):
                     print "Stopping broker"
                     self.stop_broker()                
 
+                print "Stopping database"
                 self.db_stop()
 
                 if ( os.path.exists(self.pid_file) ):
