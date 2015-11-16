@@ -60,7 +60,7 @@ class DbCreate(DuccUtil):
         print "        If no options prompts are given for expected parameters."
         print ""
         print "Options:"
-        print "   [-, --db-password] <root password for database>"
+        print "   [-d, --db-password] <root password for database>"
         print "        This is the password DUCC uses to manage the database."
         print ""
         print "   [-h, -? --help]"
