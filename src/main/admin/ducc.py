@@ -49,6 +49,22 @@ class Ducc(DuccUtil):
             return
 
         here = os.getcwd()
+
+        xmx = self.ducc_properties.get('ducc.database.mem.heap')
+        new = self.ducc_properties.get('ducc.database.mem.new')
+
+        if ( not ( xmx == None and new == None ) ):   # if either is set
+            if ( xmx == None or new == None ) :      # then both must be set
+                print "Database properties ducc.database.mem.heap and ducc.database.mem.new must both be set."
+                print 'NOTOK'
+                return            
+            os.environ['MAX_HEAP_SIZE'] = xmx
+            os.environ['HEAP_NEWSIZE'] = new
+
+        jmxport = self.ducc_properties.get('ducc.database.jmx.port')
+        if ( jmxport != None ):
+            os.environ['JMX_PORT'] = jmxport
+
         os.chdir(self.DUCC_HOME + "/cassandra-server")
         pidfile = self.DUCC_HOME + '/state/cassandra.pid'
         CMD = "bin/cassandra -p "+  pidfile + " > /dev/null 2>&1"

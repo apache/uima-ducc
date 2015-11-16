@@ -162,10 +162,15 @@ then
     export MALLOC_ARENA_MAX=4
 fi
 
+
 # Specifies the default port over which Cassandra will be available for
 # JMX connections.
 # For security reasons, you should not expose this port to the internet.  Firewall it if needed.
-JMX_PORT="7199"
+# DUCC: this allows the port to be set externally via ducc.properties
+if [ "x$JMX_PORT" = "x" ]
+then
+    JMX_PORT="7199"
+fi
 
 
 # Here we create the arguments that will get passed to the jvm when
