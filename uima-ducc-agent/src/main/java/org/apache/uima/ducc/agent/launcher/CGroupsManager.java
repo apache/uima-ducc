@@ -601,7 +601,7 @@ public class CGroupsManager {
 			
 			ProcessBuilder processLauncher = new ProcessBuilder();
 			processLauncher.command(commandLine);
-			processLauncher.redirectErrorStream();
+			processLauncher.redirectErrorStream(true);
 
 			java.lang.Process process = processLauncher.start();
 
