@@ -49,7 +49,6 @@ public class DuccProcessMemoryPageLoadUsage implements
 				// skip the header line
 				if (count == 1) {
 					faults = line.trim();
-					break;
 				}
 				count++;
 			}
