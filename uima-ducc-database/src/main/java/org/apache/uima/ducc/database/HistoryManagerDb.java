@@ -170,16 +170,32 @@ public class HistoryManagerDb
     	String methodName = "saveWork";
         Long nowP =  System.currentTimeMillis();
         String type = null;
-        if ( w instanceof IDuccWorkJob ) {
-            type = "job";
-        } else if ( w instanceof IDuccWorkReservation ) {
-            type = "reservation";
-        } else if ( w instanceof IDuccWorkService ) {
-            type = "service";
-        } else {
-        	throw new IllegalArgumentException("Improper object passed to saveWork");
-        }
 
+        switch ( w.getDuccType() ) {
+            case Job:
+                type = "job";
+                break;
+            case Service:
+            case Pop:
+                switch ( ((IDuccWorkService)w).getServiceDeploymentType() ) 
+                    {
+                    case uima:
+                    case custom:
+                        type = "service";
+                        break;
+                    case other:
+                        type = "AP";
+                        break;
+                    }
+                break;
+            case Reservation:
+                type = "reservation";
+                break;
+            default:
+                // illegal - internal error if this happens
+                logger.error(methodName, w.getDuccId(), "Unknown job type", w.getDuccType(), "Cannot save to database.");
+                return;
+        }
         logger.info(methodName, w.getDuccId(), "-------- saving " + type);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
