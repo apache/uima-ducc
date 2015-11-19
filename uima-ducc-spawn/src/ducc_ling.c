@@ -37,13 +37,14 @@
 #include <sys/param.h>
 #include <sys/resource.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "2.0.0"
+#define VERSION "2.1.0"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -75,6 +76,7 @@
  * 2014-07-16 1.1.1 Bug in group switching; show IDS the process is to run with. jrc
  * 2014-07-16 1.1.2 Send group switching msgs to log_stdout so they get covered by -q option. jrc
  * 2015-04-30 2.0.0 Fix hole and update version for DUCC 2.0. jrc
+ * 2015-11-19 2.1.0 Create 2 streams if console port ends with "?splitstreams".  Add timestamp to log. bll
  */
 
 /**
@@ -422,25 +424,36 @@ void redirect_to_file(char *filepath)
  * There is a console listener out in the world somewhere (like an eclipse
  * session with DuccJobSubmit listening to the console).  Connect stdio to that
  * instead of a file.
+ * Syntax:  ipaddr:port<?splitstreams>
  */
 void redirect_to_socket(char *sockloc)
 {
-    int sock;
+    int sock, sock2;
     int port;
     char *hostname;
     char *portname;
-    char * colon;
+    char *p;
     char buf[BUFLEN];
+    int numstreams = 1;
 
-    colon = strchr(sockloc, ':');
-    if ( colon == NULL ) {
+    // Split the host & port apart
+    p = strchr(sockloc, ':');
+    if ( p == NULL ) {
         log_stderr("1700 invalid socket, missing port: %s\n", sockloc);
         exit(1);
     }
-    portname = colon+1;
-    *colon = '\0';
+    *p = '\0';
+    portname = p+1;
     hostname = sockloc;
-    log_stdout("1701 host[%s] port[%s]\n", hostname, portname);
+    // Check for a query string - "splitstreams" => maintain separate stdout/stderr streams
+    p = strchr(portname, '?');
+    if (p != NULL) {
+    	*p++ = '\0';
+    	if (strcmp(p, "splitstreams") == 0) {
+    		numstreams = 2;
+    	}
+    }
+    log_stdout("1701 host[%s] port[%s] streams[%d]\n", hostname, portname, numstreams);
 
     char *en = 0;
     long lport = strtol(portname, &en, 10);
@@ -486,16 +499,46 @@ void redirect_to_socket(char *sockloc)
         perror("1709 Cannot get local socket name, ignoring error.");
     }
 
+    // Optionally create a 2nd socket for stderr
+	if ( numstreams == 1 ) {
+		sock2 = sock;
+	} else {
+		log_stdout("1705 About to connect for stderr\n");
+		sock2 = socket(AF_INET, SOCK_STREAM, 0);
+		if (sock2 == -1) {
+			log_stdout("1707 Error creating stderr socket %s\n",
+					strerror(errno));
+		}
+		if (connect(sock2, (struct sockaddr *) &serv_addr, sizeof(serv_addr))
+				< 0) {
+			perror("1707 Error connecting to stderr socket.");
+			exit(1);
+		}
+		log_stdout("1706 Connected stderr\n");
+
+		if (getsockname(sock2, &sockname, &namelen) == 0) {
+			struct sockaddr_in *sin2 = (struct sockaddr_in *) &sockname;
+			log_stdout("1708 Local stderr port is %d\n", sin2 -> sin_port);
+		} else {
+			perror("1709 Cannot get local stderr socket name, ignoring error.");
+		}
+	}
+
     //
-    // Finally, we seem to have a viable socket, redirect get on with life.
+    // Finally, we seem to have viable sockets, redirect get on with life.
     //
     fflush(stdout);
     fflush(stderr);
 
     int rc0 = dup2(sock, 0);
     int rc1 = dup2(sock, 1);
-    int rc2 = dup2(sock, 2);
+    int rc2 = dup2(sock2, 2);
 
+    // Identify the separate streams to the console listener
+    if (numstreams == 2) {
+    	log_stdout("1500 Stream: STDOUT\n");
+    	log_stderr("1500 Stream: STDERR\n");
+    }
 }
 
 int do_append(char *filepath, int argc, char **argv)
@@ -725,7 +768,7 @@ int main(int argc, char **argv, char **envp)
     renice();
 
     //
-    // Set up logging dir.  We have swithed by this time so we can't do anything the user couldn't do.
+    // Set up logging dir.  We have switched by this time so we can't do anything the user couldn't do.
     //
     if ( redirect ) {
         char *console_port = getenv("DUCC_CONSOLE_LISTENER");
@@ -741,7 +784,11 @@ int main(int argc, char **argv, char **envp)
                 // on console redirection, spit out the name of the log file it would have been
                 log_stdout("1002 CONSOLE_REDIRECT %s\n", logfile);
             }
-        } 
+        }
+        // Start with the current date-time
+    	time_t now = time(0);
+    	log_stdout(ctime(&now));
+
         version();             // this gets echoed as first message into the redirected log
         query_limits();       // Once, for the user
     }
