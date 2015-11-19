@@ -58,7 +58,6 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdReservation;
 import org.apache.uima.ducc.transport.Constants;
-import org.apache.uima.ducc.transport.event.DbComponentPropertiesHelper;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
@@ -78,9 +77,10 @@ import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
-import org.apache.uima.ducc.ws.broker.BrokerHelper;
-import org.apache.uima.ducc.ws.broker.BrokerHelper.FrameworkAttribute;
-import org.apache.uima.ducc.ws.broker.EntityInfo;
+import org.apache.uima.ducc.ws.helper.BrokerHelper;
+import org.apache.uima.ducc.ws.helper.DatabaseHelper;
+import org.apache.uima.ducc.ws.helper.EntityInfo;
+import org.apache.uima.ducc.ws.helper.BrokerHelper.FrameworkAttribute;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
@@ -104,6 +104,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 
+	private static BrokerHelper brokerHelper = BrokerHelper.getInstance();
+	private static DatabaseHelper databaseHelper = DatabaseHelper.getInstance();
+	
 	//private static PagingObserver pagingObserver = PagingObserver.getInstance();
 	
 	private final String jsonFormatJobsAaData					= duccContextJsonFormat+"-aaData-jobs";
@@ -1778,25 +1781,80 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonArray row;
 		
 		DuccDaemonsData duccDaemonsData = DuccDaemonsData.getInstance();
-
+		
+		String wsHostIP = getWebServerHostIP();
+		String wsHostName = getWebServerHostName();
+		
 		daemons:
 		for(DaemonName daemonName : DuccDaemonRuntimeProperties.daemonNames) {
 			row = new JsonArray();
 			String status = "";
-			String heartbeat = "*";
-			String heartmax = "*";
+			String bootTime = "";
+			String hostIP = "";
+			String hostName = "";
+			String pid = "";
+			String pubSizeLast = "";
+			String pubSizeMax = "";
+			String heartbeatLast = "";
+			String heartbeatMax = "";
+			String heartbeatMaxTOD = "";
+			String jmxUrl = null;
 			Properties properties = DuccDaemonRuntimeProperties.getInstance().get(daemonName);
-			if(!db) {
-				switch(daemonName) {
-				case DbManager:
+			switch(daemonName) {
+			case Database:
+				if(databaseHelper.isDisabled()) {
 					continue daemons;
-				default:
-					break;
 				}
 			}
 			switch(daemonName) {
+			case Broker:
+				if(brokerHelper.isAlive()) {
+					status = DuccHandlerUtils.up();
+				}
+				else {
+					status = DuccHandlerUtils.down();
+				}
+				bootTime = getTimeStamp(DuccCookies.getDateStyle(request),brokerHelper.getStartTime());
+				hostName = useWS(wsHostName, brokerHelper.getHost());
+				hostIP = useWS(wsHostName, hostName, wsHostIP);
+				pid = ""+brokerHelper.getPID();
+				pubSizeLast = "-";
+				pubSizeMax = "-";
+				heartbeatLast = "";
+				heartbeatMax = "";
+				heartbeatMaxTOD = "";
+				jmxUrl = brokerHelper.getJmxUrl();
+				break;
+			case Database:
+				if(databaseHelper.isAlive()) {
+					status = DuccHandlerUtils.up();
+				}
+				else {
+					status = DuccHandlerUtils.down();
+				}
+				bootTime = getTimeStamp(DuccCookies.getDateStyle(request),databaseHelper.getStartTime());
+				hostName = useWS(wsHostName, databaseHelper.getHost());
+				hostIP = useWS(wsHostName, hostName, wsHostIP);
+				pid = ""+databaseHelper.getPID();
+				pubSizeLast = "-";
+				pubSizeMax = "-";
+				heartbeatLast = "";
+				heartbeatMax = "";
+				heartbeatMaxTOD = "";
+				jmxUrl = databaseHelper.getJmxUrl();
+				break;
 			case Webserver:
 				status = DuccHandlerUtils.up();
+				bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+				hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
+				hostName = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeName,"");
+				pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
+				pubSizeLast = "*";
+				pubSizeMax = "*";
+				heartbeatLast = "";
+				heartbeatMax = "";
+				heartbeatMaxTOD = "";
+				jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
 				break;
 			default:
 				status = DuccHandlerUtils.unknown();
@@ -1808,11 +1866,17 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 						status += ", "+DuccHandlerUtils.warn("warning: ")+fileNameWithHover+" found.";
 					}
 				}
-				heartbeat = DuccDaemonsData.getInstance().getHeartbeat(daemonName);
+				bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+				hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
+				hostName = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeName,"");
+				pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
+				pubSizeLast = ""+duccDaemonsData.getEventSize(daemonName);
+				pubSizeMax = ""+duccDaemonsData.getEventSizeMax(daemonName);
+				heartbeatLast = DuccDaemonsData.getInstance().getHeartbeat(daemonName);
 				long timeout = getMillisMIA(daemonName)/1000;
 				if(timeout > 0) {
 					try {
-						long overtime = timeout - Long.parseLong(heartbeat);
+						long overtime = timeout - Long.parseLong(heartbeatLast);
 						if(overtime < 0) {
 							status = DuccHandlerUtils.down();
 							if(daemonName.equals(DaemonName.Orchestrator)) {
@@ -1826,15 +1890,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 						}
 						else {
 							status = DuccHandlerUtils.up();
-							if(daemonName.equals(DaemonName.DbManager)) {
-								properties = DuccDaemonsData.getInstance().getProperties(daemonName);
-								if(properties != null) {
-									DbComponentPropertiesHelper dcph = new DbComponentPropertiesHelper(properties);
-									if(dcph.isDisabled()) {
-										status = DuccHandlerUtils.disabled();
-									}
-								} 
-							}
 							if(daemonName.equals(DaemonName.Orchestrator)) {
 								int jdCount = DuccData.getInstance().getLive().getJobDriverNodeCount();
 								if(jdCount == 0) {
@@ -1846,46 +1901,39 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					catch(Throwable t) {
 					}
 				}
-				heartmax = DuccDaemonsData.getInstance().getMaxHeartbeat(daemonName);
+				heartbeatMax = DuccDaemonsData.getInstance().getMaxHeartbeat(daemonName);
+				heartbeatMaxTOD = TimeStamp.simpleFormat(DuccDaemonsData.getInstance().getMaxHeartbeatTOD(daemonName));
+				try {
+					heartbeatMaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),heartbeatMaxTOD);
+				}
+				catch(Exception e) {
+				}
+				jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
 				break;
 			}
 			// Status
 			row.add(new JsonPrimitive(status));
 			// Daemon Name
-			String name = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyDaemonName,daemonName.toString());
-			row.add(new JsonPrimitive(name));
+			row.add(new JsonPrimitive(daemonName.name()));
 			// Boot Time
-			String boot = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
-			row.add(new JsonPrimitive(boot));
+			row.add(new JsonPrimitive(bootTime));
 			// Host IP
-			String ip = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
-			row.add(new JsonPrimitive(ip));
+			row.add(new JsonPrimitive(hostIP));
 			// Host Name
-			String node = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeName,"");
-			row.add(new JsonPrimitive(node));
+			row.add(new JsonPrimitive(hostName));
 			// PID
-			String pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
 			row.add(new JsonPrimitive(pid));
 			// Publication Size (last)
-			Long pubSize = duccDaemonsData.getEventSize(daemonName);
-			row.add(new JsonPrimitive(""+pubSize));
+			row.add(new JsonPrimitive(""+pubSizeLast));
 			// Publication Size (max)
-			Long pubSizeMax = duccDaemonsData.getEventSizeMax(daemonName);
 			row.add(new JsonPrimitive(""+pubSizeMax));
 			// Heartbeat (last)
-			row.add(new JsonPrimitive(""+heartbeat));
+			row.add(new JsonPrimitive(""+heartbeatLast));
 			// Heartbeat (max)
-			row.add(new JsonPrimitive(""+heartmax));
+			row.add(new JsonPrimitive(""+heartbeatMax));
 			// Heartbeat (max) TOD
-			String heartmaxTOD = TimeStamp.simpleFormat(DuccDaemonsData.getInstance().getMaxHeartbeatTOD(daemonName));
-			try {
-				heartmaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),heartmaxTOD);
-			}
-			catch(Exception e) {
-			}
-			row.add(new JsonPrimitive(""+heartmaxTOD));
+			row.add(new JsonPrimitive(""+heartbeatMaxTOD));
 			// JConsole URL
-			String jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
 			String jmxUrlLink = "";
 			if(jmxUrl != null) {
 				jmxUrlLink = buildjConsoleLink(jmxUrl);

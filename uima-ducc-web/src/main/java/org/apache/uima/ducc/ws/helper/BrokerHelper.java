@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ws.broker;
+package org.apache.uima.ducc.ws.helper;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
@@ -57,6 +57,8 @@ public class BrokerHelper {
 	private String host = "?";
 	private int port = 1100;
 	
+	private String jmxUrl = null;
+	
 	private JMXServiceURL url;
 	private JMXConnector jmxc;
 	private MBeanServerConnection mbsc;
@@ -80,7 +82,9 @@ public class BrokerHelper {
 			key = "ducc.broker.jmx.port";
 			value = duccPropertiesResolver.getCachedProperty(key);
 			setPort(value);
-			url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://"+getHost()+":"+getPort()+"/jmxrmi");
+			value = "service:jmx:rmi:///jndi/rmi://"+getHost()+":"+getPort()+"/jmxrmi";
+			setJmxUrl(value);
+			url = new JMXServiceURL(getJmxUrl());
 			jmxc = JMXConnectorFactory.connect(url, null);
 			mbsc = jmxc.getMBeanServerConnection();
 			remoteOperatingSystem = 
@@ -93,8 +97,6 @@ public class BrokerHelper {
 	                    mbsc,
 	                    ManagementFactory.THREAD_MXBEAN_NAME,
 	                    ThreadMXBean.class);
-			
-			
 		}
 		catch(Exception e) {
 			duccLogger.error(location, jobid, e);
@@ -123,6 +125,14 @@ public class BrokerHelper {
 		return port;
 	}
 	
+	private void setJmxUrl(String value) {
+		jmxUrl = value;
+	}
+	
+	public String getJmxUrl() {
+		return jmxUrl;
+	}
+	
 	// Memory Info //
 	
 	public Long getMemoryUsed() {
@@ -146,6 +156,42 @@ public class BrokerHelper {
 			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Memory"), "HeapMemoryUsage");
 			CompositeData cd = (CompositeData) o;
 			retVal = (Long) cd.get("max");
+		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	// Runtime Info //
+	
+	public boolean isAlive() {
+		boolean retVal = false;
+		if(getPID() != 0) {
+			retVal = true;
+		}
+		return retVal;
+	}
+	
+	public Long getStartTime() {
+		String location = "getStartTime";
+		Long retVal = new Long(0);
+		try {
+			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "StartTime");
+			retVal = (Long) o;
+		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	public Long getPID() {
+		String location = "getPID";
+		Long retVal = new Long(0);
+		try {
+			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "ProcessID");
+			retVal = (Long) o;
 		}
 		catch(Exception e) {
 			duccLogger.error(location, jobid, e);

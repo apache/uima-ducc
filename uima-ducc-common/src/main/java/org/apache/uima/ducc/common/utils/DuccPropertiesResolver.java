@@ -106,6 +106,11 @@ public class DuccPropertiesResolver {
     public static final String ducc_broker_jmx_port = "ducc.broker.jmx.port";
     public static final String ducc_jms_provider = "ducc.jms.provider";
     
+    public static final String ducc_database_host = "ducc.database.host";
+    public static final String ducc_database_disabled = "--disabled--";
+    public static final String ducc_database_jmx_host = "ducc.database.jmx.host";
+    public static final String ducc_database_jmx_port = "ducc.database.jmx.port";
+    
     public static final String ducc_orchestrator_state_publish_rate = "ducc.orchestrator.state.publish.rate";
     public static final String ducc_orchestrator_state_update_endpoint_type = "ducc.orchestrator.state.update.endpoint.type";
     public static final String ducc_orchestrator_state_update_endpoint = "ducc.orchestrator.state.update.endpoint";

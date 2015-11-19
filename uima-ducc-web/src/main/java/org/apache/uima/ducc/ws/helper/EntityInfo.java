@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ws.broker;
+package org.apache.uima.ducc.ws.helper;
 
 public class EntityInfo {
 

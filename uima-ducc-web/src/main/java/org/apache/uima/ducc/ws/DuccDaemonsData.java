@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.transport.event.AbstractDuccEvent;
-import org.apache.uima.ducc.transport.event.DbComponentStateEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 
 
@@ -68,16 +67,6 @@ public class DuccDaemonsData {
 			key = DaemonName.ServiceManager;
 			putHeartbeat(key);
 			putEventSize(key, duccEvent);
-			break;
-		case DB_DAEMON_STATE:
-			key = DaemonName.DbManager;
-			putHeartbeat(key);
-			putEventSize(key, duccEvent);
-			DbComponentStateEvent dbComponentStateEvent = (DbComponentStateEvent)duccEvent;
-			Properties value = dbComponentStateEvent.getProperties();
-			if(value != null) {
-				daemonProperties.put(key, value);
-			}
 			break;
 		}
 	}

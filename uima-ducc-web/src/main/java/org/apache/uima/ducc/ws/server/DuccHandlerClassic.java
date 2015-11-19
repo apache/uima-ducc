@@ -55,7 +55,6 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdReservation;
 import org.apache.uima.ducc.transport.Constants;
-import org.apache.uima.ducc.transport.event.DbComponentPropertiesHelper;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
@@ -73,9 +72,10 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
-import org.apache.uima.ducc.ws.broker.BrokerHelper;
-import org.apache.uima.ducc.ws.broker.BrokerHelper.FrameworkAttribute;
-import org.apache.uima.ducc.ws.broker.EntityInfo;
+import org.apache.uima.ducc.ws.helper.BrokerHelper;
+import org.apache.uima.ducc.ws.helper.DatabaseHelper;
+import org.apache.uima.ducc.ws.helper.EntityInfo;
+import org.apache.uima.ducc.ws.helper.BrokerHelper.FrameworkAttribute;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
@@ -93,6 +93,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandlerClassic.class.getName());
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
+	
+	private static BrokerHelper brokerHelper = BrokerHelper.getInstance();
+	private static DatabaseHelper databaseHelper = DatabaseHelper.getInstance();
 	
 	public final String classicJobs 				= duccContextClassic+"-jobs-data";
 	public final String classicReservations 		= duccContextClassic+"-reservations-data";
@@ -1273,7 +1276,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}		
-
 	private void handleServletClassicSystemDaemons(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1281,26 +1283,81 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
+		String wsHostIP = getWebServerHostIP();
+		String wsHostName = getWebServerHostName();
+		
 		DuccDaemonsData duccDaemonsData = DuccDaemonsData.getInstance();
 		int counter = 0;
 		daemons:
 		for(DaemonName daemonName : DuccDaemonRuntimeProperties.daemonNames) {
-			String status = "";
-			String heartbeat = "*";
-			String heartmax = "*";
-			Properties properties = DuccDaemonRuntimeProperties.getInstance().get(daemonName);
-			if(!db) {
-				switch(daemonName) {
-				case DbManager:
+			switch(daemonName) {
+			case Database:
+				if(databaseHelper.isDisabled()) {
 					continue daemons;
-				default:
-					break;
 				}
 			}
+			String status = "";
+			String bootTime = "";
+			String hostIP = "";
+			String hostName = "";
+			String pid = "";
+			String pubSizeLast = "";
+			String pubSizeMax = "";
+			String heartbeatLast = "";
+			String heartbeatMax = "";
+			String heartbeatMaxTOD = "";
+			String jmxUrl = null;
+			Properties properties = DuccDaemonRuntimeProperties.getInstance().get(daemonName);
 			switch(daemonName) {
+			case Broker:
+				if(brokerHelper.isAlive()) {
+					status = DuccHandlerUtils.up();
+				}
+				else {
+					status = DuccHandlerUtils.down();
+				}
+				bootTime = getTimeStamp(DuccCookies.getDateStyle(request),brokerHelper.getStartTime());
+				hostName = useWS(wsHostName, brokerHelper.getHost());
+				hostIP = useWS(wsHostName, hostName, wsHostIP);
+				pid = ""+brokerHelper.getPID();
+				pubSizeLast = "-";
+				pubSizeMax = "-";
+				heartbeatLast = "";
+				heartbeatMax = "";
+				heartbeatMaxTOD = "";
+				jmxUrl = brokerHelper.getJmxUrl();
+				break;
+			case Database:
+				if(databaseHelper.isAlive()) {
+					status = DuccHandlerUtils.up();
+				}
+				else {
+					status = DuccHandlerUtils.down();
+				}
+				bootTime = getTimeStamp(DuccCookies.getDateStyle(request),databaseHelper.getStartTime());
+				hostName = useWS(wsHostName, databaseHelper.getHost());
+				hostIP = useWS(wsHostName, hostName, wsHostIP);
+				pid = ""+databaseHelper.getPID();
+				pubSizeLast = "-";
+				pubSizeMax = "-";
+				heartbeatLast = "";
+				heartbeatMax = "";
+				heartbeatMaxTOD = "";
+				jmxUrl = databaseHelper.getJmxUrl();
+				break;
 			case Webserver:
 				status = DuccHandlerUtils.up();
-				break;
+				bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+				hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
+				hostName = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeName,"");
+				pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
+				pubSizeLast = "*";
+				pubSizeMax = "*";
+				heartbeatLast = "";
+				heartbeatMax = "";
+				heartbeatMaxTOD = "";
+				jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
+				break;	
 			default:
 				status = DuccHandlerUtils.unknown();
 				if(daemonName.equals(DaemonName.Orchestrator)) {
@@ -1311,11 +1368,17 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 						status += ", "+DuccHandlerUtils.warn("warning: ")+fileNameWithHover+" found.";
 					}
 				}
-				heartbeat = DuccDaemonsData.getInstance().getHeartbeat(daemonName);
+				bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+				hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
+				hostName = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeName,"");
+				pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
+				pubSizeLast = ""+duccDaemonsData.getEventSize(daemonName);
+				pubSizeMax = ""+duccDaemonsData.getEventSizeMax(daemonName);
+				heartbeatLast = DuccDaemonsData.getInstance().getHeartbeat(daemonName);
 				long timeout = getMillisMIA(daemonName)/1000;
 				if(timeout > 0) {
 					try {
-						long overtime = timeout - Long.parseLong(heartbeat);
+						long overtime = timeout - Long.parseLong(heartbeatLast);
 						if(overtime < 0) {
 							status = DuccHandlerUtils.down();
 							if(daemonName.equals(DaemonName.Orchestrator)) {
@@ -1329,15 +1392,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 						}
 						else {
 							status = DuccHandlerUtils.up();
-							if(daemonName.equals(DaemonName.DbManager)) {
-								properties = DuccDaemonsData.getInstance().getProperties(daemonName);
-								if(properties != null) {
-									DbComponentPropertiesHelper dcph = new DbComponentPropertiesHelper(properties);
-									if(dcph.isDisabled()) {
-										status = DuccHandlerUtils.disabled();
-									}
-								} 
-							}
 							if(daemonName.equals(DaemonName.Orchestrator)) {
 								int jdCount = DuccData.getInstance().getLive().getJobDriverNodeCount();
 								if(jdCount == 0) {
@@ -1349,7 +1403,14 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					catch(Throwable t) {
 					}
 				}
-				heartmax = DuccDaemonsData.getInstance().getMaxHeartbeat(daemonName);
+				heartbeatMax = DuccDaemonsData.getInstance().getMaxHeartbeat(daemonName);
+				heartbeatMaxTOD = TimeStamp.simpleFormat(DuccDaemonsData.getInstance().getMaxHeartbeatTOD(daemonName));
+				try {
+					heartbeatMaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),heartbeatMaxTOD);
+				}
+				catch(Exception e) {
+				}
+				jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
 				break;
 			}
 			// Status
@@ -1359,55 +1420,46 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			sb.append("</td>");	
 			// Daemon Name
 			sb.append("<td>");
-			sb.append(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyDaemonName,daemonName.toString()));
+			sb.append(daemonName);
 			sb.append("</td>");
 			// Boot Time
 			sb.append("<td>");
-			sb.append(getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,"")));
+			sb.append(bootTime);
 			sb.append("</td>");
 			// Host IP
 			sb.append("<td>");
-			sb.append(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,""));
+			sb.append(hostIP);
 			sb.append("</td>");	
 			// Host Name
 			sb.append("<td>");
-			sb.append(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeName,""));
+			sb.append(hostName);
 			sb.append("</td>");
 			// PID
 			sb.append("<td>");
-			sb.append(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,""));
+			sb.append(pid);
 			sb.append("</td>");
 			// Publication Size (last)
 			sb.append("<td align=\"right\">");
-			Long pubSize = duccDaemonsData.getEventSize(daemonName);
-			sb.append(""+pubSize);
+			sb.append(""+pubSizeLast);
 			sb.append("</td>");	
 			// Publication Size (max)
 			sb.append("<td align=\"right\">");
-			Long pubSizeMax = duccDaemonsData.getEventSizeMax(daemonName);
-			sb.append(""+pubSizeMax);
+			sb.append(pubSizeMax);
 			sb.append("</td>");	
 			// Heartbeat (last)
 			sb.append("<td align=\"right\">");
-			sb.append(heartbeat);
+			sb.append(heartbeatLast);
 			sb.append("</td>");	
 			// Heartbeat (max)
 			sb.append("<td align=\"right\">");
-			sb.append(heartmax);
+			sb.append(heartbeatMax);
 			sb.append("</td>");
 			// Heartbeat (max) TOD
 			sb.append("<td>");
-			String heartmaxTOD = TimeStamp.simpleFormat(DuccDaemonsData.getInstance().getMaxHeartbeatTOD(daemonName));
-			try {
-				heartmaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),heartmaxTOD);
-			}
-			catch(Exception e) {
-			}
-			sb.append(heartmaxTOD);
+			sb.append(heartbeatMaxTOD);
 			sb.append("</td>");
 			// JConsole URL
 			sb.append("<td>");
-			String jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
 			if(jmxUrl != null) {
 				sb.append(buildjConsoleLink(jmxUrl));
 			}

@@ -33,7 +33,6 @@ import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.event.DbComponentStateEvent;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
@@ -200,12 +199,4 @@ implements IWebServer {
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
 	
-	
-	public void update(DbComponentStateEvent duccEvent) {
-		String methodName = "update";
-		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
-		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"DbComponentStateEvent");
-		DuccDaemonsData.getInstance().put(duccEvent);
-		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
-	}	
 }

@@ -35,20 +35,22 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 public class DuccDaemonRuntimeProperties {
 
 	public static enum DaemonName {
+		Broker,
+		Database,
 		Orchestrator,
 		ResourceManager,
 		ProcessManager,
 		ServiceManager,
-		DbManager,
 		Webserver,
 	}
 	
 	public static DaemonName[] daemonNames = { 	
+									DaemonName.Broker, 
+									DaemonName.Database, 
 									DaemonName.Orchestrator, 
 									DaemonName.ProcessManager, 
 									DaemonName.ResourceManager, 
 									DaemonName.ServiceManager, 
-									DaemonName.DbManager, 
 									DaemonName.Webserver, 
 									};
 	

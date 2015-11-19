@@ -19,9 +19,13 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.io.File;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
+import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -96,7 +101,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public String dir_home = Utils.findDuccHome();
 	public String dir_resources = "resources";
 
-	protected boolean db = false;
 	protected boolean terminateEnabled = true;
 	protected boolean buttonsEnabled = true;
 	
@@ -174,6 +178,18 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 	
+	private DateFormat format = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss E", Locale.ENGLISH);
+	
+	public String getTimeStamp(DateStyle dateStyle, long tod) {
+		String methodName = "";
+		Date date = new Date(tod);
+		String sDate = format.format(date);
+		duccLogger.info(methodName, null, "fm="+sDate);
+		String retVal = getTimeStamp(dateStyle,  sDate);
+		duccLogger.info(methodName, null, "ts="+retVal);
+		return retVal;
+	}
+	
 	public String getTimeStamp(DateStyle dateStyle, String date) {
 		String location = "getTimeStamp";
 		StringBuffer sb = new StringBuffer();
@@ -202,6 +218,42 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			}
 		}
 		return sb.toString();
+	}
+	
+	public String getWebServerHostIP() {
+		Properties properties = DuccDaemonRuntimeProperties.getInstance().get(DuccDaemonRuntimeProperties.DaemonName.Webserver);
+		String retVal = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
+		return retVal;
+	}
+	
+	public String getWebServerHostName() {
+		Properties properties = DuccDaemonRuntimeProperties.getInstance().get(DuccDaemonRuntimeProperties.DaemonName.Webserver);
+		String retVal = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeName,"");
+		return retVal;
+	}
+	
+	public String useWS(String wsValue, String sofa) {
+		String retVal = sofa;
+		if(wsValue != null) { 
+			if(sofa != null) {
+				if(wsValue.startsWith(sofa)) {
+					retVal = wsValue;
+				}
+			}
+		}
+		return retVal;
+	}
+	
+	public String useWS(String v0, String v1, String v2) {
+		String retVal = "";
+		if(v0 != null) { 
+			if(v1 != null) {
+				if(v0.equals(v1)) {
+					retVal = v2;
+				}
+			}
+		}
+		return retVal;
 	}
 	
 	public String getDuration(DuccId jobId, String millisV2, String millisV1, Precision precision) {
@@ -419,18 +471,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			try {
 				long rate = Long.parseLong(or_rate.trim());
 				long ratio = Long.parseLong(or_ratio .trim());
-				secondsMIA = 3 * rate * ratio;
-			}
-			catch(Throwable t) {
-				duccLogger.debug(methodName, null, t);
-			}
-			break;
-		case DbManager:
-			String db_rate = properties.getProperty("ducc.db.state.publish.rate");
-			String db_ratio = "1";
-			try {
-				long rate = Long.parseLong(db_rate.trim());
-				long ratio = Long.parseLong(db_ratio .trim());
 				secondsMIA = 3 * rate * ratio;
 			}
 			catch(Throwable t) {
