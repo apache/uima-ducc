@@ -44,7 +44,8 @@ class ConsoleListener
 
     private boolean      in_shutdown = false;
     private boolean      start_stdin = false;
-    private int          numConnected = 0;
+    private int          nextIdNum = 2;     // id# for JD ... JPs get 3,4,...  0&1 reserved for an AP
+    private volatile PrintWriter shared_logout = null;    // Shared by ids 0 & 1 (stdout & stderr)
     
     private IDuccCallback consoleCb;
     // private int          callers;   // number of remote processes we expect to listen for
@@ -134,7 +135,7 @@ class ConsoleListener
                 int p = s.getPort();
                 synchronized(this) {
                     listeners.put(p, new Pair<StdioReader, StdioWriter>(sr, sw));
-                    sr.idNum = ++numConnected;
+                    sr.idNum = nextIdNum++;
                 }
 
                 Thread t = new Thread(sr, "STDOUT");
@@ -164,9 +165,11 @@ class ConsoleListener
         String remote_host;
         private PrintWriter logout = null;
 
+        static final String stream_tag = "1500 Stream: ";
         static final String console_tag = "1002 CONSOLE_REDIRECT ";
         int tag_len = 0;
         private int idNum;
+        private boolean is_stderr = false;
 
         StdioReader(Socket sock)
         {
@@ -186,6 +189,7 @@ class ConsoleListener
             if ( debug ) System.out.println("===== Listener completing: " + remote_host + ":" + sock.getPort());
             shutdown = true;
             is.close();
+            // It's OK to close the shared logout twice
             if (logout != null) {
               logout.close();
             }
@@ -198,15 +202,35 @@ class ConsoleListener
 
         void doWrite(String line)
         {
+            // Check for the initial stream identifier
+            // Only APs have split streams, and only stdout carries the logfile name
+            if (line.startsWith(stream_tag)) {
+              String name = line.substring(stream_tag.length());
+              is_stderr = name.startsWith("STDERR");
+              if (is_stderr) {
+                do_console_out = true;  // Don't wait for the magic 1001 message
+                idNum = 1;
+              } else {
+                idNum = 0;
+              }
+              return;
+            }
+            // The stderr stream shares the stdout stream's logfile
             if ( line.startsWith(console_tag) && !suppress_log) {
                 String logfile = line.substring(tag_len);
                 try {
                   logout = new PrintWriter(logfile);
-                  return;
+                  if (idNum == 0) {
+                    shared_logout = logout;
+                  }
                 } catch (FileNotFoundException e) {
                   consoleCb.status("Failed to create log file: " + logfile);
                   e.printStackTrace();
                 }
+                return;
+            }
+            if (logout == null && idNum == 1) {
+              logout = shared_logout;
             }
             if (logout != null) {
               logout.println(line);
@@ -285,7 +309,12 @@ class ConsoleListener
                 }
                 if ( debug ) System.out.println(remote_host + ": EOF:  exiting");
             } catch ( Throwable t ) {
-                t.printStackTrace();
+                if (shutdown) {
+                  if (debug) System.out.println(remote_host + ":" + sock.getPort() + " ignore read error after shutdoen - id# " + idNum);
+                } else {
+                  System.out.println(remote_host + ":" + sock.getPort() + " read error - id# " + idNum);
+                  t.printStackTrace();
+                }
             } finally {
                 try {
                     shutdown();
