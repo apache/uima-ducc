@@ -21,8 +21,6 @@ package org.apache.uima.ducc.cli;
 
 import java.util.Properties;
 
-import org.apache.uima.ducc.common.utils.Utils;
-
 /*
  * Sites that have old code built against a pre-release version of DUCC may replace this class
  * by one that corrects any deprecated options, e.g. changing --process_environment to --environment
@@ -74,30 +72,15 @@ public class CliFixups {
     }
     
     static void cleanupProps(Properties props, String className) {
-		// Augment CP if the SM issues a DuccServiceSubmit with the classpath_order option
-    	// (Always invoked with a service properties file)
-		if (className.equals(DuccServiceSubmit.class.getName())) {
-			String cpOrder = props.getProperty("classpath_order");
-			String cp = props.getProperty("classpath");
-			if (cpOrder != null && cp != null) {
-				String duccHome = Utils.findDuccHome();
-				String uimaCp = duccHome + "/apache-uima/lib/*:" + duccHome + "/apache-uima/apache-activemq/lib/*:"
-						+ duccHome + "/apache-uima/apache=activemq/lib/optional/*";
-				if (cpOrder.equals("ducc-before-user")) {
-					cp = uimaCp + ":" + cp;
-				} else {
-					cp = cp + ":" + uimaCp;
-				}
-				props.put("classpath", cp);
-				System.out.println("CLI added UIMA jars to classpath of pre-2.0 service");
-			}
-		}
+      
+      // >>> Removed the hack that added UIMA jars to the classpath of services registered with DUCC 1.x but 
+      // >>> started with 2.0 --- had a bug and just delayed the need for the user to provide a complete classpath.
 		
     	changeOption("process_DD", "process_descriptor_DD", props);
     	changeOption("instance_memory_size", "memory_size", props);
     	changeOption("classpath_order", null, props);
     	changeOption("process_thread_count", "process_pipeline_count", props);
-    	// Ignore option if number_of_instances = 1 ... reject any other value
+    	// Remove number_of_instaces only if = 1 ... leave any other value to be rejected
     	String val = props.getProperty("number_of_instances");
     	if (val != null && val.trim().equals("1")) {
     	  changeOption("number_of_instances", null, props);  
