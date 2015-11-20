@@ -422,6 +422,8 @@ public abstract class CliBase
     
     /*
      * Resolve any ${..} placeholders against user's system properties and environment
+     * NOTE - this resolves against the caller's sys-props & environment ... the one in DuccUiUtilities 
+     *        resolves against the process JVM args to match what is done by Spring in UIMA-AS.
      * 2.0: Leave unresolved entries as is & warn if not one of the always-propagated ones 
      */
     private String resolvePlaceholders(String contents, List<String> envNameList) {
@@ -673,6 +675,9 @@ public abstract class CliBase
         if (console_attach) {
             console_listener = new ConsoleListener(this, consoleCb);
             value = console_listener.getConsoleHostAddress();
+            if (myClassName.equals(DuccManagedReservationSubmit.class.getName())) {
+              value += "?splitstreams";   // Add a query string so APs have separate streams
+            }
         } else if (suppress_console_log) {
             value = "suppress";
         } else {
