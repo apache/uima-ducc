@@ -752,9 +752,9 @@ public class AllInOneLauncher extends CliBase {
         InputStream is = process.getInputStream();
         InputStreamReader isr = new InputStreamReader(is);
         BufferedReader ibr = new BufferedReader(isr);
-        // Pass all process output through the console callback
+        // Pass all process output through the console callback to stdout
         while ((line = ibr.readLine()) != null) {
-            consoleCb.console(1, line);
+            consoleCb.console(0, line);
         }
         ibr.close();
         try {
