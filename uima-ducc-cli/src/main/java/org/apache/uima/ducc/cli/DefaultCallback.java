@@ -21,8 +21,23 @@ package org.apache.uima.ducc.cli;
 public class DefaultCallback implements IDuccCallback {
 
 
+  // pnum: 0,1 => AP   2 => JD   3,... => JP
   public void console(int pnum, String msg) {
-    System.out.println("[" + pnum + "] " + msg);
+    int jpid = pnum - 2;  // get number of JP
+    String prefix;
+    if (jpid < 0) {
+      prefix = "";
+    } else if (jpid == 0) {
+      prefix = "[JD] ";
+    } else {
+      prefix = "[JP" + jpid + "] ";
+    }
+    // Only the AP has split streams
+    if (pnum == 1) {
+      System.err.println(prefix + msg);
+    } else {
+      System.out.println(prefix + msg);
+    }
   }
 
 
