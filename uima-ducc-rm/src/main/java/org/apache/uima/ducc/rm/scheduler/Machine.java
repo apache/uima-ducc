@@ -320,10 +320,10 @@ public class Machine
         try {
             // Not transactional.  If this turns into a problem we'll have to find a way
 			persistence.setNodeProperties(id, RmNodes.Assignments, activeShares.size(), RmNodes.SharesLeft, shares_left);
-			persistence.addAssignment(id, s.getJob().getId(), s.getId()); // update jobs on machine and specific shares
+			persistence.addAssignment(id, s.getJob().getId(), s, getQuantum(), s.getJob().getShortType()); // update jobs on machine and specific shares
             logger.info(methodName, null, "Time to assign share in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
-            logger.warn(methodName, null, "Cannot save state; shares_left", shares_left);
+            logger.warn(methodName, null, "Cannot save state; shares_left", shares_left, e);
 		}
 
     }
@@ -339,7 +339,7 @@ public class Machine
         try {
             // Not transactional.  If this turns into a problem we'll have to find a way
 			persistence.setNodeProperties(id, RmNodes.Assignments, activeShares.size(), RmNodes.SharesLeft, shares_left);
-			persistence.removeAssignment(id, s.getJob().getId(), s.getId());  // update jobs on machine and specific shares
+			persistence.removeAssignment(id, s.getJob().getId(), s);  // update jobs on machine and specific shares
             logger.info(methodName, null, "Time to remove share in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, null, "Cannot save state; shares_left", shares_left);

@@ -127,6 +127,7 @@ public class ResourceManagerComponent
         }
     }
 
+    
     class RmAdminEventProcessor implements Processor 
     {
         final AbstractDuccComponent delegate;
@@ -256,6 +257,15 @@ public class ResourceManagerComponent
             logger.error(methodName, null, "Error converting state for Orchestrator", e);
         }
         return null;
+    }
+
+    public void stop()
+    	throws Exception
+    {
+    	String methodName = "stop";
+        logger.info(methodName, null, "Stopping RM database connection");
+        scheduler.stop();
+        super.stop();
     }
 
     public void setTransportConfiguration(DuccEventDispatcher eventDispatcher, String endpoint)

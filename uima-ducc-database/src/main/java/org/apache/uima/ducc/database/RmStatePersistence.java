@@ -25,10 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.persistence.rm.IDbShare;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.SimpleStatement;
@@ -44,7 +46,15 @@ public class RmStatePersistence
 
     DbManager dbManager = null;
     DuccLogger logger = null;
-    static final String RM_NODE_TABLE = RmNodes.TABLE_NAME.pname();
+    static final String RM_NODE_TABLE  = RmNodes.TABLE_NAME.pname();
+    static final String RM_SHARE_TABLE = RmShares.TABLE_NAME.pname();
+
+    PreparedStatement shareAddPrepare = null;
+    PreparedStatement shareDelPrepare = null;
+    PreparedStatement updateFixedPrepare = null;
+    PreparedStatement updatePurgedPrepare = null;
+    PreparedStatement updateEvictedPrepare = null;
+    PreparedStatement updateSharePrepare = null;
 
     public RmStatePersistence()
     {
@@ -79,11 +89,21 @@ public class RmStatePersistence
     	this.logger = logger;
         String stateUrl = System.getProperty("ducc.state.database.url");
         init(stateUrl);
+        DbHandle h = dbManager.open();
+
+        // For creating a new share
+        // These are upserts - sometimes the shares are updated before they're actually added to the DB.
+        shareAddPrepare = h.prepare("UPDATE " + RM_SHARE_TABLE + " SET  uuid=?, share_order=?, blacklisted=?, evicted=?, fixed=?, purged=?, quantum=?, jobtype=? WHERE node=? AND ducc_dbid=? and job_id=?");
+        shareDelPrepare = h.prepare("DELETE FROM " + RM_SHARE_TABLE + " WHERE node = ? and ducc_dbid = ? and job_id = ?;");
+        updateFixedPrepare = h.prepare("UPDATE " + RM_SHARE_TABLE + " SET fixed = ? WHERE node = ? AND ducc_dbid = ? and job_id = ?");
+        updatePurgedPrepare = h.prepare("UPDATE " + RM_SHARE_TABLE + " SET purged = ? WHERE node = ? AND ducc_dbid = ? and job_id = ?");
+        updateEvictedPrepare = h.prepare("UPDATE " + RM_SHARE_TABLE + " SET evicted = ? WHERE node = ? AND ducc_dbid = ? and job_id = ?");
+        updateSharePrepare = h.prepare("UPDATE " + RM_SHARE_TABLE + " SET investment = ?, state = ?, init_time = ?, pid = ?  WHERE node = ? AND ducc_dbid = ? and job_id = ?");
     }
 
     public void close()
     {
-        dbManager.shutdown();
+        if ( dbManager != null ) dbManager.shutdown();
         dbManager = null;
     }
 
@@ -95,6 +115,7 @@ public class RmStatePersistence
         try {
             h = dbManager.open();
             h.execute("TRUNCATE " + RM_NODE_TABLE);
+            h.execute("TRUNCATE " + RM_SHARE_TABLE);
         } catch ( Exception e ) {
             logger.error(methodName, null, "Cannot clear the database.", e);
         } 
@@ -113,6 +134,16 @@ public class RmStatePersistence
         for ( String s : indexes ) {
             ret.add(new SimpleStatement(s));
         }
+
+        buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + RM_SHARE_TABLE + " (");
+        buf.append(DbUtil.mkSchema(RmShares.values()));
+        buf.append(")");
+        ret.add(new SimpleStatement(buf.toString()));
+        indexes = DbUtil.mkIndices(RmShares.values(), RM_SHARE_TABLE);
+        for ( String s : indexes ) {
+            ret.add(new SimpleStatement(s));
+        }
+
         return ret;
     }
 
@@ -167,12 +198,46 @@ public class RmStatePersistence
         
     }
 
-    public void addAssignment(String node, DuccId jobid, DuccId shareid)
+    public void addAssignment(String node, DuccId jobid, IDbShare s, int quantum, String type)
+    	throws Exception
     {
+        DbHandle h = dbManager.open();
+        h.saveObject(shareAddPrepare, s.getId().getUUID(), s.getShareOrder(), s.isBlacklisted(), s.isEvicted(), s.isFixed(), s.isPurged(), quantum, type, node, s.getId().getFriendly(), jobid.getFriendly() ); 
     }
 
-    public void removeAssignment(String node, DuccId jobid, DuccId shareid)
+    public void removeAssignment(String node, DuccId jobid, IDbShare s)
+    	throws Exception
     {
+    	DbHandle h = dbManager.open();
+        h.execute(shareDelPrepare, node, s.getId().getFriendly(), jobid.getFriendly());
+    }
+
+    public void setFixed(String node, DuccId shareId, DuccId jobId, boolean val) 
+        throws Exception
+    {
+    	DbHandle h = dbManager.open();
+        h.execute(updateFixedPrepare, val, node, shareId.getFriendly(), jobId.getFriendly());
+    }
+
+    public void setPurged(String node, DuccId shareId, DuccId jobId, boolean val) 
+        throws Exception
+    {
+    	DbHandle h = dbManager.open();
+        h.execute(updatePurgedPrepare, val, node, shareId.getFriendly(), jobId.getFriendly());
+    }
+
+    public void setEvicted(String node, DuccId shareId, DuccId jobId, boolean val) 
+        throws Exception
+    {
+    	DbHandle h = dbManager.open();
+        h.execute(updateEvictedPrepare, val, node, shareId.getFriendly(), jobId.getFriendly());
+    }
+
+    public void updateShare(String node, DuccId shareid, DuccId jobid, long investment, String state, long init_time, long pid) 
+        throws Exception
+    {
+    	DbHandle h = dbManager.open();
+        h.execute(updateSharePrepare, investment, state, init_time, pid, node, shareid.getFriendly(), jobid.getFriendly());
     }
 
     public Properties getMachine(String m)

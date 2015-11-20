@@ -719,6 +719,7 @@ public class JobManagerConverter
             // we can crash or at least complain loudly on mismatch.
 
             Share s = scheduler.getShare(p.getDuccId());
+
             long mem = p.getResidentMemory();
             long investment = p.getWiMillisInvestment();
             ProcessState state = p.getProcessState();
@@ -957,9 +958,20 @@ public class JobManagerConverter
                       break;
                   case Service:
                   case Pop:
+                      // This is really an AP and OR sets the state to running immediately although it isn't yet, so the
+                      // information is incomplete.  We always have to reconcile.
+                      if  ( ((IDuccWorkService)l).getServiceDeploymentType() == ServiceDeploymentType.other )  {
+                          logger.info(methodName, l.getDuccId(), "[P] State: ", r.getStateObject(), "->", l.getStateObject());
+                          reconcileProcesses(l.getDuccId(), l, r);
+                      } else  if ( r.getStateObject() != l.getStateObject() ) {
+                          // Service state does come int correctly
+                          logger.info(methodName, l.getDuccId(), "[S] State: ", r.getStateObject(), "->", l.getStateObject());
+                          reconcileProcesses(l.getDuccId(), l, r);
+                      }
+                      break;
                   case Reservation:
                       if ( r.getStateObject() != l.getStateObject() ) {
-                          logger.info(methodName, l.getDuccId(), "[SPR] State: ", r.getStateObject(), "->", l.getStateObject());
+                          logger.info(methodName, l.getDuccId(), "[R] State: ", r.getStateObject(), "->", l.getStateObject());
                       }
                       // for the moment, these guys have nothing to reconcile.
                       break;

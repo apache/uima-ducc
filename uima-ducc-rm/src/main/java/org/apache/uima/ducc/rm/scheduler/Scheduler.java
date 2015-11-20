@@ -132,6 +132,7 @@ public class Scheduler
     boolean stability = false;
 
     private static DuccIdFactory idFactory;
+    IRmPersistence persistence = null;
 
     // static boolean expandByDoubling = true;
     // static int initializationCap = 2;      // Max allocation until we know initialization works in
@@ -264,7 +265,7 @@ public class Scheduler
         logger.info(methodName, null, "                       RM Version              : ", ""+ rmversion_major   + "." 
                                                                                              + rmversion_minor   + "." 
                                                                                              + rmversion_ptf);
-        IRmPersistence persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
+        persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
         persistence.clear();
         initialized = true;
     }
@@ -799,6 +800,11 @@ public class Scheduler
     public synchronized void start()
     {
         stability = true;
+    }
+
+    public void stop()
+    {
+        persistence.close();
     }
 
     protected void handleIllNodes()

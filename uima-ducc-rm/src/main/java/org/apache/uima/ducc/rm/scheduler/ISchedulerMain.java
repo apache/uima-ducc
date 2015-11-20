@@ -77,6 +77,7 @@ public interface ISchedulerMain
 
     // once both initialized() and ready() occur, the RM scaffolding will enable scheduling by calling start
     void start();
+    void stop();
 
     RmAdminReply varyoff(String[] nodes);
     RmAdminReply varyon(String[] nodes);

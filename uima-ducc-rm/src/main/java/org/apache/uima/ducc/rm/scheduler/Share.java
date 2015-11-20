@@ -23,6 +23,10 @@ import java.util.Map;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.persistence.rm.IDbShare;
+import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
+import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
@@ -36,9 +40,10 @@ import org.apache.uima.ducc.transport.event.common.TimeWindow;
  * A share is ALWAYS associated with a Machine.
  */
 public class Share
-	implements SchedConstants
+	implements SchedConstants, 
+               IDbShare
 {
-    //private transient DuccLogger logger = DuccLogger.getLogger(Share.class, COMPONENT_NAME);
+    private transient DuccLogger logger = DuccLogger.getLogger(Share.class, COMPONENT_NAME);
     
     private transient Machine machine;               // machine associatede with this share, assigned after "what-of"
     private DuccId id = null;              // unique *within this machine*         assigned after "what-of"
@@ -56,6 +61,9 @@ public class Share
     private boolean fixed = false;        // if true, can't be preempted
 
     private long investment = 0;          // Current time for all ACTIVE work items in the process
+
+    // note this returns a global static instance, no need to staticisze it here
+    private IRmPersistence persistence = null;
 
      @SuppressWarnings("unused")
  	private long resident_memory = 0;
@@ -88,6 +96,7 @@ public class Share
         this.job = job;
         this.bljobid = null;        // UIMA-4142
         this.share_order = share_order;
+        this.persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
     }
 
     /**
@@ -102,6 +111,7 @@ public class Share
         this.job = null;
         this.bljobid = jobid;       // UIMA-4142
         this.share_order = share_order;
+        this.persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
     }
 
     /**
@@ -114,6 +124,7 @@ public class Share
         this.job = job;
         this.bljobid = null;        // UIMA-4142
         this.share_order = share_order;
+        this.persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
     }
 
 //     /**
@@ -265,6 +276,7 @@ public class Share
 
     public boolean update(DuccId jobid, long mem, long investment, ProcessState state, ITimeWindow init_time, String pid)
     {
+    	String methodName = "update";
         if ( ! jobid.equals(job.getId()) ) return false;      // something has gone horribly wrong
         
         this.resident_memory = mem;
@@ -272,6 +284,17 @@ public class Share
         this.state = state;
         this.pid = pid;
         this.init_time = init_time;
+        try {
+            long npid = -1L;               
+            if ( pid != null ) {              // OR sends junk here for a while
+                npid = Long.parseLong(pid);
+            }
+
+			persistence.updateShare(getNode().getNodeIdentity().getName(), id, jobid, investment, state.toString(), getInitializationTime(), npid);
+		} catch (Exception e) {
+            logger.warn(methodName, job.getId(), "Cannot update share statistics in database for share", id, e);
+		}
+        logger.info(methodName, jobid, "UPDATE:", investment, state, getInitializationTime(), pid);
         return true;
     }
 
@@ -321,6 +344,9 @@ public class Share
 
     public void setInitializationTime(long millis)
     {
+    	String methodName = "setInitializationTme";
+        logger.info(methodName, null, "SET INIT TIME", "shareid", id, millis);
+
         init_time = new TimeWindow();
         init_time.setStartLong(0);
         init_time.setEndLong(millis);
@@ -335,27 +361,45 @@ public class Share
 
     public void setFixed()
     {
+    	String methodName = "setFixed";
         fixed = true;
+        try {
+			persistence.setFixed(getNode().getNodeIdentity().getName(), id, job.getId(), true);
+		} catch (Exception e) {
+            logger.warn(methodName, job.getId(), "Cannot update 'fixed' in database for share", id, e);
+		}
     }
 
-    boolean isFixed()
+    public boolean isFixed()
     {
         return fixed;
     }
 
     void evict()
     {
+    	String methodName = "evicted";
         evicted = true;
+        try {
+			persistence.setEvicted(getNode().getNodeIdentity().getName(), id, job.getId(), true);
+		} catch (Exception e) {
+            logger.warn(methodName, job.getId(), "Cannot update 'evicted' in database for share", id, e);
+		}
     }
 
-    boolean isEvicted()
+    public boolean isEvicted()
     {
         return evicted || purged;
     }
 
     void purge()
     {
+    	String methodName = "purge";
         purged = true;
+        try {
+			persistence.setPurged(getNode().getNodeIdentity().getName(), id, job.getId(), true);
+		} catch (Exception e) {
+            logger.warn(methodName, job.getId(), "Cannot update 'purge bit' in database for share", id, e);
+		}
     }
 
     public boolean isPurged()

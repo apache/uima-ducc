@@ -100,10 +100,10 @@ public class DbManager
             .build();
 
         Metadata metadata = cluster.getMetadata();
-        logger.info(methodName, null, "Connected to cluster: %s\n", metadata.getClusterName());
+        logger.info(methodName, null, "Connected to cluster:", metadata.getClusterName());
         
         for ( Host host : metadata.getAllHosts() ) {
-            logger.info(methodName, null, "Datatacenter: %s; Host: %s; Rack: %s\n", host.getDatacenter(), host.getAddress(), host.getRack());
+            logger.info(methodName, null, "Datatacenter:", host.getDatacenter(), "Host:", host.getAddress(), "Rack:", host.getRack());
         } 
     }
 

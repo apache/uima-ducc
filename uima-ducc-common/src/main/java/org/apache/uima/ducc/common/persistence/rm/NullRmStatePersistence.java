@@ -38,8 +38,12 @@ public class NullRmStatePersistence implements IRmPersistence
     public void setNodeProperty(String id, RmNodes key, Object value) { }
     public void setNodeProperties(String id, Object... props) {}
     public void createMachine(String id, Map<RmNodes, Object> props) { }
-    public void addAssignment(String id, DuccId jobid, DuccId shareid) {}
-    public void removeAssignment(String id, DuccId jobid, DuccId shareid) {}
+    public void addAssignment(String id, DuccId jobid, IDbShare shareid, int quantum, String type) {}
+    public void removeAssignment(String id, DuccId jobid, IDbShare shareid) {}
+    public void setEvicted(String node, DuccId shareId, DuccId jobId, boolean val) {}
+    public void setFixed(String node, DuccId shareId, DuccId jobId, boolean val) {}
+    public void setPurged(String node, DuccId shareId, DuccId jobId, boolean val) {}
+    public void updateShare(String node, DuccId shareid, DuccId jobid, long investment, String state, long init_time, long pid) {}
     public Properties getMachine(String id) { return null; }
     public Map<String, Map<String, Object>> getAllMachines() { return new HashMap<String, Map<String, Object>>(); }
 }

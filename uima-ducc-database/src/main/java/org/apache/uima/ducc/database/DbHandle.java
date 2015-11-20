@@ -65,6 +65,21 @@ public class DbHandle
         return manager.execute(s);
     }
 
+    ResultSet execute(PreparedStatement ps, Object ... fields)
+        throws Exception
+    {
+        String methodName = "execute";        
+        long now = System.currentTimeMillis();
+        
+        try {
+			BoundStatement boundStatement = new BoundStatement(ps);
+			BoundStatement bound = boundStatement.bind(fields);
+			return execute(bound);        
+        } finally {
+			logger.info(methodName, null, "Time to execute prepared statement:", ps.getQueryString(), System.currentTimeMillis() - now);
+		}
+    }
+
     /**
      * Delete the object of the indicated type and duccid.   We optionally commit in case we want to
      * do more things that have to work under the same transaction so we can rollback if needed.=
