@@ -1051,6 +1051,11 @@ public class Scheduler
 
                 prclass.addJob(j);
                 j.setResourceClass(prclass);
+                try {
+					persistence.addJob(j);
+				} catch (Exception e) {
+					logger.warn(methodName, j.getId(), "Cannot persist new job in database:", e);					
+				}
                 logger.info(methodName, j.getId(), "submit", j.toString());
             }
 
@@ -1058,6 +1063,14 @@ public class Scheduler
             for ( int i = 0; i < schedulers.length; i++ ) {
                 logger.info(methodName, null, "Run scheduler", i, "with top-level nodepool", nodepools[i].getId());
                 schedulers[i].schedule(upd);
+            }
+
+            for ( IRmJob j : allJobs.values() ) {       // UIMA-4577 persist 'demand'
+                try {
+					persistence.updateDemand(j);
+				} catch (Exception e) {
+					logger.warn(methodName, j.getId(), "Cannot update demand in database:", e);
+				}
             }
 
             logger.info(methodName, null, "--------------- Scheduler returns ---------------");
@@ -1434,6 +1447,14 @@ public class Scheduler
         return ret;
     }
 
+    public synchronized void signalState(DuccId jobid, String state)
+    {
+        IRmJob j = allJobs.get(jobid);
+        if ( j != null ) {                // might not be here yet, we'll get it later
+            j.setState(state);
+        }
+    }
+
     /**
      * Callback from job manager, need shares for a new fair-share job.
      */
@@ -1525,6 +1546,12 @@ public class Scheduler
     {
         String methodName = "processCompletion";
         logger.info(methodName, job.getId(), "Job completes.");
+
+        try {
+			persistence.deleteJob(job);     // UIMA-4577
+		} catch (Exception e) {
+			logger.warn(methodName, job.getId(), "Cannot delete job from database:", e);
+		}
 
         // -- clean up the running jobs list
         IRmJob j = allJobs.remove(job.getId());
@@ -1683,6 +1710,11 @@ public class Scheduler
         logger.info(methodName, j.getId(), "Recovered job:", j.toString());
         logger.info(methodName, j.getId(), "Recovered shares:", sharenames.toString());
 
+        try {
+			persistence.addJob(j);
+		} catch (Exception e) {
+			logger.warn(methodName, j.getId(), "Cannot persist recovered job in database:", j);
+		}
         // After a reconfig/restart the share may be in the wrong place, in which case it
         // needs to be removed.  We have to wait until it is fully hooked into the structures
         // before scheduling for removal because it could take a while to go away and

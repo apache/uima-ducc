@@ -177,6 +177,21 @@ public interface IRmPersistence
     public Map<String, Map<String, Object>> getAllMachines() throws Exception;
 
     /**
+     * A new job arrives (or is recovered after restart).
+     */
+    public void addJob(IDbJob j) throws Exception;
+
+    /**
+     * A job has left the system forever.
+     */
+    public void deleteJob(IDbJob j) throws Exception;
+
+    /**
+     * How many shares to I want from the scheduler?
+     */
+    public void updateDemand(IDbJob j) throws Exception;
+
+    /**
      * Shutdown the connection to the DB;
      * 
      */
@@ -347,6 +362,67 @@ public interface IRmPersistence
 
     }
 
+    /**
+     * This table lists jobs in the system.
+     */
+    enum RmLoad
+        implements IDbProperty
+    {
+        TABLE_NAME {
+            public String pname() { return "rmload"; }
+            public Type type()  { return Type.String; }
+            public boolean isPrivate() { return true;}
+            public boolean isMeta() { return true;}
+        },
+
+        Class {
+            public String pname() { return "class"; }
+            public Type type()  { return Type.String; }
+        },
+
+        JobId {
+            public String pname() { return "job_id"; }
+            public Type type()  { return Type.Long; }
+            public boolean isPrimaryKey() { return true; }
+        },
+
+        User {
+            public String pname() { return "user"; }
+            public Type type()  { return Type.String; }
+        },
+
+        Memory {
+            public String pname() { return "memory"; }
+            public Type type()  { return Type.Integer; }
+        },
+
+        State {
+            public String pname() { return "state"; }
+            public Type type()  { return Type.String; }
+        },
+
+        Demand {
+            public String pname() { return "demand"; }
+            public Type type()  { return Type.Integer; }
+        },
+
+        Occupancy {
+            public String pname() { return "occupancy"; }
+            public Type type()  { return Type.Integer; }
+        },
+
+        JobType {
+            public String pname() { return "jobtype"; }
+            public Type type()  { return Type.String; }
+        };
+
+        public boolean isPrimaryKey() { return false; }
+        public boolean isPrivate()    { return false; }
+        public boolean isMeta()       { return false; }
+        public String  columnName()   { return pname(); }
+        public boolean isIndex()      { return false; }
+
+    }
 }
 
 

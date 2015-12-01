@@ -25,7 +25,9 @@ import java.util.Properties;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
-
+/**
+ * This class allows a persistence object to be created even if none is configured, without crashes or NPEs.
+ */
 public class NullRmStatePersistence implements IRmPersistence
 {
 				
@@ -46,4 +48,7 @@ public class NullRmStatePersistence implements IRmPersistence
     public void updateShare(String node, DuccId shareid, DuccId jobid, long investment, String state, long init_time, long pid) {}
     public Properties getMachine(String id) { return null; }
     public Map<String, Map<String, Object>> getAllMachines() { return new HashMap<String, Map<String, Object>>(); }
+    public void addJob(IDbJob j ) {}
+    public void deleteJob(IDbJob j ) {}
+    public void updateDemand(IDbJob j) {}
 }

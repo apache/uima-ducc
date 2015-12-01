@@ -21,6 +21,7 @@ package org.apache.uima.ducc.rm.scheduler;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.uima.ducc.common.persistence.rm.IDbJob;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
@@ -31,7 +32,8 @@ import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
 public interface IRmJob
 	extends SchedConstants,
-            IEntity
+            IEntity,
+            IDbJob
 {
     
     /**
@@ -41,9 +43,9 @@ public interface IRmJob
 
     public DuccId getId();
     
-    public String getShortType();  // S, R, M, J - service reservation managed-reservation, job
+    // public String getShortType();  IDbJob UIMA-4577 // S, R, M, J - service reservation managed-reservation, job
 
-    public long getFriendlyId();
+    // public long getFriendlyId();    UIMA 4577 
 
     public String getName();
     public void setJobName(String name);
@@ -74,7 +76,9 @@ public interface IRmJob
     public boolean isReservation();       // ask ...
 
     public boolean setInitWait(boolean w);   // When set, job cap is set low, waiting for confirmation that init is ok.
-                                             // Returns the prev state.
+                                             // Returns the prev state
+
+    public void setState(String state);     // UIMA-4577 Information only, for the db. getState() is in IDbJob;
 
     /**
      * Used during scheduling cycle only, keep track of number of shares given out to this job.
@@ -88,7 +92,7 @@ public interface IRmJob
     /**
      * For queries - how many processes do I want in a perfect world?
      */
-    public int queryDemand();
+    // public int queryDemand(); to IDbJob UIMA-4577
 
     /**
      * Eviction policies, configurable.
@@ -220,7 +224,7 @@ public interface IRmJob
      * Scheduler looks at job memory and decides what its share order is.
      */
     public void setShareOrder(int s);
-    public int getShareOrder();
+    public int getShareOrder();         // IDbJob UIMA-4577
 
     /**
      * This returns the largest number that can actually be used, which will be either the
@@ -230,7 +234,7 @@ public interface IRmJob
     public void initJobCap();   // calculate the cap at start of cycle and cache it
                                 // because it is frequently used
 
-    public String getUserName();
+    // public String getUserName();      // UIMA 4577 IDbJob
     public void   setUserName(String n);
     
     public User getUser();
@@ -242,7 +246,7 @@ public interface IRmJob
     public int  getUserPriority();
     public void setUserPriority(int p);
 
-    public String getClassName();
+    // public String getClassName();         UIMA 4577 IDbJob
     public void   setClassName(String n);
 
     public int getSchedulingPriority();
@@ -257,7 +261,7 @@ public interface IRmJob
     public int  nThreads();
     public void setThreads(int threads);
 
-    public int  getMemory();
+    // public int  getMemory();     UIMA 4577 IDbJob
     public void setMemory(int memory);
 
     /**
@@ -283,7 +287,7 @@ public interface IRmJob
     
     // Total number of shares to account to me - either actually assigned, or
     // counted afresh in the current scheduling cycle, for allotments
-    public int countOccupancy();                  // UIMA-4275
+    // public int countOccupancy();                  // UIMA-4275 moved to IDbJob by UIMA-4577
 
     // UIMA-4275 Must lose some number of shares unconditionally
     public void shrinkBy(int howmany);

@@ -951,6 +951,7 @@ public class JobManagerConverter
 
                 localMap.addDuccWork(l);           // still schedulable, and we already know about it, just sync the state
 
+                scheduler.signalState(l.getDuccId(), l.getStateObject().toString());
                 switch ( l.getDuccType() ) {
                   case Job:    
                       jobUpdate(r.getStateObject(), l);

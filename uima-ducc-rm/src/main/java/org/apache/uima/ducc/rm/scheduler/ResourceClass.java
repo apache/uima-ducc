@@ -573,7 +573,7 @@ public class ResourceClass
     {
         int sum = 0;
         for ( IRmJob j : allJobs.values() ) {
-            sum += (j.countOccupancy() * j.getShareOrder());          // in quantum shares UIMA-4275
+            sum += (j.countOccupancy());          // in quantum shares UIMA-4275
         }
         return sum;
     }

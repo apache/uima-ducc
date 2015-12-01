@@ -45,6 +45,7 @@ public class RmJob
 	
     protected DuccId   id;                            // sched-assigned id (maybe delegate to job manager eventually)
     protected DuccType ducc_type;                     // for messages so we can tell what kind of job
+    protected String state = "New";                   // UIMA-4577 info only, for the db
     protected boolean  arbitrary_process = false;     // Is this an AP?
     protected String name;                            // user's name for job
     protected String resource_class_name;             // Name of the res class, from incoming job parms
@@ -124,6 +125,7 @@ public class RmJob
         orchestrator_epoch = SystemPropertyResolver.getIntProperty("ducc.orchestrator.state.publish.rate", 10000);
         rm_rate            = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.ratio", 4);
         ducc_epoch         = orchestrator_epoch * rm_rate;
+        
     }
     
     // public RmJob(DuccId id, Properties properties)
@@ -169,7 +171,10 @@ public class RmJob
     {
         this.name = name;
     }
-    
+
+    public void setState(String state) { this.state = state; }
+    public String getState()           { return this.state; }
+
     public void setReservation()
     {
         this.is_reservation = true;

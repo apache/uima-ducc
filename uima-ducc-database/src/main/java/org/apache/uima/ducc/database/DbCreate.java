@@ -133,10 +133,10 @@ public class DbCreate
             return false;
         }
         Metadata metadata = cluster.getMetadata();
-        logger.info(methodName, null, "Connected to cluster:", metadata.getClusterName());
+        doLog(methodName, "Connected to cluster:", metadata.getClusterName());
         
         for ( Host host : metadata.getAllHosts() ) {
-            logger.info(methodName, null, "Datatacenter:", host.getDatacenter(), "Host:", host.getAddress(), "Rack:", host.getRack());
+            doLog(methodName, "Datatacenter:", host.getDatacenter(), "Host:", host.getAddress(), "Rack:", host.getRack());
         } 
         session = cluster.connect();
         return true;

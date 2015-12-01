@@ -50,6 +50,7 @@ public interface ISchedulerMain
     void signalCompletion(DuccId id);
     void signalInitialized(IRmJob id);
     void signalCompletion(IRmJob job, Share share);
+    void signalState(DuccId jobid, String state);
     //void signalGrowth(DuccId jobid, Share share);
 
     String getDefaultFairShareName();

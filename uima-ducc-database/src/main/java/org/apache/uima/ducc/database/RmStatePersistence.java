@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.persistence.rm.IDbJob;
 import org.apache.uima.ducc.common.persistence.rm.IDbShare;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -48,13 +49,22 @@ public class RmStatePersistence
     DuccLogger logger = null;
     static final String RM_NODE_TABLE  = RmNodes.TABLE_NAME.pname();
     static final String RM_SHARE_TABLE = RmShares.TABLE_NAME.pname();
+    static final String RM_LOAD_TABLE  = RmLoad.TABLE_NAME.pname();
 
+    // Prepared statements to manage the RmNodes table
+
+    // Prepared statements to manage the RmShares table
     PreparedStatement shareAddPrepare = null;
     PreparedStatement shareDelPrepare = null;
     PreparedStatement updateFixedPrepare = null;
     PreparedStatement updatePurgedPrepare = null;
     PreparedStatement updateEvictedPrepare = null;
     PreparedStatement updateSharePrepare = null;
+
+    // Prepared statements to manage the RmLoad table
+    PreparedStatement addJobPrepare = null;
+    PreparedStatement deleteJobPrepare = null;
+    PreparedStatement updateDemandPrepare = null;
 
     public RmStatePersistence()
     {
@@ -99,6 +109,11 @@ public class RmStatePersistence
         updatePurgedPrepare = h.prepare("UPDATE " + RM_SHARE_TABLE + " SET purged = ? WHERE node = ? AND ducc_dbid = ? and job_id = ?");
         updateEvictedPrepare = h.prepare("UPDATE " + RM_SHARE_TABLE + " SET evicted = ? WHERE node = ? AND ducc_dbid = ? and job_id = ?");
         updateSharePrepare = h.prepare("UPDATE " + RM_SHARE_TABLE + " SET investment = ?, state = ?, init_time = ?, pid = ?  WHERE node = ? AND ducc_dbid = ? and job_id = ?");
+
+        // An upsert
+        addJobPrepare = h.prepare("UPDATE " + RM_LOAD_TABLE + " SET class = ?, user = ?, memory = ?, jobtype = ? WHERE job_id = ?");
+        deleteJobPrepare = h.prepare("DELETE FROM " + RM_LOAD_TABLE + " WHERE job_id=?");
+        updateDemandPrepare = h.prepare("UPDATE " + RM_LOAD_TABLE + " SET demand = ?, occupancy = ?, state = ? WHERE job_id=?");
     }
 
     public void close()
@@ -116,6 +131,7 @@ public class RmStatePersistence
             h = dbManager.open();
             h.execute("TRUNCATE " + RM_NODE_TABLE);
             h.execute("TRUNCATE " + RM_SHARE_TABLE);
+            h.execute("TRUNCATE " + RM_LOAD_TABLE);
         } catch ( Exception e ) {
             logger.error(methodName, null, "Cannot clear the database.", e);
         } 
@@ -137,6 +153,15 @@ public class RmStatePersistence
 
         buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + RM_SHARE_TABLE + " (");
         buf.append(DbUtil.mkSchema(RmShares.values()));
+        buf.append(")");
+        ret.add(new SimpleStatement(buf.toString()));
+        indexes = DbUtil.mkIndices(RmShares.values(), RM_SHARE_TABLE);
+        for ( String s : indexes ) {
+            ret.add(new SimpleStatement(s));
+        }
+
+        buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + RM_LOAD_TABLE + " (");
+        buf.append(DbUtil.mkSchema(RmLoad.values()));
         buf.append(")");
         ret.add(new SimpleStatement(buf.toString()));
         indexes = DbUtil.mkIndices(RmShares.values(), RM_SHARE_TABLE);
@@ -260,7 +285,30 @@ public class RmStatePersistence
         }
         return ret;
    }
-    
+
+    public void addJob(IDbJob j) 
+        throws Exception
+    {
+    	DbHandle h = dbManager.open();
+        h.execute(addJobPrepare, j.getClassName(), j.getUserName(), j.getMemory(), j.getShortType(), j.getFriendlyId());
+    }
+
+    public void deleteJob(IDbJob j) 
+        throws Exception
+    {
+    	DbHandle h = dbManager.open();
+        h.execute(deleteJobPrepare, j.getFriendlyId());        
+    }
+
+    public void updateDemand(IDbJob j)
+    	throws Exception
+    {
+    	DbHandle h = dbManager.open();
+        // queryDemand returns the number of processes wanted by the job, of the job's memory size
+        // The occupancy is converted from qshares to nshares (processes) for the db.
+        h.execute(updateDemandPrepare, j.queryDemand(), (j.countOccupancy() / j.getShareOrder()), j.getState(), j.getFriendlyId());
+    }
+
     public static void main(String[] args)
     {
     }
