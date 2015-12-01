@@ -91,11 +91,13 @@ public interface IHistoryPersistenceManager
             public String pname()         { return "ducc_dbid"; }
             public Type type()            { return Type.Long; }
             public boolean isPrimaryKey() { return true; }
+            public boolean isIndex()      { return true; }
         },
 
         history {
-            public String pname()  { return "history"; }        // to the future, is this a history or ckpt item?
-            public Type type()     { return Type.Boolean; }
+            public String pname()         { return "history"; }        // to the future, is this a history or ckpt item?
+            public Type type()            { return Type.Boolean; }
+            public boolean isIndex()      { return true; }
         },
 
         work {

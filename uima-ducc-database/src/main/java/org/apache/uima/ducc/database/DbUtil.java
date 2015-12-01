@@ -76,7 +76,7 @@ class DbUtil
         List<String> ret = new ArrayList<String>();
         for ( IDbProperty p : props ) {
             if ( p.isIndex() ) {
-                StringBuffer buf = new StringBuffer("CREATE INDEX ");
+                StringBuffer buf = new StringBuffer("CREATE INDEX IF NOT EXISTS ");
                 buf.append(tablename);
                 buf.append("_");
                 buf.append(p.pname());

@@ -39,12 +39,13 @@ public class DbCreate
     static final String DUCC_KEYSPACE = "ducc";
     static final String PASSWORD_KEY  = "db_password";
     static final String PASSWORD_FILE = "ducc.private.properties";
-    static final int RETRY = 10;
+    int RETRY = 10;
 
     DuccLogger logger = null;
     String dburl;
     String adminid = null;
     String adminpw = null;
+    boolean useNewPw = false;
 
     private Cluster cluster;
     private Session session = null;
@@ -84,14 +85,16 @@ public class DbCreate
 
         // If we're here, we must first of all get rid of the cassandra su and set up our own
 
-        AuthProvider auth = new PlainTextAuthProvider("cassandra", "cassandra");
+
         for ( int i = 0; i < RETRY; i++ ) {
             try {
+                // First time, we nuke the default id / pw and install our own.
+                AuthProvider auth = new PlainTextAuthProvider("cassandra", "cassandra");
                 cluster = Cluster.builder()
                     .withAuthProvider(auth)
                     .addContactPoint(dburl)
                     .build();
-
+                    
                 session = cluster.connect();
                 session.execute("CREATE USER IF NOT EXISTS " + adminid + " with password '" + adminpw + "' SUPERUSER");
                 cluster.close();
@@ -108,14 +111,28 @@ public class DbCreate
                 session.execute("ALTER USER cassandra  with password '" + uglypw + "' NOSUPERUSER");
                 doLog(methodName, "Changed default super user's password and revoked its superuser authority.");
                 doLog(methodName, "From this point, this DB can only be accessed in super user mode by user 'ducc'");
-                    
                 break;
             } catch ( NoHostAvailableException e ) {
                 doLog("Waiting for database to boot ...");
                 session = null;
                 cluster = null;
             } catch ( AuthenticationException e ) {
-                doLog("Waiting for default authentication ...");
+                // The default userid/pw failed, so we try again with the user-supplied one
+                RETRY += i;         // we'll extend the retry for a bit in case db took a while to start
+                doLog(methodName, "Initial DB connection failed with AuthorizationException. Retrying database connection with your supplied userid and password.");
+                try {
+                    AuthProvider auth = new PlainTextAuthProvider(adminid, adminpw);
+                    cluster = Cluster.builder()
+                        .withAuthProvider(auth)
+                        .addContactPoint(dburl)
+                        .build();
+                    session = cluster.connect();                    
+                    // if this works we assume the DB user base is ok and continue
+                    break;         // no crash, we're outta here
+                } catch ( Exception ee ) {
+                    doLog(methodName, "Authorization fails with both the default userid/password and the new userid/password.");
+                    doLog(methodName, "Retrhying, as first-time database may take a few moments to initialize.");
+                }
                 session = null;
                 cluster = null;
             } catch ( Exception e ) {
@@ -138,7 +155,6 @@ public class DbCreate
         for ( Host host : metadata.getAllHosts() ) {
             doLog(methodName, "Datatacenter:", host.getDatacenter(), "Host:", host.getAddress(), "Rack:", host.getRack());
         } 
-        session = cluster.connect();
         return true;
     }
 
@@ -184,6 +200,13 @@ public class DbCreate
 
         // A 'keyspace' is what we usually think of as a database.
         session.execute("CREATE KEYSPACE IF NOT EXISTS ducc WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};");
+        session.execute("CREATE USER IF NOT EXISTS guest  WITH PASSWORD 'guest' NOSUPERUSER");
+        session.execute("GRANT SELECT ON KEYSPACE ducc TO guest");
+        session.execute("REVOKE SELECT ON KEYSPACE system FROM guest");
+        session.execute("REVOKE SELECT ON KEYSPACE system_auth FROM guest");
+        session.execute("REVOKE SELECT ON KEYSPACE system_traces FROM guest");
+        doLog(methodName, "Created user 'guest' with SELECT priveleges on DUCC tables.");
+                    
         session.execute("USE " + DUCC_KEYSPACE);
 
         try {

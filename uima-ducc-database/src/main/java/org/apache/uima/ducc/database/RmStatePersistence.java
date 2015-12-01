@@ -164,7 +164,7 @@ public class RmStatePersistence
         buf.append(DbUtil.mkSchema(RmLoad.values()));
         buf.append(")");
         ret.add(new SimpleStatement(buf.toString()));
-        indexes = DbUtil.mkIndices(RmShares.values(), RM_SHARE_TABLE);
+        indexes = DbUtil.mkIndices(RmShares.values(), RM_LOAD_TABLE);
         for ( String s : indexes ) {
             ret.add(new SimpleStatement(s));
         }

@@ -24,6 +24,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,10 +62,10 @@ public class HistoryManagerDb
     PreparedStatement reservationPrepare = null;
     PreparedStatement servicePrepare = null;
     PreparedStatement ckptPrepare = null;
-    static final String JOB_TABLE = "ducc." + OrWorkProps.JOB_TABLE.pname();
-    static final String RES_TABLE = "ducc." + OrWorkProps.RESERVATION_TABLE.pname();
-    static final String SVC_TABLE = "ducc." + OrWorkProps.SERVICE_TABLE.pname();
-    static final String CKPT_TABLE = "ducc." + OrCkptProps.CKPT_TABLE.pname();
+    static final String JOB_TABLE  = OrWorkProps.JOB_TABLE.pname();
+    static final String RES_TABLE  = OrWorkProps.RESERVATION_TABLE.pname();
+    static final String SVC_TABLE  = OrWorkProps.SERVICE_TABLE.pname();
+    static final String CKPT_TABLE = OrCkptProps.CKPT_TABLE.pname();
 		
     public HistoryManagerDb()
     {
@@ -138,8 +139,13 @@ public class HistoryManagerDb
         buf.append("WITH CLUSTERING ORDER BY (ducc_dbid desc)");
 
         ret.add(new SimpleStatement(buf.toString()));
-        ret.add(new SimpleStatement("CREATE INDEX IF NOT EXISTS ON " +  tablename + "(ducc_dbid)"));
-        ret.add(new SimpleStatement("CREATE INDEX IF NOT EXISTS ON " +  tablename + "(history)"));
+        List<String> indexes = DbUtil.mkIndices(OrWorkProps.values(), tablename);
+        for ( String s : indexes ) {
+            ret.add(new SimpleStatement(s));
+        }
+
+        // ret.add(new SimpleStatement("CREATE INDEX IF NOT EXISTS ON " +  tablename + "(ducc_dbid)"));
+        // ret.add(new SimpleStatement("CREATE INDEX IF NOT EXISTS ON " +  tablename + "(history)"));
 
         return ret;
     }
