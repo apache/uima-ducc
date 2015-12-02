@@ -47,10 +47,6 @@ class DbLoader(DuccUtil):
         print 'db_loader -i in [--no-archive]'
         print ''
         print 'Where:'
-        print '    -d'
-        print '         Specifies the database must be dropped and reinitialized if it already exists.'
-        print '         If not specified, the correct schema must already exist.  Object already in'
-        print '         the database are not overwritten.'
         print '    -i in'
         print '         Specifies the DUCC_HOME of the DUCC runtime to be moved into the database.'
         print ''
@@ -68,7 +64,6 @@ class DbLoader(DuccUtil):
 
     def main(self, argv):
 
-        drop    = False
         in_home = None
         out_url = None
         archive = True
@@ -80,8 +75,6 @@ class DbLoader(DuccUtil):
         for ( o, a ) in opts:
             if o in ('-i'):
                 in_home = a
-            elif o in ('-d'):
-                drop = True
             elif o in ('--no-archive'):
                 archive = False
             else:
@@ -105,9 +98,6 @@ class DbLoader(DuccUtil):
 
         if ( not archive ):
             DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDONT_ARCHIVE'
-
-        if ( drop ):
-            DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDROP_DATABASE'
 
         CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.database.DbLoader', in_home, out_url]
         CMD = ' '.join(CMD)
