@@ -825,6 +825,12 @@ public class Scheduler
         synchronized(this) {
             for ( Node n : nodeUpdates.keySet() ) {
                 Machine m = getMachine(n);
+
+                if ( m == null ) {
+                    logger.warn(methodName, null, "Cannot find any record of machine", n.getNodeIdentity().getName());
+                    continue;
+                }
+
                 int count = nodeUpdates.get(n);
                 if ( count == 0 ) {
                     m.heartbeatArrives();

@@ -205,7 +205,7 @@ class DuccUtil(DuccBase):
         if ( self.db_bypass == True ):
             return True
 
-        dbnode = self.ducc_properties.get('ducc.state.database.url')
+        dbnode = self.ducc_properties.get('ducc.database.host')
         if ( dbnode == None ):
             print 'No database location defined.'
             return False
@@ -235,7 +235,7 @@ class DuccUtil(DuccBase):
             return True
 
         print 'Starting database'
-        dbnode = self.ducc_properties.get('ducc.state.database.url')
+        dbnode = self.ducc_properties.get('ducc.database.host')
         dbu.update_cassandra_config(self.DUCC_HOME, dbnode)
 
         max_attempts = 5

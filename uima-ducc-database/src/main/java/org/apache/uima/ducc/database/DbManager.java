@@ -42,7 +42,7 @@ import com.datastax.driver.core.policies.ReconnectionPolicy;
  */
 public class DbManager
 {
-
+    static final String URL_PROPERTY = "ducc.database.url";
     String dburl;
     DuccLogger logger;
 

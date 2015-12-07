@@ -96,7 +96,7 @@ public class StateServicesDb
     	throws Exception
     {
     	this.logger = logger;
-        String stateUrl = System.getProperty("ducc.state.database.url");
+        String stateUrl = System.getProperty(DbManager.URL_PROPERTY);
         return init(stateUrl, null);
     }
 
@@ -105,7 +105,7 @@ public class StateServicesDb
     	throws Exception
     {
     	this.logger = logger;
-        String stateUrl = System.getProperty("ducc.state.database.url");
+        String stateUrl = System.getProperty(DbManager.URL_PROPERTY);
         return init(stateUrl, dbManager);
     }
 
@@ -154,9 +154,7 @@ public class StateServicesDb
             return ret;    // avoid NPE in caller
         }
 
-        DbHandle h = null;
         try {
-            h = dbManager.open();
             Map<Long, DuccProperties> svcset  = getProperties(SVC_TABLE, IStateServices.SvcRegProps.values(), isArchived);
             Map<Long, DuccProperties> metaset = getProperties(META_TABLE, IStateServices.SvcMetaProps.values(), isArchived);
             

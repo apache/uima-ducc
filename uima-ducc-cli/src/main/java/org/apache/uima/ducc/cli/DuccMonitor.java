@@ -205,6 +205,7 @@ public abstract class DuccMonitor {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void error(String message) {
 		if (flag_error.get()) {
 			messageProcessor.status(timestamp(message));

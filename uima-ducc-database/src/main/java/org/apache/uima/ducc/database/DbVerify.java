@@ -44,6 +44,9 @@ public class DbVerify
     DbManager dbManager = null;
     long total_bytes = 0;
 
+    boolean verify_res = false;
+    boolean verify_svc = false;
+    boolean verify_job = false;
     public DbVerify()
         throws Exception
     {
@@ -135,9 +138,9 @@ public class DbVerify
 
             verifyServices();
 
-            if ( false ) verify("ducc.res_history");
-            if ( false ) verify("ducc.svc_history");                
-            if ( false ) verify("ducc.job_history");
+            if ( verify_res ) verify("ducc.res_history");
+            if ( verify_svc ) verify("ducc.svc_history");                
+            if ( verify_job ) verify("ducc.job_history");
             
         } finally {
             dbManager.shutdown();

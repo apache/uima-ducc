@@ -98,7 +98,7 @@ public class DbCreate
                 session = cluster.connect();
                 session.execute("CREATE USER IF NOT EXISTS " + adminid + " with password '" + adminpw + "' SUPERUSER");
                 cluster.close();
-                doLog(methodName, "Created user " + adminid);                    
+                doLog(methodName, "Created database super user " + adminid);                    
                     
                 auth = new PlainTextAuthProvider(adminid, adminpw);
                 cluster = Cluster.builder()
@@ -109,7 +109,7 @@ public class DbCreate
                     
                 String uglypw = UUID.randomUUID().toString();
                 session.execute("ALTER USER cassandra  with password '" + uglypw + "' NOSUPERUSER");
-                doLog(methodName, "Changed default super user's password and revoked its superuser authority.");
+                doLog(methodName, "Changed default database super user's password and revoked its superuser authority.");
                 doLog(methodName, "From this point, this DB can only be accessed in super user mode by user 'ducc'");
                 break;
             } catch ( NoHostAvailableException e ) {
@@ -205,7 +205,7 @@ public class DbCreate
         session.execute("REVOKE SELECT ON KEYSPACE system FROM guest");
         session.execute("REVOKE SELECT ON KEYSPACE system_auth FROM guest");
         session.execute("REVOKE SELECT ON KEYSPACE system_traces FROM guest");
-        doLog(methodName, "Created user 'guest' with SELECT priveleges on DUCC tables.");
+        doLog(methodName, "Created database user 'guest' with SELECT priveleges on DUCC tables.");
                     
         session.execute("USE " + DUCC_KEYSPACE);
 

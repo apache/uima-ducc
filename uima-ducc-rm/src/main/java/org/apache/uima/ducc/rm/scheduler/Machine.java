@@ -174,11 +174,11 @@ public class Machine
         if ( heartbeats == 0 ) return;
         heartbeats = 0;
         try {
-            logger.info(methodName, null, "Reset heartbeat to 0 from", heartbeats);
+            logger.info(methodName, null, id, "Reset heartbeat to 0 from", heartbeats);
 			persistence.setNodeProperty(id, RmNodes.Heartbeats, 0);
-            logger.info(methodName, null, "Time to reset heartbeat", System.currentTimeMillis() - now);
+            logger.info(methodName, null, id, "Time to reset heartbeat", System.currentTimeMillis() - now);
 		} catch (Exception e) {
-            logger.warn(methodName, null, "Cannot update heartbeat count in database:", e);
+            logger.warn(methodName, null, id, "Cannot update heartbeat count in database:", e);
 		}
     }
 
@@ -190,11 +190,11 @@ public class Machine
         if ( c < 2 ) return;                    // we allow a couple because timing and races can create false negatives
         heartbeats = c;
         try {
-            logger.info(methodName, null, "Missed heartbeat count", c);
+            logger.info(methodName, null, id, "Missed heartbeat count", c);
 			persistence.setNodeProperty(id, RmNodes.Heartbeats, c);
-            logger.info(methodName, null, "Time to record misssed heartbeat", System.currentTimeMillis() - now);
+            logger.info(methodName, null, id, "Time to record misssed heartbeat", System.currentTimeMillis() - now);
 		} catch (Exception e) {
-            logger.warn(methodName, null, "Cannot update heartbeat count in database:", e);
+            logger.warn(methodName, null, id, "Cannot update heartbeat count in database:", e);
 		}
     }
 

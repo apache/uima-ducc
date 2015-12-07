@@ -97,7 +97,7 @@ public class RmStatePersistence
     	throws Exception
     {
     	this.logger = logger;
-        String stateUrl = System.getProperty("ducc.state.database.url");
+        String stateUrl = System.getProperty(DbManager.URL_PROPERTY);
         init(stateUrl);
         DbHandle h = dbManager.open();
 
@@ -274,7 +274,7 @@ public class RmStatePersistence
     public Map<String, Map<String, Object>> getAllMachines()
     	throws Exception
     {
-    	String methodName = "getAllMachiens";
+    	//String methodName = "getAllMachines";
         Map<String, Map<String, Object>> ret = new HashMap<String, Map<String, Object>>();
         String cql = "SELECT * FROM " + RM_NODE_TABLE;
         DbHandle h = dbManager.open();

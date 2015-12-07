@@ -110,7 +110,7 @@ public class HistoryManagerDb
         throws Exception
     {
         this.logger = logger;
-        String historyUrl = System.getProperty("ducc.state.database.url");
+        String historyUrl = System.getProperty(DbManager.URL_PROPERTY);
         return init(historyUrl, null);
     }
 
@@ -119,7 +119,7 @@ public class HistoryManagerDb
     	throws Exception
     {
     	this.logger = logger;
-        String stateUrl = System.getProperty("ducc.state.database.url");
+        String stateUrl = System.getProperty(DbManager.URL_PROPERTY);
         return init(stateUrl, dbManager);
     }
 
@@ -220,7 +220,8 @@ public class HistoryManagerDb
     /**
      * Part of history management, recover ths indicated job from history.
      */
-    <T> T restoreWork(Class<T> cl, String tablename, long friendly_id)
+    @SuppressWarnings("unchecked")
+	<T> T restoreWork(Class<T> cl, String tablename, long friendly_id)
         throws Exception
     {
     	String methodName = "restoreWork";
@@ -249,7 +250,8 @@ public class HistoryManagerDb
      *
      * Reminder to self, we need to pass Clas<T> cl so compiler can infer T.
      */
-    public <T> ArrayList<T> restoreSeveralThings(Class<T> cl, String tablename, long max)
+    @SuppressWarnings("unchecked")
+	public <T> ArrayList<T> restoreSeveralThings(Class<T> cl, String tablename, long max)
         throws Exception
     {
     	String methodName = "restoreSeveralThings";
@@ -470,7 +472,8 @@ public class HistoryManagerDb
                 workbytes = bbmap.array();
                 bais = new ByteArrayInputStream(workbytes);
                 ois = new ObjectInputStream(bais);
-                Map<DuccId, DuccId> processToJob = (Map<DuccId, DuccId>) ois.readObject();
+                @SuppressWarnings("unchecked")
+				Map<DuccId, DuccId> processToJob = (Map<DuccId, DuccId>) ois.readObject();
                 ois.close();
 
                 // hack because java serializion is stupid and won't call the no-args constructor - need
@@ -488,7 +491,7 @@ public class HistoryManagerDb
                     logger.info(methodName, id, "Restored", w.getClass());
                 }
                 
-                ret = new Pair(work, processToJob);
+                ret = new Pair<DuccWorkMap, Map<DuccId, DuccId>>(work, processToJob);
             }
 
        } catch ( Exception e ) {

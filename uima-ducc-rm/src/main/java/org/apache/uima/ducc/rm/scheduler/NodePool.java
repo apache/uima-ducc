@@ -540,6 +540,14 @@ class NodePool
     public Machine getMachine(Node n)
     {
         Machine m = allMachines.get(n);
+
+        if ( m == null ) {
+            m = unresponsiveMachines.get(n);
+        }
+        if ( m == null ) {
+            m = offlineMachines.get(n);
+        }
+
         if ( m == null ) {
             for ( NodePool np : children.values() ) {
                 m = np.getMachine(n);
@@ -1061,7 +1069,6 @@ class NodePool
 
         if ( offlineMachines.containsKey(node) ) {               // if it's offline it can't be restored like this.
             Machine m = offlineMachines.get(node);
-            signalDb(m, RmNodes.Responsive, true);
             logger.trace(methodName, null, "Node ", m.getId(), " is offline, not activating.");
             return m;
         }
@@ -1127,7 +1134,7 @@ class NodePool
 
     void disable(Machine m, HashMap<Node, Machine> disableMap)
     {
-        String methodName = "nodeLeaves";
+        String methodName = "disable";
 
         if ( allMachines.containsKey(m.key()) ) {
             logger.info(methodName, null, "Nodepool:", id, "Host disabled:", m.getId(), "Looking for shares to clear");

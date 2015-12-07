@@ -27,7 +27,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -136,7 +135,7 @@ public class DbLoader
         serviceRegistry        = from + serviceRegistry;
         checkpointFile         = from + checkpointFile;
 
-        System.setProperty("ducc.state.database.url", state_url);
+        System.setProperty(DbManager.URL_PROPERTY, state_url);
     }
 
     void closeStream(InputStream in)
@@ -530,13 +529,15 @@ public class DbLoader
     }
 
 
-    void run()
+    @SuppressWarnings("unused")
+	void run()
     	throws Exception
     {
     	String methodName = "run";
         long now = System.currentTimeMillis();
+        boolean run_test = false;
 
-        if ( false ) {
+        if ( run_test ) {
             try {
                 dbManager = new DbManager(state_url, logger);
                 dbManager.init();
