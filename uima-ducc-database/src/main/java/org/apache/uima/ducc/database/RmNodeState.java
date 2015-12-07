@@ -65,7 +65,7 @@ public class RmNodeState
             System.out.println("Usage: RmNodeState <dburl>");
             System.exit(1);
         }
-        System.setProperty("ducc.state.database.url", args[0]);
+        System.setProperty(DbManager.URL_PROPERTY, args[0]);
 
         RmNodeState rns = new RmNodeState(args[0]);
         try {

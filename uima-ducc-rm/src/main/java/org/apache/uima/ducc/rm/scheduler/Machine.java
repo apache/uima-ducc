@@ -243,6 +243,17 @@ public class Machine
         return answer;
     }
 
+    public int countNpShares()
+    {
+        int ret = 0;
+        for ( Share s : activeShares.values() ) {
+            if ( s.isFixed() ) {
+                ret += s.getShareOrder();
+            }
+        }
+        return ret;
+    }
+
     public int countProcesses()
     {
         return activeShares.size();
@@ -319,7 +330,7 @@ public class Machine
         shares_left -= s.getShareOrder();
         try {
             // Not transactional.  If this turns into a problem we'll have to find a way
-			persistence.setNodeProperties(id, RmNodes.Assignments, activeShares.size(), RmNodes.SharesLeft, shares_left);
+			persistence.setNodeProperties(id, RmNodes.Assignments, activeShares.size(), RmNodes.NPAssignments, countNpShares(), RmNodes.SharesLeft, shares_left);
 			persistence.addAssignment(id, s.getJob().getId(), s, getQuantum(), s.getJob().getShortType()); // update jobs on machine and specific shares
             logger.info(methodName, null, "Time to assign share in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
@@ -338,7 +349,7 @@ public class Machine
         shares_left += s.getShareOrder();
         try {
             // Not transactional.  If this turns into a problem we'll have to find a way
-			persistence.setNodeProperties(id, RmNodes.Assignments, activeShares.size(), RmNodes.SharesLeft, shares_left);
+			persistence.setNodeProperties(id, RmNodes.Assignments,  RmNodes.NPAssignments, countNpShares(), activeShares.size(), RmNodes.SharesLeft, shares_left);
 			persistence.removeAssignment(id, s.getJob().getId(), s);  // update jobs on machine and specific shares
             logger.info(methodName, null, "Time to remove share in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {

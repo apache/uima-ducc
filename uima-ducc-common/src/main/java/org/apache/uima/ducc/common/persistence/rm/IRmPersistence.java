@@ -266,6 +266,10 @@ public interface IRmPersistence
             public String pname() { return "assignments"; }
             public Type type()  { return Type.Integer; }
         },
+        NPAssignments {
+            public String pname() { return "np_assignments"; }
+            public Type type()  { return Type.Integer; }
+        },
         ;
         public boolean isPrimaryKey() { return false; }
         public boolean isPrivate()    { return false; }

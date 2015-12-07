@@ -1033,6 +1033,7 @@ class NodePool
         props.put(RmNodes.Heartbeats   , 0);
         props.put(RmNodes.SharesLeft   , m.countFreeShares());     // qshares remaining
         props.put(RmNodes.Assignments  , m.countProcesses());      // processes
+        props.put(RmNodes.NPAssignments, m.countNpShares());
         
         props.put(RmNodes.Reservable   , canReserve);
 
