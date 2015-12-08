@@ -72,10 +72,12 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
+import org.apache.uima.ducc.ws.db.DbQuery;
+import org.apache.uima.ducc.ws.db.IDbMachine;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
+import org.apache.uima.ducc.ws.helper.BrokerHelper.FrameworkAttribute;
 import org.apache.uima.ducc.ws.helper.DatabaseHelper;
 import org.apache.uima.ducc.ws.helper.EntityInfo;
-import org.apache.uima.ducc.ws.helper.BrokerHelper.FrameworkAttribute;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
@@ -1605,6 +1607,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		StringBuffer row;
 		StringBuffer data = new StringBuffer();
 		
+		Map<String, IDbMachine> dbMachineMap = DbQuery.getInstance().getMapMachines();
+		
 		DuccMachinesData instance = DuccMachinesData.getInstance();
 		
 		MachineFactsList factsList = instance.getMachineFactsList();
@@ -1682,14 +1686,16 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append((trGet(counter)));
 				// Status
 				StringBuffer sb = new StringBuffer();
-				String status = facts.status;
+				String[] machineStatus = Helper.getMachineStatus(facts, dbMachineMap);
+				String status = machineStatus[0];
+				hover = "title=\""+machineStatus[1]+"\"";
 				if(status.equals("down")) {
-					sb.append("<span class=\"health_red\""+">");
+					sb.append("<span "+hover+" class=\"health_red\""+">");
 					sb.append(status);
 					sb.append("</span>");
 				}
 				else if(status.equals("up")) {
-					sb.append("<span class=\"health_green\""+">");
+					sb.append("<span "+hover+"class=\"health_green\""+">");
 					sb.append(status);
 					sb.append("</span>");
 				}

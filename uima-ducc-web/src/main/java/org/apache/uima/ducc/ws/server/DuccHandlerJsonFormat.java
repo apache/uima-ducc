@@ -77,6 +77,8 @@ import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
+import org.apache.uima.ducc.ws.db.DbQuery;
+import org.apache.uima.ducc.ws.db.IDbMachine;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
 import org.apache.uima.ducc.ws.helper.DatabaseHelper;
 import org.apache.uima.ducc.ws.helper.EntityInfo;
@@ -1324,6 +1326,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonArray row;
 		StringBuffer sb;
 		
+		Map<String, IDbMachine> dbMachineMap = DbQuery.getInstance().getMapMachines();
+		
 		DuccMachinesData instance = DuccMachinesData.getInstance();
 		
 		MachineFactsList factsList = instance.getMachineFactsList();
@@ -1379,14 +1383,16 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row = new JsonArray();
 				// Status
 				sb = new StringBuffer();
-				String status = facts.status;
+				String[] machineStatus = Helper.getMachineStatus(facts, dbMachineMap);
+				String status = machineStatus[0];
+				hover = "title=\""+machineStatus[1]+"\"";
 				if(status.equals("down")) {
-					sb.append("<span class=\"health_red\""+">");
+					sb.append("<span "+hover+" class=\"health_red\""+">");
 					sb.append(status);
 					sb.append("</span>");
 				}
 				else if(status.equals("up")) {
-					sb.append("<span class=\"health_green\""+">");
+					sb.append("<span "+hover+"class=\"health_green\""+">");
 					sb.append(status);
 					sb.append("</span>");
 				}
@@ -2054,9 +2060,13 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
+		Map<String, IDbMachine> dbMachineMap = DbQuery.getInstance().getMapMachines();
+		
 		DuccMachinesData instance = DuccMachinesData.getInstance();
 		
 		MachineFactsList factsList = instance.getMachineFactsList();
+		
+		Helper.updateMachineStatus(factsList, dbMachineMap);
 		
 		Gson gson = new Gson();
 		String jSon = gson.toJson(factsList);
