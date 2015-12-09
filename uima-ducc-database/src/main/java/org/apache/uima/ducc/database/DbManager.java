@@ -19,6 +19,7 @@
 
 package org.apache.uima.ducc.database;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
@@ -43,12 +44,16 @@ import com.datastax.driver.core.policies.ReconnectionPolicy;
 public class DbManager
 {
     static final String URL_PROPERTY = "ducc.database.url";
+    private static String db_id = null;
+    private static String db_pw = null;
+
     String dburl;
     DuccLogger logger;
 
     private Cluster cluster;            // only one
     private Session session;            // only one - it's thread safe and manages a connection pool
 
+    
     public DbManager(String dburl, DuccLogger logger)
         throws Exception
     {
@@ -88,9 +93,12 @@ public class DbManager
         String methodName = "init";
 
         if ( cluster != null ) return;        // already initialized
+        dbPassword();                         // sets some private static login stuff.
+                                              // will throw sometims, so we can assume
+                                              // we're allowed to continue if control passes down.
 
-        String pw = dbPassword();
-        PlainTextAuthProvider auth = new PlainTextAuthProvider("ducc", pw);
+        logger.info(methodName, null, "Attach to", dburl, "as", db_id, db_pw);
+        PlainTextAuthProvider auth = new PlainTextAuthProvider(db_id, db_pw); // throws if no good
 
         ReconnectionPolicy rp = new ConstantReconnectionPolicy(10000);  // if we lose connection, keep trying every 10 seconds
         cluster = Cluster.builder()
@@ -159,20 +167,30 @@ public class DbManager
         return session.execute(s);
     }
 
-    static String dbPassword()
+    static void dbPassword()
     	throws Exception
     {
-        // logger.info(methodName, null, "Opening service database at: "  + dburl);
+        // If I can not read the superuser password I'll allow login as guest.  If guest has been revokded
+        // that will be discovered later when I actually sign in.
+        File f = new File(System.getProperty("DUCC_HOME") + "/resources.private/" + DbCreate.PASSWORD_FILE);
+        if ( ! f.canRead() ) {
+            db_id = "guest";
+            db_pw = "guest";
+            return;
+        }
+            
+        // If i can read the file that's supposed to have the super user password I'll do so.  If not, or
+        // if there's no password there, tough luck Charlie.
+        db_id = "ducc";
         Properties props = new Properties();
-        FileInputStream fis = new FileInputStream(System.getProperty("DUCC_HOME") + "/resources.private/" + DbCreate.PASSWORD_FILE);
+        FileInputStream fis = new FileInputStream(f);
         props.load(fis);
         fis.close();
 
-        String pw = props.getProperty(DbCreate.PASSWORD_KEY);
-        if ( pw == null ) {
+        db_pw = props.getProperty(DbCreate.PASSWORD_KEY);
+        if ( db_pw == null ) {
             throw new IllegalStateException("Cannot acquire the database password.");
         }
-        return pw;
     }
 
 

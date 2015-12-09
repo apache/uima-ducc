@@ -22,6 +22,7 @@
 import os
 import sys
 import getopt
+import platform
 
 import shutil
 import subprocess
@@ -242,6 +243,17 @@ class PostInstall():
 
         return os.path.dirname(self.path_to_java)
 
+    def set_java_home(self):
+        jvm = self.path_to_java
+        if ( platform.system() == 'Darwin' ):
+            self.jvm_home = "/Library/Java/Home"
+        else:
+            ndx = jvm.rindex('/')
+            ndx = jvm.rindex('/', 0, ndx)
+            self.jvm_home = jvm[:ndx]
+
+        os.environ['JAVA_HOME'] = self.jvm_home
+
     def get_java_version(self):
         return self.java_version
 
@@ -413,6 +425,8 @@ class PostInstall():
 
         # insure java is configured and installed
         self.java_bindir = self.get_java_bindir()
+        self.set_java_home()
+        print "java_home", os.environ['JAVA_HOME']
 
         # As of DUCC 2.0, always set here on installation
         print 'ActiveMQ is automanaged on node ', self.localhost

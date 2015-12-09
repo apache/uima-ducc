@@ -22,6 +22,7 @@ package org.apache.uima.ducc.database;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
+import org.apache.uima.ducc.common.persistence.rm.NullRmStatePersistence;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
@@ -39,22 +40,32 @@ public class RmNodeState
         throws Exception
     {
         IRmPersistence persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
-        
+        if ( persistence instanceof NullRmStatePersistence ) {
+            System.out.println("Cannot get viable RM Persistance isntance.");
+            return;
+        }
+
         try {
-			Map<String, Map<String, Object>> state = persistence.getAllMachines();
-			for ( String node : state.keySet() ) {
-			    StringBuffer buf = new StringBuffer(node);
-			    buf.append(": ");
-			    Map<String, Object> st = state.get(node);
-			    for ( String k : st.keySet() ) {
-			        buf.append(k);
-			        buf.append("[");
-			        buf.append(st.get(k).toString());
-			        buf.append("] ");
-			    }
-			    System.out.println(buf.toString());
-			}
+            for ( int i = 0; i < 10; i++ ) {
+                Map<String, Map<String, Object>> state = persistence.getAllMachines();
+                for ( String node : state.keySet() ) {
+                    StringBuffer buf = new StringBuffer(node);
+                    buf.append(": ");
+                    Map<String, Object> st = state.get(node);
+                    for ( String k : st.keySet() ) {
+                        buf.append(k);
+                        buf.append("[");
+                        buf.append(st.get(k).toString());
+                        buf.append("] ");
+                    }
+                    System.out.println(buf.toString());
+                }
+                Thread.sleep(2000);
+            }
+        } catch ( Exception e ) {
+            e.printStackTrace();
 		} finally {
+            // In "real life" you don't need to, and shouldn't, close the persistence until the process is ready to exit.
             persistence.close();
         }
     }

@@ -85,7 +85,8 @@ public class RmStatePersistence
                 logger.error(methodName, null, "Cannot contact database.  Retrying in 5 seconds.");
                 Thread.sleep(5000);
             } catch ( Exception e ) {
-                logger.error(methodName, null, "Errors contacting database.  No connetion made.", e);
+                logger.error(methodName, null, "Errors contacting database.  No connetion made.");
+                logger.error(methodName, null, e);
                 ret = false;
                 break;
             }
