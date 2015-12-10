@@ -18,7 +18,9 @@
 */
 package org.apache.uima.ducc.common.persistence.rm;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -48,6 +50,8 @@ public class NullRmStatePersistence implements IRmPersistence
     public void updateShare(String node, DuccId shareid, DuccId jobid, long investment, String state, long init_time, long pid) {}
     public Properties getMachine(String id) { return null; }
     public Map<String, Map<String, Object>> getAllMachines() { return new HashMap<String, Map<String, Object>>(); }
+    public Map<String, Map<String, Object>> getAllShares() { return new HashMap<String, Map<String, Object>>(); }
+    public List<Map<String, Object>> getLoad() { return new ArrayList<Map<String, Object>>(); }
     public void addJob(IDbJob j ) {}
     public void deleteJob(IDbJob j ) {}
     public void updateDemand(IDbJob j) {}

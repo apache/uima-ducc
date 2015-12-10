@@ -203,7 +203,7 @@ public class RmStatePersistence
         } catch ( Exception e ) {
             logger.error(methodName, null, "Problem setting properties", e);
         } finally {           
-            logger.info(methodName, null, "Total time to update properties on", System.currentTimeMillis() - now);
+            logger.debug(methodName, null, "Total time to update properties on", System.currentTimeMillis() - now);
 
         }
         
@@ -285,7 +285,39 @@ public class RmStatePersistence
             ret.put((String)mach.get(RmNodes.Name.pname()), mach);
         }
         return ret;
-   }
+    }
+
+    public Map<String, Map<String, Object>> getAllShares()
+    	throws Exception
+    {
+    	//String methodName = "getAllShares";
+        Map<String, Map<String, Object>> ret = new HashMap<String, Map<String, Object>>();
+        String cql = "SELECT * FROM " + RM_SHARE_TABLE;
+        DbHandle h = dbManager.open();
+        ResultSet rs = h.execute(cql);
+        for ( Row r : rs ) {
+
+            Map<String, Object> share = DbUtil.getProperties(RmShares.values(), r);
+            String key = share.get(RmShares.Node.pname()) + ":" + share.get(RmShares.DuccDbid.pname()) + ":" + share.get(RmShares.JobId.pname());
+            ret.put(key, share);
+        }
+        return ret;
+    }
+
+    public List<Map<String, Object>> getLoad()
+    	throws Exception
+    {
+    	//String methodName = "getLoad";
+        List<Map<String, Object>> ret = new ArrayList<Map<String, Object>>();
+        String cql = "SELECT * FROM " + RM_LOAD_TABLE;
+        DbHandle h = dbManager.open();
+        ResultSet rs = h.execute(cql);
+        for ( Row r : rs ) {
+            Map<String, Object> job = DbUtil.getProperties(RmLoad.values(), r);
+            ret.add(job);
+        }
+        return ret;
+    }
 
     public void addJob(IDbJob j) 
         throws Exception

@@ -19,6 +19,7 @@
 
 package org.apache.uima.ducc.common.persistence.rm;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -167,7 +168,7 @@ public interface IRmPersistence
     /**
      * Fetch all machines in the database.
      *
-     * @return A map of properties objects containing full details about the machines,
+     * @return A map of map objects containing full details about the machines,
      *         keyed on machine name.  If there are no machines found in the db,
      *         an empty map is returned.
      *
@@ -176,6 +177,31 @@ public interface IRmPersistence
      */
     public Map<String, Map<String, Object>> getAllMachines() throws Exception;
 
+    /**
+     * Fetch all shares in the database.
+     *
+     * @return A map of map objects containing full details about the shares.
+     *         The key is node:jobid:shareid concatenated as a string, as it takes all of these
+     *         to uniquely identify a share. If there are no shares found in the db,
+     *         an empty map is returned.
+     *
+     * @throws Exception.  Anything that goes wrong throws.  Usually the
+     *         throw will originate in the DB because of some DB issue. 
+     */
+    public Map<String, Map<String, Object>> getAllShares() throws Exception;
+    
+    /**
+     * Fetch all the load records.  These are relatively short, one per job/reservation/etc
+     * in the database, summarizing the resources they have vs the resources they want in
+     * a perfect world.
+     *
+     * @return A list of map objects containing load information.
+     *
+     * @throws Exception.  Anything that goes wrong throws.  Usually the
+     *         throw will originate in the DB because of some DB issue. 
+     */
+    public List<Map<String, Object>> getLoad() throws Exception;
+    
     /**
      * A new job arrives (or is recovered after restart).
      */

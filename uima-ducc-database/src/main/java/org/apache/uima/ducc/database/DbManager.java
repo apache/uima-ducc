@@ -44,9 +44,11 @@ import com.datastax.driver.core.policies.ReconnectionPolicy;
 public class DbManager
 {
     static final String URL_PROPERTY = "ducc.database.url";
+    static final String NOISE_PROPERTY = "ducc.database.noisy";
     private static String db_id = null;
     private static String db_pw = null;
 
+    boolean noisy = true;
     String dburl;
     DuccLogger logger;
 
@@ -59,6 +61,8 @@ public class DbManager
     {
         this.dburl = dburl;
         this.logger = logger;
+
+        if ( System.getProperty(NOISE_PROPERTY) != null ) noisy = false;
     }
     
     boolean checkForDatabase()
@@ -97,7 +101,6 @@ public class DbManager
                                               // will throw sometims, so we can assume
                                               // we're allowed to continue if control passes down.
 
-        logger.info(methodName, null, "Attach to", dburl, "as", db_id, db_pw);
         PlainTextAuthProvider auth = new PlainTextAuthProvider(db_id, db_pw); // throws if no good
 
         ReconnectionPolicy rp = new ConstantReconnectionPolicy(10000);  // if we lose connection, keep trying every 10 seconds
@@ -108,17 +111,18 @@ public class DbManager
             .build();
 
         Metadata metadata = cluster.getMetadata();
-        logger.info(methodName, null, "Connected to cluster:", metadata.getClusterName());
-        
-        for ( Host host : metadata.getAllHosts() ) {
-            logger.info(methodName, null, "Datatacenter:", host.getDatacenter(), "Host:", host.getAddress(), "Rack:", host.getRack());
-        } 
+        if ( noisy) {
+            logger.info(methodName, null, "Connected to cluster:", metadata.getClusterName());
+            for ( Host host : metadata.getAllHosts() ) {
+                logger.info(methodName, null, "Datatacenter:", host.getDatacenter(), "Host:", host.getAddress(), "Rack:", host.getRack());
+            } 
+        }
     }
 
     public synchronized void shutdown()
     {
     	String methodName = "closeDatabase";
-        logger.info(methodName, null, "Closing the database.");
+        if ( noisy ) logger.info(methodName, null, "Closing the database.");
         if ( cluster != null ) cluster.close();        
         cluster = null;
         session = null;
@@ -148,9 +152,9 @@ public class DbManager
     {
     	String methodName = "execute";
         if ( logger.isDebug() ) {
-            logger.info(methodName, null, "EXECUTE CQL:", cql);
+            if ( noisy ) logger.info(methodName, null, "EXECUTE CQL:", cql);
         } else {
-            logger.info(methodName, null, "EXECUTE CQL:", truncateText(cql));
+            if ( noisy ) logger.info(methodName, null, "EXECUTE CQL:", truncateText(cql));
         }
         return session.execute(cql);
     }
@@ -163,7 +167,7 @@ public class DbManager
     ResultSet execute(SimpleStatement s)
     {
     	String methodName = "execute";
-        logger.info(methodName, null, "EXECUTE STATEMENT:", truncateText(s.getQueryString()));
+        if ( noisy ) logger.info(methodName, null, "EXECUTE STATEMENT:", truncateText(s.getQueryString()));
         return session.execute(s);
     }
 

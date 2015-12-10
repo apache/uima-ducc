@@ -23,18 +23,18 @@ import java.util.Map;
 
 import org.apache.uima.ducc.common.persistence.IDbProperty;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
-import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmNodes;
+import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmShares;
 import org.apache.uima.ducc.common.persistence.rm.NullRmStatePersistence;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
 
-public class RmNodeState
+public class RmShareState
 {
-    DuccLogger logger = DuccLogger.getLogger(RmNodeState.class, "State");
+    DuccLogger logger = DuccLogger.getLogger(RmShareState.class, "State");
     String dburl = null;
     
-    RmNodeState(String dburl)
+    RmShareState(String dburl)
     {
         this.dburl = dburl;
     }
@@ -50,7 +50,7 @@ public class RmNodeState
         }
         
         try {
-            Map<String, Map<String, Object>> state = persistence.getAllMachines();
+            Map<String, Map<String, Object>> state = persistence.getAllShares();
             System.out.println(toJson(state));
         } catch ( Exception e ) {
             e.printStackTrace();
@@ -65,7 +65,7 @@ public class RmNodeState
         StringBuffer buf = new StringBuffer("[");
         for ( Map<String, Object> vals : nodes.values() ) {
             buf.append("{");
-            for ( IDbProperty p : RmNodes.values() ) {
+            for ( IDbProperty p : RmShares.values() ) {
                 if ( p.isMeta() ) continue;
                 if ( p.isPrivate() ) continue;
                 buf.append("'");
@@ -74,6 +74,7 @@ public class RmNodeState
                 buf.append(":");
                 switch(p.type()) {
                     case String:
+                    case UUID:
                         buf.append("'");           // must quote strings
                         buf.append(vals.get(p.columnName()));
                         buf.append("'");                                   
@@ -84,8 +85,8 @@ public class RmNodeState
                         break;
                     case Integer:
                     case Long:
-                    case Double
-:                        buf.append(vals.get(p.columnName()).toString());
+                    case Double:
+                    	buf.append(vals.get(p.columnName()).toString());
                         break;
                     default:
                         // RmNodes doesn't use other types
@@ -102,12 +103,12 @@ public class RmNodeState
     public static void main(String[] args)
     {
         if ( args.length != 1 ) {
-            System.out.println("Usage: RmNodeState <dburl>");
+            System.out.println("Usage: RmShareState <dburl>");
             System.exit(1);
         }
         System.setProperty(DbManager.URL_PROPERTY, args[0]);
 
-        RmNodeState rns = new RmNodeState(args[0]);
+        RmShareState rns = new RmShareState(args[0]);
         try {
             rns.run();
         } catch ( Exception e ) {

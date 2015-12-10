@@ -19,22 +19,23 @@
 
 package org.apache.uima.ducc.database;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.persistence.IDbProperty;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
-import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmNodes;
+import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmLoad;
 import org.apache.uima.ducc.common.persistence.rm.NullRmStatePersistence;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
 
-public class RmNodeState
+public class RmQLoad
 {
-    DuccLogger logger = DuccLogger.getLogger(RmNodeState.class, "State");
+    DuccLogger logger = DuccLogger.getLogger(RmQLoad.class, "State");
     String dburl = null;
     
-    RmNodeState(String dburl)
+    RmQLoad(String dburl)
     {
         this.dburl = dburl;
     }
@@ -50,7 +51,7 @@ public class RmNodeState
         }
         
         try {
-            Map<String, Map<String, Object>> state = persistence.getAllMachines();
+            List<Map<String, Object>> state = persistence.getLoad();
             System.out.println(toJson(state));
         } catch ( Exception e ) {
             e.printStackTrace();
@@ -60,12 +61,12 @@ public class RmNodeState
         }
     }
 
-    String toJson(Map<String, Map<String, Object>> nodes)
+    String toJson(List<Map<String, Object>> nodes)
     {
         StringBuffer buf = new StringBuffer("[");
-        for ( Map<String, Object> vals : nodes.values() ) {
+        for ( Map<String, Object> vals : nodes ) {
             buf.append("{");
-            for ( IDbProperty p : RmNodes.values() ) {
+            for ( IDbProperty p : RmLoad.values() ) {
                 if ( p.isMeta() ) continue;
                 if ( p.isPrivate() ) continue;
                 buf.append("'");
@@ -74,6 +75,7 @@ public class RmNodeState
                 buf.append(":");
                 switch(p.type()) {
                     case String:
+                    case UUID:
                         buf.append("'");           // must quote strings
                         buf.append(vals.get(p.columnName()));
                         buf.append("'");                                   
@@ -84,8 +86,8 @@ public class RmNodeState
                         break;
                     case Integer:
                     case Long:
-                    case Double
-:                        buf.append(vals.get(p.columnName()).toString());
+                    case Double:
+                    	buf.append(vals.get(p.columnName()).toString());
                         break;
                     default:
                         // RmNodes doesn't use other types
@@ -102,12 +104,12 @@ public class RmNodeState
     public static void main(String[] args)
     {
         if ( args.length != 1 ) {
-            System.out.println("Usage: RmNodeState <dburl>");
+            System.out.println("Usage: RmQLoad <dburl>");
             System.exit(1);
         }
         System.setProperty(DbManager.URL_PROPERTY, args[0]);
 
-        RmNodeState rns = new RmNodeState(args[0]);
+        RmQLoad rns = new RmQLoad(args[0]);
         try {
             rns.run();
         } catch ( Exception e ) {

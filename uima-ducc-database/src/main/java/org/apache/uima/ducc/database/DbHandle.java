@@ -50,7 +50,7 @@ public class DbHandle
         String methodName = "execute";
         long now = System.currentTimeMillis();
         ResultSet ret = manager.execute(sql);
-        logger.info(methodName, null, "Time to execute", System.currentTimeMillis() - now);
+        if ( manager.noisy ) logger.info(methodName, null, "Time to execute", System.currentTimeMillis() - now);
         
         return ret;
     }
@@ -76,7 +76,7 @@ public class DbHandle
 			BoundStatement bound = boundStatement.bind(fields);
 			return execute(bound);        
         } finally {
-			logger.info(methodName, null, "Time to execute prepared statement:", ps.getQueryString(), System.currentTimeMillis() - now);
+			if ( manager.noisy ) logger.info(methodName, null, "Time to execute prepared statement:", ps.getQueryString(), System.currentTimeMillis() - now);
 		}
     }
 
@@ -253,7 +253,6 @@ public class DbHandle
     PreparedStatement prepare(String cql)
     {
         String methodName = "prepare";
-        logger.info(methodName, null, "Preparing", cql);
         return manager.prepare(cql);
     }
 

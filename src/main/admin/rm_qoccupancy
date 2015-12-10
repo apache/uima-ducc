@@ -21,36 +21,42 @@
 
 import os
 import sys
+import glob
 import subprocess
 
 from ducc_util  import DuccUtil
 
 class DuccRmQOccupancy(DuccUtil):
 
-    def format_shares(self, sh):
-        for s in sh:
-            if ( s['blacklisted'] ):
-                pass
+
+    def format(self, nodes, shares):
+        print("%20s %11s %6s %6s %15s %10s %6s %6s %6s %8s %7s %10s %8s" %  ("Node", "Blacklisted", "Online", "Status", "Nodepool", "Memory", "Order", "Free", "In-Use", "Np-InUse", "Quantum", "Reservable", "Classes"))
+        print("%20s %11s %6s %6s %15s %10s %6s %6s %6s %8s %7s %10s %8s" %  ("----", "-----------", "------", "------", "--------", "------", "-----", "----", "------", "--------", "-------", "----------", "-------"))
+        for n in nodes:
+            if (n['responsive']):
+                status = 'up'
             else:
-                print '%19s J[%8d] S[%8d] O[%d] II[%8d] IR[%8d] E[%5s] P[%5s] F[%5s] I[%5s]' %  ('', s['jobid'], s['shareid'], s['order'], s['investment-init'], s['investment-run'], 
-                 s['evicted'], s['purged'], s['fixed'], s['initialized'])
-                
+                status = 'down'
+            print "%20s %11s %6s %6s %15s %10s %3s(Q) %6s %6s %8s %7s %10s  %8s" %  (n['name'], n['blacklisted'], n['online'], status, n['nodepool'], 
+                                                                             n['memory'], n['share_order'], n['shares_left'], n['assignments'], 
+                                                                             n['np_assignments'], n['quantum'], n['reservable'], n['classes'])
+            if ( shares.has_key(n['name']) ):
+                for s in shares[n['name']]:
+                    fmt = '%19s ' + s['jobtype'] +'[%8d] S[%8d] O[%d] II[%8d] IR[%8d] E[%5s] P[%5s] F[%5s] S[%10s]'
+                    state = s['state']
+                    if ( state == 'null' ):
+                        state = "Assigned"
+                    print fmt %  ('', s['job_id'], s['ducc_dbid'], s['share_order'], s['init_time'], s['investment'], s['evicted'], s['purged'], s['fixed'], state)
 
-    def format_machines(self, lines):
-
-        print("%20s %11s %6s %6s %15s %10s %5s %6s" %  ("Node", "Blacklisted", "Online", "Status", "Nodepool", "Memory", "Order", "Free"))
-
-        for m in lines:
-            print "%20s %11s %6s %6s %15s %10s %5s %6s" %  (m['name'], m['blacklisted'], m['online'], m['status'], m['nodepool'], m['memory'], m['order'], m['shares-free'])
-            if ( len(m['shares']) != 0 ) :
-                self.format_shares(m['shares'])
                 print ''
 
-
-    def format(self, lines):
-        qoccupancy = eval(lines)
-        self.format_machines(qoccupancy)
-
+    
+    # Given DUCC_HOME, a directory, and part of the name of a jar, find the actual name of the jar which will
+    # likeley be versioned
+    def resolve_jar(self, DH, dirname, basename):
+        partial = DH + '/' + dirname + '/'+ basename + '*'
+        ret = glob.glob(partial)
+        return ret[0]
     
     def main(self, argv):
 
@@ -58,22 +64,52 @@ class DuccRmQOccupancy(DuccUtil):
             print 'rm_qload queries and formats the current state of the RM scheduling tables. It takes no parameters.'
             sys.exit(1);
 
-        DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
+        DH = self.DUCC_HOME
+        CP = [self.resolve_jar(DH, '/lib/uima-ducc', 'uima-ducc-database'),
+              self.resolve_jar(DH, '/lib/uima-ducc', 'uima-ducc-common'),
+              DH + '/lib/cassandra/*',
+              DH + '/lib/apache-log4j/*',
+              DH + '/lib/guava/*',
+              self.resolve_jar(DH, '/cassandra-server/lib', 'slf4j-api'),
+              self.resolve_jar(DH, '/apache-uima/apache-activemq/lib', 'slf4j-log4j12'),
+             ]
+        os.environ['CLASSPATH'] = ':'.join(CP)
+        
+        DUCC_JVM_OPTS = ''
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDUCC_HOME=' + self.DUCC_HOME
-        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
+        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.rm.persistence.impl=org.apache.uima.ducc.database.RmStatePersistence'
 
-        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccRmAdmin', '--qoccupancy']
+        dbn = self.ducc_properties.get('ducc.database.host')
+        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.database.RmShareState', dbn]
         CMD = ' '.join(CMD)
         lines = ''
         proc = subprocess.Popen(CMD, bufsize=0, stdout=subprocess.PIPE, shell=True)
         for line in proc.stdout:
             lines = lines + line
 
-        if 'not yet initialized' in lines:
-            print lines
-            return
-            
-        self.format(lines)
+        shares = eval(lines)
+        
+        shares_by_machine = {}
+        for share in shares:
+            k = share['node']
+            if ( shares_by_machine.has_key(k) ):
+                share_list = shares_by_machine[k]
+            else:
+                share_list = []
+                shares_by_machine[k] = share_list
+            share_list.append(share)
+    
+        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.database.RmNodeState', dbn]
+        CMD = ' '.join(CMD)
+        lines = ''
+        proc = subprocess.Popen(CMD, bufsize=0, stdout=subprocess.PIPE, shell=True)
+        for line in proc.stdout:
+            lines = lines + line
+
+        nodes = eval(lines)
+        nodes = sorted(nodes, key=lambda n: n["name"])
+                                           
+        self.format(nodes, shares_by_machine)
         
         return
 
