@@ -26,10 +26,13 @@ public class MachineFacts implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	public String status;
+	public String statusReason;
 	public String ip;
 	public String name;
 	public String memTotal;
 	public String memFree;
+	public String memReserve;
+	public String quantum;
 	public String swapInuse;
 	public String swapDelta;
 	public String swapFree;
@@ -51,10 +54,13 @@ public class MachineFacts implements Serializable {
 				   ) 
 	{
 		this.status = status;
+		this.statusReason = "";
 		this.ip = ip;
 		this.name = name;
 		this.memTotal = memTotal;
 		this.memFree = memFree;
+		this.memReserve = "0";
+		this.quantum = "";
 		this.swapInuse = swapInuse;
 		this.swapDelta = swapDelta;
 		this.swapFree = swapFree;
