@@ -1821,10 +1821,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
-				String directory = job.getLogDirectory()+jobNo;
+				//String directory = job.getLogDirectory()+jobNo;
 				EffectiveUser eu = EffectiveUser.create(request);
-				long wiVersion = job.getWiVersion();
-				AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(eu, component, directory,  wiVersion);
+				//long wiVersion = job.getWiVersion();
+				//AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(eu, component, directory,  wiVersion);
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
 			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(eu.get());
 			    if( (performanceMetricsSummaryMap == null) || (performanceMetricsSummaryMap.size() == 0) ) {

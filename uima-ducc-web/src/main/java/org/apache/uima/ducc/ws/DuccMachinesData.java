@@ -22,6 +22,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -39,6 +40,8 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
+import org.apache.uima.ducc.ws.db.DbQuery;
+import org.apache.uima.ducc.ws.db.IDbMachine;
 import org.apache.uima.ducc.ws.types.Ip;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
@@ -366,7 +369,22 @@ public class DuccMachinesData {
 		return retVal;
 	}
 	
+	public void enhance(MachineFacts facts, Map<String, IDbMachine> dbMachineMap) {
+		if(facts != null) {
+			if(dbMachineMap != null) {
+				String[] machineStatus = DuccMachinesDataHelper.getMachineStatus(facts, dbMachineMap);
+				facts.status = machineStatus[0];
+				facts.statusReason = machineStatus[1];
+				String reserveSize = DuccMachinesDataHelper.getMachineReserveSize(facts, dbMachineMap);
+				facts.memReserve = reserveSize;
+				String quantum = DuccMachinesDataHelper.getMachineQuantum(facts, dbMachineMap);
+				facts.quantum = quantum;
+			}
+		}
+	}
+	
 	public MachineFactsList getMachineFactsList() {
+		Map<String, IDbMachine> dbMachineMap = DbQuery.getInstance().getMapMachines();
 		MachineFactsList factsList = new MachineFactsList();
 		ConcurrentSkipListMap<MachineInfo,String> sortedMachines = getSortedMachines();
 		Iterator<MachineInfo> iterator;
@@ -385,6 +403,7 @@ public class DuccMachinesData {
 			List<String> aliens = machineInfo.getAliens();
 			String heartbeat = ""+machineInfo.getElapsed();
 			MachineFacts facts = new MachineFacts(status,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cGroups,aliens,heartbeat);
+			enhance(facts,dbMachineMap);
 			factsList.add(facts);
 		}
 		return factsList;

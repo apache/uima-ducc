@@ -77,12 +77,10 @@ import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
-import org.apache.uima.ducc.ws.db.DbQuery;
-import org.apache.uima.ducc.ws.db.IDbMachine;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
+import org.apache.uima.ducc.ws.helper.BrokerHelper.FrameworkAttribute;
 import org.apache.uima.ducc.ws.helper.DatabaseHelper;
 import org.apache.uima.ducc.ws.helper.EntityInfo;
-import org.apache.uima.ducc.ws.helper.BrokerHelper.FrameworkAttribute;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
@@ -1309,27 +1307,18 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	{
 		String methodName = "handleServletJsonFormatMachinesAaData";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
-		
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
 		String hover;
 		int sumMemTotal = 0;
-		int sumMemFree = 0;
+		int sumMemReserve = 0;
 		int sumSwapInuse = 0;
-/*
-		int sumSwapDelta = 0;
-*/
 		int sumSwapFree = 0;
 		int sumAliens = 0;
-		
 		ListIterator<MachineFacts> listIterator;
 		JsonArray row;
 		StringBuffer sb;
-		
-		Map<String, IDbMachine> dbMachineMap = DbQuery.getInstance().getMapMachines();
-		
 		DuccMachinesData instance = DuccMachinesData.getInstance();
-		
 		MachineFactsList factsList = instance.getMachineFactsList();
 		if(factsList.size() > 0) {
 			// Total
@@ -1338,11 +1327,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				MachineFacts facts = listIterator.next();
 				try {
 					sumMemTotal += Integer.parseInt(facts.memTotal);
-					sumMemFree += Integer.parseInt(facts.memFree);
+					sumMemReserve += Integer.parseInt(facts.memReserve);
 					sumSwapInuse += Integer.parseInt(facts.swapInuse);
-/*
-					sumSwapDelta += Integer.parseInt(facts.swapDelta);
-*/
 					sumSwapFree += Integer.parseInt(facts.swapFree);
 					sumAliens += facts.aliens.size();
 				}
@@ -1359,14 +1345,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(""));
 			// Memory: usable
 			hover = "title=\"total="+sumMemTotal+"\"";
-			String sumMemFreeWithHover = "<span "+hover+" >"+sumMemFree+"</span>";
-			row.add(new JsonPrimitive(sumMemFreeWithHover));
+			String sumMemReserveWithHover = "<span "+hover+" >"+sumMemReserve+"</span>";
+			row.add(new JsonPrimitive(sumMemReserveWithHover));
 			// Swap: inuse
 			row.add(new JsonPrimitive(sumSwapInuse));
-/*
-			// Swap: delta
-			row.add(new JsonPrimitive(sumSwapDelta));
-*/
 			// Swap: free
 			row.add(new JsonPrimitive(sumSwapFree));
 			// C-Groups
@@ -1383,9 +1365,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row = new JsonArray();
 				// Status
 				sb = new StringBuffer();
-				String[] machineStatus = Helper.getMachineStatus(facts, dbMachineMap);
-				String status = machineStatus[0];
-				hover = "title=\""+machineStatus[1]+"\"";
+				String status = facts.status;
+				hover = "title=\""+facts.statusReason+"\"";
 				if(status.equals("down")) {
 					sb.append("<span "+hover+" class=\"health_red\""+">");
 					sb.append(status);
@@ -1406,9 +1387,17 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(facts.name));
 				// Memory: usable
 				if(!status.equals("defined")) {
-					hover = "title=\"total="+facts.memTotal+"\"";
-					String memFreeWithHover = "<span "+hover+" >"+facts.memFree+"</span>";
-					row.add(new JsonPrimitive(memFreeWithHover));
+					sb = new StringBuffer();
+					sb.append("total="+facts.memTotal);
+					if(facts.quantum != null) {
+						if(facts.quantum.trim().length() > 0) {
+							sb.append(" ");
+							sb.append("quantum="+facts.quantum.trim());
+						}
+					}
+					hover = "title=\""+sb.toString()+"\"";
+					String memReserveWithHover = "<span "+hover+" >"+facts.memReserve+"</span>";
+					row.add(new JsonPrimitive(memReserveWithHover));
 				}
 				else {
 					row.add(new JsonPrimitive(""));
@@ -1430,25 +1419,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				else {
 					row.add(new JsonPrimitive(""));
 				}
-/*
-				// Swap: delta
-				sb = new StringBuffer();
-				String delta = facts.swapDelta;
-				if(delta.equals("0")) {
-					sb.append(delta);
-				}
-				else {
-					sb.append("<span class=\"health_red\">");
-					sb.append(delta);
-					sb.append("</span>");
-				}
-				if(!status.equals("defined")) {
-					row.add(new JsonPrimitive(sb.toString()));
-				}
-				else {
-					row.add(new JsonPrimitive(""));
-				}
-*/
 				// Swap: free
 				if(!status.equals("defined")) {
 					row.add(new JsonPrimitive(facts.swapFree));
@@ -2059,14 +2029,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		String methodName = "handleServletJsonFormatMachines";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		
-		Map<String, IDbMachine> dbMachineMap = DbQuery.getInstance().getMapMachines();
-		
+	
 		DuccMachinesData instance = DuccMachinesData.getInstance();
 		
 		MachineFactsList factsList = instance.getMachineFactsList();
-		
-		Helper.updateMachineStatus(factsList, dbMachineMap);
 		
 		Gson gson = new Gson();
 		String jSon = gson.toJson(factsList);

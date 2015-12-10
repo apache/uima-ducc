@@ -72,8 +72,6 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
-import org.apache.uima.ducc.ws.db.DbQuery;
-import org.apache.uima.ducc.ws.db.IDbMachine;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
 import org.apache.uima.ducc.ws.helper.BrokerHelper.FrameworkAttribute;
 import org.apache.uima.ducc.ws.helper.DatabaseHelper;
@@ -1589,28 +1587,17 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	{
 		String methodName = "handleServletClassicSystemMachines";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
-		
 		int counter = 0;
-		
 		int sumMemTotal = 0;
-		int sumMemFree = 0;
+		int sumMemReserve = 0;
 		int sumSwapInuse = 0;
-/*
-		int sumSwapDelta = 0;
-*/
 		int sumSwapFree = 0;
 		int sumAliens = 0;
-		
 		String hover;
-		
 		ListIterator<MachineFacts> listIterator;
 		StringBuffer row;
 		StringBuffer data = new StringBuffer();
-		
-		Map<String, IDbMachine> dbMachineMap = DbQuery.getInstance().getMapMachines();
-		
 		DuccMachinesData instance = DuccMachinesData.getInstance();
-		
 		MachineFactsList factsList = instance.getMachineFactsList();
 		if(factsList.size() > 0) {
 			// Total
@@ -1619,11 +1606,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				MachineFacts facts = listIterator.next();
 				try {
 					sumMemTotal += Integer.parseInt(facts.memTotal);
-					sumMemFree += Integer.parseInt(facts.memFree);
+					sumMemReserve += Integer.parseInt(facts.memReserve);
 					sumSwapInuse += Integer.parseInt(facts.swapInuse);
-/*
-					sumSwapDelta += Integer.parseInt(facts.swapDelta);
-*/
 					sumSwapFree += Integer.parseInt(facts.swapFree);
 					sumAliens += facts.aliens.size();
 				}
@@ -1648,18 +1632,12 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			// Memory: usable
 			hover = "title=\"total="+sumMemTotal+"\"";
 			row.append("<td align=\"right\" "+hover+">");
-			row.append(""+sumMemFree);
+			row.append(""+sumMemReserve);
 			row.append("</td>");
 			// Swap: inuse
 			row.append("<td align=\"right\">");
 			row.append(""+sumSwapInuse);
 			row.append("</td>");
-/*
-			// Swap: delta
-			row.append("<td align=\"right\">");
-			row.append(""+sumSwapDelta);
-			row.append("</td>");
-*/
 			// Swap: free
 			row.append("<td align=\"right\">");
 			row.append(""+sumSwapFree);
@@ -1686,9 +1664,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append((trGet(counter)));
 				// Status
 				StringBuffer sb = new StringBuffer();
-				String[] machineStatus = Helper.getMachineStatus(facts, dbMachineMap);
-				String status = machineStatus[0];
-				hover = "title=\""+machineStatus[1]+"\"";
+				String status = facts.status;
+				hover = "title=\""+facts.statusReason+"\"";
 				if(status.equals("down")) {
 					sb.append("<span "+hover+" class=\"health_red\""+">");
 					sb.append(status);
@@ -1714,12 +1691,24 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append(facts.name);
 				row.append("</td>");
 				// Memory: usable
-				hover = "title=\"total="+facts.memTotal+"\"";
-				row.append("<td align=\"right\" "+hover+">");
 				if(!status.equals("defined")) {
-					row.append(facts.memFree);
+					sb = new StringBuffer();
+					sb.append("total="+facts.memTotal);
+					if(facts.quantum != null) {
+						if(facts.quantum.trim().length() > 0) {
+							sb.append(" ");
+							sb.append("quantum="+facts.quantum.trim());
+						}
+					}
+					hover = "title=\""+sb.toString()+"\"";
+					row.append("<td align=\"right\" "+hover+">");
+					row.append(facts.memReserve);
+					row.append("</td>");
 				}
-				row.append("</td>");
+				else {
+					row.append("<td align=\"right\">");
+					row.append("</td>");
+				}
 				// Swap: inuse
 				sb = new StringBuffer();
 				String swapping = facts.swapInuse;
@@ -1736,24 +1725,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					row.append(sb);
 				}
 				row.append("</td>");
-/*
-				// Swap: delta
-				sb = new StringBuffer();
-				String delta = facts.swapDelta;
-				if(delta.equals("0")) {
-					sb.append(delta);
-				}
-				else {
-					sb.append("<span class=\"health_red\">");
-					sb.append(delta);
-					sb.append("</span>");
-				}
-				row.append("<td align=\"right\">");
-				if(!status.equals("defined")) {
-					row.append(sb);
-				}
-				row.append("</td>");
-*/
 				// Swap: free
 				row.append("<td align=\"right\">");
 				if(!status.equals("defined")) {
