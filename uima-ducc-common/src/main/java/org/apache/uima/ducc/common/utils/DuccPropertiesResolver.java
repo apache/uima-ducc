@@ -81,6 +81,8 @@ public class DuccPropertiesResolver {
         
     }
     
+    public static final String ducc_security_home = "ducc.security.home";
+    
     public static final String ducc_private_resources = "ducc.private.resources";
     
     //Legacy, replaced by: ducc_job_max_pipelines_count

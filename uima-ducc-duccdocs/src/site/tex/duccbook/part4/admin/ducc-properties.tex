@@ -404,6 +404,23 @@
            \item[Type] Tuning 
          \end{description}
 
+       \item[ducc.security.directory] \hfill \\
+        By default DUCC employs
+        
+        \begin{verbatim}
+        <user.home>
+        \end{verbatim}
+        as the user's security directory.
+        When ducc.security.home is specified, DUCC will instead employ
+        
+        \begin{verbatim}
+        <ducc.security.home>/<user.name>.
+        \end{verbatim}
+         \begin{description}
+           \item[Default] (unconfigured) 
+           \item[Type] Local
+         \end{description}
+
        \item[ducc.sm.jvm.args] \hfill \\
          This specifies the list of arguments passed to the JVM when spawning the Service Manager. 
          \begin{description}

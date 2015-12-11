@@ -45,6 +45,7 @@ import javax.crypto.Cipher;
 
 import org.apache.uima.ducc.common.RuntimeStreamsConsumer;
 import org.apache.uima.ducc.common.utils.AlienFile;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 
 public class Crypto implements ICrypto {
 	
@@ -55,6 +56,8 @@ public class Crypto implements ICrypto {
 	private String pubFilePermissions = "0755";
 	private String pvtFilePermissions = "0700";
 
+	private String securityHome = null;
+	
 	private String user;
 	private String dirUserKeys;
 	private String filePvt;
@@ -86,9 +89,24 @@ public class Crypto implements ICrypto {
 		init(user,dirHome,dirSub,accessType);
 	}
 	
+	private void resolveSecurityHome(String tgtUser, String dirHome) {
+		securityHome = dirHome;
+		String ducc_security_home = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_security_home);
+		if(ducc_security_home != null) {
+			StringBuffer sb = new StringBuffer();
+			sb.append(ducc_security_home);
+			if(!ducc_security_home.endsWith(File.separator)) {
+				sb.append(File.separator);
+			}
+			sb.append(tgtUser);
+			securityHome = sb.toString();
+		}
+	}
+	
 	private void init(String tgtUser, String dirHome, String dirSub, AccessType accessType) throws CryptoException {
+		resolveSecurityHome(tgtUser, dirHome);
 		user = tgtUser;
-		dirUserKeys = dirHome+File.separator+dirSub;
+		dirUserKeys = securityHome+File.separator+dirSub;
 		filePub = dirUserKeys+File.separator+"public.key";
 		filePvt = dirUserKeys+File.separator+"private.key";
 		switch(accessType) {
