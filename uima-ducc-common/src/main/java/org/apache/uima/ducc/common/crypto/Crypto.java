@@ -44,6 +44,7 @@ import java.security.spec.RSAPublicKeySpec;
 import javax.crypto.Cipher;
 
 import org.apache.uima.ducc.common.utils.AlienFile;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 
 public class Crypto implements ICrypto {
 	
@@ -85,8 +86,17 @@ public class Crypto implements ICrypto {
 		init(user,dirHome,dirSub,accessType);
 	}
 	
+	private String resolveSecurityHome(String tgtUser, String dirHome) {
+		String ducc_security_home = DuccPropertiesResolver.get("ducc.security.home");  // DuccPropertiesResolver.ducc_security_home
+		if (ducc_security_home != null) {
+			dirHome = ducc_security_home + "/" + tgtUser;
+		}
+		return dirHome;
+	}
+	
 	private void init(String tgtUser, String dirHome, String dirSub, AccessType accessType) throws CryptoException {
 		user = tgtUser;
+		dirHome = resolveSecurityHome(tgtUser, dirHome);
 		dirUserKeys = dirHome+File.separator+dirSub;
 		filePub = dirUserKeys+File.separator+"public.key";
 		filePvt = dirUserKeys+File.separator+"private.key";
