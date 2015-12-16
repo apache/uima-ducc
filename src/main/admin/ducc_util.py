@@ -37,8 +37,14 @@ import Queue
 from  stat import *
 from local_hooks import find_other_processes
 
+# Catch the annoying problem when the current directory has been changed, e.g. by installing a new release
+try:
+    os.getcwd()
+except:
+    print "ERROR getting current directory ... may have been replaced .. tryin cd'ing to it again"
+    sys.exit(1)
 
-# simple bootstratp to establish DUCC_HOME and to set the python path so it can
+# simple bootstrap to establish DUCC_HOME and to set the python path so it can
 # find the common code in DUCC_HOME/admin
 # Infer DUCC_HOME from our location - no longer use a (possibly inaccurate) environment variable
 me = os.path.abspath(__file__)    
