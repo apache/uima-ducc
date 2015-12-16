@@ -22,7 +22,7 @@
 import os
 import sys
 
-# simple bootstratp to establish DUCC_HOME and to set the python path so it can
+# simple bootstrap to establish DUCC_HOME and to set the python path so it can
 # find the common code in DUCC_HOME/admin
 # Infer DUCC_HOME from our location - no longer use a (possibly inaccurate) environment variable
 def set_ducc_home():

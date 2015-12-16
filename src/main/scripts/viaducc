@@ -163,7 +163,7 @@ def main():
         # if invokded as 'java_viaducc we must inject some kind of jvm as the executable
         # this is more liberal: any link other than 'viaducc' caused injection of the
         # jvm, to allow multiple, different symlinks (in case there are multiple,
-        # different versions of ducc, not really reccomended, but supported)
+        # different versions of ducc, not really recommended, but supported)
         need_java = True
 
     ducc_args = []
