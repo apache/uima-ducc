@@ -106,6 +106,19 @@ public class Machine
     {
         return (int) memory / share_order;
     }
+    
+    // UIMA-4712
+    // See if placing the subject job on this machine violates vertical stacking constraings
+    public synchronized boolean hasVerticalConflict(IRmJob j)
+    {
+        for ( Share s : activeShares.values() ) {
+            if ( s.getJob().getServiceId() == j.getServiceId() ) return true;          // match service id, it violates
+        }
+        for ( Share s : blacklistedWork.values() ) {                                   // just in case
+            if ( s.getJob().getServiceId() == j.getServiceId() ) return true;   
+        }
+        return false;                                                                  // nothing else violates
+    }
 
     // UIMA-4142
     // Black list some number of shres for a specific job and proc.  This reduces the number of
@@ -349,7 +362,7 @@ public class Machine
         shares_left += s.getShareOrder();
         try {
             // Not transactional.  If this turns into a problem we'll have to find a way
-			persistence.setNodeProperties(id, RmNodes.Assignments,  RmNodes.NPAssignments, countNpShares(), activeShares.size(), RmNodes.SharesLeft, shares_left);
+			persistence.setNodeProperties(id, RmNodes.Assignments,  activeShares.size(), RmNodes.NPAssignments, countNpShares(),  RmNodes.SharesLeft, shares_left);
 			persistence.removeAssignment(id, s.getJob().getId(), s);  // update jobs on machine and specific shares
             logger.info(methodName, null, "Time to remove share in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
