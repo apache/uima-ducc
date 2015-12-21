@@ -108,6 +108,17 @@ public class JobManagerConverter
         }
     }
   
+    // UIMA-4712
+    long toLong(String s, long deflt)
+    {
+        try {
+            long val = Long.parseLong(s);
+            return ( val == 0L ) ? deflt : val;
+        } catch ( Throwable t ) {
+            return deflt;
+        }
+    }
+  
     void refuse(IRmJob j, String reason)
     {
         j.refuse(reason);
@@ -467,13 +478,6 @@ public class JobManagerConverter
      * Convert a JobManager Job into a ResourceManager RmJob.  We assume this job is NOT in
      * our lists.
      *
-     * NOTE IMPORTANT NOTE
-     *
-     *    Until Lou's job contains all required scheduling fields I do a conversion that enhances
-     *    what I receive with defaults so the scheduler can actually schedule the job.
-     *
-     * NOTE IMPORTANT NOTE
-     *
      * @param job
      */
     boolean jobArrives(IDuccWork job)
@@ -514,6 +518,7 @@ public class JobManagerConverter
         String user_name  = sti.getUser().trim();
         j.setUserName(user_name);
         j.setJobName(name);
+        j.setServiceId(toLong(job.getServiceId(), 0L)); // UIMA-4712 only non-zero on actual service instances 
 
         int threads       = toInt(si.getThreadsPerProcess(), scheduler.getDefaultNThreads());
         int user_priority = toInt(si.getSchedulingPriority(), 100);
