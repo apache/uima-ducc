@@ -203,6 +203,11 @@ public class DuccHandler extends DuccAbstractHandler {
 	protected String providerSystem = "";
 	protected String providerUnknown = null;
 	
+	private String _window_login_logout = "_window_login_logout";
+	private String _window_file_pager = "_window_file_pager";
+	private String _window_reservation_request = "_window_reservation_request";
+	private String _window_jconsole = "_window_jconsole";
+	
 	public DuccHandler(DuccWebServer duccWebServer) {
 		super.init(duccWebServer);
 	}
@@ -237,7 +242,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	        }
 	        else {
 	    		String link = "https://"+request.getServerName()+":"+getDuccWebServer().getPortSsl()+"/";
-	    		String href = "<a href=\""+link+"login.html\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">Login</a>";
+	    		String href = "<a href=\""+link+"login.html\" onclick=\"var newWin = window.open(this.href,'"+_window_login_logout+"','height=600,width=475,scrollbars');  newWin.focus(); return false;\">Login</a>";
 	    		sb.append(href);
 	        }
 		}
@@ -254,7 +259,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		boolean userAuth = isAuthenticated(request,response);
         if (userAuth) {
     		String link = "https://"+request.getServerName()+":"+getDuccWebServer().getPortSsl()+"/";
-    		String href = "<a href=\""+link+"logout.html\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">Logout</a>";
+    		String href = "<a href=\""+link+"logout.html\" onclick=\"var newWin = window.open(this.href,'"+_window_login_logout+"','height=600,width=475,scrollbars');  newWin.focus(); return false;\">Logout</a>";
     		sb.append(href);
         }
         else {
@@ -971,7 +976,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String file_name = logsjobdir+logfile;
 		
 		String url = getFilePagerUrl(eu, file_name);
-		String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
+		String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
 		String tr = trGet(counter);
 		rb.append(tr);
 		int index = -1;
@@ -1336,7 +1341,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				// Log
 				index = 1;
 				String jd_url = getFilePagerUrl(eu, logsjobdir+errfile);
-				String href2 = "<a href=\""+jd_url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
+				String href2 = "<a href=\""+jd_url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
 				cbList[index] = new StringBuffer();
 				cbList[index].append("<td>");
 				cbList[index].append(href2);
@@ -2131,7 +2136,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					// name
 					row.append("<td>");
 					String url = getFilePagerUrl(eu, fileInfo.getName());
-					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
+					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
@@ -2188,7 +2193,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					// name
 					row.append("<td>");
 					String url = getFilePagerUrl(eu, fileInfo.getName());
-					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
+					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
@@ -2239,7 +2244,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					// name
 					row.append("<td>");
 					String url = getFilePagerUrl(eu, fileInfo.getName());
-					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
+					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
@@ -2376,7 +2381,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				row.append("<td>");
 				
 				String url = getFilePagerUrl(fileInfo.getName(), fileInfo.getPageCount());
-				String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
+				String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 				row.append(href);
 				row.append("</td>");
 				// size
@@ -2468,7 +2473,7 @@ public class DuccHandler extends DuccAbstractHandler {
 							}
 						}
 						String url = getFilePagerUrl(eu, logsjobdir+logfile);
-						String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
+						String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
 						data.append(href);
 					}
 					data.append("</table>");
@@ -2518,7 +2523,7 @@ public class DuccHandler extends DuccAbstractHandler {
 							}
 						}
 						String url = getFilePagerUrl(eu, logsjobdir+logfile);
-						String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
+						String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
 						data.append(href);
 					}
 					data.append("</table>");
@@ -3426,7 +3431,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private String buildjSonjConsoleLink(String service) {
 		String location = "buildjConsoleLink";
-		String href = "<a href=\\\""+duccjConsoleLink+"?"+"service="+service+"\\\" onclick=\\\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\\\">"+service+"</a>";
+		String href = "<a href=\\\""+duccjConsoleLink+"?"+"service="+service+"\\\" onclick=\\\"var newWin = window.open(this.href,'"+_window_jconsole+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\\\">"+service+"</a>";
 		duccLogger.trace(location, null, href);
 		return href;
 	}
@@ -3728,7 +3733,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletReservationFormButton";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		String button = "<button style=\"font-size:8pt; background-color:green; color:ffffff;\" onclick=\"var newWin = window.open('submit.reservation.html','child','height=550,width=550,scrollbars'); newWin.focus(); return false;\">Request<br>Reservation</button>";
+		String button = "<button style=\"font-size:8pt; background-color:green; color:ffffff;\" onclick=\"var newWin = window.open('submit.reservation.html','"+_window_reservation_request+"','height=600,width=550,scrollbars'); newWin.focus(); return false;\">Request<br>Reservation</button>";
 		String value = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_unmanaged_reservations_accepted);
 		Boolean result = new Boolean(value);
 		if(!result) {

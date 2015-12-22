@@ -37,7 +37,7 @@ under the License.
 <table>
 
 <tr>
-<td valign="top">
+<td valign="top" class="ducc-lhs">
   <div>
     <span>
       <h2><span class="title">ducc-mon</span></h2>
@@ -57,7 +57,7 @@ under the License.
       	  <br>
       	  <span class="idtitle" id="identity"></span>
       </h4>
-      <h3><span class="subtitle">Reservation<span></h3>
+      <h3><span class="subtitle">Reservation</span></h3>
       <h5><span class="timestamptitle">updated: </span><span class="timestamptitle" id="timestamp_area"></span>
           <br>
           <span class="authenticationtitle">authentication status: </span><span class="authenticationtitle" id="authentication_area"></span>
@@ -67,11 +67,12 @@ under the License.
       <%@ include file="$banner/c3-image-submit-reservation.jsp" %>
     </span>
     <br>
-    
+  </div>
+</td>
 <td valign="top"> 
   <div>
     <span>
-      <h2><span class="title">&nbsp </span></h2>
+      <h2><span class="title">&nbsp; </span></h2>
     </span>
     <span class="noshow">
     <h3>Refresh</h3>
@@ -90,8 +91,6 @@ under the License.
       </div>
     </table>
     </span>
-    
-  </div>
   
   	<div class="segment">
       <div class="logout">
