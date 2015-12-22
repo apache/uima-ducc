@@ -298,7 +298,7 @@ public class TestClassLoading extends TestBase {
     File f = new File(privateCP[0]);
     URL u = f.toURI().toURL();
     if (!u.equals(urls[0])) {
-      fail("C;asspath should have only " + u);
+      fail("Classpath should have "+u+" but instead has "+urls[0]);
     }
   }  
 }
