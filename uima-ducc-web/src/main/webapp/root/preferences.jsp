@@ -46,7 +46,7 @@ boolean role = true;
 <table>
 
 <tr>
-<td valign="top">
+<td valign="top" class="ducc-lhs">
   <div>
     <span>
       <h2><span class="title">ducc-mon</span></h2>
