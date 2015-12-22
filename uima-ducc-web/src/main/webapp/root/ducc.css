@@ -52,6 +52,10 @@ tr.ducc-header {
 	background-color:#996633;
 }
 
+th.ducc-lhs {
+	background-color:#ddddff;
+}
+
 th.ducc-filter {
 	background-color:#ff9933;
 }
@@ -66,6 +70,10 @@ th.ducc-col-button {
 
 th.ducc-col-terminate {
 	background-color:#ffffff;
+}
+
+td.ducc-lhs {
+	background-color:#ddddff;
 }
 
 td.ducc-col-button {
