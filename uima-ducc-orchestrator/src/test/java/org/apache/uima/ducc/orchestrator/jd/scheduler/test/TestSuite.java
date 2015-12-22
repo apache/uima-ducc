@@ -291,8 +291,24 @@ public class TestSuite {
 					long slicesTotal = jdScheduler.countSlicesTotal();
 					long slicesAvailable = jdScheduler.countSlicesAvailable();
 					long slicesInuse = jdScheduler.countSlicesInuse();
-					assertTrue(slicesTotal == (slicesAvailable+slicesInuse));
-					assertTrue(slicesTotal == (reservationsTotal*slicesPerReservation));
+					if(slicesTotal != (slicesAvailable+slicesInuse)) {
+						StringBuffer sb = new StringBuffer();
+						sb.append("slicesTotal="+slicesTotal);
+						sb.append(" ");
+						sb.append("slicesAvailable="+slicesAvailable);
+						sb.append(" ");
+						sb.append("slicesInuse="+slicesInuse);
+						fail(sb.toString());
+					}
+					if(slicesTotal != (reservationsTotal*slicesPerReservation)) {
+						StringBuffer sb = new StringBuffer();
+						sb.append("slicesTotal="+slicesTotal);
+						sb.append(" ");
+						sb.append("reservationsTotal="+reservationsTotal);
+						sb.append(" ");
+						sb.append("slicesPerReservation="+slicesPerReservation);
+						fail(sb.toString());
+					}
 				}
 			}
 			for(Entry<DuccId, DuccId> entry : map.entrySet()) {
