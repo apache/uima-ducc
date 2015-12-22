@@ -68,14 +68,15 @@ boolean role = true;
       	  <br>
       	  <span class="idtitle" id="identity"></span>
       </h4>
-      <h3><span class="subtitle">Preferences<span></h3>
+      <h3><span class="subtitle">Preferences</span></h3>
       
     </span>
      <span>
       <%@ include file="$banner/c3-image-preferences.jsp" %>
     </span>
     <br>
-    
+  </div>
+</td>    
 <td valign="top"> 
   <div style="display:none">
     <span>
@@ -98,7 +99,7 @@ boolean role = true;
     </table>
     
   </div>
-  
+  <div>
     <form name="form_preferences">
   	<div class="segment">
   	  <br/>
@@ -110,32 +111,32 @@ boolean role = true;
         <table>
         <tr>
 		<td><input type="button" name="reset"       value="Reset"          onclick="ducc_preferences_reset()" />
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="button" name="done"        value="Done"           onclick="ducc_window_close()" />
-		<td>&nbsp
-		<td>&nbsp
-		<td>&nbsp
-		<td>&nbsp
+		<td>&nbsp;
+		<td>&nbsp;
+		<td>&nbsp;
+		<td>&nbsp;
 		<tr>
         <tr>
         <td><i><b>Table Style</b></i>
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="table_style" value="classic" checked onclick="ducc_preferences_set('table_style','classic')" /> Classic
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="table_style" value="scroll"          onclick="ducc_preferences_set('table_style','scroll')"  /> Scroll
-		<td>&nbsp
-		<td>&nbsp
+		<td>&nbsp;
+		<td>&nbsp;
 <%
 if (dateStyle) {
 %>
 		<tr>
 		<tr>
         <td><i><b>Date Style</b></i>
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="date_style" value="long" checked onclick="ducc_preferences_set('date_style','long')" /> Long
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="date_style" value="medium"       onclick="ducc_preferences_set('date_style','medium')" /> Medium
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="date_style" value="short"        onclick="ducc_preferences_set('date_style','short')" /> Short
 <%
 }
@@ -146,9 +147,9 @@ if (descriptionStyle) {
 		<tr>
 		<tr>
         <td><i><b>Description Style</b></i>
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="description_style" value="long" checked onclick="ducc_preferences_set('description_style','long')" /> Long
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="description_style" value="short"        onclick="ducc_preferences_set('description_style','short')" /> Short
 <%
 }
@@ -159,9 +160,9 @@ if (displayStyle) {
         <tr>
         <tr>
         <td><i><b>Display Style</b></i>
-        <td>&nbsp
+        <td>&nbsp;
         <td><input type="radio"  name="display_style" value="textual" checked onclick="ducc_preferences_set('display_style','textual')" /> Textual
-        <td>&nbsp
+        <td>&nbsp;
         <td><input type="radio"  name="display_style" value="visual"          onclick="ducc_preferences_set('display_style','visual')" /> Visual
 <%
 }
@@ -169,25 +170,25 @@ if (displayStyle) {
 		<tr>
         <tr>
         <td><i><b>Filter Users</b></i>
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="filter_users_style" value="include" checked onclick="ducc_preferences_set('filter_users_style','include')" /> Include
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="filter_users_style" value="include+active"  onclick="ducc_preferences_set('filter_users_style','include+active')" /> Include+Active
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="filter_users_style" value="exclude" 		 onclick="ducc_preferences_set('filter_users_style','exclude')" /> Exclude
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="filter_users_style" value="exclude+active"  onclick="ducc_preferences_set('filter_users_style','exclude+active')" /> Exclude+Active
-		<td>&nbsp
-		<td>&nbsp
+		<td>&nbsp;
+		<td>&nbsp;
 <%
 if (role) {
 %>
 		<tr>
 		<tr>
         <td><i><b>Role</b></i>
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="role" value="user"          checked onclick="ducc_preferences_set('role','user')" /> User
-		<td>&nbsp
+		<td>&nbsp;
 		<td><input type="radio"  name="role" value="administrator"         onclick="ducc_preferences_set('role','administrator')" /> Administrator
 <%
 }
@@ -201,7 +202,7 @@ if (role) {
 
 <tr>
 <td>  
-  <%@ include file="$copyright.jsp" %>
+  <%@ include file="$copyright-narrow.jsp" %>
 <td>
 
 </table>
