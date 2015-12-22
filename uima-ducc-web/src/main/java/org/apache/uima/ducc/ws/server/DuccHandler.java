@@ -242,7 +242,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	        }
 	        else {
 	    		String link = "https://"+request.getServerName()+":"+getDuccWebServer().getPortSsl()+"/";
-	    		String href = "<a href=\""+link+"login.html\" onclick=\"var newWin = window.open(this.href,'"+_window_login_logout+"','height=600,width=475,scrollbars');  newWin.focus(); return false;\">Login</a>";
+	    		String href = "<a href=\""+link+"login.html\" onclick=\"var newWin = window.open(this.href,'"+_window_login_logout+"','height=600,width=550,scrollbars');  newWin.focus(); return false;\">Login</a>";
 	    		sb.append(href);
 	        }
 		}
@@ -259,7 +259,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		boolean userAuth = isAuthenticated(request,response);
         if (userAuth) {
     		String link = "https://"+request.getServerName()+":"+getDuccWebServer().getPortSsl()+"/";
-    		String href = "<a href=\""+link+"logout.html\" onclick=\"var newWin = window.open(this.href,'"+_window_login_logout+"','height=600,width=475,scrollbars');  newWin.focus(); return false;\">Logout</a>";
+    		String href = "<a href=\""+link+"logout.html\" onclick=\"var newWin = window.open(this.href,'"+_window_login_logout+"','height=600,width=550,scrollbars');  newWin.focus(); return false;\">Logout</a>";
     		sb.append(href);
         }
         else {

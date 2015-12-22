@@ -36,9 +36,8 @@ under the License.
 
 <body onload="ducc_init('authentication-login');">
 <table>
-
 <tr>
-<td valign="top">
+<td valign="top" class="ducc-lhs">
   <div>
     <span>
       <h2><span class="title">ducc-mon</span></h2>
@@ -58,7 +57,7 @@ under the License.
       	  <br>
       	  <span class="idtitle" id="identity"></span>
       </h4>
-      <h3><span class="subtitle">Authentication<span></h3>
+      <h3><span class="subtitle">Authentication</span></h3>
       <h5><span class="authenticator">authenticator: </span><span class="authenticator" id="authenticator_version_area"></span>
           <br>
           <br>
@@ -71,11 +70,12 @@ under the License.
       <%@ include file="$banner/c3-image-login.jsp" %>
     </span>
     <br>
-    
+  </div>
+</td>  
 <td valign="top"> 
   <div style="display:none">
     <span>
-      <h2><span class="title">&nbsp </span></h2>
+      <h2><span class="title">&nbsp; </span></h2>
     </span>
     <h3>Refresh</h3>
     <table>
@@ -92,11 +92,8 @@ under the License.
 		</form> 
       </div>
     </table>
-    
   </div>
-  
-    <form id="login" name="login" method="post" action="/ducc-servlet/user-login">
-  
+    <form id="login" name="login" method="post" action="/ducc-servlet/user-login">  
   	<div class="segment">
   	  <br/>
   	  <br/>
@@ -128,16 +125,11 @@ under the License.
         </table>
    	  </div>
     </div>
-    
     </form>
-    
-  </div>
-
 <tr>
 <td>  
-  <%@ include file="$copyright.jsp" %>
+  <%@ include file="$copyright-narrow.jsp" %>
 <td>
-
 </table>
 <script src="opensources/navigation/menu.js"></script>
 </body>
