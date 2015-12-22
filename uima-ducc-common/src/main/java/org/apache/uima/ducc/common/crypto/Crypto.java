@@ -26,11 +26,16 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -40,25 +45,21 @@ import java.security.PublicKey;
 import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Set;
 
 import javax.crypto.Cipher;
 
-import org.apache.uima.ducc.common.RuntimeStreamsConsumer;
 import org.apache.uima.ducc.common.utils.AlienFile;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.LinuxUtils;
 
 public class Crypto implements ICrypto {
 	
 	private boolean traditional = false;
 	
 	private String dirDotDucc = ".ducc";
-	private String dirDotDuccPermissions  = "0755";
-	private String pubFilePermissions = "0755";
-	private String pvtFilePermissions = "0700";
 
-	private String securityHome = null;
-	
-	private String user;
+	private String user;    // Owner of the request - the simulated requester when in test-mode
 	private String dirUserKeys;
 	private String filePvt;
 	private String filePub;
@@ -68,54 +69,71 @@ public class Crypto implements ICrypto {
 	
 	private Cipher cipher;
 	
-	public enum AccessType {
-		READER,
-		WRITER,
-	}
+	/**
+	 * Constructor for requesters
+   *  - getSignature returns the the encrypted userid
+	 * 
+	 * @param user - user making the request
+	 * @param create - if true create the public & private keys if missing 
+	 * @throws CryptoException
+	 */
+  public Crypto(String user, boolean create) throws CryptoException {
+    init(user, create);
+  }
 	
-	public Crypto(String user, String dirHome) throws CryptoException {
-		init(user,dirHome,dirDotDucc,AccessType.WRITER);
-	}
-	
-	public Crypto(String user, String dirHome, AccessType accessType) throws CryptoException {
-		init(user,dirHome,dirDotDucc,accessType);
-	}
-	
-	public Crypto(String user, String dirHome, String dirSub) throws CryptoException {
-		init(user,dirHome,dirSub,AccessType.WRITER);
-	}
-	
-	public Crypto(String user, String dirHome, String dirSub, AccessType accessType) throws CryptoException {
-		init(user,dirHome,dirSub,accessType);
-	}
-	
-	private void resolveSecurityHome(String tgtUser, String dirHome) {
-		securityHome = dirHome;
-		String ducc_security_home = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_security_home);
-		if(ducc_security_home != null) {
-			StringBuffer sb = new StringBuffer();
-			sb.append(ducc_security_home);
-			if(!ducc_security_home.endsWith(File.separator)) {
-				sb.append(File.separator);
-			}
-			sb.append(tgtUser);
-			securityHome = sb.toString();
-		}
-	}
-	
-	private void init(String tgtUser, String dirHome, String dirSub, AccessType accessType) throws CryptoException {
-		resolveSecurityHome(tgtUser, dirHome);
-		user = tgtUser;
-		dirUserKeys = securityHome+File.separator+dirSub;
+  /**
+   * Constructor for validators
+   *  - use isValid to check that the decrypted signature matches the provided user id
+   *  
+   * @param user - user claiming to make the request
+   * @throws CryptoException
+   */
+  public Crypto(String user) throws CryptoException {
+    init(user, false);
+  }
+	 
+	private void init(String user, boolean createRequest) throws CryptoException {
+    
+    this.user = user;
+    
+    // Check if in test mode with simulated users
+    String runmode = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_runmode);
+    boolean testMode = runmode != null && runmode.equals("Test");
+    
+    // Get special security home directory if specified
+    // In test-mode (single-user) must use the current userid as the simulated user doesn't have a home
+    String dirHome = null;
+    String ducc_security_home = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_security_home);
+    if (ducc_security_home != null && !ducc_security_home.isEmpty()) {
+      String realUser = testMode ? System.getProperty("user.name") : user;
+      dirHome = ducc_security_home + File.separator + realUser; 
+    }
+    
+    if (createRequest) {
+      // Use the real user home if the special one not specified
+      if (dirHome == null) {
+        dirHome = System.getProperty("user.home");
+      }
+      
+    } else {
+      // When validating a request ....
+      // If using the regular home directory get it from the shell as may not start with "/home"
+      // In test-mode will always run as the user that started DUCC so use that $HOME
+      if (dirHome == null) {
+        if (testMode) {
+          dirHome = System.getProperty("user.home");
+        } else {
+          dirHome = LinuxUtils.getUserHome(user);
+        }
+      }
+    }
+	  
+		dirUserKeys = dirHome+File.separator+dirDotDucc;
 		filePub = dirUserKeys+File.separator+"public.key";
 		filePvt = dirUserKeys+File.separator+"private.key";
-		switch(accessType) {
-		case READER:
-			break;
-		case WRITER:
+		if (createRequest) {
 			createKeys();
 			checkKeys();
-			break;
 		}
 		try {
 			cipher = Cipher.getInstance(keyType);
@@ -125,31 +143,20 @@ public class Crypto implements ICrypto {
 		}
 	}
 	
-	public String getPublic() {
-		return filePub;
-	}
-	
-	public String getPrivate() {
-		return filePvt;
-	}
-	
+	// Check if either file missing (should check that are normal files?)
 	private boolean isMissingKeys() {
-		boolean retVal = false;
-		try {
-			checkFile(filePub);
-			checkFile(filePvt);
-		}
-		catch(Exception e) {
-			retVal = true;
-		}
-		return retVal;
+	  if ((new File(filePvt)).exists() && (new File(filePub)).exists() ) {
+	    return false;
+	  } else {
+	    return true;
+	  }
 	}
 	
 	private void createKeys() throws CryptoException {
 		try {
 			synchronized(Crypto.class) {
 				if(isMissingKeys()) {
-					mkdir(dirUserKeys, dirDotDuccPermissions);
+					mkdir(dirUserKeys);
 					KeyPairGenerator kpg = KeyPairGenerator.getInstance(keyType);
 					kpg.initialize(keySize);
 					KeyPair kp = kpg.genKeyPair();
@@ -164,8 +171,8 @@ public class Crypto implements ICrypto {
 						pvt = keyFactory.getKeySpec(kp.getPrivate(), RSAPrivateCrtKeySpec.class);
 					}
 					// </IBM JDK does not seem to support RSAPrivateKeySpec.class>
-					putKeyToFile(filePub, pub.getModulus(), pub.getPublicExponent(),pubFilePermissions);
-					putKeyToFile(filePvt, pvt.getModulus(), pvt.getPrivateExponent(),pvtFilePermissions);
+					putKeyToFile(filePub, pub.getModulus(), pub.getPublicExponent(), false);
+					putKeyToFile(filePvt, pvt.getModulus(), pvt.getPrivateExponent(), true);
 				}
 			}
 		}
@@ -177,77 +184,64 @@ public class Crypto implements ICrypto {
 		}
 	}
 	
-	private void checkDir(String fileName) throws CryptoException {
-		File file = new File(fileName);
-		if(!file.exists()) {
-			throw new CryptoException("Directory does not exist: "+fileName);
-		}
-	}
+  private void checkKeys() throws CryptoException {
+    Path file = Paths.get(filePub);
+    if (!Files.exists(file)) {
+      throw new CryptoException("File does not exist: " + filePub);
+    }
+    file = Paths.get(filePvt);
+    if (!Files.exists(file)) {
+      throw new CryptoException("File does not exist: " + filePvt);
+    }
+    // Check that the private key file is readable only by the owner
+    try {
+      // Should be just owner-read
+      Set<PosixFilePermission> attrs = Files.getPosixFilePermissions(file);
+      if (attrs.size() == 1 && attrs.contains(PosixFilePermission.OWNER_READ)) {
+        return;
+      }
+      System.out.println("Correcting permissions for the private key");
+      setPermissions(filePvt, true, false);
+      attrs = Files.getPosixFilePermissions(file);
+      if (attrs.size() == 1 && attrs.contains(PosixFilePermission.OWNER_READ)) {
+        return;
+      }
+      throw new CryptoException("Unable to correct the invalid permissions for private key file " + filePvt);
+    } catch (IOException e) {
+      throw new CryptoException(e);
+    }
+  }
+  	
+  private void setPermissions(String fileName, boolean pvt, boolean dir) throws CryptoException {
+    // Since umask may be anything, turn off r/w access for everybody,
+    // make readable by all or just owner, 
+    // if a directory make executable by all and writable by owner
+    File f = new File(fileName);
+    f.setReadable(false, false);
+    f.setWritable(false, false);
+    f.setReadable(true, pvt);
+    f.setWritable(dir, true);
+    f.setExecutable(dir, false);
+  }
 	
-	private void checkFile(String fileName) throws CryptoException {
-		File file = new File(fileName);
-		if(!file.exists()) {
-			throw new CryptoException("File does not exist: "+fileName);
-		}
-	}
-	
-	private void checkKeys() throws CryptoException {
-		checkDir(dirUserKeys);
-		checkFile(filePvt);
-		checkFile(filePub);
-	}
-	
-	private void exec(String cmd) throws CryptoException {
-		try {
-			Process process;
-			process = Runtime.getRuntime().exec(cmd);
-			RuntimeStreamsConsumer errConsumer = new RuntimeStreamsConsumer(process.getErrorStream(), System.err);
-			RuntimeStreamsConsumer outConsumer = new RuntimeStreamsConsumer(process.getErrorStream(), System.out);
-			errConsumer.start();
-			outConsumer.start();
-			process.waitFor();
-			errConsumer.join();
-			outConsumer.join();
-		}
-		catch(Exception e) {
-			throw new CryptoException(e);
-		}
-	}
-	
-	private void chmod(String fileName, String permissions) throws CryptoException {
-	  String osName = System.getProperty("os.name");
-	  if (osName.startsWith("Windows")) {
-	    // Windows is not supported for running
-	    // For building, some tests run through this code,
-	    //   so we bypass doing the chmod on Windows environments
-	    return;
-	  }
-		try {
-			exec("chmod "+permissions+" "+fileName);
-		}
-		catch(Exception e) {
-			throw new CryptoException(e);
-		}
-	}
-	
-	private void mkdir(String dir, String permissions) throws CryptoException {
+	private void mkdir(String dir) throws CryptoException {
 		try {
 			File file = new File(dir);
 			file.mkdirs();
-			chmod(dirUserKeys, permissions);
+			setPermissions(dirUserKeys, false, true);
 		}
 		catch(Exception e) {
 			throw new CryptoException(e);
 		}
 	}
 	
-	private void putKeyToFile(String fileName, BigInteger mod, BigInteger exp, String permissions) throws CryptoException {
+	private void putKeyToFile(String fileName, BigInteger mod, BigInteger exp, boolean pvt) throws CryptoException {
 		try {
 			ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(fileName)));
 			try {
 				oos.writeObject(mod);
 				oos.writeObject(exp);
-				chmod(fileName, permissions);
+				setPermissions(fileName, pvt, false);
 			}
 			finally {
 				oos.close();
@@ -258,14 +252,7 @@ public class Crypto implements ICrypto {
 		}
 	}
 	
-	public boolean isReadablePrivate() {
-		boolean readable = false;
-		File file = new File(filePvt);
-		readable = file.canRead();
-		return readable;
-	}
-	
-	public boolean isReadablePublic() {
+	private boolean isReadablePublic() {
 		boolean readable = false;
 		File file = new File(filePub);
 		readable = file.canRead();
@@ -394,7 +381,15 @@ public class Crypto implements ICrypto {
 		}
 	}
 	
-
+	public byte[] getSignature() throws CryptoException {
+	  return encrypt(user);
+	}
+  
+	public boolean isValid(byte[] signature) throws CryptoException {
+	  String s = (String) decrypt(signature);
+	  return user.equals(s);
+  }
+  
 	public Object decrypt(byte[] byteArray) throws CryptoException {
 		try {
 			Key key = getPubicKeyFromFile();
@@ -404,6 +399,13 @@ public class Crypto implements ICrypto {
 		catch(Exception e) {
 			throw new CryptoException(e);
 		}
+	}
+	
+	public static void main(String[] args) throws CryptoException {
+	  String user = args.length > 1 ? args[1] : System.getProperty("user.name");
+	  Crypto cr = new Crypto(user, true);
+	  byte[] sig = cr.getSignature();
+	  System.out.println("Valid signature: " + cr.isValid(sig));
 	}
 	
 }

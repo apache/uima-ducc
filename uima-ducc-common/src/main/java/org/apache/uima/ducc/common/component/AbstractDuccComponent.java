@@ -43,13 +43,11 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
 import org.apache.uima.ducc.common.crypto.Crypto;
-import org.apache.uima.ducc.common.crypto.Crypto.AccessType;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
 import org.apache.uima.ducc.common.exception.DuccConfigurationException;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
-import org.apache.uima.ducc.common.utils.LinuxUtils;
 import org.apache.uima.ducc.common.utils.Utils;
 
 /**
@@ -268,16 +266,10 @@ public abstract class AbstractDuccComponent implements DuccComponent,
         byte[] auth_block= event.getAuthBlock();
 
         try {
-            String userHome = null;
-            userHome = LinuxUtils.getUserHome(user);
-            
-            Crypto crypto = new Crypto(user, userHome,AccessType.READER);
-            String signature = (String)crypto.decrypt(auth_block);
-        
-            if ( ! user.equals(signature ))  {
+            Crypto crypto = new Crypto(user);
+            if (!crypto.isValid(auth_block)) {
                 return false;
             }
-
         } catch ( Throwable t ) {
             logger.error(methodName, null, "Crypto failure:", t.toString());
             return false;

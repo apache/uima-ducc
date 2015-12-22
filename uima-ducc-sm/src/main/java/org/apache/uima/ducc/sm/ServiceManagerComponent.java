@@ -35,7 +35,6 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.crypto.Crypto;
-import org.apache.uima.ducc.common.crypto.Crypto.AccessType;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.persistence.services.IStateServices.SvcMetaProps;
@@ -47,7 +46,6 @@ import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapDifference;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapValueDifference;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
-import org.apache.uima.ducc.common.utils.LinuxUtils;
 import org.apache.uima.ducc.common.utils.MissingPropertyException;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.Version;
@@ -736,21 +734,12 @@ public class ServiceManagerComponent
         return System.getProperty("DUCC_HOME") + "/history/services-registry/";
     }
 
-	private boolean check_signature(String user, byte[] auth_block)
+	  private boolean check_signature(String user, byte[] auth_block)
         throws Throwable
     {
-        String userHome = null;
-        if ( testmode ) {    
-            userHome = System.getProperty("user.home");
-        } else {
-            userHome = LinuxUtils.getUserHome(user);
-        }
-        
-        Crypto crypto = new Crypto(user, userHome,AccessType.READER);
-        String signature = (String)crypto.decrypt(auth_block);
-        
-        return user.equals(signature);
-	}
+        Crypto crypto = new Crypto(user);
+        return crypto.isValid(auth_block);
+	  }
 
     private boolean validate_user(String action, AServiceRequest req)
     {

@@ -213,23 +213,22 @@ public class DuccAdmin extends AbstractDuccComponent implements
 	 * @throws Exception
 	 */
 	private void killAll() throws Exception {
-		// send kill event to all Ducc components via Ducc Admin Channel. This
-		// call is
-		// non-blocking
-        String user = System.getProperty("user.name");
-    	Crypto crypto = new Crypto(user,System.getProperty("user.home"));
-        byte[] cypheredMessage = crypto.encrypt(user);
+		// send kill event to all Ducc components via Ducc Admin Channel. 
+	  // This call is non-blocking
+	  String user = System.getProperty("user.name");
+	  Crypto crypto = new Crypto(user, true);
+	  byte[] cypheredMessage = crypto.getSignature();
 
 		dispatch(serializeAdminEvent(new DuccAdminEventKill(user, cypheredMessage)));
 		System.out.println("DuccAdmin sent Kill to all Ducc processes ...");
 	}
 
 	private void quiesceAgents(String nodes) throws Exception {
-        String user = System.getProperty("user.name");
-    	Crypto crypto = new Crypto(user,System.getProperty("user.home"));
-        byte[] cypheredMessage = crypto.encrypt(user);
+	  String user = System.getProperty("user.name");
+    Crypto crypto = new Crypto(user, true);
+    byte[] cypheredMessage = crypto.getSignature();
 
-	dispatch(serializeAdminEvent(new DuccAdminEventStopMetrics(nodes, user, cypheredMessage)));
+    dispatch(serializeAdminEvent(new DuccAdminEventStopMetrics(nodes, user, cypheredMessage)));
     System.out.println("DuccAdmin sent Quiesce request to Ducc Agents ...");
 	}
 	/**

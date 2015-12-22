@@ -317,11 +317,11 @@ public class DuccRmAdmin
     public int run(String[] args)
     	throws Exception
     {
-
+        // Construct the signature for the request
         user = System.getProperty("user.name");
-    	Crypto crypto = new Crypto(user,System.getProperty("user.home"));
-        cypheredMessage = crypto.encrypt(user);
-
+        Crypto crypto = new Crypto(user, true);
+        cypheredMessage = crypto.getSignature();
+        
         if ( args[0].equals("--varyoff")) {
             if ( args.length < 2 ) usage("Missing node list");
             RmAdminVaryReply reply = varyoff(args);

@@ -52,7 +52,7 @@ public class CryptoTest {
 		try {
 			String user = System.getProperty("user.name");
 			String home = System.getProperty("user.home");
-			Crypto crypto = new Crypto(user,home);
+			Crypto crypto = new Crypto(user, true);
 			String message = "Hello DUCC!";
 			byte[] cypheredMessage = crypto.encrypt(message);
 			Properties properties = new Properties();

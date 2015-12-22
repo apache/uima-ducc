@@ -30,15 +30,12 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.crypto.Crypto;
-import org.apache.uima.ducc.common.crypto.Crypto.AccessType;
 import org.apache.uima.ducc.common.crypto.CryptoException;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.apache.uima.ducc.common.utils.LinuxUtils;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorConstants.StartType;
@@ -477,26 +474,11 @@ implements Orchestrator {
 		boolean retVal = true;
 		try {
 			if(orchestratorCommonArea.isSignatureRequired()) {
-				retVal = false;
-				String user = properties.getProperty(SpecificationProperties.key_user);
-				String userHome = LinuxUtils.getUserHome(user);
-				String runmode = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_runmode);
-				if(runmode != null) {
-					if(runmode.equals("Test")) {
-						userHome = System.getProperty("user.home");
-					}
-				}
-				Crypto crypto = new Crypto(user,userHome,AccessType.READER);
-				logger.debug(methodName, null, "readable:"+crypto.isReadablePublic()+" "+"public:"+crypto.getPublic());
-				String signature = (String)crypto.decrypt((byte[])properties.get(SpecificationProperties.key_signature));
-				if(user.equals(signature)) {
-					logger.debug(methodName, null, "user:"+user+" signature:"+signature+" valid:y");
-					retVal = true;
-				}
-				else {
-					logger.debug(methodName, null, "user:"+user+" signature:"+signature+" valid:n");
-					//retVal = false;
-				}
+			  // Check that the signature is valid
+			  String user = properties.getProperty(SpecificationProperties.key_user);
+			  byte[] signature = (byte[]) properties.get(SpecificationProperties.key_signature);
+			  Crypto crypto = new Crypto(user);
+			  retVal = crypto.isValid(signature);
 			}
 		}
 		catch(Throwable t) {
