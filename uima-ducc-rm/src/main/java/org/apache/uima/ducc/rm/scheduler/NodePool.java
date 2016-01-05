@@ -1629,12 +1629,25 @@ class NodePool
     // }
 
 
-    int findShares( IRmJob j )
+    // For FIXED: find shares ith caps, disallow vertical stacking.  UIMA-4712
+    int findSharesHorizontal( IRmJob j )
     {
-        return findShares(j, true);
+        return findShares(j, true, false);
     }
 
-    int findShares( IRmJob j, boolean honorCaps ) 
+    // For FIXED: find shares ith caps, do allow vertical stacking.  UIMA-4712
+    int findSharesVertical( IRmJob j )
+    {
+        return findShares(j, true, true);
+    }
+
+    // For FAIR_SHRE: find shares, caller controls caps, allow vertical stacking.  UIMA-4712
+    int findShares( IRmJob j, boolean honorCaps )
+    {
+        return findShares(j, honorCaps, true);
+    }
+
+    int findShares( IRmJob j, boolean honorCaps, boolean allowVertical )  // UIMA-4712, allowVertical
     {
         String methodName = "findShares";
 
@@ -1645,7 +1658,7 @@ class NodePool
         int given = 0;        
         boolean expansionStopped = false;         // UIMA-4275
 
-        logger.info(methodName, j.getId(), "counted", counted, "current", current, "needed", needed, "order", order, "given", given);
+        logger.debug(methodName, j.getId(), "counted", counted, "current", current, "needed", needed, "order", order, "given", given);
 
         if ( needed > 0 ) {
             whatof: {
@@ -1660,6 +1673,7 @@ class NodePool
                     
                     for ( Machine m : ml ) {                                // look for space
                         if ( m.isBlacklisted() ) continue;                  // nope
+                        if ( (!allowVertical) && (m.hasVerticalConflict(j)) ) continue;  // UIMA-4712
                         int g = Math.min(needed, m.countFreeShares(order)); // adjust by the order supported on the machine
                         for ( int ndx= 0;  ndx < g; ndx++ ) {
                             if ( honorCaps && j.exceedsFairShareCap() ) {                // UIMA-4275
@@ -1689,7 +1703,7 @@ class NodePool
             //calcNSharesByOrder();
         }
 
-        if ( (needed > 0) && ( !expansionStopped ) ) {            // UIMA-4275
+        if ( (needed > 0) && ( !expansionStopped ) && ( j.getSchedulingPolicy() == Policy.FAIR_SHARE) ) {            // UIMA-4275
             for ( NodePool np : getChildrenAscending() ) {
 
                 StringBuffer sb = new StringBuffer();
@@ -1699,7 +1713,7 @@ class NodePool
                 }
                 logger.info(methodName, null, np.getId(), "Doing expansions in this order:", sb.toString());
 
-                int g = np.findShares(j);
+                int g = np.findShares(j, honorCaps, allowVertical);
                 given += g;
                 needed -= g;
 
@@ -1735,7 +1749,7 @@ class NodePool
             j.undefer();
             sb.append(j.getId());
             sb.append(":");
-            if ( findShares(j) > 0 ) {
+            if ( findShares(j, false) > 0 ) {   // always fair-share, so don't do caps yet. UIMA-4712
                 sb.append("found ");
                 expansions.put(j, j);
             } else {

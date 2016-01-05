@@ -285,4 +285,8 @@ public interface IRmJob
 
     // UIMA-4275
     public boolean exceedsFairShareCap();
+    
+    // UIMA-4712
+    public void setServiceId(long id);
+    public long getServiceId();
 }

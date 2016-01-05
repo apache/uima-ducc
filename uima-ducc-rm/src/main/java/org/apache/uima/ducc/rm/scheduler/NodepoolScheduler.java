@@ -1431,7 +1431,8 @@ public class NodepoolScheduler
                 int order = j.getShareOrder();
                 int count = j.countNSharesGiven();
 
-                if ( np.findShares(j) > 0 ) {               // UIMA-4275, no longer require full allocation, we'll take what we can
+                if ( np.findSharesHorizontal(j) > 0 ) {       // UIMA-4275, no longer require full allocation, we'll take what we can
+                                                              // UIMA-4712 first try horizontal stacking
                     //
                     // Need to fix the shares here, if any, because the findShares() code is same for fixed and fair share so it
                     // won't have done that yet.
@@ -1439,7 +1440,20 @@ public class NodepoolScheduler
                     for ( Share s : j.getPendingShares().values() ) {
                         s.setFixed();
                     }
-                    logger.info(methodName, j.getId(), "Assign:", nSharesToString(count, order));
+                    logger.info(methodName, j.getId(), "Assign(H):", nSharesToString(count, order));
+                }
+
+                if ( j.countNShares() == 0 ) {                // UIMA-4712 now try horizontal stacking
+                    if ( np.findSharesVertical(j) > 0 ) {
+                        //
+                        // Need to fix the shares here, if any, because the findShares() code is same for fixed and fair share so it
+                        // won't have done that yet.
+                        //
+                        for ( Share s : j.getPendingShares().values() ) {
+                            s.setFixed();
+                        }
+                        logger.info(methodName, j.getId(), "Assign(V):", nSharesToString(count, order));
+                    }
                 }
 
                 // 

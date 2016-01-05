@@ -93,6 +93,19 @@ public class Machine
     {
         return node;
     }
+    
+    // UIMA-4712
+    // See if placing the subject job on this machine violates vertical stacking constraings
+    public synchronized boolean hasVerticalConflict(IRmJob j)
+    {
+        for ( Share s : activeShares.values() ) {
+            if ( s.getJob().getServiceId() == j.getServiceId() ) return true;          // match service id, it violates
+        }
+        for ( Share s : blacklistedWork.values() ) {                                   // just in case
+            if ( s.getJob().getServiceId() == j.getServiceId() ) return true;   
+        }
+        return false;                                                                  // nothing else violates
+    }
 
     // UIMA-4142
     // Black list some number of shres for a specific job and proc.  This reduces the number of

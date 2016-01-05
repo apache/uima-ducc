@@ -75,6 +75,7 @@ public class RmJob
     protected String username;
     protected User user;                              // user id, enforced by submit and job manager. we just believe it in sched.
 
+    protected long serviceId = 0;                     // services only, the SM-assigned service id. UIMA-4712 ref UIMA-4209
     //
     // We keep track of three things related to machines:
     // 1.  All the machines the job is running on.
@@ -163,6 +164,16 @@ public class RmJob
     public String getName()
     {
     	return id.toString();
+    }
+
+    public void setServiceId(long id)
+    {
+        this.serviceId = id;
+    }
+
+    public long getServiceId()
+    {
+        return serviceId;
     }
     
     public void setJobName(String name)
