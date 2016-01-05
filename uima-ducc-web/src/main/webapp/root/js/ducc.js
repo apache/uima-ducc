@@ -2985,6 +2985,7 @@ function ducc_refresh_page(type) {
     else {
         refresh_page_busy = true;
     }
+    ducc_cookies();
     try {
         var table_style = ducc_preferences_get("table_style");
         if (display_table_style == table_style) {
