@@ -3130,6 +3130,7 @@ function ducc_timed_loop(type) {
     var fname = "ducc_timed_loop";
     ducc_console_enter(fname);
     try {
+    	ducc_cookies();
         var refreshmode = ducc_appl("refreshmode");
         var c_value = ducc_get_cookie(refreshmode);
         if (c_value == null) {
