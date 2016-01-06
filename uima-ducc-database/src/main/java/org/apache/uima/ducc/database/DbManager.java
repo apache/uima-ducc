@@ -48,7 +48,7 @@ public class DbManager
     private static String db_id = null;
     private static String db_pw = null;
 
-    boolean noisy = true;
+    boolean noisy = false;
     String dburl;
     DuccLogger logger;
 
@@ -62,7 +62,8 @@ public class DbManager
         this.dburl = dburl;
         this.logger = logger;
 
-        if ( System.getProperty(NOISE_PROPERTY) != null ) noisy = false;
+        if ( System.getProperty(NOISE_PROPERTY) != null ) noisy = true;
+        System.out.println("NOISY " + noisy);
     }
     
     boolean checkForDatabase()

@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.database;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -39,6 +40,8 @@ import org.apache.uima.ducc.common.persistence.services.IStateServices.SvcRegPro
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
@@ -83,13 +86,13 @@ public class DbLoader
 
     String checkpointFile = "/state/orchestrator.ckpt";
 
-    int nthreads = 20;
+    int nthreads = 10;
     AtomicInteger counter = new AtomicInteger(0);
 
-    //int joblimit         = 10;
-    //int reservationlimit = 10;
-    //int servicelimit     = 10;
-    //int registrylimit    = 1;
+    //int joblimit         = 100;
+    //int reservationlimit = 100;
+    //int servicelimit     = 100;
+    //int registrylimit    = 100;
 
     int joblimit = Integer.MAX_VALUE;
     int reservationlimit = Integer.MAX_VALUE;
@@ -149,6 +152,7 @@ public class DbLoader
         String methodName = "loadJobs";
 
         logger.info(methodName, null, " -------------------- Load jobs ----------------");
+        System.out.println(" -------------------- Load jobs ----------------");
         File dir = new File(jobHistory);
         if ( !dir.isDirectory() ) {
             logger.info(methodName, null, "Cannot find job history; skipping load of jobs.");
@@ -197,6 +201,7 @@ public class DbLoader
         while ( (c = counter.get()) != 0 ) {
             try { 
                 logger.info(methodName, null, "Waiting for loads to finish, counter is", c, "(job).");
+                System.out.println("Waiting for job loads to finish, counter is " + c);
                 Thread.sleep(1000); 
             } 
             catch ( Exception e ) {}
@@ -224,6 +229,8 @@ public class DbLoader
         String methodName = "loadReservations";
 
         logger.info(methodName, null, " -------------------- Load reservations ----------------");
+        System.out.println(" -------------------- Load reservations ----------------");
+
         File dir = new File(reservationHistory);
         if ( ! dir.isDirectory() ) {
             logger.info(methodName, null, "No reservation directory found; skipping database load of reservations.");
@@ -272,6 +279,8 @@ public class DbLoader
         while ( (c = counter.get()) != 0 ) {
             try { 
                 logger.info(methodName, null, "Waiting for reservation loads to finish, counter is", c);
+                System.out.println("Waiting for reservation loads to finish, counter is " + c);
+
                 Thread.sleep(1000); 
             } 
             catch ( Exception e ) {}
@@ -300,6 +309,8 @@ public class DbLoader
         String methodName = "loadServices";
 
         logger.info(methodName, null, " -------------------- Load services ----------------");
+        System.out.println(" -------------------- Load AP/Service Instances ----------------");
+
         File dir = new File(serviceHistory);
         if ( ! dir.isDirectory() ) {
             logger.info(methodName, null, "No service history directory found; skipping load of service history.");
@@ -348,6 +359,7 @@ public class DbLoader
         while ( (c = counter.get()) != 0 ) {
             try { 
                 logger.info(methodName, null, "Waiting for loads to finish, counter is", c, "(service instances");
+                System.out.println("Waiting for AP/Service Instance  loads to finish, counter is " + c);
                 Thread.sleep(1000); 
             } 
             catch ( Exception e ) {}
@@ -374,6 +386,8 @@ public class DbLoader
         String methodName = "loadServiceRegistry";
 
         logger.info(methodName, null, " -------------------- Load registry; isHistory", isHistory, " ----------------");
+        System.out.println(" -------------------- Load Service Registry " + (isHistory ? "(history)" : "(active registrations)") + "  ----------------");
+
 
         int c = 0;
         File dir = new File(registry);
@@ -426,6 +440,8 @@ public class DbLoader
         while ( (c = counter.get()) != 0 ) {
             try { 
                 logger.info(methodName, null, "Waiting for service registry loads to finish, counter is", c);
+                System.out.println("Waiting for service registration loads to finish, counter is " + c);
+
                 Thread.sleep(1000); 
             } 
             catch ( Exception e ) {}
@@ -502,7 +518,7 @@ public class DbLoader
     {
     	String methodName = "foo";
         DbHandle h = dbManager.open();
-        SimpleStatement s = new SimpleStatement("SELECT * from " + HistoryManagerDb.JOB_TABLE + " limit 5000");
+        SimpleStatement s = new SimpleStatement("SELECT * from " + HistoryManagerDb.JOB_HISTORY_TABLE + " limit 5000");
         //SimpleStatement s = new SimpleStatement("SELECT * from " + HistoryManagerDb.RES_TABLE + " limit 5000");
         //SimpleStatement s = new SimpleStatement("SELECT * from " + HistoryManagerDbB.SVC_TABLE + " limit 5000");
         logger.info(methodName, null, "Fetch size", s.getFetchSize());
@@ -559,7 +575,16 @@ public class DbLoader
 
                 hmd = new HistoryManagerDb();
                 hmd.init(logger, dbManager);
-                
+
+                // drop some of the history indices to speed up 
+                System.out.println("Temporarily dropping some indexes");
+                List<SimpleStatement> drops = HistoryManagerDb.dropIndices();
+                DbHandle h = dbManager.open();
+                for ( SimpleStatement ss : drops ) {
+                    System.out.println(ss.getQueryString());
+                    h.execute(ss);
+                }
+
                 long nowt = System.currentTimeMillis();
                 if ( docheckpoint ) loadCheckpoint();
                 logger.info(methodName, null, "***** Time to load checkpoint A ****", System.currentTimeMillis() - nowt);
@@ -608,6 +633,15 @@ public class DbLoader
                 if ( docheckpoint ) loadCheckpoint();
                 logger.info(methodName, null, "**** Time to reload checkpoint B ****", System.currentTimeMillis() - nowt);
 
+                // recreate dropped indices
+                System.out.println("Restoring indexes");
+                List<SimpleStatement> indices = HistoryManagerDb.createIndices();
+                h = dbManager.open();
+                for ( SimpleStatement ss : indices ) {
+                    System.out.println(ss.getQueryString());
+                    h.execute(ss);
+                }
+
             } catch ( Exception e ) {
             	logger.error(methodName, null, e);
 
@@ -628,8 +662,11 @@ public class DbLoader
             System.out.println("Where:");
             System.out.println("   from");        
             System.out.println("      is the DUCC_HOME you wish to convert.");
+            System.out.println(" ");
             System.out.println("   to");
             System.out.println("      is the datbase URL.");
+            System.out.println(" ");
+            
             System.exit(1);
         }
 
@@ -643,10 +680,10 @@ public class DbLoader
         } 
     }
 
+    static  PreparedStatement jobPrepare = null;
     class JobLoader
         implements Runnable
     {
-        PreparedStatement statement = null;
         BlockingQueue<File> queue;
         List<Long> ids;
         JobLoader(BlockingQueue<File> queue, List<Long> ids)
@@ -656,7 +693,11 @@ public class DbLoader
             this.ids = ids;
 
             DbHandle h = dbManager.open();
-            statement = h.prepare("INSERT INTO " + HistoryManagerDb.JOB_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?);");            
+            synchronized(JobLoader.class) {
+                if ( jobPrepare == null ) {
+                    jobPrepare = h.prepare("INSERT INTO " + HistoryManagerDb.JOB_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?)");
+                }
+            }
         }
 
         public void run()
@@ -670,7 +711,7 @@ public class DbLoader
                 try {
                     f = queue.take();
                     FileInputStream fis = null;
-                    ObjectInputStream in = null;
+                    // ObjectInputStream in = null;
 
                     try {
                         long now = System.currentTimeMillis();
@@ -692,18 +733,33 @@ public class DbLoader
 
                         ByteBuffer bb = ByteBuffer.wrap(buf);
                         logger.info(methodName, did, "Time to read job:", System.currentTimeMillis() - now+" MS", "bytes:", nbytes);
-                        logger.info(methodName, did, "Job", duccid, "Store CQL:", statement.getQueryString());
+                        logger.info(methodName, did, "Job", duccid, "Store CQL:", jobPrepare.getQueryString());
+                        
                         long now1 = System.currentTimeMillis();
-                        BoundStatement boundStatement = new BoundStatement(statement);
+                        BoundStatement boundStatement = new BoundStatement(jobPrepare);
                         BoundStatement bound = boundStatement.bind(duccid, "job", true, bb);
                         DbHandle h = dbManager.open();
 
                         h.execute(bound);
                         logger.info(methodName, did, "Time to store job", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
+
+                        synchronized(ids) {
+                            // any sync object is ok - but we want to effectively single thread the writing of the details as this tends
+                            // to overrun the DB during this bulk load.
+                            ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+                            ObjectInputStream ois = new ObjectInputStream(bais);
+                            Object o = ois.readObject();
+                            ois.close();            
+                            bais.close();
+                            
+                            now = System.currentTimeMillis();
+                            hmd.summarizeProcesses(h, (IDuccWork) o, "J");
+                            hmd.summarizeJob(h, (IDuccWork) o, "J");
+                            logger.info(methodName, did, "Time to store process summaries for job", duccid, ":", (System.currentTimeMillis() - now));
+                        }
                     } catch(Exception e) {
                         logger.info(methodName, did, e);
-                    } finally {
-                        closeStream(in);
+                    } finally {                        
                         closeStream(fis);
                         counter.getAndDecrement();
                     }
@@ -725,11 +781,11 @@ public class DbLoader
         }
     }
 
-
+    PreparedStatement servicePrepare = null;
     class ServiceLoader
         implements Runnable
     {
-        PreparedStatement statement = null;
+
         BlockingQueue<File> queue;
         List<Long> ids;
         ServiceLoader(BlockingQueue<File> queue, List<Long> ids)
@@ -738,7 +794,11 @@ public class DbLoader
             this.queue = queue;
             this.ids = ids;
             DbHandle h = dbManager.open();
-            statement = h.prepare("INSERT INTO " + HistoryManagerDb.SVC_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?);");            
+            synchronized(ServiceLoader.class) {
+                if ( servicePrepare == null ) {
+                    servicePrepare = h.prepare("INSERT INTO " + HistoryManagerDb.SVC_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?);");            
+                }
+            }
         }
 
         public void run()
@@ -774,14 +834,42 @@ public class DbLoader
 
                         ByteBuffer bb = ByteBuffer.wrap(buf);
                         logger.info(methodName, did, "Time to read service", duccid, ":", System.currentTimeMillis() - now + " MS", "bytes:", nbytes);
-                        logger.info(methodName, did, "Service", duccid, "Store CQL:", statement.getQueryString());
+                        logger.info(methodName, did, "Service", duccid, "Store CQL:", servicePrepare.getQueryString());
                         long now1 = System.currentTimeMillis();
-                        BoundStatement boundStatement = new BoundStatement(statement);
+                        BoundStatement boundStatement = new BoundStatement(servicePrepare);
                         BoundStatement bound = boundStatement.bind(duccid, "service", true, bb);
                         DbHandle h = dbManager.open();
 
                         h.execute(bound);
                         logger.info(methodName, did, "Time to store service", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
+
+                        ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+                        ObjectInputStream ois = new ObjectInputStream(bais);
+                        Object o = ois.readObject();
+                        ois.close();            
+                        bais.close();
+
+                        String type = null;
+                        if ( ((IDuccWorkService)o).getServiceDeploymentType() == null ) {
+                            logger.warn(methodName, did, "getServiceDeploymentType is null, not extracting details.");
+                            continue;
+                        }
+
+                        switch ( ((IDuccWorkService)o).getServiceDeploymentType() ) 
+                        {
+                            case uima:
+                            case custom:
+                                type = "S";
+                                break;
+                            case other:
+                                type = "A";
+                                break;
+                        }
+                    
+                        now = System.currentTimeMillis();
+                        hmd.summarizeProcesses(h, (IDuccWork) o, type);
+                        logger.info(methodName, did, "Time to store AP/Service Instance summaries for job", duccid, ":", (System.currentTimeMillis() - now));
+
                     } catch(Exception e) {
                         logger.info(methodName, did, e);
                     } finally {
@@ -806,10 +894,10 @@ public class DbLoader
         }
     }
 
+    static PreparedStatement reservationPrepare = null;
     class ReservationLoader
         implements Runnable
     {
-        PreparedStatement statement = null;
         BlockingQueue<File> queue;
         List<Long> ids;
         ReservationLoader(BlockingQueue<File> queue, List<Long> ids)
@@ -818,7 +906,11 @@ public class DbLoader
             this.queue = queue;
             this.ids = ids;            
             DbHandle h = dbManager.open();
-            statement = h.prepare("INSERT INTO " + HistoryManagerDb.RES_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?);");
+            synchronized(ReservationLoader.class) {
+                if ( reservationPrepare == null ) {
+                    reservationPrepare = h.prepare("INSERT INTO " + HistoryManagerDb.RES_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?);");
+                }
+            }
         }
 
         public void run()
@@ -854,16 +946,28 @@ public class DbLoader
 
                         ByteBuffer bb = ByteBuffer.wrap(buf);
                         logger.info(methodName, did, "Time to read reservation", duccid, ":", System.currentTimeMillis() - now+" MS", "bytes:", nbytes);
-                        logger.info(methodName, did, "Reservation", duccid, "Store CQL:", statement.getQueryString());
+                        logger.info(methodName, did, "Reservation", duccid, "Store CQL:", reservationPrepare.getQueryString());
                         long now1 = System.currentTimeMillis();
-                        BoundStatement boundStatement = new BoundStatement(statement);
+                        BoundStatement boundStatement = new BoundStatement(reservationPrepare);
                         BoundStatement bound = boundStatement.bind(duccid, "reservation", true, bb);
                         DbHandle h = dbManager.open();
 
                         h.execute(bound);
                         logger.info(methodName, did, "Time to store reservation", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
 
+                        ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+                        ObjectInputStream ois = new ObjectInputStream(bais);
+                        Object o = ois.readObject();
+                        ois.close();            
+                        bais.close();
+
+                        now = System.currentTimeMillis();
+                        hmd.summarizeProcesses(h, (IDuccWork) o, "R"); // details on the "process" in the map
+                        hmd.summarizeReservation(h, (IDuccWork) o);    // details on the reservaiton itself
+                        logger.info(methodName, did, "Time to store reservation summaries for job", duccid, ":", (System.currentTimeMillis() - now));
+
                     } catch(Exception e) {
+                        e.printStackTrace();
                         logger.info(methodName, did, e);
                     } finally {
                         closeStream(in);

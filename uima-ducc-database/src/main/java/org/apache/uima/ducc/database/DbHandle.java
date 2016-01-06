@@ -50,7 +50,7 @@ public class DbHandle
         String methodName = "execute";
         long now = System.currentTimeMillis();
         ResultSet ret = manager.execute(sql);
-        if ( manager.noisy ) logger.info(methodName, null, "Time to execute", System.currentTimeMillis() - now);
+        if ( manager.noisy ) logger.debug(methodName, null, "Time to execute", System.currentTimeMillis() - now);
         
         return ret;
     }
@@ -215,7 +215,7 @@ public class DbHandle
             manager.execute(cql);
             return true;
         } finally {
-            logger.info(methodName, null, "Time to update one property", propkey, System.currentTimeMillis() - now);        
+            logger.debug(methodName, null, "Time to update one property", propkey, System.currentTimeMillis() - now);        
         }
     }
     
@@ -243,16 +243,17 @@ public class DbHandle
 
         String cql = DbUtil.mkUpdate(table, row, props);
         try {
+            logger.trace(methodName, null, cql);
             manager.execute(cql);
         } finally {
-            logger.info(methodName, null, "Total time to update properties", System.currentTimeMillis() - now);
+            logger.debug(methodName, null, "Total time to update properties", System.currentTimeMillis() - now);
         }
     }
 
 
     PreparedStatement prepare(String cql)
     {
-        String methodName = "prepare";
+        //String methodName = "prepare";
         return manager.prepare(cql);
     }
 
@@ -272,7 +273,7 @@ public class DbHandle
         BoundStatement boundStatement = new BoundStatement(ps);
         BoundStatement bound = boundStatement.bind(fields);
         execute(bound);        
-        logger.info(methodName, null, "Time to execute prepared statement:", ps.getQueryString(), System.currentTimeMillis() - now);
+        logger.debug(methodName, null, "Time to execute prepared statement:", ps.getQueryString(), System.currentTimeMillis() - now);
     }
 
     /**

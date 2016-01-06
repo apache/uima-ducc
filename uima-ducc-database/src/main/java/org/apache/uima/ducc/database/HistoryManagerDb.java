@@ -30,15 +30,24 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.Pair;
+import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.ADuccWorkExecutable;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccReservation;
+import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
+import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
+import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
+import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
 
 import com.datastax.driver.core.PreparedStatement;
@@ -46,8 +55,6 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.SimpleStatement;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 
 public class HistoryManagerDb 
@@ -58,15 +65,34 @@ public class HistoryManagerDb
 	private DuccLogger logger = null;
     private DbManager dbManager;
 
-    PreparedStatement jobPrepare = null;
-    PreparedStatement reservationPrepare = null;
-    PreparedStatement servicePrepare = null;
+    PreparedStatement jobBlobPrepare = null;
+    PreparedStatement reservationBlobPrepare = null;
+    PreparedStatement serviceBlobPrepare = null;
     PreparedStatement ckptPrepare = null;
-    static final String JOB_TABLE  = OrWorkProps.JOB_TABLE.pname();
-    static final String RES_TABLE  = OrWorkProps.RESERVATION_TABLE.pname();
-    static final String SVC_TABLE  = OrWorkProps.SERVICE_TABLE.pname();
+
+    PreparedStatement processDetailsPrepare = null;        // "process" for things that aren't "reservations"
+    PreparedStatement reservationAllocPrepare = null;      // "process" for things that are    "reservaitons" 
+
+    PreparedStatement jobDetailsPrepare = null;
+    PreparedStatement reservationDetailsPrepare = null;
+
+    static final String JOB_HISTORY_TABLE  = OrWorkProps.JOB_HISTORY_TABLE.pname();
+    static final String RES_HISTORY_TABLE  = OrWorkProps.RESERVATION_HISTORY_TABLE.pname();
+    static final String SVC_HISTORY_TABLE  = OrWorkProps.SERVICE_HISTORY_TABLE.pname();
     static final String CKPT_TABLE = OrCkptProps.CKPT_TABLE.pname();
+    static final String PROCESS_TABLE = OrProcessProps.TABLE_NAME.pname();
+    static final String JOB_TABLE = OrJobProps.TABLE_NAME.pname();
+    static final String RESERVATION_TABLE = OrReservationProps.TABLE_NAME.pname();
 		
+    static String[] alltables = {JOB_HISTORY_TABLE,
+                                 RES_HISTORY_TABLE,
+                                 SVC_HISTORY_TABLE,
+                                 CKPT_TABLE,
+                                 PROCESS_TABLE,
+                                 JOB_TABLE,
+                                 RESERVATION_TABLE}
+        ;
+
     public HistoryManagerDb()
     {
     }
@@ -89,10 +115,14 @@ public class HistoryManagerDb
                 
                 // prepare some statements
                 DbHandle h = dbManager.open();
-                jobPrepare         = h.prepare("INSERT INTO " + JOB_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
-                reservationPrepare = h.prepare("INSERT INTO " + RES_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
-                servicePrepare     = h.prepare("INSERT INTO " + SVC_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) IF NOT EXISTS;");            
-                ckptPrepare        = h.prepare("INSERT INTO " + CKPT_TABLE + " (id, work, p2jmap) VALUES (?, ?, ?);");            
+                jobBlobPrepare          = h.prepare("INSERT INTO " + JOB_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) ;");            
+                reservationBlobPrepare  = h.prepare("INSERT INTO " + RES_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) ;");            
+                serviceBlobPrepare      = h.prepare("INSERT INTO " + SVC_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) ;");            
+                ckptPrepare             = h.prepare("INSERT INTO " + CKPT_TABLE + " (id, work, p2jmap) VALUES (?, ?, ?);");            
+                processDetailsPrepare   = h.prepare("INSERT INTO " + PROCESS_TABLE + " (host, job_id, ducc_pid, type, user, memory, start, stop, class, pid, reason_agent, exit_code, reason_scheduler, cpu, swap_max, run_time, init_time, initialized, investment, major_faults, gc_count, gc_time) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;");
+                reservationAllocPrepare = h.prepare("INSERT INTO " + PROCESS_TABLE + " (host, job_id, ducc_pid, type, user, memory, start, stop, class, run_time) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;");
+                jobDetailsPrepare = h.prepare("INSERT INTO " + JOB_TABLE + " (user, class, ducc_dbid, submission_time, duration, memory, reason, init_fails, errors, pgin, swap, total_wi, retries, preemptions, description) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;");
+                reservationDetailsPrepare = h.prepare("INSERT INTO " + RESERVATION_TABLE + " (user, class, ducc_dbid, submission_time, duration, memory, reason, processes, state, type, hosts, description) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
                 break;
             } catch ( NoHostAvailableException e ) {
                 logger.error(methodName, null, "Cannot contact database.  Retrying in 5 seconds.");
@@ -123,6 +153,61 @@ public class HistoryManagerDb
         return init(stateUrl, dbManager);
     }
 
+    /**
+     * For bulk loader, we drop some of the indices during loading.
+     *
+     * Some of the tables are not a problem during bulk loading so we only externalize the
+     * indexes on some tables.
+     */
+    static ArrayList<SimpleStatement> dropIndices()
+    {
+        ArrayList<SimpleStatement> ret = new ArrayList<SimpleStatement>();
+
+        List<String> indexes = DbUtil.dropIndices(OrProcessProps.values(), PROCESS_TABLE);
+        for ( String s : indexes ) {
+            ret.add(new SimpleStatement(s));
+        }
+
+        indexes = DbUtil.dropIndices(OrJobProps.values(), JOB_TABLE);
+        for ( String s : indexes ) {
+            ret.add(new SimpleStatement(s));
+        }
+
+        indexes = DbUtil.dropIndices(OrReservationProps.values(), RESERVATION_TABLE);
+        for ( String s : indexes ) {
+            ret.add(new SimpleStatement(s));
+        }
+
+        return ret;
+    }
+
+    /**
+     * For bulk loader, we must recreate indices
+     *
+     * Some of the tables are not a problem during bulk loading so we only externalize the
+     * indexes on some tables.
+     */
+    static ArrayList<SimpleStatement>  createIndices()
+    {
+        ArrayList<SimpleStatement> ret = new ArrayList<SimpleStatement>();
+
+        List<String> indexes = DbUtil.mkIndices(OrProcessProps.values(), PROCESS_TABLE);
+        for ( String s : indexes ) {
+            ret.add(new SimpleStatement(s));
+        }
+
+        indexes = DbUtil.mkIndices(OrJobProps.values(), JOB_TABLE);
+        for ( String s : indexes ) {
+            ret.add(new SimpleStatement(s));
+        }
+
+        indexes = DbUtil.mkIndices(OrReservationProps.values(), RESERVATION_TABLE);
+        for ( String s : indexes ) {
+            ret.add(new SimpleStatement(s));
+        }
+
+        return ret;
+    }
 
     /**
      * Schema gen.  Do anything you want to make the schema, but notice that DbUtil has a few convenience methods if
@@ -137,15 +222,12 @@ public class HistoryManagerDb
         buf.append(DbUtil.mkSchema(OrWorkProps.values()));
         buf.append(")");
         buf.append("WITH CLUSTERING ORDER BY (ducc_dbid desc)");
-
         ret.add(new SimpleStatement(buf.toString()));
+
         List<String> indexes = DbUtil.mkIndices(OrWorkProps.values(), tablename);
         for ( String s : indexes ) {
             ret.add(new SimpleStatement(s));
         }
-
-        // ret.add(new SimpleStatement("CREATE INDEX IF NOT EXISTS ON " +  tablename + "(ducc_dbid)"));
-        // ret.add(new SimpleStatement("CREATE INDEX IF NOT EXISTS ON " +  tablename + "(history)"));
 
         return ret;
     }
@@ -155,20 +237,234 @@ public class HistoryManagerDb
     {
         ArrayList<SimpleStatement> ret = new ArrayList<SimpleStatement>();
 
-        ret.addAll(mkSchema(JOB_TABLE));
-        ret.addAll(mkSchema(RES_TABLE));
-        ret.addAll(mkSchema(SVC_TABLE));
+        ret.addAll(mkSchema(JOB_HISTORY_TABLE));
+        ret.addAll(mkSchema(RES_HISTORY_TABLE));
+        ret.addAll(mkSchema(SVC_HISTORY_TABLE));
 
         StringBuffer buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + CKPT_TABLE + " (");
         buf.append(DbUtil.mkSchema(OrCkptProps.values()));
         buf.append(")");
         ret.add(new SimpleStatement(buf.toString()));
 
+        buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + PROCESS_TABLE + " (");
+        buf.append(DbUtil.mkSchema(OrProcessProps.values()));
+        buf.append(")");
+        ret.add(new SimpleStatement(buf.toString()));
+
+        buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + JOB_TABLE + " (");
+        buf.append(DbUtil.mkSchema(OrJobProps.values()));
+        buf.append(")");
+        ret.add(new SimpleStatement(buf.toString()));
+
+
+        buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + RESERVATION_TABLE + " (");
+        buf.append(DbUtil.mkSchema(OrReservationProps.values()));
+        buf.append(")");
+        ret.add(new SimpleStatement(buf.toString()));
+
+        // PLEASE NOTE: The process, job, and reservaiton tables can have 10000s, 100000s or 1000000s of records during bulk
+        // load of a system that has been running a while during execution of DbLoader.  The DbLoader will drop the indexes
+        // on these three tables and then recreate them.  To support this we break out the creation into another
+        // routine that can be called from the loader.
+        ret.addAll(createIndices());
+
         return ret;
     }
 
     // ----------------------------------------------------------------------------------------------------
-    // Jobs section
+
+    int toInt(String i)
+    {
+        if ( i == null ) return 0;
+        try {
+            return Integer.parseInt(i);
+        } catch ( Exception e ) {
+            return 0;
+        }
+    }
+
+    String getString(String s)
+    {
+        return s == null ? "<none>" : s;
+    }
+
+    void summarizeJob(DbHandle h, IDuccWork w, String type)
+    	throws Exception
+    {
+        IDuccWorkJob j = (IDuccWorkJob) w;
+        // need duccid, user, class, submission-time, duration, memory, exit-reason, init-fails, pgin, swap, total-wi, retries, preemptions, description
+
+        long ducc_dbid  = j.getDuccId().getFriendly();
+        
+        IDuccStandardInfo dsi = j.getStandardInfo();
+        IDuccSchedulingInfo dsx = j.getSchedulingInfo();
+        
+        String user = dsi.getUser();
+        String jclass = dsx.getSchedulingClass();
+
+        int memory = toInt(dsx.getMemorySizeRequested());
+        long submission = dsi.getDateOfSubmissionMillis();
+        long completion = dsi.getDateOfCompletionMillis();
+        long duration = Math.max(0, completion - submission);
+        String reason = getString(j.getCompletionType().toString());
+        int init_fails = (int) j.getProcessInitFailureCount();
+        long pgin = j.getPgInCount();
+        long swap = (long) j.getSwapUsageGbMax();
+        int wi = (int) j.getWiTotal();
+        int errors = toInt(dsx.getWorkItemsError());
+        int retries = toInt(dsx.getWorkItemsRetry());
+        int preemptions = toInt(dsx.getWorkItemsPreempt());
+        String description = getString(dsi.getDescription());
+        h.execute(jobDetailsPrepare, user, jclass, ducc_dbid, submission, duration, memory, reason, init_fails, errors, pgin, swap, wi, retries, preemptions, description);
+    }
+
+    void summarizeProcesses(DbHandle h, IDuccWork w, String type)
+    	throws Exception
+    {
+        // Loop through the processes on w saving useful things:
+        //    jobid, processid, node, user, type of job, PID, duration, start timestamp, stop timestamp, exit state,
+        //    memory, CPU, exit code, swap max, investment, init time
+        long job_id = w.getDuccId().getFriendly();
+    	int stupid = 0;
+    	stupid++;
+        switch ( w.getDuccType() ) {
+            case Job:
+            case Service:
+            case Pop:
+                {
+                    if ( job_id == 287249 ) {
+                        stupid++;
+                        stupid++;
+                    }
+
+
+                    IDuccProcessMap m = ((ADuccWorkExecutable)w).getProcessMap();
+                    Map<DuccId, IDuccProcess> map = m.getMap();
+                    IDuccStandardInfo dsi = w.getStandardInfo();
+                    IDuccSchedulingInfo dsx = w.getSchedulingInfo();
+                    
+                    String user = dsi.getUser();
+                    int memory = toInt(dsx.getMemorySizeRequested());
+                    String sclass = dsx.getSchedulingClass();
+
+                    for ( IDuccProcess idp : map.values() ) {
+                        stupid++;
+                        stupid++;
+
+
+                        long ducc_pid = idp.getDuccId().getFriendly();
+                        long pid = toInt(idp.getPID());
+                        String node = idp.getNodeIdentity().getName();
+                        String reason_agent = idp.getReasonForStoppingProcess(); // called "reason" in duccprocess but not in ws
+                        String reason_scheduler = idp.getProcessDeallocationType().toString(); // called "processDeallocationType" in duccprocess but not in ws
+                        int exit_code = idp.getProcessExitCode();
+                        long cpu = idp.getCurrentCPU();
+                        long swap = idp.getSwapUsageMax();
+                        
+                        ITimeWindow itw = idp.getTimeWindowInit();
+                        long processStart = 0;
+                        long initTime = 0;
+                        if ( itw != null ) {
+                            processStart = itw.getStartLong();
+                            initTime = itw.getElapsedMillis();
+                        }
+                        itw = idp.getTimeWindowRun();
+                        long processEnd = 0;
+                        if ( itw != null ) {
+                            processEnd = idp.getTimeWindowRun().getEndLong();
+                        }
+                        boolean initialized = idp.isInitialized();
+                        long investment = idp.getWiMillisInvestment();
+                        long major_faults = idp.getMajorFaults();
+                        long gccount = 0;
+                        long gctime = 0;
+                        ProcessGarbageCollectionStats gcs = idp.getGarbageCollectionStats();
+                        if ( gcs != null ) {
+                        	gccount = gcs.getCollectionCount();
+                            gctime = gcs.getCollectionTime();
+                        }
+                        h.execute(processDetailsPrepare, node, job_id, ducc_pid, type, user, memory, processStart, processEnd, sclass,
+                                  pid, reason_agent, exit_code, reason_scheduler, cpu, swap, Math.max(0, (processEnd-processStart)), initTime,
+                                  initialized, investment, major_faults, gccount, gctime);
+                    }
+
+                }
+                break;
+ 
+            case Reservation:
+                {
+                    if ( job_id == 287249 ) {
+                        stupid++;
+                        stupid++;
+                    }
+
+                	IDuccReservationMap m = ((IDuccWorkReservation)w).getReservationMap();
+                    Map<DuccId, IDuccReservation> map = m.getMap();
+                    IDuccStandardInfo dsi = w.getStandardInfo();
+                    IDuccSchedulingInfo dsx = w.getSchedulingInfo();
+                    long start = dsi.getDateOfCompletionMillis();
+                    long stop = dsi.getDateOfSubmissionMillis();
+                    int memory_size = 0;
+                    if ( dsx.getMemorySizeRequested() == null ) {
+                    	memory_size = toInt(dsx.getMemorySizeRequested());
+                    }
+                    for ( IDuccReservation idr : map.values() ) {
+                        String node = "<none>";
+                        if ( idr.getNode() != null ) {
+                            node = idr.getNode().getNodeIdentity().getName();
+                        }
+                    	try {
+							h.execute(reservationAllocPrepare, node, job_id,
+							          idr.getDuccId().getFriendly(), type, dsi.getUser(), memory_size, 
+							          start, stop, dsx.getSchedulingClass(), Math.max(0, (stop-start)) );
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+							stupid++;
+							stupid++;
+						}
+                    }
+                    
+                }
+                break;
+        }
+    }
+
+    void summarizeReservation(DbHandle h, IDuccWork w)
+    	throws Exception
+    {
+        DuccWorkReservation r = (DuccWorkReservation) w; // cannot use the interface because it is incomplete
+
+        long ducc_dbid  = r.getDuccId().getFriendly();
+
+        IDuccStandardInfo dsi = r.getStandardInfo();
+        IDuccSchedulingInfo dsx = r.getSchedulingInfo();
+        
+        String user = dsi.getUser();
+        String jclass = dsx.getSchedulingClass();
+
+        int memory = toInt(dsx.getMemorySizeRequested());
+        long submission = dsi.getDateOfSubmissionMillis();
+        long completion = dsi.getDateOfCompletionMillis();
+        long duration = Math.max(0, completion - submission);
+        String reason = getString(r.getCompletionType().toString());
+        String description = getString(dsi.getDescription());
+
+        List<String> nodes = r.getNodes();
+        int processes = nodes.size();
+        StringBuffer buf = new StringBuffer("");
+        for ( int i = 0; i < processes; i++ ) {
+            buf.append(nodes.get(i));
+            if ( i < (processes-1) ) buf.append(" ");
+        }
+        String hosts = buf.toString();
+        String type = "R";
+
+        String state = r.getReservationState().toString();
+
+        h.execute(reservationDetailsPrepare, user, jclass, ducc_dbid, submission, duration, memory, reason, processes, state, type, hosts, description);
+
+    }
 
     void saveWork(PreparedStatement s, IDuccWork w, boolean isHistory)
         throws Exception
@@ -176,26 +472,31 @@ public class HistoryManagerDb
     	String methodName = "saveWork";
         Long nowP =  System.currentTimeMillis();
         String type = null;
+        String processType = null;
 
         switch ( w.getDuccType() ) {
-            case Job:
-                type = "job";
-                break;
-            case Service:
-            case Pop:
+        case Job:
+            type = "job";
+            processType = "J";
+            break;
+        case Service:
+        case Pop:
                 switch ( ((IDuccWorkService)w).getServiceDeploymentType() ) 
                     {
                     case uima:
                     case custom:
                         type = "service";
+                        processType = "S";
                         break;
                     case other:
                         type = "AP";
+                        processType = "A";
                         break;
                     }
                 break;
             case Reservation:
                 type = "reservation";
+                processType = "R";
                 break;
             default:
                 // illegal - internal error if this happens
@@ -213,6 +514,21 @@ public class HistoryManagerDb
 
         DbHandle h = dbManager.open();
         h.saveObject(s,  w.getDuccId().getFriendly(), type, isHistory, buf);
+
+        switch ( w.getDuccType() ) {
+            case Job:
+                summarizeJob(h, w, "J");
+                break;
+            case Service:
+            case Pop:       
+                break;
+            case Reservation:
+                break;
+            default:
+                break;      // Can't get here, we'd abort above in this case
+        }
+
+        summarizeProcesses(h, w, processType);    // summarize each process of the work 
 
         logger.info(methodName, w.getDuccId(), "----------> Time to save", type, ":", System.currentTimeMillis() - nowP, "Size:", bytes.length, "bytes.");        
     }
@@ -293,7 +609,7 @@ public class HistoryManagerDb
 	public void saveJob(IDuccWorkJob j)
         throws Exception 
     {
-        saveWork(jobPrepare, j, true);
+        saveWork(jobBlobPrepare, j, true);
     }
 
 	
@@ -303,7 +619,7 @@ public class HistoryManagerDb
     public IDuccWorkJob restoreJob(long friendly_id)
         throws Exception
     {
-        return (IDuccWorkJob) restoreWork(IDuccWorkJob.class, JOB_TABLE, friendly_id);
+        return (IDuccWorkJob) restoreWork(IDuccWorkJob.class, JOB_HISTORY_TABLE, friendly_id);
     }
     
     /**
@@ -312,7 +628,7 @@ public class HistoryManagerDb
     public ArrayList<IDuccWorkJob> restoreJobs(long max)
         throws Exception
     {
-        return restoreSeveralThings(IDuccWorkJob.class, JOB_TABLE, max);
+        return restoreSeveralThings(IDuccWorkJob.class, JOB_HISTORY_TABLE, max);
     }
     // End of jobs section
     // ----------------------------------------------------------------------------------------------------
@@ -325,7 +641,7 @@ public class HistoryManagerDb
 	public void saveReservation(IDuccWorkReservation r) 
         throws Exception 
     {
-        saveWork(reservationPrepare, r, true);
+        saveWork(reservationBlobPrepare, r, true);
     }
 
     /**
@@ -334,7 +650,7 @@ public class HistoryManagerDb
 	public IDuccWorkReservation restoreReservation(long duccid)
         throws Exception
     {
-        return (IDuccWorkReservation) restoreWork(IDuccWorkReservation.class, RES_TABLE, duccid);
+        return (IDuccWorkReservation) restoreWork(IDuccWorkReservation.class, RES_HISTORY_TABLE, duccid);
     }
 	
     /**
@@ -343,7 +659,7 @@ public class HistoryManagerDb
 	public ArrayList<IDuccWorkReservation> restoreReservations(long max) 
 		throws Exception
     {
-        return restoreSeveralThings(IDuccWorkReservation.class, RES_TABLE, max);
+        return restoreSeveralThings(IDuccWorkReservation.class, RES_HISTORY_TABLE, max);
     }
 
     // End of reservations section
@@ -356,7 +672,7 @@ public class HistoryManagerDb
     public void saveService(IDuccWorkService s)
     	throws Exception
     {
-        saveWork(servicePrepare, s, true);
+        saveWork(serviceBlobPrepare, s, true);
     }
 
 	
@@ -366,7 +682,7 @@ public class HistoryManagerDb
 	public IDuccWorkService restoreService(long duccid)
 		throws Exception
     {
-        return (IDuccWorkService) restoreWork(IDuccWorkService.class, SVC_TABLE, duccid);
+        return (IDuccWorkService) restoreWork(IDuccWorkService.class, SVC_HISTORY_TABLE, duccid);
 	}
 	
     /**
@@ -375,7 +691,7 @@ public class HistoryManagerDb
 	public ArrayList<IDuccWorkService> restoreServices(long max) 
 		throws Exception
     {
-        return restoreSeveralThings(IDuccWorkService.class, SVC_TABLE, max);
+        return restoreSeveralThings(IDuccWorkService.class, SVC_HISTORY_TABLE, max);
 	}
     // End of services section
     // ----------------------------------------------------------------------------------------------------
@@ -504,17 +820,6 @@ public class HistoryManagerDb
     // End of OR checkpoint save and restore
     // ----------------------------------------------------------------------------------------------------
     
-    // ----------------------------------------------------------------------------------------------------
-    // Stuff common to everything
-    JsonObject mkJsonObject(String json)
-    {
-        // This method lets us munge the json before using it, if we need to
-        JsonParser parser = new JsonParser();
-        JsonObject jobj = parser.parse(json).getAsJsonObject();
-        
-        return jobj;
-    }
-
     public void shutdown()
     {
         dbManager.shutdown();

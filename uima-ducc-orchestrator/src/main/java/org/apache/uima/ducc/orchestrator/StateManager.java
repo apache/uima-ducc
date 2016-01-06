@@ -228,6 +228,7 @@ public class StateManager {
 			retVal = true;
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return retVal;

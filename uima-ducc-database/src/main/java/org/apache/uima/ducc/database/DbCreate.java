@@ -131,7 +131,7 @@ public class DbCreate
                     break;         // no crash, we're outta here
                 } catch ( Exception ee ) {
                     doLog(methodName, "Authorization fails with both the default userid/password and the new userid/password.");
-                    doLog(methodName, "Retrhying, as first-time database may take a few moments to initialize.");
+                    doLog(methodName, "Retrying, as first-time database may take a few moments to initialize.");
                 }
                 session = null;
                 cluster = null;
@@ -216,32 +216,11 @@ public class DbCreate
                 session.execute(s);
             }
 
-            //
-            //        String[] rmSchema = RmStatePersistence.mkSchemaItems();
-            //        String cql = DbUtil.mkTableCreate("ducc.rmnodes", rmSchema);
-            //        doLog(methodName, "CQL:", cql);
-            //        session.execute(cql);
-
             List<SimpleStatement>smSchema = StateServicesDb.mkSchema();
             for ( SimpleStatement s : smSchema ) {
                 doLog(methodName, "EXECUTE STATEMENT:", s.toString());
                 session.execute(s);
             }
-
-
-//            String[] smSchemaReg = StateServicesDb.mkSchemaForReg();
-//            cql = DbUtil.mkTableCreate("ducc.smreg", smSchemaReg);
-//            doLog(methodName, "CQL:", cql);
-//            session.execute(cql);
-//            cql = "CREATE INDEX IF NOT EXISTS ON ducc.smreg(active)";
-//            session.execute(cql);
-//
-//            String[] smSchemaMeta = StateServicesDb.mkSchemaForMeta();
-//            cql = DbUtil.mkTableCreate("ducc.smmeta", smSchemaMeta);
-//            doLog(methodName, "CQL:", cql);
-//            session.execute(cql);
-//            cql = "CREATE INDEX IF NOT EXISTS ON ducc.smmeta(active)";
-//            session.execute(cql);
 
             List<SimpleStatement>orSchema = HistoryManagerDb.mkSchema();
             for ( SimpleStatement s : orSchema ) {
@@ -252,7 +231,7 @@ public class DbCreate
         } catch ( Exception e ) {
             doLog(methodName, "Cannot create schema:", e);
         }
-
+        
     }
 
     /**

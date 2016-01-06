@@ -71,6 +71,22 @@ class DbUtil
         return buf.toString();
     }
 
+    static List<String> dropIndices(IDbProperty[] props, String tablename)
+    {
+        List<String> ret = new ArrayList<String>();
+        for ( IDbProperty p : props ) {
+            if ( p.isIndex() ) {
+                StringBuffer buf = new StringBuffer("DROP INDEX IF EXISTS ");
+                buf.append(tablename);
+                buf.append("_");
+                buf.append(p.pname());
+                buf.append("_idx;");
+                ret.add(buf.toString());
+            }
+        }
+        return ret;
+    }
+
     static List<String> mkIndices(IDbProperty[] props, String tablename)
     {
         List<String> ret = new ArrayList<String>();

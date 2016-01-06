@@ -11,6 +11,83 @@ def execute(CMD):
     print CMD
     return os.system(CMD)
 
+# --------------------------------------------------------------------------------
+# these next methods are used to parse a table returned from cqlsh into a
+#   - header
+#   - dictionary of values for each row
+
+# parse the header into a list of names
+def parse_header(header):
+    ret = []
+    parts = header.split('|')
+    for p in parts:
+        ret.append(p.strip())
+    return ret
+
+# parse a single line into a dictionary with key from the header and value from the line
+def parse_line(header, line):
+    parts = line.split('|')
+    ret = {}
+    for k, v in zip(header, parts):
+        ret[k] = v.strip()
+    return ret
+
+# parse a set of lines returned from cqlsh into a header and a list of dictionaries, one per line
+# header_id is a sting we use to positively identify a header line
+def parse(lines, header_id):
+    ret = []
+    header = []
+    for l in lines:
+        l = l.strip()
+        # print '[]', l
+        if ( l == '' ):
+            continue
+        if ( '---' in l ):
+            continue;
+        if ( 'rows)' in l ):
+            continue;
+        if ( header_id in l ):
+            header = parse_header(l)
+            continue
+            
+        ret.append(parse_line(header, l))
+
+    return header, ret
+
+# given a header and a collection of lines parsed by the utilities above, print a 
+# mostly un-ugly listing of the table retults
+def format(header, lines):
+    
+    # calculate max column widths
+    hlens = {}
+    for k in header:
+        hlens[k] = len(k)
+        for line in lines:
+            if ( not hlens.has_key(k) ):
+                hlens[k] = len(line[k])
+            else:
+                hlens[k] = max(len(line[k]), hlens[k])
+
+    # create a format string from the widths 
+    fmt = ''
+    for k in header:
+        fmt = fmt + ' %' + str(hlens[k]) + 's' 
+
+    # first the header
+    print fmt % tuple(header)
+
+    # now the rows
+    for line in lines:
+        l = []
+        for k in header:
+            l.append(line[k])
+        print fmt % tuple(l)
+    return
+
+
+# end of row parsing utilities
+# --------------------------------------------------------------------------------
+
 def stop_database(pidfile):
     print "Stopping the dtabase."
 

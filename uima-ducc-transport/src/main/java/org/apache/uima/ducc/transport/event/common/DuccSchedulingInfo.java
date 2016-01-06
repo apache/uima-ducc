@@ -36,7 +36,7 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	private String schedulingClass = defaultSchedulingClass;
 	private String schedulingPriority = defaultSchedulingPriority;
 	@Deprecated
-	private String memorySize = defaultMemorySize;
+	private String shareMemorySize = defaultMemorySize;
 	private String memorySizeRequested = defaultMemorySize;
 	private MemoryUnits memoryUnits = defaultMemoryUnits;
 	private long memorySizeAllocatedInBytes = 0;
@@ -146,8 +146,8 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	@Deprecated
 	public String getMemorySize() {
 		String retVal = defaultMemorySize;
-		if(memorySize != null) {
-			retVal = memorySize;
+		if(shareMemorySize != null) {
+			retVal = shareMemorySize;
 		}
 		return retVal;
 	}
@@ -461,7 +461,7 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 				+ ((schedulingPriority == null) ? 0 : schedulingPriority
 						.hashCode());
 		result = prime * result
-				+ ((memorySize == null) ? 0 : memorySize.hashCode());
+				+ ((shareMemorySize == null) ? 0 : shareMemorySize.hashCode());
 		result = prime
 				* result
 				+ ((memoryUnits == null) ? 0 : memoryUnits.hashCode());
@@ -516,10 +516,10 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 				return false;
 		} else if (!schedulingPriority.equals(other.schedulingPriority))
 			return false;
-		if (memorySize == null) {
-			if (other.memorySize != null)
+		if (shareMemorySize == null) {
+			if (other.shareMemorySize != null)
 				return false;
-		} else if (!memorySize.equals(other.memorySize))
+		} else if (!shareMemorySize.equals(other.shareMemorySize))
 			return false;
 		if (memoryUnits != other.memoryUnits)
 			return false;
