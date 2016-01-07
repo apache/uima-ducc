@@ -109,6 +109,7 @@ import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.apache.uima.ducc.ws.utils.LinuxSignals;
 import org.apache.uima.ducc.ws.utils.LinuxSignals.Signal;
+import org.apache.uima.ducc.ws.utils.UrlHelper;
 import org.apache.uima.ducc.ws.utils.alien.AlienWorkItemStateReader;
 import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 import org.apache.uima.ducc.ws.utils.alien.FileInfo;
@@ -933,7 +934,8 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 	
 	private String getFilePagerUrl(String file_name, int pages) {
-		String parms = "?"+"fname="+file_name+"&"+"pages="+pages;
+		String encoded_file_name = UrlHelper.encode(file_name);
+		String parms = "?"+"fname="+encoded_file_name+"&"+"pages="+pages;
 		String url=duccFilePager+parms;
 		return url;
 	}

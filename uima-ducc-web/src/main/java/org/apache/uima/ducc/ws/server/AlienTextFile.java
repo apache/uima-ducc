@@ -161,7 +161,7 @@ public class AlienTextFile extends AlienAbstract {
 	}
 	
 	private String getDu() throws Throwable {
-		String methodName = "getDu";
+		String location = "getDu";
 		String data = "";
 		try {
 			String[] command = buildCommandDu();
@@ -169,25 +169,25 @@ public class AlienTextFile extends AlienAbstract {
 	        trace("data size:"+data.length());
 		}
 		catch(Throwable t) {
-			duccLogger.warn(methodName, duccId, t);
+			duccLogger.warn(location, duccId, t);
 		}
         return data;
 	}
 	
 	private int convertToInt(String value, int otherwise) {
-		String methodName = "convertToInt";
+		String location = "convertToInt";
 		int retVal = otherwise;
 		try {
 			retVal = Integer.parseInt(value);
 		}
 		catch(Throwable t) {
-			duccLogger.trace(methodName, duccId, t);
+			duccLogger.trace(location, duccId, t);
 		}
 		return retVal;
 	}
 	
 	public int getByteSize() {
-		String methodName = "getByteSize";
+		String location = "getByteSize";
 		int retVal = sizeDefault;
 		try {
 			String text = getDu();
@@ -195,16 +195,16 @@ public class AlienTextFile extends AlienAbstract {
 				text = text.trim();
 				String[] tokens = text.split("\\s+");
 				if(tokens.length > 0) {
-					duccLogger.debug(methodName, duccId, tokens[0]);
+					duccLogger.debug(location, duccId, tokens[0]);
 					retVal = convertToInt(tokens[0], sizeDefault);
 				}
 				else {
-					duccLogger.debug(methodName, duccId, "empty");
+					duccLogger.debug(location, duccId, "empty");
 				}
 			}
 		}
 		catch(Throwable t) {
-			duccLogger.warn(methodName, duccId, t);
+			duccLogger.warn(location, duccId, t);
 		}
 		return retVal;
 	}
@@ -225,7 +225,7 @@ public class AlienTextFile extends AlienAbstract {
 	}
 	
 	private String getDd(int skip, int count) throws Throwable {
-		String methodName = "getDd";
+		String location = "getDd";
 		String data = "";
 		try {
 			String[] command = buildCommandDd(skip, count);
@@ -233,13 +233,13 @@ public class AlienTextFile extends AlienAbstract {
 	        trace("data size:"+data.length());
 		}
 		catch(Throwable t) {
-			duccLogger.warn(methodName, duccId, t);
+			duccLogger.warn(location, duccId, t);
 		}
 		return data;
 	}
 	
 	public String getChunk(int byteStart, int byteCount) {
-		String methodName = "getChunk";
+		String location = "getChunk";
 		String retVal = "";
 		try {
 			int skip = (int) Math.ceil(byteStart / (1.0*sizeBlockDd));
@@ -248,7 +248,7 @@ public class AlienTextFile extends AlienAbstract {
 			retVal = getDd(skip, count);
 		}
 		catch(Throwable t) {
-			duccLogger.warn(methodName, duccId, t);
+			duccLogger.warn(location, duccId, t);
 		}
 		return retVal;
 	}
