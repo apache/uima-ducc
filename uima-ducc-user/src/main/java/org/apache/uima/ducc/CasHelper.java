@@ -21,7 +21,7 @@ package org.apache.uima.ducc;
 import java.util.Iterator;
 
 import org.apache.uima.cas.CAS;
-import org.apache.uima.jcas.cas.TOP;
+import org.apache.uima.cas.FeatureStructure;
 
 public class CasHelper {
 
@@ -31,7 +31,8 @@ public class CasHelper {
 			retVal = cas.getDocumentText();
 		}
 		try {
-			Iterator<TOP> fsIter = null;
+//			Iterator<TOP> fsIter = null;
+			Iterator<FeatureStructure> fsIter = null;
 			Workitem wi = null;
 			if (cas.getJCas().getTypeSystem().getType(Workitem.class.getName()) != null) {
 				fsIter = cas.getJCas().getJFSIndexRepository().getAllIndexedFS(Workitem.type);

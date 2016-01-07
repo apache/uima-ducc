@@ -160,10 +160,12 @@ public class DuccWebServer {
         	if(ipaddress != null) {
             	ssl_connector.setHost(ipaddress);
             }
-        	SslContextFactory cf = ssl_connector.getSslContextFactory();
+        	org.eclipse.jetty.util.ssl.SslContextFactory cf = ssl_connector.getSslContextFactory();
+        	//SslContextFactory cf = ssl_connector.getSslContextFactory();
         	String keystore = DuccWebServerHelper.getDuccWebKeyStore();
         	logger.info(methodName, null, "keystore:"+keystore);
-        	cf.setKeyStore(keystore);
+        	cf.setKeyStorePath(keystore);
+        //	cf.setKeyStore(keystore);
         	cf.setKeyStorePassword(portSslPw);
         	server.setConnectors(new Connector[]{ connector0, ssl_connector });
         }

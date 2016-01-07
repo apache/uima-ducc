@@ -19,7 +19,8 @@
 package org.apache.uima.ducc.agent.processors;
 
 import org.apache.camel.Processor;
+import org.apache.uima.ducc.agent.NodeAgent;
 
 public interface NodeMetricsProcessor extends Processor {
-
+	public void setAgent(NodeAgent agent);
 }

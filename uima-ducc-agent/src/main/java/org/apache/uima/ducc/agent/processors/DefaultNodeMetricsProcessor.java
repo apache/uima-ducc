@@ -42,13 +42,18 @@ import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 
 public class DefaultNodeMetricsProcessor extends BaseProcessor implements
 		NodeMetricsProcessor {
-	private final NodeAgent agent;
+	private  NodeAgent agent;
 	
 	private ExecutorService pool = Executors.newFixedThreadPool(1);
 	
 	DuccLogger logger = DuccLogger.getLogger(this.getClass(), Agent.COMPONENT_NAME);
 	
+	/*
 	public DefaultNodeMetricsProcessor(final NodeAgent agent) throws Exception {
+		this.agent = agent;
+	}
+	*/
+	public void setAgent(NodeAgent agent ) {
 		this.agent = agent;
 	}
 	public void process(Exchange exchange) throws Exception {

@@ -204,6 +204,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     // fetch Page Size from the OS and cache it
     pageSize = getOSPageSize();
     
+    // begin publishing node metrics
+    factory.startNodeMetrics(this);
+    
     numProcessors = getNodeProcessors();
     
     logger.info("NodeAgent", null, "OS Page Size:" + pageSize);

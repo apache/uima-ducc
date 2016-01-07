@@ -26,6 +26,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.ConnectionMetaData;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.MBeanServerConnection;
@@ -35,6 +38,7 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -65,7 +69,8 @@ public class BrokerHelper {
 
 	private OperatingSystemMXBean remoteOperatingSystem;
 	private ThreadMXBean remoteThread;
-	
+	// 
+	private boolean useNewJmxQueryString = false;
 	private BrokerHelper() {
 		init();
 	}
@@ -87,6 +92,26 @@ public class BrokerHelper {
 			url = new JMXServiceURL(getJmxUrl());
 			jmxc = JMXConnectorFactory.connect(url, null);
 			mbsc = jmxc.getMBeanServerConnection();
+			key = "ducc.broker.protocol";
+			value = duccPropertiesResolver.getCachedProperty(key);
+			String brokerUrl = value.trim();
+			key = "ducc.broker.hostname";
+			value = duccPropertiesResolver.getCachedProperty(key);
+			brokerUrl += "://"+value;
+			key = "ducc.broker.port";
+			value = duccPropertiesResolver.getCachedProperty(key);
+			brokerUrl += ":"+value;
+			
+			ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
+			Connection connection = connectionFactory.createConnection(); 
+	        connection.start(); 
+	        ConnectionMetaData connectionMetaData = connection.getMetaData();
+	        int majorVersion = connectionMetaData.getProviderMajorVersion();
+	        int minorVersion = connectionMetaData.getProviderMinorVersion();
+	        duccLogger.info(location, jobid, "Broker Version:"+majorVersion+"."+minorVersion);
+	        if ( majorVersion > 5 || ( majorVersion == 5 && minorVersion >= 8 )) {
+	        	useNewJmxQueryString = true;
+	        }
 			remoteOperatingSystem = 
 	                ManagementFactory.newPlatformMXBeanProxy(
 	                    mbsc,
@@ -273,7 +298,7 @@ public class BrokerHelper {
 	
 	private boolean isBrokerInfo(ObjectName objectName) {
 		boolean retVal = false;
-		String key = "Type";
+		String key = "type";
 	    String value = objectName.getKeyProperty(key);
 	    if(value != null) {
 	    	if(value.startsWith("Broker")) {

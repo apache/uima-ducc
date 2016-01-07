@@ -71,6 +71,15 @@
             <artifactId>camel-jetty</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-jetty-common</artifactId>
+        </dependency>
+        
+        <dependency>
+			  <groupId>org.springframework</groupId>
+			  <artifactId>spring-core</artifactId>
+		</dependency>
   </dependencies>
   
 </project>

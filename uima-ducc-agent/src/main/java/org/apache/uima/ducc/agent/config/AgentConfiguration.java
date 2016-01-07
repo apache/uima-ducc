@@ -21,6 +21,8 @@ package org.apache.uima.ducc.agent.config;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
@@ -66,6 +68,9 @@ import com.thoughtworks.xstream.XStream;
     NodeMetricsConfiguration.class })
 public class AgentConfiguration {
   DuccLogger logger = new DuccLogger(this.getClass(), "Agent");
+
+  NodeAgent agent = null;
+  NodeMetricsProcessor nodeMetricsProcessor;
 
   // fetch the name of an endpoint where the JM expects incoming requests
   // @Value("#{ systemProperties['IP'] }")
@@ -137,7 +142,7 @@ public class AgentConfiguration {
   private RouteBuilder routeBuilderForNodeMetricsPost(final NodeAgent agent,
           final String targetEndpointToReceiveNodeMetricsUpdate, final int nodeMetricsPublishRate)
           throws Exception {
-    final Processor nmp = nodeMetricsProcessor(agent);
+    final Processor nmp = nodeMetricsProcessor();
     final Predicate blastFilter = new DuccBlastGuardPredicate(agent.getLogger());
     final Processor cp = new ConfirmProcessor();
     return new RouteBuilder() {
@@ -396,7 +401,8 @@ public class AgentConfiguration {
       camelContext = common.camelContext();
       camelContext.disableJMX();
 
-      NodeAgent agent = new NodeAgent(nodeIdentity(), launcher(), camelContext, this);
+//      NodeAgent agent = new NodeAgent(nodeIdentity(), launcher(), camelContext, this);
+      agent = new NodeAgent(nodeIdentity(), launcher(), camelContext, this);
       // optionally configures Camel Context for JMS. Checks the 'agentRequestEndpoint' to
       // to determine type of transport. If the the endpoint starts with "activemq:", a
       // special ActiveMQ component will be activated to enable JMS transport
@@ -424,10 +430,11 @@ public class AgentConfiguration {
     	              common.nodeInventoryEndpoint, Integer.parseInt(common.nodeInventoryPublishRate)));
       
       camelContext.addRoutes(inventoryRouteBuilder);
+/*
       metricsRouteBuilder = this.routeBuilderForNodeMetricsPost(agent, common.nodeMetricsEndpoint,
               Integer.parseInt(common.nodeMetricsPublishRate));
       camelContext.addRoutes(metricsRouteBuilder);
-      
+*/      
       
       
       logger.info("nodeAgent", null, "------- Agent Initialized - Identity Name:"
@@ -441,13 +448,30 @@ public class AgentConfiguration {
     return null;
   }
 
+  public void startNodeMetrics(NodeAgent agent) throws Exception {
+	  
+  	  nodeMetricsProcessor.setAgent(agent);
+	  metricsRouteBuilder = this.routeBuilderForNodeMetricsPost(agent, common.nodeMetricsEndpoint,
+              Integer.parseInt(common.nodeMetricsPublishRate));
+      camelContext.addRoutes(metricsRouteBuilder);
+  
+  }
+  
   @Bean
-  public NodeMetricsProcessor nodeMetricsProcessor(NodeAgent agent) throws Exception {
+  @PostConstruct
+//  public NodeMetricsProcessor nodeMetricsProcessor(NodeAgent agent) throws Exception {
+  public NodeMetricsProcessor nodeMetricsProcessor() throws Exception {
     if (Utils.isLinux()) {
-      return new LinuxNodeMetricsProcessor(agent, "/proc/meminfo", "/proc/loadavg");
+//      return new LinuxNodeMetricsProcessor(agent, "/proc/meminfo", "/proc/loadavg");
+   	  nodeMetricsProcessor = new LinuxNodeMetricsProcessor();
+	  ((LinuxNodeMetricsProcessor)nodeMetricsProcessor).initMemInfo("/proc/meminfo");
+	  ((LinuxNodeMetricsProcessor)nodeMetricsProcessor).initLoadAvg("/proc/loadavg");
+  	  //agent, "/proc/meminfo", "/proc/loadavg");
     } else {
-      return new DefaultNodeMetricsProcessor(agent);
+//        return new DefaultNodeMetricsProcessor(agent);
+    	nodeMetricsProcessor = new DefaultNodeMetricsProcessor();
     }
+    return nodeMetricsProcessor;
   }
 
   public ProcessMetricsProcessor processMetricsProcessor(NodeAgent agent, IDuccProcess process,

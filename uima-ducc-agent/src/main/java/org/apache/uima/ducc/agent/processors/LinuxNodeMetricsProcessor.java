@@ -24,7 +24,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.camel.Exchange;
 import org.apache.uima.ducc.agent.Agent;
@@ -54,14 +53,15 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 	private RandomAccessFile loadAvgFile;
 	//private Node node;
 	private int swapThreshold = 0;
-	public LinuxNodeMetricsProcessor(NodeAgent agent, String memInfoFilePath,
-			String loadAvgFilePath) throws FileNotFoundException {
+//	public LinuxNodeMetricsProcessor(NodeAgent agent, String memInfoFilePath,
+//			String loadAvgFilePath) throws FileNotFoundException {
+	public LinuxNodeMetricsProcessor() {
 		super();
-		this.agent = agent;
+//		this.agent = agent;
 		pool = Executors.newCachedThreadPool();
 		// open files and keep them open until stop() is called
-		memInfoFile = new RandomAccessFile(memInfoFilePath, "r");
-		loadAvgFile = new RandomAccessFile(loadAvgFilePath, "r");
+//		memInfoFile = new RandomAccessFile(memInfoFilePath, "r");
+//		loadAvgFile = new RandomAccessFile(loadAvgFilePath, "r");
 		//node = new DuccNode(agent.getIdentity(), null);
 		if ( System.getProperty("ducc.node.min.swap.threshold") != null ) {
 	    try {
@@ -71,6 +71,16 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 	    }
 		}
 	}
+	public void setAgent(NodeAgent agent) {
+		this.agent = agent;
+	}
+	public void initMemInfo(String memInfoFilePath) throws Exception {
+		this.memInfoFile = new RandomAccessFile(memInfoFilePath, "r");
+		
+	}
+    public void initLoadAvg(String loadAvgFilePath) throws Exception {
+    	this.loadAvgFile = new RandomAccessFile(loadAvgFilePath, "r");
+    }
 
 	public void stop() {
 		try {
