@@ -71,9 +71,18 @@
 	   <dependencies>
 		<dependency>
 			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-as</artifactId>
+			<version>${org.apache.uima.as.version}</version>
+                        <type>tar.gz</type>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+
 		<dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-transport</artifactId>
@@ -138,6 +147,14 @@
 	</dependencyManagement>
 
 	<dependencies>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-as</artifactId>
+                        <type>tar.gz</type>
+		</dependency>
+
+
 		<dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-common</artifactId>
@@ -292,7 +309,7 @@
 
             <!--  must come before the unpack -->      
 			
-            <plugin>
+            <!--plugin>
                <groupId>org.apache.uima</groupId>
                <artifactId>uima-build-helper-maven-plugin</artifactId>
                <executions>
@@ -307,13 +324,17 @@
                   </configuration>
                </execution>
                </executions> 
-            </plugin>
+            </plugin-->
 			
 			<plugin>
 			
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
+
+
+
+
 
                     <execution>
                       <!-- use the dependency:unpack goal to unpack the 
@@ -329,7 +350,7 @@
                             <artifactId>uima-as</artifactId>
                             <version>${org.apache.uima.as.version}</version>
                             <type>tar.gz</type>
-                            <classifier>bin</classifier>
+                            <!--classifier>bin</classifier-->
                             <outputDirectory>${project.build.directory}/uima-as</outputDirectory>
                           </artifactItem>
                         </artifactItems>

@@ -28,7 +28,7 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
 import org.apache.uima.analysis_engine.metadata.FixedFlow;
 import org.apache.uima.analysis_engine.metadata.FlowConstraints;
-import org.apache.uima.cas.FeatureStructure;
+import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.ducc.Workitem;
 import org.apache.uima.flow.FinalStep;
 import org.apache.uima.flow.Flow;
@@ -135,8 +135,8 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
         // Parent CAS has been to the initial CM, so see if a special flow has been requested.
         // Get an iterator only if the Workitem type is in the CAS's typesystem 
         // (avoids JCAS_TYPE_NOT_IN_CAS error)
-//        Iterator<TOP> fsIter = null;
-        Iterator<FeatureStructure> fsIter = null;
+        Iterator<TOP> fsIter = null;
+
         if (this.getJCas().getTypeSystem().getType(Workitem.class.getName()) != null) {
           fsIter = this.getJCas().getJFSIndexRepository().getAllIndexedFS(Workitem.type);
         }
