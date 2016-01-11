@@ -162,8 +162,11 @@ public class DatabaseHelper {
 		String location = "getPID";
 		Long retVal = new Long(0);
 		try {
-			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "ProcessID");
-			retVal = (Long) o;
+			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
+			String data = (String) o;
+			String[] address = data.split("@");
+			Long pid = Long.parseLong(address[0]);
+			retVal = pid;
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
