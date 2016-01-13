@@ -1603,6 +1603,143 @@
       \end{description}
       
 
+\subsection{Database Configuration Properties}
+\label{subsec:ducc.database.properties}
+
+    \begin{description}
+
+      \item[ducc.database.host] \hfill \\
+        This is the name of the host where the database is run.  It usually defaults to the
+        same host as the ducc.head.  Those knowledgable of the database can install the 
+        database elsewhere.  Use this parameter to specify that location.
+
+        To disable use of the database, set this parameter to the string {\em --disabled--}.
+        \begin{description}
+          \item[Default Value] The same as your ducc.head.
+          \item[Type] Tuning
+        \end{description} 
+
+      \item[ducc.database.jmx.port] \hfill \\
+        This is the JMX port used by the database.  Normally it need not be changed.  This
+        port is ONLY available on the host where the database runs.  To allow access from
+        other hosts, check the Cassandra documentation.  DUCC only directly supports
+        access from the configured database host.
+        \begin{description}
+          \item[Default Value] 7199
+          \item[Type] Tuning
+        \end{description} 
+
+      \item[ducc.database.mem.heap] \hfill \\
+        This is the value used to set {\em Xmx and Xms} when the database starts.  The
+        Cassandra database makes an attempt to determine the best value of this.  The
+        default is one-half of real memory, up to a maximum of 8G.  It is reccomended that
+        the default be used.  However, small installations may reduce this to as little
+        as 512M.  Note that both Xmx and Xms are set.
+        \begin{description}
+          \item[Default Value] Determined by Cassandra, up to 8G max.
+          \item[Type] Tuning
+        \end{description} 
+
+      \item[ducc.database.mem.new] \hfill \\
+        This is the default for the ``young'' generation when the JVM needs more memory.
+        In general, the default is correct.  If you're not familiar with Java's memory
+        management it is safest to not modify this.
+        \begin{description}
+          \item[Default Value] 100M
+          \item[Type] Tuning
+        \end{description} 
+
+      \item[ducc.service.persistence.impl] \hfill \\
+        This specifies the class used to implement persistence for the Service Manager's registry.  
+        The installation procedures for the database automatically update your {\em site.ducc.properties}
+        to use the correct default.
+
+        There
+        are two supported values:
+\begin{verbatim}
+org.apache.uima.ducc.common.persistence.services.StateServices
+org.apache.uima.ducc.database.StateServicesDb
+\end{verbatim}
+
+        The first value implements the service registry in the file system in the directory
+        {\tt DUCC\_HOME/state/services}.
+
+        When the database is installed, the service registry is implemented over the database.
+
+        \begin{description}
+          \item[Default Value] When the database is enabled:
+\begin{verbatim}
+   org.apache.uima.ducc.database.StateServicesDb
+\end{verbatim}
+
+            When the database is not enabled:
+\begin{verbatim}
+   org.apache.uima.ducc.common.persistence.services.StateServices
+\end{verbatim}
+          \item[Type] Private
+        \end{description} 
+
+
+      \item[ducc.job.history.impl] \hfill \\
+        This specifies the class used to implement persistence for job history and the 
+        Orchestrator checkpoint.  
+        The installation procedures for the database automatically update your {\em site.ducc.properties}
+        to use the correct default.
+
+        The two supported values are:
+\begin{verbatim}
+org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager
+org.apache.uima.ducc.database.HistoryManagerDb
+\end{verbatim}
+
+        The first value causes job history to be stroed in {\tt DUCC\_HOME/history}
+        and the Orchestrator checkpoint to be stored in {\tt DUCC\_HOME/orchestrator.ckpt}.
+
+        The second causes both history and checkpoint to be saved in the database.
+
+        \begin{description}
+          \item[Default Value] If the database is enabled:
+\begin{verbatim}
+   org.apache.uima.ducc.database.HistoryManagerDb
+\end{verbatim}
+            If the database is not enabled:
+\begin{verbatim}
+   org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager
+\end{verbatim}
+          \item[Type] Private
+        \end{description} 
+
+
+      \item[ducc.rm.persistence.impl] \hfill \\
+        This specifies the class used to implement persistence for the Resource Manager's
+        dynamic state.  
+        The installation procedures for the database automatically update your {\em site.ducc.properties}
+        to use the correct default.
+
+        The two supported values are:
+\begin{verbatim}
+org.apache.uima.ducc.database.RmStatePersistence
+org.apache.uima.ducc.common.persistence.rm.NullRmStatePersistence
+\end{verbatim}
+
+        The first value implements RM's use of the database to store its dynamic state.  The second
+        disables RM state persistence.  There is no implementation that persists RM state
+        in the filesystem.
+
+        \begin{description}
+          \item[Default Value] If the
+            database is enabled:
+\begin{verbatim}
+   org.apache.uima.ducc.database.RmStatePersistence
+\end{verbatim}
+            If the database is not enabled:
+\begin{verbatim}
+   org.apache.uima.ducc.common.persistence.rm.NullRmStatePersistence
+\end{verbatim}
+          \item[Type] Private
+        \end{description} 
+      \end{description}
+
 \section{ducc.private.properties}
 \label{sec:ducc.private.properties}
 
@@ -1615,6 +1752,22 @@
           this keystore is created at initial installation time using \hyperref[subsec:install.single-user]{ducc\_post\_install.}
           \begin{description}
             \item[Default Value] quackquack 
+            \item[Type] Local
+          \end{description}
+    \end{description}    
+        
+
+\subsection{Database Properties}
+
+    \begin{description}
+    
+        \item[db\_password] \hfill \\
+          This is the database superuser password.  It is set during {\em ducc\_post\_install} or {\em db\_create}.  Both
+          these procedures prompt for the password.  There is no default; the value must be supplied by the DUCC administrator.
+
+          NOTE: The database superuser ID is always ``ducc'', and is set during database installation.
+          \begin{description}
+            \item[Default Value] None, must be set by the administrator.
             \item[Type] Local
           \end{description}
     \end{description}    

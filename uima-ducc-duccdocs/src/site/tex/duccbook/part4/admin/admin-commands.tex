@@ -35,6 +35,8 @@
     The command \ducchome/admin/start\_ducc is used to start DUCC processes. If run with no parameters
     it takes the following actions:
     \begin{itemize}
+      \item Starts the ActiveMQ server.
+      \item Starts the database.
       \item Starts the management processes Resource Manager, Orchestrator, Process Manager,      
       Services Manager, and Web Server on the local node (where start\_ducc is executed.       
       \item Starts an agent process on every node named in the default node list. 
@@ -76,6 +78,8 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
             \item[sm]The Service Manager
             \item[ws]The Web Server
             \item[agent]Node Agents
+            \item[broker] ActiveMQ broker
+            \item[db] Database
           \end{description}
 
           \item[--nothreading] If specified, the command does not run in multi-threaded mode
@@ -138,9 +142,16 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
 \label{subsec:admin.stop-ducc}
 
     \subsubsection{{\em Description:}}
-    Stop\_ducc is used to stop DUCC processes. If run with no parameters it takes the following 
-    actions:
-    \todo Garbled by maven or docbook, update this
+    Stop\_ducc is used to stop DUCC processes. At least one parameter is required.
+    When {\em -a} is specified, the following actions are taken:
+    \begin{itemize}
+       \item Uses the ActiveMQ broker to broadcast a shutdown request to all
+        DUCC compoments, other than the ActiveMQ broker itself, and the database.
+      \item Waits a bit, for all daemons to stop.
+      \item Stops the database.
+      \item Stops the ActiveMQ broker.
+    \end{itemize}
+
 
     \subsubsection{\em Usage:}
 
@@ -202,9 +213,18 @@ start_ducc -c rm
               \item[pm] The Process Manager.                 
               \item[sm] The Service Manager.                 
               \item[ws] The Web Server.                 
+              \item[db] The database.
               \item[broker] The ActiveMQ broker (only if the broker is auto-managed).
               \item[agent\@node] Node Agent on the specified node.
               \end{description}
+
+          \item[-w, --wait {[time in seconds]}] If given, this signals the time to wait
+            after broadcasting the shutdown signal, and before stopping the ActiveMQ broker itself.
+            If not specified, the default is 60 seconds.  
+
+            NOTE: In production systems, it is generally wise to use the default of 60 seconds.  For
+            test systems a shorter wait speeds cycle time.  Be sure to use {\em check\_ducc -k} after
+            {\em stop\_ducc} if you change the wait time to insure all processes are actually stopped.
 
           \item[--nothreading] If specified, the command does not run in multi-threaded mode
             even if it is supported on the local platform.
@@ -595,3 +615,90 @@ Nodepool power
         
     \paragraph{Notes:}
     None.
+
+\subsection{db\_create}
+\label{subsec:cli.db.create}
+
+    \paragraph{Description:}
+        This command is used to initialize the database.  Normally the database is initialized
+        during {\em ducc\_post\_install} but if this is an existing DUCC installation that is 
+        being migrated from a version that does not use the database, it will be necessary to
+        initialize the database with this command.
+
+        This command performs the following actions:
+        \begin{enumerate}
+          \item Starts the database.
+          \item Disables the default database superuser.
+          \item Installs a database superuser as ``ducc'' and sets the password
+            to a password of your choice, which you are prompted for.  The password is saved
+            in DUCC\_HOME/resources.private/ducc.private.properties.
+          \item Installs the DUCC database schema.
+          \item Stops the database.
+        \end{enumerate}
+        
+
+         This command takes no parameters.  It prompts interactively for your desired
+         database superuser password.  
+
+         NOTE: The database user and password are NOT RELATED to any login ID on the system,
+         they are used and maintained by the database only.
+
+\subsection{db\_loader}
+\label{subsec:cli.db.loader}
+
+    \paragraph{Description:}
+        This command is used to copy the data from DUCC's older file-based persistence
+        into the database.  The database schema must already exist, created either
+        with {\em ducc\_post\_install} or with {\em db\_create}.
+
+        This command performs the following actions:
+        \begin{enumerate}
+          \item Starts the database.
+          \item Drops some of the indexes in the database.
+          \item Loads the Orchestrator checkpoint file from {\em DUCC\_HOME/state/orchestrator.chkpt}.
+          \item Loads all job history from {\em DUCC\_HOME/history/jobs}.
+          \item Loads all reservation history from {\em DUCC\_HOME/history/reservations}.
+          \item Loads all service instance and AP history from {\em DUCC\_HOME/history/services}.
+          \item Loads the service registry from {\em DUCC\_HONE/state/services}.
+          \item Loads the service registry histroy from {\em DUCC\_HOME/history/service-registry}.  
+          \item Reloads the Orchestratory checkpoint, as a spot-check of the loader's instrumentation (to insure
+            load times stay reasonable.)
+          \item Re-installs the DUCC database schema.
+          \item Stops the database.
+          \item Optionally renames the file-based state so if you rerun the command, the data does not get reloaded.
+        \end{enumerate}
+        
+        When the command exits, DUCC should be ready to run with all its state in the database.
+
+        This command takes two parameters, a pointer to the DUCC\_HOME you want to load from, and
+        a flag to disable the rename of the file-based state.
+
+    \paragraph{Usage:}
+    \begin{description}
+    \item[db\_loader -i {\em some-ducc-home} {[--no-archive]}]
+      Load the database from the specified DUCC\_HOME, and optionally do not archive the original files
+      by renaming them.  
+    \end{description}
+
+    \paragraph{Options:}
+    \begin{description}
+        \item[$-i$ {\em some-ducc-home}]          en 
+          This specifies the DUCC\_HOME you wish to load.  Most of the time it is the DUCC\_HOME you
+          are running within, but it can be some other DUCC\_HOME if you have multiple installations and
+          want other history and state loaded.
+        \item[$--no-archive$] 
+          If specified, the original files are not renamed.  Note that only the directories in {\em history}
+          and {\em state} are renamed.  To restore these, simply rename them back without the {\em archive}
+          suffix.
+     \end{description}
+        
+    \paragraph{Example:}
+\begin{verbatim}
+db_loader -i /home/ducc/ducc_runtime
+db_loader -i /home/ducc.old/ducc_runtime --no-archive
+\end{verbatim}
+
+    \paragraph{Notes:}
+    The console shows progress of the loader.  Full details of the load are written to a log {\em db-loader-log}
+    in the usual DUCC log directory, for reference and potential problem determination if something goes wrong.
+    
