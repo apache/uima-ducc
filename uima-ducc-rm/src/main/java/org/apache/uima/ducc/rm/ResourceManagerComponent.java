@@ -121,7 +121,8 @@ public class ResourceManagerComponent
                          .process(new RmAdminEventProcessor(delegate));
                 }
             });
-        
+
+	getContext().startRoute("RMAdminRoute");
         if (logger != null) {
             logger.info("startRMAdminChannel", null, "Admin Channel Activated on endpoint:" + endpoint);
         }
@@ -203,7 +204,7 @@ public class ResourceManagerComponent
     	String methodName = "start";
         converter = new JobManagerConverter(scheduler, stabilityManager);
 
-        super.start(service, args);
+	super.start(service, args);
         DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.ResourceManager, super.getProcessJmxUrl());
 
         initStability         = SystemPropertyResolver.getIntProperty("ducc.rm.init.stability", DEFAULT_INIT_STABILITY_COUNT);
@@ -222,7 +223,7 @@ public class ResourceManagerComponent
         } else {
             startRmAdminChannel(adminEndpoint, this);
         }
-        
+
         scheduler.init();
         
         startStabilityTimer();
