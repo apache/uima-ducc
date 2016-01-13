@@ -338,7 +338,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			double min = Math.round(perWorkItemStatistics.getMin()/100.0)/10.0;
 			double avg = Math.round(perWorkItemStatistics.getMean()/100.0)/10.0;
 			double dev = Math.round(perWorkItemStatistics.getStandardDeviation()/100.0)/10.0;
-			done = "<span title=\""+"seconds-per-work-item "+"Max:"+max+" "+"Min:"+min+" "+"Avg:"+avg+" "+"Dev:"+dev+"\""+">"+done+"</span>";
+			done = "<span title=\""+"seconds-per-work-item "+"Max:"+max+" "+"Min:"+min+" "+"Avg:"+avg+" "+"StdDev:"+dev+"\""+">"+done+"</span>";
 		}
 		sb.append(done);
 		sb.append("</td>");
