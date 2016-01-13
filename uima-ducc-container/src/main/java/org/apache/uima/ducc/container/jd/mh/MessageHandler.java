@@ -165,6 +165,7 @@ public class MessageHandler implements IMessageHandler {
 			oi.setWorkItemFinishedMillisMin(wis.getMillisMin());
 			oi.setWorkItemFinishedMillisMax(wis.getMillisMax());
 			oi.setWorkItemFinishedMillisAvg(wis.getMillisAvg());
+			oi.setWorkItemFinishedMillisStdDev(wis.getMillisStdDev());
 			oi.setWorkItemRunningMillisMin(rwis.getMillisMin());
 			oi.setWorkItemRunningMillisMax(rwis.getMillisMax());
 			oi.setWorkItemTodMostRecentStart(rwis.getTodMostRecentStart());

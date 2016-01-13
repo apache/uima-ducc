@@ -95,6 +95,7 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 		mb.append(Standardize.Label.avg.get()+wis.getMillisAvg());
 		mb.append(Standardize.Label.max.get()+wis.getMillisMax());
 		mb.append(Standardize.Label.min.get()+wis.getMillisMin());
+		mb.append(Standardize.Label.stddev.get()+wis.getMillisStdDev());
 		logger.debug(location, ILogger.null_id, mb.toString());
 	}
 
