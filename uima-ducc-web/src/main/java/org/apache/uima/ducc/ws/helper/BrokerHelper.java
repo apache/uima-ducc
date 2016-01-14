@@ -15,180 +15,448 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-*/
+ */
 package org.apache.uima.ducc.ws.helper;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.ThreadMXBean;
-import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.ConnectionMetaData;
 import javax.management.Attribute;
 import javax.management.AttributeList;
+import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
+import javax.management.ReflectionException;
 import javax.management.openmbean.CompositeData;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class BrokerHelper {
-	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(BrokerHelper.class.getName());
+
+	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(BrokerHelper.class.getName());
 	private static DuccId jobid = null;
 
-	private static BrokerHelper instance = new BrokerHelper();
-	
 	public static BrokerHelper getInstance() {
-		return instance;
+		return new BrokerHelper();
 	}
-	
-	public enum BrokerAttribute { BrokerVersion, MemoryPercentUsage, Uptime };
-	public enum FrameworkAttribute { ConsumerCount, QueueSize, MaxEnqueueTime, AverageEnqueueTime, MemoryPercentUsage };
 
 	private String host = "?";
 	private int port = 1100;
-	
-	private String jmxUrl = null;
-	
-	private JMXServiceURL url;
+
+	private JMXServiceURL jmxServiceUrl = null;;
 	private JMXConnector jmxc;
 	private MBeanServerConnection mbsc;
 
 	private OperatingSystemMXBean remoteOperatingSystem;
 	private ThreadMXBean remoteThread;
-	// 
-	private boolean useNewJmxQueryString = false;
+
+	private int threadsLive = 0;
+	private int threadsPeak = 0;
+	private double systemLoadAverage = 0;
+	private long memoryUsed = 0;
+	private long memoryMax = 0;
+	private String brokerVersion = "?";
+	private String brokerUptime = "?";
+	
+	private long pid = 0;
+	private long startTime = 0;
+	
+	private Map<String,Map<String,String>> entityAttributes = null;
+	
+	public enum JmxAttribute { destinationName, destinationType };
+	
+	public enum FrameworkAttribute { ConsumerCount, QueueSize, MaxEnqueueTime, AverageEnqueueTime, MemoryPercentUsage };
+	
+	private enum BrokerAttribute { BrokerVersion, Uptime };
+	
+	private String[] topicAttributeNames = {
+			FrameworkAttribute.ConsumerCount.name(),
+			FrameworkAttribute.QueueSize.name(),
+			FrameworkAttribute.MaxEnqueueTime.name(),
+			FrameworkAttribute.AverageEnqueueTime.name(),
+			FrameworkAttribute.MemoryPercentUsage.name(),
+	};
+	
+	private String[] brokerAttributeNames = {
+			BrokerAttribute.BrokerVersion.name(),
+			BrokerAttribute.Uptime.name(),
+	};
+	
 	private BrokerHelper() {
+		initProperties();
 		init();
+	}
+
+	private BrokerHelper(String host, String port) {
+		setHost(host);
+		setPort(port);
+		init();
+	}
+	
+	private void initProperties() {
+		DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
+		String key;
+		String value;
+		//
+		key = "ducc.broker.hostname";
+		value = duccPropertiesResolver.getCachedProperty(key);
+		setHost(value);
+		//
+		key = "ducc.broker.jmx.port";
+		value = duccPropertiesResolver.getCachedProperty(key);
+		setPort(value);
 	}
 	
 	private void init() {
 		String location = "init";
 		try {
-			DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
-			String key;
-			String value;
-			key = "ducc.broker.hostname";
-			value = duccPropertiesResolver.getCachedProperty(key);
-			setHost(value);
-			key = "ducc.broker.jmx.port";
-			value = duccPropertiesResolver.getCachedProperty(key);
-			setPort(value);
-			value = "service:jmx:rmi:///jndi/rmi://"+getHost()+":"+getPort()+"/jmxrmi";
-			setJmxUrl(value);
-			url = new JMXServiceURL(getJmxUrl());
-			jmxc = JMXConnectorFactory.connect(url, null);
-			mbsc = jmxc.getMBeanServerConnection();
-			key = "ducc.broker.protocol";
-			value = duccPropertiesResolver.getCachedProperty(key);
-			String brokerUrl = value.trim();
-			key = "ducc.broker.hostname";
-			value = duccPropertiesResolver.getCachedProperty(key);
-			brokerUrl += "://"+value;
-			key = "ducc.broker.port";
-			value = duccPropertiesResolver.getCachedProperty(key);
-			brokerUrl += ":"+value;
-			
-			ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
-			Connection connection = connectionFactory.createConnection(); 
-	        connection.start(); 
-	        ConnectionMetaData connectionMetaData = connection.getMetaData();
-	        int majorVersion = connectionMetaData.getProviderMajorVersion();
-	        int minorVersion = connectionMetaData.getProviderMinorVersion();
-	        duccLogger.info(location, jobid, "Broker Version:"+majorVersion+"."+minorVersion);
-	        if ( majorVersion > 5 || ( majorVersion == 5 && minorVersion >= 8 )) {
-	        	useNewJmxQueryString = true;
-	        }
-			remoteOperatingSystem = 
-	                ManagementFactory.newPlatformMXBeanProxy(
-	                    mbsc,
-	                    ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME,
-	                    OperatingSystemMXBean.class);
-			remoteThread = 
-	                ManagementFactory.newPlatformMXBeanProxy(
-	                    mbsc,
-	                    ManagementFactory.THREAD_MXBEAN_NAME,
-	                    ThreadMXBean.class);
-		}
-		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
+			connect();
+			populate();
+			disconnect();
+		} 
+		catch (Exception e) {
+			logger.error(location, jobid, e);
 		}
 	}
+	
+	private void populateRemoteOperatingSystem() {
+		String location = "populateRemoteOperatingSystem";
+		try {
+			remoteOperatingSystem = ManagementFactory.newPlatformMXBeanProxy(
+				mbsc,
+				ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME,
+				OperatingSystemMXBean.class);
+		} 
+		catch (Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
+	private void populateRemoteThread() {
+		String location = "populateRemoteThread";
+		try {
+			remoteThread = ManagementFactory.newPlatformMXBeanProxy(
+				mbsc,
+				ManagementFactory.THREAD_MXBEAN_NAME,
+				ThreadMXBean.class);
+		} 
+		catch (Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
+	private void populateOperatingSystem() {
+		String location = "populateOperatingSystem";
+		try {
+			systemLoadAverage = remoteOperatingSystem.getSystemLoadAverage();
+		} 
+		catch (Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
+	private void populateThreads() {
+		String location = "populateThreads";
+		try {
+			threadsLive = remoteThread.getThreadCount();
+			threadsPeak = remoteThread.getPeakThreadCount();
+		} 
+		catch (Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
+	private void populateMemory() {
+		String location = "populateMemory";
+		try {
+			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Memory"), "HeapMemoryUsage");
+			CompositeData cd = (CompositeData) o;
+			memoryUsed = (Long) cd.get("used");
+			memoryMax = (Long) cd.get("max");
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
+	private void populateRuntime() {
+		String location = "populateRuntime";
+		try {
+			Object o;
+			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
+			String data = (String) o;
+			String[] address = data.split("@");
+			pid = Long.parseLong(address[0]);
+			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "StartTime");
+			startTime = (Long) o;
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
+	private void populateAttributes() {
+		String location = "populateAttributes";
+		try {
+			entityAttributes = search();
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
+	private void populate() {
+		populateRemoteOperatingSystem();
+		populateRemoteThread();
+		//
+		populateOperatingSystem();
+		populateThreads();
+		populateMemory();
+		populateRuntime();
+		populateAttributes();
+	}
+	
+	//
+	
+	private boolean match(String s0, String s1) {
+		boolean retVal = false;
+		if(s0 != null) {
+			if(s1 != null) {
+				retVal = s0.equals(s1);
+			}
+		}
+		return retVal;
+	}
+	
+	private boolean start(String s0, String s1) {
+		boolean retVal = false;
+		if(s0 != null) {
+			if(s1 != null) {
+				retVal = s0.startsWith(s1);
+			}
+		}
+		return retVal;
+	}
+	
+	private boolean isEndPoint(Hashtable<String, String> plist) {
+		boolean retVal = true;
+		if(plist != null) {
+			String text = plist.get("endpoint");
+			if(text == null) {
+				retVal = false;
+			}
+		}
+		return retVal;
+	}
+	
+	private boolean isBroker(Hashtable<String, String> plist) {
+		boolean retVal = false;
+		if(plist != null) {
+			String text = plist.get("type");
+			retVal = match("Broker",text);
+		}
+		return retVal;
+	}
+	
+	private boolean isQueue(Hashtable<String, String> plist) {
+		boolean retVal = false;
+		if(plist != null) {
+			String text = plist.get(JmxAttribute.destinationType.name());
+			retVal = match("Queue",text);
+		}
+		return retVal;
+	}
+	
+	private boolean isTopic(Hashtable<String, String> plist) {
+		boolean retVal = false;
+		if(plist != null) {
+			if (!isEndPoint(plist)) {
+				String text = plist.get(JmxAttribute.destinationType.name());
+				retVal = match("Topic",text);
+			}
+		}
+		return retVal;
+	}
+	
+	private boolean isEligible(Hashtable<String, String> plist) {
+		boolean retVal = isBroker(plist) && (isTopic(plist) || isQueue(plist));
+		return retVal;
+	}
+	
+	private void conditionalAdd(Map<String,Map<String,String>> map, ObjectName objectName) throws InstanceNotFoundException, ReflectionException, IOException {
+		String location = "conditionalAdd";
+		if(map != null) {
+			if(objectName != null) {
+				Hashtable<String, String> plist = objectName.getKeyPropertyList();
+				if(isEligible(plist)) {
+					String name = plist.get(JmxAttribute.destinationName.name());
+					String prefix = "ducc.";
+					if(start(name,prefix)) {
+						Map<String,String> attributes = new TreeMap<String,String>();
+						AttributeList  attributeList = mbsc.getAttributes(objectName, topicAttributeNames);
+						for(Object object : attributeList) {
+						   	Attribute attribute = (Attribute) object;
+						   	String attrName = attribute.getName();
+							String attrValue = ""+attribute.getValue();
+							attributes.put(attrName, attrValue);
+							logger.trace(location, jobid, attrName+"="+attrValue);
+					   	}
+						String key = JmxAttribute.destinationType.name();
+						String value = plist.get(key);
+						attributes.put(key, value);
+						map.put(name, attributes);
+					}
+				}
+				else {
+					logger.trace(location, jobid, "skip: "+objectName);
+				}		
+			}
+		}
+	}
+	
+	private Map<String,Map<String,String>> search() throws IOException, InstanceNotFoundException, ReflectionException {
+		Map<String,Map<String,String>> map = new TreeMap<String,Map<String,String>>();
+		Set<ObjectName> objectNames = new TreeSet<ObjectName>(mbsc.queryNames(null, null));
+		for (ObjectName objectName : objectNames) {
+			conditionalAdd(map,objectName);
+			brokerAdd(objectName);
+		}
+		return map;
+	}
+	
+	private void brokerAdd(ObjectName objectName) throws InstanceNotFoundException, ReflectionException, IOException  {
+		if(objectName != null) {
+			Hashtable<String, String> plist = objectName.getKeyPropertyList();
+			if(plist != null) {
+				String s0 = plist.get("type");
+				String s1 = "Broker";
+				if(match(s0,s1)) {
+					AttributeList  attributeList = mbsc.getAttributes(objectName, brokerAttributeNames);
+					for(Object object : attributeList) {
+						Attribute attribute = (Attribute) object;
+					   	String attrName = attribute.getName();
+						String attrValue = ""+attribute.getValue();
+						if(attrName.equals(BrokerAttribute.BrokerVersion.name())) {
+							brokerVersion = attrValue;
+						}
+						else if(attrName.equals(BrokerAttribute.Uptime.name())) {
+							brokerUptime = attrValue;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	//
 	
 	private void setHost(String value) {
 		host = value;
 	}
-	
+
 	public String getHost() {
 		return host;
 	}
-	
+
 	private void setPort(String value) {
 		String location = "setPort";
 		try {
 			port = Integer.parseInt(value);
-		}
-		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
+		} 
+		catch (Exception e) {
+			logger.error(location, jobid, e);
 		}
 	}
-	
+
 	public int getPort() {
 		return port;
 	}
-	
-	private void setJmxUrl(String value) {
-		jmxUrl = value;
-	}
-	
+
 	public String getJmxUrl() {
-		return jmxUrl;
+		return "service:jmx:rmi:///jndi/rmi://" + host + ":" + port + "/jmxrmi";
 	}
-	
-	// Memory Info //
-	
-	public Long getMemoryUsed() {
-		String location = "getMemoryUsed";
-		Long retVal = new Long(0);
+
+	private void connect() throws IOException {
+		jmxServiceUrl = new JMXServiceURL(getJmxUrl());
+		jmxc = JMXConnectorFactory.connect(jmxServiceUrl, null);
+		mbsc = jmxc.getMBeanServerConnection();
+	}
+
+	private void disconnect() {
+		String location = "disconnect";
 		try {
-			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Memory"), "HeapMemoryUsage");
-			CompositeData cd = (CompositeData) o;
-			retVal = (Long) cd.get("used");
+			jmxc.close();
 		}
 		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
+			logger.error(location, jobid, e);
 		}
-		return retVal;
+	}
+	
+	// Operating System Info //
+
+	public double getSystemLoadAverage() {
+		return systemLoadAverage;
+	}
+	
+	// Threads Info //
+	
+	public int getThreadsLive() {
+		return threadsLive;
+	}
+	
+	public int getThreadsPeak() {
+		return threadsPeak;
+	}
+	
+	// JVM
+	
+	public Long getMemoryUsed() {
+		return memoryUsed;
 	}
 	
 	public Long getMemoryMax() {
-		String location = "getMemoryMax";
-		Long retVal = new Long(0);
-		try {
-			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Memory"), "HeapMemoryUsage");
-			CompositeData cd = (CompositeData) o;
-			retVal = (Long) cd.get("max");
-		}
-		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
-		}
-		return retVal;
+		return memoryMax;
+	}
+	
+	// Broker
+	
+	public String getBrokerVersion() {
+		return brokerVersion;
+	}
+	
+	public String getBrokerUptime() {
+		return brokerUptime;
+	}
+	
+	// Topics & Queues
+	
+	public Map<String,Map<String,String>> getEntityAttributes() {
+		return entityAttributes;
 	}
 	
 	// Runtime Info //
+	
+	public long getStartTime() {
+		return startTime;
+	}
+	
+	public long getPID() {
+		return pid;
+	}
 	
 	public boolean isAlive() {
 		boolean retVal = false;
@@ -198,192 +466,51 @@ public class BrokerHelper {
 		return retVal;
 	}
 	
-	public Long getStartTime() {
-		String location = "getStartTime";
-		Long retVal = new Long(0);
-		try {
-			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "StartTime");
-			retVal = (Long) o;
-		}
-		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
-		}
-		return retVal;
-	}
+	// Command Line
 	
-	public Long getPID() {
-		String location = "getPID";
-		Long retVal = new Long(0);
-		try {
-			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
-			String data = (String) o;
-			String[] address = data.split("@");
-			Long pid = Long.parseLong(address[0]);
-			retVal = pid;
-		}
-		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
-		}
-		return retVal;
-	}
-	
-	// Threads Info //
-	
-	public int getThreadsLive() {
-		String location = "getThreadsLive";
-		int retVal = 0;
-		try {
-			retVal = remoteThread.getThreadCount();
-		}
-		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
-		}
-		return retVal;
-	}
-	
-	public int getThreadsPeak() {
-		String location = "getThreadsPeak";
-		int retVal = 0;
-		try {
-			retVal = remoteThread.getPeakThreadCount();
-		}
-		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
-		}
-		return retVal;
-	}
-	
-	// Operating System Info //
-	
-	public double getSystemLoadAverage() {
-		String location = "getSystemLoadAverage";
-		double retVal = 0;
-		try {
-			retVal = remoteOperatingSystem.getSystemLoadAverage();
-		}
-		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
-		}
-		return retVal;
-	}
-	
-	/////
-	
-	private boolean isFrameworkEntity(ObjectName objectName) {
-		String location = "isFrameworkEntity";
-		boolean retVal = false;
-		String key = "Destination";
-	    String value = objectName.getKeyProperty(key);
-	    if(value != null) {
-	    	if(value.startsWith("ducc.")) {
-	    		retVal = true;
-	    		duccLogger.debug(location, jobid, key+"="+value);
-	      	}
-	    }
-		return retVal;
-	}
-	
-	private String getName(ObjectName objectName) {
-		String retVal = "";
-		String key = "Destination";
-	    String value = objectName.getKeyProperty(key);
-	    retVal = value;
-		return retVal;
-	}
-	
-	private String getType(ObjectName objectName) {
-		String retVal = "";
-		String key = "Type";
-	    String value = objectName.getKeyProperty(key);
-	    retVal = value;
-		return retVal;
-	}
-	
-	private boolean isBrokerInfo(ObjectName objectName) {
-		boolean retVal = false;
-		String key = "type";
-	    String value = objectName.getKeyProperty(key);
-	    if(value != null) {
-	    	if(value.startsWith("Broker")) {
-	    		retVal = true;
-	       	}
-	    }
-		return retVal;
-	}
-	
-	public String getAttribute(BrokerAttribute qa) {
-		String location = "getAttribute";
-		String retVal = "";
-		try {
-			Set<ObjectName> objectNames = new TreeSet<ObjectName>(mbsc.queryNames(null, null));
-			for (ObjectName objectName : objectNames) {
-				if(isBrokerInfo(objectName)) {
-					String[] attrNames = { qa.name() };
-					AttributeList  attributeList = mbsc.getAttributes(objectName, attrNames);
-				    for(Object object : attributeList) {
-				    	Attribute attribute = (Attribute) object;
-						retVal = ""+attribute.getValue();
-				   	}
-				    break;
-				}
-			}
-		}
-		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
-		}
-		return retVal;
-	}
-	
-	public TreeMap<String,String> getAttributes(String name, String[] attrNames) {
-		String location = "getAttributes";
-		TreeMap<String,String> retVal = new TreeMap<String,String>();
-		try {
-			Set<ObjectName> objectNames = new TreeSet<ObjectName>(mbsc.queryNames(null, null));
-			for (ObjectName objectName : objectNames) {
-				String topicName = getName(objectName);
-				if(topicName != null) {
-					if(topicName.equals(name)) {
-						AttributeList  attributeList = mbsc.getAttributes(objectName, attrNames);
-					    for(Object object : attributeList) {
-					    	Attribute attribute = (Attribute) object;
-					    	String attrName = attribute.getName();
-							String attrValue = ""+attribute.getValue();
-							retVal.put(attrName, attrValue);
-							duccLogger.debug(location, jobid, attrName+"="+attrValue);
-					   	}
-					    break;
+	private static String parse(String[] args, String key) {
+		String retVal = null;
+		if(args != null) {
+			for(String arg:args) {
+				String[] pair = arg.trim().split("=");
+				if(pair.length == 2) {
+					if(pair[0].equals(key)) {
+						retVal = pair[1];
 					}
 				}
 			}
 		}
-		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
-		}
 		return retVal;
 	}
-
-	public ArrayList<EntityInfo> getFrameworkEntities() {
-		String location = "getFrameworkTopicNames";
-		ArrayList<String> list = new ArrayList<String>();
-		ArrayList<EntityInfo> retVal = new ArrayList<EntityInfo>();
-		try {
-			Set<ObjectName> objectNames = new TreeSet<ObjectName>(mbsc.queryNames(null, null));
-			for (ObjectName objectName : objectNames) {
-			    if(isFrameworkEntity(objectName)) {
-			    	String name = getName(objectName);
-			    	String type = getType(objectName);
-			    	EntityInfo entityInfo = new EntityInfo(name,type);
-			    	String key = entityInfo.getKey();
-			    	if(!list.contains(key)) {
-			    		retVal.add(entityInfo);
-			    	}
-			    }
+	
+	public static void main(String[] args) {
+		String host = parse(args, "host");
+		if(host == null) {
+			System.out.println("host=?");
+			return;
+		}
+		String port = parse(args, "port");
+		if(port == null) {
+			System.out.println("port=?");
+			return;
+		}
+		BrokerHelper bh = new BrokerHelper(host,port);
+		System.out.println("host="+bh.getHost());
+		System.out.println("port="+bh.getPort());
+		System.out.println("BrokerVersion="+bh.getBrokerVersion());
+		System.out.println("BrokerUptime="+bh.getBrokerUptime());
+		System.out.println("MemoryUsed(MB)="+bh.getMemoryUsed());
+		System.out.println("MemoryMax(MB)="+bh.getMemoryMax());
+		System.out.println("ThreadsLive="+bh.getThreadsLive());
+		System.out.println("ThreadsPeak="+bh.getThreadsPeak());
+		System.out.println("SystemLoadAverage="+bh.getSystemLoadAverage());
+		Map<String, Map<String, String>> map = bh.getEntityAttributes();
+		for(Entry<String, Map<String, String>> entry : map.entrySet()) {
+			System.out.println(entry.getKey()+":");
+			Map<String, String> attributes = entry.getValue();
+			for(Entry<String, String> attribute : attributes.entrySet()) {
+				System.out.println(attribute.getKey()+"="+attribute.getValue());
 			}
 		}
-		catch(Exception e) {
-			duccLogger.error(location, jobid, e);
-		}
-		return retVal;
 	}
-
 }

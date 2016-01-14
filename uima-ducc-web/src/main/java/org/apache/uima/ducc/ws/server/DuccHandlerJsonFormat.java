@@ -79,8 +79,8 @@ import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
 import org.apache.uima.ducc.ws.helper.BrokerHelper.FrameworkAttribute;
+import org.apache.uima.ducc.ws.helper.BrokerHelper.JmxAttribute;
 import org.apache.uima.ducc.ws.helper.DatabaseHelper;
-import org.apache.uima.ducc.ws.helper.EntityInfo;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
@@ -1515,8 +1515,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	
 	private static DecimalFormat formatter3 = new DecimalFormat("##0.000");
 	
-	private static String Topic = "Topic";
-	
 	private void handleServletJsonFormatBrokerAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws Exception
 	{
@@ -1529,29 +1527,21 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 
 		BrokerHelper brokerHelper = BrokerHelper.getInstance();
 
-		ArrayList<EntityInfo> entityInfoList = brokerHelper.getFrameworkEntities();
-		
-		String[] attrNames = { 
-				FrameworkAttribute.ConsumerCount.name(), 
-				FrameworkAttribute.QueueSize.name(),
-				FrameworkAttribute.MaxEnqueueTime.name(),  
-				FrameworkAttribute.AverageEnqueueTime.name(),
-				FrameworkAttribute.MemoryPercentUsage.name(),
-				};
-		
 		JsonArray topics = new JsonArray();
 		JsonArray queues = new JsonArray();
+
+		Map<String, Map<String, String>> topicAttributes = brokerHelper.getEntityAttributes();
 		
-		if(entityInfoList.size() > 0) {
-			for(EntityInfo entityInfo : entityInfoList) {
-				String name = entityInfo.getName();
-				String type = entityInfo.getType();
-				TreeMap<String,String> map = brokerHelper.getAttributes(name, attrNames);
-				String attrValue = "";
+		if(topics.size() > 0) {
+			for(Entry<String, Map<String, String>> entry : topicAttributes.entrySet()) {
+				String topic = entry.getKey();
+				String attrValue;
+				Map<String, String> map = entry.getValue();
 				row = new JsonArray();
 				// Name
-				row.add(new JsonPrimitive(name));
+				row.add(new JsonPrimitive(topic));
 				// Type
+				String type = map.get(JmxAttribute.destinationType.name());
 				row.add(new JsonPrimitive(type));
 				// ConsumerCount
 				attrValue = map.get(FrameworkAttribute.ConsumerCount.name());
@@ -1576,7 +1566,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				attrValue = map.get(FrameworkAttribute.MemoryPercentUsage.name());
 				row.add(new JsonPrimitive(attrValue));
 				// Row
-				if(type.equals(Topic)) {
+				if(type.equals(map.get(FrameworkAttribute.QueueSize.name()))) {
 					topics.add(row);
 				}
 				else {
@@ -1584,7 +1574,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				}
 			}
 			data.addAll(topics);
-			data.addAll(queues);
 		}
 		
 		jsonResponse.add("aaData", data);

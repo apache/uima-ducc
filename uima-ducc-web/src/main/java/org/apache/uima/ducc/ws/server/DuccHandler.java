@@ -95,7 +95,6 @@ import org.apache.uima.ducc.ws.MachineSummaryInfo;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 import org.apache.uima.ducc.ws.authentication.DuccAuthenticator;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
-import org.apache.uima.ducc.ws.helper.BrokerHelper.BrokerAttribute;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
@@ -2979,8 +2978,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			threadsPeak = brokerHelper.getThreadsPeak();
 			memoryMax = brokerHelper.getMemoryMax();
 			memoryUsed = brokerHelper.getMemoryUsed();
-			uptime = brokerHelper.getAttribute(BrokerAttribute.Uptime);
-			brokerVersion = brokerHelper.getAttribute(BrokerAttribute.BrokerVersion);
+			uptime = brokerHelper.getBrokerUptime();
+			brokerVersion = brokerHelper.getBrokerVersion();
 			brokerPort = ""+brokerHelper.getPort();
 			brokerHost = brokerHelper.getHost();
 		}

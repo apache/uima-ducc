@@ -74,8 +74,8 @@ import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
 import org.apache.uima.ducc.ws.helper.BrokerHelper.FrameworkAttribute;
+import org.apache.uima.ducc.ws.helper.BrokerHelper.JmxAttribute;
 import org.apache.uima.ducc.ws.helper.DatabaseHelper;
-import org.apache.uima.ducc.ws.helper.EntityInfo;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
@@ -1842,8 +1842,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	
 	private static DecimalFormat formatter3 = new DecimalFormat("##0.000");
 	
-	private static String Topic = "Topic";
-	
 	private void handleServletClassicSystemBroker(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1852,33 +1850,25 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 
 		BrokerHelper brokerHelper = BrokerHelper.getInstance();
-
-		ArrayList<EntityInfo> entityInfoList = brokerHelper.getFrameworkEntities();
-		
-		String[] attrNames = { 
-				FrameworkAttribute.ConsumerCount.name(), 
-				FrameworkAttribute.QueueSize.name(), 
-				FrameworkAttribute.MaxEnqueueTime.name(),  
-				FrameworkAttribute.AverageEnqueueTime.name(),
-				FrameworkAttribute.MemoryPercentUsage.name(),
-				};
 		
 		StringBuffer topics = new StringBuffer();
 		StringBuffer queues = new StringBuffer();
 		
-		if(entityInfoList.size() > 0) {
-			for(EntityInfo entityInfo : entityInfoList) {
-				String name = entityInfo.getName();
-				String type = entityInfo.getType();
-				TreeMap<String,String> map = brokerHelper.getAttributes(name, attrNames);
-				String attrValue = "";
+		Map<String, Map<String, String>> topicAttributes = brokerHelper.getEntityAttributes();
+		
+		if(topicAttributes.size() > 0) {
+			for(Entry<String, Map<String, String>> entry : topicAttributes.entrySet()) {
+				String topic = entry.getKey();
+				String attrValue;
+				Map<String, String> map = entry.getValue();
 				StringBuffer row = new StringBuffer();
 				row.append(messages.fetch("<tr>"));
 				// name
 				row.append(messages.fetch("<td style=\"font-family: monospace;\" align=\"left\">"));
-				row.append(messages.fetch(name));
+				row.append(messages.fetch(topic));
 				row.append(messages.fetch("</td>"));
 				// type
+				String type = map.get(JmxAttribute.destinationType.name());
 				row.append(messages.fetch("<td style=\"font-family: monospace;\" align=\"left\">"));
 				row.append(messages.fetch(type));
 				row.append(messages.fetch("</td>"));
@@ -1916,7 +1906,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append(messages.fetch("</td>"));
 				//
 				row.append(messages.fetch("</tr>"));
-				if(type.equals(Topic)) {
+				if(type.equals(JmxAttribute.destinationType.name())) {
 					topics.append(row);
 				}
 				else {
