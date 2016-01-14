@@ -106,7 +106,8 @@ public class TestClassLoading extends TestBase {
 			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
 			MetaCas mc = pjdcr.getMetaCas();
 			String serializedCAS = mc.getSerializedCas();
-			String serializedException = null;
+			Exception e = new Exception("test");
+			String serializedException = e.toString();
 			String className = "org.apache.uima.ducc.user.jd.test.helper.TestJdContainerErrorHandler";
 			System.setProperty(FlagsHelper.Name.UserErrorHandlerClassname.pname(), className);
 			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler();

@@ -29,6 +29,7 @@ import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.common.classloader.ContextSwitch;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
@@ -66,7 +67,7 @@ public class ProxyUserErrorStringify {
 			Object[] args = { 
 				userException,
 				};
-			Object printableString = method.invoke(instance, args);
+			Object printableString = ContextSwitch.call(urlClassLoader, method, instance, args);
 			retVal = (String)printableString;
 		}
 		catch(Exception e) {

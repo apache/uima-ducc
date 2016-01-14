@@ -26,6 +26,7 @@ import java.net.URLClassLoader;
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.common.classloader.ContextSwitch;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.common.classloader.ProxyLogger;
@@ -95,7 +96,7 @@ public class ProxyJobDriverCollectionReader {
 	public int getTotal() throws ProxyException {
 		int retVal = -1;
 		try {
-			retVal = (Integer)method_getTotal.invoke(instance_JdUserCollectionReader, nullObjectArray);
+			retVal = (Integer)ContextSwitch.call(urlClassLoader, method_getTotal, instance_JdUserCollectionReader, nullObjectArray);
 		} 
 		catch(Exception e) {
 			ProxyLogger.loggifyUserException(e);
@@ -109,16 +110,16 @@ public class ProxyJobDriverCollectionReader {
 		try {
 			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
 			long stime = System.nanoTime();
-			Object instance_metaCas = method_getJdUserMetaCas.invoke(instance_JdUserCollectionReader, nullObjectArray);
+			Object instance_metaCas = ContextSwitch.call(urlClassLoader, method_getJdUserMetaCas, instance_JdUserCollectionReader, nullObjectArray);
 			MessageHandler.accumulateTimes("CR", stime);   // When debugging accumulate elapsed time spent in CR
 			if(instance_metaCas != null) {
 				Method method_getSeqNo = class_JdUserMetaCas.getMethod(name_getSeqNo, nullClassArray);
-				Integer integer = (Integer)method_getSeqNo.invoke(instance_metaCas, nullObjectArray);
+				Integer integer = (Integer)ContextSwitch.call(urlClassLoader, method_getSeqNo, instance_metaCas, nullObjectArray);
 				int seqNo = integer.intValue();
 				Method method_getSerializedCas = class_JdUserMetaCas.getMethod(name_getSerializedCas, nullClassArray);
-				Object serializedCas = method_getSerializedCas.invoke(instance_metaCas, nullObjectArray);
+				Object serializedCas = ContextSwitch.call(urlClassLoader, method_getSerializedCas, instance_metaCas, nullObjectArray);
 				Method method_getDocumentText = class_JdUserMetaCas.getMethod(name_getDocumentText, nullClassArray);
-				String docId = (String)method_getDocumentText.invoke(instance_metaCas, nullObjectArray);
+				String docId = (String)ContextSwitch.call(urlClassLoader, method_getDocumentText, instance_metaCas, nullObjectArray);
 				retVal = new MetaCas(seqNo, docId, serializedCas);
 			}
 		} 

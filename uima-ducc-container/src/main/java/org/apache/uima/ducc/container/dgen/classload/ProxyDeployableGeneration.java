@@ -30,6 +30,7 @@ import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.common.classloader.ContextSwitch;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.common.classloader.ProxyLogger;
@@ -144,7 +145,7 @@ public class ProxyDeployableGeneration {
 					ccDescriptor,
 					ccOverrides
 					};
-			String dgen = (String) method.invoke(instance, args);
+			String dgen = (String) ContextSwitch.call(urlClassLoader, method, instance, args);
 			show("generated deployment descriptor", dgen);
 			retVal = dgen;
 		}
@@ -204,7 +205,7 @@ public class ProxyDeployableGeneration {
 					dgenFlowController,
 					referenceByName
 					};
-			String dgen = (String) method.invoke(instance, args);
+			String dgen = (String) ContextSwitch.call(urlClassLoader, method, instance, args);
 			show("generated deployment descriptor", dgen);
 			retVal = dgen;
 		}

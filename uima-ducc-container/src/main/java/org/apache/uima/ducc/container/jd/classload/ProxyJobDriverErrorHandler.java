@@ -23,6 +23,7 @@ import java.lang.reflect.Type;
 import java.net.URLClassLoader;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
+import org.apache.uima.ducc.container.common.classloader.ContextSwitch;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.classloader.ProxyLogger;
 import org.apache.uima.ducc.container.common.logger.IComponent;
@@ -38,6 +39,8 @@ public class ProxyJobDriverErrorHandler {
 	
 	private Object objectInstance = null;
 	private Method methodInstanceHandle = null;
+	
+	private Object[] nullObjectArray = null;
 	
 	private Method methodInstanceIsKillJob = null;
 	private Method methodInstanceIsKillProcess = null;
@@ -78,7 +81,9 @@ public class ProxyJobDriverErrorHandler {
 		//
 		String methodNameInitialize = "initialize";
 		Method methodInstanceInitialize = classAnchor.getMethod(methodNameInitialize, String.class);
-		methodInstanceInitialize.invoke(objectInstance, initializationData);
+		Object[] plist = new Object[1];
+		plist[0] = initializationData;
+		ContextSwitch.call(classLoader, methodInstanceInitialize, objectInstance, plist);
 		//
 		Method[] classMethods = classAnchor.getMethods();
 		for(Method method : classMethods) {
@@ -127,10 +132,10 @@ public class ProxyJobDriverErrorHandler {
 			Object[] plist = new Object[2];
 			plist[0] = serializedCAS;
 			plist[1] = userException;
-			Object directive = methodInstanceHandle.invoke(objectInstance, plist);
-			boolean isKillJob = (Boolean) methodInstanceIsKillJob.invoke(directive);
-			boolean isKillProcess = (Boolean) methodInstanceIsKillProcess.invoke(directive);
-			boolean isKillWorkItem = (Boolean) methodInstanceIsKillWorkItem.invoke(directive);
+			Object directive = ContextSwitch.call(classLoader, methodInstanceHandle, objectInstance, plist);
+			boolean isKillJob = (Boolean) ContextSwitch.call(classLoader, methodInstanceIsKillJob, directive, nullObjectArray);
+			boolean isKillProcess = (Boolean) ContextSwitch.call(classLoader, methodInstanceIsKillProcess, directive, nullObjectArray);
+			boolean isKillWorkItem = (Boolean) ContextSwitch.call(classLoader, methodInstanceIsKillWorkItem, directive, nullObjectArray);
 			retVal = new ProxyJobDriverDirective(isKillJob, isKillProcess, isKillWorkItem);
 		} 
 		catch (Exception e) {
