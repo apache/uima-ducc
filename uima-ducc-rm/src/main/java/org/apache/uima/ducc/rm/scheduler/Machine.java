@@ -335,6 +335,13 @@ public class Machine
         this.virtual_share_order = share_order - blacklisted_shares;
     }
 
+    public void reassignShare(Share s, IRmJob newjob)
+    {
+        removeShare(s);
+        s.reassignJob(newjob);
+        assignShare(s);
+    }
+
     public void assignShare(Share s)
     {
     	String methodName = "assignShare";
@@ -345,9 +352,9 @@ public class Machine
             // Not transactional.  If this turns into a problem we'll have to find a way
 			persistence.setNodeProperties(id, RmNodes.Assignments, activeShares.size(), RmNodes.NPAssignments, countNpShares(), RmNodes.SharesLeft, shares_left);
 			persistence.addAssignment(id, s.getJob().getId(), s, getQuantum(), s.getJob().getShortType()); // update jobs on machine and specific shares
-            logger.info(methodName, null, "Time to assign share in db", System.currentTimeMillis() - now);
+            logger.info(methodName, s.getJob().getId(), "Time to assign share", s.getId(), "in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
-            logger.warn(methodName, null, "Cannot save state; shares_left", shares_left, e);
+            logger.warn(methodName, s.getJob().getId(), "Cannot save state for share", s.getId(), "shares_left", shares_left, e);
 		}
 
     }
@@ -364,9 +371,9 @@ public class Machine
             // Not transactional.  If this turns into a problem we'll have to find a way
 			persistence.setNodeProperties(id, RmNodes.Assignments,  activeShares.size(), RmNodes.NPAssignments, countNpShares(),  RmNodes.SharesLeft, shares_left);
 			persistence.removeAssignment(id, s.getJob().getId(), s);  // update jobs on machine and specific shares
-            logger.info(methodName, null, "Time to remove share in db", System.currentTimeMillis() - now);
+            logger.info(methodName, s.getJob().getId(), "Time to remove share", s.getId(), "in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
-            logger.warn(methodName, null, "Cannot save state; shares_left", shares_left);
+            logger.warn(methodName, s.getJob().getId(), "Cannot save state for share", s.getId(), "shares_left", shares_left);
 		}
     }
 

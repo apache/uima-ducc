@@ -1872,7 +1872,8 @@ public class NodepoolScheduler
         if ( s.isPending() ) {
             if (s.getShareOrder() == nj.getShareOrder() ) {                            // same size, reassign it directly
                 logger.debug(methodName, nj.getId(), "Reassign expanded share", s.toString(), "from", rich_j.getId());
-                s.reassignJob(nj);
+                Machine m = s.getMachine();
+                m.reassignShare(s, nj);
                 rich_j.cancelPending(s);
                 nj.assignShare(s);                
                 return false;
