@@ -49,6 +49,7 @@ class Ducc(DuccUtil):
             return
 
         here = os.getcwd()
+        self.verify_limits()
 
         xmx = self.ducc_properties.get('ducc.database.mem.heap')
         new = self.ducc_properties.get('ducc.database.mem.new')
