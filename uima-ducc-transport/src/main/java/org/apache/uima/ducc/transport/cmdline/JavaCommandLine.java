@@ -43,19 +43,23 @@ public class JavaCommandLine extends ACommandLine {
 	}
 	public String[] getCommandLine() {
 		String[] os = new String[options.size()];
-		String[] args = new String[super.args.size()];
-		if ( super.args == null || super.args.size() == 0 ) {
-			return super.concatAllArrays(
-					options.toArray(os), new String[] { "-classpath",classpath,
-					className });
+		String[] result;
+		if ( args == null || args.size() == 0 ) {
+      result = concatAllArrays(options.toArray(os), new String[] { "-classpath", classpath, className });
 		} else {
-			return super.concatAllArrays(
-					options.toArray(os), new String[] { "-classpath",classpath,
-					className }, super.args.toArray(args));
+      String[] arguments = new String[args.size()];
+      result = concatAllArrays(options.toArray(os), new String[] { "-classpath", classpath, className },
+              args.toArray(arguments));
 		}
+		// Replace the reserved DUCC variable with the architecture of this node (ppc64 or amd64 or ...)
+		String osArch = System.getProperty("os.arch");
+		for (int i = 0; i < result.length; ++i) {
+		  result[i] = result[i].replace("${DUCC_OS_ARCH}",  osArch);
+		}
+		return result;
 	}
 
-	public String getCommand() {
+  public String getCommand() {
 		String retVal = "";
 		for(String part : getCommandLine()) {
 			retVal += " "+part;

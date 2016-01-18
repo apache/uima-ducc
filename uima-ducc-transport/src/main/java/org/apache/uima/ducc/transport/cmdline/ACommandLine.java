@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.uima.ducc.common.utils.Utils;
 
@@ -64,6 +65,11 @@ public abstract class ACommandLine implements ICommandLine {
 		environment.putAll(env);
 	}
 	public Map<String,String> getEnvironment() {
+	  String osArch = System.getProperty("os.arch");
+	  // Replace the reserved DUCC variable with the architecture of this node (ppc64 or amd64 or  ...)
+	  for (Entry<String, String> ent : environment.entrySet()) {
+	    ent.setValue(ent.getValue().replace("${DUCC_OS_ARCH}",  osArch));
+	  }
 		return environment;
 	}
 	public void setWorkingDirectory(String workingDirectory) {
