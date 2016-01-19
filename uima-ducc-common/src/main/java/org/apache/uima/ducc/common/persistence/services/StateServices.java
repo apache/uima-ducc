@@ -100,7 +100,10 @@ public class StateServices implements IStateServices {
 	
 	private DuccProperties getProperties(String name) {
 		String location = "getProperties";
+    // Avoid further place-holder resolving -- leave ${DUCC_SERVICE_INSTANCE} as-is
+    // (Could have used SpecificationProperties but is uima-ducc-transport)
 		DuccProperties properties = new DuccProperties();
+		properties.ignorePlaceholders();
 		try {
 			FileInputStream fis = new FileInputStream(name);
 			try {

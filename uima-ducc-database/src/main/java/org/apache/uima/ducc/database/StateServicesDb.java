@@ -122,6 +122,7 @@ public class StateServicesDb
         for ( Row r : rs ) {
             Map<String, Object> rowvals = DbUtil.getProperties(props, r);
             DuccProperties dp = new DuccProperties();
+            dp.ignorePlaceholders();    // Place-holders already resolved -- leave ${DUCC_SERVICE_INSTANCE} as-is
             for (String k : rowvals.keySet()) {
                 dp.put(k, rowvals.get(k));
             }
@@ -160,7 +161,7 @@ public class StateServicesDb
             
             for ( Long k : svcset.keySet() ) {
                 logger.trace(methodName, null, "Handling key", k);
-                DuccProperties sp = svcset.get(k);                
+                DuccProperties sp = svcset.get(k);
                 DuccProperties mp = metaset.get(k);
                 StateServicesSet sss = new StateServicesSet();
                 sss.put(svc, sp);

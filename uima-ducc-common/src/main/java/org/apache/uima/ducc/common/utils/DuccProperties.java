@@ -309,4 +309,12 @@ public class DuccProperties extends Properties {
 				agentPropertyFile.lastIndexOf(Utils.FileSeparator) + 1);
 		override(configDir);
 	}
+
+	/**
+	 * Disable place-holder resolution when already done and any unresolved entries have been left as-is
+	 * for later substitution, e.g. DUCC_SERVICE_INSTANCE, DUCC_OS_ARCH
+	 */
+  public void ignorePlaceholders() {
+    this.resolvePlaceholders = false;
+  }
 }
