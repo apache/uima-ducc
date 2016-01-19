@@ -24,21 +24,26 @@ import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import org.apache.uima.ducc.user.common.Utils;
 
 public class NodeIdentity implements Serializable {
 	private static final long serialVersionUID = -3725003472985192870L;
 	private String name;
 	private String ip;
+        private String pid;
+
 	private List<IIdentity> nodeIdentities = new ArrayList<IIdentity>();
 	public NodeIdentity(String ip, String name) throws Exception {
 		setName(name);
 		setIp(ip);
+      		setPid(Utils.getPID());
+
 		nodeIdentities.add( new Identity(name, ip));
 	}
 	public NodeIdentity() throws Exception {
 		setName(InetAddress.getLocalHost().getCanonicalHostName());
 		setIp(InetAddress.getLocalHost().getHostAddress());
-		
+		setPid(Utils.getPID());
 		Enumeration<NetworkInterface> netinterfaces = 
 				NetworkInterface.getNetworkInterfaces();
 	    while (netinterfaces.hasMoreElements()) {
@@ -50,6 +55,12 @@ public class NodeIdentity implements Serializable {
 	        }
 	    }
 	}
+        private void setPid(String pid) {
+	    this.pid = pid;
+        }
+        public String getPid() {
+	    return pid;
+        }
 	public List<IIdentity> getNodeIdentities() {
 		return nodeIdentities;
 	}
