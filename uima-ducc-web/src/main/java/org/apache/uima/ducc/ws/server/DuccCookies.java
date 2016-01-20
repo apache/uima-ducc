@@ -33,9 +33,7 @@ public class DuccCookies {
 
 	public static final String cookieUri = "/";
 	
-	public static final String join = ":";
-	
-	public static final String application = "ducc";
+	public static final String duccCookiePrefix = "DUCC";
 	
 	private static final String refreshmode = "refreshmode";
 	private static final String valueRefreshmodeAutomatic = "automatic";
@@ -49,20 +47,20 @@ public class DuccCookies {
 	public static final String users = "users";
 	//private static final String qualifier = "qualifier";
 	
-	public static final String cookieRefreshMode = application+join+refreshmode;
-	public static final String cookieJobsMax = application+join+jobs+max;
-	public static final String cookieJobsUsers = application+join+jobs+users;
-	//public static final String cookieJobsUsersQualifier = application+join+jobs+users+qualifier;
-	public static final String cookieReservationsMax = application+join+reservations+max;
-	public static final String cookieReservationsUsers = application+join+reservations+users;
-	//public static final String cookieReservationsUsersQualifier = application+join+reservations+users+qualifier;
-	public static final String cookieServicesMax = application+join+services+max;
-	public static final String cookieServicesUsers = application+join+services+users;
-	//public static final String cookieServicesUsersQualifier = application+join+services+users+qualifier;
+	public static final String cookieRefreshMode = duccCookiePrefix+refreshmode;
+	public static final String cookieJobsMax = duccCookiePrefix+jobs+max;
+	public static final String cookieJobsUsers = duccCookiePrefix+jobs+users;
+	//public static final String cookieJobsUsersQualifier = duccCookiePrefix+jobs+users+qualifier;
+	public static final String cookieReservationsMax = duccCookiePrefix+reservations+max;
+	public static final String cookieReservationsUsers = duccCookiePrefix+reservations+users;
+	//public static final String cookieReservationsUsersQualifier = duccCookiePrefix+reservations+users+qualifier;
+	public static final String cookieServicesMax = duccCookiePrefix+services+max;
+	public static final String cookieServicesUsers = duccCookiePrefix+services+users;
+	//public static final String cookieServicesUsersQualifier = duccCookiePrefix+services+users+qualifier;
 	
 	private static final String agents = "agents";
 	
-	public static final String cookieAgents = application+join+agents;
+	public static final String cookieAgents = duccCookiePrefix+agents;
 	public static final String valueAgentsShow = "show";
 	
 	private static final String table_style = "table_style";
@@ -72,12 +70,12 @@ public class DuccCookies {
 	private static final String filter_users_style = "filter_users_style";
 	private static final String role = "role";
 	
-	public static final String cookieStyleTable = application+join+table_style;
-	public static final String cookieStyleDate = application+join+date_style;
-	public static final String cookieStyleDescription = application+join+description_style;
-	public static final String cookieStyleDisplay = application+join+display_style;
-	public static final String cookieStyleFilterUsers = application+join+filter_users_style;
-	public static final String cookieRole = application+join+role;
+	public static final String cookieStyleTable = duccCookiePrefix+table_style;
+	public static final String cookieStyleDate = duccCookiePrefix+date_style;
+	public static final String cookieStyleDescription = duccCookiePrefix+description_style;
+	public static final String cookieStyleDisplay = duccCookiePrefix+display_style;
+	public static final String cookieStyleFilterUsers = duccCookiePrefix+filter_users_style;
+	public static final String cookieRole = duccCookiePrefix+role;
 	
 	public static final String valueStyleDateLong = "long";
 	public static final String valueStyleDateMedium = "medium";
@@ -101,7 +99,7 @@ public class DuccCookies {
 	public static final String valueRoleUser = "user";
 
 	protected static final String getCookieKey(String name) {
-		return application+join+"name";
+		return duccCookiePrefix+"name";
 	}
 	
 	public static String getCookie(String defaultValue, HttpServletRequest request, String name) {

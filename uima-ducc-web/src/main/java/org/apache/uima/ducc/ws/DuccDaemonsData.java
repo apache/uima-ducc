@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.ws;
 
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
@@ -37,9 +36,7 @@ public class DuccDaemonsData {
 	private static ConcurrentHashMap<DaemonName,Long> eventSize = new ConcurrentHashMap<DaemonName,Long>();
 	private static ConcurrentHashMap<DaemonName,Long> eventSizeMax = new ConcurrentHashMap<DaemonName,Long>();
 	private static ConcurrentHashMap<DaemonName,String> eventSizeMaxTOD = new ConcurrentHashMap<DaemonName,String>();
-	
-	private static ConcurrentHashMap<DaemonName,Properties> daemonProperties = new ConcurrentHashMap<DaemonName,Properties>();
-	
+
 	public static DuccDaemonsData getInstance() {
 		return duccDaemonsData;
 	}
@@ -164,11 +161,4 @@ public class DuccDaemonsData {
 		return retVal;
 	}
 	
-	public Properties getProperties(DaemonName key) {
-		Properties retVal = new Properties();
-		if(daemonProperties.containsKey(key)) {
-			retVal = daemonProperties.get(key);
-		}
-		return retVal;
-	}
 }

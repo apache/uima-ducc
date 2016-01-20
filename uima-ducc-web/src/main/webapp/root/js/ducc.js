@@ -2608,9 +2608,38 @@ function ducc_init(type) {
     }
 }
 
+/*
+ * transition function for use in converting 
+ * cookie names from ducc:xxxx to DUCCxxxx
+ */
+// @Deprecated 
+function ducc_transform_all_cookies() {
+    var fname = "ducc_transform_all_cookies";
+    try {
+    	var pairs = document.cookie.split(";");
+    	var cookies = {};
+    	for (var i=0; i<pairs.length; i++){
+    		var pair = pairs[i].split("=");
+    		var name = pair[0].trim();
+    		var value = pair[1].trim();
+    		if(name.startsWith("ducc:")) {
+    			var nameSuffix = name.substring(5);
+    			var nameModern = "DUCC"+nameSuffix;
+    			// delete bad cookie
+    			document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    			// create good cookie
+    			ducc_put_cookie(nameModern, value);
+    		}
+    	}
+    } catch (err) {
+    	ducc_error(fname, err);
+    }
+}
+
 function ducc_cookies() {
     var fname = "ducc_cookies";
     try {
+    	ducc_transform_all_cookies();
         var refreshmode = ducc_appl("refreshmode");
         var c_value = ducc_get_cookie(refreshmode);
         if (c_value == "automatic") {
@@ -2712,7 +2741,7 @@ function uima_initialization_report(name) {
 function ducc_appl(name) {
     var fname = "ducc_appl";
     try {
-        var appl = "ducc:";
+        var appl = "DUCC";
         return appl + name;
     } catch (err) {
         ducc_error(fname, err);

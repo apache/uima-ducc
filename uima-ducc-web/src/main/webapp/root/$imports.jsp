@@ -18,7 +18,7 @@ under the License.
 -->
 <%
 String table_style = "classic";
-String cookieName = "ducc:table_style";
+String cookieName = "DUCCtable_style";
 String cookieValue = null;
 Cookie cookie = null;
 Cookie cookies [] = request.getCookies ();

@@ -33,9 +33,9 @@ under the License.
 <form name="duccform" style="margin-bottom:0;">
 <fieldset>
 <legend>Refresh</legend>
-<input type="radio" name="refresh" value="manual"            onclick="ducc_put_cookie('ducc:refreshmode','manual'   )" /> Manual
+<input type="radio" name="refresh" value="manual"            onclick="ducc_put_cookie('DUCCrefreshmode','manual'   )" /> Manual
 <br>
-<input type="radio" name="refresh" value="automatic" checked onclick="ducc_put_cookie('ducc:refreshmode','automatic')" /> Automatic
+<input type="radio" name="refresh" value="automatic" checked onclick="ducc_put_cookie('DUCCrefreshmode','automatic')" /> Automatic
 </fieldset>
 </form>
 </table>

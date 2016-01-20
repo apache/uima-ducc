@@ -92,7 +92,7 @@ sorttable = {
 	      dean_addEvent(headrow[i],"click", function(e) {
 	    	  
 	    	  // <***** DUCC modification *****>
-	    	  var c_value = ducc_get_cookie('ducc:refreshmode');
+	    	  var c_value = ducc_get_cookie('DUCCrefreshmode');
 	    	  if(c_value == 'automatic') {
 	    		  $.jGrowl(' Sort is disabled when Refresh is Automatic.');
 	    		  return;

@@ -87,8 +87,8 @@ under the License.
     <td>
       <div>
         <form name="duccform">
-		<input type="radio" name="refresh" value="manual"            onClick="ducc_put_cookie('ducc:refreshmode','manual'   )" /> Manual
-		<input type="radio" name="refresh" value="automatic" checked onClick="ducc_put_cookie('ducc:refreshmode','automatic')" /> Automatic
+		<input type="radio" name="refresh" value="manual"            onClick="ducc_put_cookie('DUCCrefreshmode','manual'   )" /> Manual
+		<input type="radio" name="refresh" value="automatic" checked onClick="ducc_put_cookie('DUCCrefreshmode','automatic')" /> Automatic
 		</form> 
       </div>
     </table>
