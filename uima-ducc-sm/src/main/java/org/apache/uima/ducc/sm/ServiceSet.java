@@ -198,8 +198,9 @@ public class ServiceSet
         this.reference_start = meta.getBooleanProperty(IStateServices.SvcMetaProps.reference.pname(), this.reference_start);
 
         
-        
-        if ( props.containsKey(UiOption.ProcessDebug.pname()) ) {
+        // Check if key has a value vs. empty or missing
+        if ( props.containsKey(UiOption.ProcessDebug.pname()) &&
+                ((String) props.get(UiOption.ProcessDebug.pname())).length() > 0)  {
             this.process_debug = true;
         }
 
@@ -212,7 +213,7 @@ public class ServiceSet
 
         parseIndependentServices();
 
-        meta_props.remove(IStateServices.SvcMetaProps.references.pname());          // Will get refreshred in upcoming OR state messages
+        meta_props.put(IStateServices.SvcMetaProps.references.pname(), "");         // Will get refreshed in upcoming OR state messages
         meta_props.remove(IStateServices.SvcMetaProps.stopped.pname());             // obsolete flag, clean out of older registrations
 
         meta_props.put(IStateServices.SvcMetaProps.service_class.pname(), ""+service_class.decode());
@@ -263,7 +264,7 @@ public class ServiceSet
         //           Must remove the implementors from the meta and return.
         //
         if ( ids.indexOf(".") <= 0 ) {
-            meta_props.remove(implementors_key);
+            meta_props.put(implementors_key, "");
             return;
         }
 
@@ -383,7 +384,7 @@ public class ServiceSet
     }
 
     void deleteJobProperty(String k) {
-        job_props.remove(k);
+        job_props.put(k, "");
     }
 
     void setJobProperty(String k, String v)
@@ -615,7 +616,8 @@ public class ServiceSet
         run_failures = 0;
         ping_failures = 0;
         init_failures = 0;
-        meta_props.remove(IStateServices.SvcMetaProps.submit_error.pname());
+        // Can't just remove as DB is updated from entries in the map
+        meta_props.put(IStateServices.SvcMetaProps.submit_error.pname(), "");
         excessiveRunFailures = false;
     }
 
@@ -713,7 +715,8 @@ public class ServiceSet
 
     synchronized void enable()
     {
-        meta_props.remove(IStateServices.SvcMetaProps.disable_reason.pname());
+        // Can't just remove as DB is updated from entries in the map
+        meta_props.put(IStateServices.SvcMetaProps.disable_reason.pname(), "");
         resetRuntimeErrors();
         this.enabled = true;
     }
@@ -869,7 +872,7 @@ public class ServiceSet
         // if ( isDeregistered() ) return;
 
         if ( implementors.size() == 0 ) {
-            meta_props.remove(implementors_key);
+            meta_props.put(implementors_key, "");
         } else {
             StringBuffer sb_ducc_id = new StringBuffer();
             for ( Long l : implementors.keySet() ) {
@@ -957,7 +960,7 @@ public class ServiceSet
     synchronized void updateDebug(String val)
     {
         if ( val.equals("off") ) {
-            job_props.remove(UiOption.ProcessDebug.pname());
+            job_props.put(UiOption.ProcessDebug.pname(), "");
             this.process_debug = false;
         } else {
             job_props.put(UiOption.ProcessDebug.pname(), val);
@@ -991,7 +994,7 @@ public class ServiceSet
         String methodName = "persistReferences";
 
         if ( references.size() == 0 ) {
-            meta_props.remove(IStateServices.SvcMetaProps.references.pname());
+            meta_props.put(IStateServices.SvcMetaProps.references.pname(), "");
         } else {
             StringBuffer sb = new StringBuffer();
             for ( DuccId id : references.keySet() ) {
