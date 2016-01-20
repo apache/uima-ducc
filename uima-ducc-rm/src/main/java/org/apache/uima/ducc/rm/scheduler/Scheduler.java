@@ -902,9 +902,11 @@ public class Scheduler
         // tracking the OR hang problem - are topics being delivered?
         logger.info("nodeArrives", null, "Total arrivals:", total_arrivals);
 
-        handleIllNodes();
-        handleDeadNodes();
-        resetNodepools();
+        synchronized(this) {
+            handleIllNodes();
+            handleDeadNodes();
+            resetNodepools();
+        }
 
         // TODO: Can we combine these two into one?
         SchedulingUpdate upd = new SchedulingUpdate();              // state from internal scheduler
@@ -1166,23 +1168,20 @@ public class Scheduler
         // The first block insures the node is in the scheduler's records as soon as possible
 
         total_arrivals++;       // report these in the main schedule loop
-        // the amount of memory available for shares, adjusted with configured overhead
         
-        NodePool np = getNodepoolByName(node.getNodeIdentity());
+        NodePool np = getNodepoolByName(node.getNodeIdentity());  // finds np assigned in ducc.nodes; if none, returns the default np
         Machine m = np.getMachine(node);
         int share_order = 0;
-        
-        if ( m == null ) {
-            // allNodes.put(node, node);
-            long allocatable_mem =  node.getNodeMetrics().getNodeMemory().getMemFree() - share_free_dram;
-            if ( dramOverride > 0 ) {
-                allocatable_mem = dramOverride;
-            }
-            share_order = (int) (allocatable_mem / np.getShareQuantum());           // conservative - rounds down (this will always cast ok)                
-        } else {
-            share_order = m.getShareOrder();
+
+        // let's always recalculate this in case it changes for whatever bizarre reason (reboot, or pinned process gone, or whatever)
+        long allocatable_mem =  node.getNodeMetrics().getNodeMemory().getMemFree() - share_free_dram;
+        if ( dramOverride > 0 ) {
+            allocatable_mem = dramOverride;
         }
-        
+        share_order = (int) (allocatable_mem / np.getShareQuantum());           // conservative - rounds down (this will always cast ok)                
+        // NOTE: we cannot set the order into the machine yet, in case it has changed, because NodePool needs to adjust based
+        //       on current and new
+
         max_order = Math.max(share_order, max_order);
         m = np.nodeArrives(node, share_order);                         // announce to the nodepools
         m.heartbeatArrives();
@@ -1307,7 +1306,7 @@ public class Scheduler
             freeMachines[i] += np.countFreeMachines(i);         // (these are local, as we want)
         }
 
-        np.getLocalOnlineByOrder(onlineMachines);
+        //np.getLocalOnlineByOrder(onlineMachines);
         ret.setOnlineMachines(onlineMachines);
         ret.setFreeMachines(freeMachines);
 

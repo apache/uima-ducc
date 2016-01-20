@@ -294,7 +294,7 @@ public class Share
 		} catch (Exception e) {
             logger.warn(methodName, job.getId(), "Cannot update share statistics in database for share", id, e);
 		}
-        logger.info(methodName, jobid, "UPDATE:", investment, state, getInitializationTime(), pid);
+
         return true;
     }
 

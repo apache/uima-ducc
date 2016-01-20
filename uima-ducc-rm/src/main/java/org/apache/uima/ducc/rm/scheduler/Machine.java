@@ -444,19 +444,19 @@ public class Machine
         return ret;
     }
 
-    RmQueriedMachine queryOfflineMachine()              // UIMA-4234
-    {
-        RmQueriedMachine ret = queryMachine();
-        ret.setOffline();
-        return ret;
-    }
-
-    RmQueriedMachine queryUnresponsiveMachine()        // UIMA-4234
-    {
-        RmQueriedMachine ret = queryMachine();
-        ret.setUnresponsive();
-        return ret;
-    }
+//    RmQueriedMachine queryOfflineMachine()              // UIMA-4234
+//    {
+//        RmQueriedMachine ret = queryMachine();
+//        ret.setOffline();
+//        return ret;
+//    }
+//
+//    RmQueriedMachine queryUnresponsiveMachine()        // UIMA-4234
+//    {
+//        RmQueriedMachine ret = queryMachine();
+//        ret.setUnresponsive();
+//        return ret;
+//    }
 
     /**
      * A machine's investment is the sum of it's share's investments.
