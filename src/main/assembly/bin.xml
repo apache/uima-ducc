@@ -153,6 +153,18 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
+    <!-- Need the latest lz4 in the cassandra-server package-->
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>net.jpountz.lz4:lz4</include>
+      </includes>      
+      <outputDirectory>cassandra-server/lib</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
 	<!-- xmlbeans is in UIMA-AS 2.6.0 package -->
     
     <dependencySet>
@@ -300,6 +312,7 @@ under the License.
     </fileSet>
 
     <!--    CASSANDRA server -->
+    <!-- The conf files are replaced with modified ones and a later version of lz4 is required -->
     <fileSet>
       <directory>target/cassandra/apache-cassandra-${cassandra.server.version}</directory>
       <outputDirectory>cassandra-server</outputDirectory>
@@ -307,6 +320,7 @@ under the License.
         <exclude>javadac/*</exclude>
         <exclude>conf/cassandra-env.sh</exclude>
         <exclude>conf/cassandra.yaml</exclude>
+        <exclude>lib/lz4*</exclude>
       </excludes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
