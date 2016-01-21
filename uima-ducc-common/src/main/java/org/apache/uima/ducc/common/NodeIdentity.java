@@ -24,7 +24,7 @@ import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import org.apache.uima.ducc.user.common.Utils;
+import org.apache.uima.ducc.common.utils.Utils;
 
 public class NodeIdentity implements Serializable {
 	private static final long serialVersionUID = -3725003472985192870L;
