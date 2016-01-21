@@ -300,7 +300,7 @@ public class HistoryManagerDb
         IDuccSchedulingInfo dsx = j.getSchedulingInfo();
         
         String user = dsi.getUser();
-        String jclass = dsx.getSchedulingClass();
+        String jclass = getString(dsx.getSchedulingClass());
 
         int memory = toInt(dsx.getMemorySizeRequested());
         long submission = dsi.getDateOfSubmissionMillis();
@@ -354,9 +354,9 @@ public class HistoryManagerDb
 
                         long ducc_pid = idp.getDuccId().getFriendly();
                         long pid = toInt(idp.getPID());
-                        String node = idp.getNodeIdentity().getName();
-                        String reason_agent = idp.getReasonForStoppingProcess(); // called "reason" in duccprocess but not in ws
-                        String reason_scheduler = idp.getProcessDeallocationType().toString(); // called "processDeallocationType" in duccprocess but not in ws
+                        String node = getString(idp.getNodeIdentity().getName());
+                        String reason_agent = getString(idp.getReasonForStoppingProcess()); // called "reason" in duccprocess but not in ws
+                        String reason_scheduler = getString(idp.getProcessDeallocationType().toString()); // called "processDeallocationType" in duccprocess but not in ws
                         int exit_code = idp.getProcessExitCode();
                         long cpu = idp.getCurrentCPU();
                         long swap = idp.getSwapUsageMax();
@@ -415,8 +415,8 @@ public class HistoryManagerDb
                         }
                     	try {
 							h.execute(reservationAllocPrepare, node, job_id,
-							          idr.getDuccId().getFriendly(), type, dsi.getUser(), memory_size, 
-							          start, stop, dsx.getSchedulingClass(), Math.max(0, (stop-start)) );
+							          idr.getDuccId().getFriendly(), type, getString(dsi.getUser()), memory_size, 
+							          start, stop, getString(dsx.getSchedulingClass()), Math.max(0, (stop-start)) );
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();

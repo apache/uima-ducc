@@ -76,7 +76,15 @@ public class DbHandle
 			BoundStatement bound = boundStatement.bind(fields);
 			return execute(bound);        
         } finally {
-			if ( manager.noisy ) logger.info(methodName, null, "Time to execute prepared statement:", ps.getQueryString(), System.currentTimeMillis() - now);
+			if ( manager.noisy ) {
+                logger.info(methodName, null, "Time to execute prepared statement:", ps.getQueryString(), System.currentTimeMillis() - now);
+                StringBuffer buf = new StringBuffer("Fields for statement: ");
+                for ( Object o: fields ) {
+                    buf.append(o.toString());
+                    buf.append(" ");
+                }
+                logger.info(methodName, null, buf.toString());
+            }
 		}
     }
 

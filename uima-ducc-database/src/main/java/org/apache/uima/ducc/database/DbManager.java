@@ -43,12 +43,12 @@ import com.datastax.driver.core.policies.ReconnectionPolicy;
  */
 public class DbManager
 {
-    static final String URL_PROPERTY = "ducc.database.url";
+    static final String URL_PROPERTY = "ducc.database.host";
     static final String NOISE_PROPERTY = "ducc.database.noisy";
     private static String db_id = null;
     private static String db_pw = null;
 
-    boolean noisy = false;
+    boolean noisy = true;
     String dburl;
     DuccLogger logger;
 
