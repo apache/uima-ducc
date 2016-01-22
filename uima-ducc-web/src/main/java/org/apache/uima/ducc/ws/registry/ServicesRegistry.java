@@ -154,7 +154,7 @@ public class ServicesRegistry {
 				if(meta != null) {
 					if(meta.containsKey(IServicesRegistry.endpoint)) {
 						String endpoint = meta.getProperty(IServicesRegistry.endpoint);
-						logger.debug(location, jobid, "key: "+key+" "+"compare: "+endpoint);
+						logger.trace(location, jobid, "key: "+key+" "+"compare: "+endpoint);
 						if(compareEndpoints(name,endpoint)) {
 							retVal = payload;
 							break;

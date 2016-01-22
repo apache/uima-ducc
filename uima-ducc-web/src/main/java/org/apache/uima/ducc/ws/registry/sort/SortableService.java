@@ -121,7 +121,7 @@ public class SortableService extends ServiceAdapter implements Comparable<Sortab
 		String state1 = "state1:"+this.getState();
 		String state2 = "state2:"+that.getState();
 		String text = id1+" "+id2+" "+state1+" "+state2+" "+"rc:"+retVal;
-		duccLogger.debug(location, jobid, text);
+		duccLogger.trace(location, jobid, text);
 		return retVal;
 	}
 }
