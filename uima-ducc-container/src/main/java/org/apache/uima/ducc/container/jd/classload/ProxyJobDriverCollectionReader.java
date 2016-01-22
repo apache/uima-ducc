@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
@@ -105,6 +106,29 @@ public class ProxyJobDriverCollectionReader {
 		return retVal;
 	}
 	
+	private String normalizeDocId(int seqNo, String docId) {
+		String location = "normalizeDocId";
+		String retVal = docId;
+		try {
+			String max = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_workitem_name_maximum_length);
+			if(max != null) {
+				int limit = Integer.parseInt(max);
+				if(docId.length() > limit) {
+					retVal = docId.substring(0,limit);
+					MessageBuffer mb = new MessageBuffer();
+					mb.append(Standardize.Label.seqNo.get()+seqNo);
+					mb.append(Standardize.Label.limit.get()+limit);
+					mb.append(Standardize.Label.name.get()+docId);
+					logger.debug(location, ILogger.null_id, mb.toString());
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.trace(location, ILogger.null_id, e);
+		}
+		return retVal;
+	}
+	
 	public MetaCas getMetaCas() throws ProxyException {
 		MetaCas retVal = null;
 		try {
@@ -119,7 +143,8 @@ public class ProxyJobDriverCollectionReader {
 				Method method_getSerializedCas = class_JdUserMetaCas.getMethod(name_getSerializedCas, nullClassArray);
 				Object serializedCas = ContextSwitch.call(urlClassLoader, method_getSerializedCas, instance_metaCas, nullObjectArray);
 				Method method_getDocumentText = class_JdUserMetaCas.getMethod(name_getDocumentText, nullClassArray);
-				String docId = (String)ContextSwitch.call(urlClassLoader, method_getDocumentText, instance_metaCas, nullObjectArray);
+				String rawDocId = (String)ContextSwitch.call(urlClassLoader, method_getDocumentText, instance_metaCas, nullObjectArray);
+				String docId = normalizeDocId(seqNo, rawDocId);
 				retVal = new MetaCas(seqNo, docId, serializedCas);
 			}
 		} 
