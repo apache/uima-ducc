@@ -140,6 +140,8 @@ public class DuccPropertiesResolver {
     public static final String ducc_jd_configuration_class = "ducc.jd.configuration.class";
     public static final String ducc_jd_startup_initialization_error_limit = "ducc.jd.startup.initialization.error.limit";
     
+    public static final String ducc_jd_workitem_name_maximum_length = "ducc.jd.workitem.name.maximum.length";
+    
     public static final String ducc_rm_class_definitions = "ducc.rm.class.definitions";
     public static final String ducc_rm_user_registry = "ducc.rm.user.registry"; // UIMA-4275
     public static final String ducc_rm_share_quantum = "ducc.rm.share.quantum";
