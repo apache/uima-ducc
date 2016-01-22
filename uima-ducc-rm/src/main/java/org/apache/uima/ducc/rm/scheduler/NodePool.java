@@ -1142,29 +1142,46 @@ class NodePool
         return machine;
     }
 
-    void disable(Machine m)
+    /**
+     * Purge all or some of the work on a machine that has died, or been taken offline
+     * 
+     * @param m            node being removed
+     * @param removeAll    true if all work is to be purged, otherwise just the preemptable work
+     * 
+     * Ignore unmanaged reservations as they have no ducc-managed work
+     * Purge just fair-share/preemptable work if being varyed off, or all work if node has died (UIMA-4752)
+     */
+    void disable(Machine m, boolean removeAll)
     {
         String methodName = "disable";
 
         logger.info(methodName, null, "Nodepool:", id, "Host disabled:", m.getId(), "Looking for shares to clear");
 
-        int order = m.getShareOrder();
-        String name = m.getId();
-        String ip   = m .getIp();
+        String eventType = removeAll ? "Host dead:" : "Host offline:";
 
         HashMap<Share, Share> shares = m.getActiveShares();
         for (Share s : shares.values()) {
             IRmJob j = s.getJob();
 
-            if ( j.getSchedulingPolicy() != Policy.FAIR_SHARE )  {
-                logger.info(methodName, j.getId(), "Nodepool:", id, "Host dead/offline:", m.getId(), "Not purging NP work", j.getDuccType());
-            } else {
-                logger.info(methodName, j.getId(), "Nodepool:", id, "Purge", j.getDuccType(), "on dead/offline:", m.getId());
-                j.shrinkByOne(s);
-                nPendingByOrder[order]++;
-                    
-                s.purge();          // This bit tells OR not to wait for confirmation from the agent
+            if ( j.getDuccType() == DuccType.Reservation ) {
+              logger.info(methodName, null, "Nodepool:", id, eventType, m.getId(), "Not purging", j.getDuccType());
+              continue;
             }
+            if ( removeAll || j.getSchedulingPolicy() == Policy.FAIR_SHARE )  {
+                logger.info(methodName, j.getId(), "Nodepool:", id, eventType, j.getDuccType(), "purge:", m.getId());
+                if (j.getDuccType() == DuccType.Service || j.getDuccType() == DuccType.Pop) {
+                  j.markComplete();      // UIMA-4327 Must avoid reallocation, these guys are toast if they get purged.
+                  logger.info(methodName, j.getId(), "Nodepool:", id, eventType, m.getId(), "Mark service/pop completed.");
+                }
+                j.shrinkByOne(s);   // De-allocate this share
+                s.purge();          // This bit tells OR not to wait for confirmation from the agent
+
+                int order = s.getShareOrder();
+                nPendingByOrder[order]++;
+            } else {
+                logger.info(methodName, j.getId(), "Nodepool:", id, eventType, m.getId(), "Not purging NP work - ", j.getDuccType());
+            } 
+            
         }
     }
 
@@ -1173,7 +1190,7 @@ class NodePool
         // note, simpler than varyoff because we really don't care about unusual
         // conditions since there's nobody to tell
         if ( allMachines.containsKey(m.key()) ) {            
-            disable(m);
+            disable(m, true);    // Remove all work
             unresponsiveMachines.put(m.key(), m);
             signalDb(m, RmNodes.Responsive, false);
         } else {
@@ -1222,7 +1239,7 @@ class NodePool
         }
 
         offlineMachines.put(m.key(), m);
-        disable(m);
+        disable(m, false);                    // Remove just pre-emptable work
         signalDb(m, RmNodes.Online, false);
         return "VaryOff: " + node + " - OK.";
     }
