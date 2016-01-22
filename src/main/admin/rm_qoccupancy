@@ -23,6 +23,8 @@ import os
 import sys
 import glob
 import subprocess
+import string
+import binascii
 
 from ducc_util  import DuccUtil
 
@@ -78,8 +80,10 @@ class DuccRmQOccupancy(DuccUtil):
         shares = {}
         header = []
         for l in lines:
-            l = l.strip()
-            # print '[]', l
+            # First character of first line may be 0x1B ESC
+            if len(l) > 0 and not l[0] in string.printable:
+                print 'Ignoring line', '[' + l + '] hex:', binascii.hexlify(l)
+                continue
             if ( l == '' ):
                 continue
             if ( '---' in l ):
@@ -113,8 +117,8 @@ class DuccRmQOccupancy(DuccUtil):
     
     def main(self, argv):
 
-        if ( argv == '-h' or argv == '-?' or argv == '--help' ):
-            print 'rm_qload queries and formats the current state of the RM scheduling tables. It takes no parameters.'
+        if len(argv) > 0:
+            print 'rm_qoccupancy queries and formats the current state of the RM scheduling tables. It takes no parameters.'
             sys.exit(1);
 
         DH = self.DUCC_HOME

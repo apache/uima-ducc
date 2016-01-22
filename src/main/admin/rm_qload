@@ -105,7 +105,7 @@ class DuccRmQLoad(DuccUtil):
     
     def main(self, argv):
     
-        if ( argv == '-h' or argv == '-?' or argv == '--help' ):
+        if len(argv) > 0:
             print 'rm_qload queries and formats the current state of the RM scheduling tables. It takes no parameters.'
             sys.exit(1);
 
