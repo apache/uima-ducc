@@ -378,17 +378,16 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 					// if process is not dead, report the last known percentCPU
 					process.setCpuTime(percentCPU);
 				}
-				if (percentCPU > 0) {
-					process.setCurrentCPU(currentCpuUsage);
+				process.setCurrentCPU(currentCpuUsage);
 
-					logger.info(
-							"process",
-							null,
-							"----------- PID:" + process.getPID()
-									+ " Average CPU Time:" + percentCPU
-									+ "% Current CPU Time:"
-									+ process.getCurrentCPU());
-				}
+				logger.info(
+					"process",
+					null,
+					"----------- PID:" + process.getPID()
+					+ " Average CPU Time:" + percentCPU
+					+ "% Current CPU Time:"
+					+ process.getCurrentCPU());
+
 				// long majorFaults =
 				// processMajorFaultUsage.get().getMajorFaults();
 				// collects process Major faults (swap in memory)
