@@ -375,8 +375,9 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 					// report 0 for CPU while the process is initializing
 					process.setCpuTime(0);
 				} else {
+					process.setCpuTime(0);
 					// if process is not dead, report the last known percentCPU
-					process.setCpuTime(percentCPU);
+					// process.setCpuTime(percentCPU);
 				}
 				process.setCurrentCPU(currentCpuUsage);
 
