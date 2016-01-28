@@ -134,6 +134,21 @@ public class JdUserCollectionReader {
 		return total;
 	}
 	
+	public JdUserMetaCas getJdUserEmptyMetaCas() throws Exception {
+		JdUserMetaCas retVal = null;
+		try {
+			String serializedCas = null;
+			String documentText = null;
+			int systemSeqNo = seqNo.incrementAndGet();
+			retVal = new JdUserMetaCas(systemSeqNo, serializedCas, documentText);
+		}
+		catch(Exception e) {
+			Exception jdUserException = ExceptionHelper.wrapStringifiedException(e);
+			throw jdUserException;
+		}
+		return retVal;
+	}
+	
 	public JdUserMetaCas getJdUserMetaCas() throws Exception {
 		try {
 			return _getJdUserMetaCas();
@@ -150,9 +165,17 @@ public class JdUserCollectionReader {
 			if(cr.hasNext()) {
 				CAS cas = cm.getEmptyCas();
 				cr.getNext(cas);
-				String serializedCas = serialize(cas);
+				String serializedCas = null;
+				try {
+					serializedCas = serialize(cas);
+				}
+				catch(Exception e) {
+					JdUserSerializationException se = new JdUserSerializationException(e);
+					throw se;
+				}
 				String documentText = CasHelper.getId(cas);
-				retVal = new JdUserMetaCas(seqNo.incrementAndGet(), serializedCas, documentText);
+				int systemSeqNo = seqNo.incrementAndGet();
+				retVal = new JdUserMetaCas(systemSeqNo, serializedCas, documentText);
 				cm.recycle(cas);
 			}
 		}
