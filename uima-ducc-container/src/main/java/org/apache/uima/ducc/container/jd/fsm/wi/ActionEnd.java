@@ -84,7 +84,7 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 		updatePerformanceMetrics(actionData, wi);
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.debug(location, ILogger.null_id, mb.toString());
-		checkEnded(actionData, cm);
+		ActionHelper.checkEnded(logger, actionData, cm);
 	}
 	
 	private void updateStatistics(IActionData actionData, IWorkItem wi) {

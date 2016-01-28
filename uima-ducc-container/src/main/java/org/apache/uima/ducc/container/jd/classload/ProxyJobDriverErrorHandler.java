@@ -25,7 +25,7 @@ import java.net.URLClassLoader;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.classloader.ContextSwitch;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
-import org.apache.uima.ducc.container.common.classloader.ProxyLogger;
+import org.apache.uima.ducc.container.common.classloader.ProxyHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -55,7 +55,7 @@ public class ProxyJobDriverErrorHandler {
 			initialize();
 		}
 		catch(Exception e) {
-			ProxyLogger.loggifyUserException(e);
+			ProxyHelper.loggifyUserException(logger, e);
 			throw new JobDriverException();
 		}
 	}

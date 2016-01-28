@@ -24,6 +24,8 @@ import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.MetaCasHelper;
 import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.common.classloader.ProxyException;
+import org.apache.uima.ducc.container.common.classloader.ProxyHelper;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
@@ -31,6 +33,7 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.JobDriverHelper;
 import org.apache.uima.ducc.container.jd.blacklist.JobProcessBlacklist;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
@@ -59,6 +62,82 @@ public class ActionGet implements IAction {
 	@Override
 	public String getName() {
 		return ActionGet.class.getName();
+	}
+	
+	private String[] nonfatals = { 
+			"org.apache.uima.ducc.user.jd.JdUserSerializationException:" 
+			};
+	
+	private boolean isKillWorkItem(Exception e) {
+		boolean retVal = false;
+		if(e != null) {
+			String text = e.getMessage();
+			if(text != null) {
+				for(String nonfatal : nonfatals) {
+					if(text.contains(nonfatal)) {
+						retVal = true;
+					}
+				}
+			}
+		}
+		return retVal;
+	}	
+	
+	private void handleException(IActionData actionData, ProxyException e) throws JobDriverException  {
+		String location = "handleException";
+		logger.error(location, ILogger.null_id, e);
+		if(isKillWorkItem(e)) {
+			logger.info(location, ILogger.null_id, "killWorkItem");
+			IMetaCas metaCas = getEmptyMetaCas();
+			JobDriver jd = JobDriver.getInstance();
+			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+			CasManager cm = jd.getCasManager();
+			int seqNo = metaCasHelper.getSystemKey();
+			String wiId = metaCas.getUserKey();
+			String node = "None";
+			String pid = "None";
+			String tid = "None";
+			wisk.start(seqNo, wiId, node, pid, tid);
+			wisk.error(seqNo);
+			ActionHelper.killWorkItem(logger, actionData, cm);
+			Exception userException = ProxyHelper.getTargetException(e);
+			String printableException = ActionHelper.getPrintable(userException);
+			ActionHelper.toJdErrLog(Standardize.Label.seqNo.get()+seqNo+" ***** EXCEPTION (JD) *****\n"+printableException);
+		}
+		else {
+			logger.info(location, ILogger.null_id, "killJob");
+			throw new JobDriverException(e);
+		}
+	}
+	
+	private IMetaCas getEmptyMetaCas() throws JobDriverException {
+		IMetaCas metaCas = null;
+		JobDriver jd = JobDriver.getInstance();
+		CasManager cm = jd.getCasManager();
+		try {
+			metaCas = cm.getEmptyMetaCas();
+		}
+		catch(ProxyException e) {
+			throw new JobDriverException(e);
+		}
+		return metaCas;
+	}
+	
+	private IMetaCas getMetaCas(IActionData actionData) throws JobDriverException {
+		IMetaCas metaCas = null;
+		JobDriver jd = JobDriver.getInstance();
+		CasManager cm = jd.getCasManager();
+		while(true) {
+			try {
+				metaCas = cm.getMetaCas();
+				break;
+			}
+			catch(ProxyException e) {
+				handleException(actionData, e);
+			}
+		}
+		return metaCas;
 	}
 	
 	@Override
@@ -115,7 +194,7 @@ public class ActionGet implements IAction {
 					TransactionHelper.addResponseHint(trans, Hint.Blacklisted);
 				}
 				else {
-					metaCas = cm.getMetaCas();
+					metaCas = getMetaCas(actionData);
 				}
 				wi.setMetaCas(metaCas);
 				trans.setMetaCas(metaCas);

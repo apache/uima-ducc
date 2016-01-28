@@ -57,22 +57,26 @@ public class CasManager {
 		}
 	}
 	
-	public IMetaCas getMetaCas() throws JobDriverException {
-		String location = "getMetaCas";
-		try {
-			IMetaCas retVal = dequeueMetaCas();
-			if(retVal == null) {
-				retVal = pjdcr.getMetaCas();
-				if(retVal != null) {
-					casManagerStats.incCrGets();
-				}
+	public IMetaCas getEmptyMetaCas() throws ProxyException  {
+		IMetaCas retVal = null;
+		if(retVal == null) {
+			retVal = pjdcr.getEmptyMetaCas();
+			if(retVal != null) {
+				casManagerStats.incCrGets();
 			}
-			return retVal;
 		}
-		catch(ProxyException e) {
-			logger.error(location, ILogger.null_id, e);
-			throw new JobDriverException();
+		return retVal;
+	}
+	
+	public IMetaCas getMetaCas() throws ProxyException, JobDriverException {
+		IMetaCas retVal = dequeueMetaCas();
+		if(retVal == null) {
+			retVal = pjdcr.getMetaCas();
+			if(retVal != null) {
+				casManagerStats.incCrGets();
+			}
 		}
+		return retVal;
 	}
 
 	private IMetaCas dequeueMetaCas() throws JobDriverException {

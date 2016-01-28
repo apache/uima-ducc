@@ -33,7 +33,7 @@ import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.classloader.ContextSwitch;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.classloader.ProxyException;
-import org.apache.uima.ducc.container.common.classloader.ProxyLogger;
+import org.apache.uima.ducc.container.common.classloader.ProxyHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -150,8 +150,9 @@ public class ProxyDeployableGeneration {
 			retVal = dgen;
 		}
 		catch(Exception e) {
-			ProxyLogger.loggifyUserException(e);
-			throw new ProxyException();
+			Exception userException = ProxyHelper.getTargetException(e);
+			ProxyHelper.loggifyUserException(logger, userException);
+			throw new ProxyException(userException.getMessage());
 		}
 		return retVal;
 	}
@@ -210,8 +211,9 @@ public class ProxyDeployableGeneration {
 			retVal = dgen;
 		}
 		catch(Exception e) {
-			ProxyLogger.loggifyUserException(e);
-			throw new ProxyException();
+			Exception userException = ProxyHelper.getTargetException(e);
+			ProxyHelper.loggifyUserException(logger, userException);
+			throw new ProxyException(userException.getMessage());
 		}
 		return retVal;
 	}

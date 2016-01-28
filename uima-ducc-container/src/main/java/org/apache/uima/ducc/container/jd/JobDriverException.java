@@ -24,4 +24,8 @@ public class JobDriverException extends Exception {
 	
 	public JobDriverException() {
 	}
+
+	public JobDriverException(Exception e) {
+		super(e);
+	}
 }

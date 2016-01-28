@@ -30,7 +30,7 @@ import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.classloader.ContextSwitch;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.classloader.ProxyException;
-import org.apache.uima.ducc.container.common.classloader.ProxyLogger;
+import org.apache.uima.ducc.container.common.classloader.ProxyHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -60,6 +60,9 @@ public class ProxyJobDriverCollectionReader {
 	private String name_getJdUserMetaCas = "getJdUserMetaCas";
 	private Method method_getJdUserMetaCas = null;
 	
+	private String name_getJdUserEmptyMetaCas = "getJdUserEmptyMetaCas";
+	private Method method_getJdUserEmptyMetaCas = null;
+	
 	private String name_getSeqNo = "getSeqNo";
 	private String name_getDocumentText = "getDocumentText";
 	private String name_getSerializedCas = "getSerializedCas";
@@ -74,8 +77,9 @@ public class ProxyJobDriverCollectionReader {
 			initialize();
 		}
 		catch(Exception e) {
-			ProxyLogger.loggifyUserException(e);
-			throw new ProxyException();
+			Exception userException = ProxyHelper.getTargetException(e);
+			ProxyHelper.loggifyUserException(logger, userException);
+			throw new ProxyException(userException.getMessage());
 		}
 	}
 	
@@ -100,8 +104,9 @@ public class ProxyJobDriverCollectionReader {
 			retVal = (Integer)ContextSwitch.call(urlClassLoader, method_getTotal, instance_JdUserCollectionReader, nullObjectArray);
 		} 
 		catch(Exception e) {
-			ProxyLogger.loggifyUserException(e);
-			throw new ProxyException();
+			Exception userException = ProxyHelper.getTargetException(e);
+			ProxyHelper.loggifyUserException(logger, userException);
+			throw new ProxyException(userException.getMessage());
 		}
 		return retVal;
 	}
@@ -129,6 +134,35 @@ public class ProxyJobDriverCollectionReader {
 		return retVal;
 	}
 	
+	
+	public MetaCas getEmptyMetaCas() throws ProxyException {
+		MetaCas retVal = null;
+		try {
+			method_getJdUserEmptyMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserEmptyMetaCas, nullClassArray);
+			long stime = System.nanoTime();
+			Object instance_metaCas = ContextSwitch.call(urlClassLoader, method_getJdUserEmptyMetaCas, instance_JdUserCollectionReader, nullObjectArray);
+			MessageHandler.accumulateTimes("CR", stime);   // When debugging accumulate elapsed time spent in CR
+			if(instance_metaCas != null) {
+				Method method_getSeqNo = class_JdUserMetaCas.getMethod(name_getSeqNo, nullClassArray);
+				Integer integer = (Integer)ContextSwitch.call(urlClassLoader, method_getSeqNo, instance_metaCas, nullObjectArray);
+				int seqNo = integer.intValue();
+				Method method_getSerializedCas = class_JdUserMetaCas.getMethod(name_getSerializedCas, nullClassArray);
+				Object serializedCas = ContextSwitch.call(urlClassLoader, method_getSerializedCas, instance_metaCas, nullObjectArray);
+				Method method_getDocumentText = class_JdUserMetaCas.getMethod(name_getDocumentText, nullClassArray);
+				String rawDocId = (String)ContextSwitch.call(urlClassLoader, method_getDocumentText, instance_metaCas, nullObjectArray);
+				String docId = normalizeDocId(seqNo, rawDocId);
+				retVal = new MetaCas(seqNo, docId, serializedCas);
+			}
+		} 
+		catch(Exception e) {
+			Exception userException = ProxyHelper.getTargetException(e);
+			ProxyHelper.loggifyUserException(logger, userException);
+			throw new ProxyException(userException.getMessage());
+		}
+		return retVal;
+	}
+	
+	
 	public MetaCas getMetaCas() throws ProxyException {
 		MetaCas retVal = null;
 		try {
@@ -149,8 +183,9 @@ public class ProxyJobDriverCollectionReader {
 			}
 		} 
 		catch(Exception e) {
-			ProxyLogger.loggifyUserException(e);
-			throw new ProxyException();
+			Exception userException = ProxyHelper.getTargetException(e);
+			ProxyHelper.loggifyUserException(logger, userException);
+			throw new ProxyException(userException.getMessage());
 		}
 		return retVal;
 	}
