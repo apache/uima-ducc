@@ -62,6 +62,7 @@ public class JobProcessConfiguration {
 	 * 
 	 * @return {@code RouteBuilder} instance
 	 */
+    /*
 	public synchronized RouteBuilder routeBuilderForIncomingRequests(
 			final String thisNodeIP, final JobProcessEventListener delegate) {
 		return new RouteBuilder() {
@@ -95,7 +96,7 @@ public class JobProcessConfiguration {
 			caused.printStackTrace();
 		}
 	}
-
+    */
 	private void checkPrereqs() {
 		boolean uimaAsJob = false;
 
@@ -265,13 +266,14 @@ public class JobProcessConfiguration {
 			     "Overriding Default Process Request Timeout - New Timeout "+common.processRequestTimeout+" ms");
 			}
 
+			/*
 			JobProcessEventListener eventListener = new JobProcessEventListener(
 					duccComponent);
 			routeBuilder = this.routeBuilderForIncomingRequests(thisNodeIP,
 					eventListener);
 
 			camelContext.addRoutes(routeBuilder);
-
+			*/
 			return duccComponent;
 
 		} catch (Exception e) {
