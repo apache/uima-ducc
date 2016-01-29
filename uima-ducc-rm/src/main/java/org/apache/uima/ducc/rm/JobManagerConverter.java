@@ -725,21 +725,26 @@ public class JobManagerConverter
 
             Share s = scheduler.getShare(p.getDuccId());
 
-            long mem = p.getResidentMemory();
-            long investment = p.getWiMillisInvestment();
-            ProcessState state = p.getProcessState();
-            String pid = p.getPID();
+            if(s != null) {
+            	long mem = p.getResidentMemory();
+                long investment = p.getWiMillisInvestment();
+                ProcessState state = p.getProcessState();
+                String pid = p.getPID();
 
-            logger.info(methodName, jobid, "New process ", s.toString(), mem, state, pid);
-            if ( ! s.update(jobid, mem, investment, state, p.getTimeWindowInit(), pid) ) {
-                // TODO: probably change to just a warning and cancel the job - for now I want an attention-getter
-                throw new SchedulingException(jobid, "Process assignemnt arrives for share " + s.toString() +
-                                              " but jobid " + jobid + " does not match share " + s.getJob().getId());
+                logger.info(methodName, jobid, "New process ", s.toString(), mem, state, pid);
+                if ( ! s.update(jobid, mem, investment, state, p.getTimeWindowInit(), pid) ) {
+                    // TODO: probably change to just a warning and cancel the job - for now I want an attention-getter
+                    throw new SchedulingException(jobid, "Process assignemnt arrives for share " + s.toString() +
+                                                  " but jobid " + jobid + " does not match share " + s.getJob().getId());
+                }
+                //scheduler.signalGrowth(jobid, s);
+                // sadly, the pid is almost always null here
+                //logger.info(methodName, jobid, 
+                //            "New process arrives for share", s.toString(), "PID", pid);
             }
-            //scheduler.signalGrowth(jobid, s);
-            // sadly, the pid is almost always null here
-            //logger.info(methodName, jobid, 
-            //            "New process arrives for share", s.toString(), "PID", pid);
+            else {
+            	logger.warn(methodName, jobid, p.getDuccId(), "share not found?");
+            }
         }
             
         // gone stuff in in the right side of the map
@@ -809,7 +814,7 @@ public class JobManagerConverter
                 }
                 if ( pl.getProcessState() != pr.getProcessState() ) {
                     logger.info(methodName, jobid, 
-                                String.format("Process %5s", pl.getPID()), sl.toString(),
+                                String.format("Process %5s", pl.getPID()), shareL,
                                 "State:", pr.getProcessState(), "->", pl.getProcessState(),
                                 getElapsedTime(pr.getTimeWindowInit()), getElapsedTime(pr.getTimeWindowRun()));
                 }
