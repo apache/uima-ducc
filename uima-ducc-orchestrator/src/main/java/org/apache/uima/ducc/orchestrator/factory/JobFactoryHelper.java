@@ -44,11 +44,22 @@ public class JobFactoryHelper {
 	public static long getByteSizeJobProcess(String process_memory_size) {
 		String location = "getByteSizeJobProcess";
 		long retVal = getDefaultByteSizeJobProcess();
-		try {
-			retVal = Long.parseLong(process_memory_size);
+		if(process_memory_size != null) {
+			String memory_size = process_memory_size.trim();
+			if(memory_size.length() > 0) {
+				try {
+					retVal = Long.parseLong(process_memory_size);
+				}
+				catch(Exception e) {
+					logger.error(location, jobid, e);
+				}
+			}
+			else {
+				logger.info(location, jobid, "memory size: empty");
+			}
 		}
-		catch(Exception e) {
-			logger.error(location, jobid, e);
+		else {
+			logger.info(location, jobid, "memory size: null");
 		}
 		logger.debug(location, jobid, retVal);
 		return retVal;

@@ -20,7 +20,6 @@ package org.apache.uima.ducc.orchestrator.factory;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 
@@ -104,21 +103,6 @@ public class JobFactory implements IJobFactory {
 		}
 		logger.trace(methodName, job.getDuccId(), "exit");
 		return retVal;
-	}
-	
-	private void checkSpec(DuccWorkJob job, JobRequestProperties jobRequestProperties) {
-		String methodName = "checkSpec";
-		logger.trace(methodName, job.getDuccId(), "enter");
-		jobRequestProperties.normalize();
-		Enumeration<Object> keys = jobRequestProperties.keys();
-		while(keys.hasMoreElements()) {
-			String key = (String) keys.nextElement();
-			if(!jobRequestProperties.isRecognized(key)) {
-				logger.warn(methodName, job.getDuccId(), "unrecognized: "+key);
-			}
-		}
-		logger.trace(methodName, job.getDuccId(), "exit");
-		return;
 	}
 	
 	private ArrayList<String> toArrayList(String overrides) {
@@ -502,7 +486,7 @@ public class JobFactory implements IJobFactory {
 	
 	private DuccWorkJob create(CommonConfiguration common, JobRequestProperties jobRequestProperties, DuccWorkJob job) {
 		String methodName = "create";
-		checkSpec(job, jobRequestProperties);
+		jobRequestProperties.normalize();
 		DuccType duccType = job.getDuccType();
         // Service Deployment Type
         if(jobRequestProperties.containsKey(ServiceRequestProperties.key_service_type_custom)) {
