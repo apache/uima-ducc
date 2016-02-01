@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.ws.types;
 
-public class NodeId {
+public class NodeId implements Comparable<NodeId> {
 	
 	private String machine;
 	
@@ -30,5 +30,30 @@ public class NodeId {
 	public String toString() {
 		return this.machine;
 	}
-
+	
+	@Override
+	public int compareTo(NodeId nodeId) {
+		int retVal = 0;
+		if(nodeId != null) {
+			NodeId that = nodeId;
+			String thatNodeId = that.toString();
+			String thisNodeId = this.toString();
+			retVal = thisNodeId.compareTo(thatNodeId);
+		}
+		return retVal;
+	}
+	
+	@Override
+	public boolean equals(Object object) {
+		boolean retVal = false;
+		if(object != null) {
+			if(object instanceof NodeId) {
+				NodeId that = (NodeId) object;
+				String thatNodeId = that.toString();
+				String thisNodeId = this.toString();
+				retVal = thisNodeId.equals(thatNodeId);
+			}
+		}
+		return retVal;
+	}
 }

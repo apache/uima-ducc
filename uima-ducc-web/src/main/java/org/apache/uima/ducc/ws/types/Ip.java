@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.ws.types;
 
-public class Ip {
+public class Ip implements Comparable<Ip> {
 	
 	private String ip;
 	
@@ -30,5 +30,30 @@ public class Ip {
 	public String toString() {
 		return this.ip;
 	}
-
+	
+	@Override
+	public int compareTo(Ip ip) {
+		int retVal = 0;
+		if(ip != null) {
+			Ip that = ip;
+			String thatIp = that.toString();
+			String thisIp = this.toString();
+			retVal = thisIp.compareTo(thatIp);
+		}
+		return retVal;
+	}
+	
+	@Override
+	public boolean equals(Object object) {
+		boolean retVal = false;
+		if(object != null) {
+			if(object instanceof Ip) {
+				Ip that = (Ip) object;
+				String thatIp = that.toString();
+				String thisIp = this.toString();
+				retVal = thisIp.equals(thatIp);
+			}
+		}
+		return retVal;
+	}
 }

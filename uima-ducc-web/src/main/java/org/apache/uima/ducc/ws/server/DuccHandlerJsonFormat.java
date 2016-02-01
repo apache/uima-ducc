@@ -88,6 +88,7 @@ import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.apache.uima.ducc.ws.server.DuccCookies.DisplayStyle;
 import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
+import org.apache.uima.ducc.ws.types.Ip;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
@@ -1920,11 +1921,11 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 
 		if(showAgents) {
-			ConcurrentSkipListMap<String,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
-			Iterator<String> iterator = machines.keySet().iterator();
+			ConcurrentSkipListMap<Ip,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
+			Iterator<Ip> iterator = machines.keySet().iterator();
 			while(iterator.hasNext()) {
 				row = new JsonArray();
-				String key = iterator.next();
+				Ip key = iterator.next();
 				MachineInfo machineInfo = machines.get(key);
 				Properties properties = DuccDaemonRuntimeProperties.getInstance().getAgent(machineInfo.getName());
 				// Status

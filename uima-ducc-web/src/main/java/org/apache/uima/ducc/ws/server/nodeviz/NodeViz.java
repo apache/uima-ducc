@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.uima.ducc.common.Node;
@@ -52,6 +53,7 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.IListenerOrchestrator;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.server.DuccListeners;
+import org.apache.uima.ducc.ws.types.Ip;
 
 public class NodeViz
     implements IListenerOrchestrator
@@ -271,21 +273,19 @@ public class NodeViz
         }
 
         logger.debug(methodName, null, "Generateing visualizaiton");
-        ConcurrentSkipListMap<String,MachineInfo> m = machineData.getMachines();
+        ConcurrentSkipListMap<Ip,MachineInfo> m = machineData.getMachines();
 
-        for (String s : m.keySet()) {
-            // 
+        for (Entry<Ip, MachineInfo> entry : m.entrySet()) {
+        	// 
             // This is for hosts that have no work on them so they didn't come in the work map
             //
-            
-            MachineInfo mi = m.get(s);
+        	MachineInfo mi = entry.getValue();
             // NOTE: the map changes all the time so the value may be gone.  This situation
             //       will be fixed one day but for now just forget the node, it will show up 
             //       next time we get here.            
             if ( mi == null ) continue;
-
+            String s = mi.getName();
             if ( !mi.getStatus().equals("up") ) continue; // filter non-up nodes
-
             String key = strip(s);             // our key, possibly with domain stripped
             if ( ! hosts.containsKey(key) ) {
                 VisualizedHost vh = new VisualizedHost(mi, nc.getQuantumForNode(s));
