@@ -45,6 +45,8 @@ under the License.
 	<th title="Process total number of garbage collections that have occurred">Count<br>GC</th>
 	<th title="Process percentage of time spent in garbage collections, relative to total of initialization + run times">%GC</th>
 	-->
+	<th title="Process count of major faults which required loading a memory page from disk">PgIn</th>
+	<th title="Process GB swapped out to disk, current if state=running or maximum if state=completed">Swap</th>
 	<th title="%CPU time, as percentage of process lifetime">%CPU</th>
 	<th title="Resident Storage Size in GB, current if state=running or maximum if state=completed">RSS</th>
 	<!--

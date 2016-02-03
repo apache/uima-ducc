@@ -1157,7 +1157,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		// PgIn
 		switch(sType) {
 		case MR:
-			break;
 		default:
 			index++; // jp.14
 			cbList[index].append("<td align=\"right\">");
@@ -1170,7 +1169,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		// Swap
 		switch(sType) {
 		case MR:
-			break;
 		default:
 			index++; // jp.15
 			cbList[index].append("<td align=\"right\">");

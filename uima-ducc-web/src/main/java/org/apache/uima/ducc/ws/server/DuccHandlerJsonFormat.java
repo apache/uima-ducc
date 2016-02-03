@@ -850,6 +850,33 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			}
 		}
 		row.add(new JsonPrimitive(sb.toString()));
+		// PgIn
+		sb = new StringBuffer();
+		String pgin = "";
+		if(duccwork instanceof DuccWorkJob) {
+			DuccWorkJob job = (DuccWorkJob) duccwork;
+			pgin = ""+job.getPgInCount();
+		}
+		sb.append("<span>");
+		sb.append(pgin);
+		sb.append("<span>");
+		row.add(new JsonPrimitive(sb.toString()));
+		// Swap
+		sb = new StringBuffer();
+		String swap = "";
+		if(duccwork instanceof DuccWorkJob) {
+			DecimalFormat formatter = new DecimalFormat("###0.0");
+			DuccWorkJob job = (DuccWorkJob) duccwork;
+			double dswap = job.getSwapUsageGb();
+			if(job.isCompleted()) {
+				dswap = job.getSwapUsageGbMax();
+			}
+			swap = formatter.format(dswap);
+		}
+		sb.append("<span>");
+		sb.append(swap);
+		sb.append("</span>");
+		row.add(new JsonPrimitive(sb.toString()));
 		// Memory
 		sb = new StringBuffer();
 		IDuccSchedulingInfo si;

@@ -754,6 +754,29 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			}
 		}
 		sb.append("</td>");
+		// PgIn
+		String pgin = "";
+		if(duccwork instanceof DuccWorkJob) {
+			DuccWorkJob job = (DuccWorkJob) duccwork;
+			pgin = ""+job.getPgInCount();
+		}
+		sb.append("<td align=\"right\">");
+		sb.append(pgin);
+		sb.append("</td>");
+		// Swap
+		String swap = "";
+		if(duccwork instanceof DuccWorkJob) {
+			DecimalFormat formatter = new DecimalFormat("###0.0");
+			DuccWorkJob job = (DuccWorkJob) duccwork;
+			double dswap = job.getSwapUsageGb();
+			if(job.isCompleted()) {
+				dswap = job.getSwapUsageGbMax();
+			}
+			swap = formatter.format(dswap);
+		}
+		sb.append("<td align=\"right\">");
+		sb.append(swap);
+		sb.append("</td>");
 		// Memory
 		IDuccSchedulingInfo si;
 		SizeBytes sizeBytes;
@@ -764,7 +787,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		actual = getProcessMemorySize(duccId,sizeBytes);
 		sizeBytes = new SizeBytes(si.getMemoryUnits().name(), Long.parseLong(si.getMemorySizeRequested()));
 		requested = getProcessMemorySize(duccId,sizeBytes);
-		sb.append("<td valign=\"bottom\" align=\"right\">");
+		sb.append("<td align=\"right\">");
 		sb.append("<span title=\""+"requested: "+requested+"\">");
 		sb.append(actual);
 		sb.append("</span>");
