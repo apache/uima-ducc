@@ -1042,6 +1042,14 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             RouteBuilder rb = new ProcessMemoryUsageRoute(this, processEntry.getValue(),
                     deployedProcess);
             super.getContext().addRoutes(rb);
+	    //super.getContext().start();
+	    super.getContext().startRoute(duccEvent.getPid());
+            logger.info(
+                    methodName,
+                    null,
+                    "Started Process Metric Gathering Thread For PID:"+duccEvent.getPid());
+
+
             StringBuffer sb = new StringBuffer();
             if ( duccEvent.getState().equals(ProcessState.Running) ) {
                if ( processEntry.getValue().getUimaPipelineComponents() != null && 
@@ -1559,7 +1567,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
     public void configure() throws Exception {
       Processor nmp = configurationFactory.processMetricsProcessor(agent, process, managedProcess);
-      from("timer:processMemPollingTimer?fixedRate=true&period=" + 5000).routeId(process.getPID())
+      int fixedRate = configurationFactory.getNodeInventoryPublishDelay();
+      from("timer:processMemPollingTimer?fixedRate=true&delay=100&period=" + fixedRate).routeId(process.getPID())
+              .autoStartup(true)
               .process(nmp);
     }
   }
