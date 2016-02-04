@@ -151,6 +151,8 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 		if (closed) { // files closed
 			return;
 		}
+
+
 		// if process is stopping or already dead dont collect metrics. The
 		// Camel
 		// route has just been stopped.
@@ -284,7 +286,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 						// metrics. The Camel
 						// route has just been stopped.
 						if (!collectStats(process.getProcessState())) {
-							return;
+						    return;
 						}
 						processMajorFaultUsage = pool
 								.submit(processMajorFaultUsageCollector);
@@ -304,7 +306,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 						processCpuUsage = pool.submit(processCpuUsageCollector);
 						totalCpuUsage = processCpuUsage.get().getTotalJiffies()
 								/ agent.cpuClockRate;
-
 						currentCpuUsage = collectProcessCurrentCPU(process
 								.getPID());
 
@@ -319,7 +320,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 						Future<ProcessResidentMemory> prm = pool
 								.submit(collector);
-
 						totalRss = prm.get().get();
 					}
 
@@ -380,7 +380,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 					// process.setCpuTime(percentCPU);
 				}
 				process.setCurrentCPU(currentCpuUsage);
-
 				logger.info(
 					"process",
 					null,
@@ -530,7 +529,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 				if (!collectStats(process.getProcessState())) {
 					return;
 				}
-				logger.error("process", null, e);
+				logger.error("process", null, ex);
 				ex.printStackTrace();
 			}
 
