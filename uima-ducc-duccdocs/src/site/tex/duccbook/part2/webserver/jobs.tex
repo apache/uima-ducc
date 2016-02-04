@@ -27,12 +27,12 @@
         \begin{description}
 
             \item[Id] \hfill \\
-              This is the ID as assigned by DUCC. This field is hyperlinked to a
+              This is the ID as assigned by {\DUCC}. This field is hyperlinked to a
               \hyperref[sec:ws-job-details]{Job Details} page for that job that shows the breakdown of
               all the processes assigned to the job and their state.
               
             \item[Start] \hfill \\
-              This is the time the Job is accepted into DUCC.
+              This is the time the Job is accepted into {\DUCC}.
               
             \item[Duration] \hfill \\
               This shows two times.  In green the length of time the job has been running.  In black is
@@ -53,7 +53,7 @@
                   \item[WaitingForDriver] - The job is waiting for the Job Driver to initialize. 
                   \item[WaitingForServices] - The job is waiting for verification from the
                     Service Manager that required services are started and responding.  This may
-                    cause DUCC to start services if necessary.  In that even this state will
+                    cause {\DUCC} to start services if necessary.  In that even this state will
                     persist until all pre-requisite services are ready.
                   \item[WaitingForResources] - The job is waiting to be scheduled. In busy
                     systems this may require preemption of existing work.  In that case this
@@ -66,7 +66,7 @@
                     will double the number of allocated processes until the user's fair share of
                     the resources is attained.
                   \item[Running] - At least one process is now initialized and running. 
-                  \item[Completing] - The last work item has completed and DUCC is freeing resources.
+                  \item[Completing] - The last work item has completed and {\DUCC} is freeing resources.
                     If the job had many resources allocated at the time the job exited this state
                     will persist until all allocated resources are freed.
                   \item[Completed] - The job is complete. 
@@ -88,11 +88,11 @@
                   \item[Error] - All work items are processes but at least one had an error. 
                   \item[CanceledByDriver] - The Job Driver (JD) terminated the job. The reason for
                     termination is seen by hovering over the text with your mouse.
-                  \item[CanceledBySystem] - The job was canceled because DUCC was shutdown. 
-                  \item[CanceledBySser] - The job owner or DUCC administrator canceled the job. 
-                  \item[Cancel Pending] - The job has been canceleled and is not yet fully evicted
+                  \item[CanceledBySystem] - The job was canceled because {\DUCC} was shutdown. 
+                  \item[CanceledBySser] - The job owner or {\DUCC} administrator canceled the job. 
+                  \item[Cancel Pending] - The job has been canceled and is not yet fully evicted
                     from the system.
-                  \item[DriverInitializationFailure] - The Job Deiver (JD) process is unable to initialize. Hover over 
+                  \item[DriverInitializationFailure] - The Job Driver (JD) process is unable to initialize. Hover over 
                     the field with your mouse for details (if any are available), and check your JD log. 
                   \item[DriverProcessFailed] - The Job Driver (JD) process failed for some reason. Hover over the 
                     field with your mouse for details (if any), and check your JD log. 
@@ -103,16 +103,16 @@
                   \item[Premature] - The job was terminated for some unknown reason before all work items were 
                     processed. Check the JP logs for details. 
                   \item[ProcessInitializationFailure] - Too many processes failed during
-                    initialization and the job was canceled by DUCC.  Check the JP logs for the
+                    initialization and the job was canceled by {\DUCC}.  Check the JP logs for the
                     reason.
-                  \item[ProcessFailure] - Too many processes failed while running and DUCC canceled
+                  \item[ProcessFailure] - Too many processes failed while running and {\DUCC} canceled
                     the job.  Check the JP logs for the reason.
                   \item[ResourcesUnavailable] - The Resource Manager (RM) is unable to allocate resources for 
                     the job. For non-preemptable jobs this could be because the limit on that type of allocation is 
-                    reached, or all the nodes are already allocated and work cannot be preempted to make space for 
+                    reached, or all the hosts are already allocated and work cannot be preempted to make space for 
                     it. For all jobs, it could be because the job class is invalid. 
                     \item[{\em service\_name}] If there is a service name in this field it indicates the job is
-                      dependent on the service but the service is not responding to the Ducc Service Monitor's
+                      dependent on the service but the service is not responding to the {\DUCC} Service Monitor's
                       pinger.
               \end{description}
 
@@ -131,12 +131,12 @@
               This is the total number of process failures experienced by the job. This field is
               hyperlinked to pages with log excerpts highlighting the specific failures.
               
-            \item[Pgin] This is the number of page-in events, over all processes, on the machines
+            \item[PgIn] This is the number of page-in events, over all processes, on the machines
               running the job.
 
             \item[Swap] This is the total swap space, over all the processes, being used by the job.
 
-            \item[Size] \hfill \\
+            \item[Memory] \hfill \\
               This is the declared memory size of the job
               
             \item[Total] \hfill \\

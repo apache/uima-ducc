@@ -23,13 +23,13 @@
 \fi
 \chapter{DUCC Web Server}
 
-    The DUCC Web Server default address is accessed from the URL http://[DUCC-HOST]:42133.  The
-    {\em[DUCC-HOST]} is the hostname where the local installation has installed the DUCC
+    The {\DUCC} Web Server default address is accessed from the URL http://[DUCC-HOST]:42133.  The
+    {\em[DUCC-HOST]} is the hostname where the local installation has installed the {\DUCC}
     Web Server.
     
   \begin{center}     
   \cfbox{green}{The hostname and port are configurable by
-  the DUCC administrator in ducc.properties}
+  the {\DUCC} administrator in ducc.properties}
   \end{center}
   
     The Webserver is designed to be mostly self-documenting. The design is intentionally simple 
@@ -43,11 +43,11 @@
 \caption{Sample Webserver Page}
 \end{figure}
 
-    Normally, the Web Server automatically fetches new data from DUCC and updates the display.
+    Normally, the Web Server automatically fetches new data from {\DUCC} and updates the display.
     This is controlled by setting one of the two refresh modes:
     \begin{itemize}
       \item Manual refresh.  In this mode, the browser windows are updated only by using the
-        browser's refresh button, or the DUCC refresh button to the left in the header of
+        browser's refresh button, or the {\DUCC} refresh button to the left in the header of
         each page.
       \item Automatic refresh. In this mode, the browser automatically fetches and displays
         new data.  The rate of refresh is currently fixed and cannot be configured.
@@ -71,7 +71,7 @@
 
     \paragraph{Scroll Mode}  When {\em scroll table style} is the preference, a scroll bar is
     shown to the right, within the main window.  The scroll bar allows scrolling to be restricted to the data
-    display, leaving column and DUCC headers in place.  In this mode any column may be sorted
+    display, leaving column and {\DUCC} headers in place.  In this mode any column may be sorted
     simply by clicking on it.
     
     With respect to sorting, any specified sort is remembered for refresh
@@ -84,7 +84,7 @@
 	
     \paragraph{Classic Mode}  When {\em classic table style} is the preference, the
     main data may extend below the bottom of the page and it will be necessary to use the browser's scroller on the right
-    to access it.  The column headers and DUCC header scrolls off when doing this.  Columns
+    to access it.  The column headers and {\DUCC} header scrolls off when doing this.  Columns
     may be sorted in this mode but it is necessary to first switch to ``Manual'' refresh mode to
     prevent browser refreshes during sorting and display of data. 
     
@@ -131,11 +131,12 @@
               \item[Date Style] This selects long, medium, or long formats for dates.
               \item[Description Style] This selects long or short formats for the various
                 description fields.
+              \item[Display Style] Choose to display text or (in some circumstances) icons.
               \item[Filter Users] This controls the ``filter'' box near the middle of
                 the header on each page.  It allows various levels of inclusion and
                 exclusion of active or completed work for the filtered users.
               \item[Role] This allows selection of ``User'' or ``Administrator'' roles.
-                This protects registered DUCC administrators from accidentally affecting
+                This protects registered {\DUCC} administrators from accidentally affecting
                 other people's work.
             \end{description}
             
@@ -157,10 +158,11 @@
             This opens a sub-menu with system-related links:
             \begin{itemize}
               \item Administration - This opens a page with administrative functions. 
+              \item Broker - This shows information about the AMQ broker employed by the system. 
               \item Classes - This shows all the scheduling classes defined to the system. 
-              \item Daemons - This shows the status of DUCC's management processes. 
+              \item Daemons - This shows the status of {\DUCC}'s management processes. 
               \item DuccBook - This manual. 
-              \item Machines - This shows the status of all the ducc worker nodes. 
+              \item Machines - This shows the status of all the {\DUCC} worker nodes. 
             \end{itemize}
 
             \item[Viz]

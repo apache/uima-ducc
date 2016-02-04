@@ -21,7 +21,7 @@
     \label{sec:ws-job-details}
 
     This page shows details of all the processes that run in support of a job. 
-    The information is divided among four tabs:
+    The information is divided among five tabs:
     \begin{description}
       \item[Processes] This tab contains details on all the processes for the job, both
         active, and defunct.
@@ -29,6 +29,7 @@
       \item[Performance] This tab shows a performance break-down of all the UIMA analytics
         in the job.
       \item[Specification] This tab shows the job specification for the job.
+      \item[Files] This tab shows the files in the log directory.
       \end{description}
       
     \subsection{Processes}
@@ -38,20 +39,20 @@
     \begin{description}
 
         \item[Id] \hfill \\
-          This is the DUCC-assigned numeric id of the process (not the Operating System's
-          processid). Process 0 is always the Job Driver.          
+          This is the {\DUCC}-assigned numeric id of the process (not the Operating System's
+          process Id). Process 0 is always the Job Driver.          
 
         \item[Log] \hfill \\
           This is the log name for the process. It is hyperlinked to the log itself.
 
-        \item[Size] \hfill \\
+        \item[Log Size] \hfill \\
           This is the size of the log in MB. If you find you have trouble viewing the log
           from the Web Server it could be because it is too big to view in the server and needs to
           be read by some other means than the Web Server.  (It is not currently paged in by 
           the Web Server, it is read in full.)
 
-        \item[Hostname] \hfill \\
-          This is the name of the node where the process ran.
+        \item[Host Name] \hfill \\
+          This is the name of the host where the process ran.
 
         \item[PID] \hfill \\
           This is the Unix process ID (PID) of the process.
@@ -62,9 +63,9 @@
 
           This shows the Resource Manager state of the job. It is one of:
           \begin{description}
-              \item[Allocated] - The node is currently allocated for this job by the RM.
+              \item[Allocated] - The host is currently allocated for this job by the RM.
               \item[Deallocated] - The resource manager has deallocated the shares for the job on
-                this node.
+                this host.
           \end{description}
 
         \item[Reason Scheduler or extraordinary status] \hfill \\
@@ -88,11 +89,11 @@
                   
                 \item[FailedInitialization] - The process is terminated because the UIMA initialization step failed. 
                   
-                \item[Forced] - The node is preempted by RM for other work because of fair share. 
+                \item[Forced] - The host is preempted by RM for other work because of fair share. 
                   
                 \item[JobCanceled] - The job was canceled by the user or a system administrator. 
                   
-                \item[JobCompleted] - The process is canceled because of DUCC restart. 
+                \item[JobCompleted] - The process is canceled because of {\DUCC} restart. 
                   
                 \item[JobFailure] - The job failure limit is exceeded, causing the job to be canceled by the JD.                    
                   
@@ -104,10 +105,10 @@
                 \item[Stopped]	- The process was terminated by the Agent for some reason.  The hover should
                   contain more information.
                           
-                \item[Voluntary] - The job is winding down, there's no more work for this node, so it stops. 
+                \item[Voluntary] - The job is winding down, there's no more work for this host, so it stops. 
                   
                 \item[Unknown] - None of the above. This is an exceptional condition, sometimes an
-                  internal DUCC error. Check the JP and JD logs for possible causes..
+                  internal {\DUCC} error. Check the JP and JD logs for possible causes..
             \end{description}
 
           \item[State Agent] \hfill \\
@@ -115,23 +116,23 @@
 
           % This state comes from here:
           % State Agent: org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState
-            This shows the DUCC Agent's view of the state of the process.
+            This shows the {\DUCC} Agent's view of the state of the process.
             \begin{description}
-               \item[Starting] The DUCC process manager as issued a request to the assigned to
+               \item[Starting] The {\DUCC} process manager as issued a request to the assigned to
                  start the process.
                \item[Initializing] The process is initializing.  Usually this means the UIMA analytic
                  pipeline (Job Process) is executing it's initialization method.
               \item[Running] The Job Process has completed the initialization phase and is ready for, 
                 or actively executing work.
-              \item[Stopped] The DUCC Agent reports the process is stopped and (and has exited).
-              \item[Failed] The DUCC Agent reports the process failed with errors.  This usually
+              \item[Stopped] The {\DUCC} Agent reports the process is stopped and (and has exited).
+              \item[Failed] The {\DUCC} Agent reports the process failed with errors.  This usually
                 means that UIMA-AS has detected exceptions in the pipeline and reported them
                 to the Job Driver for logging.
               \item[FailedInitialization] The process died during the UIMA initialization phase.
               \item[InitializationTimeout] The process exceeded the site's limit for time spent
                 in UIMA initialization.
-              \item[Killed] The DUCC Agent killed the process for some reason.  There are
-                three rosins for this:
+              \item[Killed] The {\DUCC} Agent killed the process for some reason.  There are
+                three reasons for this:
                 \begin{enumerate}
                   \item The Job Processes failed to initialize,
                   \item The Job Process timed out during initialization,
@@ -139,7 +140,7 @@
                 \end{enumerate}
               \item[Abandoned] It is possible to cancel a specific process of a job.  Usually
                 this is because it became ``stuck'' because of hardware failure.  It a process
-                is killed in \hyperref[sec:cli.ducc-cancel]{this way}, the state is recoreded as {\em Abandonded}.
+                is killed in \hyperref[sec:cli.ducc-cancel]{this way}, the state is recorded as {\em Abandoned}.
             \end{description}
             
           \item[Reason Agent] \hfill \\
@@ -149,8 +150,8 @@
           of work to do.
 
             \begin{description}
-              \item[AgentTimedOutWatingForORState] The DUCC Agent is expecting a state update
-                from the DUCC Orchestrator.  Timer on this wait has expired.  This usually 
+              \item[AgentTimedOutWatingForORState] The {\DUCC} Agent is expecting a state update
+                from the {\DUCC} Orchestrator.  Timer on this wait has expired.  This usually 
                 indicates an infrastructure or communication problem.
               \item[Croaked] The process exited for no good or clear reason, it simply vanished.
               \item[Deallocated] WHAT IS THIS?
@@ -166,12 +167,15 @@
                 processes running for that job. The agent kills ghost processes with the reason:
                 JPHasNoActiveJob.
               \item[LowSwapSpace] The process was terminated because the system is about to run
-                out of swap space.  This is a preemptive measure taken by DUCC to avoid exhaustion
+                out of swap space.  This is a preemptive measure taken by {\DUCC} to avoid exhaustion
                 of swap, to effect orderly eviction of the job before the operating system starts
                 its own reaping procedures.
               \item[AdministratorInitiated] The process was canceled by an administrator.
               \item[UserInitated] The process was canceled by the owning user.
             \end{description}
+                    
+          \item[Exit] \hfill \\
+            The process exit code or signal.
             
           \item[Time Init] \hfill \\
             This is the clock time this process spent in initialization.
@@ -183,21 +187,14 @@
           \item[Time GC] \hfill \\
             This is amount of time spent in Java Garbage Collection for the process.
             
-          \item[Count GC] \hfill \\
-            This is the number of garbage collections performed by the process.
-            
-          \item[Pgin] \hfill \\
+          \item[PgIn] \hfill \\
             This is the number of page-in events on behalf of the process.
 
           \item[Swap] \hfill \\
             This is the amount of swap space on the machine being consumed by the process.
 
-          \item[\%GC] \hfill \\
-            Percentage of time spent in garbage collections by this process, relative to total of
-            initialization + run times.
-            
           \item[\%CPU] \hfill \\
-            Currant CPU percent consumed by the process.  This will be $>$ 100\% on 
+            Current CPU percent consumed by the process.  This will be $>$ 100\% on 
             multi-core systems if more than one core is being used.  Each core contributes
             up to 100\% CPU, so, for example, on a 16-core machine, this can be as high
             as 1600\%.
@@ -208,10 +205,10 @@
           \item[Time Avg] \hfill \\
             This is the average time in seconds spent per work item in the process.
             
-          \item[Time max] \hfill \\
+          \item[Time Max] \hfill \\
             This is the minimum time in seconds spent per work item in the process.
             
-          \item[Time min] \hfill \\
+          \item[Time Min] \hfill \\
             This is the minimum time in seconds spent per work item in the process.
             
           \item[Done] \hfill \\
@@ -219,7 +216,10 @@
             
           \item[Error] \hfill \\
             This is the number of exceptions processing work items in this process.
-            
+                      
+          \item[Dispatch] \hfill \\
+            The number of work items currently dispatched.
+              
           \item[Retry] \hfill \\
             This is the number of work items that were retried in this process for any reason, excluding
             preemption.
@@ -248,7 +248,7 @@
    \begin{description}
      \item[SeqNo]  \hfill \\
        This is the sequence work items are fetched from the Collection Reader's
-       getNext() method by the DUCC Job Driver.
+       getNext() method by the {\DUCC} Job Driver.
      \item[Id]  \hfill \\
        This is the name of the work item.
      \item[Status]  \hfill \\
@@ -261,22 +261,23 @@
          any Job Process.
          \item[operating] The work item is current being executed.
          \item[retry] The work item is being retried.
-         \item[start] The work item has been picked up for execution and DUCC is waiting
+         \item[start] The work item has been picked up for execution and {\DUCC} is waiting
            for confirmation that it is running.
          \item[queued] The work item has been queued to ActiveMQ but not picked up by any
            Job Process yet.
        \end{description}
        If a work item has not yet been retrieved from the Collect Reader it does not show
        on this page.
-     \item[Queuing Time (sec)]  \hfill \\
-       The time spent in ActiveMQ after being queued, and before
-       being picked up by a Job Process.
+     \item[Delivery Time (sec)]  \hfill \\
+       The time spent in getting a work item from the Job Driver to a Job Process.
      \item[Processing Time (sec)]  \hfill \\
        The time spent processing the work item.
-     \item[Node (IP)]  \hfill \\
-       The node IP where the work item was processed.
-     \item[Node (Name]  \hfill \\
-       The node name where the work item was processed.
+     \item[Investment Time (sec)]  \hfill \\
+       The time spent processing the work item during the current epoch.
+     \item[Host (IP)]  \hfill \\
+       The host IP where the work item was processed.
+     \item[Host (Name)]  \hfill \\
+       The host name where the work item was processed.
      \item[PID]  \hfill \\
        The Unix Process Id that the work item was processed in.
    \end{description}
@@ -318,10 +319,13 @@
    \subsection{Specification}
    This tab shows the full job specification in the form of a Java Properties
    file.  This will include all the parameters specified by the user, plus those
-   filled in by DUCC.
+   filled in by {\DUCC}.
     
     \begin{figure}[ht!]
     \centering
     \includegraphics[width=90mm]{images/ducc-webserver/Job-Details-Specification.png}
     \caption{Specification Tab}
     \end{figure}  
+    
+   \subsection{Files}
+   This tab shows the files in the log directory.

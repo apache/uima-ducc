@@ -20,12 +20,13 @@
 \label{sec:ws-managed-reservation-details}
 
 This page shows details of the processes which run in a managed reservation.  The
-information is divided between two tabs:
+information is divided between three tabs:
 
    \begin{description}
-       \item[Processes] This tab contains details on all the proceses contained in the
+       \item[Processes] This tab contains details on all the processes contained in the
          reserved space.
        \item[Specification] This tab shows the specification for the process.
+       \item[Files] This tab shows the files in the log directory.
    \end{description}  
 
    \subsection{Processes}
@@ -33,8 +34,8 @@ information is divided between two tabs:
 
    The processes page contains the following columns:
    \begin{description}
-      \item[ID] \hfill \\
-        This is the DUCC-assigned numeric id of the process.  This format of this
+      \item[Id] \hfill \\
+        This is the {\DUCC}-assigned numeric id of the process.  This format of this
         id is two numbers:
 \begin{verbatim}
     RESID.SHAREID
@@ -43,30 +44,30 @@ information is divided between two tabs:
         share ID assigned by the Resource Manager.  Together these form a unique
         ID for each process that runs in the reservation.
         
-        Note: The current version of DUCC supports only one process per managed
+        Note: The current version of {\DUCC} supports only one process per managed
         reservation.  Future versions are expected to support multiple processes
         within a single managed reservation.
         
       \item[Log] \hfill \\
         This is the log name for the process. It is hyperlinked to the log itself.
         
-      \item[Size] \hfill \\
+      \item[Log Size] \hfill \\
         This is the size of the log in MB. If you find you have trouble viewing the log
         from the web server it could be because it is too big to view in the browser.
         
-      \item[Hostname] \hfill \\
-        This is the name of the node where the process is running (or ran).
+      \item[Host Name] \hfill \\
+        This is the name of the host where the process is running (or ran).
         
       \item[PID] \hfill \\
         This is the Unix process ID (PID) of the process.
         
       \item[State Scheduler] \hfill \\
-        This shows the Resesource Manager state of the job. It is one of:
+        This shows the Resource Manager state of the job. It is one of:
         
         \begin{description}
-            \item[Allocated] - The node is still allocated for this job by the RM.
+            \item[Allocated] - The host is still allocated for this job by the RM.
             \item[Deallocated] - The resource manager has deallocated the shares for the job on
-              this node.
+              this host.
         \end{description}
         
       \item[Reason Scheduler or Extraordinary Status] \hfill \\
@@ -78,10 +79,25 @@ information is divided between two tabs:
       \item[Reason Agent] \hfill \\
         These are the same as for the \hyperref[itm:job-details-agent]{job details.}
 
+      \item[Exit] \hfill \\
+        The process exit code or signal.
+
       \item[Time Run] \hfill \\
         The current duration of the reservation, or total duration if it has 
         terminated.
-        
+      
+      \item[PgIn] \hfill \\
+        This is the number of page-in events on behalf of the process.
+
+      \item[Swap] \hfill \\
+        This is the amount of swap space on the machine being consumed by the process.
+      
+      \item[\%CPU] \hfill \\
+        Current CPU percent consumed by the process.  This will be $>$ 100\% on 
+        multi-core systems if more than one core is being used.  Each core contributes
+        up to 100\% CPU, so, for example, on a 16-core machine, this can be as high
+        as 1600\%.
+      
       \item[RSS] \hfill \\
         The amount of real memory being consumed by the process (Resident Storage Size)
 
@@ -89,7 +105,10 @@ information is divided between two tabs:
 
    \subsection{Specification}
    \label{sec:ws-service-specification}
-   This tab shows the full job specification in the form of a Java Properties
+   This tab shows the full managed reservation specification in the form of a Java Properties
    file.  This will include all the parameters specified by the user, plus those
-   filled in by DUCC.
+   filled in by {\DUCC}.
+        
+   \subsection{Files}
+   This tab shows the files in the log directory.
         

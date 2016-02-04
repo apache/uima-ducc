@@ -21,21 +21,23 @@
 
 This page shows details of the processes which implement. 
 
-The information is divided between two tabs:
+The information is divided between four tabs:
 
    \begin{description}
-       \item[Processes] This tab contains details on all the proceses implementing
+       \item[Deployments] This tab contains details on all the processes implementing
          the service, if any.
-       \item[Specification] This tab shows the specification for the service.  
+       \item[Registry] This tab shows the registration information for the service.
+       \item[Files] This tab shows the files in the log directory. 
+       \item[History] This tab contains details on all the completed processes implementing the service, if any.  
    \end{description}  
 
-   \subsection{Processes}
+   \subsection{Deployments}
    \label{sec:ws-services-processes}
 
-   The processes page contains the following columns:
+   The deployments page contains the following columns:
    \begin{description}
-      \item[ID] \hfill \\
-        This is the DUCC-assigned numeric id of the process.  This format of this
+      \item[Id] \hfill \\
+        This is the {\DUCC}-assigned numeric id of the process.  This format of this
         id is two numbers:
 \begin{verbatim}
     RESID.SHAREID
@@ -43,22 +45,31 @@ The information is divided between two tabs:
         Here, the {\em RESID} is the reservation ID.  The {\em SHAREID} is the 
         share ID assigned by the Resource Manager.  Together these form a unique
         ID for each process that runs in the reservation.
-                
+               
+      \item[State] \hfill \\
+        The state of this service instance.
+               
+      \item[Services] \hfill \\
+        The current state of service dependencies.
+                                
       \item[Log] \hfill \\
         This is the log name for the process. It is hyperlinked to the log itself.
         
-      \item[Size] \hfill \\
+      \item[Log Size] \hfill \\
         This is the size of the log in MB. If you find you have trouble viewing the log
         from the web server it could be because it is too big to view in the browser.
         
-      \item[Hostname] \hfill \\
+      \item[Host Name] \hfill \\
         This is the name of the node where the process is running (or ran).
         
       \item[PID] \hfill \\
         This is the Unix process ID (PID) of the process.
-        
+       
+      \item[Memory] \hfill \\
+        The service process actual memory size (GB).
+                
       \item[State Scheduler] \hfill \\
-        This shows the Resesource Manager state of the job. It is one of:
+        This shows the Resource Manager state of the job. It is one of:
         
         \begin{description}
             \item[Allocated] - The node is still allocated for this job by the RM.
@@ -75,6 +86,8 @@ The information is divided between two tabs:
       \item[Reason Agent] \hfill \\
         These are the same as for the \hyperref[itm:job-details-agent]{job details.}
 
+      \item[Exit] \hfill \\
+        The process exit code or signal.
 
       \item[Time Init] \hfill \\
         Most services are UIMA-AS services and therefore have an {\em initialization} phase
@@ -94,7 +107,7 @@ The information is divided between two tabs:
         This is the amount of swap space on the machine being consumed by the process.
         
       \item[\%CPU] \hfill \\
-        Currnt CPU percent consumed by the process.  This will be $>$ 100\% on 
+        Current CPU percent consumed by the process.  This will be $>$ 100\% on 
         multi-core systems if more than one core is being used.  Each core contributes
         up to 100\% CPU, so, for example, on a 16-core machine, this can be as high
         as 1600\%.
@@ -108,20 +121,27 @@ The information is divided between two tabs:
 
    \end{description}
 
-   \subsection{Specification}
+   \subsection{Registry}
    \label{sec:ws-managed-reservation-specification}
-   This tab shows the full job specification in the form of a Java Properties
+   This tab shows the full service specification in the form of a Java Properties
    file.  This will include all the parameters specified by the user, plus those
-   filled in by DUCC.
+   filled in by {\DUCC}.
         
-   The specification for a Service contains two types of entries:
+   The registry for a Service contains two types of entries:
    \begin{enumerate}
      \item Service specification properties, prefixed with ``svc''. These comprise
        the service specification that the Service Manager submits on behalf of
        a user in order to start registered services.
      \item Meta properties, prefixed with ``meta''.  This is the Service Manager's state
-       record for the sesrvice as it is running.  In addition to state it contains
+       record for the service as it is running.  In addition to state it contains
        properties required for service registration that are not used for
        service submission.
    \end{enumerate}
+           
+   \subsection{Files}
+   This tab shows the files in the log directory.
+   
+           
+   \subsection{History}
+   This tab shows the completed service instances.
    

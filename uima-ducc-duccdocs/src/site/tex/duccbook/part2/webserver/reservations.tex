@@ -21,16 +21,16 @@
 \label{sec:ws-reservations}
 
 This page shows details of all reservations.  There are two types of reservations: {\em managed}
-and {\em unmanaged.}.
+and {\em unmanaged}.
 
-A {\em managed reservation} is a reservation whose process is fully managed by DUCC.  This process
+A {\em managed reservation} is a reservation whose process is fully managed by {\DUCC}.  This process
 is any arbitrary process and is submitted with the
 \hyperref[sec:cli.ducc-process-submit]{ducc\_process\_submit} CLI.  The lifetime of the reservation
-starts at the time DUCC assigns a unique ID, and ends when the process terminates for any reason.
+starts at the time {\DUCC} assigns a unique ID, and ends when the process terminates for any reason.
 
-An {\em unmanaged reservation} is essentially a sandbox for the user.  DUCC starts no processes
-in the reservation and manages none of the processes which run on that node.  The lifetime of the
-reservation starts at the time DUCC assigns a unique ID, and ends when the submitter or system
+An {\em unmanaged reservation} is essentially a sandbox for the user.  {\DUCC} starts no processes
+in the reservation and manages none of the processes which run on that host.  The lifetime of the
+reservation starts at the time {\DUCC} assigns a unique ID, and ends when the submitter or system
 administrator cancels it.  {\em Managed reservations} can potentially last an indefinite
 period of time.
 
@@ -38,7 +38,7 @@ The Reservations page contains the following columns:
 \begin{description}
 
 \item[Id] \hfill \\
-  This is the unique DUCC numeric id of the reservation as assigned when the reservation is made.
+  This is the unique {\DUCC} numeric id of the reservation as assigned when the reservation is made.
   If this is a {\em managed} reservation, the ID is hyperlinked to a
   \hyperref[sec:ws-managed-reservation-details]{Managed Reservation Details} page with extended
   details on the process running in the reservation.
@@ -46,8 +46,9 @@ The Reservations page contains the following columns:
 \item[Start] \hfill \\
   This is the time the reservation was mode.
   
-\item[End] \hfill \\
-  This is the time the reservation was canceled or otherwise ended.
+\item[Duration] \hfill \\
+  A time in green is the length of time the active reservation has been assigned.  
+  A time in black is the length of time the completed reservation was assigned. 
   
 \item[User] \hfill \\
   This is the userid if the person who made the reservation.
@@ -77,19 +78,19 @@ The Reservations page contains the following columns:
 
   If a reservation is not active, this shows the reason.  Note that for
   {\em unmanaged reservations}, even if the user has processes running in the
-  reservation, DUCC does NOT attempt to terminate those processes (hence, ``unmanaged''.)
+  reservation, {\DUCC} does NOT attempt to terminate those processes (hence, ``unmanaged''.)
 
-  For {\em managed reservations}, DUCC does terminate the associated process.
+  For {\em managed reservations}, {\DUCC} does terminate the associated process.
 
   \begin{description}
   \item[CanceledBySystem] - In the case of the special JobDriver reservation, this is
-    canceled by DUCC and reestablished on reboot; hence the state is a result of DUCC
+    canceled by {\DUCC} and reestablished on reboot; hence the state is a result of {\DUCC}
     having been restarted.
 
-    In all other cases, it is a result of DUCC being restarted {\em COLD}.  When
-    DUCC is started {\em COLD}, all previous reservations are canceled.  (When DUCC
+    In all other cases, it is a result of {\DUCC} being restarted {\em COLD}.  When
+    {\DUCC} is started {\em COLD}, all previous reservations are canceled.  (When {\DUCC}
     is started {\em WARM}, the default, previous reservations are preserved.)
-  \item[CanceledByAdmin] - The DUCC administrator released the reservation. 
+  \item[CanceledByAdmin] - The {\DUCC} administrator released the reservation. 
   \item[CanceledByUser] - The reservation owner released the reservation. 
   \item[ResourcesUnavailable] - The Resource Manager was unable to find free or freeable resources 
     match the resource request. 
@@ -97,24 +98,24 @@ The Reservations page contains the following columns:
     process has exited.
   \end{description}
 
-\item[Allocation] \hfill \\
-  This is the number of resources (shares for FIXED policy reservations, processes for
-  RESERVE policy reservations) that are allocated.
-
-\item[UserProcesses] This is the number of processes owned by the user running in all
+\item[User Processes] This is the number of processes owned by the user running in all
   shares of the reservation.  
   
-  Note that even for {\em unmanaged} reservations, the DUCC agent tracks processes owned
+  Note that even for {\em unmanaged} reservations, the {\DUCC} agent tracks processes owned
   by the user and reports on them.  This allows better identification and management of
   abandoned reservations.
+          
+\item[PgIn] This is the number of page-in events for the managed reservation.
 
-\item[Size] \hfill \\
+\item[Swap] This is the total swap space for the managed reservation.
+
+\item[Memory] \hfill \\
   The memory size in GB of the each allocated unit.  This is the amount of memory that
   was {\em requested}.  In the case of RESERVE policy reservations, that actual memory
   of the reserved machine may be greater.
   
 \item[Host Names] \hfill \\
-  The node names of the machines where the resources are allocated.
+  The host names of the machines where the resources are allocated.
   
 \item[Description] \hfill \\
   This is the description string from the --description string from submit.

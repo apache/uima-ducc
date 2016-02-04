@@ -25,20 +25,13 @@
         \begin{description}
 
             \item[Id] \hfill \\
-              This is the unique numeric DUCC id of the service.  This ID is hyperlinked to a
+              This is the unique numeric {\DUCC} id of the service.  This ID is hyperlinked to a
               \hyperref[sec:ws-service-details]{Service Details} page with extended
-              details on the service.  Note that for some types of services, DUCC may not
+              details on the service.  Note that for some types of services, {\DUCC} may not
               know more about the service than is shown on the main page.
 
             \item[Name] \hfill \\
               This is the unique service endpoint of the service.  
-              
-            \item[Type] \hfill \\
-              This is the service type, which is one of
-              \begin{itemize}
-                \item Registered
-                \item Ping-Only
-              \end{itemize}
               
             \item[State] \hfill \\
               This is the state of the service with respect to the service manager.  It is a
@@ -59,27 +52,15 @@
                   resources have been returned yet.
               \end{description}
 
-              DUCC will start dependent jobs ONLY if it's services are in state Available.  Otherwise
-              DUCC attempts to start the service, and if successful, allows the job to start.  
+              {\DUCC} will start dependent jobs ONLY if it's services are in state Available.  Otherwise
+              {\DUCC} attempts to start the service, and if successful, allows the job to start.  
 
               If a job is already running and a service becomes other than Available, the
               \hyperref[sec:ws.jobs-page]{jobs page} indicates the service is not available but the job is 
               allowed to continue.
               
-            \item[Pinger] \hfill \\
-              This indicates whether the Service Manager is running a pinger for the service.  This column
-              does not imply the ping is successful; see the ``health'' column for ping status.
-              
-            \item[Health] \hfill \\
-              {\em Health} is a status returned by each pinger and is the result of that pinger's
-              evaluation of the state of the service.  It is shown as on of
-              \begin{itemize}
-                \item {\em Good}
-                \item {\em Poor}
-              \end{itemize}
-              Both terms are highly subjective.  Pingers may return a summary of the underlying
-              data used to label a service as good or bad.  That status is shown as a hover over
-              this field.
+            \item[Last Use] \hfill \\
+              The time this service was last used.
               
             \item[Instances] \hfill \\
               This is the number of instances (processes) currently registered for the service.  
@@ -89,6 +70,9 @@
               be greater, or less, than the number of registered instances, if the service owner
               decides to temporarily start or stop additional instances.
 
+            \item[Start State] \hfill \\
+              This service start state.
+
             \item[User] \hfill \\
               This is the userid of the service owner.
               
@@ -97,8 +81,14 @@
               
               If a service is registered as ``ping-only'', no resources are allocated for it.  This
               is shown as a class of {\tt ping-only}.
-              
-            \item[Size] \hfill \\
+                
+      		\item[PgIn] \hfill \\
+        	This is the number of page-in events on behalf of the service.
+
+      		\item[Swap] \hfill \\
+        	This is the amount of swap space consumed by the service.
+        
+            \item[Memory (registered)] \hfill \\
               This is the memory size, in GB, of each service instance
 
             \item[Jobs] \hfill \\
