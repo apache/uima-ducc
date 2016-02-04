@@ -566,6 +566,19 @@ under the License.
         <include>*.png</include>
       </includes>
     </fileSet>
+
+
+  <fileSet>
+      <!-- build up the webserver directory -->
+      <directory>uima-ducc-duccdocs/src/site/tex/duccbook/images/ducc-webserver</directory>
+      <outputDirectory>webserver/root/doc/images/ducc-webserver</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+      <includes>
+        <include>*.jpg</include>
+        <include>*.png</include>
+      </includes>
+    </fileSet>
   
   <fileSet>
       <!-- add javadocs to the webserver directory -->
