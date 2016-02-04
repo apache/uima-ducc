@@ -196,7 +196,7 @@ public class ProcessAccounting {
 		String methodName = "copyInventorySwapUsage";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		long value = inventoryProcess.getSwapUsage();
-		logger.debug(methodName, dw.getDuccId(), inventoryProcess.getDuccId(), ""+value);
+		logger.trace(methodName, dw.getDuccId(), inventoryProcess.getDuccId(), "PID:"+process.getPID()+" "+"swap:"+value);
 		process.setSwapUsage(value);
 		if(process.getSwapUsageMax() < process.getSwapUsage()) {
 			process.setSwapUsageMax(process.getSwapUsage());
