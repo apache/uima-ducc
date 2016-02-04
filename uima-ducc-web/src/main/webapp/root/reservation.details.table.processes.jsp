@@ -25,7 +25,7 @@ under the License.
 	<tr class="ducc-head">
 	<th title="The system assigned id for this process" class="sorttable_numeric">Id</th>
 	<th title="The log file name associated with this process">Log</th>
-	<th title="The log file size, in MB">Size</th>
+	<th title="The log file size, in MB">Log<br>Size</th>
 	<th title="The host for this process">Host<br>Name</th>
 	<!--
 	<th title="The host IP for this process">Host<br>ip</th>

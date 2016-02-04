@@ -118,7 +118,7 @@ if (table_style.equals("scroll")) {
 		<th title="The service start state">Start<br>State</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>
 		<th title="The service scheduling class">Class</th>
-		<th title="The count for all service processes of major faults which required loading a memory page from disk">Pgin</th>
+		<th title="The count for all service processes of major faults which required loading a memory page from disk">PgIn</th>
 		<th title="The GB swapped out to disk for all initializing/running service processes">Swap</th>
 		<th title="The service process registered memory size (GB)">Memory<br><small>(registered)</small></th>
 		<th title="The number of active Jobs that depend on this service">Jobs</th>
@@ -154,7 +154,7 @@ if (table_style.equals("classic")) {
 		<th title="The service start state">Start<br>State</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>
 		<th title="The service scheduling class">Class</th>
-		<th class="sorttable_numeric" title="The count for all service processes of major faults which required loading a memory page from disk">Pgin</th>
+		<th class="sorttable_numeric" title="The count for all service processes of major faults which required loading a memory page from disk">PgIn</th>
 		<th class="sorttable_numeric" title="The GB swapped out to disk for all initializing/running service processes">Swap</th>
 		<th class="sorttable_numeric" title="The service process registered memory size (GB)">Memory<br/><small>(registered)</small></th>
 		<th class="sorttable_numeric" title="The number of active Jobs that depend on this service">Jobs</th>
