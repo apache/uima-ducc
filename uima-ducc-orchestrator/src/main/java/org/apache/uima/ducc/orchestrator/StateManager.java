@@ -628,9 +628,9 @@ public class StateManager {
 							switch(jdStatusReport.getJobCompletionType()) {
 							case EndOfJob:
 								try {
-									int errors = Integer.parseInt(duccWorkJob.getSchedulingInfo().getWorkItemsError());
+									int errors = jdStatusReport.getWorkItemsProcessingError();
 									if(errors > 0) {
-										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.Error, new Rationale("state manager detected errors"));
+										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.Error, new Rationale("state manager detected error work items="+errors));
 									}
 									else {
 										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
