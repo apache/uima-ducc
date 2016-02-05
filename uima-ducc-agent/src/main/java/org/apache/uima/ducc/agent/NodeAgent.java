@@ -1039,6 +1039,16 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           if (addProcessMemoryCollector(duccEvent.getPid())
                   && (duccEvent.getState().equals(ProcessState.Initializing) || duccEvent
                           .getState().equals(ProcessState.Running))) {
+            if ( duccEvent.getState().equals(ProcessState.Running) ) {
+               if ( processEntry.getValue().getUimaPipelineComponents() != null && 
+            		processEntry.getValue().getUimaPipelineComponents().size() > 0 ) {
+            	   processEntry.getValue().getUimaPipelineComponents().clear();
+            	   if ( duccEvent.getUimaPipeline() != null ) {
+            		   duccEvent.getUimaPipeline().clear();
+            	   }
+               }
+            }
+	      /*
             RouteBuilder rb = new ProcessMemoryUsageRoute(this, processEntry.getValue(),
                     deployedProcess);
             super.getContext().addRoutes(rb);
@@ -1073,6 +1083,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     null,
                     ">>>> Agent Added new Process Memory Collector Thread for Process:"
                             + duccEvent.getPid());
+	      */
           } else if (duccEvent.getState().equals(ProcessState.Stopped)
                   || duccEvent.getState().equals(ProcessState.Failed)
                   || duccEvent.getState().equals(ProcessState.Killed)) {
