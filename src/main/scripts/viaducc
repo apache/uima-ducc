@@ -31,6 +31,8 @@ import os
 import re
 
 global ducc_mem_size
+global ducc_mem_size_set
+global ducc_desc_set
 global default_jvm
 global ducc_home
 
@@ -38,6 +40,8 @@ ducc_class = 'fixed'
 java_cmd   = None
 ducc_home  = None       # tbd in a minute
 ducc_mem_size = None
+ducc_mem_size_set = False # whether the user passed a flag to manually set DUCC_MEMORY_SIZE
+ducc_desc_set = False # whether the user passed a flag to manually set DUCC_DESCRIPTION
 default_jvm = None
 
 # get the default DUCC_HOME right away for message
@@ -45,7 +49,11 @@ realpath = os.path.realpath(sys.argv[0])
 ndx = realpath.rindex('/')
 ndx = realpath.rindex('/', 0, ndx)
 ducc_home = realpath[:ndx]
-       
+
+def error(message):
+    print "Error:", message
+    sys.exit(1)
+
 def usage():
 
     print "Usage: viaducc [defines] [command and parameters]"
@@ -72,7 +80,7 @@ def usage():
         print "       The default is -DJAVA_BIN=" + default_jvm
     print ""
     print "   -DDUCC_DESRIPTION=user-description-string"
-    print "       The default description is the program name: viaducc or java_viaducc"
+    print "       The default description is the program name (viaducc or java_viaducc) with arguments"
     print ""
     print "   -DDUCC_NO_CANCEL_ON_INTERRUPT"
     print "       To disable process cancellation when the submitting process terminates."
@@ -102,8 +110,7 @@ def usage():
 def read_properties():
     ducc_properties = ducc_home + '/resources/ducc.properties'
     if ( not os.path.exists(ducc_properties) ):
-        print "Cannot access DUCC_HOME at " + ducc_home
-        sys.exit(1)
+        error("Cannot access DUCC_HOME at " + ducc_home)
 
     ducc_jvm = None
     # first see if i'm executed out of some JAVA_HOME somewhere
@@ -111,7 +118,7 @@ def read_properties():
     ndx = jpath.rindex('/')
     jdir = jpath[:ndx]
     java = jdir + '/java'
-    if ( os.path.exists(java)):
+    if (os.path.exists(java)):
         ducc_jvm = java
 
     # nope, we'll use the default ducc java
@@ -123,20 +130,78 @@ def read_properties():
             if ( mobj ):
                 key = line[:mobj.start()].strip()
                 val = line[mobj.end():].strip()
-                if ( (ducc_jvm == None) and (key == 'ducc.jvm') ):       # yes!
+                if ( (ducc_jvm is None) and (key == 'ducc.jvm') ):       # yes!
                     ducc_jvm = val
                     continue
                 if ( key == 'ducc.rm.share.quantum' ):       # yes!
-                    ducc_mem = val
-                    continue
+                    ducc_mem = 1   # default quantum may not be the same for all classes
+                    continue       # and the actual allocation will be rounded up to quantum
     finally:
         props.close();
 
     return (ducc_jvm, ducc_mem)
 
+def parse_memory_string(text):
+    """Given a string (e.g., "5G", "200m"), Returns the memory requested
+    in bytes. For example:
+
+        parse_memory_string('500m') should return
+            500 * 1024 * 1024
+        parse_memory_string('15G') should return
+            15 * 1024 * 1024 * 1024
+    """
+
+    # this list should cover us for a while
+    suffixes = {
+        'k': 1024,
+        'm': 1024 * 1024,
+        'g': 1024 * 1024 * 1024,
+        't': 1024 * 1024 * 1024 * 1024,
+    }
+
+    text = text.lower()
+    if text[-1] in suffixes:
+        multiplier = suffixes[text[-1]]
+        text = text[:-1] # chop off suffix
+    else:
+        multiplier = 1
+
+    return multiplier * int(text)
+
+def parse_java_command_line():
+    """Parse the command line and returns a dictionary including
+    information on the maximum amount of memory the job might need,
+    the Java class name, and its arguments."""
+    maximum_memory_required = 1024.0 ** 3  # our default if -Xmx not specified
+    args = iter(sys.argv[1:])
+    skip_next_arg = False
+
+    # scan args until we find the Java class
+    while 1:
+        arg = next(args).lower()
+        if skip_next_arg:
+            skip_next_arg = False
+            continue
+
+        if arg.startswith('-'):
+            # these are the only options that take an argument and require
+            # a space between the flag and the argument
+            if arg in ('-cp', '-classpath', '-jar'):
+                skip_next_arg = True
+            elif arg.startswith('-xmx'): # maximum Java heap size
+                maximum_memory_required = parse_memory_string(arg[4:])
+            continue
+
+        break
+
+    return dict(maximum_memory_required=maximum_memory_required,
+                java_class_name=arg, java_class_args=list(args))
+
 def main():
 
     global ducc_mem_size
+    global ducc_mem_size_set
+    global ducc_desc_set
     global default_jvm
     global ducc_home
 
@@ -146,8 +211,8 @@ def main():
     ducc_class = 'fixed'
     java_cmd   = None
     ducc_env   = ''
-    ducc_desc  = os.path.basename(sys.argv[0])
     enable_cancel = True
+    ducc_desc  = os.path.basename(sys.argv[0])
 
     # remember to add the '=' at the end if following value
     p_mem_size  = '-DDUCC_MEMORY_SIZE='
@@ -163,7 +228,7 @@ def main():
         # if invokded as 'java_viaducc we must inject some kind of jvm as the executable
         # this is more liberal: any link other than 'viaducc' caused injection of the
         # jvm, to allow multiple, different symlinks (in case there are multiple,
-        # different versions of ducc, not really recommended, but supported)
+        # different versions of ducc, not really reccomended, but supported)
         need_java = True
 
     ducc_args = []
@@ -175,6 +240,7 @@ def main():
        
         elif (arg.startswith(p_mem_size) ):
             ducc_mem_size = arg[len(p_mem_size):]
+            ducc_mem_size_set = True
 
         elif (arg.startswith(p_class) ):
             ducc_class = arg[len(p_class):]
@@ -189,7 +255,8 @@ def main():
             ducc_env = ' --environment "' + arg[len(p_env):] + '"'
 
         elif (arg.startswith(p_desc) ):
-            ducc_desc = '"' + arg[len(p_desc):] +'"'
+            ducc_desc = arg[len(p_desc):]
+            ducc_desc_set = True
 
         elif (arg.startswith(p_no_int) ):
             enable_cancel = False
@@ -199,14 +266,34 @@ def main():
 
     p = read_properties()
     default_jvm = p[0]
-    if (ducc_mem_size == None ):
+    if (ducc_mem_size is None):
         ducc_mem_size = p[1]
 
-    if ( need_java and (java_cmd == None) ):
+    description = os.path.basename(sys.argv[0])
+    if ( need_java and (java_cmd is None) ):
         java_cmd = default_jvm
-        if ( (java_cmd == None) or (java_cmd == '') ):
-            print "Cannot figure out where java is"
-            sys.exit(1);
+        if ( (java_cmd is None) or (java_cmd == '') ):
+            error("Cannot figure out where java is")
+
+    if need_java:
+        java_command_line_info = parse_java_command_line()
+        description += ' %s %s' % (java_command_line_info['java_class_name'],
+                                    ' '.join(java_command_line_info['java_class_args']))
+
+        import math
+        # convert to gigabytes, round up
+        maximum_memory_required = java_command_line_info['maximum_memory_required'] / (1024.0 ** 3)
+        maximum_memory_required = int(math.ceil(maximum_memory_required))
+        if maximum_memory_required > float(ducc_mem_size):
+            if ducc_mem_size_set:
+                print ("Warning: DUCC memory size specified as %sg but max heap set to %sg.\n"
+                       "         Consider increasing -DDUCC_MEMORY_SIZE=<size>\n") % \
+                      (ducc_mem_size, maximum_memory_required)
+            else:
+                print ("Info: DUCC memory size is not specified but asking JVM to set max heap to %sg.\n"
+                       "      Setting DUCC memory size to %sg. Use -DDUCC_MEMORY_SIZE=<size> to specify\n") % \
+                      (maximum_memory_required, maximum_memory_required)
+                ducc_mem_size = maximum_memory_required
 
     # DUCC_HOME isn't ususally needed but viaducc is slithery and may end up tryng to
     # execute from somebody else's ducc so let's be sure we point at the right one
@@ -215,7 +302,14 @@ def main():
     CMD = CMD +       ' --attach_console'
     CMD = CMD +       ' --process_memory_size ' + str(ducc_mem_size)
     CMD = CMD +       ' --scheduling_class ' + ducc_class
-    CMD = CMD +       ' --description ' + ducc_desc
+    if ducc_desc_set:
+        CMD = CMD +       ' --description %r' % ducc_desc
+    else:
+        if need_java:
+            CMD = CMD +       ' --description %r' % description # %r so it will be quoted
+        else:
+            CMD = CMD +        ' --description viaducc'
+
     CMD = CMD +       ' --wait_for_completion'
     if (enable_cancel):
         CMD = CMD +       ' --cancel_on_interrupt'
@@ -228,8 +322,7 @@ def main():
             CMD = CMD +   ' --process_executable_args "' + ' '.join(ducc_args) + '"'
     else:
         if ( len(ducc_args) == 0 ):
-            print "No command specified."
-            sys.exit(1);
+            error("No command specified.")
 
         CMD = CMD +   ' --process_executable ' + ducc_args[0]
         if ( len(ducc_args[1:]) > 0):
