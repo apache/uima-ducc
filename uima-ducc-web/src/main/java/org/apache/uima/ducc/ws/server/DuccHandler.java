@@ -758,7 +758,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(process != null) {
 			switch(sType) {
 			case MR:
-				break;
 			default:
 				long faults = 0;
 				try {
@@ -780,7 +779,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(process != null) {
 			switch(sType) {
 			case MR:
-				break;
 			default:
 				if(!process.isActive()) {
 					double swap = process.getSwapUsageMax();
