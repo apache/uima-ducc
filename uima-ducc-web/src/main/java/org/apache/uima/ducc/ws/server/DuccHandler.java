@@ -765,7 +765,15 @@ public class DuccHandler extends DuccAbstractHandler {
 				}
 				catch(Exception e) {
 				}
+				double swap = process.getSwapUsageMax();
+				if((swap * faults) > 0) {
+					sb.append("<span class=\"health_red\""+">");
+				}
+				else {
+					sb.append("<span class=\"health_black\""+">");
+				}
 				sb.append(faults);
+				sb.append("</span>");
 				break;
 			}
 		}

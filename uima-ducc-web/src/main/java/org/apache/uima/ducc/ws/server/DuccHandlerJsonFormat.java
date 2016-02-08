@@ -329,8 +329,21 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		// Pgin
 		sb = new StringBuffer();
 		sb.append("<span>");
-		long pgin = job.getPgInCount();
-		sb.append(""+pgin);
+		long faults = 0;
+		try {
+			faults = job.getPgInCount();
+		}
+		catch(Exception e) {
+		}
+		double swapping = job.getSwapUsageGbMax();
+		if((swapping * faults) > 0) {
+			sb.append("<span class=\"health_red\""+">");
+		}
+		else {
+			sb.append("<span class=\"health_black\""+">");
+		}
+		sb.append(faults);
+		sb.append("</span>");
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Swap
@@ -859,14 +872,26 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		row.add(new JsonPrimitive(sb.toString()));
 		// PgIn
 		sb = new StringBuffer();
-		String pgin = "";
+		sb.append("<span>");
 		if(duccwork instanceof DuccWorkJob) {
 			DuccWorkJob job = (DuccWorkJob) duccwork;
-			pgin = ""+job.getPgInCount();
+			long faults = 0;
+			try {
+				faults = job.getPgInCount();
+			}
+			catch(Exception e) {
+			}
+			double swapping = job.getSwapUsageGbMax();
+			if((swapping * faults) > 0) {
+				sb.append("<span class=\"health_red\""+">");
+			}
+			else {
+				sb.append("<span class=\"health_black\""+">");
+			}
+			sb.append(faults);
+			sb.append("</span>");
 		}
-		sb.append("<span>");
-		sb.append(pgin);
-		sb.append("<span>");
+		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Swap
 		sb = new StringBuffer();
@@ -1199,8 +1224,23 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(col.toString()));
 				// Pgin
 				col = new StringBuffer();
-				long pgIn = service.getPgIn();
-				col.append(""+pgIn);
+				col.append("<span>");
+				long faults = 0;
+				try {
+					faults = service.getPgIn();
+				}
+				catch(Exception e) {
+				}
+				double swapping = service.getSwap();
+				swapping = swapping/Constants.GB;
+				if((swapping * faults) > 0) {
+					col.append("<span class=\"health_red\""+">");
+				}
+				else {
+					col.append("<span class=\"health_black\""+">");
+				}
+				col.append(faults);
+				col.append("</span>");
 				row.add(new JsonPrimitive(col.toString()));
 				// Swap
 				col = new StringBuffer();

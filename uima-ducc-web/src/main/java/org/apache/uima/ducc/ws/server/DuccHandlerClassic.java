@@ -298,8 +298,21 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Pgin
 		sb.append("<td valign=\"bottom\" align=\"right\">");
-		long pgin = job.getPgInCount();
-		sb.append(""+pgin);
+		long faults = 0;
+		try {
+			faults = job.getPgInCount();
+		}
+		catch(Exception e) {
+		}
+		double swapping = job.getSwapUsageGbMax();
+		if((swapping * faults) > 0) {
+			sb.append("<span class=\"health_red\""+">");
+		}
+		else {
+			sb.append("<span class=\"health_black\""+">");
+		}
+		sb.append(faults);
+		sb.append("</span>");
 		sb.append("</td>");
 		// Swap
 		DecimalFormat formatter = new DecimalFormat("###0.0");
@@ -762,13 +775,25 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		}
 		sb.append("</td>");
 		// PgIn
-		String pgin = "";
+		sb.append("<td align=\"right\">");
 		if(duccwork instanceof DuccWorkJob) {
 			DuccWorkJob job = (DuccWorkJob) duccwork;
-			pgin = ""+job.getPgInCount();
+			long faults = 0;
+			try {
+				faults = job.getPgInCount();
+			}
+			catch(Exception e) {
+			}
+			double swapping = job.getSwapUsageGbMax();
+			if((swapping * faults) > 0) {
+				sb.append("<span class=\"health_red\""+">");
+			}
+			else {
+				sb.append("<span class=\"health_black\""+">");
+			}
+			sb.append(faults);
+			sb.append("</span>");
 		}
-		sb.append("<td align=\"right\">");
-		sb.append(pgin);
 		sb.append("</td>");
 		// Swap
 		String swap = "";
@@ -1061,8 +1086,22 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				sb.append("</td>");
 				// PgIn
 				sb.append("<td align=\"right\">");
-				long pgIn = service.getPgIn();
-				sb.append(pgIn);
+				long faults = 0;
+				try {
+					faults = service.getPgIn();
+				}
+				catch(Exception e) {
+				}
+				double swapping = service.getSwap();
+				swapping = swapping/Constants.GB;
+				if((swapping * faults) > 0) {
+					sb.append("<span class=\"health_red\""+">");
+				}
+				else {
+					sb.append("<span class=\"health_black\""+">");
+				}
+				sb.append(faults);
+				sb.append("</span>");
 				sb.append("</td>");
 				// Swap
 				sb.append("<td align=\"right\">");
