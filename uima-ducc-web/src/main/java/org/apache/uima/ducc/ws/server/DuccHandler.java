@@ -784,7 +784,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					double swap = process.getSwapUsageMax();
 					swap = swap/Constants.GB;
 					String displaySwap = formatter.format(swap);
+					if(swap > 0) {
+						sb.append("<span class=\"health_red\""+">");
+					}
+					else {
+						sb.append("<span class=\"health_black\""+">");
+					}
 					sb.append(displaySwap);
+					sb.append("</span>");
 				}
 				else {
 					double swap = process.getSwapUsage();
@@ -794,7 +801,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					swapMax = swapMax/Constants.GB;
 					String displaySwapMax = formatter.format(swapMax);
 					sb.append("<span title=\"max="+displaySwapMax+"\" align=\"right\" "+">");
+					if(swap > 0) {
+						sb.append("<span class=\"health_red\""+">");
+					}
+					else {
+						sb.append("<span class=\"health_black\""+">");
+					}
 					sb.append(displaySwap);
+					sb.append("</span>");
 					sb.append("</span>");
 				}
 				break;

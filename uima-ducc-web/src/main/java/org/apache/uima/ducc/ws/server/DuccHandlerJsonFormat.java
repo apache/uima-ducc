@@ -342,7 +342,14 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			swap = job.getSwapUsageGbMax();
 		}
 		String displaySwapMax = formatter.format(swap);
+		if(swap > 0) {
+			sb.append("<span class=\"health_red\""+">");
+		}
+		else {
+			sb.append("<span class=\"health_black\""+">");
+		}
 		sb.append(displaySwapMax);
+		sb.append("</span>");
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Memory
@@ -864,17 +871,25 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		// Swap
 		sb = new StringBuffer();
 		String swap = "";
+		double dswap = 0;
 		if(duccwork instanceof DuccWorkJob) {
 			DecimalFormat formatter = new DecimalFormat("###0.0");
 			DuccWorkJob job = (DuccWorkJob) duccwork;
-			double dswap = job.getSwapUsageGb();
+			dswap = job.getSwapUsageGb();
 			if(job.isCompleted()) {
 				dswap = job.getSwapUsageGbMax();
 			}
 			swap = formatter.format(dswap);
 		}
 		sb.append("<span>");
+		if(dswap > 0) {
+			sb.append("<span class=\"health_red\""+">");
+		}
+		else {
+			sb.append("<span class=\"health_black\""+">");
+		}
 		sb.append(swap);
+		sb.append("</span>");
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Memory
@@ -1196,7 +1211,14 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				rawSwapMax = rawSwapMax/Constants.GB;
 				String swapMax = formatter.format(rawSwap);
 				col.append("<span title=\"max="+swapMax+"\" align=\"right\" "+">");
+				if(rawSwap > 0) {
+					col.append("<span class=\"health_red\""+">");
+				}
+				else {
+					col.append("<span class=\"health_black\""+">");
+				}
 				col.append(swap);
+				col.append("</span>");
 				col.append("</span>");
 				row.add(new JsonPrimitive(col.toString()));
 				// Size

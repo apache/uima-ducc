@@ -309,7 +309,14 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			swap = job.getSwapUsageGbMax();
 		}
 		String displaySwapMax = formatter.format(swap);
+		if(swap > 0) {
+			sb.append("<span class=\"health_red\""+">");
+		}
+		else {
+			sb.append("<span class=\"health_black\""+">");
+		}
 		sb.append(displaySwapMax);
+		sb.append("</span>");
 		sb.append("</td>");
 		// Memory
 		IDuccSchedulingInfo si;
@@ -765,17 +772,25 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Swap
 		String swap = "";
+		double dswap = 0;
 		if(duccwork instanceof DuccWorkJob) {
 			DecimalFormat formatter = new DecimalFormat("###0.0");
 			DuccWorkJob job = (DuccWorkJob) duccwork;
-			double dswap = job.getSwapUsageGb();
+			dswap = job.getSwapUsageGb();
 			if(job.isCompleted()) {
 				dswap = job.getSwapUsageGbMax();
 			}
 			swap = formatter.format(dswap);
 		}
 		sb.append("<td align=\"right\">");
+		if(dswap > 0) {
+			sb.append("<span class=\"health_red\""+">");
+		}
+		else {
+			sb.append("<span class=\"health_black\""+">");
+		}
 		sb.append(swap);
+		sb.append("</span>");
 		sb.append("</td>");
 		// Memory
 		IDuccSchedulingInfo si;
@@ -1058,7 +1073,14 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				rawSwapMax = rawSwapMax/Constants.GB;
 				String swapMax = formatter.format(rawSwap);
 				sb.append("<span title=\"max="+swapMax+"\" align=\"right\" "+">");
+				if(rawSwap > 0) {
+					sb.append("<span class=\"health_red\""+">");
+				}
+				else {
+					sb.append("<span class=\"health_black\""+">");
+				}
 				sb.append(swap);
+				sb.append("</span>");
 				sb.append("</span>");
 				sb.append("</td>");
 				// Size
