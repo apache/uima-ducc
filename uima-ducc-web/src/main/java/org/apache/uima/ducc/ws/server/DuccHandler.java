@@ -561,6 +561,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			boolean suppressExitCode = false;
 			if(!suppressExitCode) {
 				switch(process.getProcessState()) {
+				case LaunchFailed:
 				case Stopped:
 				case Failed:
 				case FailedInitialization:
