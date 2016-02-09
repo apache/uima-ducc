@@ -457,9 +457,6 @@ public class ManagedProcess implements Process {
 										ReasonForStoppingProcess.Croaked.toString());
 							}
 						}
-					} else if ( errors.trim().length() > 0 ) {   // AP failed and there is reason in stderr stream
-					       getDuccProcess().setProcessState(ProcessState.Failed); // now the AP is dead
-                                               getDuccProcess().setProcessExitCode(-1);  // overwrite process exit code if stderr has a msg 
 					}
 					
 				} else {
