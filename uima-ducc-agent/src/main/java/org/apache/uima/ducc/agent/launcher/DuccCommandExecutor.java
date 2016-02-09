@@ -818,7 +818,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			throw ex;
 		} catch (Exception ex) {
 			((ManagedProcess) super.managedProcess).getDuccProcess()
-					.setProcessState(ProcessState.FailedToLaunch);
+					.setProcessState(ProcessState.LaunchFailed);
 
 			((ManagedProcess) super.managedProcess).getDuccProcess().setProcessExitCode(-1);  // overwrite process exit code if stderr has a msg 
 
@@ -855,7 +855,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 
 			    // if failed to execute the command line, the process state is already set to Failed
 			    if ( !((ManagedProcess) super.managedProcess).getDuccProcess()
-				 .getProcessState().equals(ProcessState.FailedToLaunch)) {
+				 .getProcessState().equals(ProcessState.LaunchFailed)) {
 
 				((ManagedProcess) managedProcess).getDuccProcess()
 						.setProcessState(ProcessState.Stopped);
