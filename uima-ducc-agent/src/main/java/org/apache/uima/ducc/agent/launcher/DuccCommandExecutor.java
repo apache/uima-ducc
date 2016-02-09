@@ -887,6 +887,8 @@ public class DuccCommandExecutor extends CommandExecutor {
 					&& !((ManagedProcess) managedProcess).getDuccProcess()
 							.getProcessState().equals(ProcessState.Failed)
 					&& !((ManagedProcess) managedProcess).getDuccProcess()
+							.getProcessState().equals(ProcessState.LaunchFailed)
+					&& !((ManagedProcess) managedProcess).getDuccProcess()
 							.getProcessState().equals(ProcessState.Killed)) {
 				((ManagedProcess) managedProcess).getDuccProcess()
 						.setProcessState(ProcessState.Stopped);
