@@ -198,6 +198,7 @@ public class DuccProcess implements IDuccProcess {
 					break;
 				}
 				break;
+			case LaunchFailed:
 			case Stopped:
 			case Failed:
 			case FailedInitialization:
@@ -307,6 +308,7 @@ public class DuccProcess implements IDuccProcess {
 	public boolean isFailed() {
 		boolean retVal = false;
 		switch(processState) {
+		case LaunchFailed:
 		case Failed:
 		case Killed:
 			retVal = true;	
@@ -373,6 +375,7 @@ public class DuccProcess implements IDuccProcess {
 	public boolean isComplete() {
 		boolean retVal = false;
 		switch(processState) {
+		case LaunchFailed:
 		case Stopped:
 		case Failed:
 		case FailedInitialization:

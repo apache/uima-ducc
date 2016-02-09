@@ -23,6 +23,7 @@ import java.io.Serializable;
 public interface IProcessState extends Serializable {
 
 	public enum ProcessState {
+		LaunchFailed,           // Set when process fails to launch ex. ClassNotFound etc
 		Starting,               // Process Manager sent request to start the Process
 		Initializing,			// Process Agent is initializing process
 		Running,				// Process Agent is available for processing work items
@@ -35,7 +36,6 @@ public interface IProcessState extends Serializable {
 		KillProcess,        	// UIMA-AS Ducc Service Wrapper requesting agent to kill the process
 		Abandoned,				// Process abandoned
 		Undefined,				// None of the above
-		    LaunchFailed            // Set when process fails to launch ex. ClassNotFound etc
 	};
 	
 	public ProcessState getProcessState();

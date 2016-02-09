@@ -46,6 +46,7 @@ public interface IDuccCompletionType extends Serializable {
 		ProcessInitializationFailure,	// Job was terminated by health monitor - (excessive) process initialization failure
 		ProcessFailure,					// Job was terminated by health monitor - (excessive) process failure
 		
+		LaunchFailure,					// Managed Resource failed to launch
 		ProgramExit,					// Managed Resource exited
 		
 		Undefined						// None of the above
