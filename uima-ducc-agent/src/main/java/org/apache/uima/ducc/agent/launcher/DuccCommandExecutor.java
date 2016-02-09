@@ -28,6 +28,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.common.container.FlagsHelper;
@@ -749,6 +751,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			throws Exception {
 		String methodName = "doExec";
 		int exitCode = 0;
+		boolean failed = false;
 		try {
 
 			StringBuilder sb = new StringBuilder(
@@ -767,6 +770,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					((ManagedProcess) super.managedProcess).getDuccId(),
 					sb.toString());
 
+			
 			java.lang.Process process = pb.start();
 			// Drain process streams
 			postExecStep(process, logger, isKillCmd);
@@ -815,11 +819,28 @@ public class DuccCommandExecutor extends CommandExecutor {
 		} catch (Exception ex) {
 			((ManagedProcess) super.managedProcess).getDuccProcess()
 					.setProcessState(ProcessState.Failed);
+
+			((ManagedProcess) super.managedProcess).getDuccProcess().setProcessExitCode(-1);  // overwrite process exit code if stderr has a msg 
+
+		        StringWriter stackTraceBuffer = new StringWriter();
+			ex.printStackTrace(new PrintWriter(stackTraceBuffer));
+
+			((ManagedProcess) managedProcess).getDuccProcess()
+					    .setReasonForStoppingProcess(stackTraceBuffer.toString());
+                        failed = true;
+			logger.info(methodName, 
+                                    ((ManagedProcess) super.managedProcess).getDuccId(),
+                                    "Failed to launch Process - Reason:"+stackTraceBuffer.toString());
+			
 			throw ex;
 		} finally {
+		    if ( !failed ) {
 			// associate exit code
 			((ManagedProcess) managedProcess).getDuccProcess()
 					.setProcessExitCode(exitCode);
+
+		    } 
+
 			// Per team discussion on Aug 31 2011, the process is stopped by an
 			// agent when initialization
 			// times out or initialization failed. Both Initialization_Timeout
@@ -831,8 +852,18 @@ public class DuccCommandExecutor extends CommandExecutor {
 			// no way of knowing why the process exited and in such case reason
 			// is Other.
 			if ((isAP((ManagedProcess) super.managedProcess))) {
+
+			    // if failed to execute the command line, the process state is already set to Failed
+			    if ( !((ManagedProcess) super.managedProcess).getDuccProcess()
+				 .getProcessState().equals(ProcessState.Failed)) {
+
 				((ManagedProcess) managedProcess).getDuccProcess()
 						.setProcessState(ProcessState.Stopped);
+			    } 
+
+
+			    //				((ManagedProcess) managedProcess).getDuccProcess()
+			    //			.setProcessState(ProcessState.Stopped);
 				if (((ManagedProcess) super.managedProcess).doKill()) { // killed
 																		// by
 																		// agent/ducc
@@ -840,8 +871,9 @@ public class DuccCommandExecutor extends CommandExecutor {
 							.setReasonForStoppingProcess(
 									ReasonForStoppingProcess.KilledByDucc
 											.toString());
-				} else {
-					((ManagedProcess) managedProcess).getDuccProcess()
+				} else if ( !failed ) {
+
+				    ((ManagedProcess) managedProcess).getDuccProcess()
 							.setReasonForStoppingProcess(
 									ReasonForStoppingProcess.Other.toString());
 				}
