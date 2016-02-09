@@ -218,6 +218,7 @@ public class OrchestratorHelper {
 				ProcessState processState = jdProcess.getProcessState();
 				if(processState != null) {
 					switch(processState) {
+					case LaunchFailed:
 					case Failed:
 					case FailedInitialization:
 					case Stopped:
@@ -260,6 +261,7 @@ public class OrchestratorHelper {
 						ProcessState processState = jd.getProcessState();
 						if(processState != null) {
 							switch(processState) {
+							case LaunchFailed:
 							case Failed:
 							case FailedInitialization:
 							case Stopped:

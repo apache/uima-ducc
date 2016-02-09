@@ -1470,6 +1470,7 @@ public class StateManager {
 								case Pop:
 									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
 									switch(inventoryProcess.getProcessState()) {
+									case LaunchFailed:
 									case Failed:
 										if(inventoryProcess.getDuccId().getFriendly() == 0) {
 											jobTerminate(job, JobCompletionType.DriverProcessFailed, new Rationale(inventoryProcess.getReasonForStoppingProcess()), inventoryProcess.getProcessDeallocationType());
@@ -1657,7 +1658,18 @@ public class StateManager {
 					IRationale exitCode = new Rationale("code="+code);
 					switch(service.getCompletionType()) {
 					case Undefined:
-						service.setCompletion(JobCompletionType.ProgramExit, exitCode);
+						JobCompletionType completionType = JobCompletionType.ProgramExit;
+						ProcessState processState = process.getProcessState();
+						if(processState != null) {
+							switch(processState) {
+							case LaunchFailed:
+								completionType = JobCompletionType.LaunchFailure;
+								break;
+							default:
+								break;
+							}
+						}
+						service.setCompletion(completionType, exitCode);
 						service.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 						break;
 					}

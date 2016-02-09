@@ -372,6 +372,7 @@ public class ProcessAccounting {
 		String methodName = "setResourceStateAndReason";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
 		switch(inventoryProcess.getProcessState()) {
+		case LaunchFailed:
 		case Stopped:
 		case Failed:
 		case FailedInitialization:
@@ -389,6 +390,7 @@ public class ProcessAccounting {
 					}
 					process.setProcessDeallocationType(ProcessDeallocationType.AutonomousStop);
 					break;
+				case LaunchFailed:
 				case Failed:
 					if(reason != null) {
 						process.setReasonForStoppingProcess(reason);
@@ -455,6 +457,7 @@ public class ProcessAccounting {
 		String methodName = "copyReasonForStoppingProcess";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
 		switch(inventoryProcess.getProcessState()) {
+		case LaunchFailed:
 		case Stopped:
 		case Failed:
 		case FailedInitialization:
@@ -484,6 +487,7 @@ public class ProcessAccounting {
 		String methodName = "copyProcessExitCode";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
 		switch(inventoryProcess.getProcessState()) {
+		case LaunchFailed:
 		case Stopped:
 		case Failed:
 		case FailedInitialization:
@@ -625,6 +629,7 @@ public class ProcessAccounting {
 			runStart(job, process);
 			copyTimeRun(inventoryProcess, process);
 			break;
+		case LaunchFailed:			// Process Agent reports process launch failed
 		case Stopped:				// Process Agent reports process stopped
 		case Failed:				// Process Agent reports process failed
 		case FailedInitialization:	// Process Agent reports process failed initialization
