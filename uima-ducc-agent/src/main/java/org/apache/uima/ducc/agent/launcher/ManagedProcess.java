@@ -409,6 +409,23 @@ public class ManagedProcess implements Process {
 				// was the case isstopping = false. The isstopping=true iff the Agent
 				// initiated process stop because the process was deallocated
 				if (!isstopping) {
+
+					// fetch errors from stderr stream. If the process failed to
+					// start due to misconfiguration
+					// the reason for failure would be provided by the OS (wrong
+					// user id, bad directory,etc)
+					String errors = stdErrReader.getDataFromStream();
+					if (errors.trim().length() > 0) {
+						getDuccProcess().setReasonForStoppingProcess(
+								errors.trim());
+
+			                log("ManagedProcess.drainProcessStreams",
+					    "Process Failed - stderr stream:"+getDuccProcess().getReasonForStoppingProcess());
+
+
+
+					} 
+
 					// APs can stop for any reason. There is 
 					// no way to determine why the AP terminated.
 					if ( !isAP ) {
@@ -418,11 +435,14 @@ public class ManagedProcess implements Process {
 						// start due to misconfiguration
 						// the reason for failure would be provided by the OS (wrong
 						// user id, bad directory,etc)
+						/*
 						String errors = stdErrReader.getDataFromStream();
 						if (errors.trim().length() > 0) {
 							getDuccProcess().setReasonForStoppingProcess(
 									errors.trim());
 						} else {
+						*/
+						if (errors.trim().length() > 0) {
                             // JP should not be marked as CROAKED if it terminates 
 							// due to a process error, failed initialization or initialization
 							// timeout. On such errors, a JP sends an event to its agent where
@@ -437,6 +457,9 @@ public class ManagedProcess implements Process {
 										ReasonForStoppingProcess.Croaked.toString());
 							}
 						}
+					} else if ( errors.trim().length() > 0 ) {   // AP failed and there is reason in stderr stream
+					       getDuccProcess().setProcessState(ProcessState.Failed); // now the AP is dead
+                                               getDuccProcess().setProcessExitCode(-1);  // overwrite process exit code if stderr has a msg 
 					}
 					
 				} else {
