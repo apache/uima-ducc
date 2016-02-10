@@ -2621,8 +2621,8 @@ function ducc_transform_all_cookies() {
     	for (var i=0; i<pairs.length; i++){
     		var pair = pairs[i].split("=");
     		var name = pair[0].trim();
-    		var value = pair[1].trim();
     		if(name.startsWith("ducc:")) {
+				var value = pair[1].trim();
     			var nameSuffix = name.substring(5);
     			var nameModern = "DUCC"+nameSuffix;
     			// delete bad cookie
