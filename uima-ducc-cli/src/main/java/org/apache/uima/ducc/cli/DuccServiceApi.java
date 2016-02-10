@@ -413,6 +413,7 @@ public class DuccServiceApi
             }
 
             enrichPropertiesForDebug(UiOption.Register);
+            check_heap_size(UiOption.ProcessJvmArgs.pname());
             
         } else if (endpoint.startsWith(ServiceType.Custom.decode())) {
 
@@ -428,6 +429,8 @@ public class DuccServiceApi
             if (!cli_props.containsKey(key_cp)) {
                 cli_props.setProperty(key_cp, System.getProperty("java.class.path"));
             }
+            
+            check_heap_size(UiOption.ProcessExecutableArgs.pname());
         
         } else {
             throw new IllegalArgumentException("Invalid service endpoint: " + endpoint);

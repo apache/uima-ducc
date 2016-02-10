@@ -309,6 +309,9 @@ public class DuccJobSubmit
             return false;
         }
 
+        // Warn if Xmx value is too large and may cause swapping
+        check_heap_size(UiOption.ProcessJvmArgs.pname());
+        
         SubmitJobDuccEvent      submitJobDuccEvent      = new SubmitJobDuccEvent(jobRequestProperties, CliVersion.getVersion());
         SubmitJobReplyDuccEvent submitJobReplyDuccEvent = null;
         try {

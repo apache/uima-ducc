@@ -154,12 +154,17 @@ public class DuccManagedReservationSubmit
         if (scheduling_class != null) {
             DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
             if (duccSchedulerClasses.isPreemptable(scheduling_class)) {
-                scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(scheduling_class);
-                if (scheduling_class != null) {
-                    serviceRequestProperties.setProperty(pname, scheduling_class);
+                String np_scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(scheduling_class);
+                if (np_scheduling_class != null) {
+                    serviceRequestProperties.setProperty(pname, np_scheduling_class);
+                    String msg = "Changed the scheduling_class from " + scheduling_class + " to the non-preemptable " + np_scheduling_class;
+                    message(msg);
                 }
             }
         }
+        
+        // Could omit this if not a java process
+        check_heap_size(UiOption.ProcessExecutableArgs.pname());
         
         // Create a copy to be saved later without these 3 "ducclet" properties required by DUCC
         ServiceRequestProperties serviceProperties = (ServiceRequestProperties)serviceRequestProperties.clone();

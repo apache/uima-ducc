@@ -185,7 +185,48 @@ public abstract class CliBase
             return false;
         }
     }
+    
+    /*
+     * Check if -Xmx value is >= memory size ... if both are specified
+     */
+    void check_heap_size(String argsOption) {
+        String jvmArgs = cli_props.getProperty(argsOption);
+        String memSize = cli_props.getProperty(UiOption.ProcessMemorySize.pname());
+        if (jvmArgs == null || memSize == null) {
+            return;
+        }
 
+        // The numbers may be terminated by a units factor, white-space, or the end of the string
+        // The units factor may be any of kKmMgG ... if omitted is bytes
+        // Match -Xmx###[units-flag] and take the last one specified (IBM & Oracle JREs do this)
+        String xmxRegex = "-Xmx([0-9]+)($|[\\skKmMgG])";
+        Pattern patn = Pattern.compile(xmxRegex);
+        Matcher matcher = patn.matcher(jvmArgs);
+        Long size = null;
+        String unit = null;
+        while (matcher.find()) {
+            size = Long.valueOf(matcher.group(1));
+            unit = matcher.group(2);
+        }
+        if (size == null) {
+            return;
+        }
+        if (unit.isEmpty()) { // Was last option in list
+            unit = " ";
+        }
+        char factor = unit.toLowerCase().charAt(0);
+        int shift = "gmk".indexOf(factor); // Number of 1024's to divide size by to get GB
+        if (shift < 0) {    // No explicit unit factor ... white-space => bytes
+            shift = 3;
+        }
+        long sizeGB = size >> (10 * shift); // Shift 10 bits per K
+        int memGB = Integer.valueOf(memSize);
+        if (sizeGB >= memGB) {
+            String text = "WARNING - process_memory_size is " + memSize + "G but the max heap is " + size + unit + " --- swapping may occur";
+            message(text);
+        }
+    }
+    
     void setUser()
         throws Exception
     {
