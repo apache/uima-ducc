@@ -32,6 +32,8 @@ import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.dgen.DgenException;
+import org.apache.uima.ducc.container.dgen.DgenManager;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
@@ -111,10 +113,19 @@ public class JobDriver {
 			cm = new CasManager();
 			pjdeh = new ProxyJobDriverErrorHandler();
 			mh = new MessageHandler();
+			viability();
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException();
+		}
+	}
+	
+	private void viability() throws DgenException {
+		DgenManager dgenManager = DgenManager.getInstance();
+		String deployable = dgenManager.getDeployable();
+		if(deployable == null) {
+			throw new RuntimeException("No deployable");
 		}
 	}
 	
