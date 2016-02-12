@@ -272,10 +272,21 @@ public class DuccProcessConcurrentMap extends ConcurrentHashMap<DuccId,IDuccProc
 	private boolean isFailedInitialization(IDuccProcess process) {
 		boolean retVal = false;
 		try {
-			String reason = process.getReasonForStoppingProcess();
-			if(ProcessState.FailedInitialization.name().equals(reason)) {
+			// <UIMA-4791>
+			ProcessState processState = process.getProcessState();
+			switch(processState) {
+			case FailedInitialization:
+			case LaunchFailed:
 				retVal = true;
+				break;
+			default:
+				String reason = process.getReasonForStoppingProcess();
+				if(ProcessState.FailedInitialization.name().equals(reason)) {
+					retVal = true;
+				}
+				break;
 			}
+			// </UIMA-4791>
 		}
 		catch(Exception e) {
 		}
