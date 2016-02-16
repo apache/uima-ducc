@@ -80,10 +80,6 @@ class DuccRmQOccupancy(DuccUtil):
         shares = {}
         header = []
         for l in lines:
-            # First character of first line may be 0x1B ESC
-            if len(l) > 0 and not l[0] in string.printable:
-                print 'Ignoring line', '[' + l + '] hex:', binascii.hexlify(l)
-                continue
             if ( l == '' ):
                 continue
             if ( '---' in l ):
@@ -124,6 +120,7 @@ class DuccRmQOccupancy(DuccUtil):
         DH = self.DUCC_HOME
         dbn = self.ducc_properties.get('ducc.database.host')
 
+        os.environ['TERM'] = 'dumb'      # insure no colors.  --no-color isn't inhibiting colors in this shell for some reason.
         CMD = [DH + '/cassandra-server/bin/cqlsh', dbn, '-u', 'guest', '-p', 'guest', '-e', '"select * from ducc.rmnodes; select * from ducc.rmshares;"']
         CMD = ' '.join(CMD)
 
@@ -131,7 +128,7 @@ class DuccRmQOccupancy(DuccUtil):
         proc = subprocess.Popen(CMD, bufsize=0, stdout=subprocess.PIPE, shell=True)
         for line in proc.stdout:
             # print line.strip()
-            lines.append(line)
+            lines.append(line.strip())
 
         nodes, shares = self.rmnodes(lines)
         self.format(nodes, shares)
