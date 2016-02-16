@@ -29,6 +29,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.orchestrator.user.UserLogging;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -421,6 +422,14 @@ public class ProcessAccounting {
 				break;
 			default:
 				logger.debug(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+inventoryProcess.getProcessState()+" => "+messages.fetchLabel("resource state")+process.getResourceState());
+				break;
+			}
+			switch(job.getDuccType()) {
+			case Service:
+				IDuccWorkJob service = job;
+				String userName = service.getStandardInfo().getUser();
+				String userLogDir = service.getUserLogsDir();
+				UserLogging.error(userName, userLogDir, process.getReasonForStoppingProcess());
 				break;
 			}
 			break;

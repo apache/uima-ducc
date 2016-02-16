@@ -25,48 +25,19 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 public class UserLogging {
 
 	private static String ducc_log = "ducc.log";
+	private static String ducc_error = "ducc.error";
 	
-	private String userName = null;
-	private String userLogDir = null;
-	private String userDuccLog = null;
-	
-	
-	public static void record(String userName, String userLogDir, String text) {
-		 UserLogging userLogging = new UserLogging(userName, userLogDir);
-		 userLogging.toUserDuccLog(text);
+	public static void record(String user, String userLogDir, String text) {
+		 String file = fpJoin(userLogDir, ducc_log);
+		 UserLogging.write(user, file, text);
 	}
 	
-	public UserLogging(String userName, String userLogDir) {
-		setUserName(userName);
-		setUserLogDir(userLogDir);
-		setUserDuccLog(fpJoin(getUserLogDir(),ducc_log));
+	public static void error(String user, String userLogDir, String text) {
+		String file = fpJoin(userLogDir, ducc_error);
+		 UserLogging.write(user, file, text);
 	}
 	
-	private void setUserName(String value) {
-		userName = value;
-	}
-	
-	private String getUserName() {
-		return userName;
-	}
-	
-	private void setUserLogDir(String value) {
-		userLogDir = value;
-	}
-	
-	private String getUserLogDir() {
-		return userLogDir;
-	}
-	
-	private void setUserDuccLog(String value) {
-		userDuccLog = value;
-	}
-	
-	private String getUserDuccLog() {
-		return userDuccLog;
-	}
-	
-	private String fpJoin(String dir, String fn) {
+	private static String fpJoin(String dir, String fn) {
 		StringBuffer sb = new StringBuffer();
 		if(dir != null) {
 			sb.append(dir);
@@ -83,12 +54,10 @@ public class UserLogging {
 		return retVal;
 	}
 	
-	public void toUserDuccLog(String text) {
+	static void write(String user, String file, String text) {
 		if(text != null) {
 			String millis = ""+System.currentTimeMillis();
 			String ts = TimeStamp.simpleFormat(millis);
-			String user = getUserName();
-			String file = getUserDuccLog();
 			DuccAsUser.duckling(user, file, ts+" "+text);
 		}
 	}

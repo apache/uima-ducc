@@ -354,11 +354,10 @@ public class StateJobAccounting {
 			jobid = job.getDuccId();
 			String userName = job.getStandardInfo().getUser();
 			String userLogDir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-			UserLogging userLogging = new UserLogging(userName, userLogDir);
 			JobState jobState = job.getJobState();
 			if(jobState != null) {
 				text = jobState.toString();
-				userLogging.toUserDuccLog(text);
+				UserLogging.record(userName, userLogDir, text);
 				logger.debug(methodName, job.getDuccId(), text);
 			}
 		}
@@ -375,17 +374,16 @@ public class StateJobAccounting {
 			jobid = job.getDuccId();
 			String userName = job.getStandardInfo().getUser();
 			String userLogDir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-			UserLogging userLogging = new UserLogging(userName, userLogDir);
 			JobCompletionType jobCompletionType = job.getCompletionType();
 			if(jobCompletionType != null) {
 				text = "completion type: "+jobCompletionType.toString();
-				userLogging.toUserDuccLog(text);
+				UserLogging.record(userName, userLogDir, text);
 				logger.debug(methodName, job.getDuccId(), text);
 			}
 			IRationale rationale = job.getCompletionRationale();
 			if(rationale != null) {
 				text = "rationale: "+rationale.toString();
-				userLogging.toUserDuccLog(text);
+				UserLogging.record(userName, userLogDir, text);
 				logger.debug(methodName, job.getDuccId(), text);
 			}
 		}
