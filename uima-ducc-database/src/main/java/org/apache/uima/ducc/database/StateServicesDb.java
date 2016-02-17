@@ -349,17 +349,18 @@ public class StateServicesDb
         try {            
             h = dbManager.open();
             Map<IDbProperty, Object> map = mkMap(serviceId, table, converter, props);
-            Object[] updates = new Object[props.size()*2];
+            List<Object> tmp = new ArrayList<Object>();
             int i = 0;
             for ( IDbProperty k : map.keySet() ) {
                 if ( logger.isTrace() ) {
                     logger.trace(methodName, null, "Updating", k.columnName(), "with", map.get(k));
                 }
-                updates[i++] = k;
-                updates[i++] = map.get(k);
+                if ( k.isPrimaryKey() ) continue;    // we do not get to update this
+                tmp.add(k);
+                tmp.add(map.get(k));
             }
             
-            h.updateProperties(table, key, updates);            
+            h.updateProperties(table, key, tmp.toArray(new Object[tmp.size()]));
             return true;
         } catch ( Exception e ) {
             logger.error(methodName, null, "Unable to update properties for service", key, "table", table, ":", e);

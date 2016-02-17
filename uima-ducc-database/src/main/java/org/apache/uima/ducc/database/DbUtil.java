@@ -205,6 +205,9 @@ class DbUtil
 
     }
 
+    /**
+     * Imporant: do not pass key fields in the props or this will barf. 
+     */
     static String mkUpdate(String table, String key, Object... props)
     {
         int len = props.length;
@@ -212,20 +215,21 @@ class DbUtil
         buf.append(table);        
         buf.append(" SET ");
         
+        // NOTE: The property set must NOT contain any key fields or this is likely to barf.  Caller
+        //       must insure.
         for ( int i = 0; i < len; i+=2) {
             IDbProperty prop = (IDbProperty) props[i];
-            if ( !prop.isPrimaryKey()) {                  // not allowed to update this
-                                                          // we allow it in 'props' so callers can
-                                                          // simply call update and expect the right
-                                                          // thing to happen
 
-                buf.append(prop.columnName());
-                buf.append("=");
-                buf.append(rep(prop, props[i+1]));
-                if ( i + 2 < len ) {
-                    buf.append(",");
-                }  
+            if ( prop.isPrimaryKey() ) {
+                throw new IllegalArgumentException("Primary key not allowed in UPDATE");
             }
+
+            buf.append(prop.columnName());
+            buf.append("=");
+            buf.append(rep(prop, props[i+1]));
+            if ( i + 2 < len ) {
+                buf.append(",");
+            }  
         }
         buf.append(" WHERE ");
         buf.append(key);
