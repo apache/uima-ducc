@@ -18,6 +18,10 @@
 */
 package org.apache.uima.ducc.ws.server;
 
+import java.text.DecimalFormat;
+
+import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+
 
 public class DuccHandlerUtils {
 
@@ -68,5 +72,50 @@ public class DuccHandlerUtils {
 		sb.append("</span>");
 		return sb.toString();
 	}
+	
+	// *****
+	
+	public static double getSwapSizeBytes(IDuccWorkJob job) {
+		double swapBytes = job.getSwapUsageGb()*GB;
+		if(job.isCompleted()) {
+			swapBytes = job.getSwapUsageGbMax()*GB;
+		}
+		return swapBytes;
+	}
+	
+	private static DecimalFormat formatter = new DecimalFormat("###0.0");
+	
+	public static String getSwapSizeDisplay(double swapBytes) {
+		String retVal = formatter.format(swapBytes/GB);;
+		return retVal;
+	}
+	
+	private static double GB = Math.pow(10,9);
+	private static double MB = Math.pow(10,6);
+	private static double KB = Math.pow(10,3);
+
+	public static String getSwapSizeHover(double swapBytes) {
+		String retVal = null;
+		if(swapBytes == 0) {
+			retVal = formatter.format(swapBytes/GB)+" "+"GB";
+		}
+		else if(swapBytes >= GB/10) {
+			retVal = formatter.format(swapBytes/GB)+" "+"GB";
+		}
+		else if(swapBytes >= MB/10) {
+			retVal = formatter.format(swapBytes/MB)+" "+"MB";
+		}
+		else if(swapBytes >= KB/10) {
+			retVal = formatter.format(swapBytes/KB)+" "+"KB";
+		}
+		else {
+			retVal = formatter.format(swapBytes)+" "+"Bytes";
+		}
+		return retVal;
+	}
+	
+	
+	
+	
 	
 }

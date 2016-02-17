@@ -315,20 +315,22 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		sb.append("</span>");
 		sb.append("</td>");
 		// Swap
-		DecimalFormat formatter = new DecimalFormat("###0.0");
 		sb.append("<td valign=\"bottom\" align=\"right\">");
-		double swap = job.getSwapUsageGb();
-		if(job.isCompleted()) {
-			swap = job.getSwapUsageGbMax();
-		}
-		String displaySwapMax = formatter.format(swap);
-		if(swap > 0) {
-			sb.append("<span class=\"health_red\""+">");
+		String swapSizeDisplay = "";
+		String swapSizeHover = "";
+		title = "";
+		double swapBytes = 0;
+		swapBytes = DuccHandlerUtils.getSwapSizeBytes(job);
+		swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
+		swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
+		title = "title="+"\""+swapSizeHover+"\"";
+		if(swapBytes > 0) {
+			sb.append("<span "+title+" "+"class=\"health_red\""+">");
 		}
 		else {
-			sb.append("<span class=\"health_black\""+">");
+			sb.append("<span "+title+" "+"class=\"health_black\""+">");
 		}
-		sb.append(displaySwapMax);
+		sb.append(swapSizeDisplay);
 		sb.append("</span>");
 		sb.append("</td>");
 		// Memory
@@ -796,25 +798,25 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		}
 		sb.append("</td>");
 		// Swap
-		String swap = "";
-		double dswap = 0;
-		if(duccwork instanceof DuccWorkJob) {
-			DecimalFormat formatter = new DecimalFormat("###0.0");
-			DuccWorkJob job = (DuccWorkJob) duccwork;
-			dswap = job.getSwapUsageGb();
-			if(job.isCompleted()) {
-				dswap = job.getSwapUsageGbMax();
-			}
-			swap = formatter.format(dswap);
-		}
 		sb.append("<td align=\"right\">");
-		if(dswap > 0) {
-			sb.append("<span class=\"health_red\""+">");
+		String swapSizeDisplay = "";
+		String swapSizeHover = "";
+		title = "";
+		double swapBytes = 0;
+		if(duccwork instanceof DuccWorkJob) {
+			DuccWorkJob job = (DuccWorkJob) duccwork;
+			swapBytes = DuccHandlerUtils.getSwapSizeBytes(job);
+			swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
+			swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
+			title = "title="+"\""+swapSizeHover+"\"";
+		}
+		if(swapBytes > 0) {
+			sb.append("<span "+title+" "+"class=\"health_red\""+">");
 		}
 		else {
-			sb.append("<span class=\"health_black\""+">");
+			sb.append("<span "+title+" "+"class=\"health_black\""+">");
 		}
-		sb.append(swap);
+		sb.append(swapSizeDisplay);
 		sb.append("</span>");
 		sb.append("</td>");
 		// Memory
@@ -948,8 +950,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}	
-	
-	private static DecimalFormat formatter = new DecimalFormat("##0.0");
 	
 	private void handleServletClassicServices(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
@@ -1105,21 +1105,21 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				sb.append("</td>");
 				// Swap
 				sb.append("<td align=\"right\">");
-				double rawSwap = service.getSwap();
-				rawSwap = rawSwap/Constants.GB;
-				String swap = formatter.format(rawSwap);
-				double rawSwapMax = service.getSwapMax();
-				rawSwapMax = rawSwapMax/Constants.GB;
-				String swapMax = formatter.format(rawSwap);
-				sb.append("<span title=\"max="+swapMax+"\" align=\"right\" "+">");
-				if(rawSwap > 0) {
-					sb.append("<span class=\"health_red\""+">");
+				String swapSizeDisplay = "";
+				String swapSizeHover = "";
+				String title = "";
+				double swapBytes = 0;
+				swapBytes = service.getSwap();
+				swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
+				swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
+				title = "title="+"\""+swapSizeHover+"\"";
+				if(swapBytes > 0) {
+					sb.append("<span "+title+" "+"class=\"health_red\""+">");
 				}
 				else {
-					sb.append("<span class=\"health_black\""+">");
+					sb.append("<span "+title+" "+"class=\"health_black\""+">");
 				}
-				sb.append(swap);
-				sb.append("</span>");
+				sb.append(swapSizeDisplay);
 				sb.append("</span>");
 				sb.append("</td>");
 				// Size

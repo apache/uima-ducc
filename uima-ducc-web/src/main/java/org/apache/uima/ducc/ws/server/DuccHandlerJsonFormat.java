@@ -347,21 +347,23 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Swap
-		DecimalFormat formatter = new DecimalFormat("###0.0");
 		sb = new StringBuffer();
 		sb.append("<span>");
-		double swap = job.getSwapUsageGb();
-		if(job.isCompleted()) {
-			swap = job.getSwapUsageGbMax();
-		}
-		String displaySwapMax = formatter.format(swap);
-		if(swap > 0) {
-			sb.append("<span class=\"health_red\""+">");
+		String swapSizeDisplay = "";
+		String swapSizeHover = "";
+		title = "";
+		double swapBytes = 0;
+		swapBytes = DuccHandlerUtils.getSwapSizeBytes(job);
+		swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
+		swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
+		title = "title="+"\""+swapSizeHover+"\"";
+		if(swapBytes > 0) {
+			sb.append("<span "+title+" "+"class=\"health_red\""+">");
 		}
 		else {
-			sb.append("<span class=\"health_black\""+">");
+			sb.append("<span "+title+" "+"class=\"health_black\""+">");
 		}
-		sb.append(displaySwapMax);
+		sb.append(swapSizeDisplay);
 		sb.append("</span>");
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
@@ -895,25 +897,25 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		row.add(new JsonPrimitive(sb.toString()));
 		// Swap
 		sb = new StringBuffer();
-		String swap = "";
-		double dswap = 0;
-		if(duccwork instanceof DuccWorkJob) {
-			DecimalFormat formatter = new DecimalFormat("###0.0");
-			DuccWorkJob job = (DuccWorkJob) duccwork;
-			dswap = job.getSwapUsageGb();
-			if(job.isCompleted()) {
-				dswap = job.getSwapUsageGbMax();
-			}
-			swap = formatter.format(dswap);
-		}
 		sb.append("<span>");
-		if(dswap > 0) {
-			sb.append("<span class=\"health_red\""+">");
+		String swapSizeDisplay = "";
+		String swapSizeHover = "";
+		title = "";
+		double swapBytes = 0;
+		if(duccwork instanceof DuccWorkJob) {
+			DuccWorkJob job = (DuccWorkJob) duccwork;
+			swapBytes = DuccHandlerUtils.getSwapSizeBytes(job);
+			swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
+			swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
+			title = "title="+"\""+swapSizeHover+"\"";
+		}
+		if(swapBytes > 0) {
+			sb.append("<span "+title+" "+"class=\"health_red\""+">");
 		}
 		else {
-			sb.append("<span class=\"health_black\""+">");
+			sb.append("<span "+title+" "+"class=\"health_black\""+">");
 		}
-		sb.append(swap);
+		sb.append(swapSizeDisplay);
 		sb.append("</span>");
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
@@ -1085,8 +1087,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}	
 	
-	private static DecimalFormat formatter = new DecimalFormat("##0.0");
-	
 	private void handleServletJsonFormatServicesAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1244,20 +1244,22 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(col.toString()));
 				// Swap
 				col = new StringBuffer();
-				double rawSwap = service.getSwap();
-				rawSwap = rawSwap/Constants.GB;
-				String swap = formatter.format(rawSwap);
-				double rawSwapMax = service.getSwapMax();
-				rawSwapMax = rawSwapMax/Constants.GB;
-				String swapMax = formatter.format(rawSwap);
-				col.append("<span title=\"max="+swapMax+"\" align=\"right\" "+">");
-				if(rawSwap > 0) {
-					col.append("<span class=\"health_red\""+">");
+				col.append("<span>");
+				String swapSizeDisplay = "";
+				String swapSizeHover = "";
+				String title = "";
+				double swapBytes = 0;
+				swapBytes = service.getSwap();
+				swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
+				swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
+				title = "title="+"\""+swapSizeHover+"\"";
+				if(swapBytes > 0) {
+					col.append("<span "+title+" "+"class=\"health_red\""+">");
 				}
 				else {
-					col.append("<span class=\"health_black\""+">");
+					col.append("<span "+title+" "+"class=\"health_black\""+">");
 				}
-				col.append(swap);
+				col.append(swapSizeDisplay);
 				col.append("</span>");
 				col.append("</span>");
 				row.add(new JsonPrimitive(col.toString()));
