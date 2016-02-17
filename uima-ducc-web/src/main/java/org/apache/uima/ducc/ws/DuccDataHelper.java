@@ -71,19 +71,22 @@ public class DuccDataHelper {
         String implementors = meta.getProperty(IServicesRegistry.implementors);
         String[] ret = new String[0];
         if(implementors != null) {
-            String[] tempArray = implementors.trim().split("\\s+");
-            ret = new String[tempArray.length];
-            int i = 0;
-            for (String s : tempArray) {
-                // Back compatibility for the shadow web servers, if no inst id then
-                // just return the 's'
-                if ( s.indexOf(".") > 0 ) {
-                    String[] id_inst = s.split("\\.");
-                    ret[i++] = id_inst[0].trim();
-                } else {
-                    ret[i++] = s;
+        	implementors = implementors.trim();
+        	if(implementors.length() > 0) {
+        		String[] tempArray = implementors.trim().split("\\s+");
+                ret = new String[tempArray.length];
+                int i = 0;
+                for (String s : tempArray) {
+                    // Back compatibility for the shadow web servers, if no inst id then
+                    // just return the 's'
+                    if ( s.indexOf(".") > 0 ) {
+                        String[] id_inst = s.split("\\.");
+                        ret[i++] = id_inst[0].trim();
+                    } else {
+                        ret[i++] = s;
+                    }
                 }
-            }
+        	}
         }
         return ret;
     }
