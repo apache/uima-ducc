@@ -2619,16 +2619,25 @@ function ducc_transform_all_cookies() {
     	var pairs = document.cookie.split(";");
     	var cookies = {};
     	for (var i=0; i<pairs.length; i++){
-    		var pair = pairs[i].split("=");
-    		var name = pair[0].trim();
-    		if(name.startsWith("ducc:")) {
-				var value = pair[1].trim();
-    			var nameSuffix = name.substring(5);
-    			var nameModern = "DUCC"+nameSuffix;
-    			// delete bad cookie
-    			document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    			// create good cookie
-    			ducc_put_cookie(nameModern, value);
+    		var nvp = pairs[i].split("=");
+    		if(nvp.length == 2) {
+    			var name = nvp[0].trim();
+        		var value = nvp[1].trim();
+        		if(name.startsWith("ducc:")) {
+        			var nameSuffix = name.substring(5);
+        			var nameModern = "DUCC"+nameSuffix;
+        			// delete bad cookie
+        			document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        			// create good cookie
+        			ducc_put_cookie(nameModern, value);
+        		}
+    		}
+    		else if(nvp.length == 1) {
+    			var name = nvp[0].trim();
+    			if(name.startsWith("ducc:")) {
+    				// delete bad cookie
+        			document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    			}
     		}
     	}
     } catch (err) {
