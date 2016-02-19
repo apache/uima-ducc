@@ -3398,15 +3398,7 @@ function ducc_confirm_terminate_job(id) {
 }
 
 function ducc_confirm_terminate_service(id) {
-    var fname = "ducc_confirm_terminate_service";
-    try {
-        var result = confirm("Terminate service " + id + "?");
-        if (result == true) {
-            ducc_terminate_service(id);
-        }
-    } catch (err) {
-        ducc_error(fname, err);
-    }
+	ducc_confirm_terminate_reservation(id);
 }
 
 function ducc_confirm_service_enable(id) {
