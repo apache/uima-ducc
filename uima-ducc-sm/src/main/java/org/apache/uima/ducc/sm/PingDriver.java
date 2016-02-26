@@ -43,6 +43,7 @@ import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
@@ -108,6 +109,7 @@ class PingDriver
     String user;
     String working_directory;
     String log_directory;
+    String environment;
     boolean do_log = true;
 
     boolean shutdown = false;
@@ -152,12 +154,12 @@ class PingDriver
         this.meta_ping_timeout = resolveIntProperty    (UiOption.ServicePingTimeout.pname()   , ping_props, job_props, ServiceManagerComponent.meta_ping_timeout);
         this.do_log            = resolveBooleanProperty(UiOption.ServicePingDoLog.pname()     , ping_props, job_props, false);
         this.classpath         = resolveStringProperty (UiOption.ServicePingClasspath.pname() , ping_props, job_props, System.getProperty("java.class.path"));
-        this.working_directory = resolveStringProperty (UiOption.WorkingDirectory.pname()     , ping_props, job_props, null); // cli always puts this int job props, no default 
+        this.working_directory = resolveStringProperty (UiOption.WorkingDirectory.pname()     , ping_props, job_props, null); // cli always puts this into job props, no default 
 
-        this.log_directory     = resolveStringProperty (UiOption.LogDirectory.pname()         , ping_props, job_props, null);     // cli always puts this int job props, no default 
+        this.log_directory     = resolveStringProperty (UiOption.LogDirectory.pname()         , ping_props, job_props, null);     // cli always puts this into job props, no default 
         this.failure_window    = resolveIntProperty    (UiOption.InstanceFailureWindow.pname(), ping_props, job_props, ServiceManagerComponent.failure_window);
         this.failure_max       = resolveIntProperty    (UiOption.InstanceFailureLimit.pname( ), ping_props, job_props, ServiceManagerComponent.failure_max);
-
+        environment            = resolveStringProperty (UiOption.Environment.pname( ),          ping_props, job_props, null);
         jvm_args_str = jvm_args_str.trim();
         if ( jvm_args_str.equals("") ) {
             jvm_args = null;
@@ -664,6 +666,15 @@ class PingDriver
         InputStream stdout = null;
         InputStream stderr = null;
         try {
+            // Jira 4805 - run the pinger with the same environment as the service
+            // Tokenize & unquote the assignments, and convert to a map of environment settings after any substitutions
+            // Could throw IllegalArgumentException which will be caught below
+            ArrayList<String> envVarList = QuotedOptions.tokenizeList(environment, true);
+            Map<String, String> envMap = QuotedOptions.parseAssignments(envVarList, +1);
+            Map<String, String> env = pb.environment();
+            env.clear();
+            env.putAll(envMap);
+            
             ping_main = pb.start();
             stdout = ping_main.getInputStream();
             stderr = ping_main.getErrorStream();
