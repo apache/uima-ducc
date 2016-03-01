@@ -173,7 +173,7 @@ public class StateServicesDb
             logger.error(methodName, null, "Cannot read service directory:", e);
         }
 
-        logger.info(methodName, null, "Time to read service registy", System.currentTimeMillis() - now);
+        logger.trace(methodName, null, "Time to read service registry", System.currentTimeMillis() - now);
         return ret;
     }
 
@@ -284,7 +284,7 @@ public class StateServicesDb
             logger.error(methodName, null, "Error storing props for new registration:", e);
             ret = false;
         } finally {
-            logger.info(methodName, serviceId, "Time to create (2) proeprties files:", System.currentTimeMillis() - now);
+            logger.trace(methodName, serviceId, "Time to create (2) proeprties files:", System.currentTimeMillis() - now);
         }
         return ret;
     }
@@ -350,7 +350,6 @@ public class StateServicesDb
             h = dbManager.open();
             Map<IDbProperty, Object> map = mkMap(serviceId, table, converter, props);
             List<Object> tmp = new ArrayList<Object>();
-            int i = 0;
             for ( IDbProperty k : map.keySet() ) {
                 if ( logger.isTrace() ) {
                     logger.trace(methodName, null, "Updating", k.columnName(), "with", map.get(k));

@@ -87,11 +87,9 @@ public interface IHistoryPersistenceManager
             public boolean isPrimaryKey() { return true; }
         },
 
-        ducc_dbid {
-            public String pname()         { return "ducc_dbid"; }
+        ducc_id {
             public Type type()            { return Type.Long; }
             public boolean isPrimaryKey() { return true; }
-            public boolean isIndex()      { return true; }
         },
 
         history {
@@ -106,6 +104,7 @@ public interface IHistoryPersistenceManager
         },
 
         ;
+        public String pname() { return name(); }
         public Type type() { return Type.String; }
         public boolean isPrimaryKey() { return false; }
         public boolean isPrivate()  { return false; }
@@ -160,14 +159,12 @@ public interface IHistoryPersistenceManager
 
 
         // The order of the primary keys is important here as the Db assigns semantics to the first key in a compound PK
-        job_id {
-            public String pname()         { return "job_id"; }
+        ducc_id {
             public Type type()            { return Type.Long; }
             public boolean isPrimaryKey() { return true; }
         },
             
-        ducc_pid {
-            public String pname()         { return "ducc_pid"; }
+        share_id {
             public Type type()            { return Type.Long; }
             public boolean isPrimaryKey() { return true; }
         },
@@ -305,6 +302,7 @@ public interface IHistoryPersistenceManager
         },
 
         ;
+        public String pname() { return name(); }
         public Type type() { return Type.String; }
         public boolean isPrimaryKey() { return false; }
         public boolean isPrivate()  { return false; }
@@ -335,11 +333,10 @@ public interface IHistoryPersistenceManager
         jclass {
             public String pname()         { return "class"; }
             public Type type()            { return Type.String; }
-            public boolean isPrimaryKey() { return true; }
+            public boolean isIndex()      { return true; }
         },
-
-        ducc_dbid {
-            public String pname()         { return "ducc_dbid"; }
+      
+        ducc_id {
             public Type type()            { return Type.Long; }
             public boolean isPrimaryKey() { return true; }
         },
@@ -452,6 +449,7 @@ public interface IHistoryPersistenceManager
             public boolean isIndex()      { return true; }
         },
         ;
+        public String pname() { return name(); }
         public Type type() { return Type.String; }
         public boolean isPrimaryKey() { return false; }
         public boolean isPrivate()  { return false; }
@@ -482,11 +480,10 @@ public interface IHistoryPersistenceManager
         jclass {
             public String pname()         { return "class"; }
             public Type type()            { return Type.String; }
-            public boolean isPrimaryKey() { return true; }
+            public boolean isIndex()    { return true; }
         },
 
-        ducc_dbid {
-            public String pname()         { return "ducc_dbid"; }
+        ducc_id {
             public Type type()            { return Type.Long; }
             public boolean isPrimaryKey() { return true; }
         },
@@ -543,6 +540,7 @@ public interface IHistoryPersistenceManager
             public boolean isIndex()      { return true; }
         },
         ;
+        public String pname() { return name(); }
         public Type type() { return Type.String; }
         public boolean isPrimaryKey() { return false; }
         public boolean isPrivate()  { return false; }

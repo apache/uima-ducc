@@ -29,6 +29,13 @@
     </layout> 
   </appender> 
   
+  <appender name="3rd-party" class="org.apache.log4j.ConsoleAppender"> 
+    <param name="Target" value="System.out"/> 
+    <layout class="org.apache.log4j.PatternLayout"> 
+      <param name="ConversionPattern" value="%d{DATE} %5p %c{1} - J[%X{JID}] T[%X{TID}] %X{METHOD} %m%n"/> 
+    </layout> 
+  </appender> 
+  
   <appender name="jd-log" class="org.apache.log4j.ConsoleAppender"> 
     <param name="Target" value="System.out"/> 
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -140,7 +147,7 @@
     </layout> 
   </appender> 
   
-   <category name="org.apache.uima.ducc.rm" additivity="true">
+   <category name="org.apache.uima.ducc.rm" additivity="false">
      <priority value="debug"/>
      <appender-ref ref="rmlog" /> 
    </category>
@@ -161,7 +168,7 @@
      <appender-ref ref="rmlog" /> 
    </category -->
 
-   <category name="org.apache.uima.ducc.orchestrator" additivity="true">
+   <category name="org.apache.uima.ducc.orchestrator" additivity="false">
      <priority value="info"/>
      <appender-ref ref="orlog" /> 
    </category>
@@ -181,17 +188,17 @@
      <appender-ref ref="jdout" />
    </category>
 
-   <category name="org.apache.uima.ducc.sm" additivity="true">
-     <priority value="debug"/>
+   <category name="org.apache.uima.ducc.sm" additivity="false">
+     <priority value="info"/>
      <appender-ref ref="smlog" /> 
    </category>
 
-   <category name="org.apache.uima.ducc.pm" additivity="true">
+   <category name="org.apache.uima.ducc.pm" additivity="false">
      <priority value="debug"/>
      <appender-ref ref="pmlog" /> 
    </category>
 
-   <category name="org.apache.uima.ducc.ws" additivity="true">
+   <category name="org.apache.uima.ducc.ws" additivity="false">
      <priority value="info"/>
      <appender-ref ref="wslog" /> 
    </category>
@@ -215,10 +222,12 @@
 
    <category name="org.apache.camel">
      <priority value="warn"/>
+     <appender-ref ref="3rd-party" /> 
    </category>
    
    <category name="org.apache.camel.impl.converter">
      <priority value="error"/>
+     <appender-ref ref="3rd-party" /> 
    </category>
 
    <category name="org.apache.uima.ducc.cli" additivity="false">
@@ -251,9 +260,16 @@
      <appender-ref ref="db-loader-log" /> 
    </category>
    
+   <!-- This should catch the use of any DUCC classes not explicitly specified above -->
+   <category name="org.apache.uima.ducc" additivity="false">
+     <priority value="info"/>
+     <appender-ref ref="console" /> 
+   </category>
+
+   <!-- This should be used by all non-DUCC 3rd-party code -->
   <root> 
     <priority value = "info" /> 
-    <appender-ref ref="console" /> 
+    <appender-ref ref="3rd-party" /> 
   </root>
   
 </log4j:configuration>

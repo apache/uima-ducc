@@ -104,6 +104,9 @@ public class DbLoader
     boolean doservices     = true;
     boolean doregistry     = true;
     boolean docheckpoint   = true;
+    
+    // Jira 4804 For now don't save details in tables: jobs, reservations, & processes
+    boolean saveDetails  = System.getenv("SAVE_DB_DETAILS") == null ? false : true;
 
     long jobBytes = 0;
     long resBytes = 0;
@@ -112,7 +115,7 @@ public class DbLoader
 
     AtomicInteger skippedServices = new AtomicInteger(0);
 
-    public DbLoader(String from, String state_url)
+    public DbLoader(String from, String state_url, int nthreads)
         throws Exception
     {
     	//String methodName = "<ctr>";
@@ -139,6 +142,8 @@ public class DbLoader
         checkpointFile         = from + checkpointFile;
 
         System.setProperty(DbManager.URL_PROPERTY, state_url);
+        
+        this.nthreads = nthreads;
     }
 
     void closeStream(InputStream in)
@@ -188,7 +193,7 @@ public class DbLoader
         for ( File f : files) {
             String s = f.toString();
             if ( s.endsWith(".dwj") ) {
-                logger.info(methodName, null, "Loading file", c++, ":", f);
+                logger.trace(methodName, null, "Loading file", c++, ":", f);
                 queue.offer(f);
                 counter.getAndIncrement();
 
@@ -198,22 +203,23 @@ public class DbLoader
             }                              
         }
 
+        logger.info(methodName, null, "Waiting for the", nth, "threads to load the DB.");
         while ( (c = counter.get()) != 0 ) {
             try { 
-                logger.info(methodName, null, "Waiting for loads to finish, counter is", c, "(job).");
-                System.out.println("Waiting for job loads to finish, counter is " + c);
+                logger.trace(methodName, null, "Waiting for loads to finish, counter is", c, "(job).");
+                //System.out.println("Waiting for job loads to finish, counter is " + c);
                 Thread.sleep(1000); 
             } 
             catch ( Exception e ) {}
         }
 
         for ( int i = 0; i < nth; i++ ) {
-            logger.info(methodName, null, "Intterupt thread (job)", i);
+            logger.trace(methodName, null, "Interrupt thread (job)", i);
             threads[i].interrupt();
         }
                     
         for ( int i = 0; i < nth; i++ ) {
-            logger.info(methodName, null, "Joining thread (job)", i);
+            logger.trace(methodName, null, "Joining thread (job)", i);
             try { threads[i].join(); } catch ( InterruptedException e ) {}
         }
 
@@ -264,7 +270,7 @@ public class DbLoader
         for ( File f : files ) {
             String s = f.toString();
             if ( s.endsWith(".dwr") ) {
-                logger.info(methodName, null, "Loading file", c++, ":", f);
+                logger.trace(methodName, null, "Loading file", c++, ":", f);
                 
                 queue.offer(f);
                 counter.getAndIncrement();
@@ -276,10 +282,11 @@ public class DbLoader
 
         }
 
+        logger.info(methodName, null, "Waiting for the", nth, "threads to load the DB.");
         while ( (c = counter.get()) != 0 ) {
             try { 
-                logger.info(methodName, null, "Waiting for reservation loads to finish, counter is", c);
-                System.out.println("Waiting for reservation loads to finish, counter is " + c);
+                logger.trace(methodName, null, "Waiting for reservation loads to finish, counter is", c);
+                //System.out.println("Waiting for reservation loads to finish, counter is " + c);
 
                 Thread.sleep(1000); 
             } 
@@ -287,12 +294,12 @@ public class DbLoader
         }
 
         for ( int i = 0; i < nth; i++ ) {
-            logger.info(methodName, null, "Intterupt thread (reservations).", i);
+            logger.trace(methodName, null, "Interrupt thread (reservations).", i);
             threads[i].interrupt();
         }
                     
         for ( int i = 0; i < nth; i++ ) {
-            logger.info(methodName, null, "Joining thread (reservations).", i);
+            logger.trace(methodName, null, "Joining thread (reservations).", i);
             try { threads[i].join(); } catch ( InterruptedException e ) {}
         }
 
@@ -345,7 +352,7 @@ public class DbLoader
         for ( File f : files ) {
             String s = f.toString();
             if ( s.endsWith(".dws") ) {
-                logger.info(methodName, null, "Loading file", c++, ":", f);
+                logger.trace(methodName, null, "Loading file", c++, ":", f);
 
                 queue.offer(f);
                 counter.getAndIncrement();
@@ -356,22 +363,23 @@ public class DbLoader
             }                              
         }
 
+        logger.info(methodName, null, "Waiting for the", nth, "threads to load the DB.");
         while ( (c = counter.get()) != 0 ) {
             try { 
-                logger.info(methodName, null, "Waiting for loads to finish, counter is", c, "(service instances");
-                System.out.println("Waiting for AP/Service Instance  loads to finish, counter is " + c);
+                logger.trace(methodName, null, "Waiting for loads to finish, counter is", c, "(service instances");
+                //System.out.println("Waiting for AP/Service Instance  loads to finish, counter is " + c);
                 Thread.sleep(1000); 
             } 
             catch ( Exception e ) {}
         }
 
         for ( int i = 0; i < nth; i++ ) {
-            logger.info(methodName, null, "Intterupt thread (services).", i);
+            logger.trace(methodName, null, "Interrupt thread (services).", i);
             threads[i].interrupt();
         }
                     
         for ( int i = 0; i < nth; i++ ) {
-            logger.info(methodName, null, "Joining thread (services).", i);
+            logger.trace(methodName, null, "Joining thread (services).", i);
             try { threads[i].join(); } catch ( InterruptedException e ) {}
         }
 
@@ -437,10 +445,11 @@ public class DbLoader
             
         }
 
+        logger.info(methodName, null, "Waiting for the", nth, "threads to load the DB.");
         while ( (c = counter.get()) != 0 ) {
             try { 
-                logger.info(methodName, null, "Waiting for service registry loads to finish, counter is", c);
-                System.out.println("Waiting for service registration loads to finish, counter is " + c);
+                logger.trace(methodName, null, "Waiting for service registry loads to finish, counter is", c);
+                //System.out.println("Waiting for service registration loads to finish, counter is " + c);
 
                 Thread.sleep(1000); 
             } 
@@ -448,12 +457,12 @@ public class DbLoader
         }
 
         for ( int i = 0; i < nth; i++ ) {
-            logger.info(methodName, null, "Intterupt thread (service registry).", i);
+            logger.trace(methodName, null, "Interrupt thread (service registry).", i);
             threads[i].interrupt();
         }
                     
         for ( int i = 0; i < nth; i++ ) {
-            logger.info(methodName, null, "Joining thread (service registry).", i);
+            logger.trace(methodName, null, "Joining thread (service registry).", i);
             try { threads[i].join(); } catch ( InterruptedException e ) {}
         }
 
@@ -533,7 +542,7 @@ public class DbLoader
                 counter++;
                 ByteBuffer b = r.getBytes("work");
                 nbytes += b.array().length;
-                logger.info(methodName, null, "found", r.getLong("ducc_dbid"), "of type", r.getString("type"));
+                logger.info(methodName, null, "found", r.getLong("ducc_id"), "of type", r.getString("type"));
             }
             
             logger.info(methodName, null, "Found", counter, "results. Total bytes", nbytes);
@@ -580,11 +589,12 @@ public class DbLoader
                 System.out.println("Temporarily dropping some indexes");
                 List<SimpleStatement> drops = HistoryManagerDb.dropIndices();
                 DbHandle h = dbManager.open();
+                if (saveDetails) // Jira 4804
                 for ( SimpleStatement ss : drops ) {
                     System.out.println(ss.getQueryString());
                     h.execute(ss);
                 }
-
+                
                 long nowt = System.currentTimeMillis();
                 if ( docheckpoint ) loadCheckpoint();
                 logger.info(methodName, null, "***** Time to load checkpoint A ****", System.currentTimeMillis() - nowt);
@@ -637,6 +647,7 @@ public class DbLoader
                 System.out.println("Restoring indexes");
                 List<SimpleStatement> indices = HistoryManagerDb.createIndices();
                 h = dbManager.open();
+                if (saveDetails) // Jira 4804
                 for ( SimpleStatement ss : indices ) {
                     System.out.println(ss.getQueryString());
                     h.execute(ss);
@@ -656,24 +667,27 @@ public class DbLoader
 
     public static void main(String[] args)
     {
-        if ( args.length != 2 ) {
-            System.out.println("USage: DbLoader from to");
+        if ( args.length < 2 ) {
+            System.out.println("USage: DbLoader from to <num-threads>");
             System.out.println("");
             System.out.println("Where:");
-            System.out.println("   from");        
-            System.out.println("      is the DUCC_HOME you wish to convert.");
-            System.out.println(" ");
-            System.out.println("   to");
-            System.out.println("      is the datbase URL.");
+            System.out.println("   from      is the DUCC_HOME you wish to convert,");
+            System.out.println("   to        is the datbase URL,");
+            System.out.println("   nthreads  is the number of loader threads to run.");
             System.out.println(" ");
             
             System.exit(1);
         }
 
-            
+        int nthreads = 10; 
+        if (args.length > 2) {
+          nthreads = Integer.valueOf(args[2]);
+        }
+        
     	DbLoader dbl = null;
+
         try {
-            dbl = new DbLoader(args[0], args[1]);
+            dbl = new DbLoader(args[0], args[1], nthreads);
             dbl.run();
         } catch ( Exception e  ) {
             e.printStackTrace();
@@ -695,7 +709,7 @@ public class DbLoader
             DbHandle h = dbManager.open();
             synchronized(JobLoader.class) {
                 if ( jobPrepare == null ) {
-                    jobPrepare = h.prepare("INSERT INTO " + HistoryManagerDb.JOB_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?)");
+                    jobPrepare = h.prepare("INSERT INTO " + HistoryManagerDb.JOB_HISTORY_TABLE + " (ducc_id, type, history, work) VALUES (?, ?, ?, ?)");
                 }
             }
         }
@@ -732,17 +746,22 @@ public class DbLoader
                         fis.read(buf);
 
                         ByteBuffer bb = ByteBuffer.wrap(buf);
-                        logger.info(methodName, did, "Time to read job:", System.currentTimeMillis() - now+" MS", "bytes:", nbytes);
-                        logger.info(methodName, did, "Job", duccid, "Store CQL:", jobPrepare.getQueryString());
+                        logger.trace(methodName, did, "Time to read job:", System.currentTimeMillis() - now+" MS", "bytes:", nbytes);
+                        logger.trace(methodName, did, "Job", duccid, "Store CQL:", jobPrepare.getQueryString());
                         
                         long now1 = System.currentTimeMillis();
                         BoundStatement boundStatement = new BoundStatement(jobPrepare);
                         BoundStatement bound = boundStatement.bind(duccid, "job", true, bb);
                         DbHandle h = dbManager.open();
 
-                        h.execute(bound);
-                        logger.info(methodName, did, "Time to store job", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
+                        try {
+                          h.execute(bound);
+                        } catch (Exception e) {
+                          logger.error(methodName,  did,  "Error:", e);
+                        }
+                        logger.trace(methodName, did, "Time to store job", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
 
+                       if (saveDetails) { // Jira 4804
                         synchronized(ids) {
                             // any sync object is ok - but we want to effectively single thread the writing of the details as this tends
                             // to overrun the DB during this bulk load.
@@ -755,10 +774,11 @@ public class DbLoader
                             now = System.currentTimeMillis();
                             hmd.summarizeProcesses(h, (IDuccWork) o, "J");
                             hmd.summarizeJob(h, (IDuccWork) o, "J");
-                            logger.info(methodName, did, "Time to store process summaries for job", duccid, ":", (System.currentTimeMillis() - now));
+                            logger.trace(methodName, did, "Time to store process summaries for job", duccid, ":", (System.currentTimeMillis() - now));
                         }
+                       }
                     } catch(Exception e) {
-                        logger.info(methodName, did, e);
+                        logger.error(methodName, did, e);
                     } finally {                        
                         closeStream(fis);
                         counter.getAndDecrement();
@@ -767,7 +787,7 @@ public class DbLoader
                 } catch ( InterruptedException e ) {
                     return;
                 } catch(Exception e) {
-                    logger.info(methodName, null, e);
+                    logger.error(methodName, null, e);
                 } finally {
 
                     synchronized(ids) {
@@ -796,7 +816,7 @@ public class DbLoader
             DbHandle h = dbManager.open();
             synchronized(ServiceLoader.class) {
                 if ( servicePrepare == null ) {
-                    servicePrepare = h.prepare("INSERT INTO " + HistoryManagerDb.SVC_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?);");            
+                    servicePrepare = h.prepare("INSERT INTO " + HistoryManagerDb.SVC_HISTORY_TABLE + " (ducc_id, type, history, work) VALUES (?, ?, ?, ?);");            
                 }
             }
         }
@@ -833,15 +853,19 @@ public class DbLoader
                         fis.read(buf);
 
                         ByteBuffer bb = ByteBuffer.wrap(buf);
-                        logger.info(methodName, did, "Time to read service", duccid, ":", System.currentTimeMillis() - now + " MS", "bytes:", nbytes);
-                        logger.info(methodName, did, "Service", duccid, "Store CQL:", servicePrepare.getQueryString());
+                        logger.trace(methodName, did, "Time to read service", duccid, ":", System.currentTimeMillis() - now + " MS", "bytes:", nbytes);
+                        logger.trace(methodName, did, "Service", duccid, "Store CQL:", servicePrepare.getQueryString());
                         long now1 = System.currentTimeMillis();
                         BoundStatement boundStatement = new BoundStatement(servicePrepare);
                         BoundStatement bound = boundStatement.bind(duccid, "service", true, bb);
                         DbHandle h = dbManager.open();
 
-                        h.execute(bound);
-                        logger.info(methodName, did, "Time to store service", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
+                        try {
+                          h.execute(bound);
+                        } catch (Exception e) {
+                          logger.error(methodName,  did,  "Error:", e);
+                        }
+                        logger.trace(methodName, did, "Time to store service", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
 
                         ByteArrayInputStream bais = new ByteArrayInputStream(buf);
                         ObjectInputStream ois = new ObjectInputStream(bais);
@@ -864,14 +888,20 @@ public class DbLoader
                             case other:
                                 type = "A";
                                 break;
+                            default :
+                                type = "?";
+                                break;
                         }
-                    
+
+                       if (saveDetails) { // Jira 4804
                         now = System.currentTimeMillis();
                         hmd.summarizeProcesses(h, (IDuccWork) o, type);
-                        logger.info(methodName, did, "Time to store AP/Service Instance summaries for job", duccid, ":", (System.currentTimeMillis() - now));
+                        long delta = System.currentTimeMillis() - now;
+                        logger.trace(methodName, did, "Time to store AP/Service Instance summaries for job", duccid, ":", delta);
+                       }
 
                     } catch(Exception e) {
-                        logger.info(methodName, did, e);
+                        logger.error(methodName, did, e);
                     } finally {
                         closeStream(in);
                         closeStream(fis);
@@ -880,7 +910,7 @@ public class DbLoader
                 } catch ( InterruptedException e ) {
                     return;
                 } catch(Exception e) {
-                    logger.info(methodName, did, e);
+                    logger.error(methodName, did, e);
                 } finally {
 
                     synchronized(ids) {
@@ -908,7 +938,7 @@ public class DbLoader
             DbHandle h = dbManager.open();
             synchronized(ReservationLoader.class) {
                 if ( reservationPrepare == null ) {
-                    reservationPrepare = h.prepare("INSERT INTO " + HistoryManagerDb.RES_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?);");
+                    reservationPrepare = h.prepare("INSERT INTO " + HistoryManagerDb.RES_HISTORY_TABLE + " (ducc_id, type, history, work) VALUES (?, ?, ?, ?);");
                 }
             }
         }
@@ -945,16 +975,21 @@ public class DbLoader
                         fis.read(buf);
 
                         ByteBuffer bb = ByteBuffer.wrap(buf);
-                        logger.info(methodName, did, "Time to read reservation", duccid, ":", System.currentTimeMillis() - now+" MS", "bytes:", nbytes);
-                        logger.info(methodName, did, "Reservation", duccid, "Store CQL:", reservationPrepare.getQueryString());
+                        logger.trace(methodName, did, "Time to read reservation", duccid, ":", System.currentTimeMillis() - now+" MS", "bytes:", nbytes);
+                        logger.trace(methodName, did, "Reservation", duccid, "Store CQL:", reservationPrepare.getQueryString());
                         long now1 = System.currentTimeMillis();
                         BoundStatement boundStatement = new BoundStatement(reservationPrepare);
                         BoundStatement bound = boundStatement.bind(duccid, "reservation", true, bb);
                         DbHandle h = dbManager.open();
 
-                        h.execute(bound);
-                        logger.info(methodName, did, "Time to store reservation", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
+                        try {
+                          h.execute(bound);
+                        } catch (Exception e) {
+                          logger.error(methodName,  did,  "Error:", e);
+                        }
+                        logger.trace(methodName, did, "Time to store reservation", duccid, "- Database update:", (System.currentTimeMillis() - now1) + " MS", "Total save time:", (System.currentTimeMillis() - now) + " MS");
 
+                       if (saveDetails) { // Jira 4804
                         ByteArrayInputStream bais = new ByteArrayInputStream(buf);
                         ObjectInputStream ois = new ObjectInputStream(bais);
                         Object o = ois.readObject();
@@ -964,11 +999,12 @@ public class DbLoader
                         now = System.currentTimeMillis();
                         hmd.summarizeProcesses(h, (IDuccWork) o, "R"); // details on the "process" in the map
                         hmd.summarizeReservation(h, (IDuccWork) o);    // details on the reservaiton itself
-                        logger.info(methodName, did, "Time to store reservation summaries for job", duccid, ":", (System.currentTimeMillis() - now));
+                        logger.trace(methodName, did, "Time to store reservation summaries for job", duccid, ":", (System.currentTimeMillis() - now));
+                       }
 
                     } catch(Exception e) {
                         e.printStackTrace();
-                        logger.info(methodName, did, e);
+                        logger.error(methodName, did, e);
                     } finally {
                         closeStream(in);
                         closeStream(fis);
@@ -979,7 +1015,7 @@ public class DbLoader
                 } catch ( InterruptedException e ) {
                     return;
                 } catch ( Exception e ){
-                    logger.info(methodName, null, e);
+                    logger.error(methodName, null, e);
                 } finally {
                     synchronized(ids) {
                         if ( nbytes > 0 ) {
@@ -1013,14 +1049,14 @@ public class DbLoader
                 int nbytes = 0;
                 boolean isHistory;
                 try {
-                    logger.info(methodName, null, "About to take (service id).");
+                    logger.trace(methodName, null, "About to take (service id).");
                     p = queue.take();
                     id = p.first();
                     isHistory = p.second();
                 } catch ( InterruptedException e ) {
                     return;
                 }
-                logger.info(methodName, null, id, "Took a service id");
+                logger.trace(methodName, null, id, "Took a service id");
                 FileInputStream svc_in = null;
                 FileInputStream meta_in = null;
                 try {
@@ -1060,7 +1096,7 @@ public class DbLoader
                         }
                     }
                 } catch(Exception e) {
-                    logger.info(methodName, null, e);
+                    logger.error(methodName, null, e);
                 } finally {
                     closeStream(svc_in);
                     closeStream(meta_in);

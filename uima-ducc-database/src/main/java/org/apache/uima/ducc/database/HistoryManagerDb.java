@@ -93,6 +93,9 @@ public class HistoryManagerDb
                                  RESERVATION_TABLE}
         ;
 
+    // Jira 4804 For now don't save details in tables: jobs, reservations, & processes
+    static final boolean saveDetails  = System.getenv("SAVE_DB_DETAILS") == null ? false : true;
+    
     public HistoryManagerDb()
     {
     }
@@ -115,14 +118,16 @@ public class HistoryManagerDb
                 
                 // prepare some statements
                 DbHandle h = dbManager.open();
-                jobBlobPrepare          = h.prepare("INSERT INTO " + JOB_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) ;");            
-                reservationBlobPrepare  = h.prepare("INSERT INTO " + RES_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) ;");            
-                serviceBlobPrepare      = h.prepare("INSERT INTO " + SVC_HISTORY_TABLE + " (ducc_dbid, type, history, work) VALUES (?, ?, ?, ?) ;");            
-                ckptPrepare             = h.prepare("INSERT INTO " + CKPT_TABLE + " (id, work, p2jmap) VALUES (?, ?, ?);");            
-                processDetailsPrepare   = h.prepare("INSERT INTO " + PROCESS_TABLE + " (host, job_id, ducc_pid, type, user, memory, start, stop, class, pid, reason_agent, exit_code, reason_scheduler, cpu, swap_max, run_time, init_time, initialized, investment, major_faults, gc_count, gc_time) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;");
-                reservationAllocPrepare = h.prepare("INSERT INTO " + PROCESS_TABLE + " (host, job_id, ducc_pid, type, user, memory, start, stop, class, run_time) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;");
-                jobDetailsPrepare = h.prepare("INSERT INTO " + JOB_TABLE + " (user, class, ducc_dbid, submission_time, duration, memory, reason, init_fails, errors, pgin, swap, total_wi, retries, preemptions, description) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;");
-                reservationDetailsPrepare = h.prepare("INSERT INTO " + RESERVATION_TABLE + " (user, class, ducc_dbid, submission_time, duration, memory, reason, processes, state, type, hosts, description) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+                jobBlobPrepare          = h.prepare("INSERT INTO " + JOB_HISTORY_TABLE + " (ducc_id, type, history, work) VALUES (?, ?, ?, ?) ;");            
+                reservationBlobPrepare  = h.prepare("INSERT INTO " + RES_HISTORY_TABLE + " (ducc_id, type, history, work) VALUES (?, ?, ?, ?) ;");            
+                serviceBlobPrepare      = h.prepare("INSERT INTO " + SVC_HISTORY_TABLE + " (ducc_id, type, history, work) VALUES (?, ?, ?, ?) ;");            
+                ckptPrepare             = h.prepare("INSERT INTO " + CKPT_TABLE + " (id, work, p2jmap) VALUES (?, ?, ?);");
+               if (saveDetails) { // Jira-4804
+                processDetailsPrepare   = h.prepare("INSERT INTO " + PROCESS_TABLE + " (host, ducc_id, share_id, type, user, memory, start, stop, class, pid, reason_agent, exit_code, reason_scheduler, cpu, swap_max, run_time, init_time, initialized, investment, major_faults, gc_count, gc_time) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;");
+                reservationAllocPrepare = h.prepare("INSERT INTO " + PROCESS_TABLE + " (host, ducc_id, share_id, type, user, memory, start, stop, class, run_time) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;");
+                jobDetailsPrepare = h.prepare("INSERT INTO " + JOB_TABLE + " (user, class, ducc_id, submission_time, duration, memory, reason, init_fails, errors, pgin, swap, total_wi, retries, preemptions, description) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;");
+                reservationDetailsPrepare = h.prepare("INSERT INTO " + RESERVATION_TABLE + " (user, class, ducc_id, submission_time, duration, memory, reason, processes, state, type, hosts, description) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+               }  // Jira-4804
                 break;
             } catch ( NoHostAvailableException e ) {
                 logger.error(methodName, null, "Cannot contact database.  Retrying in 5 seconds.");
@@ -221,7 +226,7 @@ public class HistoryManagerDb
         StringBuffer buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + tablename + " (");
         buf.append(DbUtil.mkSchema(OrWorkProps.values()));
         buf.append(")");
-        buf.append("WITH CLUSTERING ORDER BY (ducc_dbid desc)");
+        buf.append("WITH CLUSTERING ORDER BY (ducc_id desc)");
         ret.add(new SimpleStatement(buf.toString()));
 
         List<String> indexes = DbUtil.mkIndices(OrWorkProps.values(), tablename);
@@ -246,6 +251,8 @@ public class HistoryManagerDb
         buf.append(")");
         ret.add(new SimpleStatement(buf.toString()));
 
+       if (saveDetails) {   // Jira 4804
+          
         buf = new StringBuffer("CREATE TABLE IF NOT EXISTS " + PROCESS_TABLE + " (");
         buf.append(DbUtil.mkSchema(OrProcessProps.values()));
         buf.append(")");
@@ -261,13 +268,14 @@ public class HistoryManagerDb
         buf.append(DbUtil.mkSchema(OrReservationProps.values()));
         buf.append(")");
         ret.add(new SimpleStatement(buf.toString()));
-
-        // PLEASE NOTE: The process, job, and reservaiton tables can have 10000s, 100000s or 1000000s of records during bulk
+        
+        // PLEASE NOTE: The process, job, and reservation tables can have 10000s, 100000s or 1000000s of records during bulk
         // load of a system that has been running a while during execution of DbLoader.  The DbLoader will drop the indexes
         // on these three tables and then recreate them.  To support this we break out the creation into another
         // routine that can be called from the loader.
         ret.addAll(createIndices());
-
+       }   // Jira 4804
+       
         return ret;
     }
 
@@ -294,7 +302,7 @@ public class HistoryManagerDb
         IDuccWorkJob j = (IDuccWorkJob) w;
         // need duccid, user, class, submission-time, duration, memory, exit-reason, init-fails, pgin, swap, total-wi, retries, preemptions, description
 
-        long ducc_dbid  = j.getDuccId().getFriendly();
+        long ducc_id  = j.getDuccId().getFriendly();
         
         IDuccStandardInfo dsi = j.getStandardInfo();
         IDuccSchedulingInfo dsx = j.getSchedulingInfo();
@@ -315,7 +323,7 @@ public class HistoryManagerDb
         int retries = toInt(dsx.getWorkItemsRetry());
         int preemptions = toInt(dsx.getWorkItemsPreempt());
         String description = getString(dsi.getDescription());
-        h.execute(jobDetailsPrepare, user, jclass, ducc_dbid, submission, duration, memory, reason, init_fails, errors, pgin, swap, wi, retries, preemptions, description);
+        h.execute(jobDetailsPrepare, user, jclass, ducc_id, submission, duration, memory, reason, init_fails, errors, pgin, swap, wi, retries, preemptions, description);
     }
 
     void summarizeProcesses(DbHandle h, IDuccWork w, String type)
@@ -324,20 +332,12 @@ public class HistoryManagerDb
         // Loop through the processes on w saving useful things:
         //    jobid, processid, node, user, type of job, PID, duration, start timestamp, stop timestamp, exit state,
         //    memory, CPU, exit code, swap max, investment, init time
-        long job_id = w.getDuccId().getFriendly();
-    	int stupid = 0;
-    	stupid++;
+        long work_id = w.getDuccId().getFriendly();
         switch ( w.getDuccType() ) {
             case Job:
             case Service:
             case Pop:
                 {
-                    if ( job_id == 287249 ) {
-                        stupid++;
-                        stupid++;
-                    }
-
-
                     IDuccProcessMap m = ((ADuccWorkExecutable)w).getProcessMap();
                     Map<DuccId, IDuccProcess> map = m.getMap();
                     IDuccStandardInfo dsi = w.getStandardInfo();
@@ -348,11 +348,7 @@ public class HistoryManagerDb
                     String sclass = dsx.getSchedulingClass();
 
                     for ( IDuccProcess idp : map.values() ) {
-                        stupid++;
-                        stupid++;
-
-
-                        long ducc_pid = idp.getDuccId().getFriendly();
+                        long share_id = idp.getDuccId().getFriendly();
                         long pid = toInt(idp.getPID());
                         String node = getString(idp.getNodeIdentity().getName());
                         String reason_agent = getString(idp.getReasonForStoppingProcess()); // called "reason" in duccprocess but not in ws
@@ -383,7 +379,7 @@ public class HistoryManagerDb
                         	gccount = gcs.getCollectionCount();
                             gctime = gcs.getCollectionTime();
                         }
-                        h.execute(processDetailsPrepare, node, job_id, ducc_pid, type, user, memory, processStart, processEnd, sclass,
+                        h.execute(processDetailsPrepare, node, work_id, share_id, type, user, memory, processStart, processEnd, sclass,
                                   pid, reason_agent, exit_code, reason_scheduler, cpu, swap, Math.max(0, (processEnd-processStart)), initTime,
                                   initialized, investment, major_faults, gccount, gctime);
                     }
@@ -393,11 +389,6 @@ public class HistoryManagerDb
  
             case Reservation:
                 {
-                    if ( job_id == 287249 ) {
-                        stupid++;
-                        stupid++;
-                    }
-
                 	IDuccReservationMap m = ((IDuccWorkReservation)w).getReservationMap();
                     Map<DuccId, IDuccReservation> map = m.getMap();
                     IDuccStandardInfo dsi = w.getStandardInfo();
@@ -414,18 +405,19 @@ public class HistoryManagerDb
                             node = idr.getNode().getNodeIdentity().getName();
                         }
                     	try {
-							h.execute(reservationAllocPrepare, node, job_id,
+							h.execute(reservationAllocPrepare, node, work_id,
 							          idr.getDuccId().getFriendly(), type, getString(dsi.getUser()), memory_size, 
 							          start, stop, getString(dsx.getSchedulingClass()), Math.max(0, (stop-start)) );
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
-							stupid++;
-							stupid++;
 						}
                     }
                     
                 }
+                break;
+                
+            default :
                 break;
         }
     }
@@ -435,7 +427,7 @@ public class HistoryManagerDb
     {
         DuccWorkReservation r = (DuccWorkReservation) w; // cannot use the interface because it is incomplete
 
-        long ducc_dbid  = r.getDuccId().getFriendly();
+        long ducc_id  = r.getDuccId().getFriendly();
 
         IDuccStandardInfo dsi = r.getStandardInfo();
         IDuccSchedulingInfo dsx = r.getSchedulingInfo();
@@ -462,7 +454,7 @@ public class HistoryManagerDb
 
         String state = r.getReservationState().toString();
 
-        h.execute(reservationDetailsPrepare, user, jclass, ducc_dbid, submission, duration, memory, reason, processes, state, type, hosts, description);
+        h.execute(reservationDetailsPrepare, user, jclass, ducc_id, submission, duration, memory, reason, processes, state, type, hosts, description);
 
     }
 
@@ -492,18 +484,21 @@ public class HistoryManagerDb
                         type = "AP";
                         processType = "A";
                         break;
+                    default :
+                        break;
                     }
                 break;
             case Reservation:
                 type = "reservation";
                 processType = "R";
+                // ?? why are unmanaged reservations saved in processes?  because they have a share/rm-id ?
                 break;
             default:
                 // illegal - internal error if this happens
                 logger.error(methodName, w.getDuccId(), "Unknown job type", w.getDuccType(), "Cannot save to database.");
                 return;
         }
-        logger.info(methodName, w.getDuccId(), "-------- saving " + type);
+        logger.info(methodName, w.getDuccId(), "saving " + type);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(baos);
@@ -515,6 +510,7 @@ public class HistoryManagerDb
         DbHandle h = dbManager.open();
         h.saveObject(s,  w.getDuccId().getFriendly(), type, isHistory, buf);
 
+       if (saveDetails) {  // Jira-4804
         switch ( w.getDuccType() ) {
             case Job:
                 summarizeJob(h, w, "J");
@@ -529,12 +525,12 @@ public class HistoryManagerDb
         }
 
         summarizeProcesses(h, w, processType);    // summarize each process of the work 
-
-        logger.info(methodName, w.getDuccId(), "----------> Time to save", type, ":", System.currentTimeMillis() - nowP, "Size:", bytes.length, "bytes.");        
+       } // Jira-4804
+        logger.trace(methodName, w.getDuccId(), "----------> Time to save", type, ":", System.currentTimeMillis() - nowP, "Size:", bytes.length, "bytes.");        
     }
 
     /**
-     * Part of history management, recover ths indicated job from history.
+     * Part of history management, recover the indicated job from history.
      */
     @SuppressWarnings("unchecked")
 	<T> T restoreWork(Class<T> cl, String tablename, long friendly_id)
@@ -545,7 +541,7 @@ public class HistoryManagerDb
         DbHandle h = null;
 
         h = dbManager.open();
-        String cql = "SELECT WORK FROM " + tablename + " WHERE DUCC_DBID=" + Long.toString(friendly_id);
+        String cql = "SELECT WORK FROM " + tablename + " WHERE DUCC_ID=" + Long.toString(friendly_id);
         ResultSet rs = h.execute(cql);
         for ( Row r : rs ) {
             logger.info(methodName, null, "----- Restoring", friendly_id); 
@@ -753,10 +749,10 @@ public class HistoryManagerDb
             logger.error(methodName, null, "Cannot save ProcessToJob map", e);
             ret = false;
         } finally {
-            if ( ret ) logger.info(methodName, null, "Saved Orchestrator Checkpoint");
+            if ( ret ) logger.trace(methodName, null, "Saved Orchestrator Checkpoint");
         }
 
-        logger.info(methodName, null, "Total time to save checkpoint:", System.currentTimeMillis() - now);
+        logger.trace(methodName, null, "Total time to save checkpoint:", System.currentTimeMillis() - now);
         return ret;
     }
 

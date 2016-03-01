@@ -43,7 +43,6 @@ public class RmQLoad
     void run()
         throws Exception
     {
-        System.setProperty(DbManager.NOISE_PROPERTY, "false");
         IRmPersistence persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
         if ( persistence instanceof NullRmStatePersistence ) {
             System.out.println("Cannot get viable RM Persistance isntance.");

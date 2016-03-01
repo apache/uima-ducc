@@ -44,11 +44,9 @@ import com.datastax.driver.core.policies.ReconnectionPolicy;
 public class DbManager
 {
     static final String URL_PROPERTY = "ducc.database.host";
-    static final String NOISE_PROPERTY = "ducc.database.noisy";
     private static String db_id = null;
     private static String db_pw = null;
 
-    boolean noisy = true;
     String dburl;
     DuccLogger logger;
 
@@ -61,9 +59,6 @@ public class DbManager
     {
         this.dburl = dburl;
         this.logger = logger;
-
-        if ( System.getProperty(NOISE_PROPERTY) != null ) noisy = true;
-        System.out.println("NOISY " + noisy);
     }
     
     boolean checkForDatabase()
@@ -112,18 +107,16 @@ public class DbManager
             .build();
 
         Metadata metadata = cluster.getMetadata();
-        if ( noisy) {
-            logger.info(methodName, null, "Connected to cluster:", metadata.getClusterName());
-            for ( Host host : metadata.getAllHosts() ) {
-                logger.info(methodName, null, "Datatacenter:", host.getDatacenter(), "Host:", host.getAddress(), "Rack:", host.getRack());
-            } 
+        logger.info(methodName, null, "Connected to cluster:", metadata.getClusterName());
+        for (Host host : metadata.getAllHosts()) {
+            logger.info(methodName, null, "Datatacenter:", host.getDatacenter(), "Host:", host.getAddress(), "Rack:", host.getRack());
         }
     }
 
     public synchronized void shutdown()
     {
     	String methodName = "closeDatabase";
-        if ( noisy ) logger.info(methodName, null, "Closing the database.");
+        logger.info(methodName, null, "Closing the database.");
         if ( cluster != null ) cluster.close();        
         cluster = null;
         session = null;
@@ -153,9 +146,9 @@ public class DbManager
     {
     	String methodName = "execute";
         if ( logger.isDebug() ) {
-            if ( noisy ) logger.info(methodName, null, "EXECUTE CQL:", cql);
+            logger.debug(methodName, null, "EXECUTE CQL:", cql);
         } else {
-            if ( noisy ) logger.info(methodName, null, "EXECUTE CQL:", truncateText(cql));
+            logger.trace(methodName, null, "EXECUTE CQL:", truncateText(cql));
         }
         return session.execute(cql);
     }
@@ -168,7 +161,7 @@ public class DbManager
     ResultSet execute(SimpleStatement s)
     {
     	String methodName = "execute";
-        if ( noisy ) logger.info(methodName, null, "EXECUTE STATEMENT:", truncateText(s.getQueryString()));
+        logger.trace(methodName, null, "EXECUTE STATEMENT:", truncateText(s.getQueryString()));
         return session.execute(s);
     }
 

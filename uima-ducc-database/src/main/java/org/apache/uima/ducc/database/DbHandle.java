@@ -50,7 +50,7 @@ public class DbHandle
         String methodName = "execute";
         long now = System.currentTimeMillis();
         ResultSet ret = manager.execute(sql);
-        if ( manager.noisy ) logger.debug(methodName, null, "Time to execute", System.currentTimeMillis() - now);
+        if ( logger.isDebug() ) logger.debug(methodName, null, "Time to execute", System.currentTimeMillis() - now);
         
         return ret;
     }
@@ -76,14 +76,14 @@ public class DbHandle
 			BoundStatement bound = boundStatement.bind(fields);
 			return execute(bound);        
         } finally {
-			if ( manager.noisy ) {
-                logger.info(methodName, null, "Time to execute prepared statement:", ps.getQueryString(), System.currentTimeMillis() - now);
+			if ( logger.isTrace() ) {
+                logger.trace(methodName, null, "Time to execute prepared statement:", ps.getQueryString(), System.currentTimeMillis() - now);
                 StringBuffer buf = new StringBuffer("Fields for statement: ");
                 for ( Object o: fields ) {
                     buf.append(o.toString());
                     buf.append(" ");
                 }
-                logger.info(methodName, null, buf.toString());
+                logger.trace(methodName, null, buf.toString());
             }
 		}
     }
