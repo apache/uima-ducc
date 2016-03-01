@@ -19,6 +19,8 @@
 package org.apache.uima.ducc.agent.launcher;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,8 +30,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.common.container.FlagsHelper;
@@ -37,12 +37,10 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.cmdline.ACommandLine;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
-import org.apache.uima.ducc.transport.event.ProcessStopDuccEvent;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;

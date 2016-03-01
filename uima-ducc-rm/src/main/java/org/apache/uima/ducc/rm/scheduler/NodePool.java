@@ -1168,6 +1168,7 @@ class NodePool
               continue;
             }
             if ( removeAll || j.getSchedulingPolicy() == Policy.FAIR_SHARE )  {
+                // NOTE: Currently will never get a Pop ... just a Service of type Other !!
                 logger.info(methodName, j.getId(), "Nodepool:", id, eventType, j.getDuccType(), "purge:", m.getId());
                 if (j.getDuccType() == DuccType.Service || j.getDuccType() == DuccType.Pop) {
                   j.markComplete();      // UIMA-4327 Must avoid reallocation, these guys are toast if they get purged.

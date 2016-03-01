@@ -28,9 +28,9 @@ import shutil
 import subprocess
 from  stat import *
 
+# DuccUtil adds ../bin to the path so ducc_base can be found
 from ducc_util import DuccUtil
 from ducc_base import Properties
-from ducc_base import Property
 
 from ducc_base import find_ducc_home
 from ducc_base import find_localhost

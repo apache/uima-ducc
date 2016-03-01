@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.agent.processors;
 
-import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
