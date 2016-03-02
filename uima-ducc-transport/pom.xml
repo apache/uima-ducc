@@ -75,9 +75,25 @@
 			<artifactId>uima-ducc-container</artifactId>
 			<scope>compile</scope>
 		</dependency>
-        
 
-        <!-- dependency>
+        <dependency>
+           <groupId>org.apache.httpcomponents</groupId>
+           <artifactId>httpclient</artifactId>
+
+        </dependency>
+        
+        <dependency>
+           <groupId>org.apache.httpcomponents</groupId>
+           <artifactId>httpclient-cache</artifactId>
+
+        </dependency>
+        
+        <dependency>
+           <groupId>org.apache.httpcomponents</groupId>
+           <artifactId>httpcore</artifactId>
+        </dependency>
+        
+        <!--dependency>
             <groupId>commons-httpclient</groupId>
             <artifactId>commons-httpclient</artifactId>
         </dependency>
@@ -85,7 +101,7 @@
         <dependency>
             <groupId>commons-httpcore</groupId>
             <artifactId>commons-httpcore</artifactId>
-        </dependency -->
+        </dependency-->
 
         <dependency>
             <groupId>junit</groupId>
