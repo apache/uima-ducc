@@ -100,10 +100,8 @@ public class TestSuite {
 	}
 	
 	private void ducc_home() {
-		String folder = "/ducc_runtime";
-		String file = "/resources/log4j.xml";
-		String path = getResource(folder+file);
-		String value = path.replace(file, "");
+		String folder = "/ducc_runtime/resources";
+		String value = getResource(folder);
 		String key = "DUCC_HOME";
 		System.setProperty(key, value);
 	}
@@ -273,7 +271,6 @@ public class TestSuite {
 			assertTrue(jdScheduler.countSlicesTotal() > 0);
 			//
 			int allocations = 0;
-			int slicesPerReservation = 38;
 			while(allocations < 100) {
 				DuccId jdId = TestHelper.getJdId();
 				DuccId jdProcessDuccId = (DuccId) jdId;
@@ -287,7 +284,6 @@ public class TestSuite {
 				randomPublication(jdScheduler, dwm);
 				if(nodeIdentity != null) {
 					allocations += 1;
-					long reservationsTotal = jdScheduler.countReservationsTotal();
 					long slicesTotal = jdScheduler.countSlicesTotal();
 					long slicesAvailable = jdScheduler.countSlicesAvailable();
 					long slicesInuse = jdScheduler.countSlicesInuse();
@@ -300,15 +296,6 @@ public class TestSuite {
 						sb.append("slicesInuse="+slicesInuse);
 						fail(sb.toString());
 					}
-					if(slicesTotal != (reservationsTotal*slicesPerReservation)) {
-						StringBuffer sb = new StringBuffer();
-						sb.append("slicesTotal="+slicesTotal);
-						sb.append(" ");
-						sb.append("reservationsTotal="+reservationsTotal);
-						sb.append(" ");
-						sb.append("slicesPerReservation="+slicesPerReservation);
-						fail(sb.toString());
-					}
 				}
 			}
 			for(Entry<DuccId, DuccId> entry : map.entrySet()) {
@@ -316,12 +303,10 @@ public class TestSuite {
 				DuccId jdProcessDuccId = (DuccId) jdId;
 				jdScheduler.deallocate(jdProcessDuccId, jobId);
 				randomPublication(jdScheduler, dwm);
-				long reservationsTotal = jdScheduler.countReservationsTotal();
 				long slicesTotal = jdScheduler.countSlicesTotal();
 				long slicesAvailable = jdScheduler.countSlicesAvailable();
 				long slicesInuse = jdScheduler.countSlicesInuse();
 				assertTrue(slicesTotal == (slicesAvailable+slicesInuse));
-				assertTrue(slicesTotal == (reservationsTotal*slicesPerReservation));
 			}
 			publication(jdScheduler, dwm);
 			assertTrue(jdScheduler.countSlicesInuse() == 0);
@@ -334,5 +319,5 @@ public class TestSuite {
 			fail(e.getMessage());
 		}
 	}
-	
+
 }
