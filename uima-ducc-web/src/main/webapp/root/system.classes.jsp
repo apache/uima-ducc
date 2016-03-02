@@ -39,13 +39,9 @@ if (table_style.equals("scroll")) {
 			"sAjaxSource": "ducc-servlet/json-format-aaData-classes",
 			aaSorting: [],
 			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
-                             		$('td:eq(2)' , nRow).css( "text-align", "right" );
                              		$('td:eq(3)' , nRow).css( "text-align", "right" );
                              		$('td:eq(4)' , nRow).css( "text-align", "right" );
                              		$('td:eq(5)' , nRow).css( "text-align", "right" );
-                             		$('td:eq(6)' , nRow).css( "text-align", "right" );
-                             		$('td:eq(9)' , nRow).css( "text-align", "right" );
-                             		$('td:eq(10)' , nRow).css( "text-align", "right" );
                              		return nRow;
 			},
 		} );
@@ -101,18 +97,11 @@ if (table_style.equals("scroll")) {
 	<thead>
 	<tr class="ducc-header">
 	<th align="left">Name</th>
+	<th align="left">Nodepool</th>
 	<th align="left">Policy</th>
 	<th align="left">Weight</th>
 	<th align="left">Priority</th>
-	<th align="left">Relative Cap</th>
-	<th align="left">Absolute Cap</th>
-	<th align="left">Initialization Cap</th>
-	<th align="left">Expand-by-Doubling</th>
-	<th align="left">Use Prediction</th>
-	<th align="left">Prediction Fudge</th>
-	<th align="left">Max Allocation</th>
-	<th align="left">Nodepool</th>
-	<th align="left" title="corresponding non-preemptable specific [or default] class name, if any">Debug Class</th>
+	<th align="left" title="corresponding non-preemptable specific [or default] class name, if any">Non-preemptable Class</th>
 	</tr>
 	</thead>
 	<tbody id="system_classes_list_area">
@@ -132,18 +121,11 @@ if (table_style.equals("classic")) {
 		<thead>
 		<tr class="ducc-head">
 			<th align="left">Name</th>
+			<th align="left">Nodepool</th>
 			<th align="left">Policy</th>
 			<th align="left">Weight</th>
 			<th align="left">Priority</th>
-			<th align="left">Relative Cap</th>
-			<th align="left">Absolute Cap</th>
-			<th align="left">Initialization Cap</th>
-			<th align="left">Expand-by-Doubling</th>
-			<th align="left">Use Prediction</th>
-			<th align="left">Prediction Fudge</th>
-			<th align="left">Max Allocation</th>
-			<th align="left">Nodepool</th>
-			<th align="left" title="corresponding non-preemptable specific [or default] class name, if any">Debug Class</th>
+			<th align="left" title="corresponding non-preemptable specific [or default] class name, if any">Non-preemptable Class</th>
 		</tr>
 		</thead>
 		<tbody id="system_classes_list_area">

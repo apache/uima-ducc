@@ -1217,7 +1217,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		String methodName = "handleServletClassicSystemClasses";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-
+		String val = null;
         
 		DuccSchedulerClasses schedulerClasses = DuccSchedulerClasses.getInstance();
         Map<String, DuccProperties> clmap = schedulerClasses.getClasses();
@@ -1227,121 +1227,38 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
             int i = 0;
 
             for ( DuccProperties cl : class_set) {
+            	
+            	sb.append(trGet(i+1));
+            	
+            	// Name
 				String class_name = cl.getProperty("name");
-				sb.append(trGet(i+1));
 				sb.append("<td>");
 				sb.append(class_name);
-				sb.append("</td>");	
-				sb.append("<td>");
-
-                String policy = cl.getProperty("policy");
-				sb.append(policy);
-				sb.append("</td>");	
-				sb.append("<td align=\"right\">");
-				sb.append(cl.getStringProperty("weight", "-"));
-				sb.append("</td>");	
-				sb.append("<td align=\"right\">");
-				sb.append(cl.getProperty("priority"));
-				sb.append("</td>");	
-
-                // cap is either absolute or proportional.  if proprotional, it ends with '%'.  It's always
-                // either-or so at least one of these columns will have N/A
-				String val = cl.getProperty("cap");
-				if( (val == null) || val.equals("0") || (Integer.parseInt(val) == Integer.MAX_VALUE) ) {
-                    sb.append("<td align=\"right\">");
-                    sb.append("-");
-                    sb.append("</td>");
-                    sb.append("<td align=\"right\">");
-                    sb.append("-");
-                    sb.append("</td>");
-				} else if ( val.endsWith("%") ) {
-                    sb.append("<td align=\"right\">");
-                    sb.append(val);
-                    sb.append("</td>");
-
-                    sb.append("<td align=\"right\">");
-                    sb.append("-");
-                    sb.append("</td>");
-                } else {
-                    sb.append("<td align=\"right\">");
-                    sb.append("-");
-                    sb.append("</td>");
-
-                    sb.append("<td align=\"right\">");
-                    sb.append(val);
-                    sb.append("</td>");
-                }
-
-                if ( policy.equals("FAIR_SHARE") ) {
-                    sb.append("<td align=\"right\">");
-                    val = cl.getStringProperty("initialization-cap",
-                                               System.getProperty("ducc.rm.initialization.cap"));
-                    if ( val == null ) {
-                        val = "2";
-                    }
-                    
-                    sb.append(val);
-                    sb.append("</td>");	
-                    
-                    sb.append("<td align=\"right\">");
-                    String bval = cl.getStringProperty("expand-by-doubling", "-");
-                    sb.append(bval);
-                    sb.append("</td>");	
-
-                    sb.append("<td align=\"right\">");
-                    val = cl.getStringProperty("use-prediction",
-                                               System.getProperty("ducc.rm.prediction"));
-                    if ( val == null ) {
-                        val = "-";
-                    }
-                    sb.append(val);
-                    sb.append("</td>");	
-                    
-                    sb.append("<td align=\"right\">");
-                    val = cl.getStringProperty("prediction-fudge",
-                                               System.getProperty("ducc.rm.prediction.fudge"));
-                    if ( val == null ) {
-                        val = "-"; 
-                    }
-                    sb.append(val);
-                    sb.append("</td>");	
-                } else {
-                    sb.append("<td align=\"right\">-</td>");          // not applicable for non-fair-share
-                    sb.append("<td align=\"right\">-</td>");
-                    sb.append("<td align=\"right\">-</td>");
-                    sb.append("<td align=\"right\">-</td>");
-                }
-
-                // max for reserve in in machines.  For fixed is in processes.  No max on fair-share. So slightly
-                // ugly code here.
- 				sb.append("<td align=\"right\">");
-                if ( policy.equals("RESERVE") ) {
-                    val = cl.getProperty("max-machines");
-                    if( val == null || val.equals("0")) {
-                        val = "-";
-                    }
-                } else if ( policy.equals("FIXED_SHARE") ) {
-                    val = cl.getProperty("max-processes");
-                    if( val == null || val.equals("0")) {
-                        val = "-";
-                    }
-                } else {
-					val = "-";
-                }
-
-				val = cl.getProperty("max-shares");
-				if( val == null || val.equals("0")) {
-					val = "-";
-				}
-				sb.append(val);
-				sb.append("</td>");	
-
+				sb.append("</td>");
+				
+				// Nodepool
 				sb.append("<td align=\"right\">");
 				val = cl.getProperty("nodepool");
                 sb.append(val);
 				sb.append("</td>");	
 				
-				// Debug
+				// Policy
+				sb.append("<td>");
+                String policy = cl.getProperty("policy");
+				sb.append(policy);
+				sb.append("</td>");	
+				
+				// Weight
+				sb.append("<td align=\"right\">");
+				sb.append(cl.getStringProperty("weight", "-"));
+				sb.append("</td>");	
+				
+				// Priority
+				sb.append("<td align=\"right\">");
+				sb.append(cl.getProperty("priority"));
+				sb.append("</td>");	
+
+				// Non-preemptable Class
 				sb.append("<td align=\"right\">");
 				val = "-";
 				if(schedulerClasses.isPreemptable(class_name)) {

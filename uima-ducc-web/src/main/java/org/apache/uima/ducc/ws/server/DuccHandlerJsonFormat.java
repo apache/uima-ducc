@@ -1690,7 +1690,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 
 		DuccSchedulerClasses schedulerClasses = DuccSchedulerClasses.getInstance();
         Map<String, DuccProperties> clmap = schedulerClasses.getClasses();
-		        
+		
+        String val = null;
+        
 		if( clmap != null ) {
             DuccProperties[] class_set = clmap.values().toArray(new DuccProperties[clmap.size()]);
             Arrays.sort(class_set, new NodeConfiguration.ClassSorter());            
@@ -1700,6 +1702,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String class_name = cl.getProperty("name");
 				// Name
 				row.add(new JsonPrimitive(class_name));
+				// Nodepool
+				val = cl.getProperty("nodepool");
+				row.add(new JsonPrimitive(val));
 				// Policy
                 String policy = cl.getProperty("policy");
                 row.add(new JsonPrimitive(policy));
@@ -1709,84 +1714,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
                 // Priority
                 String priority = cl.getProperty("priority");
                 row.add(new JsonPrimitive(priority));
-                
-                // cap is either absolute or proportional.  if proprotional, it ends with '%'.  It's always
-                // either-or so at least one of these columns will have N/A
-                
-                // Relative & Absolute Caps
-				String val = cl.getStringProperty("cap", "0");
-				if( (val == null) || val.equals("0") ) {
-					row.add(new JsonPrimitive("-"));
-					row.add(new JsonPrimitive("-"));
-				} 
-				else if ( val.endsWith("%") ) {
-					row.add(new JsonPrimitive(val));
-					row.add(new JsonPrimitive("-"));
-                } 
-				else {
-					row.add(new JsonPrimitive("-"));
-					row.add(new JsonPrimitive(val));
-                }
-
-                if ( policy.equals("FAIR_SHARE") ) {
-                    // Initialization Cap
-                    String defaultInitializationCap = "2";
-                    val = cl.getStringProperty("initialization-cap",
-                                               System.getProperty("ducc.rm.initialization.cap",defaultInitializationCap));
-                    row.add(new JsonPrimitive(val));
-                    
-                    // Expand-by-Doubling
-                    boolean bval = cl.getBooleanProperty("expand-by-doubling", true);
-                    row.add(new JsonPrimitive(bval));
-                    
-                    // Use Prediction
-                    String defaultUsePrediction = "true";
-                    val = cl.getProperty("use-prediction",
-                                         System.getProperty("ducc.rm.prediction",defaultUsePrediction));
-                    row.add(new JsonPrimitive(val));
-                    
-                    // Prediction Fudge
-                    String defaultPredictionFudge = "10000";
-                    val = cl.getStringProperty("prediction-fudge",
-                                               System.getProperty("ducc.rm.prediction.fudge",defaultPredictionFudge));
-                    row.add(new JsonPrimitive(val));
-                } else {
-                    row.add(new JsonPrimitive("-"));
-                    row.add(new JsonPrimitive("-"));
-                    row.add(new JsonPrimitive("-"));
-                    row.add(new JsonPrimitive("-"));
-                }
-
-                // max for reserve in in machines.  For fixed is in processes.  No max on fair-share. So slightly
-                // ugly code here.
-				
-				// Max Allocation 
-				
-                if ( policy.equals("RESERVE") ) {
-                    val = cl.getStringProperty("max-machines", "0");
-                    if( val == null || val.equals("0")) {
-                        val = "-";
-                    }
-                } else if ( policy.equals("FIXED_SHARE") ) {
-                    val = cl.getStringProperty("max-processes", "0");
-                    if( val == null || val.equals("0")) {
-                        val = "-";
-                    }
-                } else {
-					val = "-";
-                }
-
-				val = cl.getStringProperty("max-shares", "0");
-				if( val == null || val.equals("0")) {
-					val = "-";
-				}
-				row.add(new JsonPrimitive(val));
-
-				// Nodepool
-				val = cl.getProperty("nodepool");
-				row.add(new JsonPrimitive(val));
-				
-				// Debug
+				// Non-preemptable
 				val = "-";
 				if(schedulerClasses.isPreemptable(class_name)) {
 					if(schedulerClasses.isPreemptable(class_name)) {
