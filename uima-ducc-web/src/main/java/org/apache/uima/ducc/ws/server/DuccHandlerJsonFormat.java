@@ -45,6 +45,7 @@ import org.apache.uima.ducc.cli.ws.json.ReservationFactsList;
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.SizeBytes;
+import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -70,9 +71,11 @@ import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.JdReservationBean;
+import org.apache.uima.ducc.ws.Distiller;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccMachinesData;
+import org.apache.uima.ducc.ws.Helper;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
@@ -1402,11 +1405,12 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
 		String hover;
-		int sumMemTotal = 0;
-		int sumMemReserve = 0;
-		int sumSwapInuse = 0;
-		int sumSwapFree = 0;
-		int sumAliens = 0;
+		long sumMemTotal = 0;
+		long sumMemFree = 0;
+		long sumMemReserve = 0;
+		long sumSwapInuse = 0;
+		long sumSwapFree = 0;
+		long sumAliens = 0;
 		ListIterator<MachineFacts> listIterator;
 		JsonArray row;
 		StringBuffer sb;
@@ -1418,16 +1422,25 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
 				try {
-					sumMemTotal += Integer.parseInt(facts.memTotal);
-					sumMemReserve += Integer.parseInt(facts.memReserve);
-					sumSwapInuse += Integer.parseInt(facts.swapInuse);
-					sumSwapFree += Integer.parseInt(facts.swapFree);
+					sumMemTotal += Helper.String2Long(facts.memTotal);
+					sumMemReserve += Helper.String2Long(facts.memReserve);
+					sumSwapInuse += Helper.String2Long(facts.swapInuse);
+					sumSwapFree += Helper.String2Long(facts.swapFree);
 					sumAliens += facts.aliens.size();
 				}
 				catch(Exception e) {
 					duccLogger.trace(methodName, jobid, e);
 				}
 			}
+			//
+			Map<String, Long> allocatedMap = Distiller.getMap();
+			long sumMemAllocated = 0;
+			for(Long bytes : allocatedMap.values()) {
+				sumMemAllocated += bytes;
+			}
+			SizeBytes sbAllocated = new SizeBytes(Type.Bytes, sumMemAllocated);
+			sumMemFree = sumMemTotal - sbAllocated.getGBytes();
+			//
 			row = new JsonArray();
 			// Status
 			row.add(new JsonPrimitive("Total"));
@@ -1439,6 +1452,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			hover = "title=\"total="+sumMemTotal+"\"";
 			String sumMemReserveWithHover = "<span "+hover+" >"+sumMemReserve+"</span>";
 			row.add(new JsonPrimitive(sumMemReserveWithHover));
+			// Memory: free
+			row.add(new JsonPrimitive(sumMemFree));
 			// Swap: inuse
 			row.add(new JsonPrimitive(sumSwapInuse));
 			// Swap: free
@@ -1490,6 +1505,19 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					hover = "title=\""+sb.toString()+"\"";
 					String memReserveWithHover = "<span "+hover+" >"+facts.memReserve+"</span>";
 					row.add(new JsonPrimitive(memReserveWithHover));
+				}
+				else {
+					row.add(new JsonPrimitive(""));
+				}
+				// Memory: free
+				if(!status.equals("defined")) {
+					long memFree = Helper.String2Long(facts.memTotal);
+					if(allocatedMap.containsKey(facts.name)) {
+						long bytes = allocatedMap.get(facts.name);
+						SizeBytes allocated = new SizeBytes(Type.Bytes, bytes);
+						memFree = memFree - allocated.getGBytes();
+					}
+					row.add(new JsonPrimitive(memFree));
 				}
 				else {
 					row.add(new JsonPrimitive(""));

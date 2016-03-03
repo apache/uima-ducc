@@ -19,6 +19,8 @@
 package org.apache.uima.ducc.ws;
 
 import java.io.File;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -144,9 +146,18 @@ implements IWebServer {
 		DuccData.getInstance().put(wm);
 		DuccPlugins.getInstance().update(wm);
 		DuccListeners.getInstance().update(duccEvent);
+		Map<String,Long> map = Distiller.deriveMachineMemoryInUse(duccEvent);
+		report(map);
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
 
+	private void report(Map<String,Long> map) {
+		String location = "report";
+		for(Entry<String, Long> entry : map.entrySet()) {
+			duccLogger.trace(location, jobid, entry.getKey()+"="+entry.getValue());
+		}
+	}
+	
 	private void sortMachines() {
 		long last = updateLast.get();
 		long deadline = last + updateIntervalMilliSeconds;

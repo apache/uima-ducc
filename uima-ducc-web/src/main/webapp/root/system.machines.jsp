@@ -39,12 +39,13 @@ under the License.
 			"sAjaxSource": "ducc-servlet/json-format-aaData-machines",
 			aaSorting: [],
 			"fnRowCallback" : function(nRow,aData,iDisplayIndex) {
+							$('td:eq(3)' , nRow).css( "text-align", "right" );
+                            $('td:eq(4)' , nRow).css( "text-align", "right" );
                             $('td:eq(5)' , nRow).css( "text-align", "right" );
                             $('td:eq(6)' , nRow).css( "text-align", "right" );
                             $('td:eq(7)' , nRow).css( "text-align", "right" );
-                            $('td:eq(8)' , nRow).css( "text-align", "right" );
-                            $('td:eq(9)' , nRow).css( "text-align", "right" );   
-							$('td:eq(12)' , nRow).css( "text-align", "right" );                         
+                            $('td:eq(8)' , nRow).css( "text-align", "right" );   
+							$('td:eq(9)' , nRow).css( "text-align", "right" );                         
                             return nRow;
 			},
 		} );
@@ -104,6 +105,7 @@ if (table_style.equals("scroll")) {
 	<th align="left" title="The host IP">IP</th>
 	<th align="left" title="The host name">Name</th>
 	<th align="left" title="The host usable memory size, in GB" >Memory(GB):usable</th>
+	<th align="left" title="The host free memory size, in GB" >Memory(GB):free</th>
 	<th align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
 	<th align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
 	<th align="left" title="The host C-Groups status" >C-Groups</th>
@@ -131,6 +133,7 @@ if (table_style.equals("classic")) {
 		<th align="left" title="The host IP">IP</th>
 		<th align="left" title="The host name">Name</th>
 		<th class="sorttable_numeric" align="left" title="The host usable memory size, in GB" >Memory(GB):usable</th>
+		<th class="sorttable_numeric" align="left" title="The host free memory size, in GB" >Memory(GB):free</th>
 		<th class="sorttable_numeric" align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
 		<th class="sorttable_numeric" align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
 		<th align="left" title="The host C-Groups status" >C-Groups</th>
