@@ -985,6 +985,13 @@ public class NodeConfiguration
         //if ( allNodefiles.containsKey(global_nodefile) ) return;           // already passed if is's there and we're here
         //readNodepoolFile(global_nodefile, defaultDomain, true);            // will throw if there's an issue
     }
+    
+    /**
+     * get first (default) nodepool
+     */
+    public String getFirstNodepool() {
+    	return firstNodepool;
+    }
 
     public DuccProperties getDefaultFairShareClass()
     {
@@ -1001,6 +1008,26 @@ public class NodeConfiguration
         return reserveDefault;
     }
 
+    public DuccProperties getNodePoolForNode(String node) {
+    	DuccProperties retVal = null;
+    	if(node != null) {
+    		retVal = poolsByNodeName.get(node);
+    	}
+    	return retVal;
+    }
+    
+    public String getNodePoolNameForNode(String node) {
+    	String retVal = null;
+    	if(node !=null) {
+    		DuccProperties np = poolsByNodeName.get(node);
+    		String key = "name";
+    		if(np != null) {
+    			retVal = np.getProperty(key);
+    		}
+    	}
+    	return retVal;
+    }
+    
     public int getQuantumForNode(String node)
     {
         DuccProperties np = poolsByNodeName.get(node);
