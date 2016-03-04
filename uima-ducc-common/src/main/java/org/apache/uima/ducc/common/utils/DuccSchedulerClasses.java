@@ -24,8 +24,12 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.NodeConfiguration;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DuccSchedulerClasses {
+	
+	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccSchedulerClasses.class.getName());
+	private static DuccId jobid = null;
 	
 	public static final String FAIR_SHARE = "FAIR_SHARE";
 	public static final String FIXED_SHARE = "FIXED_SHARE";
@@ -35,7 +39,6 @@ public class DuccSchedulerClasses {
 	private static DuccSchedulerClasses instance = null;
 	 
 	private long lastModified = 0;
-	private DuccLogger logger = null;
 	private NodeConfiguration nodeConfiguration = null;
 
 	private String fileName = null;
@@ -107,6 +110,32 @@ public class DuccSchedulerClasses {
     return retVal;
   }
 	
+	/**
+	 * Get nodepool for specified node
+	 */
+	public String getNodepool(String node) {
+		String location = "getNodepool";
+		String retVal = "";
+		String nodepool = null;
+		try {
+			if(node != null) {
+				NodeConfiguration nc = readConfiguration();
+				nodepool = nc.getFirstNodepool();
+				if(nodepool != null) {
+					retVal = nodepool;
+				}
+				nodepool = nc.getNodePoolNameForNode(node);
+				if(nodepool != null) {
+					retVal = nodepool;
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+  
 	public String getDefaultClassName() 
 	    throws Exception
 	{
