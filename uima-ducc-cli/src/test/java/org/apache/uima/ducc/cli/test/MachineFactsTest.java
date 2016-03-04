@@ -88,6 +88,10 @@ public class MachineFactsTest {
 		return free;
 	}
 	
+	private double createCPU() {
+		return random.nextDouble();
+	}
+	
 	private boolean createCgroups() {
 		return random.nextBoolean();
 	}
@@ -125,10 +129,11 @@ public class MachineFactsTest {
 		String swap = createSwap();
 		String delta = createSwap();
 		String free = createFree();
+		double cpu = createCPU();
 		boolean cgroups = createCgroups();
 		List<String> aliens = createAliens();
 		String heartbeat = createHeartbeat();
-		MachineFacts machineFacts = new MachineFacts(status,ip,name, memTotal, memFree, swap, delta, free, cgroups, aliens, heartbeat);
+		MachineFacts machineFacts = new MachineFacts(status,ip,name, memTotal, memFree, swap, delta, free, cpu, cgroups, aliens, heartbeat);
 		return machineFacts;
 	}
 	

@@ -36,6 +36,7 @@ public class MachineFacts implements Serializable {
 	public String swapInuse;
 	public String swapDelta;
 	public String swapFree;
+	public double cpu;
 	public boolean cgroups = false;
 	public List<String> aliens;
 	public String heartbeat;
@@ -48,6 +49,7 @@ public class MachineFacts implements Serializable {
 				   String swapInuse,
 				   String swapDelta,
 				   String swapFree,
+				   double cpu,
 				   boolean cgroups,
 				   List<String> aliens,
 				   String heartbeat
@@ -64,6 +66,7 @@ public class MachineFacts implements Serializable {
 		this.swapInuse = swapInuse;
 		this.swapDelta = swapDelta;
 		this.swapFree = swapFree;
+		this.cpu = cpu;
 		this.cgroups = cgroups;
 		this.aliens = aliens;
 		this.heartbeat = heartbeat;
