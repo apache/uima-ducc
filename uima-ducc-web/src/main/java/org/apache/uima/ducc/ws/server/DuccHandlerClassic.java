@@ -1596,6 +1596,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		long sumMemTotal = 0;
 		long sumMemFree = 0;
 		long sumMemReserve = 0;
+		double sumCPU = 0;
+		long sumMachines = 0;
 		long sumSwapInuse = 0;
 		long sumSwapFree = 0;
 		long sumAliens = 0;
@@ -1610,15 +1612,21 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			listIterator = factsList.listIterator();
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
-				try {
-					sumMemTotal += ConvertSafely.String2Long(facts.memTotal);
-					sumMemReserve += ConvertSafely.String2Long(facts.memReserve);
-					sumSwapInuse += ConvertSafely.String2Long(facts.swapInuse);
-					sumSwapFree += ConvertSafely.String2Long(facts.swapFree);
-					sumAliens += facts.aliens.size();
-				}
-				catch(Exception e) {
-					duccLogger.trace(methodName, jobid, e);
+				if(facts.status != null) {
+					if(facts.status.equals("up")) {
+						try {
+							sumMemTotal += ConvertSafely.String2Long(facts.memTotal);
+							sumMemReserve += ConvertSafely.String2Long(facts.memReserve);
+							sumSwapInuse += ConvertSafely.String2Long(facts.swapInuse);
+							sumSwapFree += ConvertSafely.String2Long(facts.swapFree);
+							sumCPU += facts.cpu;
+							sumMachines += 1;
+							sumAliens += facts.aliens.size();
+						}
+						catch(Exception e) {
+							duccLogger.trace(methodName, jobid, e);
+						}
+					}
 				}
 			}
 			//
@@ -1656,6 +1664,11 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			// Memory: free
 			row.append("<td align=\"right\">");
 			row.append(""+sumMemFree);
+			row.append("</td>");
+			// CPU: load average
+			row.append("<td align=\"right\">");
+			String cpuTotal = formatter3.format(sumCPU/sumMachines);
+			row.append(cpuTotal);
 			row.append("</td>");
 			// Swap: inuse
 			row.append("<td align=\"right\">");
@@ -1753,6 +1766,15 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					row.append("<td align=\"right\">");
 					row.append("</td>");
 				}
+				// CPU: load average
+				row.append("<td>");
+				if(facts.status != null) {
+					if(facts.status.equals("up")) {
+						String cpu = formatter3.format(facts.cpu);
+						row.append(cpu);
+					}
+				}
+				row.append("</td>");
 				// Swap: inuse
 				sb = new StringBuffer();
 				String swapping = facts.swapInuse;

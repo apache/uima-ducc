@@ -1408,6 +1408,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		long sumMemTotal = 0;
 		long sumMemFree = 0;
 		long sumMemReserve = 0;
+		double sumCPU = 0;
+		long sumMachines = 0;
 		long sumSwapInuse = 0;
 		long sumSwapFree = 0;
 		long sumAliens = 0;
@@ -1421,16 +1423,22 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			listIterator = factsList.listIterator();
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
-				try {
-					sumMemTotal += ConvertSafely.String2Long(facts.memTotal);
-					sumMemReserve += ConvertSafely.String2Long(facts.memReserve);
-					sumSwapInuse += ConvertSafely.String2Long(facts.swapInuse);
-					sumSwapFree += ConvertSafely.String2Long(facts.swapFree);
-					sumAliens += facts.aliens.size();
-				}
-				catch(Exception e) {
-					duccLogger.trace(methodName, jobid, e);
-				}
+				if(facts.status != null) {
+					if(facts.status.equals("up")) {
+						try {
+							sumMemTotal += ConvertSafely.String2Long(facts.memTotal);
+							sumMemReserve += ConvertSafely.String2Long(facts.memReserve);
+							sumSwapInuse += ConvertSafely.String2Long(facts.swapInuse);
+							sumSwapFree += ConvertSafely.String2Long(facts.swapFree);
+							sumCPU += facts.cpu;
+							sumMachines += 1;
+							sumAliens += facts.aliens.size();
+						}
+						catch(Exception e) {
+							duccLogger.trace(methodName, jobid, e);
+						}
+					}
+				}				
 			}
 			//
 			Map<String, Long> allocatedMap = Distiller.getMap();
@@ -1456,6 +1464,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(sumMemReserveWithHover));
 			// Memory: free
 			row.add(new JsonPrimitive(sumMemFree));
+			// CPU: load average
+			String cpuTotal = formatter3.format(sumCPU/sumMachines);
+			row.add(new JsonPrimitive(cpuTotal));
 			// Swap: inuse
 			row.add(new JsonPrimitive(sumSwapInuse));
 			// Swap: free
@@ -1523,6 +1534,14 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 						memFree = memFree - allocated.getGBytes();
 					}
 					row.add(new JsonPrimitive(memFree));
+				}
+				else {
+					row.add(new JsonPrimitive(""));
+				}
+				// CPU: load average
+				if(!status.equals("defined")) {
+					String cpu = formatter3.format(facts.cpu);
+					row.add(new JsonPrimitive(cpu));
 				}
 				else {
 					row.add(new JsonPrimitive(""));

@@ -46,6 +46,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private String memFree;
 	private String swapInuse;
 	private String swapFree;
+	private double cpu;
 	private boolean cGroups;
 	private List<ProcessInfo> alienPids;
 	private long swapDelta;
@@ -55,7 +56,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private long pubSize;
 	private long pubSizeMax;
 	
-	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memFree, String swapInuse, String swapFree, boolean cGroups, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
+	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroups, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
 		this.fileDef = fileDef;
 		this.ip = ip;
 		this.name = name;
@@ -63,6 +64,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		this.memFree = memFree;
 		this.swapInuse = swapInuse;
 		this.swapFree = swapFree;
+		this.cpu = cpu;
 		this.cGroups = cGroups;
 		this.alienPids = alienPids;
 		if(this.alienPids == null) {
@@ -141,6 +143,10 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	
 	public String getSwapFree() {
 		return this.swapFree;
+	}
+	
+	public double getCpu() {
+		return cpu;
 	}
 	
 	public boolean getCgroups() {

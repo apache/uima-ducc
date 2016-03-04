@@ -30,7 +30,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.uima.ducc.cli.ws.json.MachineFacts;
 import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.cli.ws.json.NodePidList;
+import org.apache.uima.ducc.common.ConvertSafely;
 import org.apache.uima.ducc.common.IDuccEnv;
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo.NodeProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -123,7 +125,8 @@ public class DuccMachinesData {
 				String memFree = "";
 				String swapInuse = "";
 				String swapFree = "";
-				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, false, null, -1, 0);
+				double cpu = 0;
+				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, cpu, false, null, -1, 0);
 				Ip machineIP = new Ip(machineInfo.getIp());
 				unsortedMachines.put(machineIP,machineInfo);
 			}
@@ -168,7 +171,22 @@ public class DuccMachinesData {
 			swapFree.addAndGet(newInfo.swapFree);
 		}
 	}
-		
+	
+	private double getCpu(Node node) {
+		String location = "getCpu";
+		double cpu = 0;
+		try {
+			if(node != null) {
+				String load = node.getNodeMetrics().getNodeCpu().getCurrentLoad();
+				cpu = ConvertSafely.String2Double(load);
+			}
+		}
+		catch(Exception e) {
+			logger.debug(location, jobid, e);
+		}
+		return cpu;
+	}
+	
 	public void put(DatedNodeMetricsUpdateDuccEvent duccEvent) {
 		String location = "put";
 		MachineSummaryInfo msi = new MachineSummaryInfo();
@@ -214,8 +232,10 @@ public class DuccMachinesData {
 		msi.swapFree = lvalSwapFree;
 		String swapFree = ""+lvalSwapFree/*+memUnits*/;
 		List<ProcessInfo> alienPids = nodeMetrics.getRogueProcessInfoList();
+		Node node = nodeMetrics.getNode();
+		double cpu = getCpu(node);
 		boolean cGroups = nodeMetrics.getCgroups();
-		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, cGroups, alienPids, duccEvent.getMillis(), duccEvent.getEventSize());
+		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, cpu, cGroups, alienPids, duccEvent.getMillis(), duccEvent.getEventSize());
 		
 		Ip key = ip;
 		MachineInfo previous = unsortedMachines.get(key);
@@ -372,10 +392,11 @@ public class DuccMachinesData {
 			String swapInuse = machineInfo.getSwapInuse();
 			String swapDelta = ""+machineInfo.getSwapDelta();
 			String swapFree = machineInfo.getSwapFree();
+			double cpu = machineInfo.getCpu();
 			boolean cGroups = machineInfo.getCgroups();
 			List<String> aliens = machineInfo.getAliens();
 			String heartbeat = ""+machineInfo.getElapsed();
-			MachineFacts facts = new MachineFacts(status,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cGroups,aliens,heartbeat);
+			MachineFacts facts = new MachineFacts(status,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
 			enhance(facts,dbMachineMap);
 			factsList.add(facts);
 		}
