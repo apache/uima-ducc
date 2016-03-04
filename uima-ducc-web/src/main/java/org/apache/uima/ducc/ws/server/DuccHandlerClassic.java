@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.uima.ducc.cli.ws.json.MachineFacts;
 import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
+import org.apache.uima.ducc.common.ConvertSafely;
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.SizeBytes;
@@ -71,7 +72,6 @@ import org.apache.uima.ducc.ws.Distiller;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccMachinesData;
-import org.apache.uima.ducc.ws.Helper;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
@@ -1611,10 +1611,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
 				try {
-					sumMemTotal += Helper.String2Long(facts.memTotal);
-					sumMemReserve += Helper.String2Long(facts.memReserve);
-					sumSwapInuse += Helper.String2Long(facts.swapInuse);
-					sumSwapFree += Helper.String2Long(facts.swapFree);
+					sumMemTotal += ConvertSafely.String2Long(facts.memTotal);
+					sumMemReserve += ConvertSafely.String2Long(facts.memReserve);
+					sumSwapInuse += ConvertSafely.String2Long(facts.swapInuse);
+					sumSwapFree += ConvertSafely.String2Long(facts.swapFree);
 					sumAliens += facts.aliens.size();
 				}
 				catch(Exception e) {
@@ -1641,6 +1641,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			row.append("");
 			row.append("</td>");
 			// Name
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			// Nodepool
 			row.append("<td>");
 			row.append("");
 			row.append("</td>");
@@ -1709,6 +1713,11 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append("<td>");
 				row.append(facts.name);
 				row.append("</td>");
+				// Nodepool
+				row.append("<td>");
+				String nodepool = DuccSchedulerClasses.getInstance().getNodepool(facts.name);
+				row.append(nodepool);
+				row.append("</td>");
 				// Memory: usable
 				if(!status.equals("defined")) {
 					sb = new StringBuffer();
@@ -1730,7 +1739,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				}
 				// Memory: free
 				if(!status.equals("defined")) {
-					long memFree = Helper.String2Long(facts.memTotal);
+					long memFree = ConvertSafely.String2Long(facts.memTotal);
 					if(allocatedMap.containsKey(facts.name)) {
 						long bytes = allocatedMap.get(facts.name);
 						SizeBytes allocated = new SizeBytes(Type.Bytes, bytes);
