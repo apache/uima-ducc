@@ -1667,8 +1667,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			row.append("</td>");
 			// CPU: load average
 			row.append("<td align=\"right\">");
-			String cpuTotal = formatter3.format(sumCPU/sumMachines);
-			row.append(cpuTotal);
+			String cpuTotal = formatter1.format(sumCPU/sumMachines);
+			row.append(""+cpuTotal);
 			row.append("</td>");
 			// Swap: inuse
 			row.append("<td align=\"right\">");
@@ -1767,10 +1767,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					row.append("</td>");
 				}
 				// CPU: load average
-				row.append("<td>");
+				row.append("<td align=\"right\">");
 				if(facts.status != null) {
 					if(facts.status.equals("up")) {
-						String cpu = formatter3.format(facts.cpu);
+						String cpu = formatter1.format(facts.cpu);
 						row.append(cpu);
 					}
 				}
@@ -1906,6 +1906,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}
 	
+	private static DecimalFormat formatter1 = new DecimalFormat("##0.0");
 	private static DecimalFormat formatter3 = new DecimalFormat("##0.000");
 	
 	private void handleServletClassicSystemBroker(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 

@@ -1465,7 +1465,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			// Memory: free
 			row.add(new JsonPrimitive(sumMemFree));
 			// CPU: load average
-			String cpuTotal = formatter3.format(sumCPU/sumMachines);
+			String cpuTotal = formatter1.format(sumCPU/sumMachines);
 			row.add(new JsonPrimitive(cpuTotal));
 			// Swap: inuse
 			row.add(new JsonPrimitive(sumSwapInuse));
@@ -1540,7 +1540,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				}
 				// CPU: load average
 				if(!status.equals("defined")) {
-					String cpu = formatter3.format(facts.cpu);
+					String cpu = formatter1.format(facts.cpu);
 					row.add(new JsonPrimitive(cpu));
 				}
 				else {
@@ -1657,6 +1657,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}		
 	
+	private static DecimalFormat formatter1 = new DecimalFormat("##0.0");
 	private static DecimalFormat formatter3 = new DecimalFormat("##0.000");
 	
 	private void handleServletJsonFormatBrokerAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
