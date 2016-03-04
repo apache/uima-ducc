@@ -69,12 +69,12 @@
 	<!-- declare dependency on each DUCC project -->
 	<dependencyManagement>
 	   <dependencies>
-		<dependency>
+		<!--dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-as</artifactId>
 			<version>${org.apache.uima.as.version}</version>
                         <type>tar.gz</type>
-		</dependency>
+		</dependency-->
 
 		<dependency>
 			<groupId>org.apache.uima</groupId>
@@ -148,11 +148,11 @@
 
 	<dependencies>
 
-		<dependency>
+		<!--dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-as</artifactId>
                         <type>tar.gz</type>
-		</dependency>
+		</dependency -->
 
 
 		<dependency>
@@ -309,7 +309,7 @@
 
             <!--  must come before the unpack -->      
 			
-            <!--plugin>
+            <plugin>
                <groupId>org.apache.uima</groupId>
                <artifactId>uima-build-helper-maven-plugin</artifactId>
                <executions>
@@ -324,7 +324,7 @@
                   </configuration>
                </execution>
                </executions> 
-            </plugin-->
+            </plugin>
 			
 			<plugin>
 			
@@ -350,7 +350,7 @@
                             <artifactId>uima-as</artifactId>
                             <version>${org.apache.uima.as.version}</version>
                             <type>tar.gz</type>
-                            <!--classifier>bin</classifier-->
+                            <classifier>bin</classifier>
                             <outputDirectory>${project.build.directory}/uima-as</outputDirectory>
                           </artifactItem>
                         </artifactItems>
