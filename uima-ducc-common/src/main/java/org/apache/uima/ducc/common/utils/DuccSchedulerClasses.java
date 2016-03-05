@@ -110,6 +110,23 @@ public class DuccSchedulerClasses {
     return retVal;
   }
 	
+  	private String getNodepoolDefault(NodeConfiguration nc) {
+  		String retVal = "--default--";
+  		String nodepool= nc.getFirstNodepool();
+  		if(nodepool != null) {
+  			retVal = nodepool;
+  		}
+  		return retVal;
+  	}
+  	
+  	private String getNodepoolForNode(NodeConfiguration nc, String node, String defaultNodePool) {
+  		String retVal = defaultNodePool;
+  		String nodepool = nc.getNodePoolNameForNode(node);
+  		if(nodepool != null) {
+  			retVal = nodepool;
+  		}
+  		return retVal;
+  	}
 	/**
 	 * Get nodepool for specified node, else empty string
 	 */
@@ -120,16 +137,13 @@ public class DuccSchedulerClasses {
 		try {
 			if(node != null) {
 				NodeConfiguration nc = readConfiguration();
+				String defaultNodepool = getNodepoolDefault(nc);
 				// first try fully qualified node name
-				nodepool = nc.getNodePoolNameForNode(node);
-				if(nodepool == null) {
+				nodepool = getNodepoolForNode(nc, node, defaultNodepool);
+				if(nodepool.equals(defaultNodepool)) {
 					// second try domainless node name
 					String domainlessNode = node.split("\\.")[0];
-					nodepool = nc.getNodePoolNameForNode(domainlessNode);
-					if(nodepool == null) {
-						// third try default node pool
-						nodepool = nc.getFirstNodepool();
-					}
+					nodepool = getNodepoolForNode(nc, domainlessNode, defaultNodepool);
 				}
 				if(nodepool != null) {
 					retVal = nodepool;
