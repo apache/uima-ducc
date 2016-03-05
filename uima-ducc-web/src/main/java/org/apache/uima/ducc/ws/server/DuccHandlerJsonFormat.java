@@ -1447,7 +1447,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				sumMemAllocated += bytes;
 			}
 			SizeBytes sbAllocated = new SizeBytes(Type.Bytes, sumMemAllocated);
-			sumMemFree = sumMemTotal - sbAllocated.getGBytes();
+			sumMemFree = sumMemReserve - sbAllocated.getGBytes();
 			//
 			row = new JsonArray();
 			// Status
@@ -1527,7 +1527,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				}
 				// Memory: free
 				if(!status.equals("defined")) {
-					long memFree = ConvertSafely.String2Long(facts.memTotal);
+					long memFree = ConvertSafely.String2Long(facts.memReserve);
 					if(allocatedMap.containsKey(facts.name)) {
 						long bytes = allocatedMap.get(facts.name);
 						SizeBytes allocated = new SizeBytes(Type.Bytes, bytes);
