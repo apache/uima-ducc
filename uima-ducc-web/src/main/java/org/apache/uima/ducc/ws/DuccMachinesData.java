@@ -128,12 +128,23 @@ public class DuccMachinesData {
 				double cpu = 0;
 				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, cpu, false, null, -1, 0);
 				Ip machineIP = new Ip(machineInfo.getIp());
-				unsortedMachines.put(machineIP,machineInfo);
+				putMachine(machineIP,machineInfo);
 			}
 			updateSortedMachines();
 		}
 		catch(Throwable t) {
 			logger.warn(location, jobid, t);
+		}
+	}
+	
+	private void putMachine(Ip machineIP, MachineInfo machineInfo) {
+		String location = "putMachine";
+		if(machineIP != null) {
+			String ip = machineIP.toString().trim();
+			if(!ip.isEmpty()) {
+				unsortedMachines.put(machineIP,machineInfo);
+				logger.trace(location, jobid, machineIP.toString()+","+machineInfo.getIp()+","+machineInfo.getName());
+			}
 		}
 	}
 	
@@ -264,7 +275,7 @@ public class DuccMachinesData {
 			}
 			current.setPubSizeMax(pubSizeMax);
 		}
-		unsortedMachines.put(key,current);
+		putMachine(key,current);
 		updateTotals(ip,msi);
 		setPublished();
 	}
