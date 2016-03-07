@@ -82,7 +82,7 @@ import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
 import org.apache.uima.ducc.ws.helper.BrokerHelper.FrameworkAttribute;
-import org.apache.uima.ducc.ws.helper.BrokerHelper.JmxAttribute;
+import org.apache.uima.ducc.ws.helper.BrokerHelper.JmxKeyWord;
 import org.apache.uima.ducc.ws.helper.DatabaseHelper;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
@@ -1686,7 +1686,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Name
 				row.add(new JsonPrimitive(topic));
 				// Type
-				String type = map.get(JmxAttribute.destinationType.name());
+				String type = map.get(JmxKeyWord.Type.name());
 				row.add(new JsonPrimitive(type));
 				// ConsumerCount
 				attrValue = map.get(FrameworkAttribute.ConsumerCount.name());

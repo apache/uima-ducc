@@ -77,7 +77,7 @@ public class BrokerHelper {
 	
 	private Map<String,Map<String,String>> entityAttributes = null;
 	
-	public enum JmxAttribute { destinationName, destinationType };
+	public enum JmxKeyWord { Destination, Type, Topic, Queue };
 	
 	public enum FrameworkAttribute { ConsumerCount, QueueSize, MaxEnqueueTime, AverageEnqueueTime, MemoryPercentUsage };
 	
@@ -251,31 +251,14 @@ public class BrokerHelper {
 		}
 		return retVal;
 	}
-	
-	private boolean isEndPoint(Hashtable<String, String> plist) {
-		boolean retVal = true;
-		if(plist != null) {
-			String text = plist.get("endpoint");
-			if(text == null) {
-				retVal = false;
-			}
-		}
-		return retVal;
-	}
-	
-	private boolean isBroker(Hashtable<String, String> plist) {
-		boolean retVal = false;
-		if(plist != null) {
-			String text = plist.get("type");
-			retVal = match("Broker",text);
-		}
-		return retVal;
-	}
-	
+
 	private boolean isQueue(Hashtable<String, String> plist) {
 		boolean retVal = false;
 		if(plist != null) {
-			String text = plist.get(JmxAttribute.destinationType.name());
+			String text = plist.get("type");
+			if(text == null) {
+				text = plist.get("Type");
+			}
 			retVal = match("Queue",text);
 		}
 		return retVal;
@@ -284,16 +267,17 @@ public class BrokerHelper {
 	private boolean isTopic(Hashtable<String, String> plist) {
 		boolean retVal = false;
 		if(plist != null) {
-			if (!isEndPoint(plist)) {
-				String text = plist.get(JmxAttribute.destinationType.name());
-				retVal = match("Topic",text);
+			String text = plist.get("type");
+			if(text == null) {
+				text = plist.get("Type");
 			}
+			retVal = match("Topic",text);
 		}
 		return retVal;
 	}
 	
 	private boolean isEligible(Hashtable<String, String> plist) {
-		boolean retVal = isBroker(plist) && (isTopic(plist) || isQueue(plist));
+		boolean retVal = isTopic(plist) || isQueue(plist);
 		return retVal;
 	}
 	
@@ -303,7 +287,7 @@ public class BrokerHelper {
 			if(objectName != null) {
 				Hashtable<String, String> plist = objectName.getKeyPropertyList();
 				if(isEligible(plist)) {
-					String name = plist.get(JmxAttribute.destinationName.name());
+					String name = plist.get(JmxKeyWord.Destination.name());
 					String prefix = "ducc.";
 					if(start(name,prefix)) {
 						Map<String,String> attributes = new TreeMap<String,String>();
@@ -315,7 +299,7 @@ public class BrokerHelper {
 							attributes.put(attrName, attrValue);
 							logger.trace(location, jobid, attrName+"="+attrValue);
 					   	}
-						String key = JmxAttribute.destinationType.name();
+						String key = JmxKeyWord.Type.name();
 						String value = plist.get(key);
 						attributes.put(key, value);
 						map.put(name, attributes);
@@ -343,6 +327,9 @@ public class BrokerHelper {
 			Hashtable<String, String> plist = objectName.getKeyPropertyList();
 			if(plist != null) {
 				String s0 = plist.get("type");
+				if(s0 == null) {
+					s0 = plist.get("Type");
+				}
 				String s1 = "Broker";
 				if(match(s0,s1)) {
 					AttributeList  attributeList = mbsc.getAttributes(objectName, brokerAttributeNames);
@@ -505,12 +492,22 @@ public class BrokerHelper {
 		System.out.println("ThreadsPeak="+bh.getThreadsPeak());
 		System.out.println("SystemLoadAverage="+bh.getSystemLoadAverage());
 		Map<String, Map<String, String>> map = bh.getEntityAttributes();
-		for(Entry<String, Map<String, String>> entry : map.entrySet()) {
-			System.out.println(entry.getKey()+":");
-			Map<String, String> attributes = entry.getValue();
-			for(Entry<String, String> attribute : attributes.entrySet()) {
-				System.out.println(attribute.getKey()+"="+attribute.getValue());
+		if(map != null) {
+			if(!map.isEmpty()) {
+				for(Entry<String, Map<String, String>> entry : map.entrySet()) {
+					System.out.println(entry.getKey()+":");
+					Map<String, String> attributes = entry.getValue();
+					for(Entry<String, String> attribute : attributes.entrySet()) {
+						System.out.println(attribute.getKey()+"="+attribute.getValue());
+					}
+				}
 			}
+			else {
+				System.out.println("map=empty");
+			}
+		}
+		else {
+			System.out.println("map=null");
 		}
 	}
 }
