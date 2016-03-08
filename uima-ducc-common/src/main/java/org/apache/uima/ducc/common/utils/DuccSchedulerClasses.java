@@ -24,12 +24,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.NodeConfiguration;
-import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DuccSchedulerClasses {
-	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccSchedulerClasses.class.getName());
-	private static DuccId jobid = null;
 	
 	public static final String FAIR_SHARE = "FAIR_SHARE";
 	public static final String FIXED_SHARE = "FIXED_SHARE";
@@ -81,7 +77,7 @@ public class DuccSchedulerClasses {
         if ( lastModified != file.lastModified() ) {         // reread if it looks like it changed
             synchronized(this) {    // Ensure parallel threads see a valid nodeConfiguration 
                 if ( lastModified != file.lastModified() ) { // an earlier thread may have already done the work
-                    nodeConfiguration = new NodeConfiguration(fileName, null, null, logger); // UIMA-4275 use single common constructor
+                    nodeConfiguration = new NodeConfiguration(fileName, null, null, null); // UIMA-4275 use single common constructor
                     nodeConfiguration.readConfiguration();
                     lastModified = file.lastModified();   // Update this AFTER the nodeConfiguration is valid
                 }
@@ -131,7 +127,6 @@ public class DuccSchedulerClasses {
 	 * Get nodepool for specified node, else empty string
 	 */
 	public String getNodepool(String node) {
-		String location = "getNodepool";
 		String retVal = "";
 		try {
 			if(node != null) {
@@ -147,7 +142,7 @@ public class DuccSchedulerClasses {
 			}
 		}
 		catch(Exception e) {
-			logger.error(location, jobid, e);
+			System.out.println("getNodepool(" + node + "): ERROR " + e);
 		}
 		return retVal;
 	}
