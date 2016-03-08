@@ -197,10 +197,7 @@ public class DuccWebUtil {
 			}
 		}
 		else {
-			if(isAvailable(propertiesMeta)) {
-				list = true;
-			}
-			else if(maxRecords > 0) {
+			if(maxRecords > 0) {
 				if (counter < maxRecords) {
 					list = true;
 				}

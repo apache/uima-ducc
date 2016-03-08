@@ -1102,7 +1102,17 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		Collection<IServiceAdapter> servicesSortedCollection = servicesSortCache.getSortedCollection();
 		if(!servicesSortedCollection.isEmpty()) {
 			StringBuffer col;
+			int maxRecords = getServicesMax(request);
+			ArrayList<String> users = getServicesUsers(request);
+			int counter = 0;
 			for(IServiceAdapter service : servicesSortedCollection) {
+				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, service);
+				if(!list) {
+					if(!service.isAlert()) {
+						continue;
+					}
+				}
+				counter++;
 				JsonArray row = new JsonArray();
 				int sid = service.getId();
 				String user = service.getUser();

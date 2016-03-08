@@ -969,7 +969,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			for(IServiceAdapter service : servicesSortedCollection) {
 				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, service);
 				if(!list) {
-					continue;
+					if(!service.isAlert()) {
+						continue;
+					}
 				}
 				counter++;
 				// Row Begin
