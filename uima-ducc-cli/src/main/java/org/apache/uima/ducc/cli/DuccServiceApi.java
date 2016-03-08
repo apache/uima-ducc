@@ -1036,7 +1036,7 @@ public class DuccServiceApi
                     System.out.println("Missing service action (register, unregister, start, stop, modify, observe_refrences, ignore_references, enable, disable, or query)");
                     System.exit(1);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             System.out.println("Service call failed: " + e);
             for (String arg : args) {
                 if (arg.equals("--debug")) {

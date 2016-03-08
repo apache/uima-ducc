@@ -215,8 +215,9 @@ public class DuccManagedReservationSubmit
             } else {
                 System.out.println(dt+" Could not submit ");
             }
-        } catch (Exception e) {
-            System.out.println(dt+" Cannot initialize: " + e.getMessage());
+        } catch (Throwable e) {
+            System.out.println(dt+" Cannot initialize: " + e);
+            //e.printStackTrace();
         } finally {
             // Set the process exit code
             System.exit(code);

@@ -193,8 +193,8 @@ public class DuccReservationSubmit
             } else {
                 System.out.println("Could not submit reservation.");
             }
-        } catch (Exception e) {
-            System.out.println("Cannot initialize: " + e.getMessage() + ".");
+        } catch (Throwable e) {
+            System.out.println("Cannot initialize: " + e);
         } finally {
             // Set the process exit code
             System.exit(code);
