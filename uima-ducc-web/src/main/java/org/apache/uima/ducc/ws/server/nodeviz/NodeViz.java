@@ -53,7 +53,7 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.IListenerOrchestrator;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.server.DuccListeners;
-import org.apache.uima.ducc.ws.types.Ip;
+import org.apache.uima.ducc.ws.types.NodeId;
 
 public class NodeViz
     implements IListenerOrchestrator
@@ -273,9 +273,9 @@ public class NodeViz
         }
 
         logger.debug(methodName, null, "Generateing visualizaiton");
-        ConcurrentSkipListMap<Ip,MachineInfo> m = machineData.getMachines();
+        ConcurrentSkipListMap<NodeId,MachineInfo> m = machineData.getMachines();
 
-        for (Entry<Ip, MachineInfo> entry : m.entrySet()) {
+        for (Entry<NodeId, MachineInfo> entry : m.entrySet()) {
         	// 
             // This is for hosts that have no work on them so they didn't come in the work map
             //

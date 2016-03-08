@@ -86,7 +86,6 @@ import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.apache.uima.ducc.ws.server.DuccCookies.DisplayStyle;
 import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
-import org.apache.uima.ducc.ws.types.Ip;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
@@ -1478,10 +1477,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		if(cookie.equals(DuccCookies.valueAgentsShow)) {
 			duccLogger.trace(methodName, jobid, "== show: "+cookie);
 			
-			ConcurrentSkipListMap<Ip,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
-			Iterator<Ip> iterator = machines.keySet().iterator();
+			ConcurrentSkipListMap<NodeId,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
+			Iterator<NodeId> iterator = machines.keySet().iterator();
 			while(iterator.hasNext()) {
-				Ip key = iterator.next();
+				NodeId key = iterator.next();
 				MachineInfo machineInfo = machines.get(key);
 				Properties properties = DuccDaemonRuntimeProperties.getInstance().getAgent(machineInfo.getName());
 				sb.append(trGet(counter));

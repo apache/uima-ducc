@@ -53,9 +53,9 @@ public class DuccMachinesData {
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccMachinesData.class.getName());
 	private static DuccId jobid = null;
 	
-	private static ConcurrentSkipListMap<MachineInfo,Ip> sortedMachines = new ConcurrentSkipListMap<MachineInfo,Ip>();
-	private static ConcurrentSkipListMap<Ip,MachineInfo> unsortedMachines = new ConcurrentSkipListMap<Ip,MachineInfo>();
-	private static ConcurrentSkipListMap<Ip,MachineSummaryInfo> summaryMachines = new ConcurrentSkipListMap<Ip,MachineSummaryInfo>();
+	private static ConcurrentSkipListMap<MachineInfo,NodeId> sortedMachines = new ConcurrentSkipListMap<MachineInfo,NodeId>();
+	private static ConcurrentSkipListMap<NodeId,MachineInfo> unsortedMachines = new ConcurrentSkipListMap<NodeId,MachineInfo>();
+	private static ConcurrentSkipListMap<NodeId,MachineSummaryInfo> summaryMachines = new ConcurrentSkipListMap<NodeId,MachineSummaryInfo>();
 	
 	private static AtomicLong memTotal = new AtomicLong(0);
 	private static AtomicLong memFree = new AtomicLong(0);
@@ -78,12 +78,12 @@ public class DuccMachinesData {
 		return isSwapping.containsKey(ip);
 	}
 	
-	public ConcurrentSkipListMap<Ip,MachineInfo> getMachines() {
+	public ConcurrentSkipListMap<NodeId,MachineInfo> getMachines() {
 		return unsortedMachines;
 	}
 	
-	public ConcurrentSkipListMap<MachineInfo,Ip> getSortedMachines() {
-		ConcurrentSkipListMap<MachineInfo,Ip> retVal = sortedMachines;
+	public ConcurrentSkipListMap<MachineInfo,NodeId> getSortedMachines() {
+		ConcurrentSkipListMap<MachineInfo,NodeId> retVal = sortedMachines;
 		return retVal;
 	}
 	
@@ -91,9 +91,9 @@ public class DuccMachinesData {
 		String location = "updateSortedMachines";
 		logger.debug(location, jobid, "start");
 		try {
-			ConcurrentSkipListMap<MachineInfo,Ip> map = new ConcurrentSkipListMap<MachineInfo,Ip>();
-			for(Entry<Ip,MachineInfo> entry : unsortedMachines.entrySet()) {
-				Ip value = entry.getKey();
+			ConcurrentSkipListMap<MachineInfo,NodeId> map = new ConcurrentSkipListMap<MachineInfo,NodeId>();
+			for(Entry<NodeId,MachineInfo> entry : unsortedMachines.entrySet()) {
+				NodeId value = entry.getKey();
 				MachineInfo key = entry.getValue();
 				map.put(key, value);
 				logger.debug(location, jobid, "put: "+value);
@@ -127,8 +127,7 @@ public class DuccMachinesData {
 				String swapFree = "";
 				double cpu = 0;
 				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, cpu, false, null, -1, 0);
-				Ip machineIP = new Ip(machineInfo.getIp());
-				putMachine(machineIP,machineInfo);
+				putMachine(machineInfo);
 			}
 			updateSortedMachines();
 		}
@@ -137,14 +136,33 @@ public class DuccMachinesData {
 		}
 	}
 	
-	private void putMachine(Ip machineIP, MachineInfo machineInfo) {
+	// add or update machine info; remove corresponding "defined" entry, if it exists
+	
+	private void putMachine(MachineInfo machineInfo) {
 		String location = "putMachine";
-		if(machineIP != null) {
-			String ip = machineIP.toString().trim();
-			if(!ip.isEmpty()) {
-				unsortedMachines.put(machineIP,machineInfo);
-				logger.trace(location, jobid, machineIP.toString()+","+machineInfo.getIp()+","+machineInfo.getName());
+		try {
+			if(machineInfo != null) {
+				String name = machineInfo.getName();
+				if(name != null) {
+					String longName = name.trim();
+					if(longName.length() > 0) {
+						NodeId nodeId = new NodeId(longName);
+						unsortedMachines.put(nodeId,machineInfo);
+						logger.trace(location, jobid, "add="+nodeId.toString()+","+machineInfo.getIp());
+						String shortName = longName.split("\\.")[0];
+						if(!shortName.equals(longName)) {
+							NodeId shortId = new NodeId(shortName);
+							if(unsortedMachines.containsKey(shortId)) {
+								unsortedMachines.remove(shortId);
+								logger.trace(location, jobid, "del="+shortId.toString());
+							}
+						}
+					}
+				}
 			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
 		}
 	}
 	
@@ -165,17 +183,17 @@ public class DuccMachinesData {
 		return totals;
 	}
 	
-	private void updateTotals(Ip ip, MachineSummaryInfo newInfo) {
-		if(summaryMachines.containsKey(ip)) {
-			MachineSummaryInfo oldInfo = summaryMachines.get(ip);
-			summaryMachines.put(ip, newInfo);
+	private void updateTotals(NodeId nodeId, MachineSummaryInfo newInfo) {
+		if(summaryMachines.containsKey(nodeId)) {
+			MachineSummaryInfo oldInfo = summaryMachines.get(nodeId);
+			summaryMachines.put(nodeId, newInfo);
 			memTotal.addAndGet(newInfo.memTotal-oldInfo.memTotal);
 			memFree.addAndGet(newInfo.memFree-oldInfo.memFree);
 			swapInuse.addAndGet(newInfo.swapInuse-oldInfo.swapInuse);
 			swapFree.addAndGet(newInfo.swapFree-oldInfo.swapFree);
 		}
 		else {
-			summaryMachines.put(ip, newInfo);
+			summaryMachines.put(nodeId, newInfo);
 			memTotal.addAndGet(newInfo.memTotal);
 			memFree.addAndGet(newInfo.memFree);
 			swapInuse.addAndGet(newInfo.swapInuse);
@@ -248,7 +266,7 @@ public class DuccMachinesData {
 		boolean cGroups = nodeMetrics.getCgroups();
 		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, cpu, cGroups, alienPids, duccEvent.getMillis(), duccEvent.getEventSize());
 		
-		Ip key = ip;
+		NodeId key = nodeId;
 		MachineInfo previous = unsortedMachines.get(key);
 		if(previous != null) {
 			try {
@@ -275,8 +293,8 @@ public class DuccMachinesData {
 			}
 			current.setPubSizeMax(pubSizeMax);
 		}
-		putMachine(key,current);
-		updateTotals(ip,msi);
+		putMachine(current);
+		updateTotals(nodeId,msi);
 		setPublished();
 	}
 	
@@ -390,7 +408,7 @@ public class DuccMachinesData {
 	public MachineFactsList getMachineFactsList() {
 		Map<String, IDbMachine> dbMachineMap = DbQuery.getInstance().getMapMachines();
 		MachineFactsList factsList = new MachineFactsList();
-		ConcurrentSkipListMap<MachineInfo,Ip> sortedMachines = getSortedMachines();
+		ConcurrentSkipListMap<MachineInfo,NodeId> sortedMachines = getSortedMachines();
 		Iterator<MachineInfo> iterator;
 		iterator = sortedMachines.keySet().iterator();
 		while(iterator.hasNext()) {
