@@ -629,8 +629,12 @@ public class StateManager {
 							case EndOfJob:
 								try {
 									int errors = jdStatusReport.getWorkItemsProcessingError();
+									int done = jdStatusReport.getWorkItemsProcessingCompleted();
 									if(errors > 0) {
 										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.Error, new Rationale("state manager detected error work items="+errors));
+									}
+									else if(done == 0) {
+										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.EndOfJob, new Rationale("state manager detected no work items processed"));
 									}
 									else {
 										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
@@ -638,9 +642,6 @@ public class StateManager {
 								}
 								catch(Exception e) {
 									logger.error(methodName, duccId, e);
-								}
-								finally {
-									setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
 								}
 								break;
 							default:
@@ -1484,8 +1485,12 @@ public class StateManager {
 											OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(job,ProcessDeallocationType.Stopped);
 											IRationale rationale = new Rationale("state manager reported as normal completion");
 											int errors = job.getSchedulingInfo().getIntWorkItemsError();
+											int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
 											if(errors > 0) {
 												setCompletionIfNotAlreadySet(job, JobCompletionType.Error, new Rationale("state manager detected error work items="+errors));
+											}
+											else if(done == 0) {
+												setCompletionIfNotAlreadySet(job, JobCompletionType.EndOfJob, new Rationale("state manager detected no work items processed"));
 											}
 											// <UIMA-3337>
 											else {
