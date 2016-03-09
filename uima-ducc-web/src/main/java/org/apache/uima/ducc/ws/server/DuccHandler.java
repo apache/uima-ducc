@@ -2016,7 +2016,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 	
 	private void putJobSpecEntry(Properties properties, String provider, String key, String value, StringBuffer sb, int counter) {
-		if(value != null && !value.isEmpty()) {
+		if(value != null) {
 			sb.append(trGet(counter));
 			if(provider != null) {
 				sb.append("<td>");
