@@ -1812,6 +1812,7 @@ public class ServiceSet
 
         //setState(ServiceState.Waiting);
         Thread t = new Thread(serviceMeta);
+        t.setName("Pinger-" + id.getFriendly());
         t.start();
     }
 
