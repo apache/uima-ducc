@@ -30,6 +30,8 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.cas.CasManager;
+import org.apache.uima.ducc.container.jd.cas.CasManagerStats;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
@@ -83,7 +85,10 @@ implements IJobDriverComponent {
 	private void createInstance() {
 		String location = "createInstance";
 		try {
-			int total = JobDriver.getInstance().getCasManager().getCasManagerStats().getCrTotal();
+			JobDriver jobDriver = JobDriver.getNewInstance();
+			CasManager casManager = jobDriver.getCasManager();
+			CasManagerStats casManagerStats = casManager.getCasManagerStats();
+			int total = casManagerStats.getCrTotal();
 			logger.info(location, jobid, "total: "+total);
 		}
 		catch(Exception e) {

@@ -20,6 +20,7 @@ package org.apache.uima.ducc.container.jd;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
@@ -55,20 +56,32 @@ public class JobDriver {
 	
 	private static JobDriver instance = null;
 	
+	private static CountDownLatch latch = new CountDownLatch(1);
+	
 	public synchronized static JobDriver getInstance() {
 		String location = "getInstance";
-		if(instance == null) {
+		while(true) {
 			try {
-				instance = new JobDriver();
-			} catch (JobDriverException e) {
+				latch.await();
+				break;
+			}
+			catch(Exception e) {
 				logger.error(location, ILogger.null_id, e);
 			}
 		}
 		return instance;
 	}
 	
-	public synchronized static JobDriver getNewInstance() {
+	public synchronized static JobDriver getNewInstance() throws JobDriverException {
+		String location = "getNewInstance";
 		instance = null;
+		try {
+			instance = new JobDriver();
+			latch.countDown();
+		} catch (JobDriverException e) {
+			logger.error(location, ILogger.null_id, e);
+			throw e;
+		}
 		return getInstance();
 	}
 	

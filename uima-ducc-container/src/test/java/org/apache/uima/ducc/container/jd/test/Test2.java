@@ -42,7 +42,7 @@ public class Test2 extends TestSuite {
 	@Before
     public void setUp() throws JobDriverException {
         initialize();
-        jd = JobDriver.getInstance();
+        jd = JobDriver.getNewInstance();
     }
 	
 	@Test

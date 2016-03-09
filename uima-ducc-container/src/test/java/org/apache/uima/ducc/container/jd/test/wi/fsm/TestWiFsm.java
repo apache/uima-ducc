@@ -49,7 +49,7 @@ public class TestWiFsm extends TestBase {
 	@Before
     public void setUp() throws JobDriverException {
         initialize();
-        jd = JobDriver.getInstance();
+        jd = JobDriver.getNewInstance();
     }
 	
 	@Test
