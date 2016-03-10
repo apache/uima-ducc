@@ -65,6 +65,8 @@ class Ducc(DuccUtil):
         jmxport = self.ducc_properties.get('ducc.database.jmx.port')
         if ( jmxport != None ):
             os.environ['JMX_PORT'] = jmxport
+            os.environ['LOCAL_JMX'] = 'no'
+            # Remove above line for local-only JMX access to the DB
 
         os.chdir(self.DUCC_HOME + "/cassandra-server")
         pidfile = self.DUCC_HOME + '/state/cassandra.pid'
