@@ -27,7 +27,7 @@ under the License.
     <tr class="ducc-head">
     <th title="The service deployment id">Id</th>
     <th title="The file name">Name</th>
-    <th title="The file size, in MB">Size</th>
+    <th title="The file size, in MB" class="sorttable_numeric">Size</th>
      <th title="The file date">Date</th>
     </tr>
     </thead>

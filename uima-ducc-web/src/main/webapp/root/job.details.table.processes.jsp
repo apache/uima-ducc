@@ -27,7 +27,7 @@ under the License.
 	<tr class="ducc-head">
 	<th title="The system assigned id for this process" class="sorttable_numeric">Id</th>
 	<th title="The log file name associated with this process">Log</th>
-	<th title="The log file size, in MB">Log<br/>Size</th>
+	<th title="The log file size, in MB" class="sorttable_numeric">Log<br/>Size</th>
 	<th title="The host for this process">Host<br>Name</th>
 	<th title="The OS assigned PID for this process"class="sorttable_numeric">PID</th>
 	<th title="Process scheduling state">State<br>Scheduler</th>
@@ -39,9 +39,9 @@ under the License.
     <th title="Process run time (not including process initialization time), ddd:hh:mm:ss">Time<br>Run</th>
 	<th title="Process total time spent performing garbage collections, hh:mm:ss">Time<br>GC</th>
 	<th title="Process count of major faults which required loading a memory page from disk">PgIn</th>
-	<th title="Process GB swapped out to disk, current if state=running or maximum if state=completed">Swap</th>
-	<th title="%CPU time, as percentage of process (over last reporting interval if active, else over lifetime)">%CPU</th>
-	<th title="Resident Storage Size in GB, current if state=running or maximum if state=completed">RSS</th>
+	<th title="Process GB swapped out to disk, current if state=running or maximum if state=completed" class="sorttable_numeric">Swap</th>
+	<th title="%CPU time, as percentage of process (over last reporting interval if active, else over lifetime)" class="sorttable_numeric">%CPU</th>
+	<th title="Resident Storage Size in GB, current if state=running or maximum if state=completed" class="sorttable_numeric">RSS</th>
 	<th title="Average seconds per work item">Time<br>Avg</th>
 	<th title="Maximum seconds for any work item">Time<br>Max</th>
 	<th title="Minimum seconds for any work item">Time<br>Min</th>

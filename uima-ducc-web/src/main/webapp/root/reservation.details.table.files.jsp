@@ -26,7 +26,7 @@ under the License.
     <thead>
     <tr class="ducc-head">
     <th title="The file name">Name</th>
-    <th title="The file size, in MB">Size</th>
+    <th title="The file size, in MB" class="sorttable_numeric">Size</th>
     </tr>
     </thead>
     <tbody id="files_data_area">

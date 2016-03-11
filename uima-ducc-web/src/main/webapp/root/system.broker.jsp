@@ -136,8 +136,8 @@ if (table_style.equals("classic")) {
         <th align="center" >ConsumerCount</th>
         <th align="center" >QueueSize</th>
         <th align="center" >MaxEnqueueTime</th>
-        <th align="center" >AverageEnqueueTime</th>
-        <th align="center" >MemoryPercentUsage</th>
+        <th align="center" class="sorttable_numeric">AverageEnqueueTime</th>
+        <th align="center" class="sorttable_numeric">MemoryPercentUsage</th>
 		</tr>
 		</thead>
 		<tbody id="system_broker_list_area">
