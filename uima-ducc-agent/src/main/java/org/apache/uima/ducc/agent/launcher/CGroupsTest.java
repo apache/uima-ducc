@@ -120,19 +120,21 @@ public class CGroupsTest {
 			containerId = idFactory.next().toString()+"."+idFactory.next().toString();
 			
 			System.out.println(">>>> Thread::"+Thread.currentThread().getId()+" creating cgroup with id:"+containerId);
-			if ( !cgroupsManager.createContainer(containerId, "cwiklik", true) ) {
+			if ( !cgroupsManager.createContainer(containerId, "ducc", true) ) {
 				System.out.println("Thread::"+Thread.currentThread().getId()+" Failure to create cgroup with id:"+containerId);
 				System.exit(-1);
 				
 			} else {
 				if ( cgroupsManager.cgroupExists(cgroupsManager.getDuccCGroupBaseDir() + "/" + containerId) ) {
 					System.out.println("Thread::"+Thread.currentThread().getId()+" Success creating cgroup with id:"+containerId);
+				
+				cgroupsManager.setContainerSwappiness(containerId, "ducc", true, 10);
 				} else {
 					System.out.println("Failed to validate existance of cgroup with id:"+containerId);
 					System.exit(-1);
 				}
 			}
-			cgroupsManager.destroyContainer(containerId, "cwiklik", NodeAgent.SIGTERM);
+			cgroupsManager.destroyContainer(containerId, "ducc", NodeAgent.SIGTERM);
 			System.out.println("Cgroup "+containerId+" Removed");
 		} catch( Exception e ) {
 			e.printStackTrace();
