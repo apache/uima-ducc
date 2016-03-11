@@ -96,6 +96,12 @@ public class DuccCommandExecutor extends CommandExecutor {
 					+ cpuShares);
 			agent.cgroupsManager.setContainerCpuShares(containerId, owner,
 					useDuccSpawn(), cpuShares);
+			long swappiness = 10; //default
+			if ( agent.configurationFactory.nodeSwappiness != null ) {
+				swappiness = Long.valueOf(agent.configurationFactory.nodeSwappiness);
+			}
+			agent.cgroupsManager.setContainerSwappiness(containerId, owner,
+					useDuccSpawn(), swappiness);
 
 			return agent.cgroupsManager.setContainerMaxMemoryLimit(containerId,
 					owner, useDuccSpawn(), duccProcess.getCGroup()
