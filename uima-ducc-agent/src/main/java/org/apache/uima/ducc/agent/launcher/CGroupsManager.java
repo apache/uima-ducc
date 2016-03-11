@@ -66,6 +66,7 @@ public class CGroupsManager {
 	private String cgroupSubsystems = ""; // comma separated list of subsystems
 											// eg. memory,cpu
     private long maxTimeToWaitForProcessToStop;
+    
 	/**
 	 * @param args
 	 */
@@ -361,41 +362,43 @@ public class CGroupsManager {
 	 * 
 	 * @throws Exception
 	 */
-	public boolean createContainer(String containerId, String userId,
+	public  boolean createContainer(String containerId, String userId,
 			boolean useDuccSpawn) throws Exception {
 
-		try {
-			agentLogger.info("createContainer", null, "Creating CGroup Container:" + containerId);
-			
-			String[] command = new String[] { cgroupUtilsDir+"/cgcreate", "-t",
-					"ducc", "-a", "ducc", "-g",
-					cgroupSubsystems + ":ducc/" + containerId };
-			int retCode = launchCommand(command, useDuccSpawn, "ducc",
-					containerId);
-			// Starting with libcgroup v.0.38, the cgcreate fails
-			// with exit code = 96 even though the cgroup gets
-			// created! The following code treats such return code
-			// as success. In case there is an error, subsequent
-			// cgset or cgexec will fail.
-			if (retCode == 0 || retCode == 96) {
-				containerIds.add(containerId);
-				agentLogger.info("createContainer", null, ">>>>"
-						+ "SUCCESS - Created CGroup Container:" + containerId);
+		synchronized(CGroupsManager.class) {
+			try {
+				agentLogger.info("createContainer", null, "Creating CGroup Container:" + containerId);
+				
+				String[] command = new String[] { cgroupUtilsDir+"/cgcreate", "-t",
+						"ducc", "-a", "ducc", "-g",
+						cgroupSubsystems + ":ducc/" + containerId };
+				int retCode = launchCommand(command, useDuccSpawn, "ducc",
+						containerId);
+				// Starting with libcgroup v.0.38, the cgcreate fails
+				// with exit code = 96 even though the cgroup gets
+				// created! The following code treats such return code
+				// as success. In case there is an error, subsequent
+				// cgset or cgexec will fail.
+				if (retCode == 0 || retCode == 96) {
+					containerIds.add(containerId);
+					agentLogger.info("createContainer", null, ">>>>"
+							+ "SUCCESS - Created CGroup Container:" + containerId);
+					return true;
+				} else {
+					agentLogger.info("createContainer", null, ">>>>"
+							+ "FAILURE - Unable To Create CGroup Container:"
+							+ containerId);
 
-				return true;
-			} else {
-				agentLogger.info("createContainer", null, ">>>>"
+					return false;
+				}
+			} catch (Exception e) {
+				agentLogger.error("createContainer", null, ">>>>"
 						+ "FAILURE - Unable To Create CGroup Container:"
-						+ containerId);
+						+ containerId, e);
 
 				return false;
 			}
-		} catch (Exception e) {
-			agentLogger.error("createContainer", null, ">>>>"
-					+ "FAILURE - Unable To Create CGroup Container:"
-					+ containerId, e);
-
-			return false;
+			
 		}
 	}
 
@@ -485,6 +488,52 @@ public class CGroupsManager {
 		} catch (Exception e) {
 			agentLogger.error("setContainerCpuShares", null, ">>>>"
 					+ "FAILURE - Unable To Set CPU shares On CGroup Container:"
+					+ containerId, e);
+			return false;
+		}
+	}
+	
+	/**
+	 * Sets the memory swappiness for an existing cgroup container.
+	 * 
+	 * @param containerId
+	 *            - existing container id for which limit will be set
+	 * @param userId
+	 *            - container owner
+	 * @param useDuccSpawn
+	 *            - run 'cgset' command as a user
+	 * @param swappiness
+	 *            - swappiness
+	 * 
+	 * @return - true on success, false otherwise
+	 * 
+	 * @throws Exception
+	 */
+	
+	public boolean setContainerSwappiness(String containerId,
+			String userId, boolean useDuccSpawn, long swappiness)
+			throws Exception {
+		try {
+			///usr/bin
+			String[] command = new String[] { cgroupUtilsDir+"/cgset", "-r",
+					"memory.swappiness=" + swappiness,
+					"ducc/" + containerId };
+			int retCode = launchCommand(command, useDuccSpawn, "ducc",
+					containerId);
+			if (retCode == 0) {
+				agentLogger.info("setContainerSwappiness", null, ">>>>"
+						+ "SUCCESS - Updated CGroup with Memory Swappiness="+swappiness+" on Container:"
+						+ containerId);
+				return true;
+			} else {
+				agentLogger.info("setContainerSwappiness", null, ">>>>"
+						+ "FAILURE - Unable To Set Swappiness on CGroup Container:"
+						+ containerId);
+				return false;
+			}
+		} catch (Exception e) {
+			agentLogger.error("setContainerSwappiness", null, ">>>>"
+					+ "FAILURE - Unable To Set Swappiness On CGroup Container:"
 					+ containerId, e);
 			return false;
 		}
@@ -612,6 +661,7 @@ public class CGroupsManager {
 			agentLogger.info("launchCommand", null, "Consuming Process Streams");
 			while ((line = reader.readLine()) != null) {
 				agentLogger.info("launchCommand", null, ">>>>" + line);
+				//System.out.println(line);
 			}
 			agentLogger.info("launchCommand", null, "Waiting for Process to Exit");
 
