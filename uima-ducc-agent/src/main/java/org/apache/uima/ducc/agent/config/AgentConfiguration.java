@@ -84,12 +84,6 @@ public class AgentConfiguration {
   
   private RouteBuilder inventoryRouteBuilder;
 
-  // public static String agentPingEnpoint = "activemq:topic:agent.ping.endpoint";
-  // public static String agentPingSelectorName="agent_ip";
-  // public static String agentPingSelector;
-
-  // private DuccEventDispatcher agentPingDispatcher;
-
   @Value("#{ systemProperties['ducc.agent.launcher.thread.pool.size'] }")
   String launcherThreadPoolSize;
 
@@ -107,6 +101,11 @@ public class AgentConfiguration {
   @Value("#{ systemProperties['ducc.agent.rogue.process.user.exclusion.filter'] }")
   public String userExclusionList;
 
+  // Get comma separated list of users to ignore while detecting rogue processes
+  @Value("#{ systemProperties['ducc.agent.launcher.cgroups.swappiness'] }")
+  public String nodeSwappiness;
+
+  
   @Autowired
   DuccTransportConfiguration agentTransport;
 
