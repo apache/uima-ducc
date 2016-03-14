@@ -48,6 +48,12 @@ class DuccRmReconfigure(DuccUtil):
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
 
         self.spawn(self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccRmAdmin', '--reconfigure')
+
+        # Web server updates Machines page when the classes file changes
+        class_file = self.ducc_properties.get('ducc.rm.class.definitions')
+        CMD = 'touch ' + self.DUCC_HOME + '/resources/' + class_file
+        os.system(CMD)
+
         return
 
 if __name__ == "__main__":
