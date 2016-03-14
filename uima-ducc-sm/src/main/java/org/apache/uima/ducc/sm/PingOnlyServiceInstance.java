@@ -58,6 +58,7 @@ class PingOnlyServiceInstance
         setStopped(false);
         driver = new PingOnlyDriver();
         Thread driver_thread = new Thread(driver);
+        driver_thread.setName("PingOnlyDriver-" + sset.getId().getFriendly());
         driver_thread.start();
         return numeric_id;
     }

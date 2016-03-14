@@ -609,6 +609,7 @@ class PingDriver
         int port = pinger.getPort();
 
         ping_thread = new Thread(pinger);
+        ping_thread.setName("XTrnPingMonitor-"+ sset.getId());
         ping_thread.start();                            // sets up the listener, before we start the the external process
 
         Map<String, Object> initProps = new HashMap<String, Object>();

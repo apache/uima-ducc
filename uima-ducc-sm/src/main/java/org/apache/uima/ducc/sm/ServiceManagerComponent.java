@@ -372,10 +372,12 @@ public class ServiceManagerComponent
 
         // Start the main processing loop
         Thread smThread = new Thread(this);
+        smThread.setName("ServiceManagerHandler");
         smThread.setDaemon(true);
         smThread.start();
 
         Thread handlerThread = new Thread(handler);
+        handlerThread.setName("ServiceHandler");
         handlerThread.setDaemon(true);
         handlerThread.start();
 	}
