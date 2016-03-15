@@ -44,19 +44,24 @@ class DbLoader(DuccUtil):
             print ''
         print 'Usage:'
         print ''
-        print 'db_loader -i in [--no-archive]'
+        print 'db_loader -i runtime [-t #threads] [--no-archive]'
         print ''
         print 'Where:'
-        print '    -i in'
+        print '    -i runtime'
         print '         Specifies the DUCC_HOME of the DUCC runtime to be moved into the database.'
+        print ''
+        print '    -t #threads'
+        print '         Specifies number of processing threads (default is 10)'
         print ''
         print '    --no-archive'
         print '         Suppresses archival of the input files.'
         print ''
         print 'Notes:'
-        print '    1.  The database must be started before running this script.  Because this is a bootstrap'
-        print '        script DUCC must be down.  The database may be started using start_ducc -c db'
-        print '    2.  Archival consists of renaming relevent input directories and files by appending'
+        print '    1.  Because this is a bootstrap script DUCC must be stopped.'
+        print '        The database will be started & stopped by this script.'
+        print '    2.  Reducing the number of processing threads will reduce the CPU load but'
+        print '        increase the processing time.'
+        print '    3.  Archival consists of renaming relevent input directories and files by appending'
         print '        ".archive" to their names.  It is fully non-destructive and may be reversed by'
         print '        manually renaming them back to their original names.'
 
@@ -67,14 +72,17 @@ class DbLoader(DuccUtil):
         in_home = None
         out_url = None
         archive = True
+        nthreads = 10
         try:
-            opts, args = getopt.getopt(argv, 'di:o:h?', ['no-archive'])
+            opts, args = getopt.getopt(argv, 'i:t:h?', ['no-archive'])
         except:
             self.usage("Invalid arguments", ' '.join(argv))
 
         for ( o, a ) in opts:
             if o in ('-i'):
                 in_home = a
+            elif o in ('-t'):
+                nthreads = a
             elif o in ('--no-archive'):
                 archive = False
             else:
@@ -99,7 +107,7 @@ class DbLoader(DuccUtil):
         if ( not archive ):
             DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDONT_ARCHIVE'
 
-        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.database.DbLoader', in_home, out_url]
+        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.database.DbLoader', in_home, out_url, nthreads]
         CMD = ' '.join(CMD)
 
         os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ':' + self.DUCC_HOME + "/resources"

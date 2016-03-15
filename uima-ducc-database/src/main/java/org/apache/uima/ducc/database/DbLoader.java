@@ -668,7 +668,7 @@ public class DbLoader
     public static void main(String[] args)
     {
         if ( args.length < 2 ) {
-            System.out.println("USage: DbLoader from to <num-threads>");
+            System.out.println("Usage: DbLoader from to <num-threads>");
             System.out.println("");
             System.out.println("Where:");
             System.out.println("   from      is the DUCC_HOME you wish to convert,");
