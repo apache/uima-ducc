@@ -229,7 +229,7 @@
        \item[ducc.broker.name] \hfill \\
          This is the internal name of the broker, used to locate Broker's MBean in JMX Registry. 
          It is NOT related to any node name. When using the ActiveMQ distribution supplied with 
-         DUCC it should always be set to "localhost".  The default should be changed only by
+         DUCC it should always be set to ``localhost''.  The default should be changed only by
          administrators familiar with ActiveMQ configuration.
          \begin{description}
            \item[Default] localhost 
@@ -1630,11 +1630,19 @@
           \item[Type] Tuning
         \end{description} 
 
+      \item[ducc.database.jmx.host] \hfill \\
+        This is the name of the database host for JMX access.  If it is ``localhost'' then only local
+        JMX access is supported.  If it is set to the real name of the database host then remote JMX
+        access is possible.
+        \begin{description}
+          \item[Default Value] localhost
+          \item[Type] Tuning
+        \end{description} 
+
       \item[ducc.database.jmx.port] \hfill \\
-        This is the JMX port used by the database.  Normally it need not be changed.  This
-        port is ONLY available on the host where the database runs.  To allow access from
-        other hosts, check the Cassandra documentation.  DUCC only directly supports
-        access from the configured database host.
+        This is the JMX port used by the database.  Normally it need not be changed. 
+        It is set via the cassandra-env.sh script so must not be in the range of values used by the
+        other daemons, i.e. values just above {\em ducc.jmx.port}.
         \begin{description}
           \item[Default Value] 7199
           \item[Type] Tuning
@@ -1643,7 +1651,7 @@
       \item[ducc.database.mem.heap] \hfill \\
         This is the value used to set {\em Xmx and Xms} when the database starts.  The
         Cassandra database makes an attempt to determine the best value of this.  The
-        default is one-half of real memory, up to a maximum of 8G.  It is reccomended that
+        default is one-half of real memory, up to a maximum of 8G.  It is recommended that
         the default be used.  However, small installations may reduce this to as little
         as 512M.  Note that both Xmx and Xms are set.
         \begin{description}
@@ -1656,7 +1664,7 @@
         In general, the default is correct.  If you're not familiar with Java's memory
         management it is safest to not modify this.
         \begin{description}
-          \item[Default Value] 100M
+          \item[Default Value] Determined by Cassandra.
           \item[Type] Tuning
         \end{description} 
 
