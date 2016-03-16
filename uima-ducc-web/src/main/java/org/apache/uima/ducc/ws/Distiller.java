@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.SizeBytes;
+import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -81,6 +83,9 @@ public class Distiller {
 												String name = ni.getName();
 												if(name != null) {
 													add(map, name, bytes);
+													SizeBytes sb = new SizeBytes(Type.Bytes,bytes);
+													String text = location+": "+name+"="+sb.getGBytes();
+													logger.trace(location, dw.getDuccId(), text);
 												}
 											}
 										}
@@ -117,6 +122,9 @@ public class Distiller {
 										String name = ni.getName();
 										if(name != null) {
 											add(map, name, bytes);
+											SizeBytes sb = new SizeBytes(Type.Bytes,bytes);
+											String text = location+": "+name+"="+sb.getGBytes();
+											logger.trace(location, dw.getDuccId(), text);
 										}
 									}
 								}
@@ -133,40 +141,7 @@ public class Distiller {
 	
 	// accumulate bytes allocated on each machine for each active managed reservation
 	private static void managedReservations(Map<String,Long> map, IDuccWorkMap dwm) {
-		String location = "managedReservations";
-		try {
-			if(map != null) {
-				if(dwm != null) {
-					Set<DuccId> keys = dwm.getManagedReservationKeySet();
-					for(DuccId key : keys) {
-						IDuccWork dw = dwm.findDuccWork(key);
-						IDuccWorkJob dwmr = (IDuccWorkJob) dw;
-						if(dwmr != null) {
-							if(dwmr.isOperational()) {
-								long bytes = dwmr.getSchedulingInfo().getMemorySizeAllocatedInBytes();
-								IDuccProcessMap processMap = dwmr.getProcessMap();
-								if(processMap != null) {
-									for(IDuccProcess process : processMap.values()) {
-										if(!process.isDeallocated()) {
-											NodeIdentity ni = process.getNodeIdentity();
-											if(ni != null) {
-												String name = ni.getName();
-												if(name != null) {
-													add(map, name, bytes);
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		catch(Exception e) {
-			logger.error(location, jobid, e);
-		}
+		// handled by services() below
 	}
 	
 	// accumulate bytes allocated on each machine for each active service instance
@@ -191,6 +166,9 @@ public class Distiller {
 												String name = ni.getName();
 												if(name != null) {
 													add(map, name, bytes);
+													SizeBytes sb = new SizeBytes(Type.Bytes,bytes);
+													String text = location+": "+name+"="+sb.getGBytes();
+													logger.trace(location, dw.getDuccId(), text);
 												}
 											}
 										}
