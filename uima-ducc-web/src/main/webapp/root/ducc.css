@@ -16,6 +16,20 @@
  specific language governing permissions and limitations
  under the License.
 */
+
+input::-webkit-input-placeholder {
+color: grey;
+}
+input:-moz-placeholder { /* Firefox 18- */
+color: grey;  
+}
+input::-moz-placeholder {  /* Firefox 19+ */
+color: grey;  
+}
+input:-ms-input-placeholder {  
+color: grey;  
+}
+
 body {
 }
 
