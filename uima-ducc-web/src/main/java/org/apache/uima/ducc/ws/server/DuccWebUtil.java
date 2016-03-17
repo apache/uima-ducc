@@ -46,67 +46,36 @@ public class DuccWebUtil {
 		response.setDateHeader("Expires", 0); // Proxies.
 	}
 	
-	public static final boolean isListable(HttpServletRequest request, ArrayList<String> users, int maxRecords, int counter, IDuccWork dw) {
-		boolean list = false;
+	private static final boolean isListable(HttpServletRequest request,ArrayList<String> users, int maxRecords, int counter, String user) {
 		DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
-		if(!users.isEmpty()) {
-			String jobUser = dw.getStandardInfo().getUser().trim();
-			switch(filterUsersStyle) {
-			case IncludePlusActive:
-				if(!dw.isCompleted()) {
-					list = true;
-				}
-				else if(users.contains(jobUser)) {
-					if(maxRecords > 0) {
-						if (counter < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				break;
-			case ExcludePlusActive:
-				if(!dw.isCompleted()) {
-					list = true;
-				}
-				else if(!users.contains(jobUser)) {
-					if(maxRecords > 0) {
-						if (counter < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				break;
-			case Include:
-				if(users.contains(jobUser)) {
-					if(maxRecords > 0) {
-						if (counter < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				break;
-			case Exclude:
-				if(!users.contains(jobUser)) {
-					if(maxRecords > 0) {
-						if (counter < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				break;
-			}	
-		}
-		else {
-			if(!dw.isCompleted()) {
-				list = true;
+		boolean retVal = false;
+		if((maxRecords == 0)||(counter < maxRecords)) {
+			if(users.isEmpty()) {
+				retVal = true;
 			}
-			else if(maxRecords > 0) {
-				if (counter < maxRecords) {
-					list = true;
-				}
+			else {
+				switch(filterUsersStyle) {
+				case IncludePlusActive:	// deprecated, treat same as include
+				case Include:
+					if(users.contains(user)) {
+						retVal = true;
+					}
+					break;
+				case ExcludePlusActive: // deprecated, treat same as exclude
+				case Exclude:
+					if(!users.contains(user)) {
+						retVal = true;
+					}
+					break;
+				}	
 			}
 		}
-		return list;
+		return retVal;
+	}
+	
+	public static final boolean isListable(HttpServletRequest request, ArrayList<String> users, int maxRecords, int counter, IDuccWork dw) {
+		String user = dw.getStandardInfo().getUser().trim();
+		return isListable(request, users, maxRecords, counter, user);
 	}
 	
 	private static String key_user = IServicesRegistry.user;
@@ -144,66 +113,8 @@ public class DuccWebUtil {
 	}
 	
 	public static final boolean isListable(HttpServletRequest request, ArrayList<String> users, int maxRecords, int counter, Properties propertiesMeta) {	
-		boolean list = false;
-		DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
-		if(!users.isEmpty()) {
-			String user = propertiesMeta.getProperty(key_user);
-			if(user != null) {
-				user = user.trim();
-				switch(filterUsersStyle) {
-				case IncludePlusActive:
-					if(isAvailable(propertiesMeta)) {
-						list = true;
-					}
-					else if(users.contains(user)) {
-						if(maxRecords > 0) {
-							if (counter < maxRecords) {
-								list = true;
-							}
-						}
-					}
-					break;
-				case ExcludePlusActive:
-					if(isAvailable(propertiesMeta)) {
-						list = true;
-					}
-					else if(!users.contains(user)) {
-						if(maxRecords > 0) {
-							if (counter < maxRecords) {
-								list = true;
-							}
-						}
-					}
-					break;
-				case Include:
-					if(users.contains(user)) {
-						if(maxRecords > 0) {
-							if (counter < maxRecords) {
-								list = true;
-							}
-						}
-					}
-					break;
-				case Exclude:
-					if(!users.contains(user)) {
-						if(maxRecords > 0) {
-							if (counter < maxRecords) {
-								list = true;
-							}
-						}
-					}
-					break;
-				}	
-			}
-		}
-		else {
-			if(maxRecords > 0) {
-				if (counter < maxRecords) {
-					list = true;
-				}
-			}
-		}
-		return list;
+		String user = propertiesMeta.getProperty(key_user);
+		return isListable(request, users, maxRecords, counter, user);
 	}
 	
 	

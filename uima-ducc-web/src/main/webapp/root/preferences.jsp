@@ -172,12 +172,12 @@ if (displayStyle) {
         <td><i><b>Filter Users</b></i>
 		<td>&nbsp;
 		<td><input type="radio"  name="filter_users_style" value="include" checked onclick="ducc_preferences_set('filter_users_style','include')" /> Include
-		<td>&nbsp;
-		<td><input type="radio"  name="filter_users_style" value="include+active"  onclick="ducc_preferences_set('filter_users_style','include+active')" /> Include+Active
+		<td style="display: none;">&nbsp;
+		<td style="display: none;"><input type="radio"  name="filter_users_style" value="include+active"  onclick="ducc_preferences_set('filter_users_style','include+active')" /> Include+Active
 		<td>&nbsp;
 		<td><input type="radio"  name="filter_users_style" value="exclude" 		 onclick="ducc_preferences_set('filter_users_style','exclude')" /> Exclude
-		<td>&nbsp;
-		<td><input type="radio"  name="filter_users_style" value="exclude+active"  onclick="ducc_preferences_set('filter_users_style','exclude+active')" /> Exclude+Active
+		<td style="display: none;">&nbsp;
+		<td style="display: none;"><input type="radio"  name="filter_users_style" value="exclude+active"  onclick="ducc_preferences_set('filter_users_style','exclude+active')" /> Exclude+Active
 		<td>&nbsp;
 		<td>&nbsp;
 <%
