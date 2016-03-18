@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
@@ -100,6 +101,7 @@ import org.apache.uima.ducc.ws.registry.ServiceInterpreter;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
+import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.apache.uima.ducc.ws.sort.JobDetailsProcesses;
@@ -155,6 +157,8 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccReservationProcessesData    	= duccContext+"/reservation-processes-data";
 	private String duccReservationSpecificationData = duccContext+"/reservation-specification-data";
 	private String duccReservationFilesData 		= duccContext+"/reservation-files-data";
+	
+	private String duccServicesRecordsCeiling    	= duccContext+"/services-records-ceiling";
 	
 	private String duccServiceDeploymentsData    	= duccContext+"/service-deployments-data";
 	private String duccServiceRegistryData 			= duccContext+"/service-registry-data";
@@ -2675,6 +2679,40 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
+	private void handleDuccServletServicesRecordsCeilingData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletServicesRecordsCeilingData";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		try {
+			int counter = 0;  // force counter to be zero for isListable calculation
+			int ceiling = 0;
+			ServicesSortCache servicesSortCache = ServicesSortCache.getInstance();
+			Collection<IServiceAdapter> servicesSortedCollection = servicesSortCache.getSortedCollection();
+			if(!servicesSortedCollection.isEmpty()) {
+				int maxRecords = getServicesMax(request);
+				ArrayList<String> users = getServicesUsers(request);
+				for(IServiceAdapter service : servicesSortedCollection) {
+					boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, service);
+					if(!list) {
+						continue;
+					}
+					ceiling++;
+				}
+			}
+			sb.append(""+ceiling);
+		}
+		catch(Throwable t) {
+			duccLogger.trace(methodName, jobid, t);
+		}
+		if(sb.length() == 0) {
+			sb.append("0");
+		}
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
 	private void handleDuccServletServiceDeploymentsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -4666,6 +4704,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else if(reqURI.startsWith(duccReservationSpecificationData)) {
 				handleDuccServletReservationSpecificationData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccServicesRecordsCeiling)) {
+				handleDuccServletServicesRecordsCeilingData(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccServiceDeploymentsData)) {

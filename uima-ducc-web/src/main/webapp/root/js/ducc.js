@@ -661,6 +661,7 @@ function ducc_load_services_head() {
     var fname = "ducc_load_services_head";
     ducc_services_max_records();
     ducc_services_users();
+    ducc_load_services_records_ceiling();
 }
 
 var ms_load_services_data = +new Date() - ms_reload_min;
@@ -677,6 +678,37 @@ function ducc_load_services_data() {
         ducc_load_scroll_services_data()
     } else {
         ducc_load_classic_services_data()
+    }
+}
+
+var wip_services_records_ceiling = false;
+
+function ducc_load_services_records_ceiling() {
+    var fname = "ducc_load_services_records_ceiling";
+    var data = null;
+    if(wip_services_records_ceiling) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_services_records_ceiling = true;
+    try {
+        var servlet = "/ducc-servlet/services-records-ceiling";
+        var tomsecs = ms_timeout;
+        $.ajax({
+            url: servlet,
+            timeout: tomsecs
+        }).done(function(data) {
+            wip_services_records_ceiling = false;
+            $("#services_records_ceiling_area").html(data);
+            data = null;
+            ducc_console_success(fname);
+        }).fail(function(jqXHR, textStatus) {
+        	wip_services_records_ceiling = false;
+            ducc_console_fail(fname, textStatus);
+        });
+    } catch (err) {
+    	wip_services_records_ceiling = false;
+        ducc_error(fname, err);
     }
 }
 

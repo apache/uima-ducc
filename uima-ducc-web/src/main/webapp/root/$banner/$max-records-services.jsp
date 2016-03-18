@@ -16,24 +16,7 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<div>
-<b><big><span class="idtitle" id="identity"></span></big></b>
-<form name="form_selectors" style="margin-bottom:0;">
-<table>
-<tr>
-<td valign="top" align="right" title="The time of last Orchestrator publication">Updated:&nbsp
-<td valign="top"><span class="timestamptitle" id="timestamp_area"></span>
-</tr>
-<tr>
-<td valign="top" align="right" title="The percentage of memory inuse">Utilization:&nbsp
-<td valign="top"><span class="utilizationtitle" id="utilization_area">?</span>
-</tr>
-<tr>
-<%@ include file="$users.jsp" %>
-</tr>
-<tr>
-<%@ include file="$max-records-services.jsp" %>
-</tr>
-</table>
-</form>
-</div> 
+<td valign="top" align="right">Max Records:&nbsp
+<td valign="top">
+<input type="text" size="8" id="maxrecs_input" value="default" placeholder="positive integer"/>
+of <span id="services_records_ceiling_area">0</span>
