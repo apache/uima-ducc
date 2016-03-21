@@ -128,13 +128,16 @@ public class RogueProcessReaper {
       try {
         // Dont kill the process immediately. Kill if this method is called "counterValue"
         // number of times.
-        @SuppressWarnings("unused")
-        long counter;
+        long counter=0;
         if (logger != null) {
           logger.info(methodName, null,
                   "Decrementing Counter - Current Value:" + entry.counter.getCount());
         }
-        if ((counter = entry.countDown()) == 0 && !entry.isKilled()) {
+        if ( entry.counter.getCount() > 0) {
+        	counter = entry.countDown();
+        }
+        // check if the rogue process needs to be killed
+        if (counter <= 0 && !entry.isKilled()) {
           if (logger == null) {
             System.out.println("Process Scheduled for Kill PID:" + pid + " Owner:" + user + " ");
 
