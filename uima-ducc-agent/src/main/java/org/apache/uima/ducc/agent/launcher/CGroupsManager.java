@@ -283,11 +283,13 @@ public class CGroupsManager {
 				cmdLine = "taskkill";
 				arg = "/PID";
 			} else {
-				String useSpawn = System
+
+			    String useSpawn = System
 						.getProperty("ducc.agent.launcher.use.ducc_spawn");
 				if (useSpawn != null && useSpawn.toLowerCase().equals("true")) {
 					useDuccling = true;
 				}
+
 				cmdLine = "/bin/kill";
 				arg = "-"+signal;
 			}
@@ -298,7 +300,6 @@ public class CGroupsManager {
 			} else {
 				duccling_nolog = new String[] { cmdLine, arg, pid };
 			}
-
 			// if (kill != null && Boolean.parseBoolean(kill) == true) {
 			ProcessBuilder pb = new ProcessBuilder(duccling_nolog);
 			pb.redirectErrorStream(true);
@@ -325,9 +326,7 @@ public class CGroupsManager {
 				agentLogger.info(methodName, null,
 						"--------- Killed CGroup Process:" + pid + " Owned by:" + user
 								+ " Command:" + sb.toString());
-
 			}
-
 		} catch (Exception e) {
 			agentLogger.error(methodName, null,e );
 		} finally {
@@ -364,42 +363,61 @@ public class CGroupsManager {
 	 */
 	public  boolean createContainer(String containerId, String userId,
 			boolean useDuccSpawn) throws Exception {
-
+		int retryMax = 3;
+		int retryCount = 2;
+		int delay = 30;  // in millis
+		Object sleepMonitor = new Object();
 		synchronized(CGroupsManager.class) {
-			try {
-				agentLogger.info("createContainer", null, "Creating CGroup Container:" + containerId);
-				
-				String[] command = new String[] { cgroupUtilsDir+"/cgcreate", "-t",
-						"ducc", "-a", "ducc", "-g",
-						cgroupSubsystems + ":ducc/" + containerId };
-				int retCode = launchCommand(command, useDuccSpawn, "ducc",
-						containerId);
-				// Starting with libcgroup v.0.38, the cgcreate fails
-				// with exit code = 96 even though the cgroup gets
-				// created! The following code treats such return code
-				// as success. In case there is an error, subsequent
-				// cgset or cgexec will fail.
-				if (retCode == 0 || retCode == 96) {
-					containerIds.add(containerId);
-					agentLogger.info("createContainer", null, ">>>>"
-							+ "SUCCESS - Created CGroup Container:" + containerId);
-					return true;
-				} else {
-					agentLogger.info("createContainer", null, ">>>>"
-							+ "FAILURE - Unable To Create CGroup Container:"
-							+ containerId);
-
-					return false;
-				}
-			} catch (Exception e) {
-				agentLogger.error("createContainer", null, ">>>>"
-						+ "FAILURE - Unable To Create CGroup Container:"
-						+ containerId, e);
-
-				return false;
-			}
+			// for some strange reason cgcreate fails to create a cgroup when
+			// the command is run in quick succession. Adding delay below seems
+			// to fix this. Note that the code below is synchronized using 
+			// class level locking which prevents two threads from running 
+			// cgcreate at the same time, yet the failures occur. Strange!
 			
+			try {
+				synchronized(sleepMonitor) {
+					sleepMonitor.wait(delay*(retryMax-retryCount));
+				}
+			} catch( InterruptedException ie) {}
+			while( retryCount > 0 ) {
+				try {
+					agentLogger.info("createContainer", null, "Creating CGroup Container:" + containerId);
+					
+					String[] command = new String[] { cgroupUtilsDir+"/cgcreate", "-t",
+							"ducc", "-a", "ducc", "-g",
+							cgroupSubsystems + ":ducc/" + containerId };
+					int retCode = launchCommand(command, useDuccSpawn, "ducc",
+							containerId);
+					// Starting with libcgroup v.0.38, the cgcreate fails
+					// with exit code = 96 even though the cgroup gets
+					// created! The following code treats such return code
+					// as success. In case there is an error, subsequent
+					// cgset or cgexec will fail.
+					if (retCode == 0 || retCode == 96) {
+						containerIds.add(containerId);
+						agentLogger.info("createContainer", null, ">>>>"
+								+ "SUCCESS - Created CGroup Container:" + containerId);
+						return true;
+
+					} else {
+						System.out.println("RETCODE:"+retCode);
+						agentLogger.info("createContainer", null, ">>>>"
+								+ "FAILURE - return code:"+retCode+" Unable To Create CGroup Container:"
+								+ containerId+" Retrying in "+delay+" millis - retry#"+(retryMax-retryCount));
+					}
+				} catch (Exception e) {
+					agentLogger.error("createContainer", null, ">>>>"
+							+ "FAILURE - Unable To Create CGroup Container:"
+							+ containerId+" Retrying in "+delay*(retryMax-retryCount)+" millis - retry#"+(retryMax-retryCount), e);
+				}
+				System.out.println("FAILURE >>> Unable To Create CGroup Container:"
+						+ containerId+" Retrying in "+delay+" millis - retry#"+(retryMax-retryCount));
+				retryCount--;
+
+				
+			}
 		}
+		return false;
 	}
 
 	/**
@@ -618,11 +636,13 @@ public class CGroupsManager {
 			// allows the process to run as a specified user in order to write
 			// out logs in
 			// user's space as oppose to ducc space.
+		    
 			String c_launcher_path = Utils.resolvePlaceholderIfExists(
 					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
 					System.getProperties());
-			StringBuffer sb = new StringBuffer();
-			
+		    
+     	                StringBuffer sb = new StringBuffer();
+
 			if (useDuccSpawn && c_launcher_path != null) {
 				commandLine = new String[4 + command.length];
 				commandLine[0] = c_launcher_path;
@@ -646,6 +666,14 @@ public class CGroupsManager {
 				    }
 				}
 			}
+
+			commandLine = command;
+			if ( command != null ) {
+			    for (int i = 0; i < command.length; i++) {
+				    sb.append(command[i]).append(" ");
+			    }
+			}
+
 			agentLogger.info("launchCommand", null, "Launching Process - Commandline:"+sb.toString());
 			
 			ProcessBuilder processLauncher = new ProcessBuilder();
@@ -661,11 +689,11 @@ public class CGroupsManager {
 			agentLogger.info("launchCommand", null, "Consuming Process Streams");
 			while ((line = reader.readLine()) != null) {
 				agentLogger.info("launchCommand", null, ">>>>" + line);
-				//System.out.println(line);
+				System.out.println(line);
 			}
 			agentLogger.info("launchCommand", null, "Waiting for Process to Exit");
-
 			int retCode = process.waitFor();
+			System.out.println("--------- Returning Code:"+retCode);
 			return retCode;
 
 		} catch (Exception e) {
@@ -678,6 +706,10 @@ public class CGroupsManager {
 			if (agentLogger != null) {
 				agentLogger.error("launchCommand", null,
 						"Unable to Launch Command:" + sb.toString(), e);
+				System.out
+				.println("CGroupsManager.launchCommand()- Unable to Launch Command:"
+						+ sb.toString());
+		e.printStackTrace();
 			} else {
 				System.out
 						.println("CGroupsManager.launchCommand()- Unable to Launch Command:"
