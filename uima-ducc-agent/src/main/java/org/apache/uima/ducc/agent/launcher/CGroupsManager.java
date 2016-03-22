@@ -273,35 +273,37 @@ public class CGroupsManager {
 		InputStream is = null;
 		BufferedReader reader = null;
 		try {
-			String c_launcher_path = Utils.resolvePlaceholderIfExists(
-					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
-					System.getProperties());
+		    //			String c_launcher_path = Utils.resolvePlaceholderIfExists(
+		    //			System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
+		    //			System.getProperties());
 			String cmdLine;
 			String arg;
-			boolean useDuccling = false;
+			//	boolean useDuccling = false;
 			if (Utils.isWindows()) {
 				cmdLine = "taskkill";
 				arg = "/PID";
 			} else {
 
-			    String useSpawn = System
-						.getProperty("ducc.agent.launcher.use.ducc_spawn");
-				if (useSpawn != null && useSpawn.toLowerCase().equals("true")) {
-					useDuccling = true;
-				}
+			    //  String useSpawn = System
+			    //			.getProperty("ducc.agent.launcher.use.ducc_spawn");
+			    //	if (useSpawn != null && useSpawn.toLowerCase().equals("true")) {
+			    //		useDuccling = true;
+			    //	}
 
 				cmdLine = "/bin/kill";
 				arg = "-"+signal;
 			}
-			String[] duccling_nolog;
-			if (useDuccling) {
-				duccling_nolog = new String[] { c_launcher_path, "-u", user,
-						"--", cmdLine, arg, pid };
-			} else {
-				duccling_nolog = new String[] { cmdLine, arg, pid };
-			}
+			//String[] duccling_nolog;
+			//if (useDuccling) {
+			//	duccling_nolog = new String[] { c_launcher_path, "-u", user,
+			//						"--", cmdLine, arg, pid };
+		//} else {
+		//	duccling_nolog = new String[] { cmdLine, arg, pid };
+		//	}
+			String[] commandLine  = new String[] { cmdLine, arg, pid };
 			// if (kill != null && Boolean.parseBoolean(kill) == true) {
-			ProcessBuilder pb = new ProcessBuilder(duccling_nolog);
+			ProcessBuilder pb = new ProcessBuilder(commandLine);
+			//			ProcessBuilder pb = new ProcessBuilder(duccling_nolog);
 			pb.redirectErrorStream(true);
 			java.lang.Process killedProcess = pb.start();
 			is = killedProcess.getInputStream();
@@ -315,7 +317,8 @@ public class CGroupsManager {
 			is.close();
 			killedProcess.waitFor();
 			StringBuffer sb = new StringBuffer();
-			for (String part : duccling_nolog) {
+			//			for (String part : duccling_nolog) {
+			for (String part : commandLine) {
 				sb.append(part).append(" ");
 			}
 			if (agentLogger == null) {
@@ -626,7 +629,7 @@ public class CGroupsManager {
 
 	private int launchCommand(String[] command, boolean useDuccSpawn,
 			String userId, String containerId) throws Exception {
-		String[] commandLine = null;
+	    //		String[] commandLine = null;
 		InputStreamReader in = null;
 		BufferedReader reader = null;
 		try {
@@ -637,12 +640,13 @@ public class CGroupsManager {
 			// out logs in
 			// user's space as oppose to ducc space.
 		    
-			String c_launcher_path = Utils.resolvePlaceholderIfExists(
-					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
-					System.getProperties());
+		    //			String c_launcher_path = Utils.resolvePlaceholderIfExists(
+		    //			System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
+		    //			System.getProperties());
 		    
      	                StringBuffer sb = new StringBuffer();
 
+			/*
 			if (useDuccSpawn && c_launcher_path != null) {
 				commandLine = new String[4 + command.length];
 				commandLine[0] = c_launcher_path;
@@ -666,18 +670,19 @@ public class CGroupsManager {
 				    }
 				}
 			}
+			*/
 
-			commandLine = command;
+			//commandLine = command;
 			if ( command != null ) {
 			    for (int i = 0; i < command.length; i++) {
-				    sb.append(command[i]).append(" ");
+				sb.append(command[i]).append(" ");
 			    }
 			}
-
 			agentLogger.info("launchCommand", null, "Launching Process - Commandline:"+sb.toString());
 			
 			ProcessBuilder processLauncher = new ProcessBuilder();
-			processLauncher.command(commandLine);
+			processLauncher.command(command);
+			//			processLauncher.command(commandLine);
 			processLauncher.redirectErrorStream(true);
 
 			java.lang.Process process = processLauncher.start();
@@ -698,8 +703,10 @@ public class CGroupsManager {
 
 		} catch (Exception e) {
 			StringBuffer sb = new StringBuffer();
-			if (commandLine != null) {
-				for (String cmdPart : commandLine) {
+			//			if (commandLine != null) {
+			if (command != null) {
+			    //				for (String cmdPart : commandLine) {
+				for (String cmdPart : command) {
 					sb.append(cmdPart).append(" ");
 				}
 			}
