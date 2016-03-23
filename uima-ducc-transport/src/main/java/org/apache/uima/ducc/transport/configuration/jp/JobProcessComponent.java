@@ -55,7 +55,7 @@ implements IJobProcessor{
 	protected String dd2SpringXslPath;
 	protected String dd;
 	private int timeout = 30000;  // default socket timeout for HTTPClient
-	private int threadSleepTime = 5000; // time to sleep between GET requests if JD sends null CAS
+	private int threadSleepTime = 60000; // time to sleep between GET requests if JD sends null CAS
 	private CountDownLatch workerThreadCount = null;
 	private CountDownLatch threadReadyCount=null;
 	private AtomicInteger maxFrameworkFailures = null;
