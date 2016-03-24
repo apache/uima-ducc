@@ -64,92 +64,53 @@ public abstract class CommandExecutor implements Callable<Process> {
 			boolean isKillCmd) {
 	    String methodName="postExecStep";
 
-		if (!isKillCmd) {
-			int pid = Utils.getPID(process);
-			if (pid != -1) {
-				((ManagedProcess) managedProcess).setPid(String.valueOf(pid));
+	    if (!isKillCmd) {
+	      	int pid = Utils.getPID(process);
+		if (pid != -1) {
+		    ((ManagedProcess) managedProcess).setPid(String.valueOf(pid));
 
+		    boolean isAPorJD = ((ManagedProcess) managedProcess).isJd() ||
+			((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop);
 
-					if (!((ManagedProcess) managedProcess).getDuccProcess()
-							.getProcessState().equals(ProcessState.Stopped)) {
-						((ManagedProcess) managedProcess).getDuccProcess()
-								.setProcessState(ProcessState.Running);
-					}
+		    // JDs and APs don't report internal status to the agent (initializing or running) so assume these start and enter Running state
+		    if (isAPorJD && !((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Stopped)) {
+			((ManagedProcess) managedProcess).getDuccProcess().setProcessState(ProcessState.Running);
+		    }
 					
-					try {
-					    synchronized(this) {
-						// wait for 5 seconds before starting the camel route
-						// responsible for collecting process related stats. Allow
-						// enough time for the process to start.
-						wait(5000); 
-        		  
-					    }
-					    RouteBuilder rb = agent.new ProcessMemoryUsageRoute(agent, 
-									((ManagedProcess) managedProcess).getDuccProcess(),
-					    (ManagedProcess) managedProcess);
-					    agent.getContext().addRoutes(rb);
+		    try {
+			synchronized(this) {
+			    // wait for 5 seconds before starting the camel route
+			    // responsible for collecting process related stats. Allow
+			    // enough time for the process to start.
+			    wait(5000); 
+        		}
+			RouteBuilder rb = agent.new ProcessMemoryUsageRoute(agent, 
+									((ManagedProcess) managedProcess).getDuccProcess(),(ManagedProcess) managedProcess);
+			agent.getContext().addRoutes(rb);
 					    
-					    agent.getContext().startRoute(String.valueOf(pid));
-					    logger.info(
-							methodName,
-							null,
-							"Started Process Metric Gathering Thread For PID:"+String.valueOf(pid));
+			agent.getContext().startRoute(String.valueOf(pid));
+			logger.info(methodName,null,
+			     "Started Process Metric Gathering Thread For PID:"+String.valueOf(pid));
 
 
-					    StringBuffer sb = new StringBuffer();
-					    for ( Route route : agent.getContext().getRoutes() ) {
-						sb.append("Camel Context - RouteId:"+route.getId()+"\n");
-					    }
-					    logger.info(
-							methodName,
-							null,
-							sb.toString());
-            
-					    logger.info(
-							methodName,
-							null,
-							"Started Process Metric Gathering Thread For PID:"+String.valueOf(pid));
-
-
-					} catch( Exception e) {
-					    logger.error("postExecStep", null, e);
-					}
-				/*
-				if (!((ManagedProcess) managedProcess).getDuccProcess()
-						.getProcessType()
-						.equals(ProcessType.Job_Uima_AS_Process)) {
-					// For non uima as processes assume the process is Running
-					// after launch
-					if (!((ManagedProcess) managedProcess).getDuccProcess()
-							.getProcessState().equals(ProcessState.Stopped)) {
-						((ManagedProcess) managedProcess).getDuccProcess()
-								.setProcessState(ProcessState.Running);
-					}
-					
-					try {
-					    synchronized(this) {
-						// wait for 5 seconds before starting the camel route
-						// responsible for collecting process related stats. Allow
-						// enough time for the process to start.
-						wait(5000); 
-        		  
-					    }
-					    RouteBuilder rb = agent.new ProcessMemoryUsageRoute(agent, 
-									((ManagedProcess) managedProcess).getDuccProcess(),
-					    (ManagedProcess) managedProcess);
-					    agent.getContext().addRoutes(rb);
-          
-					} catch( Exception e) {
-					    logger.error("postExecStep", null, e);
-					}
-				}
-				*/
+			StringBuffer sb = new StringBuffer();
+			for ( Route route : agent.getContext().getRoutes() ) {
+			    sb.append("Camel Context - RouteId:"+route.getId()+"\n");
 			}
-		}
+			logger.info(methodName,	null,sb.toString());
+            
+			logger.info(methodName,	null,"Started Process Metric Gathering Thread For PID:"+String.valueOf(pid));
 
-		// Drain process streams in dedicated threads.
-		((ManagedProcess) managedProcess).drainProcessStreams(process, logger,
-				System.out, isKillCmd);
+
+		    } catch( Exception e) {
+			logger.error("postExecStep", null, e);
+		    }
+
+		}
+	    }
+
+	    // Drain process streams in dedicated threads.
+	    ((ManagedProcess) managedProcess).drainProcessStreams(process, logger,System.out, isKillCmd);
 	}
 
 	/**
