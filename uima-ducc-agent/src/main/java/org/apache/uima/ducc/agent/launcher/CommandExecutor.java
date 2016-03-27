@@ -72,11 +72,10 @@ public abstract class CommandExecutor implements Callable<Process> {
 		    boolean isAPorJD = ((ManagedProcess) managedProcess).isJd() ||
 			((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop);
 
-		    // JDs and APs don't report internal status to the agent (initializing or running) so assume these start and enter Running state
+		    // JDs and APs dond't report internal status to the agent (initializing or running) so assume these start and enter Running state
 		    if (isAPorJD && !((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Stopped)) {
 			((ManagedProcess) managedProcess).getDuccProcess().setProcessState(ProcessState.Running);
 		    }
-					
 		    try {
 			synchronized(this) {
 			    // wait for 5 seconds before starting the camel route

@@ -369,7 +369,7 @@ public class ManagedProcess implements Process {
 		String reason = getDuccProcess().getReasonForStoppingProcess();
 
 		ProcessState pstate = getDuccProcess().getProcessState();
-        boolean initError = (reason != null && (reason
+                boolean initError = (reason != null && (reason
 				.equals(ReasonForStoppingProcess.FailedInitialization
 						.toString()) || reason
 				.equals(ReasonForStoppingProcess.InitializationTimeout
@@ -379,10 +379,11 @@ public class ManagedProcess implements Process {
 				// if the process is to be killed due to init problems, set the
 				// state to Stopped
 				(reason != null && initError ) ) {
-			getDuccProcess().setProcessState(ProcessState.Stopped);
+		    //getDuccProcess().setProcessState(ProcessState.Stopped);
 			if ( !initError && ( exitcode - 128 == 9 || exitcode - 128 == 15 ) ) {  // killed with -9?
 				getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
 			}
+
 		} else {
 			// Process has terminated. Determine why the process terminated.
 			log("ManagedProcess.drainProcessStreams", "Ducc Process with PID:"

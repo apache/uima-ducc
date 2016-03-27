@@ -359,13 +359,12 @@ implements IJobProcessor{
 			return;  // already stopping - nothing to do
 		}
 
-		System.out.println("... JobProcessComponent - Stopping Service Adapter");
 	    try {
 	    	if ( workerThreadCount != null ) {
 	        	// block until all worker threads exit run()
 	        	workerThreadCount.await();
 	    	}
-        	
+		System.out.println("... JobProcessComponent - All Worker Threads Exited run()");
 			// Stop executor. It was only needed to poll AE initialization status.
 			// Since deploy() completed
 			// the UIMA AS service either succeeded initializing or it failed. In
@@ -378,7 +377,6 @@ implements IJobProcessor{
 	    		tpe.shutdown();
 	    		tpe.awaitTermination(0, TimeUnit.MILLISECONDS);
 	    	}
-
         	if ( agent != null) {
             	agent.stop();
         	}
@@ -389,7 +387,7 @@ implements IJobProcessor{
 	    	try {
 		    	super.stop();
 	    	} catch( Exception ee) {}
-	    	System.exit(0);
+	    	Runtime.getRuntime().halt(0);
 	    }
 	}
 
