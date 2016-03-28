@@ -1221,6 +1221,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		String val = null;
         
+		NodeConfiguration nc = getNodeConfiguration();
+		
 		DuccSchedulerClasses schedulerClasses = DuccSchedulerClasses.getInstance();
         Map<String, DuccProperties> clmap = schedulerClasses.getClasses();
 		if ( clmap != null ) {
@@ -1248,6 +1250,11 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				sb.append("<td>");
                 String policy = cl.getProperty("policy");
 				sb.append(policy);
+				sb.append("</td>");	
+				
+				// Quantum
+				sb.append("<td align=\"right\">");
+				sb.append(getQuantum(nc,class_name));
 				sb.append("</td>");	
 				
 				// Weight

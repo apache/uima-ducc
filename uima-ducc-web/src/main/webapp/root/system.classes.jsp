@@ -42,6 +42,7 @@ if (table_style.equals("scroll")) {
                              		$('td:eq(3)' , nRow).css( "text-align", "right" );
                              		$('td:eq(4)' , nRow).css( "text-align", "right" );
                              		$('td:eq(5)' , nRow).css( "text-align", "right" );
+                             		$('td:eq(6)' , nRow).css( "text-align", "right" );
                              		return nRow;
 			},
 		} );
@@ -99,6 +100,7 @@ if (table_style.equals("scroll")) {
 	<th align="left">Name</th>
 	<th align="left">Nodepool</th>
 	<th align="left">Policy</th>
+	<th align="left">Quantum</th>
 	<th align="left">Weight</th>
 	<th align="left">Priority</th>
 	<th align="left" title="corresponding non-preemptable specific [or default] class name, if any">Non-preemptable Class</th>
@@ -123,6 +125,7 @@ if (table_style.equals("classic")) {
 			<th align="left">Name</th>
 			<th align="left">Nodepool</th>
 			<th align="left">Policy</th>
+			<th align="left">Quantum</th>
 			<th align="left">Weight</th>
 			<th align="left">Priority</th>
 			<th align="left" title="corresponding non-preemptable specific [or default] class name, if any">Non-preemptable Class</th>

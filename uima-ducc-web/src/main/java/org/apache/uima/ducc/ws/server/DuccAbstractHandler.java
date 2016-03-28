@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
@@ -39,6 +40,8 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -1133,6 +1136,34 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			sb.append(e.getMessage());
 		}
 		return sb;
+	}
+	
+	protected NodeConfiguration getNodeConfiguration() {
+		String methodName = "getNodeConfiguration";
+		NodeConfiguration nc = null;
+		try {
+			String class_definitions = SystemPropertyResolver.getStringProperty(DuccPropertiesResolver.ducc_rm_class_definitions, "scheduler.classes");
+			String user_registry = SystemPropertyResolver.getStringProperty(DuccPropertiesResolver.ducc_rm_user_registry, "ducc.users");
+			class_definitions = System.getProperty("DUCC_HOME") + "/resources/" + class_definitions;
+			nc = new NodeConfiguration(class_definitions, null, user_registry, duccLogger);        // UIMA-4142 make the config global
+			nc.readConfiguration();
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, jobid, e);
+		}
+		return nc;
+	}
+	
+	protected int getQuantum(NodeConfiguration nc, String class_name) {
+		String methodName = "getQuantum";
+		int quantum = SystemPropertyResolver.getIntProperty("ducc.rm.share.quantum", 0);
+		try {
+			quantum = nc.getQuantumForClass(class_name);
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, jobid, e);
+		}
+		return quantum;
 	}
 	
 }

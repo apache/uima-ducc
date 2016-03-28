@@ -1753,6 +1753,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		
         String val = null;
         
+        NodeConfiguration nc = getNodeConfiguration();
+		
 		if( clmap != null ) {
             DuccProperties[] class_set = clmap.values().toArray(new DuccProperties[clmap.size()]);
             Arrays.sort(class_set, new NodeConfiguration.ClassSorter());            
@@ -1768,6 +1770,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Policy
                 String policy = cl.getProperty("policy");
                 row.add(new JsonPrimitive(policy));
+                // Quantum
+                int quantum = getQuantum(nc,class_name);
+                row.add(new JsonPrimitive(quantum));
                 // Weight
                 String weight = cl.getStringProperty("weight", "-");
                 row.add(new JsonPrimitive(weight));
