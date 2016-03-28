@@ -387,7 +387,7 @@ implements IJobProcessor{
 	    	try {
 		    	super.stop();
 	    	} catch( Exception ee) {}
-	    	Runtime.getRuntime().halt(0);
+		//	    	Runtime.getRuntime().halt(0);
 	    }
 	}
 
