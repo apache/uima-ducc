@@ -22,6 +22,7 @@ import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.MetaCasHelper;
 import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.common.IJdConstants.DeallocateReason;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
@@ -46,6 +47,12 @@ public abstract class ActionEndAbstract extends Action implements IAction {
 	
 	protected ActionEndAbstract(Logger logger) {
 		this.logger = logger;
+	}
+	
+	private DeallocateReason getDeallocateReason(ProxyJobDriverDirective pjdd) {
+		// ToDo - determine reason (for now presume timeout)
+		DeallocateReason deallocateReason = DeallocateReason.WorkItemTimeout;
+		return deallocateReason;
 	}
 	
 	protected void handleException(IActionData actionData, Object userException, String printableException) throws JobDriverException {
@@ -99,6 +106,13 @@ public abstract class ActionEndAbstract extends Action implements IAction {
 				wisk.error(seqNo);
 				pStats.error(wi);
 				ActionHelper.killJob(logger, actionData, cm);
+				ActionHelper.killWorkItem(logger, actionData, cm);
+			}
+			else if(pjdd.isKillProcess()) {
+				wisk.error(seqNo);
+				pStats.error(wi);
+				DeallocateReason deallocateReason = getDeallocateReason(pjdd);
+				ActionHelper.killProcess(logger, actionData, cm, metaCas, wi, deallocateReason);
 				ActionHelper.killWorkItem(logger, actionData, cm);
 			}
 			else if(pjdd.isKillWorkItem()) {

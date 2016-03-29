@@ -222,7 +222,7 @@ public class TestSuite {
 			String serializedCAS = null;
 			IErrorHandlerDirective directive = eh.handle(serializedCAS, getUserException());
 			assertTrue(directive.isKillJob() == false);
-			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillProcess() == true);
 			assertTrue(directive.isKillWorkItem() == true);
 		}
 		catch(Exception e) {
@@ -256,13 +256,13 @@ public class TestSuite {
 			eh = new ErrorHandler();
 			directive = eh.handle(serializedCAS, getUserException());
 			assertTrue(directive.isKillJob() == false);
-			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillProcess() == true);
 			assertTrue(directive.isKillWorkItem() == true);
 			//
 			eh = new ErrorHandler();
 			directive = eh.handle(serializedCAS, getUserException());
 			assertTrue(directive.isKillJob() == false);
-			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillProcess() == true);
 			assertTrue(directive.isKillWorkItem() == true);
 			//
 			limit = 15;
@@ -271,12 +271,12 @@ public class TestSuite {
 			for(int i=1; i<limit; i++) {
 				directive = eh.handle(serializedCAS, getUserException());
 				assertTrue(directive.isKillJob() == false);
-				assertTrue(directive.isKillProcess() == false);
+				assertTrue(directive.isKillProcess() == true);
 				assertTrue(directive.isKillWorkItem() == true);
 			}
 			directive = eh.handle(serializedCAS, getUserException());
 			assertTrue(directive.isKillJob() == true);
-			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillProcess() == true);
 			assertTrue(directive.isKillWorkItem() == true);
 			//
 			limit = 10;
@@ -286,12 +286,12 @@ public class TestSuite {
 			for(int i=1; i<limit; i++) {
 				directive = eh.handle(serializedCAS, getUserException());
 				assertTrue(directive.isKillJob() == false);
-				assertTrue(directive.isKillProcess() == false);
+				assertTrue(directive.isKillProcess() == true);
 				assertTrue(directive.isKillWorkItem() == true);
 			}
 			directive = eh.handle(serializedCAS, getUserException());
 			assertTrue(directive.isKillJob() == true);
-			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillProcess() == true);
 			assertTrue(directive.isKillWorkItem() == true);
 			//
 			limit = 20;
@@ -301,12 +301,12 @@ public class TestSuite {
 			for(int i=1; i<limit; i++) {
 				directive = eh.handle(serializedCAS, getUserException());
 				assertTrue(directive.isKillJob() == false);
-				assertTrue(directive.isKillProcess() == false);
+				assertTrue(directive.isKillProcess() == true);
 				assertTrue(directive.isKillWorkItem() == true);
 			}
 			directive = eh.handle(serializedCAS, getUserException());
 			assertTrue(directive.isKillJob() == true);
-			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillProcess() == true);
 			assertTrue(directive.isKillWorkItem() == true);
 		}
 		catch(Exception e) {

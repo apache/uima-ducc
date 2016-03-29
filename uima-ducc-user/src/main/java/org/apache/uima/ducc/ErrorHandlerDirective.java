@@ -21,7 +21,7 @@ package org.apache.uima.ducc;
 public class ErrorHandlerDirective implements IErrorHandlerDirective {
 
 	private boolean killJob = false;
-	private boolean killProcess = false;
+	private boolean killProcess = true;
 	private boolean killWorkItem = true;
 	
 	public ErrorHandlerDirective() {

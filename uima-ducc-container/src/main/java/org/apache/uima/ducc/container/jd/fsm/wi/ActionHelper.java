@@ -18,6 +18,9 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
+import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
+import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
+import org.apache.uima.ducc.container.common.IJdConstants.DeallocateReason;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.ILogger;
@@ -28,7 +31,10 @@ import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.log.ErrorLogger;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
+import org.apache.uima.ducc.container.jd.wi.IWorkItem;
+import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 
@@ -104,8 +110,8 @@ public class ActionHelper {
 	// for example, very long running work items are not unnecessarily 
 	// restarted from scratch.
 	
-	/*
-	private static void killProcess(Logger logger, IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi, DeallocateReason deallocateReason) {
+	
+	protected static void killProcess(Logger logger, IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi, DeallocateReason deallocateReason) {
 		String location = "killProcess";
 		WiTracker tracker = WiTracker.getInstance();
 		IRemoteWorkerProcess rwp = tracker.getRemoteWorkerProcess(wi);
@@ -126,7 +132,6 @@ public class ActionHelper {
 			logger.info(location, ILogger.null_id, mb.toString());
 		}
 	}
-	*/
 	
 	protected static void killJob(Logger logger, IActionData actionData, CasManager cm) {
 		String location = "killJob";
