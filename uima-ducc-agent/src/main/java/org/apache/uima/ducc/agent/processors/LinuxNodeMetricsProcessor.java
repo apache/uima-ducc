@@ -47,6 +47,9 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
     public static String[] MeminfoTargetFields = new String[] {"MemTotal:","MemFree:","SwapTotal:","SwapFree:"};
         
 	private NodeAgent agent;
+    private String osname;
+    private String osversion;
+    private String osarch;
 	private final ExecutorService pool;
 	private RandomAccessFile memInfoFile;
 	private RandomAccessFile loadAvgFile;
@@ -62,6 +65,11 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 //		memInfoFile = new RandomAccessFile(memInfoFilePath, "r");
 //		loadAvgFile = new RandomAccessFile(loadAvgFilePath, "r");
 		//node = new DuccNode(agent.getIdentity(), null);
+
+		osname = System.getProperty("os.name");
+		osversion = System.getProperty("os.version");
+		osarch = System.getProperty("os.arch");
+
 		if ( System.getProperty("ducc.node.min.swap.threshold") != null ) {
 	    try {
 	      swapThreshold = Integer.valueOf(System.getProperty("ducc.node.min.swap.threshold"));
@@ -153,6 +161,9 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 			((DuccNode)node).duccLingExists(agent.duccLingExists());
 			((DuccNode)node).runWithDuccLing(agent.runWithDuccLing());
 			logger.info(methodName, null, "... Agent "+node.getNodeIdentity().getName()+
+                                        " OS Name:" + osname +
+                                        " OS Version:" + osversion +
+                                        " OS Arch:" + osarch +
 					" CPU Count:" + cpuInfo.getAvailableProcessors() +
 					" CPU Load:" +cpuInfo.getCurrentLoad() +
 					" Posting Memory:"
