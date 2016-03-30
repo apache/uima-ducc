@@ -105,6 +105,14 @@ public class AgentConfiguration {
   @Value("#{ systemProperties['ducc.agent.launcher.cgroups.swappiness'] }")
   public String nodeSwappiness;
 
+  // Get number of retries to use when cgcreate fails
+  @Value("#{ systemProperties['ducc.agent.launcher.cgroups.max.retry.count'] }")
+  public String maxRetryCount;
+
+  // Get delay factor which will be used to increase amount of time to wait in between retries
+  @Value("#{ systemProperties['ducc.agent.launcher.cgroups.retry.delay.factor'] }")
+  public String retryDelayFactor;
+
   
   @Autowired
   DuccTransportConfiguration agentTransport;

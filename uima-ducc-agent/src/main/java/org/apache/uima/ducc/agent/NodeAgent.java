@@ -290,6 +290,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
         		}
 
                 cgroupsManager = new CGroupsManager(cgUtilsPath, cgroupsBaseDir, cgroupsSubsystems, logger, maxTimeToWaitForProcessToStop);
+                cgroupsManager.configure(this);
                 // check if cgroups base directory exists in the filesystem
                 // which means that cgroups
                 // and cgroups convenience package are installed and the
