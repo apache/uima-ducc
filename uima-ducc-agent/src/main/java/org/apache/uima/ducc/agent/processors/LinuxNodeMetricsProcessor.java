@@ -166,12 +166,12 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
                                         " OS Arch:" + osarch +
 					" CPU Count:" + cpuInfo.getAvailableProcessors() +
 					" CPU Load:" +cpuInfo.getCurrentLoad() +
-					" Posting Memory:"
+					" Posting Memory (KB):"
 					+ node.getNodeMetrics().getNodeMemory().getMemTotal()+
-					" Memory Free:"+node.getNodeMetrics().getNodeMemory().getMemFree()+
-					" Swap Total:"+node.getNodeMetrics().getNodeMemory().getSwapTotal()+
-					" Swap Free:"+node.getNodeMetrics().getNodeMemory().getSwapFree()+
-					" Low Swap Threshold Defined in ducc.properties:"+swapThreshold);
+					" Memory Free (KB):"+node.getNodeMetrics().getNodeMemory().getMemFree()+
+					" Swap Total (KB):"+node.getNodeMetrics().getNodeMemory().getSwapTotal()+
+					" Swap Free (KB):"+node.getNodeMetrics().getNodeMemory().getSwapFree()+
+					" Low Swap Threshold Defined in ducc.properties (KB):"+swapThreshold);
 			logger.trace(methodName, null, "... Agent "+node.getNodeIdentity().getName()+" Posting Users:"+
 					node.getNodeMetrics().getNodeUsersMap().size());
 			// Check if swap free is less than defined minimum threshold (check ducc.properties) 
