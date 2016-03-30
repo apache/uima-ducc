@@ -565,9 +565,11 @@ public abstract class AbstractDuccComponent implements DuccComponent,
         // schedule a kill task which will kill this process after 1 minute
         Timer killTimer = new Timer();
         killTimer.schedule(new KillerThreadTask(logger), 60 * 1000);
-
-        // try to stop the process cleanly
-        duccProcess.stop();
+        
+        if ( !duccProcess.stopping ) {
+            // try to stop the process cleanly
+            duccProcess.stop();
+        }
       } catch (Exception e) {
         e.printStackTrace();
       }
