@@ -1442,8 +1442,49 @@
               \item[Type] Tuning 
             \end{description}
 
+          \item[ducc.agent.launcher.cgroups.basedir] \hfill \\
+            \phantomsection\label{itm:ducc.agent.launcher.cgroups.basedir}
+            Location where ducc related CGroups will be created.
 
+            \begin{description}
+              \item[Default Value] /cgroup/ducc
+              \item[Type] Tuning 
+            \end{description}
 
+          \item[ducc.agent.launcher.cgroups.max.retry.count] \hfill \\
+            \phantomsection\label{ducc.agent.launcher.cgroups.max.retry.count}
+            Defines how many times an agent attempts to create a cgroup after
+            a failure. 
+
+            \begin{description}
+              \item[Default Value] 10
+              \item[Type] Tuning 
+            \end{description}
+
+ 
+         \item[ducc.agent.launcher.cgroups.retry.delay.factor] \hfill \\
+            \phantomsection\label{ducc.agent.launcher.cgroups.retry.delay.factor}
+            Defines a delay factor in millis an agent will use to determine how long it
+            should sleep between cgroup create retries. Each time cgcreate fails
+            an agent will increment the delay by adding the delay factor to a previous 
+            delay. If the delay factor is 2000, on first cgcreate failure an agent will
+            wait 2000 ms, on second failure the wait time will be 4000, on third 6000, and
+            so on.
+
+            \begin{description}
+              \item[Default Value] 2000
+              \item[Type] Tuning 
+            \end{description}
+
+          \item[ducc.agent.launcher.cgroups.swappiness] \hfill \\
+            \phantomsection\label{ducc.agent.launcher.cgroups.swappiness}
+            Defines cgroup swappiness. 
+
+            \begin{description}
+              \item[Default Value] 10
+              \item[Type] Tuning 
+            \end{description}
+            
 	      \phantomsection\label{itm:props-agent.cgroups.exclusion}
           \item[ducc.agent.exclusion.file] \hfill \\
             This specifies the exclusion file to enable node based exclusion for various
