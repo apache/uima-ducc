@@ -75,6 +75,9 @@ public class CasManager {
 			if(retVal != null) {
 				casManagerStats.incCrGets();
 			}
+			else {
+				casManagerStats.setSeenAll();
+			}
 		}
 		return retVal;
 	}

@@ -59,6 +59,9 @@ public class ActionGet implements IAction {
 	private ConcurrentHashMap<IRemoteWorkerProcess, Long> warnedProcessDiscontinued = new ConcurrentHashMap<IRemoteWorkerProcess, Long>();
 	private ConcurrentHashMap<IRemoteWorkerProcess, Long> warnedExhausted = new ConcurrentHashMap<IRemoteWorkerProcess, Long>();
 	
+	private String allCasesProcessed = "all CASes processed";
+	private String fewerWorkItemsAvailableThanExpected = "fewer work items available than expected";
+	
 	@Override
 	public String getName() {
 		return ActionGet.class.getName();
@@ -165,11 +168,24 @@ public class ActionGet implements IAction {
 						MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
 						mbx.append(Standardize.Label.node.get()+rwp.getNodeName());
 						mbx.append(Standardize.Label.pid.get()+rwp.getPid());
-						mbx.append(Standardize.Label.text.get()+"all CASes processed");
+						mbx.append(Standardize.Label.text.get()+allCasesProcessed);
 						logger.debug(location, ILogger.null_id, mbx.toString());
 						warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
 					}
 					TransactionHelper.addResponseHint(trans, Hint.Exhausted);
+				}
+				if(cm.getCasManagerStats().isPremature()) {
+					if(!warnedExhausted.containsKey(rwp)) {
+						String text = fewerWorkItemsAvailableThanExpected;
+						jd.killJob(CompletionType.Exception, text);
+						MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
+						mbx.append(Standardize.Label.node.get()+rwp.getNodeName());
+						mbx.append(Standardize.Label.pid.get()+rwp.getPid());
+						mbx.append(Standardize.Label.text.get()+text);
+						logger.debug(location, ILogger.null_id, mbx.toString());
+						warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
+					}
+					TransactionHelper.addResponseHint(trans, Hint.Premature);
 				}
 				else if(cm.getCasManagerStats().isKillJob()) {
 					if(!warnedJobDiscontinued.containsKey(rwp)) {
@@ -230,11 +246,24 @@ public class ActionGet implements IAction {
 							MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
 							mbx.append(Standardize.Label.node.get()+rwp.getNodeName());
 							mbx.append(Standardize.Label.pid.get()+rwp.getPid());
-							mbx.append(Standardize.Label.text.get()+"all CASes processed");
+							mbx.append(Standardize.Label.text.get()+allCasesProcessed);
 							logger.debug(location, ILogger.null_id, mbx.toString());
 							warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
 						}
 						TransactionHelper.addResponseHint(trans, Hint.Exhausted);
+					}
+					if(cm.getCasManagerStats().isPremature()) {
+						if(!warnedExhausted.containsKey(rwp)) {
+							String text = fewerWorkItemsAvailableThanExpected;
+							jd.killJob(CompletionType.Exception, text);
+							MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
+							mbx.append(Standardize.Label.node.get()+rwp.getNodeName());
+							mbx.append(Standardize.Label.pid.get()+rwp.getPid());
+							mbx.append(Standardize.Label.text.get()+text);
+							logger.debug(location, ILogger.null_id, mbx.toString());
+							warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
+						}
+						TransactionHelper.addResponseHint(trans, Hint.Premature);
 					}
 				}
 				//

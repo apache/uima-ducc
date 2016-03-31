@@ -36,6 +36,7 @@ public class CasManagerStats {
 	private AtomicInteger endFailure = new AtomicInteger(0);
 	private AtomicInteger endRetry = new AtomicInteger(0);
 	
+	private AtomicBoolean seenAll = new AtomicBoolean(false);
 	private AtomicBoolean killJob = new AtomicBoolean(false);
 	
 	private ConcurrentHashMap<String,AtomicInteger> retryReasonsMap = new ConcurrentHashMap<String,AtomicInteger>();
@@ -46,6 +47,32 @@ public class CasManagerStats {
 			retVal = true;
 		}
 		return retVal;
+	}
+	
+	// 1. CR has no more work items &&
+	// 2. CR provided work items have all been processed &&
+	// 3. number of processed work items < total number specified by user?
+	public boolean isPremature() {
+		boolean retVal = false;
+		if(isSeenAll()) {
+			if(crGets.get() == getEnded()) {
+				if(crGets.get() != crTotal.get()) {
+					retVal = true;
+				}
+			}
+		}
+		return retVal;
+	}
+	
+	// CR has no more work items available?
+	public boolean isSeenAll() {
+		boolean retVal = seenAll.get();
+		return retVal;
+	}
+	
+	// CR has no more work items available
+	public void setSeenAll() {
+		seenAll.set(true);
 	}
 	
 	public int getUnfinishedWorkCount() {

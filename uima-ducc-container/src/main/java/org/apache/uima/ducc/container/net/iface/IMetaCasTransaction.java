@@ -34,6 +34,7 @@ public interface IMetaCasTransaction extends IMetaCasProvider, IMetaCasRequester
 		Blacklisted,	// the requesting JP has been blacklisted (no workitems will ever be assigned)
 		Killed, 		// the JD  has been killed
 		Exhausted,		// the workitems have all been processed (successfully or otherwise)
+		Premature,		// the available workitems have all been processed (successfully or otherwise)
 		Rejected,		// the request has been rejected
 		};
 	

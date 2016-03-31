@@ -305,7 +305,12 @@ public class JobDriver {
 		if(cm.getCasManagerStats().isKillJob()) {
 			retVal = true;
 		}
+		// total work items processed?
 		else if(cm.getCasManagerStats().isExhausted()) {
+			retVal = true;
+		}
+		// available work items processed?
+		else if(cm.getCasManagerStats().isPremature()) {
 			retVal = true;
 		}
 		return retVal;
