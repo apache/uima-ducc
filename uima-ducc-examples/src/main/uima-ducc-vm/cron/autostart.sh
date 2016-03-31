@@ -22,7 +22,7 @@ lc=`ps -elf | grep "components=or" | wc -l`
 
 if [ $lc -lt 2 ]
 then
-        echo "DUCC is down...reboot!"
+        /bin/echo "DUCC is down...reboot!"
         /bin/echo "send e-mail"
         /bin/echo "Subject: uima-ducc-demo reboot!" | /usr/sbin/sendmail lou.degenaro@gmail.com
         /bin/echo "killall -9 java python service"
@@ -47,6 +47,6 @@ then
         /bin/echo "start workload manager"
         cd ~/ducc/install/examples/uima-ducc-vm/driver
         ./driver_start >/dev/null 2>&1
-else
-        echo "DUCC is running"
+#else
+#        /bin/echo "DUCC is running"
 fi
