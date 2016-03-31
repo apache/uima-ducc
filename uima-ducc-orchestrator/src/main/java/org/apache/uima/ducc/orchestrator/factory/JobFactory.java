@@ -221,15 +221,13 @@ public class JobFactory implements IJobFactory {
 	
 	private String addUimaDucc(String cp) {
 		StringBuffer sb = new StringBuffer();
+		String prepend = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"user"+File.separator+"*";
+		sb.append(prepend);
+		sb.append(File.pathSeparator);
 		if(cp != null) {
 			String tcp = cp.trim();
 			sb.append(tcp);
-			if(!tcp.endsWith(File.pathSeparator)) {
-				sb.append(File.pathSeparator);
-			}
 		}
-		String augment = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"user"+File.separator+"*";
-		sb.append(augment);
 		return sb.toString();
 	}
 	
