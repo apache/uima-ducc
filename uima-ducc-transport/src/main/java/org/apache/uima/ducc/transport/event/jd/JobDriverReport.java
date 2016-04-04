@@ -94,6 +94,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	
 	private IDuccPerWorkItemStatistics duccPerWorkItemStatistics = null;
 	
+	private double avgTimeForWorkItemsSkewedByActive = 0;
+	
 	private DuccProcessWorkItemsReport duccProcessWorkItemsReport = null;
 	
 	private long max(long a, long b) {
@@ -177,7 +179,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		setActiveWorkItemInfo(operatingInfo.getActiveWorkItemInfo());
 		// JpDeployable
 		setJpDeployable(operatingInfo.getJpDeployable());
-		// per work statistics
+		// per work item statistics
 		DuccPerWorkItemStatistics perWorkItemStatistics = new DuccPerWorkItemStatistics(
 			operatingInfo.getWorkItemFinishedMillisMax(),
 			operatingInfo.getWorkItemFinishedMillisMin(),
@@ -185,6 +187,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 			operatingInfo.getWorkItemFinishedMillisStdDev()
 			);
 		setPerWorkItemStatistics(perWorkItemStatistics);
+		setAvgTimeForWorkItemsSkewedByActive(operatingInfo.getWorkItemSkewAvg());
 		// per process statistics
 		ArrayList<IProcessInfo> list = operatingInfo.getProcessItemInfo();
 		if(list != null) {
@@ -555,6 +558,15 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 			}
 		}
 		return mapProcessInvestmentMillis;
+	}
+
+	@Override
+	public double getAvgTimeForWorkItemsSkewedByActive() {
+		return avgTimeForWorkItemsSkewedByActive;
+	}
+	
+	private void setAvgTimeForWorkItemsSkewedByActive(double value) {
+		avgTimeForWorkItemsSkewedByActive = value;
 	}
 	
 }

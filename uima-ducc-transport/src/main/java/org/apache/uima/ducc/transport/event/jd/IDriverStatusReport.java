@@ -96,6 +96,8 @@ public interface IDriverStatusReport {
 	
 	public IDuccPerWorkItemStatistics getPerWorkItemStatistics();
 	
+	public double getAvgTimeForWorkItemsSkewedByActive();
+	
 	public IDuccProcessWorkItemsReport getDuccProcessWorkItemsMap();
 	
 	public ConcurrentHashMap<RemoteLocation, Long> getOperatingMillisMap();

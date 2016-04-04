@@ -68,6 +68,7 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	@Deprecated
 	private String workItemsPending = defaultWorkItemsPending;
 	
+	private double avgTimeForWorkItemsSkewedByActive = 0;
 	
 	public String getSchedulingClass() {
 		return schedulingClass;
@@ -561,6 +562,18 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 		if (mostRecentWorkItemStart != other.mostRecentWorkItemStart)
 			return false;
 		return true;
+	}
+
+
+	@Override
+	public void setAvgTimeForWorkItemsSkewedByActive(double value) {
+		avgTimeForWorkItemsSkewedByActive  = value;
+	}
+
+
+	@Override
+	public double getAvgTimeForWorkItemsSkewedByActive() {
+		return avgTimeForWorkItemsSkewedByActive;
 	}
 
 }

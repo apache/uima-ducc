@@ -52,7 +52,7 @@ public interface IDuccSchedulingInfo extends Serializable {
 	public static final String defaultWorkItemsPreempt = "0";
 	@Deprecated
 	public static final String defaultWorkItemsPending = "unknown";
-	
+
 	// common
 	
 	public String getSchedulingClass();
@@ -148,4 +148,7 @@ public interface IDuccSchedulingInfo extends Serializable {
 	public String getWorkItemsPending();
 	@Deprecated
 	public void setWorkItemsPending(String number);
+	
+	public void setAvgTimeForWorkItemsSkewedByActive(double value);
+	public double getAvgTimeForWorkItemsSkewedByActive();
 }
