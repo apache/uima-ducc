@@ -36,6 +36,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
@@ -796,9 +797,14 @@ public class ProcessAccounting {
 			duccWorkJob.getSchedulingInfo().setWorkItemsPreempt(jdPreemptWorkItems);
 		}
 		
-		duccWorkJob.getSchedulingInfo().setMostRecentWorkItemStart(jdStatusReport.getMostRecentStart());
-		duccWorkJob.getSchedulingInfo().setPerWorkItemStatistics(jdStatusReport.getPerWorkItemStatistics());
+		IDuccSchedulingInfo si = duccWorkJob.getSchedulingInfo();
+		
+		si.setMostRecentWorkItemStart(jdStatusReport.getMostRecentStart());
+		si.setPerWorkItemStatistics(jdStatusReport.getPerWorkItemStatistics());
 
+		double avgTimeForWorkItemsSkewedByActive = jdStatusReport.getAvgTimeForWorkItemsSkewedByActive();
+		si.setAvgTimeForWorkItemsSkewedByActive(avgTimeForWorkItemsSkewedByActive);
+		
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return retVal;
 	}
