@@ -436,13 +436,15 @@ public class DuccServiceApi
             throw new IllegalArgumentException("Invalid service endpoint: " + endpoint);
         }
 
-        // Check if falsely using a fair-share class
+        // Check if falsely using a fair-share class; set the default if missing
         String scheduling_class = cli_props.getProperty(UiOption.SchedulingClass.pname());
+        DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
         if (scheduling_class != null) {
-            DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
             if (duccSchedulerClasses.isPreemptable(scheduling_class)) {
                 throw new IllegalArgumentException("Invalid pre-emptable scheduling class: " + scheduling_class);
             }
+        } else {
+            cli_props.setProperty(UiOption.SchedulingClass.pname(), duccSchedulerClasses.getDebugClassDefaultName());
         }
         
         // work out stuff I'm dependent upon

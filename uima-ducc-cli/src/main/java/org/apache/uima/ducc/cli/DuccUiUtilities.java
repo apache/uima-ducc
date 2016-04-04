@@ -233,7 +233,9 @@ public class DuccUiUtilities {
             if (value == null) {
                 throw new IllegalArgumentException("Undefined JVM property '" + key + "' in: " + contents);
             }
-            matcher.appendReplacement(sb, value);        
+            // value may contain unreplaced ${..} sequence which looks like a group reference so replace as-is
+            matcher.appendReplacement(sb, "");
+            sb.append(value);
         }
         matcher.appendTail(sb);
         return sb.toString();
