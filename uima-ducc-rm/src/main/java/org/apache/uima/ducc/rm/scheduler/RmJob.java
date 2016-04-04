@@ -569,7 +569,7 @@ public class RmJob
         sharesByMachine.clear();
     }
 
-    /**
+   /**
      * I've shrunk or this share has nothing left to do.  Remove this specific share.
      */
     public void removeShare(Share share)
@@ -1000,7 +1000,25 @@ public class RmJob
     {
     	String methodName = "getPrjCap";                      // want this to line up with getJobCap in logs
 
-        if ( init_wait || Double.isNaN(time_per_item) || (time_per_item == 0.0)) {   // no cap if not initialized, or no per-itme time yet
+        // UIMA-4882 jrc
+        // Must enhance semantics of init_wait to mean "nothing initialized, and have never seen any
+        // execution time for the job."  This accounts for the moment after a job initializes, and before it
+        // gets anything running and helps to throttle expansion until a job starts to run.
+        //
+        // After initialization, the time_per_item will be quite small but non-zero, so we'll tend to predict
+        // a future cap as the moral equicalent of "not too many more needed".  For installations without
+        // doubling, or where doubling is too fast, this leads to better controlled expansion if the job
+        // actually is going to compete soon.  
+        //
+        // The other part of this update includes the OR updating its "time_per_item" to account for
+        // work items in progress as well as work items completed, so we're guarantteed to get a
+        // time_per_item != 0 shortly after first initialization.
+        //
+        // (We update init_wait here because it's used later and needs to be used with the same 
+        //  semantics as is used here.)
+        init_wait = init_wait || Double.isNaN(time_per_item) || (time_per_item == 0.0);
+
+        if ( init_wait ) {   // no cap if not initialized, or no per-itme time yet
             logger.info(methodName, getId(), username, "Cannot predict cap: init_wait", init_wait, "|| time_per_item", time_per_item);
             return Integer.MAX_VALUE;
         }
