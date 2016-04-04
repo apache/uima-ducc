@@ -360,17 +360,31 @@ public class JobManagerConverter
             	arith_mean = stats.getMean();
             }
 
+            // The skewed mean is the arithmetic mean of work items both completed 
+            // (if any) and active (if any).  All completed work items contribute,
+            // but only active work items whose time already exceeds the mean of
+            // the completed ones contribute.
+            
+            // To schedule, we always use the skewed_mean when it is > 0.
+            
+            double skewed_mean = si.getAvgTimeForWorkItemsSkewedByActive();
+            
             logger.info(methodName, job.getDuccId(), 
-                        String.format("tot: %d %s -> %s compl: %s err: %s rem: %d mean: %f",
+                        String.format("tot: %d %s -> %s compl: %s err: %s rem: %d mean: %f skew: %f",
                                       total_work,  
                                       state,
                                       job.getStateObject(),
                                       si.getWorkItemsCompleted(),    // note this comes in as string (!) from OR
                                       si.getWorkItemsError(),        // also string
                                       remaining_work,
-                                      arith_mean
+                                      arith_mean,
+                                      skewed_mean
                                       ));
 
+            if(skewed_mean > 0) {
+            	arith_mean = skewed_mean;
+            }
+            
             if ( max_shares != existing_max_shares ) {
                 j.setMaxShares(max_shares);
                 logger.info(methodName, job.getDuccId(), "Max shares adjusted from", existing_max_shares, "to", max_shares, "(incoming)",
