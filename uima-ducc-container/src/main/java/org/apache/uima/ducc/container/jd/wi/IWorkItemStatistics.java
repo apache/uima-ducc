@@ -21,6 +21,7 @@ package org.apache.uima.ducc.container.jd.wi;
 public interface IWorkItemStatistics {
 	
 	public void ended(IWorkItem wi);
+	public long getCount();
 	public long getMillisMax();
 	public long getMillisMin();
 	public long getMillisAvg();

@@ -60,6 +60,11 @@ public class OperatingInfo implements IOperatingInfo {
 	private long runningMillisMin = 0;
 	private long runningMillisMax = 0;
 	
+	private long runningAboveAvgMillis = 0;
+	private long runningAboveAvgCount = 0;
+	
+	private long skewAvg = 0;
+	
 	private long todMostRecentStart = 0;
 	
 	private String jdState = null;
@@ -299,10 +304,40 @@ public class OperatingInfo implements IOperatingInfo {
 	}
 
 	@Override
+	public void setWorkItemRunningAboveAvgMillis(long value) {
+		runningAboveAvgMillis = value;
+	}
+
+	@Override
+	public long getWorkItemRunningAboveAvgMillis() {
+		return runningAboveAvgMillis;
+	}
+
+	@Override
+	public void setWorkItemRunningAboveAvgCount(long value) {
+		runningAboveAvgCount = value;
+	}
+
+	@Override
+	public long getWorkItemRunningAboveAvgCount() {
+		return runningAboveAvgCount;
+	}
+	
+	@Override
 	public void setWorkItemTodMostRecentStart(long value) {
 		todMostRecentStart = value;
 	}
 
+	@Override
+	public void setWorkItemSkewAvg(long value) {
+		skewAvg = value;
+	}
+
+	@Override
+	public long getWorkItemSkewAvg() {
+		return skewAvg;
+	}
+	
 	@Override
 	public long getWorkItemTodMostRecentStart() {
 		return todMostRecentStart;

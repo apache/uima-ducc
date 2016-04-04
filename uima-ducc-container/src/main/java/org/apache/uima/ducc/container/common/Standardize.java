@@ -113,6 +113,15 @@ public class Standardize {
 		killWorkItem,
 		investmentMillis,
 		operatingMillis,
+		endAvg,
+		endCount,
+		aboveAvgMillis,
+		aboveAvgCount,
+		aboveAvg,
+		skewAvg,
+		skewCount,
+		runMax,
+		runMin,
 		;
 		
 		Label() {

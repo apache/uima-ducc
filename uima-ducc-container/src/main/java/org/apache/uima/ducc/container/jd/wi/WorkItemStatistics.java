@@ -39,6 +39,11 @@ public class WorkItemStatistics implements IWorkItemStatistics {
 		}
 		stats.addValue(time);
 	}
+
+	@Override
+	public long getCount() {
+		return stats.getNum();
+	}
 	
 	@Override
 	public long getMillisMin() {

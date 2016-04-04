@@ -29,12 +29,17 @@ public class RunningWorkItemStatistics implements IRunningWorkItemStatistics {
 	private long millisMin = 0;
 	private long millisMax = 0;
 	
+	private long aboveAvgMillis = 0;
+	private long aboveAvgCount = 0;
+	
 	private long todMostRecentStart = 0;
 	
-	public static RunningWorkItemStatistics getCurrent() {
+	public static RunningWorkItemStatistics getCurrent(long mean) {
 		long min = Long.MAX_VALUE;
 		long max = 0;
 		long todMrs = 0;
+		long mAbove = 0;
+		long cAbove = 0;
 		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteWorkerThreadMap();
 		for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 			IWorkItem wi = entry.getValue();
@@ -47,6 +52,10 @@ public class RunningWorkItemStatistics implements IRunningWorkItemStatistics {
 					min = time;
 				}
 			}
+			if(time > mean) {
+				mAbove += time;
+				cAbove += 1;
+			}
 			long tod = wi.getTodAck();
 			if(tod > todMrs) {
 				todMrs = tod;
@@ -55,14 +64,16 @@ public class RunningWorkItemStatistics implements IRunningWorkItemStatistics {
 		if(min > max) {
 			min = max;
 		}
-		RunningWorkItemStatistics retVal = new RunningWorkItemStatistics(min,max,todMrs);
+		RunningWorkItemStatistics retVal = new RunningWorkItemStatistics(min,max,todMrs,mAbove,cAbove);
 		return retVal;
 	}
 	
-	public RunningWorkItemStatistics(long min, long max, long todMRS) {
+	public RunningWorkItemStatistics(long min, long max, long todMRS, long aaMillis, long aaCount) {
 		setMillisMin(min);
 		setMillisMax(max);
 		setTodMostRecentStart(todMRS);
+		setAboveAvgMillis(aaMillis);
+		setAboveAvgCount(aaCount);
 	}
 	
 	@Override
@@ -85,6 +96,26 @@ public class RunningWorkItemStatistics implements IRunningWorkItemStatistics {
 		return millisMax;
 	}
 
+	@Override
+	public void setAboveAvgMillis(long value) {
+		aboveAvgMillis = value;
+	}
+
+	@Override
+	public long getAboveAvgMillis() {
+		return aboveAvgMillis;
+	}
+
+	@Override
+	public void setAboveAvgCount(long value) {
+		aboveAvgCount = value;
+	}
+
+	@Override
+	public long getAboveAvgCount() {
+		return aboveAvgCount;
+	}
+	
 	@Override
 	public void setTodMostRecentStart(long value) {
 		todMostRecentStart = value;

@@ -109,6 +109,17 @@ public interface IOperatingInfo extends Serializable {
 	
 	//
 	
+	public void setWorkItemRunningAboveAvgMillis(long value);
+	public long getWorkItemRunningAboveAvgMillis();
+
+	public void setWorkItemRunningAboveAvgCount(long value);
+	public long getWorkItemRunningAboveAvgCount();
+
+	public void setWorkItemSkewAvg(long value);
+	public long getWorkItemSkewAvg();
+	
+	//
+	
 	public void setWorkItemTodMostRecentStart(long value);
 	public long getWorkItemTodMostRecentStart();
 	

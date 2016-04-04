@@ -139,7 +139,39 @@ public class MessageHandler implements IMessageHandler {
 			CasManager cm = jd.getCasManager();
 			CasManagerStats cms = cm.getCasManagerStats();
 			IWorkItemStatistics wis = jd.getWorkItemStatistics();
-			IRunningWorkItemStatistics rwis = RunningWorkItemStatistics.getCurrent();
+			long avg = wis.getMillisAvg();
+			IRunningWorkItemStatistics rwis = RunningWorkItemStatistics.getCurrent(avg);
+			
+			// aboveAvg: running work items running longer than ended work item avg
+			long count = wis.getCount();
+			long aboveAvgCount = rwis.getAboveAvgCount();
+			long aboveAvg = 0;
+			if(aboveAvgCount > 0) {
+				double aboveAvgMillis = rwis.getAboveAvgMillis();
+				double aboveAvgMillis_dbl = aboveAvgMillis/aboveAvgCount;
+				aboveAvg = (long) aboveAvgMillis_dbl;
+			}
+			// skewAvg: running work items running longer than ended work item avg and ended work items
+			long skewCount = aboveAvgCount+count;
+			long skewAvg = 0;
+			if(skewCount > 0) {
+				double skewMillis = (aboveAvg*aboveAvgCount)+(avg*count);
+				double skewAvg_dbl = skewMillis/skewCount;
+				skewAvg = (long) skewAvg_dbl;
+			}
+			/// message
+			MessageBuffer tb = new MessageBuffer();
+			tb.append(Standardize.Label.runMin.get()+rwis.getMillisMin());
+			tb.append(Standardize.Label.runMax.get()+rwis.getMillisMax());
+			tb.append(Standardize.Label.aboveAvgMillis.get()+rwis.getAboveAvgMillis());
+			tb.append(Standardize.Label.aboveAvgCount.get()+aboveAvgCount);
+			tb.append(Standardize.Label.aboveAvg.get()+aboveAvg);
+			tb.append(Standardize.Label.endCount.get()+count);
+			tb.append(Standardize.Label.endAvg.get()+avg);
+			tb.append(Standardize.Label.skewCount.get()+skewCount);
+			tb.append(Standardize.Label.skewAvg.get()+skewAvg);
+			logger.trace(location, ILogger.null_id, tb.toString());
+			
 			DgenManager dgenManager = DgenManager.getInstance();
 			oi.setJobId(jd.getJobId());
 			oi.setJpDeployable(dgenManager.getDeployable());
@@ -168,6 +200,9 @@ public class MessageHandler implements IMessageHandler {
 			oi.setWorkItemFinishedMillisStdDev(wis.getMillisStdDev());
 			oi.setWorkItemRunningMillisMin(rwis.getMillisMin());
 			oi.setWorkItemRunningMillisMax(rwis.getMillisMax());
+			oi.setWorkItemRunningAboveAvgMillis(aboveAvg);
+			oi.setWorkItemRunningAboveAvgCount(aboveAvgCount);
+			oi.setWorkItemSkewAvg(skewAvg);
 			oi.setWorkItemTodMostRecentStart(rwis.getTodMostRecentStart());
 			oi.setActiveWorkItemInfo(jdh.getActiveWorkItemInfo());
 			oi.setProcessInfo(jdh.getProcessInfo());

@@ -26,6 +26,12 @@ public interface IRunningWorkItemStatistics {
 	public void setMillisMin(long value);
 	public long getMillisMin();
 	
+	public void setAboveAvgMillis(long value);
+	public long getAboveAvgMillis();
+
+	public void setAboveAvgCount(long value);
+	public long getAboveAvgCount();
+	
 	public void setTodMostRecentStart(long value);
 	public long getTodMostRecentStart();
 }
