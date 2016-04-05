@@ -22,7 +22,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
+
 public class CasManagerStats {
+
+	private static Logger logger = Logger.getLogger(CasManagerStats.class, IComponent.Id.JD.name());
 	
 	public enum RetryReason { ProcessPreempt, ProcessVolunteered, ProcessDown, NodeDown, UserErrorRetry, TimeoutRetry };
 	
@@ -53,13 +60,25 @@ public class CasManagerStats {
 	// 2. CR provided work items have all been processed &&
 	// 3. number of processed work items < total number specified by user?
 	public boolean isPremature() {
+		String location = "isPremature";
 		boolean retVal = false;
-		if(isSeenAll()) {
-			if(crGets.get() == getEnded()) {
-				if(crGets.get() != crTotal.get()) {
-					retVal = true;
+		if(isSeenAll()) {	// no more work items in CR
+			if(crGets.get() > 0) {	// at least one work item fetched from CR
+				if(crGets.get() == getEnded()) {	// all work items fetched from CR have been processed
+					if(crGets.get() < crTotal.get()) {	// work items processed less than total specified by user
+						retVal = true;
+					}
 				}
 			}
+		}
+		if(retVal) {
+			MessageBuffer mb = new MessageBuffer();
+			mb.append("seenAll:"+seenAll.get());
+			mb.append("crGets:"+crGets.get());
+			mb.append("crTotal:"+crTotal.get());
+			mb.append("endSuccess:"+endSuccess.get());
+			mb.append("endFailure:"+endFailure.get());
+			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		return retVal;
 	}
