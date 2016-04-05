@@ -81,9 +81,9 @@ import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
+import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
@@ -4314,12 +4314,11 @@ public class DuccHandler extends DuccAbstractHandler {
 			String value = request.getParameter(name).trim();
 			duccLogger.info(methodName, null, messages.fetchLabel("cancel")+value);
 			DuccData duccData = DuccData.getInstance();
-			IDuccWorkMap duccWorkMap = duccData.get();
 			String text;
 			String result;
-			IDuccWorkReservation duccWorkReservation = (IDuccWorkReservation) duccWorkMap.findDuccWork(DuccType.Reservation, value);
-			if(duccWorkReservation != null) {
-				String resourceOwnerUserId = duccWorkReservation.getStandardInfo().getUser().trim();
+			IDuccWork dw =duccData.getReservation(value);
+			if(dw != null) {
+				String resourceOwnerUserId = dw.getStandardInfo().getUser().trim();
 				if(HandlersHelper.isUserAuthorized(request,resourceOwnerUserId)) {
 					String arg1 = "-"+name;
 					String arg2 = value;
@@ -4327,6 +4326,9 @@ public class DuccHandler extends DuccAbstractHandler {
 					String cp = System.getProperty("java.class.path");
 					String java = "/bin/java";
 					String jclass = "org.apache.uima.ducc.cli.DuccReservationCancel";
+					if(dw instanceof IDuccWorkJob) {
+						jclass = "org.apache.uima.ducc.cli.DuccManagedReservationCancel";
+					}
 					String jhome = System.getProperty("java.home");
 					DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
 					switch(requestRole) {
@@ -4346,8 +4348,9 @@ public class DuccHandler extends DuccAbstractHandler {
 				}
 			}
 			else {
-				text = "job "+value+" not found";
+				text = "reservation "+value+" not found";
 				duccLogger.debug(methodName, null, messages.fetch(text));
+				response.getWriter().println(text);
 			}
 		}
 		catch(Exception e) {
