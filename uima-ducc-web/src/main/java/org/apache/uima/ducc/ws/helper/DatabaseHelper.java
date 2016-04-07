@@ -20,16 +20,13 @@ package org.apache.uima.ducc.ws.helper;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
-import javax.management.remote.JMXConnector;
-import javax.management.remote.JMXConnectorFactory;
-import javax.management.remote.JMXServiceURL;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
-public class DatabaseHelper {
+public class DatabaseHelper extends JmxHelper {
 	
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DatabaseHelper.class.getName());
 	private static DuccId jobid = null;
@@ -42,13 +39,6 @@ public class DatabaseHelper {
 
 	protected boolean enabled = false;
 	protected String host = null;
-	protected String jmxHost = "localhost";
-	protected int jmxPort = 7199;
-	protected String jmxUrl = null;
-	
-	private JMXServiceURL url;
-	private JMXConnector jmxc;
-	private MBeanServerConnection mbsc;
 	
 	private DatabaseHelper() {
 		init();
@@ -75,6 +65,7 @@ public class DatabaseHelper {
 					logger.error(location, jobid, e);
 				}
 			}
+			setJmxPort(7199);  // default
 			value = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_port);
 			if(value != null) {
 				try {
@@ -86,13 +77,17 @@ public class DatabaseHelper {
 			}
 			value = "service:jmx:rmi:///jndi/rmi://"+getJmxHost()+":"+getJmxPort()+"/jmxrmi";
 			setJmxUrl(value);
-			url = new JMXServiceURL(getJmxUrl());
-			jmxc = JMXConnectorFactory.connect(url, null);
-			mbsc = jmxc.getMBeanServerConnection();
+			jmxConnect();
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
 		}
+	}
+	
+	private void reconnect() {
+		String location = "reconnect";
+		init();
+		logger.debug(location, jobid, "reconnected");
 	}
 	
 	public boolean isEnabled() {
@@ -111,30 +106,6 @@ public class DatabaseHelper {
 		return host;
 	}
 	
-	private void setJmxHost(String value) {
-		jmxHost = value;
-	}
-	
-	public String getJmxHost() {
-		return jmxHost;
-	}
-	
-	private void setJmxPort(int value) {
-		jmxPort = value;
-	}
-	
-	public int getJmxPort() {
-		return jmxPort;
-	}
-	
-	private void setJmxUrl(String value) {
-		jmxUrl = value;
-	}
-	
-	public String getJmxUrl() {
-		return jmxUrl;
-	}
-	
 	// Runtime Info //
 	
 	public boolean isAlive() {
@@ -148,22 +119,48 @@ public class DatabaseHelper {
 	public Long getStartTime() {
 		String location = "getStartTime";
 		Long retVal = new Long(0);
+		Object o = null;
+		MBeanServerConnection mbsc = null;
 		try {
-			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "StartTime");
+			mbsc = getMBSC();
+			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "StartTime");
 			retVal = (Long) o;
 		}
 		catch(Exception e) {
-			logger.error(location, jobid, e);
+			try {
+				reconnect();
+				mbsc = getMBSC();
+				o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "StartTime");
+				retVal = (Long) o;
+			}
+			catch(Exception e2) {
+				logger.error(location, jobid, e2);
+			}
 		}
 		return retVal;
+	}
+	
+	private String getJmxData() throws Exception {
+		Object o = null;
+		MBeanServerConnection mbsc = null;
+		try {
+			mbsc = getMBSC();
+			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
+		} 
+		catch(Exception e) {
+			reconnect();
+			mbsc = getMBSC();
+			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
+		}
+		String data = (String) o;
+		return data;
 	}
 	
 	public Long getPID() {
 		String location = "getPID";
 		Long retVal = new Long(0);
 		try {
-			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
-			String data = (String) o;
+			String data = getJmxData();
 			String[] address = data.split("@");
 			Long pid = Long.parseLong(address[0]);
 			retVal = pid;
