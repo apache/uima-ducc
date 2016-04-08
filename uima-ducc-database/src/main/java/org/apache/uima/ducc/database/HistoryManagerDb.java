@@ -712,13 +712,6 @@ public class HistoryManagerDb
         long now = System.currentTimeMillis();
         boolean ret = true;
 
-        // We transactionally delete the old checkpoint, and then save the new one.  If something gows wrong we
-        // rollback and thus don't lose stuff.  In theory.
-        
-        // TODO: make the truncate and insert transactional
-        DbHandle h = dbManager.open();
-        h.truncate("ducc.orckpt");
-
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(baos);
@@ -742,7 +735,8 @@ public class HistoryManagerDb
             bytes = baos.toByteArray();
             ByteBuffer mapbuf = ByteBuffer.wrap(bytes);
             
-            h = dbManager.open();
+            // Just insert/update the one row of checkpoint data - Jira 4892 - don't truncate as it creates snapshots
+            DbHandle h = dbManager.open();
             h.saveObject(ckptPrepare, 0, workbuf, mapbuf);       
 
         } catch ( Exception e ) {
