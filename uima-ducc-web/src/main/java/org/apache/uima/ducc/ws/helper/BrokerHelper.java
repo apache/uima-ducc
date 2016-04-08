@@ -45,7 +45,7 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
-public class BrokerHelper {
+public class BrokerHelper extends JmxHelper {
 
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(BrokerHelper.class.getName());
 	private static DuccId jobid = null;
@@ -53,9 +53,6 @@ public class BrokerHelper {
 	public static BrokerHelper getInstance() {
 		return new BrokerHelper();
 	}
-
-	private String host = "?";
-	private int port = 1100;
 
 	private JMXServiceURL jmxServiceUrl = null;;
 	private JMXConnector jmxc;
@@ -72,7 +69,6 @@ public class BrokerHelper {
 	private String brokerVersion = "?";
 	private String brokerUptime = "?";
 	
-	private long pid = 0;
 	private long startTime = 0;
 	
 	private Map<String,Map<String,String>> entityAttributes = null;
@@ -197,10 +193,6 @@ public class BrokerHelper {
 		String location = "populateRuntime";
 		try {
 			Object o;
-			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
-			String data = (String) o;
-			String[] address = data.split("@");
-			pid = Long.parseLong(address[0]);
 			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "StartTime");
 			startTime = (Long) o;
 		}
@@ -352,17 +344,17 @@ public class BrokerHelper {
 	//
 	
 	private void setHost(String value) {
-		host = value;
+		setJmxHost(value);
 	}
 
 	public String getHost() {
-		return host;
+		return getJmxHost();
 	}
 
 	private void setPort(String value) {
 		String location = "setPort";
 		try {
-			port = Integer.parseInt(value);
+			setJmxPort(Integer.parseInt(value));
 		} 
 		catch (Exception e) {
 			logger.error(location, jobid, e);
@@ -370,11 +362,7 @@ public class BrokerHelper {
 	}
 
 	public int getPort() {
-		return port;
-	}
-
-	public String getJmxUrl() {
-		return "service:jmx:rmi:///jndi/rmi://" + host + ":" + port + "/jmxrmi";
+		return getJmxPort();
 	}
 
 	private void connect() throws IOException {
@@ -441,16 +429,23 @@ public class BrokerHelper {
 		return startTime;
 	}
 	
-	public long getPID() {
-		return pid;
-	}
-	
 	public boolean isAlive() {
 		boolean retVal = false;
 		if(getPID() != 0) {
 			retVal = true;
 		}
 		return retVal;
+	}
+
+	@Override
+	protected void reconnect() {
+		String location = "reconnect";
+		try {
+			jmxConnect();
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
 	}
 	
 	// Command Line
@@ -510,4 +505,5 @@ public class BrokerHelper {
 			System.out.println("map=null");
 		}
 	}
+
 }

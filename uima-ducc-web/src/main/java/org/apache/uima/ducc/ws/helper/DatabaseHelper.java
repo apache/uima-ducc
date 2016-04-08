@@ -48,46 +48,37 @@ public class DatabaseHelper extends JmxHelper {
 		String location = "init";
 		try {
 			DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
-			String value;
-			value = dpr.getProperty(DuccPropertiesResolver.ducc_database_host);
-			if(value != null) {
-				setHost(value);
-				if(!value.equalsIgnoreCase(DuccPropertiesResolver.ducc_database_disabled)) {
+			host = dpr.getProperty(DuccPropertiesResolver.ducc_database_host);
+			if(host != null) {
+				setHost(host);
+				if(!host.equalsIgnoreCase(DuccPropertiesResolver.ducc_database_disabled)) {
 					enabled = true;
 				}
 			}
-			value = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_host);
-			if(value != null) {
+			String jmxHost = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_host);
+			if(jmxHost != null) {
 				try {
-					setJmxHost(value);
+					setJmxHost(jmxHost);
 				}
 				catch(Exception e) {
 					logger.error(location, jobid, e);
 				}
 			}
 			setJmxPort(7199);  // default
-			value = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_port);
-			if(value != null) {
+			String jmxPort = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_port);
+			if(jmxPort != null) {
 				try {
-					setJmxPort(Integer.parseInt(value));
+					setJmxPort(Integer.parseInt(jmxPort));
 				}
 				catch(Exception e) {
 					logger.error(location, jobid, e);
 				}
 			}
-			value = "service:jmx:rmi:///jndi/rmi://"+getJmxHost()+":"+getJmxPort()+"/jmxrmi";
-			setJmxUrl(value);
 			jmxConnect();
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
 		}
-	}
-	
-	private void reconnect() {
-		String location = "reconnect";
-		init();
-		logger.debug(location, jobid, "reconnected");
 	}
 	
 	public boolean isEnabled() {
@@ -140,35 +131,11 @@ public class DatabaseHelper extends JmxHelper {
 		return retVal;
 	}
 	
-	private String getJmxData() throws Exception {
-		Object o = null;
-		MBeanServerConnection mbsc = null;
-		try {
-			mbsc = getMBSC();
-			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
-		} 
-		catch(Exception e) {
-			reconnect();
-			mbsc = getMBSC();
-			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
-		}
-		String data = (String) o;
-		return data;
+	@Override
+	protected void reconnect() {
+		String location = "reconnect";
+		init();
+		logger.debug(location, jobid, "reconnected");
 	}
 	
-	public Long getPID() {
-		String location = "getPID";
-		Long retVal = new Long(0);
-		try {
-			String data = getJmxData();
-			String[] address = data.split("@");
-			Long pid = Long.parseLong(address[0]);
-			retVal = pid;
-		}
-		catch(Exception e) {
-			logger.error(location, jobid, e);
-		}
-		return retVal;
-	}
-
 }

@@ -21,15 +21,22 @@ package org.apache.uima.ducc.ws.helper;
 import java.io.IOException;
 
 import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
-public class JmxHelper {
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.id.DuccId;
+
+public abstract class JmxHelper {
+	
+	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(JmxHelper.class.getName());
+	private static DuccId jobid = null;
 	
 	private String jmxHost = "localhost";
 	private int jmxPort = -1;
-	private String jmxUrl = null;
 	
 	private JMXServiceURL url;
 	private JMXConnector jmxc;
@@ -51,12 +58,8 @@ public class JmxHelper {
 		return jmxPort;
 	}
 	
-	protected void setJmxUrl(String value) {
-		jmxUrl = value;
-	}
-	
 	public String getJmxUrl() {
-		return jmxUrl;
+		return "service:jmx:rmi:///jndi/rmi://"+getJmxHost()+":"+getJmxPort()+"/jmxrmi";
 	}
 	
 	public MBeanServerConnection getMBSC() {
@@ -69,4 +72,36 @@ public class JmxHelper {
 		mbsc = jmxc.getMBeanServerConnection();
 	}
 	
+	protected String getJmxData() throws Exception {
+		Object o = null;
+		MBeanServerConnection mbsc = null;
+		try {
+			mbsc = getMBSC();
+			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
+		} 
+		catch(Exception e) {
+			reconnect();
+			mbsc = getMBSC();
+			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
+		}
+		String data = (String) o;
+		return data;
+	}
+	
+	public Long getPID() {
+		String location = "getPID";
+		Long retVal = new Long(0);
+		try {
+			String data = getJmxData();
+			String[] address = data.split("@");
+			Long pid = Long.parseLong(address[0]);
+			retVal = pid;
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+
+	protected abstract void reconnect();
 }
