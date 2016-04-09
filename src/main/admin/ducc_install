@@ -235,7 +235,7 @@ preserveDirectories = [ 'resources.private' ]
 # (Their parents must also be included so may also contain other files)
 modifiableDirectories = [ 'admin', 'lib', 
                           'resources', 'resources/service_monitors', 'resources.private',
-                          'webserver/root', 'webserver/root/$banner', 'webserver/root/js', 'webserver/root/opensources/images', 
+                          'webserver/etc', 'webserver/root', 'webserver/root/$banner', 'webserver/root/js', 'webserver/root/opensources/images', 
                           'webserver', 'webserver/root/opensources' ]
 
 if len(sys.argv) != 3:
