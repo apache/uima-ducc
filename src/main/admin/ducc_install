@@ -19,10 +19,24 @@
 # -----------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------
-# Unpacks and installs DUCC, or updates an existing installation.
+# Updates an existing ducc installation (1.1.0 or newer) from a binary tar.gz build
 # Updates in place so preserves all the site-specific files
 # Archives the current build in a timestamped direcory under DUCC_HOME/../ducc_archives
-# To revert back to an archived build:
+#   - checks that ducc is not running
+#   - creates a site.ducc.properties file if updating from DUCC 1.1.0
+#   - creates a time-stamped archive directory to hold the current build
+#   - archives files replaced by the new build, except
+#     - retains the customized files and any added to resources & resources.private
+#     - retains the webserver/etc/keystore file
+#     - retains the customizable files: admin/local_hooks.py webserver/root/site.jsp webserver/root/js/ducc.local.js
+#     - retains other files added to certain directories, i.e. lib admin
+#           ebserver/root webserver/root/$banner webserver/root/js webserver/root/opensources/images
+#   - rebuilds the non-privileged ducc_ling
+#
+#  Note: files added to other directories will not be retained, but will be archived
+#        new versions of files not replaced are left in the extract for comparison
+#
+#  To revert back to an archived build:
 #   - copy/move all of the archived files back to the runtime
 # -------------------------------------------------------------------------------------
 import os
@@ -31,6 +45,11 @@ import datetime
 import fnmatch
 import re
 import shutil
+
+global preserveFiles
+global preserveDirectories
+global modifiableDirectories
+global lenRuntime
 
 def usage():
     print "Usage: ducc_install   ducc-binary-tarfile  ducc-runtime"
@@ -41,14 +60,12 @@ def usage():
     print "   - check that DUCC is not running"
     print "   - create a site.ducc.properties file if updating from DUCC 1.1.0"
     print "   - create a time-stamped archive directory to hold the old runtime"
-    print "   - archive and then update existing directories,"
-    print "     - keep the directories: logs state history"
-    print "     - keep any other files in directories: resources lib"
-    print "     - keep the customized resources files: site.ducc.properties ducc.classes ducc.nodes jobdriver.nodes ducc.administrators"
-    print "     - keep existing files in resources.private"
-    print "     - keep the webserver/etc/keystore file"
+    print "   - archive current files before updating them, except for the customizable ones"
+    print "   - report which are replaced, added, or kept"
+    print "   - leave in place any added to certain directories"
     print "   - rebuild the non-privileged ducc_ling"
-    print "  Note: any files added to directories other than resources & lib will not be retained, but will be archived"
+    print "  Note: only  files added to the following directories will be retained, others will be archived:"
+    print modifiableDirectories
     print ""
     print "  To revert back to an archived build:"
     print "   - copy/move all of the archived files back to the runtime"
@@ -133,53 +150,93 @@ def create_110_properties(source, dest):
 
 #-----------------------------------------------------------------------------------------
 # Update directory by archiving all files that are replaced, unless in exclude list
-# Optionally rename not-replaced files that differ from the existing files
+# Descend into nested directories if they may contain site-added files to be retained
 #-----------------------------------------------------------------------------------------
-def update_dir(subdir, excludeFiles, rename):
-    olddir = os.path.join(runtime, subdir)
-    newdir = os.path.join(newducc, subdir)
-    archdir = os.path.join(archive, subdir)
- 
+def update_directory(olddir, newdir, archdir):
+    
+    global preserveFiles
+    global preserveDirectories
+    global modifiableDirectories
+    global lenRuntime
+
+    if len(olddir) <= lenRuntime:
+        print "\n", " --- Processing folder:", olddir
+    else:
+        print "\n", " --- Processing folder:", olddir[lenRuntime:]
+
+    subdirs = []
+    preserveAll = os.path.basename(newdir) in preserveDirectories
     if not os.path.exists(archdir):
         os.mkdir(archdir)
-
     files = os.listdir(newdir)
     for f in files:
         curf = os.path.join(olddir, f)
-        srcf = os.path.join(newdir, f)
-        if f in excludeFiles or excludeFiles == '*':
+        newf = os.path.join(newdir, f)
+        if f in preserveFiles or preserveAll: 
             if os.path.exists(curf):
-                if rename and os.path.isfile(curf):
-                    cmd = 'cmp --quiet ' + srcf + ' ' + curf
-                    rc = os.system(cmd);
-                    if rc != 0:
-                      os.rename(srcf, curf + '-new')
-                      print "Keeping", f, '(new version saved as', f+'-new)'
+                # If file has changed don't replace it ... if unchanged remove from the extract
+                cmd = 'cmp --quiet ' + newf + ' ' + curf
+                rc = os.system(cmd);
+                if rc != 0:
+                    print "Keeping", f, "(new version left in the extract)"
+                else:
+                    os.remove(newf)
             else:
-                print "Adding", resf
-                os.rename(srcf, curf)
+                print "Adding", f
+                os.rename(newf, curf)
         else:
+            if os.path.isdir(newf):
+                relf = curf[lenRuntime:]
+                # Save sub-directories that must be processed recursively to preserve any added files 
+                if (relf in modifiableDirectories) and os.path.exists(curf):
+                    subdirs.append(f)
+                    continue
             if os.path.exists(curf):
                 print "Replacing", f
                 os.rename(curf, os.path.join(archdir,f))
             else:
                 print "Adding", f
-            os.rename(srcf, curf)
-
-#-----------------------------------------------------------------------------------------
-# Replace the shipped place-holder files with the local ones
-# (Could check 1st for differences)
-#-----------------------------------------------------------------------------------------
-def replace_place_holders(files):
-    for f in files:
-        print "\n", " --- Restoring original ", f
-        os.rename( os.path.join(archive, f), os.path.join(runtime, f) )
+            os.rename(newf, curf)
+    # Process directories last to make printout more readable
+    for f in subdirs:
+        curf = os.path.join(olddir, f)
+        newf = os.path.join(newdir, f)
+        update_directory(curf, newf, os.path.join(archdir, f))
+    # Remove empty directories to make unused files obvious
+    nleft = len(os.listdir(newdir)) 
+    if nleft == 0:
+        os.rmdir(newdir)
 
 
 #=========================================================================================
 # Main program:
 #    tarfile runtime
 #=========================================================================================
+
+
+#-----------------------------------------------------------------------------------------
+# Retain a few site-modified files from the archive
+#  - the local_hooks.py may define local versions of 3 utility functions:
+#         find_other_processes, verify_slave_node, verify_master_node
+#  - the keystore is created by ducc-post-install using the password in resources.private
+#  - the site.jsp may define extra ducc-mon buttons
+#  - the ducc.local.js may define local versions of 2 place-holder functions:
+#         ducc_init_local, ducc_update_page_local
+#-----------------------------------------------------------------------------------------
+
+# List of customizable files that must not be replaced
+preserveFiles = [ 'ducc.classes', 'ducc.administrators', 'ducc.nodes', 'jobdriver.nodes',
+                  'local_hooks.py', 'keystore', 'site.jsp', 'ducc.local.js' ]
+
+# List of directories all of whose files nust not be replaced
+preserveDirectories = [ 'resources.private' ]
+
+# List of directories which may contain site-added or modified files
+# (Their parents must also be included so may also contain other files)
+modifiableDirectories = [ 'admin', 'lib', 
+                          'resources', 'resources/service_monitors', 'resources.private',
+                          'webserver/root', 'webserver/root/$banner', 'webserver/root/js', 'webserver/root/opensources/images', 
+                          'webserver', 'webserver/root/opensources' ]
 
 if len(sys.argv) != 3:
     usage()
@@ -206,6 +263,16 @@ if not os.path.exists(runtime):
     os.rename(newducc, runtime)
     print "\n", " --- Installation completed ... please run 'admin/ducc_post_install'"
     exit(0)
+
+#-----------------------------------------------------------------------------------------
+# Check if invoked from inside the runtime
+# Probably OK if from admin, but to be safe ...
+#-----------------------------------------------------------------------------------------
+
+curdir = os.path.realpath(os.environ['PWD'])
+if curdir.startswith(runtime) and curdir != runtime:
+    print "ERROR - Cannot run from inside the runtime"
+    exit(1)
 
 #-----------------------------------------------------------------------------------------
 # Check if appears to be a valid (stopped) DUCC installation
@@ -260,59 +327,20 @@ if not os.path.exists(siteProps):
     print " --- Created a file with just the site-specific properties:", siteProps
 
 #-----------------------------------------------------------------------------------------
-# Add or replace (after archiving) all directories in the new build EXCEPT resources & lib
-# Note that the history, logs, & state directories are not part of a build so are left unchanged
+# Add or replace (after archiving) most files and directories found in the new build 
+# EXCEPT for those that are designed to be sire-specific.
+# Sites may also add files to the 'modifiable' directories and their sub-directories.
+# The other directories are replaced in toto e.g. 3rd-party ones.
 #-----------------------------------------------------------------------------------------
-print "\n", " --- Processing", os.path.basename(runtime), "folder:"
-update_dir('', [ 'lib', 'resources', 'resources.private' ], False)
 
-#-----------------------------------------------------------------------------------------
-# Add or replace (after archiving) all files in the lib directory
-# This ensures that any site local jars remain 
-#-----------------------------------------------------------------------------------------
-print "\n", " --- Processing lib folder:"
-update_dir('lib', [], False)
-
-#-----------------------------------------------------------------------------------------
-# Add or replace (after archiving) some of the files in resources
-# Don't change any that are site-specific
-# (The nodes files should not be in the new build, but just in case ...)
-#-----------------------------------------------------------------------------------------
-print "\n", " --- Processing resources folder:"
-resarchive = os.path.join(archive, 'resources')
-preserveFiles = [ 'ducc.classes', 'ducc.administrators', 'ducc.nodes', 'jobdriver.nodes', 'service_monitors' ]
-update_dir('resources', preserveFiles, True)
-
-#-----------------------------------------------------------------------------------------
-# Add but don't replace any existing files in resources.private
-# Rename any files that differ from the existing ones
-#-----------------------------------------------------------------------------------------
-print "\n", " --- Processing resources.private folder:"
-update_dir('resources.private', '*', True)
-
-#-----------------------------------------------------------------------------------------
-# Add or replace (after archiving) all files in resources/service_monitors
-# This ensures that any local registered pingers remain
-#-----------------------------------------------------------------------------------------
-print "\n", " --- Processing resources/service_monitors folder:"
-update_dir('resources/service_monitors', [], False)
-
-#-----------------------------------------------------------------------------------------
-# Restore a few site-modified files from the archive
-#  - the local_hooks.py may define local versions of 3 utility functions:
-#         find_other_processes, verify_slave_node, verify_master_node
-#  - the keystore is created by ducc-post-install using the password in resources.private
-#  - the site.jsp may define extra ducc-mon buttons
-#  - the ducc.local.js may define local versions of 2 place-holder functions:
-#         ducc_init_local, ducc_update_page_local
-#-----------------------------------------------------------------------------------------
-replaceFiles = [ 'admin/local_hooks.py', 'webserver/etc/keystore', 'webserver/root/site.jsp', 'webserver/root/js/ducc.local.js' ]
-replace_place_holders(replaceFiles)
+# Strip the runtime prefix when printing
+lenRuntime = len(runtime) + 1
+update_directory(runtime, newducc, archive)
 
 #-----------------------------------------------------------------------------------------
 # Delete what's left of the extract (just the resources & lib folders)
 #-----------------------------------------------------------------------------------------
-shutil.rmtree(newducc)
+print "\n", " --- Files not replaced are left in the extract at", newducc
 
 #-----------------------------------------------------------------------------------------
 # Re-build ducc_ling
