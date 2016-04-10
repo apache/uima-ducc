@@ -691,9 +691,19 @@ class DuccUtil(DuccBase):
                     answer.append(dp)
                     cont = True
                     break
+                if ( tok.startswith('-DDUCC_BROKER_CREDENTIALS_FILE=') ):
+                    dp = ('broker',  pid, user)
+                    answer.append(dp)
+                    cont = True
+                    break
             if ( cont ):             # stupid python only continues out of inner loop
                 continue
-
+            if fullargs[-1] == 'org.apache.cassandra.service.CassandraDaemon':
+                dp = ('database',  pid, user)
+                answer.append(dp)
+                continue
+            
+            # Look for site-specific processes
             other_processes = find_other_processes(pid, user, line)
             if ( type(other_processes) is list ):
                 if ( len(other_processes) > 0 ):

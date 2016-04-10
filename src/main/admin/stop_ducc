@@ -133,12 +133,14 @@ class StopDucc(DuccUtil):
         print '        stop_ducc -c agent@barnode -c or'
         print ''
         print '        Components include:'
-        print '          rm - resource manager'
+        print '          agent - node agent'        
+        print '          broker - AMQ broker'        
+        print '          db - database'
         print '          or - orchestrator'
         print '          pm - process manager'
+        print '          rm - resource manager'
         print '          sm - services manager'
         print '          ws - web server'
-        print '          agent - node agent'        
         print ''
         print '   -w --wait'
         print '        Time to wait for everything to come down, in seconds.  Default is 60.'
@@ -268,7 +270,7 @@ class StopDucc(DuccUtil):
             except PropertiesException, (inst):
                 print inst.msg
                 print ''
-                print 'Run check_ducc to refresh the PIDs file, or check_ducc -k to search for and',
+                print 'Run check_ducc -p to refresh the PIDs file, or check_ducc -k to search for and',
                 print 'kill all DUCC processes.'
                 print ''
                 sys.exit(1)

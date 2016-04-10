@@ -311,17 +311,18 @@ class StartDucc(DuccUtil):
                     print sys.exc_info()[0], "DUCC may not be started correctly."
                     sys.exit(1)
 
-        try:
-            self.db_start()                
-        except Exception (e):
-            # print e
-            print sys.exc_info()[0], "Can't start the database."
-            sys.exit(1)
+        if ( 'db' in components ):
+            try:
+                self.db_start()                
+            except Exception (e):
+                # print e
+                print sys.exc_info()[0], "Can't start the database."
+                sys.exit(1)
 
         if ( self.is_amq_active() ):
             print 'ActiveMQ broker is found on configured host and port:', self.broker_host + ':' + self.broker_port
         else:
-            print 'ActiveMQ broker cannot be found on', self.broker_host + ':' + self.broker_port
+            print 'ActiveMQ broker is required but cannot be found on', self.broker_host + ':' + self.broker_port
             sys.exit(1)
 
         ducc = Ducc()
