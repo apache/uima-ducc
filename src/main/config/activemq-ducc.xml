@@ -78,7 +78,7 @@
         <!-- Configure authentication; Username, passwords and groups -->
         <!-- The anonymousAccessAllowed=true - clients connecting with no username or password -->
         <!-- will be auto assigned to username 'annonymous' and group 'annonymous'             -->
-        <simpleAuthenticationPlugin anonymousAccessAllowed="true">
+        <simpleAuthenticationPlugin anonymousAccessAllowed="false">
             <users>
                 <authenticationUser username="${ducc.broker.admin.username}" password="${ducc.broker.admin.password}"
                     groups="ducc-admin"/>
@@ -94,10 +94,14 @@
           <map>
             <authorizationMap>
               <authorizationEntries>
-                <authorizationEntry topic=">" read="anonymous,ducc-admin" write="ducc-admin" admin="ducc-admin" />
+                <authorizationEntry topic=">" read="ducc-admin" write="ducc-admin" admin="ducc-admin" />
+                <authorizationEntry queue=">" read="ducc-admin" write="ducc-admin" admin="ducc-admin" />
+                <authorizationEntry topic="ActiveMQ.Advisory.>" read="ducc-admin" write="ducc-admin" admin="ducc-admin"/>
+
+                <!-- >authorizationEntry topic=">" read="anonymous,ducc-admin" write="ducc-admin" admin="ducc-admin" />
                 <authorizationEntry queue=">" read="anonymous,ducc-admin" write="anonymous,ducc-admin" admin="anonymous,ducc-admin" />
                 <authorizationEntry topic="ActiveMQ.Advisory.>" read="anonymous,ducc-admin" write="anonymous,ducc-admin" admin="anonymous,ducc-admin"/>
-                <authorizationEntry topic="ducc.jd.state" read="anonymous,ducc-admin" write="anonymous,ducc-admin" admin="anonymous,ducc-admin"/>
+                <authorizationEntry topic="ducc.jd.state" read="anonymous,ducc-admin" write="anonymous,ducc-admin" admin="anonymous,ducc-admin"/-->
               </authorizationEntries>
             </authorizationMap>
           </map>
