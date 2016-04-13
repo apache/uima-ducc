@@ -15,7 +15,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
-import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
@@ -103,26 +102,6 @@ public class Distiller {
 		}
 	}
 
-	// The OR publication value "reservation.getBytes()" should be non-zero for each
-	// reservation.  However, perhaps due to a "migration to DB" bug the field may be zero?
-	// In that case, use the value of "getSchedulingInfo().getMemorySizeAllocatedInBytes()"
-	// and log accordingly.  Note that the whole machine may not be shown as in-use by the 
-	// unmanaged reservation if the share size is not an exact multiple of the machine size 
-	// reported by the DUCC Agent.
-	
-	private static long fixBytes(IDuccWork dw) {
-		String location = "fixBytes";
-		long retVal = 0;
-		if(dw != null) {
-			IDuccSchedulingInfo si = dw.getSchedulingInfo();
-			SizeBytes sizeBytes = new SizeBytes(SizeBytes.Type.Bytes, si.getMemorySizeAllocatedInBytes());
-			retVal = sizeBytes.getBytes();
-			String text = "bytes="+retVal;
-			logger.warn(location, dw.getDuccId(), text);
-		}
-		return retVal;
-	}
-
 	// accumulate bytes allocated on each machine for each active reservation
 	private static void reservations(Map<String,Long> map, IDuccWorkMap dwm) {
 		String location = "reservations";
@@ -137,16 +116,13 @@ public class Distiller {
 							if(dwr.isOperational()) {
 								IDuccReservationMap reservationMap = dwr.getReservationMap();
 								for(IDuccReservation reservation : reservationMap.values()) {
-									long bytes = reservation.getBytes();
 									NodeIdentity ni = reservation.getNodeIdentity();
 									if(ni != null) {
 										String name = ni.getName();
 										if(name != null) {
-											if(bytes == 0) {
-												bytes = fixBytes(dw);
-											}
+											SizeBytes sb = new SizeBytes(SizeBytes.Type.Bytes, dw.getSchedulingInfo().getMemorySizeAllocatedInBytes());
+											long bytes = sb.getBytes();
 											add(map, name, bytes);
-											SizeBytes sb = new SizeBytes(Type.Bytes,bytes);
 											String text = location+": "+name+"="+sb.getGBytes();
 											logger.trace(location, dw.getDuccId(), text);
 										}
