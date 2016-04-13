@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -44,9 +45,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.uima.ducc.cli.ws.json.MachineFacts;
+import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.CancelReasons.CancelReason;
+import org.apache.uima.ducc.common.ConvertSafely;
 import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.SizeBytes;
+import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -92,7 +97,6 @@ import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.MachineInfo;
-import org.apache.uima.ducc.ws.MachineSummaryInfo;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 import org.apache.uima.ducc.ws.authentication.DuccAuthenticator;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
@@ -3719,17 +3723,41 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
-		MachineSummaryInfo msi = DuccMachinesData.getInstance().getTotals();
+		long sumReserve = 0;
 		
+		ListIterator<MachineFacts> listIterator;
+		DuccMachinesData instance = DuccMachinesData.getInstance();
+		MachineFactsList factsList = instance.getMachineFactsList();
+		
+		listIterator = factsList.listIterator();
+		while(listIterator.hasNext()) {
+			MachineFacts facts = listIterator.next();
+			if(facts.status != null) {
+				if(facts.status.equals("up")) {
+					try {
+						sumReserve += ConvertSafely.String2Long(facts.memReserve);
+					}
+					catch(Exception e) {
+						duccLogger.trace(methodName, jobid, e);
+					}
+				}
+			}
+		}
+	
 		DecimalFormat percentageFormatter = new DecimalFormat("##0.0");
 		
 		String utilization = "0%";
 		
-		long memFree = msi.memFree * SizeBytes.GB;
-		long memInuse = DuccData.getInstance().getLive().getMemoryInuse();
+		SizeBytes sbReserve = new SizeBytes(Type.GBytes, sumReserve);
+		long memReserve = sbReserve.getGBytes();
 		
-		if(memFree > 0) {
-			double percentage = (((1.0) * memInuse) / ((1.0) * memFree)) * 100.0;
+		long sumInuse = DuccData.getInstance().getLive().getMemoryInuse();
+		
+		SizeBytes sbInuse = new SizeBytes(Type.Bytes, sumInuse);
+		long memInuse = sbInuse.getGBytes();
+		
+		if(memReserve > 0) {
+			double percentage = (((1.0) * memInuse) / ((1.0) * memReserve)) * 100.0;
 			utilization = percentageFormatter.format(percentage)+"%";
 		}
 		
