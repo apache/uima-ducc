@@ -40,6 +40,7 @@ import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
@@ -152,20 +153,20 @@ public class DuccHttpClient {
 	}
 	private String getIP() {
 		String ip =nodeIdentity.getIp();
-		if ( System.getenv("IP") != null) {
-			ip = System.getenv("IP");
+		if ( System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()) != null) {
+			ip = System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value());
 		}
 		return ip;
 	}
 	private String getNodeName() {
 		String nn =nodeIdentity.getName();
-		if ( System.getenv("NodeName") != null) {
-			nn = System.getenv("NodeName");
+		if ( System.getenv(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value()) != null) {
+			nn = System.getenv(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value());
 		}
 		return nn;
 	}
 	private String getProcessName() {
-		String pn = System.getenv("ProcessDuccIdFriendly");
+		String pn = System.getenv(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS.value());
 		return pn;
 	}
     private void addCommonHeaders( IMetaCasTransaction transaction ) {
@@ -184,7 +185,7 @@ public class DuccHttpClient {
     
     private void addCommonHeaders( PostMethod method ) {
     	synchronized( DuccHttpClient.class) {
-        	method.setRequestHeader("IP", getIP());
+        	method.setRequestHeader(IDuccUser.EnvironmentVariable.DUCC_IP.value(), getIP());
         	method.setRequestHeader("Hostname", getNodeName());
         	method.setRequestHeader("ThreadID",
     				String.valueOf(Thread.currentThread().getId()));

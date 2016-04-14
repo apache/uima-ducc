@@ -43,6 +43,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventStopMetrics;
@@ -276,7 +277,7 @@ public class DuccAdmin extends AbstractDuccComponent implements
 					new DataInputStream(in)));
 			String strLine;
 
-			String sshUser = System.getenv("USER");
+			String sshUser = System.getenv(IDuccUser.EnvironmentVariable.USER.value());
 			String userHome = System.getProperty("user.home");
 			String sshIdentityLocation = userHome + FileSeparator + ".ssh"
 					+ FileSeparator + "id_dsa";

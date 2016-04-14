@@ -916,7 +916,7 @@ class DuccUtil(DuccBase):
 	if ( self.localhost == self.ducc_properties.get("ducc.head")):
             self.is_ducc_head = True
 
-        os.environ['NodeName'] = self.localhost    # to match java code's implicit propery so script and java match
+        os.environ['DUCC_NODENAME'] = self.localhost    # to match java code's implicit propery so script and java match
 
         self.pid_file  = self.DUCC_HOME + '/state/ducc.pids'
         self.set_classpath()

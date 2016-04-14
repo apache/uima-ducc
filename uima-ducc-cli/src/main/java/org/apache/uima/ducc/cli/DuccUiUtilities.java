@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.QuotedOptions;
@@ -46,7 +47,7 @@ public class DuccUiUtilities {
 		String runmode = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_runmode);
 		if(runmode != null) {
 			if(runmode.equals("Test")) {
-				String envUser = System.getenv("USER");
+				String envUser = System.getenv(IDuccUser.EnvironmentVariable.USER.value());
 				if(envUser != null) {
 					user = envUser;
 				}

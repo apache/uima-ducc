@@ -25,6 +25,7 @@ import java.util.concurrent.Future;
 
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
@@ -110,7 +111,7 @@ public class Launcher {
     public static void main(String[] args) {
         try {
             int howMany = Integer.parseInt(args[0]);   // how many agent processes to launch
-            String ip = System.getProperty("IP");
+            String ip = System.getProperty(IDuccUser.EnvironmentVariable.DUCC_IP.value());
             String nodeName = InetAddress.getLocalHost().getHostName();
             Launcher launcher = new Launcher();
             JavaCommandLine cmdLine = new JavaCommandLine("java");

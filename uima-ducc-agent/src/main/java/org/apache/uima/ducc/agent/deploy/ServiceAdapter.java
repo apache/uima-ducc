@@ -20,6 +20,7 @@ package org.apache.uima.ducc.agent.deploy;
 
 import java.util.List;
 
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
@@ -98,9 +99,9 @@ public class ServiceAdapter implements ServiceStateNotificationAdapter {
         state.setSocketEndpoint(endpoint);
       }
 			//	send the process update to the remote
-			dispatcher.dispatch(duccEvent, System.getenv("IP"));
+			dispatcher.dispatch(duccEvent, System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()));
 			String jmx = state.getProcessJmxUrl() == null ? "N/A" : state.getProcessJmxUrl();
-			logger.info("notifyAgentWithStatus",null,"... UIMA AS Service Deployed - PID:"+pid+". Service State: "+state+". JMX Url:"+jmx+" Dispatched State Update Event to Agent with IP:"+System.getenv("IP"));
+			logger.info("notifyAgentWithStatus",null,"... UIMA AS Service Deployed - PID:"+pid+". Service State: "+state+". JMX Url:"+jmx+" Dispatched State Update Event to Agent with IP:"+System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()));
 		} catch( Exception e) {
 			e.printStackTrace();
 		}

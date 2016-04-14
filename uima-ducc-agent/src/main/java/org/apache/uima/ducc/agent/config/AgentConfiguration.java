@@ -44,6 +44,7 @@ import org.apache.uima.ducc.agent.processors.LinuxProcessMetricsProcessor;
 import org.apache.uima.ducc.agent.processors.NodeInventoryProcessor;
 import org.apache.uima.ducc.agent.processors.NodeMetricsProcessor;
 import org.apache.uima.ducc.agent.processors.ProcessMetricsProcessor;
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.config.DuccBlastGuardPredicate;
@@ -74,9 +75,9 @@ public class AgentConfiguration {
 
   // fetch the name of an endpoint where the JM expects incoming requests
   // @Value("#{ systemProperties['IP'] }")
-  public String ip = System.getenv("IP");
+  public String ip = System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value());
 
-  public String nodeName = System.getenv("NodeName");
+  public String nodeName = System.getenv(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value());
 
   private CamelContext camelContext;
 

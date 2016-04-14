@@ -32,6 +32,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.agent.NodeAgent;
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -806,10 +807,10 @@ public class DuccCommandExecutor extends CommandExecutor {
 				}
 				// add JobId and the log prefix to the env so additional
 				// similarly-named log files can be created
-				processEnv.put("JobId", String
+				processEnv.put(IDuccUser.EnvironmentVariable.DUCC_ID_JOB.value(), String
 						.valueOf(((ManagedProcess) super.managedProcess)
 								.getWorkDuccId().getFriendly()));
-				processEnv.put("DUCC_PROCESS_LOG_PREFIX", processLogDir
+				processEnv.put(IDuccUser.EnvironmentVariable.DUCC_LOG_PREFIX.value(), processLogDir
 						+ processLogFile);
 			}
 			return cmd;

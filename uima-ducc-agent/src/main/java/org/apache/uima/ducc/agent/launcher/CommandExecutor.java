@@ -25,6 +25,7 @@ import java.util.concurrent.Callable;
 import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.agent.NodeAgent;
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
@@ -125,13 +126,13 @@ public abstract class CommandExecutor implements Callable<Process> {
 				// Enrich environment for the new process. Via these settings
 				// the UIMA AS
 				// service wrapper can notify the agent of its state.
-				env.put("IP", ip);
-				env.put("NodeName", host);
+				env.put(IDuccUser.EnvironmentVariable.DUCC_IP.value(), ip);
+				env.put(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value(), host);
 				// Add process unique ducc id to correlate process state updates
-				env.put("ProcessDuccId", ((ManagedProcess) managedProcess)
+				env.put(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS_UNIQUE.value(), ((ManagedProcess) managedProcess)
 						.getDuccId().getUnique());
 				// Add "friendly" process name for coordination with JD and OR
-				env.put("ProcessDuccIdFriendly", ((ManagedProcess) managedProcess)
+				env.put(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS.value(), ((ManagedProcess) managedProcess)
 						.getDuccId().getFriendly()+"");
 				if (((ManagedProcess) managedProcess).getDuccProcess()
 						.getProcessType()

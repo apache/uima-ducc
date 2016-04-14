@@ -29,6 +29,7 @@ import org.apache.camel.main.Main;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.component.IJobProcessor;
@@ -275,14 +276,14 @@ public class DuccService extends AbstractDuccComponent {
 				System.exit(-1);
 			}
 
-            if ( System.getenv("IP") == null ) {
+            if ( System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()) == null ) {
                 NodeIdentity ni = new NodeIdentity();
-                System.setProperty("IP", ni.getIp());
-        		System.setProperty("NodeName", ni.getName());
+                System.setProperty(IDuccUser.EnvironmentVariable.DUCC_IP.value(), ni.getIp());
+        		System.setProperty(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value(), ni.getName());
 
             } else {
-                System.setProperty("IP", System.getenv("IP"));
-        		System.setProperty("NodeName", System.getenv("NodeName"));
+                System.setProperty(IDuccUser.EnvironmentVariable.DUCC_IP.value(), System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()));
+        		System.setProperty(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value(), System.getenv(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value()));
             }
 
 			duccService = new DuccService();

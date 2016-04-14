@@ -27,6 +27,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -59,7 +60,7 @@ class ServiceInstance
     boolean stopped;                               // careful .. this means it was stopped by a stop order from somewhere,
                                                    //   NOT that it's terminating
 
-    String ducc_home = System.getProperty("DUCC_HOME");
+    String ducc_home = System.getProperty(IDuccUser.EnvironmentVariable.DUCC_HOME.value());
     String api_classpath = ducc_home + "/lib/uima-ducc-cli.jar" + ":" + System.getProperty("java.class.path");
 
     ServiceInstance(ServiceSet sset)
@@ -223,8 +224,8 @@ class ServiceInstance
         StdioListener ser_listener = null;
     
         Map<String, String> env = pb.environment();
-        env.put("DUCC_HOME", System.getProperty("DUCC_HOME"));
-        env.put("DUCC_SERVICE_INSTANCE", Integer.toString(instance_id));  // UIMA-4258
+        env.put(IDuccUser.EnvironmentVariable.DUCC_HOME.value(), System.getProperty(IDuccUser.EnvironmentVariable.DUCC_HOME.value()));
+        env.put(IDuccUser.EnvironmentVariable.DUCC_ID_SERVICE.value(), Integer.toString(instance_id));  // UIMA-4258
 
 		try {
 			Process p = pb.start();
@@ -355,7 +356,7 @@ class ServiceInstance
         
         ProcessBuilder pb = new ProcessBuilder(args);
         Map<String, String> env = pb.environment();
-        env.put("DUCC_HOME", System.getProperty("DUCC_HOME"));
+        env.put(IDuccUser.EnvironmentVariable.DUCC_HOME.value(), System.getProperty(IDuccUser.EnvironmentVariable.DUCC_HOME.value()));
 
         pb.redirectOutput(new File("/dev/null"));
         pb.redirectError(new File("/dev/null"));

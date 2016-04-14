@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
 
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -78,12 +79,12 @@ public class DuccAsUser {
 		
 		Map<String, String> env = pb.environment();
 		
-		env.put("JobId", "webserver");
+		env.put(IDuccUser.EnvironmentVariable.DUCC_ID_JOB.value(), "webserver");
 		
 		String runmode = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_runmode);
 		if(runmode != null) {
 			if(runmode.equals("Test")) {
-				env.put("USER", user);
+				env.put(IDuccUser.EnvironmentVariable.USER.value(), user);
 			}
 		}
 		
@@ -149,12 +150,12 @@ public class DuccAsUser {
 		
 		Map<String, String> env = pb.environment();
 		
-		env.put("JobId", "webserver");
+		env.put(IDuccUser.EnvironmentVariable.DUCC_ID_JOB.value(), "webserver");
 		
 		String runmode = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_runmode);
 		if(runmode != null) {
 			if(runmode.equals("Test")) {
-				env.put("USER", user);
+				env.put(IDuccUser.EnvironmentVariable.USER.value(), user);
 			}
 		}
 		

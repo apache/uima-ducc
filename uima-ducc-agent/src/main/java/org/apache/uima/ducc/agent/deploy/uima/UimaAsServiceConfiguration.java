@@ -30,6 +30,7 @@ import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.deploy.ManagedService;
 import org.apache.uima.ducc.agent.deploy.ServiceAdapter;
 import org.apache.uima.ducc.agent.deploy.ServiceStateNotificationAdapter;
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.DuccExchange;
@@ -107,7 +108,7 @@ public class UimaAsServiceConfiguration {
 		return new ProcessEventListener(service);
 	}
 	private ServiceStateNotificationAdapter serviceAdapter(DuccEventDispatcher eventDispatcher, String stateUpdateEndpoint) {
-		return new ServiceAdapter(eventDispatcher, System.getenv("ProcessDuccId"), stateUpdateEndpoint);
+		return new ServiceAdapter(eventDispatcher, System.getenv(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS_UNIQUE.value()), stateUpdateEndpoint);
 	}
 	@Bean
 	public ManagedService managedService() throws Exception {
@@ -117,7 +118,7 @@ public class UimaAsServiceConfiguration {
 			//  when running multiple agents on the same node. The agent is 
 			//  responsible for providing the IP in this process environment.
 			String thisNodeIP = 
-			(System.getenv("IP") == null) ? InetAddress.getLocalHost().getHostAddress() : System.getenv("IP");
+			(System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()) == null) ? InetAddress.getLocalHost().getHostAddress() : System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value());
 	    camelContext = common.camelContext();
 	    int serviceSocketPort = 0;
 	    String agentSocketParams="";

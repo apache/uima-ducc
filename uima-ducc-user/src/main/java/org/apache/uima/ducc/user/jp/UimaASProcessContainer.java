@@ -50,6 +50,7 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.collection.EntityProcessStatus;
+import org.apache.uima.ducc.IUser;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 import org.xml.sax.Attributes;
@@ -91,8 +92,8 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 	public int doInitialize(Properties props, String[] args) throws Exception {
 		duccHome = System.getProperty("DUCC_HOME"); 
         String pid = getPID("Queue");
-		if ( System.getenv("NodeName") != null) {
-			endpointName = System.getenv("NodeName")+pid;
+		if ( System.getenv(IUser.EnvironmentVariable.DUCC_NODENAME.value()) != null) {
+			endpointName = System.getenv(IUser.EnvironmentVariable.DUCC_NODENAME.value())+pid;
 		} else {
 			endpointName = InetAddress.getLocalHost().getCanonicalHostName()+pid;
 		}

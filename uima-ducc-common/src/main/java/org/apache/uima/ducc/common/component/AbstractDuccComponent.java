@@ -27,6 +27,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Map.Entry;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -49,6 +50,7 @@ import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 /**
  * Abstract class which every Ducc component should extend from. Provides support for loading
@@ -306,9 +308,36 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     start(service, null);
   }
   
+	private void dumpArgs(String[] args) {
+		String location = "dumpArgs";
+		DuccId jobid = null;
+		if(args != null) {
+			for(String arg : args) {
+				logger.info(location, jobid, arg);
+			}
+		}
+	}
+	
+	private void dumpProps() {
+		String location = "dumpProps";
+		DuccId jobid = null;
+		Properties properties = System.getProperties();
+		if(properties != null) {
+			for(Entry<Object, Object> entry : properties.entrySet()) {
+				String key = (String) entry.getKey();
+				String value = (String) entry.getValue();
+				logger.info(location, jobid, key+"="+value);
+			}
+		}
+	}
+  
     public void start(DuccService service, String[] args) throws Exception {
 	    String endpoint = null;
 	    this.service = service;
+	    
+	    dumpArgs(args);
+	    dumpProps();
+	    
 	    if (System.getProperty("ducc.deploy.components") != null
 	            && !System.getProperty("ducc.deploy.components").equals("uima-as")
 	            && !System.getProperty("ducc.deploy.components").equals("job-process")
@@ -457,6 +486,11 @@ public abstract class AbstractDuccComponent implements DuccComponent,
    * @throws Exception
    */
   public String startJmxAgent() throws Exception {
+	  String location = "startJmxAgent";
+	  DuccId jobid = null;
+	  String key = "com.sun.management.jmxremote.authenticate";
+	  String value = System.getProperty(key);
+	  logger.info(location, jobid, key+"="+value);
       int rmiRegistryPort = 2099; // start with a default port setting
       if (System.getProperty("ducc.jmx.port") != null) {
         try {

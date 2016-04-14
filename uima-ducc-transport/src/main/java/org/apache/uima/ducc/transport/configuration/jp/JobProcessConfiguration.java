@@ -23,8 +23,8 @@ import java.net.InetAddress;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
-import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.Utils;
@@ -169,8 +169,8 @@ public class JobProcessConfiguration {
 			// will be the actual node IP. In testing, the IP can be virtual
 			// when running multiple agents on the same node. The agent is
 			// responsible for providing the IP in this process environment.
-			String thisNodeIP = (System.getenv("IP") == null) ? InetAddress
-					.getLocalHost().getHostAddress() : System.getenv("IP");
+			String thisNodeIP = (System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()) == null) ? InetAddress
+					.getLocalHost().getHostAddress() : System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value());
 			camelContext = common.camelContext();
 
 			// currently supported jobType values:
@@ -241,7 +241,7 @@ public class JobProcessConfiguration {
 			// Create Agent proxy which will be used to notify Agent
 			// of state changes.
 			agent = new AgentSession(eventDispatcher,
-					System.getenv("ProcessDuccId"),
+					System.getenv(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS_UNIQUE.value()),
 					common.managedServiceEndpoint);
 
 			System.out
