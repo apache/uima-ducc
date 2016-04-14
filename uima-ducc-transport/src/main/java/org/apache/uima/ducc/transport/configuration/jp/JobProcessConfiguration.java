@@ -241,7 +241,7 @@ public class JobProcessConfiguration {
 			// Create Agent proxy which will be used to notify Agent
 			// of state changes.
 			agent = new AgentSession(eventDispatcher,
-					System.getenv(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS_UNIQUE.value()),
+					System.getProperty(IDuccUser.DashD.DUCC_ID_PROCESS_UNIQUE.value()),
 					common.managedServiceEndpoint);
 
 			System.out

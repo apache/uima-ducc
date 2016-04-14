@@ -21,12 +21,11 @@ package org.apache.uima.ducc.common;
 // Note: Coordinate with org.apache.uima.ducc.IUser
 
 public interface IDuccUser {
-
+	
 	public enum EnvironmentVariable {
 		DUCC_HOME("DUCC_HOME"),
 		DUCC_ID_JOB("DUCC_JOBID"),
 		DUCC_ID_PROCESS("DUCC_PROCESSID"),
-		DUCC_ID_PROCESS_UNIQUE("DUCC_PROCESSID_UNIQUE"),
 		DUCC_ID_SERVICE("DUCC_SERVICE_INSTANCE"),
 		DUCC_LOG_PREFIX("DUCC_PROCESS_LOG_PREFIX"),
 		//
@@ -67,5 +66,44 @@ public interface IDuccUser {
 		}
 	}
 	
+	public enum DashD {
+		DUCC_ID_PROCESS_UNIQUE("ducc.deploy.JpUniqueId"),
+		;
+		
+		private String value = null;
+		
+		private DashD(String valueForKey) {
+			setValue(valueForKey);
+		}
+		
+		private void setValue(String valueForKey) {
+			value = valueForKey;
+		}
+		
+		private String getValue() {
+			return value;
+		}
+		
+		public String standard() {
+			return name();
+		}
+		
+		public String mapped() {
+			return getValue();
+		}
+		
+		public String value() {
+			String retVal = mapped();
+			switch(this) {
+			default:
+				break;
+			}
+			return retVal;
+		}
+		
+		public String dvalue() {
+			return "-D"+value();
+		}
+	}
 	
 }

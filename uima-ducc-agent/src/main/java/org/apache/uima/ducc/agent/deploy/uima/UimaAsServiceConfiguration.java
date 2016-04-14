@@ -108,7 +108,7 @@ public class UimaAsServiceConfiguration {
 		return new ProcessEventListener(service);
 	}
 	private ServiceStateNotificationAdapter serviceAdapter(DuccEventDispatcher eventDispatcher, String stateUpdateEndpoint) {
-		return new ServiceAdapter(eventDispatcher, System.getenv(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS_UNIQUE.value()), stateUpdateEndpoint);
+		return new ServiceAdapter(eventDispatcher, System.getProperty(IDuccUser.DashD.DUCC_ID_PROCESS_UNIQUE.value()), stateUpdateEndpoint);
 	}
 	@Bean
 	public ManagedService managedService() throws Exception {

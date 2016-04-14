@@ -123,14 +123,12 @@ public abstract class CommandExecutor implements Callable<Process> {
 			// managedProcess).getCommandLine();
 			Map<String, String> env = new HashMap<String, String>();
 			if (!isKillCommand(cmdLine)) {
+				cmdLine.addOption(IDuccUser.DashD.DUCC_ID_PROCESS_UNIQUE.dvalue()+"="+((ManagedProcess) managedProcess).getDuccId().getUnique());
 				// Enrich environment for the new process. Via these settings
 				// the UIMA AS
 				// service wrapper can notify the agent of its state.
 				env.put(IDuccUser.EnvironmentVariable.DUCC_IP.value(), ip);
 				env.put(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value(), host);
-				// Add process unique ducc id to correlate process state updates
-				env.put(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS_UNIQUE.value(), ((ManagedProcess) managedProcess)
-						.getDuccId().getUnique());
 				// Add "friendly" process name for coordination with JD and OR
 				env.put(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS.value(), ((ManagedProcess) managedProcess)
 						.getDuccId().getFriendly()+"");
