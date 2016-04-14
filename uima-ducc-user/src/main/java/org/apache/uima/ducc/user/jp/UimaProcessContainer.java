@@ -429,23 +429,15 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 			for (AnalysisEnginePerformanceMetrics before : beforeAnalysisManagementObjects) {
 				String uniqueName = after.getUniqueName();
 				if (before.getUniqueName().equals(after.getUniqueName())) {
-					/*
-					int p1 = after.getUniqueName().indexOf("DUCC.Job");
-					if ( p1 >-1 ) {
-						int p2 = after.getUniqueName().indexOf("/",p1);
-						if ( p2 >-1 ) {
-							uniqueName = after.getUniqueName().substring(p2);
-						}
+					
+					if ( (after.getAnalysisTime() - before.getAnalysisTime()) < 0 ) {
+						Logger logger = UIMAFramework.getLogger();
+						logger.log(Level.WARNING, "Thread:"+Thread.currentThread()+" UimaProcessContainer.getAEMetricsForCAS() - Unexpected negative result for analysis time:"+(after.analysisTime-before.analysisTime)+" Component:"+uniqueName+" before="+before.analysisTime+" after="+after.analysisTime);
 					}
-					*/
-					//System.out.println("getAEMetricsForCAS() - Unique Name:"+uniqueName);
-					//String uniqueName =  
 					AnalysisEnginePerformanceMetrics metrics = new AnalysisEnginePerformanceMetrics(
 							after.getName(), uniqueName,
 							after.getAnalysisTime() - before.getAnalysisTime(),
 							after.getNumProcessed());
-					// System.out.println("********************"+metrics.getUniqueName());
-					// System.out.println("********************"+metrics.getName());
 					performanceList.add(metrics);
 					break;
 				}
