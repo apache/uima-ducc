@@ -1,0 +1,69 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_ERROR_HANDLER'></a>}
+\fi
+\chapter{Job Error Handler}
+\label{chap:job-error-handler}
+
+\begin{sloppypar}
+\paragraph {Overview} The {\em ErrorHandler} allows for the per job customized handling of runtime anomalies.
+
+\paragraph {Operation} The Job Driver comes with a built-in {\em ErrorHandler}.  Its purpose is to 
+instruct the Job Driver on what action(s) to take when a work item error is encountered.
+
+The {\em ErrorHandler} implements {\em org.apache.uima.ducc.IErrorHandler}.
+
+\begin{verbatim}
+public interface IErrorHandler {
+	public void initialize(String initializationData);
+	public IErrorHandlerDirective handle(String serializedCAS, Object userException);
+}
+
+public interface IErrorHandlerDirective {
+	public boolean isKillJob();
+	public boolean isKillProcess();
+	public boolean isKillWorkItem();
+}
+\end{verbatim}
+
+By default, the {\em ErrorHandler} returned directive:
+\begin{enumerate}
+\item returns isKillJob == false, unless the number of work items errors exceeds 15 for the Job
+\item returns isKillProcess == true
+\item returns isKillWorkItem == true
+\end{enumerate}
+
+\paragraph {Programmability} The Job Driver built-in {\em ErrorHandler} behavior can be modified
+according to the {\em driver\_jvm\_args} in the Job Specification:
+
+\begin{description}
+\item[-DJobDriverErrorHandlerMaximumNumberOfTimeoutRetrysPerWorkItem=N], where N is the maximum
+number of timeout retrys for each work item before that work item is considered in error.
+\end{description}
+
+\paragraph {Replacement} The {\em ErrorHandler} can be replaced.  The steps necessary are:
+\begin{enumerate}
+\item Create a new ErrorHandler.class that implements {\em org.apache.uima.ducc.IErrorHandler}, which is located in the uima-ducc-user.jar.
+\item Put your replacement class in a jar file and modify ducc.properties file to include your jar file as part of ducc.local.jars variable.
+\end{enumerate}
+
+\end{sloppypar}
