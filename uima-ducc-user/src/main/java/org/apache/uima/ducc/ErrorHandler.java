@@ -52,7 +52,7 @@ public class ErrorHandler implements IErrorHandler {
 	/**
 	 * Flag to insure initialization occurs exactly once.
 	 */
-	private AtomicBoolean alreadryInitialized = new AtomicBoolean(false);
+	private AtomicBoolean alreadyInitialized = new AtomicBoolean(false);
 	
 	/**
 	 * A map comprising an entry for each work item with a corresponding count
@@ -97,10 +97,10 @@ public class ErrorHandler implements IErrorHandler {
 	 */
 	private void initializeOnce() {
 		synchronized(ErrorHandler.class) {
-			if(!alreadryInitialized.get()) {
+			if(!alreadyInitialized.get()) {
 				Properties systemProperties = System.getProperties();
 				initTimeoutRetrys(systemProperties);
-				alreadryInitialized.set(true);
+				alreadyInitialized.set(true);
 			}
 		}
 	}
