@@ -102,20 +102,17 @@ public abstract class ActionEndAbstract extends Action implements IAction {
 			mb.append(Standardize.Label.isKillProcess.get()+pjdd.isKillProcess());
 			mb.append(Standardize.Label.isKillWorkItem.get()+pjdd.isKillWorkItem());
 			logger.info(location, ILogger.null_id, mb.toString());
+			// handle directive == kill job
 			if(pjdd.isKillJob()) {
-				wisk.error(seqNo);
-				pStats.error(wi);
 				ActionHelper.killJob(logger, actionData, cm);
-				ActionHelper.killWorkItem(logger, actionData, cm);
 			}
-			else if(pjdd.isKillProcess()) {
-				wisk.error(seqNo);
-				pStats.error(wi);
+			// handle directive == kill process
+			if(pjdd.isKillProcess()) {
 				DeallocateReason deallocateReason = getDeallocateReason(pjdd);
 				ActionHelper.killProcess(logger, actionData, cm, metaCas, wi, deallocateReason);
-				ActionHelper.killWorkItem(logger, actionData, cm);
 			}
-			else if(pjdd.isKillWorkItem()) {
+			// handle directive == kill work item
+			if(pjdd.isKillWorkItem()) {
 				wisk.error(seqNo);
 				pStats.error(wi);
 				ActionHelper.killWorkItem(logger, actionData, cm);
