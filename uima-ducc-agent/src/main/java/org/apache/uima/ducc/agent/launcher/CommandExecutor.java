@@ -73,10 +73,14 @@ public abstract class CommandExecutor implements Callable<Process> {
 		    boolean isAPorJD = ((ManagedProcess) managedProcess).isJd() ||
 			((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop);
 
+
 		    // JDs and APs dond't report internal status to the agent (initializing or running) so assume these start and enter Running state
 		    if (isAPorJD && !((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Stopped)) {
 			((ManagedProcess) managedProcess).getDuccProcess().setProcessState(ProcessState.Running);
 		    }
+
+		    logger.info(methodName,null,
+				 ">>>>>>>>> PID:"+String.valueOf(pid)+" Process State:"+((ManagedProcess) managedProcess).getDuccProcess().getProcessState());
 		    try {
 			synchronized(this) {
 			    // wait for 5 seconds before starting the camel route
@@ -87,7 +91,6 @@ public abstract class CommandExecutor implements Callable<Process> {
 			RouteBuilder rb = agent.new ProcessMemoryUsageRoute(agent, 
 									((ManagedProcess) managedProcess).getDuccProcess(),(ManagedProcess) managedProcess);
 			agent.getContext().addRoutes(rb);
-					    
 			agent.getContext().startRoute(String.valueOf(pid));
 			logger.info(methodName,null,
 			     "Started Process Metric Gathering Thread For PID:"+String.valueOf(pid));
