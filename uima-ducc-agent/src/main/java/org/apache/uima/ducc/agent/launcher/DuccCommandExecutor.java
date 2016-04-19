@@ -364,9 +364,6 @@ public class DuccCommandExecutor extends CommandExecutor {
 				   TimeUnit.MILLISECONDS);
 
 		    } catch(TimeoutException te) {
-			if (((ManagedProcess) super.managedProcess)
-			    .getDuccProcess().getProcessState()
-			    .equals(ProcessState.Running)) {
 			    
 			    logger.info(
 					methodName,
@@ -395,7 +392,6 @@ public class DuccCommandExecutor extends CommandExecutor {
 			    doExec(new ProcessBuilder(cmd), cmd, true);
 
 			}
-		    }
 
 		} catch (Exception e) { // InterruptedException, ExecutionException
 		    logger.error(methodName,
