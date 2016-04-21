@@ -388,7 +388,7 @@ public class ManagedProcess implements Process {
 			// Process has terminated. Determine why the process terminated.
 			log("ManagedProcess.drainProcessStreams", "Ducc Process with PID:"
 					+ getPid() + " Terminated while in " + pstate + " State");
-
+			
 			// true if agent killed the process. Process either exceeded memory
 			// use or the PM state notifications stopped coming in.
 			if (doKill()) {
@@ -403,9 +403,18 @@ public class ManagedProcess implements Process {
 					pstate = ProcessState.Killed;
 				}
 			} else {
+				if ( !isAP && !isstopping ) {
+					// check if process exited while in Initializing state  
+					if ( ProcessState.Initializing.equals(pstate) ) {
+						getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.FailedInitialization.toString());
+		                log("ManagedProcess.drainProcessStreams",
+				    "Process Failed while in initializing state - setting reason to "+getDuccProcess().getReasonForStoppingProcess());
+				    }
+				}
 				// default state to Stopped. If the process died unexpectadly the state
 				// will be changed to Failed
 				pstate = ProcessState.Stopped;
+
 				// check if the process died due to an external cause. If that
 				// was the case isstopping = false. The isstopping=true iff the Agent
 				// initiated process stop because the process was deallocated
@@ -430,19 +439,13 @@ public class ManagedProcess implements Process {
 					// APs can stop for any reason. There is 
 					// no way to determine why the AP terminated.
 					if ( !isAP ) {
-					    // Unexpected process termination 
+
+						// Unexpected process termination 
 						pstate = ProcessState.Failed;
 						// fetch errors from stderr stream. If the process failed to
 						// start due to misconfiguration
 						// the reason for failure would be provided by the OS (wrong
 						// user id, bad directory,etc)
-						/*
-						String errors = stdErrReader.getDataFromStream();
-						if (errors.trim().length() > 0) {
-							getDuccProcess().setReasonForStoppingProcess(
-									errors.trim());
-						} else {
-						*/
 						if (errors.trim().length() > 0) {
                             // JP should not be marked as CROAKED if it terminates 
 							// due to a process error, failed initialization or initialization
@@ -457,9 +460,8 @@ public class ManagedProcess implements Process {
 								getDuccProcess().setReasonForStoppingProcess(
 										ReasonForStoppingProcess.Croaked.toString());
 							}
-						}
+						}  
 					}
-					
 				} else {
 					if ( exitcode - 128 == 9 || exitcode - 128 == 15 ) { // check if the process was killed with -9 or -15
 						addReasonForStopping(getDuccProcess(),
