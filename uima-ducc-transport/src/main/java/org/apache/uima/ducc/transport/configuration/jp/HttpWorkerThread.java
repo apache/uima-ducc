@@ -285,6 +285,11 @@ public class HttpWorkerThread implements Runnable {
 							// to the JD. The actual serialized stack trace is wrapped in
 							// RuntimeException->AnalysisEngineException.message
 							workItemFailed = true;
+							// if WI processing fails while the service changes states to !Running
+							// ignore results and terminate this thread.
+							if ( !duccComponent.isRunning() ) {
+								break;
+							}
 							IMetaCas mc = transaction.getMetaCas();
 							
 							// Fetch serialized exception as a blob
@@ -296,6 +301,12 @@ public class HttpWorkerThread implements Runnable {
 							logger.info("run", null, "Work item processing failed - returning serialized exception to the JD");
 						} catch( Exception ee) {
 							workItemFailed = true;
+							// if WI processing fails while the service changes states to !Running
+							// ignore results and terminate this thread.
+							if ( !duccComponent.isRunning() ) {
+								logger.info("run", null, "Work item processing failed - terminating thread - ignore any AE errors that may happen beyond this point");
+								break;
+							}
 							// Serialize exception for the JD.
 							ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						    ObjectOutputStream oos = new ObjectOutputStream( baos );
@@ -312,6 +323,12 @@ public class HttpWorkerThread implements Runnable {
 						minor++; // getWork()  
 						TransactionId tid = new TransactionId(major, minor++);
 						transaction.setTransactionId(tid);
+
+						// if WI processing fails while the service changes states to !Running
+						// ignore results and terminate this thread.
+						if ( !duccComponent.isRunning() ) {
+							break;
+						}
 
 						httpClient.execute(transaction, postMethod); // Work Item Processed - End
                     	String wid = null;
