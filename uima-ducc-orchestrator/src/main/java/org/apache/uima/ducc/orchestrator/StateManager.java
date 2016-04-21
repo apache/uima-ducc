@@ -1454,7 +1454,7 @@ public class StateManager {
 					Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
 					while(upcIterator.hasNext()) {
 						IUimaPipelineAEComponent upc = upcIterator.next();
-						logger.debug(methodName, null, processId, "pipelineInfo: "+inventoryProcess.getNodeIdentity()+" "+inventoryProcess.getPID()+" "+upc.getAeName()+" "+upc.getAeState()+" "+upc.getInitializationTime());
+						logger.trace(methodName, null, processId, "pipelineInfo: "+inventoryProcess.getNodeIdentity()+" "+inventoryProcess.getPID()+" "+upc.getAeName()+" "+upc.getAeState()+" "+upc.getInitializationTime());
 					}
 				}
 				ProcessType processType = inventoryProcess.getProcessType();
@@ -1516,7 +1516,7 @@ public class StateManager {
 												sb.append("pid:"+process.getPID()+" ");
 												sb.append("state:"+process.getProcessState()+" ");
 												sb.append("reason:"+process.getReasonForStoppingProcess()+" ");
-												logger.info(methodName, job.getDuccId(), sb.toString());
+												logger.trace(methodName, job.getDuccId(), sb.toString());
 											}
 											long initFailureCount = job.getProcessInitFailureCount();
 											long startup_initialization_error_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_jd_startup_initialization_error_limit, 1);
