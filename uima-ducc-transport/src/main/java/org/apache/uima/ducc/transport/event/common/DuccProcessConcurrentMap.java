@@ -255,6 +255,15 @@ public class DuccProcessConcurrentMap extends ConcurrentHashMap<DuccId,IDuccProc
 		return retVal;
 	}
 	
+	/**
+	 * Determine if Process has failed due to User or Framework.
+	 * Note that Framework attributed Process failures are not
+	 * counted toward the maximum number of failures allowed
+	 * before the Job is forcibly terminated.
+	 * 
+	 * @param process is the IDuccProcess to consider
+	 * @return true if User or false if Framework
+	 */
 	private boolean isFailedProcess(IDuccProcess process) {
 		boolean retVal = false;
 		ProcessState processState = process.getProcessState();
