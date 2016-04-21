@@ -1488,6 +1488,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           NodeUsersCollector.ProcessInfo cpi) throws Exception {
 
     synchronized (monitor) {
+    	// if cgroups are enabled, check if a given PID (cpi) exists in any of 
+    	// the containers. If so, the process is not rogue.
+    	if ( useCgroups ) {
+    		if ( cgroupsManager.isPidInCGroup(String.valueOf(cpi.getPid())) ) {
+    			return false;
+    		}
+    	}
       // Agent adds a process to its inventory before launching it. So it
       // is
       // possible that the inventory contains a process with no PID. If
