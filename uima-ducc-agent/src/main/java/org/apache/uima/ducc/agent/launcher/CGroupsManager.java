@@ -283,9 +283,18 @@ public class CGroupsManager {
 
 	public void kill(final String user, final String pid, final int signal) {
 		final String methodName = "kill";
-		//InputStream is = null;
-		//BufferedReader reader = null;
+		String c_launcher_path="";
 		try {
+			
+			boolean useDuccling = false;
+			String useSpawn = System.getProperty("ducc.agent.launcher.use.ducc_spawn");
+			if (useSpawn != null && useSpawn.toLowerCase().equals("true")) {
+				useDuccling = true;
+				c_launcher_path = Utils.resolvePlaceholderIfExists(
+					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
+					     System.getProperties());
+			}
+
 			String cmdLine;
 			String arg;
 			if (Utils.isWindows()) {
@@ -296,35 +305,16 @@ public class CGroupsManager {
 				arg = "-"+signal;
 			}
 			
-			String[] command  = new String[] { cmdLine, arg, pid };
-			launchCommand(command, "ducc");
-			/*
-			ProcessBuilder pb = new ProcessBuilder(commandLine);
-			pb.redirectErrorStream(true);
-			java.lang.Process killedProcess = pb.start();
-			is = killedProcess.getInputStream();
-			reader = new BufferedReader(
-					new InputStreamReader(is));
-			// read the next line from kill command
-			while (reader.readLine() != null) {
-				// dont care about the output, just drain the buffers
-			}
-			is.close();
-			killedProcess.waitFor();
-			StringBuffer sb = new StringBuffer();
-			for (String part : commandLine) {
-				sb.append(part).append(" ");
-			}
-			if (agentLogger == null) {
-				System.out.println("--------- Killed Process:" + pid
-						+ " Owned by:" + user + " Command:" + sb.toString());
-
+			String[] command;
+			if (useDuccling) {
+			   command = new String[] { c_launcher_path, "-u", user,
+			            "--", cmdLine, arg, pid };
 			} else {
-				agentLogger.info(methodName, null,
-						"--------- Killed CGroup Process:" + pid + " Owned by:" + user
-								+ " Command:" + sb.toString());
+			   command = new String[] { cmdLine, arg, pid };
 			}
-			*/
+		
+			launchCommand(command);
+			
 			StringBuffer sb = new StringBuffer();
 			for (String part : command) {
 				sb.append(part).append(" ");
@@ -374,7 +364,7 @@ public class CGroupsManager {
 		String[] command = new String[] { cgroupUtilsDir+"/cgcreate", "-t",
 							"ducc", "-a", "ducc", "-g",
 							cgroupSubsystems + ":ducc/" + containerId };
-		int retCode = launchCommand(command, "ducc");
+		int retCode = launchCommand(command);
 		if ( cgroupExists(cgroupBaseDir + "/" + containerId)) {
 			// Starting with libcgroup v.0.38, the cgcreate fails
 			// with exit code = 96 even though the cgroup gets
@@ -420,7 +410,7 @@ public class CGroupsManager {
 			String[] command = new String[] { cgroupUtilsDir+"/cgset", "-r",
 					"memory.limit_in_bytes=" + containerMaxSize,
 					"ducc/" + containerId };
-			int retCode = launchCommand(command, "ducc");
+			int retCode = launchCommand(command);
 			if (retCode == 0) {
 				agentLogger.info("setContainerMaxMemoryLimit", null, ">>>>"
 						+ "SUCCESS - Created CGroup Limit on Container:"
@@ -464,7 +454,7 @@ public class CGroupsManager {
 			String[] command = new String[] { cgroupUtilsDir+"/cgset", "-r",
 					"cpu.shares=" + containerCpuShares,
 					"ducc/" + containerId };
-			int retCode = launchCommand(command, "ducc");
+			int retCode = launchCommand(command);
 			if (retCode == 0) {
 				agentLogger.info("setContainerCpuShares", null, ">>>>"
 						+ "SUCCESS - Created CGroup with CPU Shares="+containerCpuShares+" on Container:"
@@ -509,7 +499,7 @@ public class CGroupsManager {
 			String[] command = new String[] { cgroupUtilsDir+"/cgset", "-r",
 					"memory.swappiness=" + swappiness,
 					"ducc/" + containerId };
-			int retCode = launchCommand(command, "ducc");
+			int retCode = launchCommand(command);
 			if (retCode == 0) {
 				agentLogger.info("setContainerSwappiness", null, ">>>>"
 						+ "SUCCESS - Updated CGroup with Memory Swappiness="+swappiness+" on Container:"
@@ -582,7 +572,7 @@ public class CGroupsManager {
 				
 				String[] command = new String[] { "/bin/rmdir",
 						cgroupBaseDir + "/" + containerId };
-				int retCode = launchCommand(command, "ducc");
+				int retCode = launchCommand(command);
 				if (retCode == 0) {
 					containerIds.remove(containerId);
 					return true;
@@ -596,10 +586,11 @@ public class CGroupsManager {
 		}
 	}
 
-	private int launchCommand(String[] command,	String userId) throws Exception {
+	private int launchCommand(String[] command/*,	String userId*/) throws Exception {
 		
 		int retryCount=0;
 		Object sleepMonitor = new Object();
+
 		synchronized(CGroupsManager.class) {
 			long delay = delayFactor;//
 			while( retryCount <= retryMax ) {
