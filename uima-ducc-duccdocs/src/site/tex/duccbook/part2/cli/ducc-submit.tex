@@ -98,6 +98,11 @@
              \end{verbatim}
              Note: When used as a CLI option, the string must usually be
              quoted to protect it from the shell, if it contains blanks.
+             The built-in default exception handler supports two arguments, whose
+             default values are shown above.  The max\_job\_errors limit specifies the number
+             of work item errors allowed before forcibly terminating the job.  The
+             max\_timeout\_retrys\_per\_workitem limit specifies the number of times each
+             work item is retried in the event of a time-out.
 
            \item[$--$driver\_jvm\_args {[list]} ]
              This specifies extra JVM arguments to be provided to the Job Driver process. It is a blank-delimited 
