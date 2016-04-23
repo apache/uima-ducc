@@ -85,19 +85,24 @@
            \item[$--$driver\_exception\_handler {[classname]}] 
              This specifies a developer-supplied exception handler for the Job Driver.  
              It must implement {\em org.apache.uima.ducc.IErrorHandler} or extend
-             {\em org.apache.uima.ducc.ErrorHandler}.  A default handler is provided.
+             {\em org.apache.uima.ducc.ErrorHandler}.  A built-in default exception handler is provided.
            
            \item[$--$driver\_exception\_handler\_arguments {[argument-string]}] This is a string
              containing arguments for the exception handler.  The contents of
-             the string is entirely a function of the specified handler.  If not specified,
+             the string is entirely a function of the specified exception handler.  If not specified,
              a {\em null} is passed in.
              \\The built-in default exception handler supports an argument string of the following form
              (with NO embedded blanks):
              \begin{verbatim}
-     max_job_errors=15
+     max_job_errors=15 max_timeout_retrys_per_workitem=0
              \end{verbatim}
              Note: When used as a CLI option, the string must usually be
              quoted to protect it from the shell, if it contains blanks.
+             The built-in default exception handler supports two arguments, whose
+             default values are shown above.  The max_job_errors limit specifies the number
+             of work item errors allowed before forcibly terminating the job.  The
+             max_timeout_retrys_per_workitem limit specifies the number of times each
+             work item is retried in the event of a time-out.
 
            \item[$--$driver\_jvm\_args {[list]} ]
              This specifies extra JVM arguments to be provided to the Job Driver process. It is a blank-delimited 

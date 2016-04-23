@@ -24,8 +24,7 @@
 \chapter{Job Error Handler}
 \label{chap:job-error-handler}
 
-\begin{sloppypar}
-\paragraph {Overview} The {\em ErrorHandler} allows for the per job customized handling of runtime anomalies.
+\paragraph {Overview} The {\em ErrorHandler} allows for the per Job customized handling of runtime anomalies.
 
 \paragraph {Operation} The Job Driver comes with a built-in {\em ErrorHandler}.  Its purpose is to 
 instruct the Job Driver on what action(s) to take when a work item error is encountered.
@@ -52,18 +51,18 @@ By default, the {\em ErrorHandler} returned directive:
 \item returns isKillWorkItem == true
 \end{enumerate}
 
-\paragraph {Programmability} The Job Driver built-in {\em ErrorHandler} behavior can be modified
-according to the {\em driver\_jvm\_args} in the Job Specification:
+\paragraph {Programmability} The Job Driver built-in (or custom) {\em ErrorHandler} behavior can be modified
+according to the {\em driver\_exception\_handler\_arguments} string in the Job Specification.  
+Currently recognized are:
 
 \begin{description}
-\item[-DJobDriverErrorHandlerMaximumNumberOfTimeoutRetrysPerWorkItem=N], where N is the maximum
-number of timeout retrys for each work item before that work item is considered in error.
+\item[max\_job\_errors=E], where E is the maximum number of work item errors tolerated before terminating the Job.  Default is 15.
+\item[max\_timeout\_retrys\_per\_workitem=R], where R is the maximum number of work item timeouts tolerated before the work item is considered an error.  Default is 0.
 \end{description}
 
 \paragraph {Replacement} The {\em ErrorHandler} can be replaced.  The steps necessary are:
 \begin{enumerate}
-\item Create a new ErrorHandler.class that implements {\em org.apache.uima.ducc.IErrorHandler}, which is located in the uima-ducc-user.jar.
-\item Put your replacement class in a jar file and modify ducc.properties file to include your jar file as part of ducc.local.jars variable.
+\item Create a new org.myOrg.myProject.MyErrorHandler.class that implements {\em org.apache.uima.ducc.IErrorHandler}, which is located in the uima-ducc-user.jar.
+\item Put your replacement class in your Job Specification classpath.
+\item Put your replacement class name as the value for your Job Specification driver\_exception\_handler.
 \end{enumerate}
-
-\end{sloppypar}
