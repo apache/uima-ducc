@@ -147,16 +147,16 @@ public interface IUiOptions
 
         DriverExceptionHandler { 
             public String pname()       { return JobSpecificationProperties.key_driver_exception_handler; }
-            public String description() { return "Driver Exception handler class.  Must implement "+IErrorHandler.class.getName(); }
+            public String description() { return "Driver exception handler class.  Must implement "+IErrorHandler.class.getName(); }
             public String argname()     { return "classname"; }
-            public String example()     { return "org.bob.myProject.MyDriverExceptionHandler"; }
+            public String example()     { return "org.myOrg.myProject.MyErrorHandler"; }
         },  
         
         DriverExceptionHandlerArguments { 
             public String pname()       { return JobSpecificationProperties.key_driver_exception_handler_arguments; }
             public String argname()     { return "string"; }
-            public String description() { return "Any arguments to be passed to the default or custom exception handler."; }
-            public String example()     { return "max_job_errors=15"; }
+            public String description() { return "Blank-delimited list of arguments to be passed to the built-in or custom exception handler.  The example gives the defaults for the built-in exception handler."; }
+            public String example()     { return "max_job_errors=15 max_timeout_retrys_per_workitem=0"; }
         },  
 
         DriverJvmArgs { 
