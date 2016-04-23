@@ -75,6 +75,8 @@ public class ToLog {
 		return logger;
 	}
 	
+	// Note: close to insure that lock file is erased
+	
 	private static void close(Logger logger) {
 		Handler[] handlers = logger.getHandlers();
 		if(handlers != null) {
@@ -85,7 +87,7 @@ public class ToLog {
 	}
 	
 	/**
-	 * Write a String message into ErrorHandler.log file
+	 * Write an "info"  String message into ErrorHandler.log file
 	 */
 	public static void info(Class<?> clazz, String text) {
 		if(clazz != null) {
@@ -100,14 +102,44 @@ public class ToLog {
 	}
 	
 	/**
+	 * Write a "debug" String message into ErrorHandler.log file
+	 */
+	public static void debug(Class<?> clazz, String text) {
+		if(clazz != null) {
+			if(text != null) {
+				Logger logger = getLogger(clazz);
+				if(logger != null) {
+					logger.log(Level.FINE, text);
+					close(logger);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Write a "warning" String message into ErrorHandler.log file
+	 */
+	public static void warning(Class<?> clazz, String text) {
+		if(clazz != null) {
+			if(text != null) {
+				Logger logger = getLogger(clazz);
+				if(logger != null) {
+					logger.log(Level.WARNING, text);
+					close(logger);
+				}
+			}
+		}
+	}
+	
+	/**
 	 * Write a Throwable message into ErrorHandler.log file
 	 */
-	public static void info(Class<?> clazz, Throwable t) {
+	public static void warning(Class<?> clazz, Throwable t) {
 		if(clazz != null) {
 			if(t != null) {
 				Logger logger = getLogger(clazz);
 				if(logger != null) {
-					logger.log(Level.INFO, t.getMessage(), t);
+					logger.log(Level.WARNING, t.getMessage(), t);
 					close(logger);
 				}
 			}

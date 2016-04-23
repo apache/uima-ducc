@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.uima.ducc.ErrorHandler;
-import org.apache.uima.ducc.ErrorHandler.InitializationDataKey;
+import org.apache.uima.ducc.ErrorHandlerProgrammability;
 import org.apache.uima.ducc.IErrorHandler;
 import org.apache.uima.ducc.IErrorHandlerDirective;
 import org.apache.uima.ducc.user.common.ExceptionHelper;
@@ -280,7 +280,7 @@ public class TestSuite {
 			assertTrue(directive.isKillWorkItem() == true);
 			//
 			limit = 10;
-			plist = InitializationDataKey.KillJobLimit.name()+"="+limit;
+			plist = ErrorHandlerProgrammability.Key.max_job_errors.name()+"="+limit;
 			eh = new ErrorHandler(plist);
 			directive = eh.handle(serializedCAS, getUserException());
 			for(int i=1; i<limit; i++) {
@@ -295,7 +295,7 @@ public class TestSuite {
 			assertTrue(directive.isKillWorkItem() == true);
 			//
 			limit = 20;
-			plist = InitializationDataKey.KillJobLimit.name()+"="+limit;
+			plist = ErrorHandlerProgrammability.Key.max_job_errors.name()+"="+limit;
 			eh = new ErrorHandler(plist);
 			directive = eh.handle(serializedCAS, getUserException());
 			for(int i=1; i<limit; i++) {

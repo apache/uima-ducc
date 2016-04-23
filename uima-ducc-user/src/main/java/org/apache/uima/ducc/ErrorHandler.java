@@ -18,41 +18,18 @@
 */
 package org.apache.uima.ducc;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.uima.ducc.ErrorHandlerProgrammability.Key;
 import org.apache.uima.ducc.logger.ToLog;
-import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.ducc.user.error.iface.Transformer;
-import org.apache.uima.ducc.user.jd.JdUser;
 
 public class ErrorHandler implements IErrorHandler {
 
-	/**
-	 * These are the System Properties nominally specified in the
-	 * user's job submission (as -D's for driver_jvm_args) which will 
-	 * be considered for adjusting runtime operational characteristics.
-	 */
-	public static enum SystemPropertyNames {
-		JobDriverErrorHandlerMaximumNumberOfTimeoutRetrysPerWorkItem,
-	}
-	
-	/**
-	 * Return a directive with isKillWorkItem() == false unless and until 
-	 * the maximumNumberOfTimeoutRetrysPerWorkItem is exceeded.
-	 */
-	private AtomicInteger maximumNumberOfTimeoutRetrysPerWorkItem = new AtomicInteger(0);
-	
-	/**
-	 * Flag to insure initialization occurs exactly once.
-	 */
-	private AtomicBoolean alreadyInitialized = new AtomicBoolean(false);
+	private String initializationData = null;
+	private ErrorHandlerProgrammability ehp = null;
 	
 	/**
 	 * A map comprising an entry for each work item with a corresponding count
@@ -60,143 +37,42 @@ public class ErrorHandler implements IErrorHandler {
 	 */
 	private ConcurrentHashMap<String,AtomicLong> retryMap = new ConcurrentHashMap<String,AtomicLong>();
 	
-	public enum InitializationDataKey { 
-		KillJobLimit("max_job_errors"), 
-		;
-		
-		private String altname = null;
-		
-		private InitializationDataKey() {
-			altname = name();
-		}
-		
-		private InitializationDataKey(String value) {
-			altname = value;
-		}
-		
-		public String altname() {
-			return altname;
-		}
-	};
-	
-	private static int DefaultJobErrorLimit = JdUser.DefaultJobErrorLimit;
-	
-	private AtomicInteger jobErrorLimit = new AtomicInteger(DefaultJobErrorLimit);
-	
+	/**
+	 * The number of work item errors encountered for the job
+	 */
 	private AtomicInteger jobErrorCount = new AtomicInteger(0);
 	
 	public ErrorHandler() {
 	}
 	
 	public ErrorHandler(String initializationData) {
-		initialize(initializationData);
+		setInitializationData(initializationData);
 	}
 	
-	/**
-	 * Insure we initialize exactly once
-	 */
-	private void initializeOnce() {
-		synchronized(ErrorHandler.class) {
-			if(!alreadyInitialized.get()) {
-				Properties systemProperties = System.getProperties();
-				initTimeoutRetrys(systemProperties);
-				alreadyInitialized.set(true);
-			}
-		}
+	private void setInitializationData(String value) {
+		initializationData = value;
 	}
 	
-	/**
-	 * Use the user specified -DJobDriverErrorHandlerMaximumNumberOfTimeoutRetrysPerWorkItem to set
-	 * max timeouts per work item, if specified otherwise 0 meaning no retrys
-	 */
-	private void initTimeoutRetrys(Properties systemProperties) {
-		String key = SystemPropertyNames.JobDriverErrorHandlerMaximumNumberOfTimeoutRetrysPerWorkItem.name();
-		if(systemProperties != null) {
-			if(systemProperties.containsKey(key)) {
-				String value = systemProperties.getProperty(key);
-				try {
-					int integer = Integer.parseInt(value);
-					if(integer < 0) {
-						String text = "Invalid: "+key+"="+value;
-						ToLog.info(ErrorHandler.class,text);
-					}
-					else {
-						maximumNumberOfTimeoutRetrysPerWorkItem.set(integer);;
-						String text = "Override: "+key+"="+maximumNumberOfTimeoutRetrysPerWorkItem.get();
-						ToLog.info(ErrorHandler.class,text);
-					}
-				}
-				catch(Exception e) {
-					String text = "Invalid: "+key+"="+value;
-					ToLog.info(ErrorHandler.class,text);
-				}
-			}
-			else {
-				String text = "Default: "+key+"="+maximumNumberOfTimeoutRetrysPerWorkItem.get();
-				ToLog.info(ErrorHandler.class,text);
-			}
-		}
-		else {
-			String text = "Default: "+key+"="+maximumNumberOfTimeoutRetrysPerWorkItem.get();
-			ToLog.info(ErrorHandler.class,text);
-		}
-	}
-	
-	private Map<String, String> parse(String initializationData) {
-		Map<String, String> map = new HashMap<String, String>();
-		try {
-			if(initializationData != null) {
-				ArrayList<String> toks = QuotedOptions.tokenizeList(initializationData, true);
-				if(toks != null) {
-					for(String tok : toks) {
-						String[] split = tok.split("=");
-						String key = split[0].trim().toLowerCase();
-						String value = split[1].trim();
-						map.put(key, value);
-					}
-				}
-			} 
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
-		return map;
+	private String getInitializationData() {
+		return initializationData;
 	}
 	
 	@Override
 	public void initialize(String initializationData) {
-		if(initializationData != null) {
-			Map<String, String> map = parse(initializationData);
-			String key;
-			key = InitializationDataKey.KillJobLimit.name().toLowerCase();
-			if(map.containsKey(key)) {
-				String value = map.get(key);
-				initKillJob(value);
-			}
-			else {
-				String altkey = InitializationDataKey.KillJobLimit.altname();
-				if(map.containsKey(altkey)) {
-					String value = map.get(altkey);
-					initKillJob(value);
-				}
-			}
-		}
-	}
-
-	private void initKillJob(String value) {
-		try {
-			int expect = DefaultJobErrorLimit;
-			int update = Integer.parseInt(value);
-			jobErrorLimit.compareAndSet(expect, update);
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
+		setInitializationData(initializationData);
 	}
 	
 	@Override
 	public IErrorHandlerDirective handle(String serializedCAS, Object object) {
-		initializeOnce();
+		// Do not actually initialize until the first handle situation
+		// arises so as to not create the file ErrorHandler.log unless 
+		// a work item error or timeout occurs.
+		synchronized(ErrorHandler.class) {
+			if(ehp == null) {
+				ehp = new ErrorHandlerProgrammability(getInitializationData());
+			}
+		}
+		// Make ready a default directive for return
 		ErrorHandlerDirective jdUserDirective = new ErrorHandlerDirective();
 		try {
 			Throwable userThrowable = null;
@@ -209,14 +85,16 @@ public class ErrorHandler implements IErrorHandler {
 					userThrowable = (Throwable) object;
 					userThrowable.getClass();
 					ToLog.info(ErrorHandler.class, serializedCAS);
-					ToLog.info(ErrorHandler.class, userThrowable);
+					ToLog.warning(ErrorHandler.class, userThrowable);
 					if(serializedCAS != null) {
 						retryMap.putIfAbsent(serializedCAS, new AtomicLong(0));
 						AtomicLong retryCount = retryMap.get(serializedCAS);
 						long count = retryCount.incrementAndGet();
-						if(count <= maximumNumberOfTimeoutRetrysPerWorkItem.get()) {
+						Integer max_timeout_retrys_per_workitem = ehp.getInteger(Key.max_timeout_retrys_per_workitem);
+						// don't kill work item if still eligible for timeout retry
+						if(count <= max_timeout_retrys_per_workitem) {
 							jdUserDirective.resetKillWorkItem();
-							String text = "retry # "+count+" of "+maximumNumberOfTimeoutRetrysPerWorkItem.get()+" for: "+serializedCAS;
+							String text = "retry # "+count+" of "+max_timeout_retrys_per_workitem+" for: "+serializedCAS;
 							ToLog.info(ErrorHandler.class,text);
 						}
 						else {
@@ -238,13 +116,16 @@ public class ErrorHandler implements IErrorHandler {
 			else {
 				jobErrorCount.incrementAndGet();
 			}
-			if(jobErrorCount.get() > jobErrorLimit.get()) {
+			Integer max_job_errors = ehp.getInteger(Key.max_job_errors);
+			// kill job if max errors limit is surpassed
+			if(jobErrorCount.get() > max_job_errors) {
 				jdUserDirective.setKillJob();
 			}
 		}
 		catch(Exception e) {
 			e.printStackTrace();
 		}
+		// record results in ErrorHandler.log
 		StringBuffer sb = new StringBuffer();
 		sb.append("KillJob: ");
 		sb.append(jdUserDirective.isKillJob());
