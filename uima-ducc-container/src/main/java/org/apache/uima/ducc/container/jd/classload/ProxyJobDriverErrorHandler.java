@@ -23,6 +23,7 @@ import java.lang.reflect.Type;
 import java.net.URLClassLoader;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.container.common.classloader.ContextSwitch;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.classloader.ProxyHelper;
@@ -60,6 +61,73 @@ public class ProxyJobDriverErrorHandler {
 		}
 	}
 	
+	private String getErrorHandlerClassname() {
+		String location = "getErrorHandlerClassname";
+		String retVal = null;
+		try {
+			FlagsHelper fh = FlagsHelper.getInstance();
+			retVal = fh.getUserErrorHandlerClassname();
+			String type = null;;
+			if(retVal != null) {
+				type = "user";
+			}
+			else {
+				DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
+				String key = DuccPropertiesResolver.ducc_jd_error_handler_class;
+				retVal = dpr.getProperty(key);
+				if(retVal != null) {
+					type = "system";
+				}
+				else {
+					type = "default";
+					retVal = defaultClassName;
+				}
+			}
+			logger.info(location, ILogger.null_id, "type="+type+" "+"value="+retVal);
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+		return retVal;
+	}
+	
+	private String getErrorHandlerInitArgs() {
+		String location = "getErrorHandlerInitArgs";
+		String retVal = null;
+		try {
+			FlagsHelper fh = FlagsHelper.getInstance();
+			StringBuffer sb = new StringBuffer();
+			DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
+			String key = DuccPropertiesResolver.ducc_jd_error_handler_args;
+			//
+			String valueSystem = dpr.getFileProperty(key);
+			if(valueSystem != null) {
+				sb.append(valueSystem);
+				sb.append(" ");
+				String type = "system";
+				logger.debug(location, ILogger.null_id, "type="+type+" "+"value="+valueSystem);
+			}
+			//
+			String valueUser = fh.getUserErrorHandlerCfg();
+			if(valueUser != null) {
+				sb.append(valueUser);
+				sb.append(" ");
+				String type = "user";
+				logger.debug(location, ILogger.null_id, "type="+type+" "+"value="+valueUser);
+			}
+			//
+			String value = sb.toString().trim();
+			if(sb.length() > 0) {
+				retVal = value;
+				logger.trace(location, ILogger.null_id, "retVal="+retVal);
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+		return retVal;
+	}
+	
 	private void initialize() throws Exception {
 		String location = "initialize";
 		FlagsHelper fh = FlagsHelper.getInstance();
@@ -70,11 +138,11 @@ public class ProxyJobDriverErrorHandler {
 				logger.trace(location, ILogger.null_id, item);
 			}
 		}
-		String className = fh.getUserErrorHandlerClassname();
-		if(className == null) {
-			className = defaultClassName;
-		}
-		String initializationData = fh.getUserErrorHandlerCfg();
+		//
+		String className = getErrorHandlerClassname();
+		//
+		String initializationData = getErrorHandlerInitArgs();
+		//
 		classLoader = createClassLoader(userClasspath);
 		Class<?> classAnchor = classLoader.loadClass(className);
 		objectInstance = classAnchor.newInstance();
