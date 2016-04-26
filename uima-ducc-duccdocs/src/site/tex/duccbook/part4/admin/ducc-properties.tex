@@ -699,6 +699,26 @@
             \item[Type] Local
           \end{description}
           
+        
+        \item[ducc.jd.error.handler.class] \hfill \\
+          The error handler class employed when work items fail or time-out in order
+          to determine what to do next in three dimensions: 
+          job kill or continue, process kill or continue, work item kill or continue.
+          User specified --driver_exception_handler <class> prevails.
+          \begin{description}
+            \item[Default Value] org.apache.uima.ducc.ErrorHandler
+            \item[Type] Local
+          \end{description}
+                  
+        \item[ducc.jd.error.handler.args] \hfill \\
+          The error handler args passed to the error handler class (see above).
+          These values, if any, are combined with any specified by the user.
+          Individual user specified --driver_exception_handler_arguments <args> 
+          prevail.
+          \begin{description}
+            \item[Default Value] max_job_errors=15 max_timeout_retrys_per_workitem=0
+            \item[Type] Local
+          \end{description}
           
       \end{description}
       
