@@ -817,7 +817,7 @@ public class Scheduler
         }
 
         HashMap<Node, Integer> nodeUpdates = new HashMap<Node, Integer>();
-        synchronized(deadNodes) {
+        synchronized(illNodes) {
             nodeUpdates.putAll(illNodes);
             illNodes.clear();
         }
@@ -877,7 +877,7 @@ public class Scheduler
      * We first accept any changes and requests from the outside world and place them where they
      * can be acted on in this epoch.
      *
-     * We then pass all relevent requests and resources to the IScheduler.  This returns a
+     * We then pass all relevant requests and resources to the IScheduler.  This returns a
      * SchedulingUpdate which is passed to the dispatcher to be acted upon.
      */
     public JobManagerUpdate schedule()
@@ -1420,13 +1420,14 @@ public class Scheduler
         //
         // Not a cheap query, by the way.
         //
+        // NOTE: No longer used by the rm_qoccupancy script which now goes directly to the database
+        //
+        
+        
         for ( NodePool np : nodepools ) {
 
-            Collection<Machine> machs = np.getAllMachines().values();        
-            for ( Machine m : machs ) {            
-                ret.addMachine(m.queryMachine());
-            }
-
+            // NOTE:  The offline & dead nodes are also in the AllMachines list so must be removed
+            Map<Node, Machine> allMachs     = np.getAllMachines();
             Map<Node, Machine> offline      = np.getOfflineMachines();          // UIMA-4234
             Map<Node, Machine> unresponsive = np.getUnresponsiveMachines();     // UIMA-4234
 
@@ -1439,6 +1440,7 @@ public class Scheduler
                     qm.setUnresponsive();
                 }
                 ret.addMachine(qm);
+                allMachs.remove(n);
             }
 
             for ( Node n : unresponsive.keySet() ) {
@@ -1446,7 +1448,13 @@ public class Scheduler
                 RmQueriedMachine qm = m.queryMachine();
                 qm.setUnresponsive();
                 ret.addMachine(qm);
-            }            
+                allMachs.remove(n);
+            }
+            
+            for ( Node n : allMachs.keySet() ) { 
+              Machine m = allMachs.get(n);
+              ret.addMachine(m.queryMachine());
+          }
         }
 
         return ret;

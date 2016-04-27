@@ -32,19 +32,21 @@ class DuccRmQOccupancy(DuccUtil):
 
 
     def format(self, nodes, shares):
-        print("%20s %11s %6s %6s %15s %10s %6s %6s %6s %8s %7s %10s %8s" %  ("Node", "Blacklisted", "Online", "Status", "Nodepool", "Memory", "Order", "Free", "In-Use", "Np-InUse", "Quantum", "Reservable", "Classes"))
-        print("%20s %11s %6s %6s %15s %10s %6s %6s %6s %8s %7s %10s %8s" %  ("----", "-----------", "------", "------", "--------", "------", "-----", "----", "------", "--------", "-------", "----------", "-------"))
+        typemap = {'R':'Res', 'M':' AP', 'J':'Job', 'S':'Svc'}
+        print("%20s %6s %11s %6s %10s %15s %10s %6s %6s %6s %8s %7s %10s %8s" %  ("Node", "Status", "Blacklisted", "Online", "Responsive", "Nodepool", "Memory", "Order", "Free", "In-Use", "Np-InUse", "Quantum", "Reservable", "Classes"))
+        print("%20s %6s %11s %6s %10s %15s %10s %6s %6s %6s %8s %7s %10s %8s" %  ("----", "------", "-----------", "------", "----------", "--------", "------", "-----", "----", "------", "--------", "-------", "----------", "-------"))
         for n in nodes:
-            if (n['responsive']):
+            if (n['blacklisted'] == 'False' and n['online'] == 'True' and n['responsive'] == 'True'):
                 status = 'up'
             else:
                 status = 'down'
-            print "%20s %11s %6s %6s %15s %10s %3s(Q) %6s %6s %8s %7s %10s  %-8s" %  (n['name'], n['blacklisted'], n['online'], status, n['nodepool'], 
+            print "%20s %6s %11s %6s %10s %15s %10s %3s(Q) %6s %6s %8s %7s %10s  %-8s" %  (n['name'], status, n['blacklisted'], n['online'], n['responsive'], n['nodepool'], 
                                                                              n['memory'], n['share_order'], n['shares_left'], n['assignments'], 
                                                                              n['np_assignments'], n['quantum'], n['reservable'], n['classes'])
             if ( shares.has_key(n['name']) ):
                 for s in shares[n['name']]:
-                    fmt = '%19s ' + s['jobtype'] +'[%8s] S[%8s] O[%s] II[%8s] IR[%8s] E[%5s] P[%5s] F[%5s] S[%10s]'
+                    type = typemap[s['jobtype']]
+                    fmt = '%19s ' + type +':%-8s ShareId:%-8s Shares:%-s InitTime:%-8s Investment:%-8s Evicted:%-5s Purged:%-5s Fixed:%-5s State:%-10s'
                     state = s['state']
                     if ( state == 'null' ):
                         state = "Assigned"

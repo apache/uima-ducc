@@ -233,27 +233,24 @@ public class Machine
         // yet assigning to a job so we have to check both the shares given out, and whether the virtual share order is
         // still pristine.
         //
-        // We use this trick so we can use the "normal" allocation mechanisms for bookeeping without special-casing reservations.
+        // We use this trick so we can use the "normal" allocation mechanisms for bookkeeping without special-casing reservations.
         //
-        // UIMA-4142, include blacklist considerations
-        return ( (activeShares.size()) == 0 && (virtual_share_order == share_order) && ( !isBlacklisted() ) );
+        // UIMA-4920, called only if isSchedulable is true
+        return ( (activeShares.size()) == 0 && (virtual_share_order == share_order) );
     }
 
     /**
      * Can preemption free this machine?
+     * UIMA-4920, called only if isSchedulable is true
      */
     public boolean isFreeable()
     {
-        boolean answer = true;
-        // UIMA-4142, include blacklist considerations
-        if ( isBlacklisted() ) return false;
-
         for ( Share s : activeShares.values() ) {
             if ( s.isFixed() ) {
                 return false;
             }
         }
-        return answer;
+        return true;
     }
 
     public int countNpShares()

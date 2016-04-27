@@ -226,7 +226,7 @@ class NodePool
         return count;
     }
      /**
-     * How many do I have, including recusring down the children?
+     * How many do I have, including recursing down the children?
      */
     int countUnresponsiveMachines()
     {
@@ -321,7 +321,7 @@ class NodePool
         if ( mlist == null ) return 0;
 
         for ( Machine m : mlist.values() ) {
-            if ( m.isFree() ) {
+            if ( isSchedulable(m) && m.isFree() ) {
                 cnt++;
             }
         }
@@ -1374,6 +1374,10 @@ class NodePool
         while ( iter.hasNext() && (given < needed) ) {
             Machine m = iter.next();
             logger.info(methodName, j.getId(), "Examining", m.getId());
+            if ( !isSchedulable(m) ) {
+              logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is offline or unresponsive or blacklisted");
+              continue;
+            }
             if ( preemptables.containsKey(m.key()) ) {         // already counted, don't count twice
                 logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "already counted.");
                 continue;
@@ -1556,7 +1560,7 @@ class NodePool
 
         // Machs is all candidate machines, ordered by empty, then most preferable, according to the eviction policy.
         for ( Machine mm : machs ) {
-            if ( mm.isFree() ) {
+            if ( isSchedulable(mm) && mm.isFree() ) {
                 Share s = new Share(mm, job, mm.getShareOrder());
                 s.setFixed();
                 connectShare(s, mm, job, mm.getShareOrder());
@@ -1982,7 +1986,8 @@ class NodePool
     }
 
     //
-    // Order shares by INCRESING investment
+    // Order shares by INCREASING investment
+    // Note:  Machines may not be schedulable but that is checked after sorting in FindMachines
     //
     class ReservationSorter
     	implements Comparator<Machine>
