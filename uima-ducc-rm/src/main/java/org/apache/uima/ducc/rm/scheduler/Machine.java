@@ -108,7 +108,7 @@ public class Machine
     }
     
     // UIMA-4712
-    // See if placing the subject job on this machine violates vertical stacking constraings
+    // See if placing the subject job on this machine violates vertical stacking constraint
     public synchronized boolean hasVerticalConflict(IRmJob j)
     {
         for ( Share s : activeShares.values() ) {
@@ -121,7 +121,7 @@ public class Machine
     }
 
     // UIMA-4142
-    // Black list some number of shres for a specific job and proc.  This reduces the number of
+    // Black list some number of shares for a specific job and proc.  This reduces the number of
     // schedulable shares until they are whitelisted.
     //public synchronized void blacklist(DuccId jobid, DuccId procid, int nshares)
     public synchronized void blacklist(DuccId jobid, DuccId procid, long jobmem)

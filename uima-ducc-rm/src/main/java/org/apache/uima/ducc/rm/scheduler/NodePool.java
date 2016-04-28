@@ -833,8 +833,12 @@ class NodePool
         // UIMA-4142 Must set vMachinesByOrder and virtualMachinesByOrder independently of
         //           machinesByOrder because blacklisting can cause v_order != r_order
         //           during reset.
+        // UIMA-4910 Ignore unusable machines 
         virtualMachinesByOrder.clear();
         for ( Machine m : allMachines.values() ) {
+            if ( !isSchedulable(m) ) {
+              continue;               // Ignore unusable machines
+            }
             m.resetVirtualShareOrder();
             int v_order = m.getVirtualShareOrder();
             int r_order = m.getShareOrder();
@@ -1341,8 +1345,10 @@ class NodePool
      *
      * We save some trouble for later by remembering which machines we counted - we wouldn't be 
      * counting them if we didn't know FOR SURE at this point that we need them.
+     * Sort on least eviction cost to get the cheapest set of preemptables.
      *
      * @returns number of machines given
+     *          and updates the table of preemptables
      */
     int countFreeableMachines(IRmJob j, int needed)
     {
@@ -1365,7 +1371,7 @@ class NodePool
         }
         logger.info(methodName, j.getId(), sb.toString());
 
-        Collections.sort(machs, new MachineByAscendingOrderSorter());
+        Collections.sort(machs, new MachineByAscendingEvictionCostSorter());
 
         int given = 0;           // total to give, free or freeable
         Iterator<Machine> iter = machs.iterator();
@@ -1401,7 +1407,7 @@ class NodePool
         // Remember how many full machines we need to free up when we get to preemption stage.
 
         for ( Machine m : pables ) {
-            logger.info(methodName, j.getId(), "Setting up", m.getId(), "to clear for reservation");
+            logger.info(methodName, j.getId(), "Setting up", m.getId(), "for eviction");
             preemptables.put(m.key(), m);
             nMachinesByOrder[m.getShareOrder()]--;
         }
@@ -1467,15 +1473,6 @@ class NodePool
      *
      *******************************************************************************************/
 
-    protected ArrayList<Machine> sortedForReservation(HashMap<Node, Machine> machs)
-    {
-        ArrayList<Machine> answer = new ArrayList<Machine>();
-        answer.addAll(machs.values());
-
-        Collections.sort(answer, new ReservationSorter());
-        return answer;
-    }
-
     /**
      * We need to make enough space for 'cnt' full machines.
      *
@@ -1526,7 +1523,6 @@ class NodePool
     void  findMachines(IRmJob job, ResourceClass rc)
     {
     	String methodName = "findMachines";        
-        ArrayList<Machine> machs;
 
         int order = job.getShareOrder();
 
@@ -1536,14 +1532,6 @@ class NodePool
 
         logger.info(methodName, job.getId(), "counted", counted, "current", current, "needed", needed, "order", order);
         if ( needed <= 0 ) return;
-
-        //
-        // Build up 'machs' array, containing all candidate machines, sorted by 
-        //    a) primarily, least investment, if SHRINK_BY_INVESTMENT is active
-        //    b) secondarily, least number of assigned shares
-        //
-        // Free machines always sort to the front of the list of course.
-        //
 
         int cnt = countFreeMachines(order);
         if ( cnt < needed ) {
@@ -1556,10 +1544,11 @@ class NodePool
         if ( ! machinesByOrder.containsKey(order) ) {       // hosed if this happens
             throw new SchedInternalError(job.getId(), "Scheduling counts are wrong - machinesByOrder does not match nMachinesByOrder");
         }
-        machs = sortedForReservation(machinesByOrder.get(order));
-
-        // Machs is all candidate machines, ordered by empty, then most preferable, according to the eviction policy.
-        for ( Machine mm : machs ) {
+        
+        // Since all are the same size and only empty ones are considered, no need to sort
+        //machs = sortedForReservation(machinesByOrder.get(order));
+        
+        for ( Machine mm : machinesByOrder.get(order).values() ) {
             if ( isSchedulable(mm) && mm.isFree() ) {
                 Share s = new Share(mm, job, mm.getShareOrder());
                 s.setFixed();
@@ -1986,30 +1975,32 @@ class NodePool
     }
 
     //
-    // Order shares by INCREASING investment
-    // Note:  Machines may not be schedulable but that is checked after sorting in FindMachines
+    // Order shares by INCREASING preemption cost (all free followed by those with least eviction cost)
+    // Don't need to check for unschedulable or un-freeable as they will be ignored later.
     //
-    class ReservationSorter
-    	implements Comparator<Machine>
-    {	
-    	public int compare(Machine m1, Machine m2)
-        {
-            if ( m1.equals(m2) )   return 0;
+    class MachineByAscendingEvictionCostSorter implements Comparator<Machine> {
+        public int compare(Machine m1, Machine m2) {
+            if (m1.equals(m2))
+                return 0;
 
-            if ( m1.isFree() ) {             // to the front of the list, ordered by smallest memory
-                if ( m2.isFree() ) return (m1.getShareOrder() - m2.getShareOrder());
-                return -1;                   // m2 not free, m1 to the front of the list
+            if (m1.isFree()) {
+                if (m2.isFree())
+                    return 0;
+                else
+                    return -1; // m2 not free, m1 to the front of the list
+            } else if (m2.isFree())
+                return 1;      // m1 not free, m2 to the front of the list
+
+            // Sort the lowest eviction cost first
+            // Since totals are the same, most free shares ==> smallest eviction cost
+            switch (evictionPolicy) {
+                case SHRINK_BY_MACHINE :
+                    return m2.countFreeShares() - m1.countFreeShares();
+                case SHRINK_BY_INVESTMENT :
+                    return m1.getInvestment() - m2.getInvestment();
+                default:
+                    return 0;
             }
-
-            switch ( evictionPolicy ) {
-                case SHRINK_BY_MACHINE:
-                    return m2.countFreeShares() - m1.countFreeShares();       // most free shares first ==> smallest eviction
-
-                case SHRINK_BY_INVESTMENT: 
-                    return m1.getInvestment() - m2.getInvestment();           // lowest investment
-            }
-
-            return 0;                                                         // cannot get here
         }
     }
 
