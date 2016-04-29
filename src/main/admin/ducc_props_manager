@@ -50,6 +50,16 @@ class DuccPropManager:
 
         file3_props = Properties()
 
+        # Check for a site specification override of the property renamed in 2.1.0
+        oname = 'ducc.threads.limit'
+        nname = 'ducc.job.max.pipelines.count'
+        prop = file2_props.get_property(oname)
+        if prop != None:
+            prop.c.append('# RENAMED by merger ' + time.strftime('%c') + ' old name: ' + prop.k)
+            prop.k = nname
+            file2_props.put_property(prop)
+            file2_props.delete(oname)
+
         # first pass, create merged props with stuff in base props file updated with delta
         for k in file1_props.get_keys():
             base = file1_props.get_property(k)

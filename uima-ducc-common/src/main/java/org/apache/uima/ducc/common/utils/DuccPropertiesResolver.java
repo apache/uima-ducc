@@ -90,7 +90,6 @@ public class DuccPropertiesResolver {
     
     //<UIMA-4612>
     public static final String ducc_job_max_pipelines_count = "ducc.job.max.pipelines.count";
-    public static final String ducc_process_max_pipelines_count = "ducc.process.max.pipelines.count";
     //</UIMA-4612>
     
     public static final String ducc_driver_jvm_args = "ducc.driver.jvm.args";
