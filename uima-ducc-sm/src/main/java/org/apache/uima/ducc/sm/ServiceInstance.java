@@ -183,14 +183,15 @@ class ServiceInstance
         args.add(sset.getId().toString());
 
         @SuppressWarnings("rawtypes")
-		Enumeration keys = props.propertyNames();
+        Enumeration keys = props.propertyNames();
         while ( keys.hasMoreElements() ) {
             String k = (String) keys.nextElement();
             // System.out.println("------ Set argument " + k + " to " + ((String)props.get(k)));
             String v = (String) props.get(k);
-
             args.add("--" + k);
-            args.add(v);
+            if (!k.equals("debug")) {         // Only debug has no value
+              args.add(v);
+            }
         }
         return args.toArray(new String[args.size()]);
     }
