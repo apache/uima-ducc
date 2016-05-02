@@ -950,7 +950,7 @@ public class ServiceSet
             meta_props.setProperty(implementors_key, s);
         }
 
-       determinePingerStatus();
+        determinePingerStatus();
         
         meta_props.put(IStateServices.SvcMetaProps.reference.pname(), isReferencedStart() ? "true" : "false");
         meta_props.put(IStateServices.SvcMetaProps.autostart.pname(), isAutostart()       ? "true" : "false");
