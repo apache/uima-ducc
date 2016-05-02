@@ -30,4 +30,5 @@ interface IServiceMeta
     public void run();
     public void stop();
     public ServiceState getServiceState();
+    public long getServiceStatisticsTimestamp();
 }

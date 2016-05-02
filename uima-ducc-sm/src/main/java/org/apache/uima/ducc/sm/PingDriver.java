@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -43,6 +44,7 @@ import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
@@ -104,6 +106,7 @@ class PingDriver
     int failure_max;
     int failure_window;
 
+    long service_statistics_timestamp = -1;
     IServiceStatistics service_statistics = null;
 
     String user;
@@ -292,6 +295,12 @@ class PingDriver
     {
         // nothing
     }
+    
+    public long getServiceStatisticsTimestamp()
+    {
+        return service_statistics_timestamp;
+    }
+        
 
     public IServiceStatistics getServiceStatistics()
     {
@@ -326,6 +335,32 @@ class PingDriver
     {
         String methodName = "handleStatistics";
 
+        // ***** ERROR INJECTION *****
+        String key = "ducc.sm.meta.ping.error.injection.missing.percentage";
+        String value = DuccPropertiesResolver.getInstance().getFileProperty(key);
+        long missingPercentage = 0;
+        try {
+        	missingPercentage = Long.parseLong(value);
+        }
+        catch(Exception e) {
+        	logger.trace(methodName, sset.getId(), e);
+        }
+        logger.trace(methodName, sset.getId(), key+"="+missingPercentage);
+        if(missingPercentage > 0) {
+        	if(missingPercentage < 100) {
+        		Random random = new Random();
+                int n = random.nextInt(100);
+                if(n < missingPercentage) {
+                	logger.warn(methodName, sset.getId(), "skip pinger data");
+                	return;
+                }
+                logger.warn(methodName, sset.getId(), "keep pinger data");
+        	}
+        }
+        // ***** ERROR INJECTION *****
+        
+        this.service_statistics_timestamp = response.getTimestamp();
+        
         this.service_statistics = response.getStatistics();
         if ( service_statistics == null ) {
             logger.error(methodName, sset.getId(), "Service statics are null!");

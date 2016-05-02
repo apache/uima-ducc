@@ -30,6 +30,7 @@ public class Pong
 {
 	private static final long serialVersionUID = 1L;
 
+	long timestamp = -1;
 	IServiceStatistics statistics;
     int additions;
     Long[] deletions;
@@ -39,8 +40,13 @@ public class Pong
 
     public Pong()
     {
+    	timestamp= System.currentTimeMillis();
     }
 
+    public long getTimestamp() {
+    	return timestamp;
+    }
+    
     public IServiceStatistics getStatistics() 
     {
 		return statistics;

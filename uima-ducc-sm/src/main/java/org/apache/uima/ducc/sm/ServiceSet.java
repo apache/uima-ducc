@@ -45,6 +45,7 @@ import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
@@ -128,6 +129,9 @@ public class ServiceSet
     // Date of last known succesful ping of the service.  0 means never.  UIMA-4309
     long last_ping = 0;
 
+    boolean notPinging = false;
+    String notPingingReason = null;
+    
     // Date of last known time any instance made it to Running state.  0 means never. UIMA-4309
     long last_runnable = 0;
 
@@ -857,7 +861,66 @@ public class ServiceSet
         prepareMetaProperties();
         stateHandler.updateMetaProperties(id, meta_props);
     }
-
+    
+    private long pingStabilityDefault = 10;
+    private long pingRateDefault = 60 * 1000;
+    
+    private long pingStability = -1;
+	private long pingRate = -1;
+    
+	private void configPingStability() {
+		pingStability = SystemPropertyResolver.getLongProperty("ducc.sm.meta.ping.stability", pingStabilityDefault);
+	}
+	
+	private void configPingRate() {
+		pingRate = SystemPropertyResolver.getLongProperty("ducc.sm.meta.ping.rate", pingRateDefault);
+	}
+	
+	private void configPing() {
+		configPingRate();
+		configPingStability();
+	}
+	
+	/**
+	 * If the Service state is Available= but the pinger data has not been updated
+	 * beyond the expiry time then determine the the pinger data is stale
+	 * 
+	 * The expiry time is calculated as pingStability * pingRate, nominally 10 * 60000.
+	 */
+    private void determinePingerStatus() {
+    	String location = "determinePingerStatus";
+    	switch(getState()) {
+    	case Available:
+    		if(serviceMeta == null) {
+    			notPinging = true;
+    			notPingingReason = "pinger has not reported";
+    		}
+    		else {
+    			configPing();
+    			long pingExpiry = pingStability * pingRate;
+        		long now = System.currentTimeMillis();
+        		long pingElapsed = now - last_ping;
+        		if(pingElapsed > pingExpiry) {
+        			notPinging = true;
+        			notPingingReason = "pinger data is stale";
+        		}
+        		else {
+        			notPinging = false;
+        			notPingingReason = "N/A";
+        		}
+        	}
+    		break;
+    	default:
+    		notPinging = false;
+			notPingingReason = "N/A";
+    		break;
+    	}
+    	if(notPinging) {
+    		logger.info(location, id, notPingingReason);
+    	}
+    	return;
+    }
+    
     void prepareMetaProperties()
     {
         // String methodName = "saveMetaProperties";
@@ -887,13 +950,14 @@ public class ServiceSet
             meta_props.setProperty(implementors_key, s);
         }
 
+       determinePingerStatus();
         
         meta_props.put(IStateServices.SvcMetaProps.reference.pname(), isReferencedStart() ? "true" : "false");
         meta_props.put(IStateServices.SvcMetaProps.autostart.pname(), isAutostart()       ? "true" : "false");
 
         meta_props.put(IStateServices.SvcMetaProps.enabled.pname(), ""+enabled);
         meta_props.put(IStateServices.SvcMetaProps.service_state.pname(), ""+ getState());
-        meta_props.put(IStateServices.SvcMetaProps.ping_active.pname(), "" + (serviceMeta != null));
+        meta_props.put(IStateServices.SvcMetaProps.ping_active.pname(), "" + !notPinging);
         meta_props.put(IStateServices.SvcMetaProps.service_alive.pname(),      "false");
         meta_props.put(IStateServices.SvcMetaProps.service_healthy.pname(),    "false");
 
@@ -911,7 +975,7 @@ public class ServiceSet
                 meta_props.put(IStateServices.SvcMetaProps.service_statistics.pname(), "" + ss.getInfo());
 
                 if ( ss.isAlive() ) {                    // UIMA-4309
-                    setLastPing(System.currentTimeMillis());
+                    setLastPing(serviceMeta.getServiceStatisticsTimestamp());
                 }
             }
         }
