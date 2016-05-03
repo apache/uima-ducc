@@ -882,8 +882,8 @@ public class ServiceSet
 	}
 	
 	/**
-	 * If the Service state is Available= but the pinger data has not been updated
-	 * beyond the expiry time then determine the the pinger data is stale
+	 * If the Service state is Available but the pinger data has not been updated
+	 * beyond the expiry time then determine that the pinger data is stale
 	 * 
 	 * The expiry time is calculated as pingStability * pingRate, nominally 10 * 60000.
 	 */
