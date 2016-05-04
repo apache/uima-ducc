@@ -313,7 +313,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 		DuccId jobid = null;
 		if(args != null) {
 			for(String arg : args) {
-				logger.info(location, jobid, arg);
+				logger.trace(location, jobid, arg);
 			}
 		}
 	}
@@ -326,7 +326,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 			for(Entry<Object, Object> entry : properties.entrySet()) {
 				String key = (String) entry.getKey();
 				String value = (String) entry.getValue();
-				logger.info(location, jobid, key+"="+value);
+				logger.trace(location, jobid, key+"="+value);
 			}
 		}
 	}
