@@ -918,6 +918,11 @@ public class ServiceSet
     	}
     	if(notPinging) {
     		logger.info(location, id, notPingingReason);
+    		switch(service_state) {
+    		case Available:
+    			logger.info(location, id, service_state+" => "+ServiceState.Waiting);
+    			service_state = ServiceState.Waiting;
+    		}
     	}
     	return;
     }
@@ -1559,6 +1564,7 @@ public class ServiceSet
         if(notPinging) {
         	switch(new_state) {
         	case Available:
+        	case Waiting:	
         		new_state = ServiceState.Waiting;
         		cumulative = new_state;
         		logger.debug(methodName, id, "NotPinging[1]: "+req_new_state+" => "+new_state+"; "+req_cumulative+" => "+cumulative);
