@@ -85,7 +85,7 @@ public class ServiceInterpreter {
 					retVal = "Pinger is running"; // UIMA-4177
 				}
 				else {
-					retVal = "Pinger is unable to start";
+					retVal = "Pinger is not reporting";  // UIMA-4829
 				}
 			}
 			else if(state.equalsIgnoreCase(ServiceState.Available.name())) {
