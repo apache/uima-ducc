@@ -150,27 +150,27 @@ if (table_style.equals("classic")) {
 		<thead>
 		<tr class="ducc-head">
 		<th class="ducc-col-terminate"></th>
-		<th title="The system assigned id for this job" class="sorttable_numeric">Id</th>
-		<th title="The time this job was submitted">Start</th>
-		<th title="The time this job lasted (or the projected time until finish if presently running), units ddd:hh:mm:ss">Duration</th>
-		<th class="ducc-no-filter" id="user_column_heading" title="The user who submitted this job">User</th>
-		<th title="The user specified class of this job">Class</th>
-		<th title="The current state of this job">State</th>
-		<th title="The reason for the final state of this job, normally EndOfJob; or extraordinary runtime status">Reason<br><small>or extraordinary status</small></th>
-		<th title="The current state of service dependencies">Services</th>
-		<th title="The number of job processes currently running">Proc-<br>esses</th>
-		<th title="The number of job processes that failed during initialization">Init<br>Fails</th>
-		<th title="The number of job processes that failed during runtime (post-initialization)">Run<br>Fails</th>
-		<th title="The count for all job processes of major faults which required loading a memory page from disk">Pgin</th>
-		<th title="The GB swapped out to disk for all job processes, current if state=running or maximum if state=completed" class="sorttable_numeric">Swap</th>
-		<th title="Each job process size, in GB">Memory</th>
-		<th title="The total number of work items for this job">Total</th>
-		<th title="The number of work items that completed successfully">Done</th>
-		<th title="The number of work items that failed to complete successfully">Error</th>
-		<th title="The number of work items currently dispatched (queued+operating)">Dis-<br>patch</th>
-		<th title="The number of work items that were retried, excluding preemptions">Retry</th>
-		<th title="Tne number of work items that were preempted">Pre-<br>empt</th>
-		<th title="The user specified description of this job">Description</th>
+		<th class="sorttable_numeric" title="The system assigned id for this job">Id</th>
+		<th class="none"              title="The time this job was submitted">Start</th>
+		<th class="none"              title="The time this job lasted (or the projected time until finish if presently running), units ddd:hh:mm:ss">Duration</th>
+		<th class="ducc-no-filter"    title="The user who submitted this job" id="user_column_heading">User</th>
+		<th class="none"              title="The user specified class of this job">Class</th>
+		<th class="none"              title="The current state of this job">State</th>
+		<th class="none"              title="The reason for the final state of this job, normally EndOfJob; or extraordinary runtime status">Reason<br><small>or extraordinary status</small></th>
+		<th class="none"              title="The current state of service dependencies">Services</th>
+		<th class="sorttable_numeric" title="The number of job processes currently running">Proc-<br>esses</th>
+		<th class="sorttable_numeric" title="The number of job processes that failed during initialization">Init<br>Fails</th>
+		<th class="sorttable_numeric" title="The number of job processes that failed during runtime (post-initialization)">Run<br>Fails</th>
+		<th class="sorttable_numeric" title="The count for all job processes of major faults which required loading a memory page from disk">Pgin</th>
+		<th class="sorttable_numeric" title="The GB swapped out to disk for all job processes, current if state=running or maximum if state=completed" class="sorttable_numeric">Swap</th>
+		<th class="sorttable_numeric" title="Each job process size, in GB">Memory</th>
+		<th class="sorttable_numeric" title="The total number of work items for this job">Total</th>
+		<th class="sorttable_numeric" title="The number of work items that completed successfully">Done</th>
+		<th class="sorttable_numeric" title="The number of work items that failed to complete successfully">Error</th>
+		<th class="sorttable_numeric" title="The number of work items currently dispatched (queued+operating)">Dis-<br>patch</th>
+		<th class="sorttable_numeric" title="The number of work items that were retried, excluding preemptions">Retry</th>
+		<th class="sorttable_numeric" title="Tne number of work items that were preempted">Pre-<br>empt</th>
+		<th class="none"              title="The user specified description of this job">Description</th>
 		</tr>
 		</thead>
 		<tbody id="jobs_list_area">
