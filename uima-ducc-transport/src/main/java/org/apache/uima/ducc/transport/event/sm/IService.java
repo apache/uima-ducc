@@ -139,7 +139,7 @@ public interface IService
         public int ordinality()
         {
             switch ( this ) {
-                case Pending:      return 9;                                        // UIMA-4223
+                case Pending:      return 9;  // UIMA-4223 waiting for dependent service to become available
                 case Available:    return 8;
                 case Waiting:      return 7;
                 case Initializing: return 6;
