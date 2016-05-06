@@ -2583,19 +2583,6 @@ public class DuccHandler extends DuccAbstractHandler {
 					map.put(key, key);
 				}
 				Iterator<String> iterator = map.keySet().iterator();
-				sb.append("<table id=\"specification_table\" class=\"sortable\">");
-				sb.append("<tr class=\"ducc-head\">");
-				if(isProvided(usProperties, fsProperties)) {
-					sb.append("<th title=\"system provided if blank\">");
-					sb.append(headProvider);
-				}
-				sb.append("<th>");
-				sb.append("Key");
-				sb.append("</th>");
-				sb.append("<th>");
-				sb.append("Value");
-				sb.append("</th>");
-				sb.append("</tr>");
 				int i = 0;
 				int counter = 0;
 				while(iterator.hasNext()) {
@@ -2611,9 +2598,6 @@ public class DuccHandler extends DuccAbstractHandler {
 					String provider = getProvider(key, usProperties, fsProperties);
 					putJobSpecEntry(properties, provider, key, value, sb, counter++);
 				}
-				sb.append("</table>");
-				sb.append("<br>");
-				sb.append("<br>");
 			}
 			catch(Throwable t) {
 				duccLogger.warn(methodName, null, t);

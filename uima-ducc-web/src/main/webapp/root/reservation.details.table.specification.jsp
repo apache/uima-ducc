@@ -16,20 +16,22 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<div id=loading_files_area>
+
+<div id=loading_specification_area>
 </div>
 <table>
-  <caption><b>Files List</b><br><i><small>click column heading to sort</small></i></caption>
-  <tr>
-  <td>
-    <table class="sortable">
-    <thead>
-    <tr class="ducc-head">
-    <th class="none"              title="The file name">Name</th>
-    <th class="sorttable_numeric" title="The file size, in MB">Size</th>
-    </tr>
-    </thead>
-    <tbody id="files_data_area">
-    </tbody>
-    </table>
+<caption><b>Specification</b><br><i><small>click column heading to sort</small></i></caption>
+<tr>
+<td>
+	<table class="sortable">
+	<thead>
+	<tr class="ducc-head">
+	<th class="none"              title="the specification variable source">Provider</th>
+	<th class="none"              title="the specification variable name">Key</th>
+	<th class="none"              title="the specification variable value">Value</th>
+	</tr>
+	</thead>
+	<tbody id="specification_data_area">
+	</tbody>
+	</table> 				
 </table>

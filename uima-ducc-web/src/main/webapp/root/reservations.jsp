@@ -141,20 +141,20 @@ if (table_style.equals("classic")) {
 		<thead>
 		<tr class="ducc-head">
 		<th class="ducc-col-terminate"></th>
-			<th title="The system assigned id for this reservation">Id</th>
-			<th title="The time this reservation was submitted">Start</th>
-			<th title="The time this reservation lasted, units ddd:hh:mm:ss">Duration</th>
-			<th class="ducc-no-filter" id="user_column_heading" title="The user who submitted this reservation">User</th>
-			<th title="The user specified class of this reservation">Class</th>
-			<th title="The type of this reservation">Type</th>
-			<th title="The current state of this reservation">State</th>
-			<th title="The reason for the final state of this reservation, normally CanceledByUser">Reason</th>
-			<th title="The combined number of PIDs on the assigned resource(s) for user">User<br>Processes</th>
-			<th title="The count of major faults which required loading a memory page from disk">Pgin</th>
-			<th title="The GB swapped out to disk, current if state=running or maximum if state=completed">Swap</th>
-			<th title="The memory allocation for this reservation, in GB">Memory</th>
-			<th title="The machine(s) assigned to this reservation">Host<br>Names</th>
-			<th title="The user specified description of this reservation">Description</th>
+			<th class="sorttable_numeric" title="The system assigned id for this reservation">Id</th>
+			<th class="none"              title="The time this reservation was submitted">Start</th>
+			<th class="none"              title="The time this reservation lasted, units ddd:hh:mm:ss">Duration</th>
+			<th class="ducc-no-filter"    title="The user who submitted this reservation" id="user_column_heading">User</th>
+			<th class="none"              title="The user specified class of this reservation">Class</th>
+			<th class="none"              title="The type of this reservation">Type</th>
+			<th class="none"              title="The current state of this reservation">State</th>
+			<th class="none"              title="The reason for the final state of this reservation, normally CanceledByUser">Reason</th>
+			<th class="sorttable_numeric" title="The combined number of PIDs on the assigned resource(s) for user">User<br>Processes</th>
+			<th class="sorttable_numeric" title="The count of major faults which required loading a memory page from disk">Pgin</th>
+			<th class="sorttable_numeric" title="The GB swapped out to disk, current if state=running or maximum if state=completed">Swap</th>
+			<th class="sorttable_numeric" title="The memory allocation for this reservation, in GB">Memory</th>
+			<th class="none"              title="The machine(s) assigned to this reservation">Host<br>Names</th>
+			<th class="none"              title="The user specified description of this reservation">Description</th>
 		</tr>
 		</thead>
 		<tbody id="reservations_list_area">

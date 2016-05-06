@@ -1173,6 +1173,7 @@ function ducc_init_reservation_specification_data() {
     }
 }
 
+
 var ms_load_reservation_specification_data = +new Date() - ms_reload_min;
 var wip_reservation_specification_data = false;
 
@@ -1190,6 +1191,8 @@ function ducc_load_reservation_specification_data() {
     }
     wip_reservation_specification_data = true;
     try {
+        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
+        $("#loading_specification_area").html(data);
         var servlet = "/ducc-servlet/reservation-specification-data" + location.search;
         var tomsecs = ms_timeout;
         $.ajax({
@@ -1199,6 +1202,8 @@ function ducc_load_reservation_specification_data() {
             wip_reservation_specification_data = false;
             $("#specification_data_area").html(data);
             hide_show();
+            data = "";
+            $("#loading_specification_area").html(data);
             var table_style = ducc_preferences_get("table_style");
             if (table_style == "scroll") {
                 sorttable.makeSortable(document.getElementById('specification_table'));
@@ -1207,10 +1212,14 @@ function ducc_load_reservation_specification_data() {
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_reservation_specification_data = false;
+            data = "";
+            $("#loading_specification_area").html(data);
             ducc_console_fail(fname, textStatus);
-        });           
+        });
     } catch (err) {
         wip_reservation_specification_data = false;
+        data = "";
+        $("#loading_specification_area").html(data);
         ducc_error(fname, err);
     }
 }

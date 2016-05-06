@@ -23,42 +23,21 @@ under the License.
 	<table class="sortable">
 	<thead>
 	<tr class="ducc-head">
-	<th title="The system assigned id for this process" class="sorttable_numeric">Id</th>
-	<th title="The log file name associated with this process">Log</th>
-	<th title="The log file size, in MB" class="sorttable_numeric">Log<br>Size</th>
-	<th title="The host for this process">Host<br>Name</th>
-	<!--
-	<th title="The host IP for this process">Host<br>ip</th>
-	-->
-	<th title="The OS assigned PID for this process" class="sorttable_numeric">PID</th>
-	<th title="Process scheduling state">State<br>Scheduler</th>
-	<th title="Process scheduling reason (for scheduling state)">Reason<br>Scheduler<br><small>or extraordinary status</small></th>
-	<th title="Process agent state">State<br>Agent</th>
-	<th title="Process agent reason (for agent state)">Reason<br>Agent</th>
-	<th title="Process exit code or signal">Exit</th>
-	<!--
-	<th title="Process initialization time, hh:mm:ss, as reported by the agent managing the process. The agent reports initialization start and end times. The time reported here is the difference between them, unless initialization is ongoing then the end time is estimated as now.">Time<br>Init</th>
-	-->
-	<th title="Process run time (not including process initialization time), hh:mm:ss, as reported by the agent managing the process. The agent reports run start and end times. The time reported here is the difference between them, unless the process is still running then the end time is estimated as now.">Time<br>Run</th>
-	<!--
-	<th title="Process total time spent performing garbage collections, hh:mm:ss">Time<br>GC</th>
-	<th title="Process total number of garbage collections that have occurred">Count<br>GC</th>
-	<th title="Process percentage of time spent in garbage collections, relative to total of initialization + run times">%GC</th>
-	-->
-	<th title="Process count of major faults which required loading a memory page from disk">PgIn</th>
-	<th title="Process GB swapped out to disk, current if state=running or maximum if state=completed" class="sorttable_numeric">Swap</th>
-	<th title="%CPU time, as percentage of process lifetime" class="sorttable_numeric" >%CPU</th>
-	<th title="Resident Storage Size in GB, current if state=running or maximum if state=completed" class="sorttable_numeric">RSS</th>
-	<!--
-	<th title="Average seconds per work item">Time<br>Avg</th>
-	<th title="Maximum seconds for any work item">Time<br>Max</th>
-	<th title="Minimum seconds for any work item">Time<br>Min</th>
-	<th title="The number of work items that completed successfully">Done</th>
-	<th title="The number of work items that failed to complete successfully">Error</th>
-	<th title="The number of work items that were retried, excluding preemptions">Retry</th>
-	<th title="The number of work items that were preempted">Pre-<br>empt</th>
-	<th title="The JConsole URL for this process">JConsole<br>URL</th>
-	-->
+	<th class="sorttable_numeric" title="The system assigned id for this process">Id</th>
+	<th class="none"              title="The log file name associated with this process">Log</th>
+	<th class="sorttable_numeric" title="The log file size, in MB">Log<br>Size</th>
+	<th class="none"              title="The host for this process">Host<br>Name</th>
+	<th class="sorttable_numeric" title="The OS assigned PID for this process">PID</th>
+	<th class="none"              title="Process scheduling state">State<br>Scheduler</th>
+	<th class="none"              title="Process scheduling reason (for scheduling state)">Reason<br>Scheduler<br><small>or extraordinary status</small></th>
+	<th class="none"              title="Process agent state">State<br>Agent</th>
+	<th class="none"              title="Process agent reason (for agent state)">Reason<br>Agent</th>
+	<th class="sorttable_numeric" title="Process exit code or signal">Exit</th>
+	<th class="none"              title="Process run time (not including process initialization time), hh:mm:ss, as reported by the agent managing the process. The agent reports run start and end times. The time reported here is the difference between them, unless the process is still running then the end time is estimated as now.">Time<br>Run</th>
+	<th class="sorttable_numeric" title="Process count of major faults which required loading a memory page from disk">PgIn</th>
+	<th class="sorttable_numeric" title="Process GB swapped out to disk, current if state=running or maximum if state=completed">Swap</th>
+	<th class="sorttable_numeric" title="%CPU time, as percentage of process lifetime">%CPU</th>
+	<th class="sorttable_numeric" title="Resident Storage Size in GB, current if state=running or maximum if state=completed">RSS</th>
 	</tr>
 	</thead>
 	<tbody id="processes_list_area">

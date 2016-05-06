@@ -83,9 +83,7 @@ under the License.
 			    <%@ include file="reservation.details.table.processes.jsp" %>
 			</div>
 			<div id="tabs-2">
-   				<div class="specification_data_div">
-   					<span id="specification_data_area"></span>
-   				</div>
+   				<%@ include file="reservation.details.table.specification.jsp" %>
 			</div>
 			<div id="tabs-3">
                 <%@ include file="reservation.details.table.files.jsp" %>
