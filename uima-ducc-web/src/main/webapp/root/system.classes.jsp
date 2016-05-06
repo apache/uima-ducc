@@ -122,13 +122,13 @@ if (table_style.equals("classic")) {
       <table class="sortable">
 		<thead>
 		<tr class="ducc-head">
-			<th align="left">Name</th>
-			<th align="left">Nodepool</th>
-			<th align="left">Policy</th>
-			<th align="left">Quantum</th>
-			<th align="left">Weight</th>
-			<th align="left">Priority</th>
-			<th align="left" title="corresponding non-preemptable specific [or default] class name, if any">Non-preemptable Class</th>
+			<th align="left" class="none"             >Name</th>
+			<th align="left" class="none"             >Nodepool</th>
+			<th align="left" class="none"             >Policy</th>
+			<th align="left" class="sorttable_numeric">Quantum</th>
+			<th align="left" class="sorttable_numeric">Weight</th>
+			<th align="left" class="sorttable_numeric">Priority</th>
+			<th align="left" class="none"              title="corresponding non-preemptable specific [or default] class name, if any">Non-preemptable Class</th>
 		</tr>
 		</thead>
 		<tbody id="system_classes_list_area">

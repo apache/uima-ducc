@@ -137,18 +137,18 @@ if (table_style.equals("classic")) {
       <table class="sortable">
 		<thead>
 		<tr class="ducc-head">
-			<th align="left" style="width: 75px;" title="The current status">Status</th>
-			<th align="left" title="The daemon name">Daemon Name</th>
-			<th align="left" style="width: 150px;" title="The date+time this daemon was booted">Boot Time</th>
-			<th align="left" style="width: 75px;"title="The host IP for this daemon">Host IP</th>
-			<th align="left" title="The host name for this daemon">Host Name</th>
-			<th align="left" class="sorttable_numeric" style="width: 75px;" title="The OS assigned PID for this daemon">PID</th>
-			<th align="left" class="sorttable_numeric" style="width: 75px;"title="The size (in bytes) of the most recent publication by this daemon">Publication Size (last)</th>
-			<th align="left" class="sorttable_numeric" style="width: 75px;"title="The size (in bytes) of the largest publication by this daemon">Publication Size (max)</th>
-			<th align="left" class="sorttable_numeric" title="The elapsed time (in seconds) since the last heartbeat from this daemon">Heartbeat (last)</th>
-			<th align="left" class="sorttable_numeric" title="The elapsed time (in seconds) of the longest heartbeat from this daemon">Heartbeat (max)</th>
-			<th align="left" title="The TOD when the longest heartbeat from this daemon occurred">Heartbeat (max) TOD</th>
-			<th align="left" style="width: 300px;" title="The JConsole URL for this daemon">JConsole: URL</th>
+			<th align="left" class="none"              style="width: 75px;"  title="The current status">Status</th>
+			<th align="left" class="none"                                    title="The daemon name">Daemon Name</th>
+			<th align="left" class="none"              style="width: 150px;" title="The date+time this daemon was booted">Boot Time</th>
+			<th align="left" class="none"              style="width: 75px;"  title="The host IP for this daemon">Host IP</th>
+			<th align="left" class="none"                                    title="The host name for this daemon">Host Name</th>
+			<th align="left" class="sorttable_numeric" style="width: 75px;"  title="The OS assigned PID for this daemon">PID</th>
+			<th align="left" class="sorttable_numeric" style="width: 75px;"  title="The size (in bytes) of the most recent publication by this daemon">Publication Size (last)</th>
+			<th align="left" class="sorttable_numeric" style="width: 75px;"  title="The size (in bytes) of the largest publication by this daemon">Publication Size (max)</th>
+			<th align="left" class="sorttable_numeric"                       title="The elapsed time (in seconds) since the last heartbeat from this daemon">Heartbeat (last)</th>
+			<th align="left" class="sorttable_numeric"                       title="The elapsed time (in seconds) of the longest heartbeat from this daemon">Heartbeat (max)</th>
+			<th align="left" class="none"                                    title="The TOD when the longest heartbeat from this daemon occurred">Heartbeat (max) TOD</th>
+			<th align="left" class="none"              style="width: 300px;" title="The JConsole URL for this daemon">JConsole: URL</th>
 		</tr>
 		</thead>
 		<tbody id="system_daemons_list_area">

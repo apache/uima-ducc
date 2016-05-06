@@ -131,11 +131,11 @@ if (table_style.equals("classic")) {
       <table class="sortable">
 		<thead>
 		<tr class="ducc-head">
-		<th align="center" >Name</th>
-		<th align="center" >Type</th>
-        <th align="center" >ConsumerCount</th>
-        <th align="center" >QueueSize</th>
-        <th align="center" >MaxEnqueueTime</th>
+		<th align="center" class="none"             >Name</th>
+		<th align="center" class="none"             >Type</th>
+        <th align="center" class="sorttable_numeric">ConsumerCount</th>
+        <th align="center" class="sorttable_numeric">QueueSize</th>
+        <th align="center" class="sorttable_numeric">MaxEnqueueTime</th>
         <th align="center" class="sorttable_numeric">AverageEnqueueTime</th>
         <th align="center" class="sorttable_numeric">MemoryPercentUsage</th>
 		</tr>

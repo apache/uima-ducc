@@ -132,18 +132,18 @@ if (table_style.equals("classic")) {
       <table class="sortable">
 		<thead>
 		<tr class="ducc-head">
-		<th align="left" title="The current status">Status</th>
-		<th align="left" title="The host IP">IP</th>
-		<th align="left" title="The host name">Name</th>
-		<th align="left" title="The host node pool">Nodepool</th>
-		<th class="sorttable_numeric" align="left" title="The host usable memory size, in GB" >Memory(GB):usable</th>
-		<th class="sorttable_numeric" align="left" title="The host free memory size, in GB" >Memory(GB):free</th>
-		<th class="sorttable_numeric" align="left" title="The host CPU load average" >%CPU</th>
-		<th class="sorttable_numeric" align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
-		<th class="sorttable_numeric" align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
-		<th align="left" title="The host C-Groups status" >C-Groups</th>
-		<th class="sorttable_numeric" align="left" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>
-		<th class="sorttable_numeric" align="left" title="The elapsed time (in seconds) since the last heartbeat" >Heartbeat (last)</th>
+		<th align="left" class="none"              title="The current status">Status</th>
+		<th align="left" class="none"              title="The host IP">IP</th>
+		<th align="left" class="none"              title="The host name">Name</th>
+		<th align="left" class="none"              title="The host node pool">Nodepool</th>
+		<th align="left" class="sorttable_numeric" title="The host usable memory size, in GB" >Memory(GB):usable</th>
+		<th align="left" class="sorttable_numeric" title="The host free memory size, in GB" >Memory(GB):free</th>
+		<th align="left" class="sorttable_numeric" title="The host CPU load average" >%CPU</th>
+		<th align="left" class="sorttable_numeric" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
+		<th align="left" class="sorttable_numeric" title="The host free swap size, in GB" >Swap(GB):free</th>
+		<th align="left" class="none"              title="The host C-Groups status" >C-Groups</th>
+		<th align="left" class="sorttable_numeric" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>
+		<th align="left" class="sorttable_numeric" title="The elapsed time (in seconds) since the last heartbeat" >Heartbeat (last)</th>
 		</tr>
 		</thead>
 		<tbody id="machines_list_area">
