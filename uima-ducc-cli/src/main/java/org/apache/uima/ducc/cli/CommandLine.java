@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+
 public class CommandLine
 {
     private String[] args;                              // incoming args from java command line
@@ -220,14 +222,10 @@ public class CommandLine
         }
         
         List<String> pieces_parts = new ArrayList<String>();
-        int nparts = txt.length() / real_width;
-        if ( txt.length() % real_width > 0 ) {
-            nparts++;
-        }
-
-        for ( int i = 0; i < nparts-1; i++ ) {
-            pieces_parts.add(txt.substring(0, real_width));
-            txt = txt.substring(real_width);
+         while(txt.length() > real_width) {
+            int lastBlank = txt.lastIndexOf(' ', real_width);
+            pieces_parts.add(txt.substring(0, lastBlank));
+            txt = txt.substring(lastBlank+1);
         }
         pieces_parts.add(txt);
 
@@ -292,11 +290,24 @@ public class CommandLine
                 sb.append(" (required)");
             } 
             if ( o.optargs() ) {
-                sb.append(" Default:  ");
-                sb.append(o.deflt());
+                if ("true".equals(o.deflt())) {
+                    sb.append(" (optional boolean)");
+                } else {
+                    sb.append(" (optional)");
+                }
             }
             if ( o.noargs() ) {
                 sb.append(" (no arguments)");
+            }
+            if ( o.deflt() != null && !o.deflt().isEmpty()) {
+                String deflt = o.deflt();
+                if (deflt.startsWith("$$")) {     // Lookup default in ducc.properties
+                    deflt = DuccPropertiesResolver.get(deflt.substring(2));
+                }
+                sb.append("\n");
+                sb.append(String.format(fmt2, ""));
+                sb.append("Default:  ");
+                sb.append(deflt);
             }
             if ( o.description() != null ) {
                 sb.append("\n");

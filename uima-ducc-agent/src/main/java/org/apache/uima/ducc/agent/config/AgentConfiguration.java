@@ -85,9 +85,11 @@ public class AgentConfiguration {
   
   private RouteBuilder inventoryRouteBuilder;
 
+  /* Deprecated
   @Value("#{ systemProperties['ducc.agent.launcher.thread.pool.size'] }")
   String launcherThreadPoolSize;
-
+   */
+  
   @Value("#{ systemProperties['ducc.agent.launcher.process.stop.timeout'] }")
   public String processStopTimeout;
 

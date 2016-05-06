@@ -285,9 +285,9 @@ public class JobFactory implements IJobFactory {
 		String wiTimeout = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_per_item_time_max);
 		if(wiTimeout == null) {
 			DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
-			wiTimeout = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.default_process_per_item_time_max);
+			wiTimeout = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_default_process_per_item_time_max);
 		}
-		addDashD(jcl, FlagsHelper.Name.WorkItemTimeout, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_per_item_time_max));		
+		addDashD(jcl, FlagsHelper.Name.WorkItemTimeout, wiTimeout);
 		// add JpDdDirectory	
 		addDashD(jcl, FlagsHelper.Name.JobDirectory, jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
 		// add Jp aggregate construction  from pieces-parts (Jp DD should be null)
@@ -358,32 +358,18 @@ public class JobFactory implements IJobFactory {
 	
 	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) throws ResourceUnavailableForJobDriverException {
 		String methodName = "createDriver";
-		DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
 		// broker & queue
 		job.setJobBroker(common.brokerUrl);
 		job.setJobQueue(common.jdQueuePrefix+job.getDuccId());
-		// CR
-		String crxml = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR);
-		String crcfg = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR_overrides);
-		// getMeta
-		String meta_time = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.default_process_get_meta_time_max);
-		// lost
-		String lost_time = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_jd_queue_timeout_minutes);
-		// process_per_item_time_max
-		String wi_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_per_item_time_max);
-		if(wi_time == null) {
-			wi_time = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.default_process_per_item_time_max);
-		}
-		// Exception handler
-		String processExceptionHandler = jobRequestProperties.getProperty(JobRequestProperties.key_driver_exception_handler);
+
 		// Command line
-		DuccWorkPopDriver driver = new DuccWorkPopDriver(job.getjobBroker(), job.getjobQueue(), crxml, crcfg, meta_time, lost_time, wi_time, processExceptionHandler);
 		JavaCommandLine driverCommandLine = buildJobDriverCommandLine(jobRequestProperties, job.getDuccId());
 		// Environment
 		String driverEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 		int envCountDriver = addEnvironment(job, "driver", driverCommandLine, driverEnvironmentVariables);
 		logger.info(methodName, job.getDuccId(), "driver env vars: "+envCountDriver);
 		logger.debug(methodName, job.getDuccId(), "driver: "+driverCommandLine.getCommand());
+		DuccWorkPopDriver driver = new DuccWorkPopDriver();    // No longer need the 8-arg constructor
 		driver.setCommandLine(driverCommandLine);
 		//
 		DuccId jdId = jdIdFactory.next();
@@ -482,7 +468,7 @@ public class JobFactory implements IJobFactory {
 		// sweep out leftover logging trash
 		logSweeper(jobRequestProperties.getProperty(JobRequestProperties.key_log_directory), job.getDuccId());
 		// log
-		jobRequestProperties.specification(logger);
+		jobRequestProperties.specification(logger, job.getDuccId());
 		// java command
 		String javaCmd = jobRequestProperties.getProperty(JobSpecificationProperties.key_jvm);
 		if(javaCmd == null) {
@@ -529,10 +515,10 @@ public class JobFactory implements IJobFactory {
 		    checkSchedulingLimits(job, schedulingInfo);
 		}
 		
-		// process_initialization_time_max
+		// process_initialization_time_max (in minutes)
 		String pi_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_initialization_time_max);
 		if(pi_time == null) {
-			pi_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_agent_launcher_process_init_timeout);
+			pi_time = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_default_process_init_time_max);
 		}
 		try {
 			long value = Long.parseLong(pi_time)*60*1000;

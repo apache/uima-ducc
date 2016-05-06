@@ -1411,12 +1411,11 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     }
   }
 
-  public void onJPInitTimeout(IDuccProcess process) {
+  public void onJPInitTimeout(IDuccProcess process, long timeout) {
     String methodName = "onJPInitTimeout";
     try {
       System.out.println("--------- Agent Timedout While Waiting For JP (PID:" + process.getPID()
-              + ") to initialize. The JP exceeded configured timeout of "
-              + System.getProperty("ducc.agent.launcher.process.init.timeout"));
+              + ") to initialize. The JP exceeded configured timeout of " + timeout/(60*1000) + " minutes");
       ProcessStateUpdate processStateUpdate = new ProcessStateUpdate(
               ProcessState.InitializationTimeout, process.getPID(), process.getDuccId().getUnique());
       ProcessStateUpdateDuccEvent event = new ProcessStateUpdateDuccEvent(processStateUpdate);

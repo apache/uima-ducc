@@ -38,6 +38,7 @@ import java.util.Properties;
  * 
  * For DUCC 2.1.0 changed:
  *   process_thread_count   ->  process_pipeline_count
+ *   process_get_meta_time_max - dropped (silently ignored)
  * Deprecated messages removed -- old options will be treated as aliases
  *   classpath_order will be silently accepted and ignored 
  *   number_of_instances is now rejected
@@ -67,6 +68,10 @@ public class CliFixups {
             } else if (arg.equals("--process_thread_count")) {
                 args[i] = "--process_pipeline_count";
                 //System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
+            } else if (arg.equals("--process_get_meta_time_max")) {
+                //System.out.println("CLI ignored deprecated option: " + arg);
+                args[i] = null;
+                if (++i < args.length && !args[i].startsWith("--")) args[i] = null; 
             }
         }
     }
@@ -85,6 +90,7 @@ public class CliFixups {
     	if (val != null && val.trim().equals("1")) {
     	  changeOption("number_of_instances", null, props);  
     	}
+        changeOption("process_get_meta_time_max", null, props);
     }
     
 	static private void changeOption(String oldKey, String newKey, Properties props) {

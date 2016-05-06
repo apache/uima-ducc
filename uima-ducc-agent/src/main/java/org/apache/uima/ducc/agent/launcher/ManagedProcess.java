@@ -31,6 +31,7 @@ import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
 import org.apache.uima.ducc.agent.launcher.ManagedServiceInfo.ServiceState;
 import org.apache.uima.ducc.agent.processors.LinuxProcessMetricsProcessor;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
@@ -134,6 +135,8 @@ public class ManagedProcess implements Process {
 	private transient LinuxProcessMetricsProcessor metricsProcessor;
 
 	private volatile boolean isJD;
+
+	private long initializationTimeout;
 
 	public ManagedProcess(IDuccProcess process, ICommandLine commandLine) {
 		this(process, commandLine, null, null, new ProcessMemoryAssignment());
@@ -656,7 +659,7 @@ public class ManagedProcess implements Process {
 	public void notifyProcessObserver(ProcessState state) {
 		if (observer != null && getDuccProcess() != null) {
 			if (ProcessState.InitializationTimeout.equals(state)) {
-				observer.onJPInitTimeout(getDuccProcess());
+				observer.onJPInitTimeout(getDuccProcess(), initializationTimeout);
 			} else {
 				getDuccProcess().setProcessState(state);
 				observer.onProcessExit(getDuccProcess());
@@ -671,9 +674,8 @@ public class ManagedProcess implements Process {
 		try {
 			if (timeout == 0) {
 				String str_timeout;
-				if ((str_timeout = System
-						.getProperty("ducc.agent.launcher.process.init.timeout")) != null) {
-					timeout = Long.parseLong(str_timeout);
+				if ((str_timeout = System.getProperty(DuccPropertiesResolver.ducc_default_process_init_time_max)) != null) {
+					timeout = Long.parseLong(str_timeout) * 60 * 1000;    // Minutes -> milliseconds
 				} else {
 					// max init timeout default=4hours
 					timeout = 3600 * 4 * 1000; 
@@ -684,6 +686,7 @@ public class ManagedProcess implements Process {
 		}
 		// timeout after 2 hours of initialization
 		initTimer.schedule(new InitializationTask(), timeout); 
+		initializationTimeout = timeout;    // Save just for the timeout message
 	}
 
 	/**

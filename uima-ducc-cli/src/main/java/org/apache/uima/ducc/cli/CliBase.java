@@ -371,7 +371,10 @@ public abstract class CliBase
         
         initConsoleListener();
 
-        dispatcher = DispatcherFactory.create(cli_props, servlet);
+        // AllInOne doesn't dispatch requests (and local doesn't need a running DUCC!)
+        if (!cli_props.containsKey(UiOption.AllInOne.pname())) {
+            dispatcher = DispatcherFactory.create(cli_props, servlet);
+        }
         
         init_done = true;
     }
@@ -424,6 +427,7 @@ public abstract class CliBase
      * Also fixup the environment for all that use it.
      */
     void setDefaults(IUiOption[] uiOpts, boolean suppress_console) throws Exception {
+        ArrayList<String> envNameList = new ArrayList<String>(0);   // Why this when are resolving against use caller's environment?
         for (IUiOption uiopt : uiOpts) {
             if (!cli_props.containsKey(uiopt.pname())) {
                 //
@@ -436,8 +440,17 @@ public abstract class CliBase
                 // similarly      - noargs() is definitely boolean, same treatement
                 //
                 if ( (! uiopt.optargs()) && (! uiopt.noargs() ) && uiopt.deflt() != null) {
-                    if (debug) System.out.println("CLI set default: " + uiopt.pname() + " = " + uiopt.deflt());
-                    cli_props.put(uiopt.pname(), uiopt.deflt());
+                    String deflt = uiopt.deflt();
+                    if (deflt.startsWith("$$")) {     // Lookup default in ducc.properties
+                        deflt = DuccPropertiesResolver.get(deflt.substring(2));
+                        if (deflt == null) {
+                            throw new IllegalArgumentException("Invalid default (undefined property) for " + uiopt.pname()); 
+                        }
+                    } else if (deflt.contains("${")) {
+                        deflt = resolvePlaceholders(deflt, envNameList);
+                    }
+                    if (debug) System.out.println("CLI set default: " + uiopt.pname() + " = " + deflt);
+                    cli_props.put(uiopt.pname(), deflt);
                 }
             } else {
                 //

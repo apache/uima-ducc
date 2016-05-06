@@ -173,6 +173,7 @@ public class DuccServiceApi
     }; 
     
     // These options are only valid for services with an explicit pinger
+    // Note: Only ServicePingArguments is used for an internal pinger ... others are quietly ignored
     UiOption[] pinger_only_options = {
             UiOption.ServicePingClasspath,
             UiOption.ServicePingJvmArgs,
@@ -779,7 +780,7 @@ public class DuccServiceApi
         CommandLine cl;
 
         cl = new CommandLine(null, registration_options);
-        System.out.println(cl.formatHelp("--------------- Registr Options -------------"));
+        System.out.println(cl.formatHelp("--------------- Register Options -------------"));
 
         cl = new CommandLine(null, unregister_options);
         System.out.println(cl.formatHelp("\n\n------------- Unregister Options ------------------"));
@@ -793,7 +794,7 @@ public class DuccServiceApi
         cl = new CommandLine(null, modify_options);
         System.out.println(cl.formatHelp("\n\n------------- Modify Options ------------------"));
 
-        cl = new CommandLine(null, modify_options);
+        cl = new CommandLine(null, query_options);
         System.out.println(cl.formatHelp("\n\n------------- Query Options ------------------"));
 
         System.exit(1);

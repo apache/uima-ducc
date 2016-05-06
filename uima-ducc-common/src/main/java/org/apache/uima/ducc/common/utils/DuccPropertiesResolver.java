@@ -122,10 +122,9 @@ public class DuccPropertiesResolver {
     public static final String ducc_orchestrator_unmanaged_reservations_accepted = "ducc.orchestrator.unmanaged.reservations.accepted";  
     public static final String ducc_orchestrator_use_lock_file = "ducc.orchestrator.use.lock.file";  
     
-    public static final String default_process_get_meta_time_max = "default.process.get.meta.time.max";
-    public static final String ducc_agent_launcher_process_init_timeout = "ducc.agent.launcher.process.init.timeout";
-    public static final String default_process_per_item_time_max = "default.process.per.item.time.max";
-   
+    public static final String ducc_default_process_per_item_time_max = "ducc.default.process.per.item.time.max";
+    public static final String ducc_default_process_init_time_max = "ducc.default.process.init.time.max";
+    
     public static final String ducc_jd_host_class = "ducc.jd.host.class";
     public static final String ducc_jd_host_description = "ducc.jd.host.description";
     public static final String ducc_jd_host_memory_size = "ducc.jd.host.memory.size";
@@ -133,8 +132,6 @@ public class DuccPropertiesResolver {
     public static final String ducc_jd_host_user = "ducc.jd.host.user";
     
     public static final String ducc_jd_state_publish_rate = ducc_orchestrator_state_publish_rate;
-    public static final String ducc_jd_queue_prefix = "ducc.jd.queue.prefix";
-    public static final String ducc_jd_queue_timeout_minutes = "ducc.jd.queue.timeout.minutes";
     
     public static final String ducc_jd_configuration_class = "ducc.jd.configuration.class";
     public static final String ducc_jd_startup_initialization_error_limit = "ducc.jd.startup.initialization.error.limit";
@@ -178,9 +175,8 @@ public class DuccPropertiesResolver {
         defaultProperties.put(ducc_jms_provider,"activemq");
         defaultProperties.put(ducc_orchestrator_state_update_endpoint,"ducc.orchestrator.state");    
         defaultProperties.put(ducc_orchestrator_state_update_endpoint_type,"topic");
-        defaultProperties.put(default_process_get_meta_time_max,"1");
-        defaultProperties.put(ducc_agent_launcher_process_init_timeout,"7200000");
-        defaultProperties.put(default_process_per_item_time_max,"1");
+        defaultProperties.put(ducc_default_process_init_time_max,"1440");
+        defaultProperties.put(ducc_default_process_per_item_time_max,"1");
         defaultProperties.put(ducc_rm_share_quantum,"10");
         defaultProperties.put(ducc_jd_share_quantum,"300");
         defaultProperties.put(ducc_jd_share_quantum_reserve_count,"2");

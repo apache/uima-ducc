@@ -33,6 +33,7 @@ public class DuccWorkPopDriver extends DuccWorkPop {
 		private String wiTimeout = null;
 		private String processExceptionHandler = null;
 		
+		// This constructor no longer needed
 		public DuccWorkPopDriver(String serverUri, String endPoint, String cr, String crConfig, String metaTimeout, String lostTimeout, String wiTimeout, String processExceptionHandler) {
 			this.serverUri = serverUri;
 			this.endPoint = endPoint;
@@ -44,6 +45,9 @@ public class DuccWorkPopDriver extends DuccWorkPop {
 			this.processExceptionHandler = processExceptionHandler;
 		}
 		
+		public DuccWorkPopDriver() {
+		}
+
 		public String getServerUri() {
 			return serverUri;
 		}

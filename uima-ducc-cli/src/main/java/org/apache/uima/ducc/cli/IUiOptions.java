@@ -154,7 +154,7 @@ public interface IUiOptions
         
         DriverExceptionHandlerArguments { 
             public String pname()       { return JobSpecificationProperties.key_driver_exception_handler_arguments; }
-            public String argname()     { return "string"; }
+            public String argname()     { return "list of arguments"; }
             public String description() { return "Blank-delimited list of arguments to be passed to the built-in or custom exception handler.  The example gives the defaults for the built-in exception handler."; }
             public String example()     { return "max_job_errors=15 max_timeout_retrys_per_workitem=0"; }
         },  
@@ -228,7 +228,8 @@ public interface IUiOptions
         LogDirectory { 
             public String pname()       { return JobSpecificationProperties.key_log_directory; }
             public String argname()     { return "path"; }
-            public String description() { return "The directory where logs are written.  Default: $HOME/ducc/logs"; }
+            public String description() { return "The directory where logs are written."; }
+            public String deflt()       { return "${HOME}/ducc/logs"; }
         },            
 
         Message { 
@@ -265,9 +266,9 @@ public interface IUiOptions
         
         Register    { 
             public String pname()       { return "register"; } 
-            public String argname()     { return "specification-file (optional)"; } 
+            public String argname()     { return "specification-file"; } 
             public boolean optargs()    { return true; }
-            public String deflt()       { return ""; }    // "" is correct
+            public String deflt()       { return ""; }    // No specification file
             public String description() { return "Register a service."; } 
         },
 
@@ -317,7 +318,8 @@ public interface IUiOptions
             public String pname()       { return "service_ping_timeout"; }
             public String argname()     { return "time-in-ms"; }
             public String description() { return "Time in milliseconds to wait for a ping to the service."; }
-            public String example()     { return "1000"; }
+            // public String deflt()       { return "500"; }   
+            // Avoid warning about ignored argument when using default pinger (but most ping arguments ignored for all internal pingers!)
         },            
 
         ServicePingDoLog { 
@@ -448,8 +450,9 @@ public interface IUiOptions
 
         ProcessDeploymentsMax { 
             public String pname()       { return JobSpecificationProperties.key_process_deployments_max; }
-            public String description() { return "Maximum number of processes dispatched for this job at any time.."; }
+            public String description() { return "Maximum number of processes dispatched for this job at any time"; }
             public String argname()     { return "integer"; }
+            public String deflt()       { return "unlimited"; }
         },            
 
         ProcessExecutable { 
@@ -474,22 +477,16 @@ public interface IUiOptions
             public String example()     { return "-a -t -l"; }
         },            
 
-        ProcessGetMetaTimeMax {
-            //public String pname()       { return JobSpecificationProperties.key_process_get_meta_time_max; }
-            public String pname()       { return "process_get_meta_time_max"; }
-            public String description() { return "Maximum elapsed time (in minutes) for processing getMeta."; }
-            public String argname()     { return "integer"; }
-        },            
-		
         ProcessInitializationTimeMax { 
             public String pname()       { return JobSpecificationProperties.key_process_initialization_time_max; }
             public String description() { return DuccUiConstants.desc_process_initialization_time_max; }
             public String argname()     { return "integer"; }
+            public String deflt()       { return "$$ducc.default.process.init.time.max"; }
         },     
 		
         ProcessInitializationFailuresCap { 
             public String pname()       { return JobSpecificationProperties.key_process_initialization_failures_cap; }
-            public String description() { return "Number of unexpected job process initialization failures (i.e. System.exit(), kill-15...) before the number of Job Processes is capped at the number in state Running currently.  Default is " + deflt() + "."; }
+            public String description() { return "Number of unexpected job process initialization failures (i.e. System.exit(), kill-15, ...) before the number of Job Processes is capped at the number currently Running."; }
             public String argname()     { return "integer"; }
             public String deflt()       { return "99"; }
         },            
@@ -526,13 +523,14 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_process_per_item_time_max; }
             public String description() { return "Maximum elapsed time (in minutes) for processing one CAS."; }
             public String argname()     { return "integer"; }
+            public String deflt()       { return "$$ducc.default.process.per.item.time.max"; }
         },            
 
         Query       { 
             public String pname()       { return "query"; } 
-            public String argname()     { return "service-id-or-endpoint (optional)" ; } 
+            public String argname()     { return "service-id-or-endpoint" ; } 
             public boolean optargs()    { return true; }
-            public String deflt()       { return ""; }    // "" is correct, interpreted as all
+            public String deflt()       { return ""; }    // No service name => all services
             public String description() { return "Query a registered service, or all." ; } 
         },
 
@@ -582,8 +580,8 @@ public interface IUiOptions
 
         ServiceDependency { 
             public String pname()       { return JobSpecificationProperties.key_service_dependency; }
-            public String argname()     { return "list"; }
-            public String description() { return "List of service descriptor strings."; }
+            public String argname()     { return "dependency list"; }
+            public String description() { return "List of blank-delimited service names."; }
             public String example()     { return "UIMA-AS:RandomSleepAE:tcp://node1:61616 CUSTOM:myservice";}
         },            
 

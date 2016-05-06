@@ -24,6 +24,7 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
 /**
@@ -84,13 +85,13 @@ public class JobRequestProperties extends JobSpecificationProperties implements 
 	        key_service_dependency
 	        );
 	
-	public void specification(DuccLogger logger) {
+	public void specification(DuccLogger logger, DuccId id) {
 		String methodName = "specification";
 		Enumeration<Object> keys = keys();
 		while(keys.hasMoreElements()) {
 			String key = (String) keys.nextElement();
 			String value = getProperty(key);
-			logger.info(methodName, null, key+":"+value);
+			logger.info(methodName, id, key+":"+value);
 		}
 	}
 	

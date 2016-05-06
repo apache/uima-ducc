@@ -79,7 +79,6 @@ public class DuccJobSubmit
         UiOption.ProcessFailuresLimit,
         UiOption.ProcessPipelineCount,
         UiOption.ProcessPerItemTimeMax,
-        UiOption.ProcessGetMetaTimeMax,
         UiOption.ProcessInitializationTimeMax,
 
         UiOption.Specification,
