@@ -16,22 +16,21 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<div id=loading_history_area>
+
+<div id=loading_registry_area>
 </div>
 <table>
-  <caption><b>History List</b><br><i><small>click column heading to sort</small></i></caption>
-  <tr>
-  <td>
-    <table class="sortable">
-    <thead>
-    <tr class="ducc-head">
-    <th class="sorttable_numeric" title="The service deployment id">Id</th>
-    <th class="none"              title="The file name">Name</th>
-    <th class="sorttable_numeric" title="The file size, in MB">Size</th>
-    <th class="none"              title="The file date">Date</th>
-    </tr>
-    </thead>
-    <tbody id="history_data_area">
-    </tbody>
-    </table>
+<caption><b>Registry</b><br><i><small>click column heading to sort</small></i></caption>
+<tr>
+<td>
+	<table class="sortable">
+	<thead>
+	<tr class="ducc-head">
+	<th class="none"              title="the registry variable name">Key</th>
+	<th class="none"              title="the registry variable value">Value</th>
+	</tr>
+	</thead>
+	<tbody id="registry_data_area">
+	</tbody>
+	</table> 				
 </table>

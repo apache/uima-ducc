@@ -25,10 +25,10 @@ under the License.
     <table class="sortable">
     <thead>
     <tr class="ducc-head">
-    <th title="The service deployment id">Id</th>
-    <th title="The file name">Name</th>
-    <th title="The file size, in MB" class="sorttable_numeric">Size</th>
-     <th title="The file date">Date</th>
+    <th class="sorttable_numeric" title="The service deployment id">Id</th>
+    <th class="none"              title="The file name">Name</th>
+    <th class="sorttable_numeric" title="The file size, in MB">Size</th>
+    <th class="none"              title="The file date">Date</th>
     </tr>
     </thead>
     <tbody id="files_data_area">

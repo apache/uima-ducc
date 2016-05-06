@@ -2714,15 +2714,6 @@ public class DuccHandler extends DuccAbstractHandler {
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
 			String hint = getLoginRefreshHint(request, response);
 			String enable_or_disable = getEnabledOrDisabled(request, response);;
-			sb.append("<table>");
-			sb.append("<tr class=\"ducc-head\">");
-			sb.append("<th>");
-			sb.append("Key");
-			sb.append("</th>");
-			sb.append("<th>");
-			sb.append("Value");
-			sb.append("</th>");
-			sb.append("</tr>");
 			Properties properties;
 			if(payload != null) {
 				properties = payload.meta;
@@ -2837,9 +2828,6 @@ public class DuccHandler extends DuccAbstractHandler {
 					}
 					putJobSpecEntry(properties, prefix+key, value, sb, counter++);
 				}
-				sb.append("</table>");
-				sb.append("<br>");
-				sb.append("<br>");
 			}
 			else {
 				sb.append("<tr>");

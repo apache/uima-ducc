@@ -146,21 +146,21 @@ if (table_style.equals("classic")) {
 		<th class="ducc-col-button"></th>
 		<th class="ducc-col-button"></th>
 		<th class="sorttable_numeric" title="The service Id">Id</th>
-		<th title="The service name">Name</th>
-		<th title="The service state">State</th>
-		<th title="The time this service was last used">Last Use</th>
-        <th title="The service number of instances registered">Instances</th>
-        <th title="The service number of processes currently started">Deployments</th>
-		<th title="The service start state">Start<br>State</th>
-		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>
-		<th title="The service scheduling class">Class</th>
+		<th class="none"              title="The service name">Name</th>
+		<th class="none"              title="The service state">State</th>
+		<th class="none"              title="The time this service was last used">Last Use</th>
+        <th class="sorttable_numeric" title="The service number of instances registered">Instances</th>
+        <th class="sorttable_numeric" title="The service number of processes currently started">Deployments</th>
+		<th class="none"              title="The service start state">Start<br>State</th>
+		<th class="ducc-no-filter"    title="The service owning user" id="user_column_heading" >User</th>
+		<th class="none"              title="The service scheduling class">Class</th>
 		<th class="sorttable_numeric" title="The count for all service processes of major faults which required loading a memory page from disk">PgIn</th>
 		<th class="sorttable_numeric" title="The GB swapped out to disk for all initializing/running service processes">Swap</th>
 		<th class="sorttable_numeric" title="The service process registered memory size (GB)">Memory<br/><small>(registered)</small></th>
 		<th class="sorttable_numeric" title="The number of active Jobs that depend on this service">Jobs</th>
 		<th class="sorttable_numeric" title="The number of active Services that depend on this service">Ser-<br>vices</th>
 		<th class="sorttable_numeric" title="The number of active Reservations that depend on this service">Reser-<br>vations</th>
-		<th title="The service description">Description</th>
+		<th class="none"              title="The service description">Description</th>
 		</tr>
 		</thead>
 		<tbody id="services_list_area">

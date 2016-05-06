@@ -90,9 +90,7 @@ under the License.
 				<div id="service_update_form_button">
 				<button title="Hint: Login" disabled style="font-size:8pt;">Update</button>
 				</div>
-   				<div class="registry_data_div">
-   					<span id="registry_data_area"></span>
-   				</div>
+   				<%@ include file="service.details.table.registry.jsp" %>
 			</div>
 			<div id="tabs-3">
                 <%@ include file="service.details.table.files.jsp" %>
