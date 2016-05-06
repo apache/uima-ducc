@@ -25,15 +25,15 @@ under the License.
     <table class="sortable">
     <thead>
     <tr class="ducc-head">
-    <th title="The system assigned work item sequence number" class="sorttable_numeric">SeqNo</th>
-    <th title="The user assigned work item identity">Id</th>
-    <th title="The work item status, normally operating or ended">Status</th>
-    <th title="The approx. number of seconds elapsed between work item (a) requested for processing and (b) start of processing" class="sorttable_numeric">Delivery<br>Time</th>
-    <th title="The approx. number of seconds elapsed between work item (a) start of processing and (b) end of processing" class="sorttable_numeric">Process<br>Time</th>
-    <th title="The approx. number of seconds invested in current epoch" class="sorttable_numeric">Investment<br>Time</th>
-    <th title="The node for the work item, by address">Node<br>(IP)</th>
-    <th title="The node for the work item, by name">Node<br>(Name)</th>
-    <th title="The PID for the work item" class="sorttable_numeric">PID</th>
+    <th class="sorttable_numeric" title="The system assigned work item sequence number">SeqNo</th>
+    <th class="none"              title="The user assigned work item identity">Id</th>
+    <th class="none"              title="The work item status, normally operating or ended">Status</th>
+    <th class="sorttable_numeric" title="The approx. number of seconds elapsed between work item (a) requested for processing and (b) start of processing">Delivery<br>Time</th>
+    <th class="sorttable_numeric" title="The approx. number of seconds elapsed between work item (a) start of processing and (b) end of processing">Process<br>Time</th>
+    <th class="sorttable_numeric" title="The approx. number of seconds invested in current epoch">Investment<br>Time</th>
+    <th class="none"              title="The node for the work item, by address">Node<br>(IP)</th>
+    <th class="none"              title="The node for the work item, by name">Node<br>(Name)</th>
+    <th class="sorttable_numeric" title="The PID for the work item">PID</th>
     </tr>
     </thead>
     <tbody id="workitems_data_area">

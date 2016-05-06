@@ -18,6 +18,22 @@ under the License.
 -->
 <div id=loading_performance_area>
 </div>
-<div class="performance_data_div">
-  <span id="performance_data_area"></span>
-</div>
+<table>
+<caption><b>Specification</b><br><i><small>click column heading to sort</small></i></caption>
+<tr>
+<td>
+	<table class="sortable">
+	<thead>
+	<tr class="ducc-head">
+	<th class="none"              title="the name of the annotater">Name</th>
+	<th class="none"              title="the time spent in the annotater for all work items">Total<br><small>ddd:hh:mm:ss</small></th>
+	<th class="sorttable_numeric" title="the percentage of time spent in the annotater">% of<br>Total</th>
+	<th class="none"              title="the average time spent in the annotater">Avg<br><small>hh:mm:ss/workitem</small></th>
+	<th class="none"              title="the minimum time spent in the annotater">Min<br><small>hh:mm:ss/workitem</small></th>
+	<th class="none"              title="the maximum time spent in the annotater">Max<br><small>hh:mm:ss/workitem</small></th>
+	</tr>
+	</thead>
+	<tbody id="performance_data_area">
+	</tbody>
+	</table> 				
+</table>

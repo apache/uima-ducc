@@ -16,8 +16,22 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
+
 <div id=loading_specification_area>
 </div>
-<div class="specification_data_div">
-  <span id="specification_data_area"></span>
-</div>
+<table>
+<caption><b>Specification</b><br><i><small>click column heading to sort</small></i></caption>
+<tr>
+<td>
+	<table class="sortable">
+	<thead>
+	<tr class="ducc-head">
+	<th class="none"              title="the specification variable source">Provider</th>
+	<th class="none"              title="the specification variable name">Key</th>
+	<th class="none"              title="the specification variable value">Value</th>
+	</tr>
+	</thead>
+	<tbody id="specification_data_area">
+	</tbody>
+	</table> 				
+</table>

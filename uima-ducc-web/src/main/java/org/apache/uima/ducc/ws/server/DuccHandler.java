@@ -1855,10 +1855,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
-				//String directory = job.getLogDirectory()+jobNo;
 				EffectiveUser eu = EffectiveUser.create(request);
-				//long wiVersion = job.getWiVersion();
-				//AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(eu, component, directory,  wiVersion);
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
 			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(eu.get());
 			    if( (performanceMetricsSummaryMap == null) || (performanceMetricsSummaryMap.size() == 0) ) {
@@ -1866,43 +1863,6 @@ public class DuccHandler extends DuccAbstractHandler {
 			    }
 			    else {
 			    	int casCount  = performanceMetricsSummaryMap.casCount();
-			    	/*
-			    	sb.append("<table>");
-			    	sb.append("<tr>");
-			    	sb.append("<th align=\"right\">");
-			    	sb.append("Job Id:");
-			    	sb.append("<th align=\"left\">");
-			    	sb.append(jobNo);
-			    	sb.append("<th>");
-			    	sb.append("&nbsp");
-			    	sb.append("<th align=\"right\">");
-			    	sb.append("Workitems:");
-			    	sb.append("<th align=\"left\">");
-			    	sb.append(casCount);
-			    	sb.append("</table>");
-			    	sb.append("<br>");
-			    	*/
-			    	sb.append("<table class=\"sortable\">");
-					sb.append("<tr class=\"ducc-head\">");
-					sb.append("<th>");
-					sb.append("Name");
-					sb.append("</th>");
-					sb.append("<th>");
-					sb.append("Total<br><small>ddd:hh:mm:ss</small>");
-					sb.append("</th>");
-					sb.append("<th class=\"sorttable_numeric\">");
-					sb.append("% of<br>Total");
-					sb.append("</th>");
-					sb.append("<th class=\"sorttable_numeric\">");
-					sb.append("Avg<br><small>hh:mm:ss/workitem</small>");
-					sb.append("</th>");
-					sb.append("<th class=\"sorttable_numeric\">");
-					sb.append("Min<br><small>hh:mm:ss/workitem</small>");
-					sb.append("</th>");
-					sb.append("<th class=\"sorttable_numeric\">");
-					sb.append("Max<br><small>hh:mm:ss/workitem</small>");
-					sb.append("</th>");
-					sb.append("</tr>");
 					ArrayList <UimaStatistic> uimaStats = new ArrayList<UimaStatistic>();
 				    uimaStats.clear();
 				    long analysisTime = 0;
@@ -2002,7 +1962,6 @@ public class DuccHandler extends DuccAbstractHandler {
 						ltime = (long)time;
 						sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 					}
-					sb.append("</table>");
 			    }
 			}
 			catch(Exception e) {
@@ -2090,19 +2049,6 @@ public class DuccHandler extends DuccAbstractHandler {
 					map.put(key, key);
 				}
 				Iterator<String> iterator = map.keySet().iterator();
-				sb.append("<table id=\"specification_table\" class=\"sortable\">");
-				sb.append("<tr class=\"ducc-head\">");
-				if(isProvided(usProperties, fsProperties)) {
-					sb.append("<th title=\"system provided if blank\">");
-					sb.append(headProvider);
-				}
-				sb.append("<th>");
-				sb.append("Key");
-				sb.append("</th>");
-				sb.append("<th>");
-				sb.append("Value");
-				sb.append("</th>");
-				sb.append("</tr>");
 				int i = 0;
 				int counter = 0;
 				while(iterator.hasNext()) {
@@ -2118,9 +2064,6 @@ public class DuccHandler extends DuccAbstractHandler {
 					}
 					putJobSpecEntry(properties, provider, key, value, sb, counter++);
 				}
-				sb.append("</table>");
-				sb.append("<br>");
-				sb.append("<br>");
 			}
 			catch(Throwable t) {
 				duccLogger.warn(methodName, null, t);
