@@ -33,7 +33,7 @@ import org.apache.uima.analysis_engine.AnalysisEngineDescription;
 import org.apache.uima.analysis_engine.AnalysisEngineManagement;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
-import org.apache.uima.ducc.cli.IUiOptions.UiOption;
+import org.apache.uima.ducc.cli.aio.AllInOne.MsgHandler;
 import org.apache.uima.ducc.common.uima.UimaHelper;
 import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.resource.ResourceInitializationException;
@@ -48,7 +48,7 @@ public class CasPipeline {
 
 	public static String cid = CasPipeline.class.getSimpleName();
 	
-	protected IMessageHandler mh = new MessageHandler();
+	protected MsgHandler mh;
 	protected Properties properties = new Properties();
 	
 	private AnalysisEngineDescription aed = null;
@@ -56,21 +56,14 @@ public class CasPipeline {
 
 	private CAS cas = null;
 	
-	public CasPipeline(Properties properties, IMessageHandler mh) {
-		if(properties != null) {
-			this.properties = properties;
-		}
-		if(mh != null) {
-			this.mh = mh;
-		}
+	public CasPipeline(Properties properties, AllInOne.MsgHandler mh) {
+	    this.properties = properties;
+		this.mh = mh;
 	}
 	
 	private ArrayList<String> toArrayList(String overrides) {
-		String mid = "toArrayList";
-		mh.frameworkTrace(cid, mid, "enter");
 		// To match other lists tokenize on blanks & strip any quotes around values.
         ArrayList<String> list = QuotedOptions.tokenizeList(overrides, true);
-		mh.frameworkTrace(cid, mid, "exit");
 		return list;
 	}
 	
@@ -78,7 +71,7 @@ public class CasPipeline {
 		String mid = "getFile";
 		File file;
 		if(descriptor.endsWith(".xml")) {
-			mh.frameworkTrace(cid, mid, descriptor);
+			mh.frameworkDebug(cid, mid, descriptor);
 			file = new File(descriptor);
 		}
 		else {
@@ -87,7 +80,7 @@ public class CasPipeline {
 			if(url == null) {
 				throw new IllegalArgumentException(relativePath+" not found in classpath");
 			}
-			mh.frameworkTrace(cid, mid, url.getFile());
+			mh.frameworkDebug(cid, mid, url.getFile());
 			file = new File(url.getFile());
 		}
 		return file;
@@ -95,40 +88,36 @@ public class CasPipeline {
 	
 	private void initializeByDD() throws Exception {
 		String mid = "initializeByDD";
-		mh.frameworkTrace(cid, mid, "enter");
-		String dd = properties.getProperty(UiOption.ProcessDD.pname());
+		String dd = properties.getProperty(AllInOne.ProcessDD);
 		File ddFile = getFile(dd);
 		DDParser ddParser = new DDParser(ddFile);
 		String ddImport = ddParser.getDDImport();
-		mh.frameworkTrace(cid, mid, ddImport);
+		mh.frameworkDebug(cid, mid, ddImport);
 		File uimaFile = getFile(ddImport);
 		XMLInputSource xis = new XMLInputSource(uimaFile);
 		ResourceSpecifier specifier = UIMAFramework.getXMLParser().parseResourceSpecifier(xis);
 	    ae = UIMAFramework.produceAnalysisEngine(specifier);
-		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
 	private void initializeByParts() throws Exception {
-		String mid = "initializeByParts";
-		mh.frameworkTrace(cid, mid, "enter");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		List<List<String>> overrides = new ArrayList<List<String>>();
 		List<String> descriptors = new ArrayList<String>();
-		String cmDescriptor = properties.getProperty(UiOption.ProcessDescriptorCM.pname());
+		String cmDescriptor = properties.getProperty(AllInOne.ProcessDescriptorCM);
 		if(cmDescriptor != null) {
-			ArrayList<String> cmOverrides = toArrayList(properties.getProperty(UiOption.ProcessDescriptorCMOverrides.pname()));
+			ArrayList<String> cmOverrides = toArrayList(properties.getProperty(AllInOne.ProcessDescriptorCMOverrides));
 			overrides.add(cmOverrides);
 			descriptors.add(cmDescriptor);
 		}
-		String aeDescriptor = properties.getProperty(UiOption.ProcessDescriptorAE.pname());
+		String aeDescriptor = properties.getProperty(AllInOne.ProcessDescriptorAE);
 		if(aeDescriptor != null) {
-			ArrayList<String> aeOverrides = toArrayList(properties.getProperty(UiOption.ProcessDescriptorAEOverrides.pname()));
+			ArrayList<String> aeOverrides = toArrayList(properties.getProperty(AllInOne.ProcessDescriptorAEOverrides));
 			overrides.add(aeOverrides);
 			descriptors.add(aeDescriptor);
 		}
-		String ccDescriptor = properties.getProperty(UiOption.ProcessDescriptorCC.pname());
+		String ccDescriptor = properties.getProperty(AllInOne.ProcessDescriptorCC);
 		if(ccDescriptor != null) {
-			ArrayList<String> ccOverrides = toArrayList(properties.getProperty(UiOption.ProcessDescriptorCCOverrides.pname()));
+			ArrayList<String> ccOverrides = toArrayList(properties.getProperty(AllInOne.ProcessDescriptorCCOverrides));
 			overrides.add(ccOverrides);
 			descriptors.add(ccDescriptor);
 		}
@@ -150,20 +139,16 @@ public class CasPipeline {
 		XMLInputSource xis = new XMLInputSource(bais, file);
 		ResourceSpecifier specifier = UIMAFramework.getXMLParser().parseResourceSpecifier(xis);
 	    ae = UIMAFramework.produceAnalysisEngine(specifier);
-		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
 	public void initialize() throws Exception {
-		String mid = "initialize";
-		mh.frameworkTrace(cid, mid, "enter");
-		String dd = properties.getProperty(UiOption.ProcessDD.pname());
+		String dd = properties.getProperty(AllInOne.ProcessDD);
 		if(dd != null) {
 			initializeByDD();
 		}
 		else {
 			initializeByParts();
 		}
-		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
 	public CAS process(CAS cas) throws AnalysisEngineProcessException {

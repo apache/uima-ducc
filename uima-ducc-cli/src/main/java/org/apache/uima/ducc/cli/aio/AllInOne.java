@@ -18,16 +18,13 @@
 */
 package org.apache.uima.ducc.cli.aio;
 
+import java.util.Properties;
+
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiSerializationSharedData;
-import org.apache.uima.ducc.cli.CliBase;
-import org.apache.uima.ducc.cli.DuccJobSubmit;
-import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
-import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
-import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.user.common.DuccUimaSerializer;
 
-public class AllInOne extends CliBase {
+public class AllInOne {
     
 	private static String cid = AllInOne.class.getSimpleName();
 	
@@ -35,66 +32,51 @@ public class AllInOne extends CliBase {
 	
 	private static XmiSerializationSharedData xmiSerializationSharedData = new XmiSerializationSharedData();
 	
-	private IMessageHandler mh = new MessageHandler();
-	
-	private JobRequestProperties jobRequestProperties = new JobRequestProperties(); 
-	
-	private boolean showStats = true;
-	
+    private MsgHandler mh = new MsgHandler();
+    
+    private Properties jobRequestProperties = new Properties();
+
+    private boolean showStats = true;
+
+	// Avoid a dependency on the CLI's UiOptions by duplicating these option nanes
+    static String DriverDescriptorCR = "driver_descriptor_CR";
+    static String DriverDescriptorCROverrides = "driver_descriptor_CR_overrides";
+    static String ProcessDD = "process_descriptor_DD";
+    static String ProcessDescriptorCM = "process_descriptor_CM";
+    static String ProcessDescriptorCMOverrides = "process_descriptor_CM_overrides";
+    static String ProcessDescriptorAE = "process_descriptor_AE";
+    static String ProcessDescriptorAEOverrides = "process_descriptor_AE_overrides";
+    static String ProcessDescriptorCC = "process_descriptor_CC";
+    static String ProcessDescriptorCCOverrides = "process_descriptor_CC_overrides";
+    static String Timestamp = "timestamp";
+    static String Debug = "debug";
+  
 	CasGenerator casGenerator;
 	CasPipeline casPipeline;
+
+    private boolean timestamp;
+
+    private boolean debug;
 	
 	public AllInOne(String[] args) throws Exception {
-		UiOption[] opts = DuccJobSubmit.opts;
-		init(this.getClass().getName(), opts, args, jobRequestProperties, consoleCb);
+	    for (int i = 0; i < args.length; ++i) {
+	        if (i+1 < args.length && !args[i+1].startsWith("--")) {
+	            jobRequestProperties.put(args[i].substring(2), args[i+1]);
+	            ++i;
+	        } else {
+	            jobRequestProperties.put(args[i].substring(2), "");
+	        }
+	  }
+      // Properties will have been validated in AllInOneLauncher
+      timestamp = jobRequestProperties.containsKey(Timestamp);
+      debug = jobRequestProperties.containsKey(Debug);
 	}
 	
-	private void examine_debug() {
-		String mid = "examine_debug";
-		debug = jobRequestProperties.containsKey(UiOption.Debug.pname());
-		if(debug) {
-			mh.setLevel(Level.FrameworkInfo, Toggle.On);
-			mh.setLevel(Level.FrameworkDebug, Toggle.On);
-			mh.setLevel(Level.FrameworkError, Toggle.On);
-			mh.setLevel(Level.FrameworkWarn, Toggle.On);
-			String message = "true";
-			mh.frameworkDebug(cid, mid, message);
-		}
-		else {
-			String message = "false";
-			mh.frameworkDebug(cid, mid, message);
-		}
-	}
-	
-	private void examine_timestamp() {
-		String mid = "examine_timestamp";
-		boolean timestamp = jobRequestProperties.containsKey(UiOption.Timestamp.pname());
-		if(timestamp) {
-			mh.setTimestamping(Toggle.On);
-			String message = "true";
-			mh.frameworkDebug(cid, mid, message);
-		}
-		else {
-			String message = "false";
-			mh.frameworkDebug(cid, mid, message);
-		}
-	}
-	
-	private void examine() throws IllegalArgumentException {
-		String mid = "examine";
-		mh.frameworkTrace(cid, mid, "enter");
-		examine_debug();
-		examine_timestamp();
-		mh.frameworkTrace(cid, mid, "exit");
-	}
-
 	private class NoWorkItems extends Exception {
 		private static final long serialVersionUID = 1L;
 	}
 	
 	private void initialize() throws Exception {
-		String mid = "initialize";
-		mh.frameworkTrace(cid, mid, "enter");
 		// Generator
 		casGenerator = new CasGenerator(jobRequestProperties, mh);
 		casGenerator.initialize();
@@ -107,12 +89,10 @@ public class AllInOne extends CliBase {
 		else {
 			throw new NoWorkItems();
 		}
-		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
 	private void process() throws Exception {
 		String mid = "process";
-		mh.frameworkTrace(cid, mid, "enter");
 		int count = 0;
 		int total = casGenerator.getTotal();
 		mh.frameworkDebug(cid, mid, "total:"+total);
@@ -130,7 +110,6 @@ public class AllInOne extends CliBase {
 			count++;
 		}
 		casPipeline.destroy();
-		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
 	private void statistics() {
@@ -140,19 +119,15 @@ public class AllInOne extends CliBase {
 	}
 	
 	public void go() throws Exception {
-		String mid = "go";
-		mh.frameworkTrace(cid, mid, "enter");
 		try {
-			examine();
 			initialize();
 			process();
 			statistics();
 		}
 		catch(NoWorkItems e) {
 			String message = "no work items";
-			mh.warn(cid, mid, message);
+			System.err.println("AllInOne.go " + message);
 		}
-		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
 	
@@ -162,13 +137,17 @@ public class AllInOne extends CliBase {
 			allInOne.go();
 		} catch (Exception e) {
 			// Indicate that something went wrong
+		    e.printStackTrace();
 			System.exit(1);
 		}
 	}
 
-	@Override
-	public boolean execute() throws Exception {
-		return false;
+	class MsgHandler {
+	       public void frameworkInfo(String klass, String method, String message) {
+	            System.out.println(klass + "." + method + " " + message);
+	        }
+	    public void frameworkDebug(String klass, String method, String message) {
+	        if (debug) System.out.println(klass + "." + method + " " + message);
+	    }
 	}
-
 }

@@ -28,7 +28,6 @@ import org.apache.uima.UIMAFramework;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.CollectionException;
 import org.apache.uima.collection.CollectionReader;
-import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.resource.ResourceConfigurationException;
@@ -51,7 +50,7 @@ public class CasGenerator {
 
 	public static String cid = CasGenerator.class.getSimpleName();
 	
-	protected IMessageHandler mh = new MessageHandler();
+	protected AllInOne.MsgHandler mh;
 	protected Properties properties = new Properties();
 
 	private CollectionReader cr;
@@ -62,7 +61,7 @@ public class CasGenerator {
 	
 	private int total;
 	
-	public CasGenerator(Properties properties, IMessageHandler mh) {
+	public CasGenerator(Properties properties, AllInOne.MsgHandler mh) {
 		if(properties != null) {
 			this.properties = properties;
 		}
@@ -73,18 +72,10 @@ public class CasGenerator {
 	
 	public void initialize() throws InvalidXMLException, ResourceConfigurationException, ResourceInitializationException {
 		String mid = "initialize";
-		mh.frameworkTrace(cid, mid, "enter");
-		String crDescriptor = properties.getProperty(UiOption.DriverDescriptorCR.pname());
-		String crOverrides = properties.getProperty(UiOption.DriverDescriptorCROverrides.pname());
+		String crDescriptor = properties.getProperty(AllInOne.DriverDescriptorCR);
+		String crOverrides = properties.getProperty(AllInOne.DriverDescriptorCROverrides);
 		XMLParser xmlParser = UIMAFramework.getXMLParser();
-		XMLInputSource in = null;
-		try {
-			in = UimaUtils.getXMLInputSource(crDescriptor);
-		}
-		catch (InvalidXMLException e) {
-			mh.error(e);
-			throw e;
-		}
+		XMLInputSource in = UimaUtils.getXMLInputSource(crDescriptor);
 		ResourceSpecifier crrs = xmlParser.parseCollectionReaderDescription(in);
 		// CR overrides - throw up if trying to override an undefined parameter
         ResourceCreationSpecifier specifier = (ResourceCreationSpecifier) crrs;
@@ -119,53 +110,37 @@ public class CasGenerator {
         cr_fid = cr.getProcessingResourceMetaData().getFsIndexes();
         initTotal();
         mh.frameworkInfo(cid, mid, "total:"+getTotal());
-        mh.frameworkInfo("total:"+getTotal());
-		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
 	public Progress[] getProgressArray() {
-		String mid = "getProgressArray";
-		mh.frameworkTrace(cid, mid, "enter");
 		Progress[] retVal;
 		synchronized(cr) {
 			retVal = cr.getProgress();
 		}
-		mh.frameworkTrace(cid, mid, "exit");
 		return retVal;
 	}
 	
 	public Progress getProgress() {
-		String mid = "getProgress";
-		mh.frameworkTrace(cid, mid, "enter");
 		Progress progress = null;
 		Progress[] progressArray = getProgressArray();
 		if(progressArray != null) {
 			progress = progressArray[0];
 		}
-		mh.frameworkTrace(cid, mid, "exit");
 		return progress;
 	}
 	
 	private void initTotal() {
-		String mid = "initTotal";
-		mh.frameworkTrace(cid, mid, "enter");
 		Progress progress = getProgress();
 		if(progress != null) {
 			total = (int)progress.getTotal();
 		}
-		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
 	public int getTotal() {
-		String mid = "getTotal";
-		mh.frameworkTrace(cid, mid, "enter");
-		mh.frameworkTrace(cid, mid, "exit");
 		return total;
 	}
 	
 	private CAS getEmptyCas() throws ResourceInitializationException {
-		String mid = "getEmptyCas";
-		mh.frameworkTrace(cid, mid, "enter");
 		CAS cas = null;
 		while(cas == null) {
 			//	Use class level locking to serialize access to CasCreationUtils
@@ -176,25 +151,18 @@ public class CasGenerator {
 				cas = CasCreationUtils.createCas(cr_tsd, cr_tp, cr_fid, cr_properties);
 			}
 		}
-		mh.frameworkTrace(cid, mid, "exit");
 		return cas;
 	}
 	
 	private CAS getNewCas() throws ResourceInitializationException, CollectionException, IOException {
-		String mid = "getNewCas";
-		mh.frameworkTrace(cid, mid, "enter");
 		CAS cas = getEmptyCas();
 		cr.getNext(cas);
-		mh.frameworkTrace(cid, mid, "exit");
 		return cas;
 	}
 	
 	public CAS getUsedCas(CAS cas) throws CollectionException, IOException, ResourceInitializationException {
-		String mid = "getUsedCas";
-		mh.frameworkTrace(cid, mid, "enter");
 		cas.reset();
 		cr.getNext(cas);
-		mh.frameworkTrace(cid, mid, "exit");
 		return cas;
 	}
 	
