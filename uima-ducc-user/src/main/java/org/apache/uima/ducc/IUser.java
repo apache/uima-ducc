@@ -18,10 +18,12 @@
 */
 package org.apache.uima.ducc;
 
+//Note: Coordinate with org.apache.uima.ducc.common.IDuccUser
+
 public interface IUser {
 
 	public enum EnvironmentVariable {
-		DUCC_NODENAME("NodeName"),
+		DUCC_NODENAME("DUCC_NODENAME"),
 		;
 		
 		private String value = null;

@@ -30,7 +30,7 @@ public interface IDuccUser {
 		DUCC_LOG_PREFIX("DUCC_PROCESS_LOG_PREFIX"),
 		//
 		DUCC_IP("IP"),
-		DUCC_NODENAME("NodeName"),
+		DUCC_NODENAME("DUCC_NODENAME"),
 		USER("USER"),
 		;
 		

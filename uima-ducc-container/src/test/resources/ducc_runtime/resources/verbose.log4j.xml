@@ -98,7 +98,7 @@
 
   <appender name="wslog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/ws.${NodeName}.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/ws.${DUCC_NODENAME}.log"/>
     <param name="maxBackupIndex" value="5" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %X{JID} %X{METHOD} %m%n"/> 
@@ -107,7 +107,7 @@
   
   <appender name="vizlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/viz.${NodeName}.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/viz.${DUCC_NODENAME}.log"/>
     <param name="maxBackupIndex" value="5" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %X{JID} %X{METHOD} %m%n"/> 

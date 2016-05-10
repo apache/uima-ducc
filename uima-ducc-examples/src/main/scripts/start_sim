@@ -89,7 +89,7 @@ class StartSim(DuccUtil):
         CMDPARMS.append('org.apache.uima.ducc.common.main.DuccService')
         
         print "Start agent with pnode", pnode, "IP", ip, "memory", memory
-        os.environ['NodeName'] = pnode
+        os.environ['DUCC_NODENAME'] = pnode
         os.environ['IP'] = ip
 
         self.nohup(CMDPARMS)
