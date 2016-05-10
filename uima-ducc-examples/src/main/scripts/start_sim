@@ -90,7 +90,7 @@ class StartSim(DuccUtil):
         
         print "Start agent with pnode", pnode, "IP", ip, "memory", memory
         os.environ['DUCC_NODENAME'] = pnode
-        os.environ['IP'] = ip
+        os.environ['DUCC_IP'] = ip
 
         self.nohup(CMDPARMS)
         #self.spawn(' '.join(CMDPARMS))
