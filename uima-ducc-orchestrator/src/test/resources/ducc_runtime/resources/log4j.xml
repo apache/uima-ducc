@@ -102,7 +102,7 @@
 
   <appender name="wslog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/ws.${NodeName}.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/ws.${DUCC_NODENAME}.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -132,7 +132,7 @@
 
   <appender name="agentlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/${NodeName}.${ducc.deploy.components}.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/${DUCC_NODENAME}.${ducc.deploy.components}.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
