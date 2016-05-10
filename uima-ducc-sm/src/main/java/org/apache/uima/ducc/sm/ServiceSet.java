@@ -882,7 +882,6 @@ public class ServiceSet
 	}
 	
 	/**
-	 * UIMA-4829
 	 * If the Service state is Available but the pinger data has not been updated
 	 * beyond the expiry time then determine that the pinger data is stale
 	 * 
@@ -892,6 +891,7 @@ public class ServiceSet
     	String location = "determinePingerStatus";
     	switch(getState()) {
     	case Available:
+    	case Waiting:
     		if(serviceMeta == null) {
     			notPinging = true;
     			notPingingReason = "pinger has not reported";
@@ -916,7 +916,14 @@ public class ServiceSet
 			notPingingReason = "N/A";
     		break;
     	}
-    	logger.trace(location, id, "pinging: "+!notPinging+" "+"reason: "+notPingingReason);
+    	if(notPinging) {
+    		logger.info(location, id, notPingingReason);
+    		switch(service_state) {
+    		case Available:
+    			logger.info(location, id, service_state+" => "+ServiceState.Waiting);
+    			service_state = ServiceState.Waiting;
+    		}
+    	}
     	return;
     }
     
@@ -1523,17 +1530,8 @@ public class ServiceSet
         if ( serviceMeta == null ) {
             response = (response.ordinality() < ServiceState.Waiting.ordinality()) ? response : ServiceState.Waiting;
         } else if ( serviceMeta != null ) {
-        	// UIMA-4829
-        	// If the pinger is not pinging), then force cumulative state to Waiting.
-        	determinePingerStatus();
-        	if(notPinging) {
-        		logger.trace(methodName, id, "Not pinging. "+" State override from:"+response, " to:"+ServiceState.Waiting);
-        		response = ServiceState.Waiting;
-        	}
-        	else {
-        		logger.trace(methodName, id, "Cumulative before checking monitor/pinger:", response, ".  Monitor state:", serviceMeta.getServiceState());
-                if ( serviceMeta.getServiceState().ordinality() <= response.ordinality() ) response = serviceMeta.getServiceState();
-        	}
+            logger.trace(methodName, id, "Cumulative before checking monitor/pinger:", response, ".  Monitor state:", serviceMeta.getServiceState());
+            if ( serviceMeta.getServiceState().ordinality() <= response.ordinality() ) response = serviceMeta.getServiceState();
         }
 
         return response;
@@ -1544,7 +1542,7 @@ public class ServiceSet
         return service_state;
     }
 
-    synchronized void setState(ServiceState new_state, ServiceState cumulative, ServiceInstance si)
+    synchronized void setState(ServiceState req_new_state, ServiceState req_cumulative, ServiceInstance si)
     {
         String methodName = "setState";
 
@@ -1556,6 +1554,39 @@ public class ServiceSet
         }
 
         ServiceState prev = this.service_state;
+        ServiceState new_state = req_new_state;
+        ServiceState cumulative = req_cumulative;
+        
+        /**
+         * If pinger is stale and state is Available then force state to be Waiting
+         */
+        determinePingerStatus();
+        if(notPinging) {
+        	switch(new_state) {
+        	case Available:
+        	case Waiting:	
+        		new_state = ServiceState.Waiting;
+        		cumulative = new_state;
+        		logger.debug(methodName, id, "NotPinging[1]: "+req_new_state+" => "+new_state+"; "+req_cumulative+" => "+cumulative);
+        		break;
+        	default:
+        		switch(cumulative) {
+        		case Available:
+        			new_state = ServiceState.Waiting;
+            		cumulative = new_state;
+            		logger.debug(methodName, id, "NotPinging[2]: "+req_new_state+" => "+new_state+"; "+req_cumulative+" => "+cumulative);
+        			break;
+        		default:
+        			logger.debug(methodName, id, "NotPinging[3]: "+req_new_state+" => "+new_state+"; "+req_cumulative+" => "+cumulative);
+        			break;
+        		}
+        		break;
+        	}
+        }
+        else {
+        	logger.debug(methodName, id, "Pinging: "+req_new_state+" => "+new_state+"; "+req_cumulative+" => "+cumulative);
+        }
+        
         this.service_state = new_state;
         if ( prev != new_state ) {
             logger.info(methodName, id, "State update from[" + prev + "] to[" + new_state + "] via[" + cumulative + "] Inst[" + tail + "]" );
