@@ -21,7 +21,6 @@ package org.apache.uima.ducc.agent.launcher;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -754,12 +753,13 @@ public class DuccCommandExecutor extends CommandExecutor {
 					executable = System.getProperty("java.home")
 							+ File.separator + "bin" + File.separator + "java";
 				}
-				List<String> operationalProperties = new ArrayList<String>();
+				//List<String> operationalProperties = new ArrayList<String>();
 
 				if (cmdLine instanceof JavaCommandLine) {
+					JavaCommandLine jcl = ((JavaCommandLine) cmdLine);
 					String duccHomePath = Utils.findDuccHome();
-					operationalProperties.add("-DDUCC_HOME=" + duccHomePath);
-					operationalProperties.add("-Dducc.deploy.configuration="
+					jcl.addOption("-DDUCC_HOME=" + duccHomePath);
+					jcl.addOption("-Dducc.deploy.configuration="
 							+ System.getProperty("ducc.deploy.configuration"));
 					if (System
 							.getProperties()
@@ -768,8 +768,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 						String type = System
 								.getProperty("ducc.agent.managed.process.state.update.endpoint.type");
 						if (type != null && type.equalsIgnoreCase("socket")) {
-							operationalProperties
-									.add("-D"
+							jcl.addOption("-D"
 											+ NodeAgent.ProcessStateUpdatePort
 											+ "="
 											+ System.getProperty(NodeAgent.ProcessStateUpdatePort));
@@ -777,28 +776,23 @@ public class DuccCommandExecutor extends CommandExecutor {
 					}
 					// NOTE - These are redundant since the information is also
 					// in the environment for both Java and non-Java processes
-					operationalProperties.add("-Dducc.process.log.dir="
+					jcl.addOption("-Dducc.process.log.dir="
 							+ processLogDir);
-					operationalProperties.add("-Dducc.process.log.basename="
+					jcl.addOption("-Dducc.process.log.basename="
 							+ processLogFile); // ((ManagedProcess)super.managedProcess).getWorkDuccId()+
 												// processType+host);
-					operationalProperties.add("-Dducc.job.id="
+					jcl.addOption("-Dducc.job.id="
 							+ ((ManagedProcess) super.managedProcess)
 									.getWorkDuccId());
 
 				}
-				String[] operationalPropertiesArray = new String[operationalProperties
-						.size()];
-
+				
 				if (useDuccSpawn()) {
 					cmd = Utils.concatAllArrays(duccling,
-							new String[] { executable }, operationalProperties
-									.toArray(operationalPropertiesArray),
+							new String[] { executable },
 							cmdLine.getCommandLine());
 				} else {
 					cmd = Utils.concatAllArrays(new String[] { executable },
-							operationalProperties
-									.toArray(operationalPropertiesArray),
 							cmdLine.getCommandLine());
 				}
 				// add JobId and the log prefix to the env so additional
