@@ -916,6 +916,24 @@ public class NodeConfiguration
             } 
         }
     }
+    
+    // UIMA-4930 Enforce the NodepoolScheduler restriction that classes with the same priority MUST have the same scheduling policy
+    void checkPriorities() throws IllegalConfigurationException {
+      HashMap<String, String> policyMap = new HashMap<String,String>();
+      for ( DuccProperties p : classes ) {
+        String priority = p.getProperty("priority");
+        String policy = p.getProperty("policy");  
+        String p4p = policyMap.get(priority);
+        if (p4p == null) {
+          policyMap.put(priority,  policy);
+        } else {
+          if (!p4p.equals(policy)) {
+            throw new IllegalConfigurationException("Class " + p.getProperty("name") + " has the same priority (" + priority +
+                    ") as another but with a different scheduling policy (" + policy + ")");
+          }
+        }
+      }
+    }
 
     /**
      * Make sure any classes specified in the user registry exist and specify a number.
@@ -1107,6 +1125,7 @@ public class NodeConfiguration
             connectNodepools();
             readNpNodes(defaultDomain);
             checkForCycles();
+            checkPriorities();
         } finally {
             if ( in != null ) {
                 try { in.close();
