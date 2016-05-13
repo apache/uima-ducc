@@ -21,6 +21,7 @@ package org.apache.uima.ducc.agent.launcher;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -671,6 +672,23 @@ public class DuccCommandExecutor extends CommandExecutor {
 					// is an arbitrary process
 					processType = "-POP-";
 					if (cmdLine instanceof JavaCommandLine) {
+						int size = ((JavaCommandLine) cmdLine).getOptions().size();
+						String[] options = ((JavaCommandLine) cmdLine).getOptions().toArray(new String[size]);
+						for( String option : options ) {
+							// Both services and JD have processType=POP.
+							// However, only the JD
+							// will have -Dducc.deploy.components option set.
+							if (option.startsWith("-Dducc.deploy.components=")) {
+								processType = "-JD-";
+								((ManagedProcess) super.managedProcess)
+										.setIsJD(); // mark this process as JD
+								break;
+							}
+						}
+
+						
+						
+/*						
 						List<String> options = Collections.synchronizedList(((JavaCommandLine) cmdLine)
 								.getOptions());
 
@@ -690,6 +708,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 
 							}
 						}
+*/
 /*						
 						for (String option : options) {
 							// Both services and JD have processType=POP.
@@ -711,6 +730,22 @@ public class DuccCommandExecutor extends CommandExecutor {
 					break;
 				case Job_Uima_AS_Process:
 					processType = "-UIMA-";
+					int size = ((JavaCommandLine) cmdLine).getOptions().size();
+					String[] options = ((JavaCommandLine) cmdLine).getOptions().toArray(new String[size]);
+					boolean isDucc20JpProcess = false;
+					boolean isDucc20ServiceProcess = false;
+					for( String option : options ) {
+						if (option.indexOf(FlagsHelper.Name.JpType.pname()) > -1) {
+							isDucc20JpProcess = true;
+						}
+						if (option.indexOf("ducc.deploy.components=service") > -1) {
+							isDucc20ServiceProcess = true;
+						}
+					}
+					
+					
+					
+/*					
 					List<String> options = Collections.synchronizedList(((JavaCommandLine) cmdLine)
 							.getOptions());
 					boolean isDucc20JpProcess = false;
@@ -727,6 +762,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 							}
 						}
 					}
+*/					
 					// determine if we are launching Ducc2.0 or Ducc1.+ JP
 /*
 					for (String option : options) {
@@ -793,6 +829,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					executable = System.getProperty("java.home")
 							+ File.separator + "bin" + File.separator + "java";
 				}
+
 				//List<String> operationalProperties = new ArrayList<String>();
 				List<String> options = Collections.synchronizedList(((JavaCommandLine) cmdLine)
 						.getOptions());
