@@ -18,18 +18,50 @@
 */
 package org.apache.uima.ducc.ws.types;
 
+/**
+ * A class to manage the machine name (ie node identity) of a
+ * resource in the DUCC cluster. 
+ */
 public class NodeId implements Comparable<NodeId> {
 	
-	private String machine;
+	private String machine;		// The name of the machine
 	
+	/**
+	 * @param machine - the name of the machine, nominally including domain
+	 */
 	public NodeId(String machine) {
 		this.machine = machine;
 	}
 	
-	@Override
-	public String toString() {
+	/**
+	 * @return the name of the machine w/o the domain
+	 */
+	public String getShortName() {
+		String retVal = this.machine;
+		if(retVal != null) {
+			if(retVal.contains(".")) {
+				String expr = "\\.";
+				retVal = retVal.split(expr)[0];
+			}
+		}
+		return retVal;
+	}
+	
+	/**
+	 * @return the name of the machine including the domain, if present
+	 */
+	public String getLongName() {
 		return this.machine;
 	}
+	
+	// @return the name of the machine including the domain, if present
+	
+	@Override
+	public String toString() {
+		return getLongName();
+	}
+	
+	// @return 0 if the long names match
 	
 	@Override
 	public int compareTo(NodeId nodeId) {
@@ -42,6 +74,8 @@ public class NodeId implements Comparable<NodeId> {
 		}
 		return retVal;
 	}
+	
+	// @return true if the long names match
 	
 	@Override
 	public boolean equals(Object object) {

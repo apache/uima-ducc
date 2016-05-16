@@ -48,6 +48,11 @@ import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.DatedNodeMetricsUpdateDuccEvent;
 
+/**
+ * A class to manage information about machines comprising data
+ * from Agents and Resource Manager (RM).  The former report
+ * via node metrics publications the later reports via database.
+ */
 public class DuccMachinesData {
 
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccMachinesData.class.getName());
@@ -69,6 +74,10 @@ public class DuccMachinesData {
 	private static ConcurrentSkipListMap<String,String> isSwapping = new ConcurrentSkipListMap<String,String>();
 	
 	private static ConcurrentSkipListMap<String,TreeMap<String,NodeUsersInfo>> ipToNodeUsersInfoMap = new ConcurrentSkipListMap<String,TreeMap<String,NodeUsersInfo>>();
+	
+	private static MachineFactsList machineFactsList = new MachineFactsList();
+	
+	private static DbQuery dbQuery = DbQuery.getInstance();
 	
 	public static DuccMachinesData getInstance() {
 		return duccMachinesData;
@@ -99,6 +108,7 @@ public class DuccMachinesData {
 				logger.debug(location, jobid, "put: "+value);
 			}
 			sortedMachines = map;
+			updateMachineFactsList();
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
@@ -391,7 +401,7 @@ public class DuccMachinesData {
 		return retVal;
 	}
 	
-	public void enhance(MachineFacts facts, Map<String, IDbMachine> dbMachineMap) {
+	private void enhance(MachineFacts facts, Map<String, IDbMachine> dbMachineMap) {
 		if(facts != null) {
 			if(dbMachineMap != null) {
 				String[] machineStatus = DuccMachinesDataHelper.getMachineStatus(facts, dbMachineMap);
@@ -405,8 +415,35 @@ public class DuccMachinesData {
 		}
 	}
 	
-	public MachineFactsList getMachineFactsList() {
-		Map<String, IDbMachine> dbMachineMap = DbQuery.getInstance().getMapMachines();
+	/**
+	 * Create a cached data set employed by the WS 
+	 * to display the System -> Machines page.  The
+	 * code is dual-pathed, depending on whether or
+	 * not the system is configured to use database.
+	 */
+	private void updateMachineFactsList() {
+		String location = "updateMachineFactsList";
+		try {
+			DbQuery dbQuery = DbQuery.getInstance();
+			if(!dbQuery.isEnabled()) {
+				updateMachineFactsListAgent();
+			}
+			else {
+				updateMachineFactsListDb();
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	/**
+	 * Create a machines facts list based 
+	 * in part on the information provided by the Agents, and
+	 * in part on the data comprising the ducc.nodes file.
+	 */
+	private void updateMachineFactsListAgent() {
 		MachineFactsList factsList = new MachineFactsList();
 		ConcurrentSkipListMap<MachineInfo,NodeId> sortedMachines = getSortedMachines();
 		Iterator<MachineInfo> iterator;
@@ -426,10 +463,85 @@ public class DuccMachinesData {
 			List<String> aliens = machineInfo.getAliens();
 			String heartbeat = ""+machineInfo.getElapsed();
 			MachineFacts facts = new MachineFacts(status,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
-			enhance(facts,dbMachineMap);
+			// when not using DB, memResrve == memTotal
+			facts.memReserve = memTotal;
 			factsList.add(facts);
 		}
-		return factsList;
+		machineFactsList = factsList;
+	}
+	
+	/**
+	 * Create a machines facts list based 
+	 * in part on the entries in the RM-maintained database, and
+	 * in part on the information provided by the Agents, and
+	 * in part on the data comprising the ducc.nodes file.
+	 */
+	private void updateMachineFactsListDb() {
+		// The returnable
+		MachineFactsList mfl = new MachineFactsList();
+		// Working map used to generate the returnable
+		ConcurrentSkipListMap<MachineInfo,NodeId> dbSortedMachines = new ConcurrentSkipListMap<MachineInfo,NodeId>();
+		// Get map from DB courtesy of RM
+		Map<String, IDbMachine> dbMapMachines = dbQuery.getMapMachines();
+		// Working list of known machines, by short name
+		List<String> knownShortNames = new ArrayList<String>();
+		// Update working map and list of short name from DB
+		for(Entry<String, IDbMachine> entry : dbMapMachines.entrySet()) {
+			String name = entry.getKey();
+			NodeId nodeId = new NodeId(name);
+			MachineInfo mi = unsortedMachines.get(nodeId);
+			if(mi != null) {
+				dbSortedMachines.put(mi, nodeId);
+				String shortName = nodeId.getShortName();
+				knownShortNames.add(shortName);
+			}
+		}
+		// Initialize returnable with "defined" machines
+		ArrayList<String> duccNodes = DuccNodes.getInstance().get();
+		for(String name : duccNodes) {
+			// skip defined machine if it already appears in DB
+			if(knownShortNames.contains(name)) {
+				continue;
+			}
+			String status = "defined";
+			String ip = "";
+			String memTotal = "";
+			String memFree = "";
+			String swapInuse = "";
+			String swapDelta = "";
+			String swapFree = "";
+			double cpu = 0;
+			boolean cGroups = false;
+			List<String> aliens = new ArrayList<String>();
+			String heartbeat = "";
+			MachineFacts facts = new MachineFacts(status,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
+			mfl.add(facts);
+		}
+		// Augment returnable with data from Agents & RM (from DB)
+		for(Entry<MachineInfo, NodeId> entry : dbSortedMachines.entrySet()) {
+			MachineInfo machineInfo = entry.getKey();
+			String status = machineInfo.getStatus();
+			String ip = machineInfo.getIp();
+			String name = machineInfo.getName();
+			String memTotal = machineInfo.getMemTotal();
+			String memFree = machineInfo.getMemFree();
+			String swapInuse = machineInfo.getSwapInuse();
+			String swapDelta = ""+machineInfo.getSwapDelta();
+			String swapFree = machineInfo.getSwapFree();
+			double cpu = machineInfo.getCpu();
+			boolean cGroups = machineInfo.getCgroups();
+			List<String> aliens = machineInfo.getAliens();
+			String heartbeat = ""+machineInfo.getElapsed();
+			MachineFacts facts = new MachineFacts(status,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
+			// Add info from Agent that DB does not have
+			enhance(facts, dbMapMachines);
+			mfl.add(facts);
+		}
+		machineFactsList = mfl;
+	}
+	
+	public MachineFactsList getMachineFactsList() {
+		return machineFactsList;
 	}
 	
 }

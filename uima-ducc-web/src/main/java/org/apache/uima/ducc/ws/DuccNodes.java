@@ -30,6 +30,14 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
+/**
+ * A class to interpret the $DUCC_HOME/resources/ducc.nodes file
+ * 
+ * The file comprises lines of the following types:
+ * 1. #comment
+ * 2. node.domain
+ * 3. import <filename>
+ */
 
 public class DuccNodes {
 	
@@ -170,9 +178,15 @@ public class DuccNodes {
 		return nodeSet.nodes;
 	}
 	
-	public static void main(String[] args) {
-		String fileName = IDuccEnv.DUCC_NODES_FILE_NAME;
+	public ArrayList<String> get() {
 		String dirResources = IDuccEnv.DUCC_RESOURCES_DIR;
+		String fileName = IDuccEnv.DUCC_NODES_FILE_NAME;
+		return get(dirResources, fileName);
+	}
+	
+	public static void main(String[] args) {
+		String dirResources = IDuccEnv.DUCC_RESOURCES_DIR;
+		String fileName = IDuccEnv.DUCC_NODES_FILE_NAME;
 		ArrayList<String> nodes =  DuccNodes.getSysOutInstance().get(dirResources,fileName);
 		Iterator<String> iterator = nodes.iterator();
 		while(iterator.hasNext()) {
