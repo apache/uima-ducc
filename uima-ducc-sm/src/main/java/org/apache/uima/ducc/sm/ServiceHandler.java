@@ -1166,6 +1166,7 @@ public class ServiceHandler
         DuccProperties mods  = sme.getProperties();
         restart_pinger = false;
         restart_service = false;
+        boolean updateMeta = false;
         Set<String> keys = mods.stringPropertyNames();        
 
         for (String kk : keys ) {
@@ -1182,9 +1183,9 @@ public class ServiceHandler
                 case Modify:
                     // used by CLI only, won't even be passed in
                     continue;
-                //case Activate:
-                    // TODO: I don't think this is ever used.  Maybe just drop it?
-                    //continue;
+                case Autostart:
+                    updateMeta = true;           // UIMA-4928 (Should move it to the svc props)
+                default:
             }
 
             String v = (String) mods.get(kk);
@@ -1200,10 +1201,13 @@ public class ServiceHandler
         
         sset.resetRuntimeErrors();
         try {
-			sset.updateSvcProperties();
-		} catch (Exception e) {
-			logger.error(methodName, sset.getId(), "Cannot store properties:", e);
-		}
+            sset.updateSvcProperties();
+            if (updateMeta) {
+                sset.updateMetaProperties();
+            }
+        } catch (Exception e) {
+            logger.error(methodName, sset.getId(), "Cannot store properties:", e);
+        }
 
         if ( restart_pinger ) {
             sset.restartPinger();
