@@ -77,8 +77,6 @@ public class DuccMachinesData {
 	
 	private static MachineFactsList machineFactsList = new MachineFactsList();
 	
-	private static DbQuery dbQuery = DbQuery.getInstance();
-	
 	public static DuccMachinesData getInstance() {
 		return duccMachinesData;
 	}
@@ -482,6 +480,7 @@ public class DuccMachinesData {
 		// Working map used to generate the returnable
 		ConcurrentSkipListMap<MachineInfo,NodeId> dbSortedMachines = new ConcurrentSkipListMap<MachineInfo,NodeId>();
 		// Get map from DB courtesy of RM
+		DbQuery dbQuery = DbQuery.getInstance();
 		Map<String, IDbMachine> dbMapMachines = dbQuery.getMapMachines();
 		// Working list of known machines, by short name
 		List<String> knownShortNames = new ArrayList<String>();
