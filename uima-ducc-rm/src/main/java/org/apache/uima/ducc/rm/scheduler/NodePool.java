@@ -125,7 +125,7 @@ class NodePool
         this.evictionPolicy = ep;
         this.depth = depth;
         this.search_order = search_order;
-        this.share_quantum = share_quantum;
+        this.share_quantum = share_quantum;              // in KB
 
         if ( parent == null ) {
             maxorder = new GlobalOrder();
@@ -741,17 +741,29 @@ class NodePool
         logger.info(methodName, j.getId(), "share", s,  "order", order, "machine", m);
         j.assignShare(s);
         m.assignShare(s);
-        rearrangeVirtual(m, order);
+        rearrangeVirtual(m, order, j.getSchedulingPolicy());
         allShares.put(s, s);        
     }
 
-    void rearrangeVirtual(Machine m, int order)
+    void rearrangeVirtual(Machine m, int order, Policy policy)
          
     {
     	String methodName = "rearrangeVirtual";
         if ( allMachines.containsKey(m.key()) ) {
             int v_order = m.getVirtualShareOrder();
             int r_order = m.getShareOrder();
+
+            // UIMA-4913 Avoid index-outta-bounds when a machine's size changes
+            // If Share appears bigger than remaining free-space pretend the share is smaller,
+            // or if share is smaller but is a whole machine reservation, then pretend the
+            // reservation matches the machine, so in both cases the free space = 0
+            if (order > v_order) {
+                logger.warn(methodName, null, m.getId(), "found a share of size", order, "on a machine with only", v_order, "free slots - set free=0");
+                order = v_order;
+            } else if (order < v_order && policy == Policy.RESERVE){
+                logger.warn(methodName, null, m.getId(), "found a RESERVE share of size", order, "on a machine with", v_order, "free slots - set free=0");
+                order = v_order;
+            }
 
             logger.trace(methodName, null, m.getId(), "order", order, "v_order", v_order, "r_order", r_order);
 
@@ -788,7 +800,7 @@ class NodePool
             calcNSharesByOrder();
         } else {
             for ( NodePool np : children.values() ) {
-                np.rearrangeVirtual(m, order);
+                np.rearrangeVirtual(m, order, policy);
             }
         }
     }
@@ -801,7 +813,8 @@ class NodePool
         for ( Share s : shares.values() ) {
             int order = s.getShareOrder();
             Machine m = s.getMachine();
-            rearrangeVirtual(m, order);
+            Policy policy = s.getJob().getSchedulingPolicy();
+            rearrangeVirtual(m, order, policy);
         }
     }
 
