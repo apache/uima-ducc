@@ -30,13 +30,13 @@
     \begin{itemize}
       \item add the node to file resources/ducc.nodes
       \item add the node to file resources/ducc.classes (optional)
-      \item run admin/start\_ducc agent@<host.domain>
-      \item run admin/rm\_qoccupancy
+      \item run admin/start\_ducc -c agent@host.domain
+      \item run admin/rm\_qoccupancy\textsuperscript{1}
     \end{itemize}
 
 	The node should start appearing in the results from the
-	rm\_qoccupancy command, perhaps with some delay due to
-	system latency.
+	rm\_qoccupancy\textsuperscript{1} command, perhaps with 
+	some delay due to system latency.
 	
 \subsection{Remove Node}
 \label{subsec:admin.remove-node}
@@ -45,13 +45,27 @@
     Persistently remove a node from active service in the cluster.
     \begin{itemize}
       \item remove the node from file resources/ducc.nodes
-      \item remove the node to file resources/ducc.classes (if specified)
-      \item run admin/stop\_ducc agent@<host.domain>
+      \item remove the node from file resources/ducc.classes (if specified)
+      \item run admin/stop\_ducc -c agent@host.domain
       \item run admin/rm\_reconfigure
-      \item run admin/rm\_qoccupancy
+      \item run admin/rm\_qoccupancy\textsuperscript{1}
     \end{itemize}
 
 	The node should stop appearing in the results from the
-	rm\_qoccupancy command, perhaps with some delay due to
-	system latency.
+	rm\_qoccupancy\textsuperscript{1} command, perhaps with
+	some delay due to system latency.
 	
+	If running without the database, then stop and start the DUCC
+	Web Server 	to cause the node to be removed from the Machines
+	page by performing these additional steps:
+	
+	 \begin{itemize}
+      \item run admin/stop\_ducc -c ws
+      \item run admin/start\_ducc -c ws
+    \end{itemize}
+	
+\subsection{Notes}
+\label{subsec:admin.notes}
+
+	\textsuperscript{1} rm\_qoccupancy is supported when system is configured
+	to employ database only.
