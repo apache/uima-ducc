@@ -72,7 +72,7 @@ class DbLoader(DuccUtil):
         in_home = None
         out_url = None
         archive = True
-        nthreads = 10
+        nthreads = '10'
         try:
             opts, args = getopt.getopt(argv, 'i:t:h?', ['no-archive'])
         except:
