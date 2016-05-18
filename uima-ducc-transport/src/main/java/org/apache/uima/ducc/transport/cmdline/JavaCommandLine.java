@@ -33,6 +33,22 @@ public class JavaCommandLine extends ACommandLine {
 	public JavaCommandLine(String executable) {
 		super(executable);
 	}
+	
+	/*
+	 * Make a shallow copy of everything except the options as they are modified by DuccCommandExecutor
+	 */
+	public JavaCommandLine copy() {
+	  JavaCommandLine jcl = new JavaCommandLine(executable);
+	  jcl.className = className;
+	  jcl.classpath = classpath;
+	  jcl.logDirectory = logDirectory;
+	  jcl.workingDirectory = workingDirectory;
+	  jcl.args = args;
+	  jcl.environment = environment;
+	  jcl.options = new ArrayList<String>(getOptions());
+	  return jcl;
+	}
+	
     public void addOption(String option ) {
         if (!options.contains(option)) {
             options.add(option);
@@ -75,7 +91,7 @@ public class JavaCommandLine extends ACommandLine {
 	}
 
 	/**
-	 * @param className
+	 * @param classNameoptions
 	 *            the className to set
 	 */
 	public void setClassName(String className) {

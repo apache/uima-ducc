@@ -21,10 +21,7 @@ package org.apache.uima.ducc.agent.launcher;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -663,8 +660,13 @@ public class DuccCommandExecutor extends CommandExecutor {
 							new String[] { cmdLine.getExecutable() },
 							cmdLine.getCommandLine());
 				}
+				
 			} else {
 				String processType = "-UIMA-";
+				// If Java then may run many JPs from the same cmdLine so make a local copy that we can modify
+				if (cmdLine instanceof JavaCommandLine) {
+				  cmdLine = ((JavaCommandLine)cmdLine).copy();
+				}
 				switch (((ManagedProcess) super.managedProcess)
 						.getDuccProcess().getProcessType()) {
 				case Pop:
@@ -672,9 +674,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					// is an arbitrary process
 					processType = "-POP-";
 					if (cmdLine instanceof JavaCommandLine) {
-						int size = ((JavaCommandLine) cmdLine).getOptions().size();
-						String[] options = ((JavaCommandLine) cmdLine).getOptions().toArray(new String[size]);
-						for( String option : options ) {
+						for (String option : cmdLine.getOptions()) {
 							// Both services and JD have processType=POP.
 							// However, only the JD
 							// will have -Dducc.deploy.components option set.
@@ -692,10 +692,10 @@ public class DuccCommandExecutor extends CommandExecutor {
 					break;
 				case Job_Uima_AS_Process:
 					processType = "-UIMA-";
-					int size = ((JavaCommandLine) cmdLine).getOptions().size();
-					String[] options = ((JavaCommandLine) cmdLine).getOptions().toArray(new String[size]);
 					boolean isDucc20JpProcess = false;
 					boolean isDucc20ServiceProcess = false;
+					// determine if we are launching Ducc2.0 or Ducc1.+ JP
+					List<String> options = cmdLine.getOptions();
 					for( String option : options ) {
 						if (option.indexOf(FlagsHelper.Name.JpType.pname()) > -1) {
 							isDucc20JpProcess = true;
@@ -708,21 +708,12 @@ public class DuccCommandExecutor extends CommandExecutor {
 					// Add main class and component type to the command line
 					if (isDucc20JpProcess) {
 						if (!isDucc20ServiceProcess) {
-							synchronized(options) {
-								((JavaCommandLine) cmdLine)
-								.addOption("-Dducc.deploy.components=job-process");
-							}
+						  cmdLine.addOption("-Dducc.deploy.components=job-process");
 						}
-
-						((JavaCommandLine) cmdLine)
-								.setClassName("org.apache.uima.ducc.user.common.main.DuccJobService");
+						((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.user.common.main.DuccJobService");
 					} else {
-						synchronized(options) {
-							((JavaCommandLine) cmdLine)
-							.addOption("-Dducc.deploy.components=uima-as");
-						}
-						((JavaCommandLine) cmdLine)
-								.setClassName("org.apache.uima.ducc.common.main.DuccService");
+					  cmdLine.addOption("-Dducc.deploy.components=uima-as");
+					  ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccService");
 					}
 					break;
 				}
@@ -757,38 +748,26 @@ public class DuccCommandExecutor extends CommandExecutor {
 				}
 
 				if (cmdLine instanceof JavaCommandLine) {
-					List<String> options = Collections.synchronizedList(((JavaCommandLine) cmdLine)
-							.getOptions());
-					JavaCommandLine jcl = ((JavaCommandLine) cmdLine);
 					String duccHomePath = Utils.findDuccHome();
-					synchronized(options) {
-						jcl.addOption("-DDUCC_HOME=" + duccHomePath);
-						jcl.addOption("-Dducc.deploy.configuration="
+					cmdLine.addOption("-DDUCC_HOME=" + duccHomePath);
+					cmdLine.addOption("-Dducc.deploy.configuration="
 								+ System.getProperty("ducc.deploy.configuration"));
-						if (System
-								.getProperties()
-								.containsKey(
-										"ducc.agent.managed.process.state.update.endpoint.type")) {
-							String type = System
-									.getProperty("ducc.agent.managed.process.state.update.endpoint.type");
-							if (type != null && type.equalsIgnoreCase("socket")) {
-									jcl.addOption("-D"
-												+ NodeAgent.ProcessStateUpdatePort
-												+ "="
-												+ System.getProperty(NodeAgent.ProcessStateUpdatePort));
-							}
-						}
-						// NOTE - These are redundant since the information is also
-						// in the environment for both Java and non-Java processes
-						jcl.addOption("-Dducc.process.log.dir="
-									+ processLogDir);
-						jcl.addOption("-Dducc.process.log.basename="
-									+ processLogFile); // ((ManagedProcess)super.managedProcess).getWorkDuccId()+
-														// processType+host);
-						jcl.addOption("-Dducc.job.id="
-									+ ((ManagedProcess) super.managedProcess)
-											.getWorkDuccId());
-					}
+					// UIMA-4935 Following moved from CommandExecutor to avoid duplications in the shared cmdLine
+					cmdLine.addOption("-Dducc.deploy.JpUniqueId="
+					        + ((ManagedProcess) managedProcess).getDuccId().getUnique());
+					
+          if (System.getProperties().containsKey("ducc.agent.managed.process.state.update.endpoint.type")) {
+            String type = System.getProperty("ducc.agent.managed.process.state.update.endpoint.type");
+            if (type != null && type.equalsIgnoreCase("socket")) {
+              cmdLine.addOption("-D" + NodeAgent.ProcessStateUpdatePort + "="
+                      + System.getProperty(NodeAgent.ProcessStateUpdatePort));
+            }
+          }
+					// NOTE - These are redundant since the information is also
+					// in the environment for both Java and non-Java processes
+					cmdLine.addOption("-Dducc.process.log.dir="	+ processLogDir);
+					cmdLine.addOption("-Dducc.process.log.basename=" + processLogFile); 
+					cmdLine.addOption("-Dducc.job.id=" + ((ManagedProcess) super.managedProcess).getWorkDuccId());
 				}
 				
 				if (useDuccSpawn()) {

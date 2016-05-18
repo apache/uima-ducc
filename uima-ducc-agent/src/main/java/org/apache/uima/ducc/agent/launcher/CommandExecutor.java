@@ -126,7 +126,7 @@ public abstract class CommandExecutor implements Callable<Process> {
 			// managedProcess).getCommandLine();
 			Map<String, String> env = new HashMap<String, String>();
 			if (!isKillCommand(cmdLine)) {
-				cmdLine.addOption(IDuccUser.DashD.DUCC_ID_PROCESS_UNIQUE.dvalue()+"="+((ManagedProcess) managedProcess).getDuccId().getUnique());
+			  // UIMA-4935 Moved setting of JpUniqueId to DuccComamndExecutor where the cmdLine is not shared
 				// Enrich environment for the new process. Via these settings
 				// the UIMA AS
 				// service wrapper can notify the agent of its state.
