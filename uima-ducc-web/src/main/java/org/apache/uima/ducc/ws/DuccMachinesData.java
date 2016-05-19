@@ -37,6 +37,7 @@ import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo.NodeProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
@@ -436,13 +437,57 @@ public class DuccMachinesData {
 		}
 	}
 	
+	
+	
+	/**
+	 * Adjust memory value by rounding down 
+	 * to multiple of rm.share.quantum GB
+	 */
+	private String calculateMem(long quantum, String memParm) {
+		String location = "calculateMem";
+		String retVal = "0";
+		if(memParm!= null) {
+			String memString = memParm.trim();
+			if(memString.length() > 0) {
+				try {
+					long memRaw = Long.parseLong(memString);
+					long memAdj = (memRaw / quantum) * quantum;
+					retVal = ""+memAdj;
+				}
+				catch(Exception e) {
+					logger.error(location, jobid, e);
+				}
+			}
+		}
+		return retVal;
+	}
+	
+	/**
+	 * Fetch quantum from ducc.properties, default is 1.
+	 */
+	private long getQuantum() {
+		String location = "getQuantum";
+		long retVal = 1;
+		try {
+			DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
+			String quantum = dpr.getFileProperty(DuccPropertiesResolver.ducc_rm_share_quantum);
+			retVal = Long.parseLong(quantum.trim());
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
 	/**
 	 * Create a machines facts list based 
 	 * in part on the information provided by the Agents, and
 	 * in part on the data comprising the ducc.nodes file.
 	 */
 	private void updateMachineFactsListAgent() {
+		
 		MachineFactsList factsList = new MachineFactsList();
+		long quantum = getQuantum();
 		ConcurrentSkipListMap<MachineInfo,NodeId> sortedMachines = getSortedMachines();
 		Iterator<MachineInfo> iterator;
 		iterator = sortedMachines.keySet().iterator();
@@ -451,8 +496,8 @@ public class DuccMachinesData {
 			String status = machineInfo.getStatus();
 			String ip = machineInfo.getIp();
 			String name = machineInfo.getName();
-			String memTotal = machineInfo.getMemTotal();
-			String memFree = machineInfo.getMemFree();
+			String memTotal = calculateMem(quantum, machineInfo.getMemTotal());
+			String memFree = calculateMem(quantum, machineInfo.getMemFree());
 			String swapInuse = machineInfo.getSwapInuse();
 			String swapDelta = ""+machineInfo.getSwapDelta();
 			String swapFree = machineInfo.getSwapFree();
