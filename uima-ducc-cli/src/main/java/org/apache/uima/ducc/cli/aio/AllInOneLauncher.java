@@ -37,6 +37,7 @@ import org.apache.uima.ducc.cli.IDuccCallback;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
+import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 
@@ -360,6 +361,7 @@ public class AllInOneLauncher extends CliBase {
         // If omitted let DUCC choose the default for an AP
         // If a preemptable one change to a fixed one if possible
         if (jobRequestProperties.containsKey(pname)) {
+          try {
             DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
             scheduling_class = jobRequestProperties.getProperty(pname);
             String message = pname + "=" + scheduling_class + " [original]";
@@ -376,6 +378,9 @@ public class AllInOneLauncher extends CliBase {
                 }
             }
             used(pname);
+          } catch (Exception e) {
+              throw new IllegalConfigurationException("Error in DUCC configuration files - administrator error: " + e);
+          }
         }
         mh.frameworkTrace(cid, mid, exit);
     }

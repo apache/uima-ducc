@@ -25,6 +25,7 @@ import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
+import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.transport.event.ServiceDisableEvent;
 import org.apache.uima.ducc.transport.event.ServiceEnableEvent;
 import org.apache.uima.ducc.transport.event.ServiceIgnoreEvent;
@@ -439,13 +440,17 @@ public class DuccServiceApi
 
         // Check if falsely using a fair-share class; set the default if missing
         String scheduling_class = cli_props.getProperty(UiOption.SchedulingClass.pname());
-        DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-        if (scheduling_class != null) {
-            if (duccSchedulerClasses.isPreemptable(scheduling_class)) {
-                throw new IllegalArgumentException("Invalid pre-emptable scheduling class: " + scheduling_class);
+        try {
+            DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+            if (scheduling_class != null) {
+                if (duccSchedulerClasses.isPreemptable(scheduling_class)) {
+                    throw new IllegalArgumentException("Invalid pre-emptable scheduling class: " + scheduling_class);
+                }
+            } else {
+                cli_props.setProperty(UiOption.SchedulingClass.pname(), duccSchedulerClasses.getDebugClassDefaultName());
             }
-        } else {
-            cli_props.setProperty(UiOption.SchedulingClass.pname(), duccSchedulerClasses.getDebugClassDefaultName());
+        } catch (Exception e) {
+            throw new IllegalConfigurationException("Error in DUCC configuration files - administrator error: " + e);
         }
         
         // work out stuff I'm dependent upon

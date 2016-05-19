@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
+import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationReplyDuccEvent;
@@ -100,10 +101,14 @@ public class DuccReservationSubmit
         String pname = UiOption.SchedulingClass.pname();
         String scheduling_class = requestProperties.getProperty(pname);
         if (scheduling_class != null) {
+          try {
             String[] reserveClasses = DuccSchedulerClasses.getInstance().getReserveClasses();
             if (!Arrays.asList(reserveClasses).contains(scheduling_class)) {
             	throw new IllegalArgumentException("Invalid value for scheduling_class - must be one of the reserve classes");
             }
+          } catch (Exception e) {
+              throw new IllegalConfigurationException("Error in DUCC configuration files - administrator error: " + e);
+          }
         }
         SubmitReservationDuccEvent      ev    = new SubmitReservationDuccEvent(requestProperties, CliVersion.getVersion());
         SubmitReservationReplyDuccEvent reply = null;

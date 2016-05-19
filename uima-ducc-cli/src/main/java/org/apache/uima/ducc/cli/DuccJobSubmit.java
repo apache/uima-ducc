@@ -23,6 +23,7 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.cli.aio.AllInOneLauncher;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
+import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
@@ -184,15 +185,19 @@ public class DuccJobSubmit
     	 String scheduling_class = null;
          String user_scheduling_class = null;
          String pname = UiOption.SchedulingClass.pname();
-         DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-         if (props.containsKey(pname)) {
-             user_scheduling_class = props.getProperty(pname);
-             if (duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
-                 scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
-             }
-         } else {
-             scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
-         }
+        try {
+            DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+            if (props.containsKey(pname)) {
+                user_scheduling_class = props.getProperty(pname);
+                if (duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
+                    scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
+                }
+            } else {
+                scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
+            }
+        } catch (Exception e) {
+            throw new IllegalConfigurationException("Error in DUCC configuration files - administrator error: " + e);
+        }
          if (scheduling_class != null) {
               props.setProperty(pname, scheduling_class);
               String text = pname+"="+scheduling_class+" -- was "+user_scheduling_class;
