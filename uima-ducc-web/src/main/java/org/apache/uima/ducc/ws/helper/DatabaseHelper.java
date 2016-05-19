@@ -55,26 +55,28 @@ public class DatabaseHelper extends JmxHelper {
 					enabled = true;
 				}
 			}
-			String jmxHost = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_host);
-			if(jmxHost != null) {
-				try {
-					setJmxHost(jmxHost);
+			if(enabled) {
+				String jmxHost = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_host);
+				if(jmxHost != null) {
+					try {
+						setJmxHost(jmxHost);
+					}
+					catch(Exception e) {
+						logger.error(location, jobid, e);
+					}
 				}
-				catch(Exception e) {
-					logger.error(location, jobid, e);
+				setJmxPort(7199);  // default
+				String jmxPort = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_port);
+				if(jmxPort != null) {
+					try {
+						setJmxPort(Integer.parseInt(jmxPort));
+					}
+					catch(Exception e) {
+						logger.error(location, jobid, e);
+					}
 				}
+				jmxConnect();
 			}
-			setJmxPort(7199);  // default
-			String jmxPort = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_port);
-			if(jmxPort != null) {
-				try {
-					setJmxPort(Integer.parseInt(jmxPort));
-				}
-				catch(Exception e) {
-					logger.error(location, jobid, e);
-				}
-			}
-			jmxConnect();
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
