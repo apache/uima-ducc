@@ -46,6 +46,8 @@ public class CasManagerStats {
 	private AtomicBoolean seenAll = new AtomicBoolean(false);
 	private AtomicBoolean killJob = new AtomicBoolean(false);
 	
+	private AtomicBoolean warned = new AtomicBoolean(false);
+	
 	private ConcurrentHashMap<String,AtomicInteger> retryReasonsMap = new ConcurrentHashMap<String,AtomicInteger>();
 	
 	public boolean isExhausted() {
@@ -71,14 +73,20 @@ public class CasManagerStats {
 				}
 			}
 		}
+		// if premature, warn to log file once
 		if(retVal) {
-			MessageBuffer mb = new MessageBuffer();
-			mb.append("seenAll:"+seenAll.get());
-			mb.append("crGets:"+crGets.get());
-			mb.append("crTotal:"+crTotal.get());
-			mb.append("endSuccess:"+endSuccess.get());
-			mb.append("endFailure:"+endFailure.get());
-			logger.debug(location, ILogger.null_id, mb.toString());
+			boolean expect = false;
+			boolean update = true;
+			boolean success = warned.compareAndSet(expect, update);
+			if(success) {
+				MessageBuffer mb = new MessageBuffer();
+				mb.append("seenAll:"+seenAll.get());
+				mb.append("crGets:"+crGets.get());
+				mb.append("crTotal:"+crTotal.get());
+				mb.append("endSuccess:"+endSuccess.get());
+				mb.append("endFailure:"+endFailure.get());
+				logger.warn(location, ILogger.null_id, mb.toString());
+			}
 		}
 		return retVal;
 	}
