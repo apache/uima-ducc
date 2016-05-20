@@ -58,6 +58,7 @@ public class ActionGet implements IAction {
 	private ConcurrentHashMap<IRemoteWorkerProcess, Long> warnedJobDiscontinued = new ConcurrentHashMap<IRemoteWorkerProcess, Long>();
 	private ConcurrentHashMap<IRemoteWorkerProcess, Long> warnedProcessDiscontinued = new ConcurrentHashMap<IRemoteWorkerProcess, Long>();
 	private ConcurrentHashMap<IRemoteWorkerProcess, Long> warnedExhausted = new ConcurrentHashMap<IRemoteWorkerProcess, Long>();
+	private ConcurrentHashMap<IRemoteWorkerProcess, Long> warnedPremature = new ConcurrentHashMap<IRemoteWorkerProcess, Long>();
 	
 	private String allCasesProcessed = "all CASes processed";
 	private String fewerWorkItemsAvailableThanExpected = "fewer work items available than expected";
@@ -126,21 +127,38 @@ public class ActionGet implements IAction {
 		}
 		return metaCas;
 	}
+
+	/**
+	 * Get MetaCas and CasManager status together
+	 * (under synchronization for consistency!)
+	 */
 	
-	private IMetaCas getMetaCas(IActionData actionData) throws JobDriverException {
-		IMetaCas metaCas = null;
+	private synchronized IMetaMetaCas getMetaMetaCas(IActionData actionData) throws JobDriverException {
+		IMetaMetaCas mmc = new MetaMetaCas();
 		JobDriver jd = JobDriver.getInstance();
 		CasManager cm = jd.getCasManager();
-		while(true) {
-			try {
-				metaCas = cm.getMetaCas();
-				break;
-			}
-			catch(ProxyException e) {
-				handleException(actionData, e);
+		// get status
+		mmc.setExhausted(cm.getCasManagerStats().isExhausted());
+		mmc.setPremature(cm.getCasManagerStats().isPremature());
+		mmc.setKillJob(cm.getCasManagerStats().isKillJob());
+		// if CASes are still possible, attempt fetch
+		if(!mmc.isExhausted() && !mmc.isPremature() && !mmc.isKillJob()) {
+			while(true) {
+				try {
+					// fetch CAS
+					mmc.setMetaCas(cm.getMetaCas());
+					// update status
+					mmc.setExhausted(cm.getCasManagerStats().isExhausted());
+					mmc.setPremature(cm.getCasManagerStats().isPremature());
+					mmc.setKillJob(cm.getCasManagerStats().isKillJob());
+					break;
+				}
+				catch(ProxyException e) {
+					handleException(actionData, e);
+				}
 			}
 		}
-		return metaCas;
+		return mmc;
 	}
 	
 	@Override
@@ -160,10 +178,10 @@ public class ActionGet implements IAction {
 				JobDriver jd = JobDriver.getInstance();
 				JobDriverHelper jdh = JobDriverHelper.getInstance();
 				jd.advanceJdState(JdState.Active);
-				CasManager cm = jd.getCasManager();
 				IMetaCas metaCas = null;
 				JobProcessBlacklist jobProcessBlacklist = JobProcessBlacklist.getInstance();
-				if(cm.getCasManagerStats().isExhausted()) {
+				IMetaMetaCas mmc = getMetaMetaCas(actionData);
+				if(mmc.isExhausted()) {
 					if(!warnedExhausted.containsKey(rwp)) {
 						MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
 						mbx.append(Standardize.Label.node.get()+rwp.getNodeName());
@@ -174,7 +192,7 @@ public class ActionGet implements IAction {
 					}
 					TransactionHelper.addResponseHint(trans, Hint.Exhausted);
 				}
-				if(cm.getCasManagerStats().isPremature()) {
+				if(mmc.isPremature()) {
 					if(!warnedExhausted.containsKey(rwp)) {
 						String text = fewerWorkItemsAvailableThanExpected;
 						jd.killJob(CompletionType.Exception, text);
@@ -187,7 +205,7 @@ public class ActionGet implements IAction {
 					}
 					TransactionHelper.addResponseHint(trans, Hint.Premature);
 				}
-				else if(cm.getCasManagerStats().isKillJob()) {
+				else if(mmc.isKillJob()) {
 					if(!warnedJobDiscontinued.containsKey(rwp)) {
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						mb.append(Standardize.Label.node.get()+rwp.getNodeName());
@@ -210,7 +228,7 @@ public class ActionGet implements IAction {
 					TransactionHelper.addResponseHint(trans, Hint.Blacklisted);
 				}
 				else {
-					metaCas = getMetaCas(actionData);
+					metaCas = mmc.getMetaCas();
 				}
 				wi.setMetaCas(metaCas);
 				trans.setMetaCas(metaCas);
@@ -241,19 +259,19 @@ public class ActionGet implements IAction {
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 					mb.append("No CAS found for processing");
 					logger.debug(location, ILogger.null_id, mb.toString());
-					if(cm.getCasManagerStats().isExhausted()) {
+					if(mmc.isExhausted()) {
 						if(!warnedExhausted.containsKey(rwp)) {
 							MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
 							mbx.append(Standardize.Label.node.get()+rwp.getNodeName());
 							mbx.append(Standardize.Label.pid.get()+rwp.getPid());
 							mbx.append(Standardize.Label.text.get()+allCasesProcessed);
-							logger.debug(location, ILogger.null_id, mbx.toString());
+							logger.warn(location, ILogger.null_id, mbx.toString());
 							warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
 						}
 						TransactionHelper.addResponseHint(trans, Hint.Exhausted);
 					}
-					if(cm.getCasManagerStats().isPremature()) {
-						if(!warnedExhausted.containsKey(rwp)) {
+					if(mmc.isPremature()) {
+						if(!warnedPremature.containsKey(rwp)) {
 							String text = fewerWorkItemsAvailableThanExpected;
 							jd.killJob(CompletionType.Exception, text);
 							MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
@@ -261,7 +279,7 @@ public class ActionGet implements IAction {
 							mbx.append(Standardize.Label.pid.get()+rwp.getPid());
 							mbx.append(Standardize.Label.text.get()+text);
 							logger.debug(location, ILogger.null_id, mbx.toString());
-							warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
+							warnedPremature.put(rwp, new Long(System.currentTimeMillis()));
 						}
 						TransactionHelper.addResponseHint(trans, Hint.Premature);
 					}
