@@ -76,6 +76,7 @@ import org.apache.uima.ducc.ws.Distiller;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccMachinesData;
+import org.apache.uima.ducc.ws.DuccMachinesDataHelper;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
@@ -1412,9 +1413,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
 		String hover;
-		long sumMemTotal = 0;
-		long sumMemFree = 0;
-		long sumMemReserve = 0;
+		long sumMemTotal = 0;	// Memory(GB):reported by Agent
+		long sumMemFree = 0;	// Memory(GB):free
+		long sumMemReserve = 0;	// Memory(GB):usable
 		double sumCPU = 0;
 		long sumMachines = 0;
 		long sumSwapInuse = 0;
@@ -1430,28 +1431,33 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			listIterator = factsList.listIterator();
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
-				if(facts.status != null) {
-					if(facts.status.equals("up")) {
-						try {
-							sumMemTotal += ConvertSafely.String2Long(facts.memTotal);
-							sumMemReserve += ConvertSafely.String2Long(facts.memReserve);
-							sumSwapInuse += ConvertSafely.String2Long(facts.swapInuse);
-							sumSwapFree += ConvertSafely.String2Long(facts.swapFree);
-							sumCPU += facts.cpu;
-							sumMachines += 1;
-							sumAliens += facts.aliens.size();
-						}
-						catch(Exception e) {
-							duccLogger.trace(methodName, jobid, e);
-						}
+				if(DuccMachinesDataHelper.isUp(facts)) {
+					try {
+						sumMemTotal += ConvertSafely.String2Long(facts.memTotal);
+						// Calculate total for Memory(GB):usable
+						sumMemReserve += ConvertSafely.String2Long(facts.memReserve);
+						sumSwapInuse += ConvertSafely.String2Long(facts.swapInuse);
+						sumSwapFree += ConvertSafely.String2Long(facts.swapFree);
+						sumCPU += facts.cpu;
+						sumMachines += 1;
+						sumAliens += facts.aliens.size();
 					}
-				}				
+					catch(Exception e) {
+						duccLogger.trace(methodName, jobid, e);
+					}
+				}
 			}
-			//
+			// Calculate total for Memory(GB):free
 			Map<String, Long> allocatedMap = Distiller.getMap();
 			long sumMemAllocated = 0;
-			for(Long bytes : allocatedMap.values()) {
-				sumMemAllocated += bytes;
+			for(Entry<String, Long> entry : allocatedMap.entrySet()) {
+				String name = entry.getKey();
+				MachineFacts facts = DuccMachinesDataHelper.getMachineFacts(factsList, name);
+				// Only consider "up" machines
+				if(DuccMachinesDataHelper.isUp(facts)) {
+					long bytes = entry.getValue();
+					sumMemAllocated += bytes;
+				}
 			}
 			SizeBytes sbAllocated = new SizeBytes(Type.Bytes, sumMemAllocated);
 			sumMemFree = sumMemReserve - sbAllocated.getGBytes();
@@ -1516,7 +1522,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String nodepool = DuccSchedulerClasses.getInstance().getNodepool(facts.name);
 				row.add(new JsonPrimitive(nodepool));
 				// Memory: usable
-				if(!status.equals("defined")) {
+				if(status.equals("up")) {
 					sb = new StringBuffer();
 					sb.append("total="+facts.memTotal);
 					if(facts.quantum != null) {
@@ -1529,11 +1535,14 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					String memReserveWithHover = "<span "+hover+" >"+facts.memReserve+"</span>";
 					row.add(new JsonPrimitive(memReserveWithHover));
 				}
+				else if(status.equals("down")) {
+					row.add(new JsonPrimitive("0"));
+				}
 				else {
 					row.add(new JsonPrimitive(""));
 				}
 				// Memory: free
-				if(!status.equals("defined")) {
+				if(status.equals("up")) {
 					long memFree = ConvertSafely.String2Long(facts.memReserve);
 					if(allocatedMap.containsKey(facts.name)) {
 						long bytes = allocatedMap.get(facts.name);
@@ -1541,6 +1550,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 						memFree = memFree - allocated.getGBytes();
 					}
 					row.add(new JsonPrimitive(memFree));
+				}
+				else if(status.equals("down")) {
+					row.add(new JsonPrimitive("0"));
 				}
 				else {
 					row.add(new JsonPrimitive(""));

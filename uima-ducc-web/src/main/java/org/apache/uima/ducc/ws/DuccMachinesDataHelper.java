@@ -21,6 +21,7 @@ package org.apache.uima.ducc.ws;
 import java.util.Map;
 
 import org.apache.uima.ducc.cli.ws.json.MachineFacts;
+import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -32,6 +33,43 @@ public class DuccMachinesDataHelper {
 	private static DuccId jobid = null;
 	
 	public enum MachineStatus { up, down, unknown };
+	
+	/**
+	 * @param factsList = list of machine facts, each entry comprising one machine
+	 * @param name = the machine name of the entry to be located
+	 * @return = the entry comprising the located machine
+	 */
+	public static MachineFacts getMachineFacts(MachineFactsList factsList, String name) {
+		MachineFacts retVal = null;
+		if(factsList != null) {
+			if(name != null) {
+				for(MachineFacts facts : factsList) {
+					if(facts.name != null) {
+						if(name.equals(facts.name)) {
+							retVal = facts;
+							break;
+						}
+					}
+					
+				}
+			}
+		}
+		return retVal;
+	}
+	
+	/**
+	 * @param facts = facts of a machine
+	 * @return true if "up" false otherwise
+	 */
+	public static boolean isUp(MachineFacts facts) {
+		boolean retVal = false;
+		if(facts != null) {
+			if(facts.status.equals("up")) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
 	
 	private static String[] getMachineStatusWs(MachineFacts facts, Map<String, IDbMachine> dbMachineMap) {
 		String location = "getMachineStatusWs";
