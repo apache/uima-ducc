@@ -440,17 +440,19 @@ public class DuccServiceApi
 
         // Check if falsely using a fair-share class; set the default if missing
         String scheduling_class = cli_props.getProperty(UiOption.SchedulingClass.pname());
+        boolean isPreemptableClass = false;
         try {
             DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
             if (scheduling_class != null) {
-                if (duccSchedulerClasses.isPreemptable(scheduling_class)) {
-                    throw new IllegalArgumentException("Invalid pre-emptable scheduling class: " + scheduling_class);
-                }
+                isPreemptableClass = duccSchedulerClasses.isPreemptable(scheduling_class);
             } else {
                 cli_props.setProperty(UiOption.SchedulingClass.pname(), duccSchedulerClasses.getDebugClassDefaultName());
             }
         } catch (Exception e) {
-            throw new IllegalConfigurationException("Error in DUCC configuration files - administrator error: " + e);
+            throw new IllegalConfigurationException("Error in DUCC configuration files - see administrator", e);
+        }
+        if (isPreemptableClass) {
+            throw new IllegalArgumentException("Invalid pre-emptable scheduling class: " + scheduling_class);
         }
         
         // work out stuff I'm dependent upon
@@ -1046,6 +1048,10 @@ public class DuccServiceApi
             }
         } catch (Throwable e) {
             System.out.println("Service call failed: " + e);
+            Throwable t = e;
+            while ((t = t.getCause()) != null) {
+                System.out.println("  ... " + t);
+            } 
             for (String arg : args) {
                 if (arg.equals("--debug")) {
                     e.printStackTrace();

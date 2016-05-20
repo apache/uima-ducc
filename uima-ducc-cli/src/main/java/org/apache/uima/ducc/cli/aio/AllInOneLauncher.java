@@ -379,7 +379,7 @@ public class AllInOneLauncher extends CliBase {
             }
             used(pname);
           } catch (Exception e) {
-              throw new IllegalConfigurationException("Error in DUCC configuration files - administrator error: " + e);
+              throw new IllegalConfigurationException("Error in DUCC configuration files - see administrator", e);
           }
         }
         mh.frameworkTrace(cid, mid, exit);

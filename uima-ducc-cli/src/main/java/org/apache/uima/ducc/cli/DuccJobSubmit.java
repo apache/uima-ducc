@@ -196,7 +196,7 @@ public class DuccJobSubmit
                 scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
             }
         } catch (Exception e) {
-            throw new IllegalConfigurationException("Error in DUCC configuration files - administrator error: " + e);
+            throw new IllegalConfigurationException("Error in DUCC configuration files - see administrator", e);
         }
          if (scheduling_class != null) {
               props.setProperty(pname, scheduling_class);
@@ -291,6 +291,13 @@ public class DuccJobSubmit
             enrich_parameters_for_debug(jobRequestProperties);
         } catch (Exception e1) {
             message(e1.toString());
+            Throwable t = e1;
+            while ((t = t.getCause()) != null) {
+                message("  ... " + t);
+            }
+            if (jobRequestProperties.containsKey(UiOption.Debug.pname())) {
+                e1.printStackTrace();
+            }
             return false;
         }
 
@@ -384,8 +391,15 @@ public class DuccJobSubmit
         }
         catch(Throwable e) {
             System.out.println("Cannot initialize: " + e);
-            if (!(e instanceof IllegalArgumentException)) {
-            	e.printStackTrace();
+            Throwable t = e;
+            while ((t = t.getCause()) != null) {
+                System.out.println("  ... " + t);
+            } 
+            for (String arg : args) {
+                if (arg.equals("--debug")) {
+                    e.printStackTrace();
+                    break;
+                }
             }
             System.exit(1);
         }

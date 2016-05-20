@@ -164,7 +164,7 @@ public class DuccManagedReservationSubmit
                     }
                 }
             } catch (Exception e) {
-                throw new IllegalConfigurationException("Error in DUCC configuration files - administrator error: " + e);
+                throw new IllegalConfigurationException("Error in DUCC configuration files - see administrator", e);
             }
         }
         
@@ -222,7 +222,16 @@ public class DuccManagedReservationSubmit
             }
         } catch (Throwable e) {
             System.out.println(dt+" Cannot initialize: " + e);
-            //e.printStackTrace();
+            Throwable t = e;
+            while ((t = t.getCause()) != null) {
+                System.out.println("  ... " + t);
+            }
+            for (String arg : args) {
+                if (arg.equals("--debug")) {
+                    e.printStackTrace();
+                    break;
+                }
+            }
         } finally {
             // Set the process exit code
             System.exit(code);

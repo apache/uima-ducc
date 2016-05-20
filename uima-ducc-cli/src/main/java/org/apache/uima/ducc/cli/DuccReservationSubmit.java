@@ -101,14 +101,15 @@ public class DuccReservationSubmit
         String pname = UiOption.SchedulingClass.pname();
         String scheduling_class = requestProperties.getProperty(pname);
         if (scheduling_class != null) {
-          try {
-            String[] reserveClasses = DuccSchedulerClasses.getInstance().getReserveClasses();
-            if (!Arrays.asList(reserveClasses).contains(scheduling_class)) {
-            	throw new IllegalArgumentException("Invalid value for scheduling_class - must be one of the reserve classes");
+            String[] reserveClasses;
+            try {
+                reserveClasses = DuccSchedulerClasses.getInstance().getReserveClasses();
+            } catch (Exception e) {
+                throw new IllegalConfigurationException("Error in DUCC configuration files - see administrator", e);
             }
-          } catch (Exception e) {
-              throw new IllegalConfigurationException("Error in DUCC configuration files - administrator error: " + e);
-          }
+            if (!Arrays.asList(reserveClasses).contains(scheduling_class)) {
+                throw new IllegalArgumentException("Invalid value for scheduling_class - must be one of the reserve classes");
+            }
         }
         SubmitReservationDuccEvent      ev    = new SubmitReservationDuccEvent(requestProperties, CliVersion.getVersion());
         SubmitReservationReplyDuccEvent reply = null;
@@ -200,6 +201,9 @@ public class DuccReservationSubmit
             }
         } catch (Throwable e) {
             System.out.println("Cannot initialize: " + e);
+            while ((e = e.getCause()) != null) {
+                System.out.println("  ... " + e);
+            } 
         } finally {
             // Set the process exit code
             System.exit(code);
