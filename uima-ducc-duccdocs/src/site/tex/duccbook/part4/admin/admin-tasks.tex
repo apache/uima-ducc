@@ -21,6 +21,13 @@
 
    The administrative tasks comprise one or several DUCC commands 
    and/or file editing to achieve a desired system state.
+   
+   It may be inconvenient to stop DUCC to make changes if there are,
+   for example, services running that take a long time to initialize
+   after a DUCC re-start.  These administrative tasks are performed
+   with DUCC running, but carefully!  Making an invalid change may 
+   cause the unexpected.  It is safer to shutdown DUCC, make changes,
+   run check\_ducc to verify, then re-start DUCC.
 
 \subsection{Add Node}
 \label{subsec:admin.add-node}
