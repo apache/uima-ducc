@@ -18,11 +18,13 @@
 # under the License.
 # -----------------------------------------------------------------------
 
-
 import os
 import sys
 import getopt
 import platform
+
+import string
+import random
 
 import shutil
 import subprocess
@@ -133,21 +135,16 @@ class PostInstall():
 
         return
 
+    def generate_pw(self, pwlen):
+        reply = ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(pwlen)])
+        return reply
+        
     def get_keystore_pw(self, prompt):
-
         if ( self.keystore_pw == None ):
-            reply = ''
-            while ( reply == self.default_keystore_pw or reply == '' or reply == prompt):
-                reply = raw_input('Enter password for webserver keystore:')
-                if ( reply == self.default_keystore_pw):
-                    print 'May not use the preconfigured password of', reply
-                if ( reply == prompt ):
-                    print 'Please enter a different password', reply
+            reply = self.generate_pw(32)
         else:    
             reply = self.keystore_pw
-
         return reply
-
 
     def create_keystore(self, keytool):
 
