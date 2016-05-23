@@ -320,19 +320,31 @@ under the License.
         <exclude>javadac/*</exclude>
         <exclude>conf/cassandra-env.sh</exclude>
         <exclude>conf/cassandra.yaml</exclude>
+        <exclude>bin/cassandra</exclude>
         <exclude>lib/lz4*</exclude>
       </excludes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
 
+    <!-- Slightly modified Cassandra configuration files -->
     <fileSet>
-      <directory>src/main/resources</directory>
-      <!-- Two files that post_install or some hapless human needs to set up with local information -->
+      <directory>src/main/config</directory>
       <outputDirectory>cassandra-server/conf</outputDirectory>
       <includes>
         <include>cassandra-env.sh</include>
         <include>cassandra.yaml</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+
+    <!-- Log full Java command -->
+    <fileSet>
+      <directory>src/main/config</directory>
+      <outputDirectory>cassandra-server/bin</outputDirectory>
+      <includes>
+        <include>cassandra</include>
       </includes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
@@ -358,8 +370,6 @@ under the License.
       <excludes>
 		<exclude>private/*</exclude>
 		<exclude>private</exclude>
-		<exclude>cassandra-env.sh</exclude>
-		<exclude>cassandra.yaml</exclude>
 	  </excludes>
     </fileSet>
 

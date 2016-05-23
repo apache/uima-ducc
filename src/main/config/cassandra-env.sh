@@ -94,20 +94,9 @@ jvmver=`echo "$java_ver_output" | grep '[openjdk|java] version' | awk -F'"' 'NR=
 JVM_VERSION=${jvmver%_*}
 JVM_PATCH_VERSION=${jvmver#*_}
 
-# DUCC: These checks don't work with the IBM Jvm.  Ducc requires a 'high-enough' level of JVM
-#       so those checks will suffice.
-#if [ "$JVM_VERSION" \< "1.7" ] ; then
-#    echo "Cassandra 2.0 and later require Java 7u25 or later."
-#    exit 1;
-#fi
-
-#if [ "$JVM_VERSION" \< "1.8" ] && [ "$JVM_PATCH_VERSION" \< "25" ] ; then
-#    echo "Cassandra 2.0 and later require Java 7u25 or later."
-#    exit 1;
-#fi
-
-
 jvm=`echo "$java_ver_output" | grep -A 1 'java version' | awk 'NR==2 {print $1}'`
+JVM_VENDOR=other
+JVM_ARCH=unknown
 case "$jvm" in
     OpenJDK)
         JVM_VENDOR=OpenJDK
@@ -115,16 +104,41 @@ case "$jvm" in
         JVM_ARCH=`echo "$java_ver_output" | awk 'NR==3 {print $2}'`
         ;;
     "Java(TM)")
-        JVM_VENDOR=Oracle
-        # this will be "64-Bit" or "32-Bit"
-        JVM_ARCH=`echo "$java_ver_output" | awk 'NR==3 {print $3}'`
-        ;;
+        # Oracle or IBM
+		jvm2=`echo "$java_ver_output" | awk 'NR==3 {print $1}'`
+        case "$jvm2" in
+			Java)
+				JVM_VENDOR=Oracle
+                # this will be "64-Bit" or "32-Bit"
+				JVM_ARCH=`echo "$java_ver_output" | awk 'NR==3 {print $3}'`
+				;;
+			IBM)
+				JVM_VENDOR=IBM
+                # this will end with "-64" or "-32"
+				JVM_ARCH=`echo "$java_ver_output" | awk 'NR==3 {print $9}'`
+				# This should be something like 7u13-b08 or jdk7u91-b15, so extract the part between u & -
+				ORACLE_VER=`echo "$java_ver_output" | awk 'NR==8 {print $7}'`
+				ORACLE_VER=${ORACLE_VER#*u}
+				JVM_PATCH_VERSION=${ORACLE_VER%-*}
+				;;
+			*)
+				;;
+		esac
+		;;
     *)
-        # Help fill in other JVM values
-        JVM_VENDOR=other
-        JVM_ARCH=unknown
+        # Unknown
         ;;
 esac
+
+if [ "$JVM_VERSION" \< "1.7" ] ; then
+    echo "Cassandra 2.0 and later require Java 7u25 or later."
+    exit 1;
+fi
+
+if [ "$JVM_VERSION" \< "1.8" ] && [ "$JVM_PATCH_VERSION" -lt "25" ] ; then
+    echo "Cassandra 2.0 and later require Java 7u25 or later."
+    exit 1;
+fi
 
 
 # Override these to set the amount of memory to allocate to the JVM at
@@ -314,6 +328,13 @@ fi
 # to control its listen address and port.
 #MX4J_ADDRESS="-Dmx4jaddress=127.0.0.1"
 #MX4J_PORT="-Dmx4jport=8081"
+
+# For IBM Java add options to log them, create a dump, avoid unsafe inlining (PMR 71796,001,866)
+if [ "$JVM_VENDOR" == "IBM" ] ; then
+	JVM_OPTS="$JVM_OPTS -XshowSettings"
+	JVM_OPTS="$JVM_OPTS -Xdump:java+system+snap:events=gpf+abort"
+	JVM_OPTS="$JVM_OPTS -Xjit:dontInline={org/apache/cassandra/utils/concurrent/Locks.monitorEnterUnsafe*,org/apache/cassandra/utils/concurrent/Locks.monitorExitUnsafe*}"
+fi
 
 JVM_OPTS="$JVM_OPTS $MX4J_ADDRESS"
 JVM_OPTS="$JVM_OPTS $MX4J_PORT"
