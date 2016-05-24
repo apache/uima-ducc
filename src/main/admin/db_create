@@ -113,7 +113,7 @@ class DbCreate(DuccUtil):
             private_properties = Properties()
             private_properties.load(private_props_name)
             private_properties.delete('db_password')
-            private_properties.put('db_password', self.database_pw, ['#Db password']);
+            private_properties.put('db_password', self.database_pw, ['#Db password, default is randomly generated']);
             private_properties.write(private_props_name)
 
         # remerge to insure it's all correct and ready to go

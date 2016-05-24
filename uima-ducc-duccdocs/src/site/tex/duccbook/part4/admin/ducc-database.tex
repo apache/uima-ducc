@@ -26,15 +26,9 @@
 
    \subsection{Overview}
 
-    During first-time installaion, the \hyperref[subsec:install.single-user]{\em ducc\_post\_install} utility
-    prompts for a (database) super-user password.  If a password is provided, the utility 
-    proceeds to configure the database and install the schema.  If a password
-    of ``bypass'' is given, database installation is bypassed and the file system
-    is used for history and services.  The Resource Manager does not attempt to
-    persist its state in the filesystem.
-    
-    If database integration is bypased during \hyperref[subsec:install.single-user]{\em ducc\_post\_install}, it may be
-    installed later with the utilities \hyperref[subsec:cli.db.create]{\em db\_create} and \hyperref[subsec:cli.db.loader]{\em db\_loader}.
+    During first-time installation, the \hyperref[subsec:install.single-user]{\em ducc\_post\_install} utility
+    randomly generates a (database) super-user password, which is kept in the protected file {\em DUCC\_HOME/resources.private/ducc.private.properties}.
+    The utility proceeds to configure the database and install the schema.
 
     If DUCC is being upgraded, generally \hyperref[subsec:install.single-user]{\em ducc\_post\_install} is not used, in 
     which case, again, \hyperref[subsec:cli.db.create]{\em db\_create} and \hyperref[subsec:cli.db.loader]{\em db\_loader} may be used to
@@ -55,7 +49,7 @@
     \end{enumerate}
     
     \subsubsection{Service Manager use of the Database}
-    The service manager uses the database to store the service registy and all state
+    The service manager uses the database to store the service registry and all state
     of active services.  Prior to the database, this data was saved in Java properties files
     in the directory {\em DUCC\_HOME/state/services}.
 
@@ -70,7 +64,7 @@
 
     \subsubsection{Webserver use of the Database}
     The web server uses the database in read-only mode to fetch work history, service
-    registrations, and node status.  Previosly to the database most of this information
+    registrations, and node status.  Previously to the database most of this information
     was fetched from the filesystem.  Node status was inferred using the Agent publications;
     with the database, the webserver has direct access to the Resource Manager's view of the
     DUCC nodes, providing a much more accurate picture of the system.
@@ -88,14 +82,14 @@
         main DUCC super user ID.  Note that database IDs are in no way related to 
         operating system IDs.
       \item[db\_loader] The \hyperref[subsec:cli.db.loader]{db\_loader} utility migrates an existing file-based DUCC
-        system to use the database.  It copies in the job history, orchestrator checkpoint,
+        system to use the database.  It copies in the job history, Orchestrator checkpoint,
         and the service registry.
     \end{description}
       
     Use the cross-references above for additional details on the utilities.
     
 \subsection{Database Configuration}
-    Most database configuration is accomplished by setting approriate values into 
+    Most database configuration is accomplished by setting appropriate values into 
     your local \hyperref[subsec:ducc.database.properties]{\em site.ducc.properties}.  See
     the linked section for details.
     

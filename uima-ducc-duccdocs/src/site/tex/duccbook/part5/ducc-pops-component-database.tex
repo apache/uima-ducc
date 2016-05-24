@@ -423,7 +423,7 @@ src/main/resources
           \item[stop\_ducc] This contains calls to {\em ducc\_util.py} to stop the DB.
           \item[check\_ducc] This contains calls to {\em ducc\_util.py} to determine if the DB is running or not.
           \item[ducc\_post\_install] This contains calls to {\em db\_util.py} to configure the
-            {\em ducc.head}, prompt for the database password, and initialize the schema.
+            {\em ducc.head}, generate a random database password, and initialize the schema.
           \item[db\_create] This contains methods to define a database, independently of
             {\em ducc\_post\_install} intended for migration purposes.
           \item[db\_loader] This contains calls to the java utility {\em DbLoader} to

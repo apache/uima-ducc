@@ -1825,7 +1825,7 @@ org.apache.uima.ducc.common.persistence.rm.NullRmStatePersistence
           This is the password used to generate the Web Server's keystore used for HTTPS requests.  Usually
           this keystore is created at initial installation time using \hyperref[subsec:install.single-user]{ducc\_post\_install.}
           \begin{description}
-            \item[Default Value] randomly generated at install time 
+            \item[Default Value] Randomly generated at install time. 
             \item[Type] Local
           \end{description}
     \end{description}    
@@ -1837,11 +1837,11 @@ org.apache.uima.ducc.common.persistence.rm.NullRmStatePersistence
     
         \item[db\_password] \hfill \\
           This is the database superuser password.  It is set during {\em ducc\_post\_install} or {\em db\_create}.  Both
-          these procedures prompt for the password.  There is no default; the value must be supplied by the DUCC administrator.
+          these procedures randomly generate the password.
 
           NOTE: The database superuser ID is always ``ducc'', and is set during database installation.
           \begin{description}
-            \item[Default Value] None, must be set by the administrator.
+            \item[Default Value] Randomly generated at install time.
             \item[Type] Local
           \end{description}
     \end{description}    

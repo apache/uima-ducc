@@ -41,7 +41,7 @@ from local_hooks import find_other_processes
 try:
     os.getcwd()
 except:
-    print "ERROR getting current directory ... may have been replaced .. tryin cd'ing to it again"
+    print "ERROR getting current directory ... may have been replaced .. try cd'ing to it again"
     sys.exit(1)
 
 # simple bootstrap to establish DUCC_HOME and to set the python path so it can
@@ -180,7 +180,7 @@ class DuccUtil(DuccBase):
         dbprops.load(self.DUCC_HOME + '/resources.private/ducc.private.properties')
         self.db_password = dbprops.get('db_password')
         if ( self.db_password == None ):
-            print "bypassing database becase no password is set."
+            print "bypassing database because no password is set."
             self.db_bypass = True
 
     # does the database process exist?  

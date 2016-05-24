@@ -630,15 +630,14 @@ Nodepool power
           \item Starts the database.
           \item Disables the default database superuser.
           \item Installs a database superuser as ``ducc'' and sets the password
-            to a password of your choice, which you are prompted for.  The password is saved
+            to a random string.  The password is saved
             in DUCC\_HOME/resources.private/ducc.private.properties.
           \item Installs the DUCC database schema.
           \item Stops the database.
         \end{enumerate}
         
 
-         This command takes no parameters.  It prompts interactively for your desired
-         database superuser password.  
+         This command takes no parameters.
 
          NOTE: The database user and password are NOT RELATED to any login ID on the system,
          they are used and maintained by the database only.

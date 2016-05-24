@@ -108,13 +108,7 @@ class PostInstall():
             print 'Database is already defined.  Not configuring'
             return
 
-        if ( self.database_pw == None ):
-            db_pw = raw_input("Enter database password OR 'bypass' to disable database support:")
-            if ( db_pw == '' ):
-                print "Must enter a DB password to continue."
-                sys.exit(1);
-        else:
-            db_pw = self.database_pw
+        db_pw = self.get_pw(self.database_pw)
 
         if ( db_pw == 'bypass' ):
             print 'Database support will be disabled'
@@ -130,20 +124,16 @@ class PostInstall():
             self.update_property('ducc.rm.persistence.impl', 'org.apache.uima.ducc.database.RmStatePersistence', '# RM state persistence')
 
             self.ducc_private_properties.delete('db_password')
-            self.ducc_private_properties.put('db_password', db_pw, ['#Db password']);
+            self.ducc_private_properties.put('db_password', db_pw, ['#Db password, default is randomly generated']);
 
 
         return
 
-    def generate_pw(self, pwlen):
-        reply = ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(pwlen)])
-        return reply
-        
-    def get_keystore_pw(self, prompt):
-        if ( self.keystore_pw == None ):
-            reply = self.generate_pw(32)
-        else:    
-            reply = self.keystore_pw
+    def get_pw(self, given):
+        reply = given
+        if ( given == None ):
+            pwlen = random.randrange(8,16)
+            reply = ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(pwlen)])
         return reply
 
     def create_keystore(self, keytool):
@@ -169,7 +159,7 @@ class PostInstall():
         rc = 1
         reply = ''
         while ( rc != 0 ):
-            reply = self.get_keystore_pw(reply)
+            reply = self.get_pw(self.keystore_pw)
 
             cmd = keytool
             cmd += ' '
