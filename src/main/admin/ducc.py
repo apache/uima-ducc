@@ -89,7 +89,7 @@ class Ducc(DuccUtil):
             # fixing it.
             print "NOTOK"
 
-    def run_broker(self, component):
+    def run_broker(self, simtest):
         broker_port = self.ducc_properties.get('ducc.broker.port')
         broker_jmx_port = self.ducc_properties.get('ducc.broker.jmx.port')
         broker_url_decoration = self.ducc_properties.get('ducc.broker.server.url.decoration')
@@ -97,6 +97,8 @@ class Ducc(DuccUtil):
         broker_config = self.ducc_properties.get('ducc.broker.configuration')
         broker_home = self.ducc_properties.get('ducc.broker.home')
         broker_credentials = self.ducc_properties.get('ducc.broker.credentials.file')
+        if ( simtest ):
+            broker_config = 'conf/activemq-ducc-unsecure.xml'
 
         if ( broker_config[0] != '/' ):     # relative to broker_home if not absolute
             broker_config = broker_home + '/' + broker_config
@@ -285,7 +287,7 @@ class Ducc(DuccUtil):
     def usage(self, msg):
         print msg
         print 'Usage:'
-        print '   ducc.py -c <process> [-n <numagents>] [-b] [arguments ...]'
+        print '   ducc.py -c <process> [-n <numagents>] [-b] [-d date] [-o rmmem] [arguments ...]'
         print '   ducc.py -k'
         print 'Where:'
         print '   -c <component> is the name of the comp[onent to start, currently one of'
@@ -293,14 +295,14 @@ class Ducc(DuccUtil):
         print '                      -- or --'
         print '                all - to start all but the agents'
         print '        NOTE -- that agents should be started separately'
-        print '   -d date is the data on the caller, for startup verification'
-        print '   -b uses nohup and places the process into the background'
         print '   -n <numagents> if > 1, multiple agents are started (testing mode)'
+        print '   -b uses nohup and places the process into the background'
+        print '   -d date is the data on the caller, for startup verification'
         print '   -o <mem-in-GB> rm memory override for use on small machines'
         print '   -k causes the entire DUCC system to shutdown'
         print '   --nodup If specified, do not start a process if it appears to be already started.'
         print '   --or_parms [cold|warm|hot]'
-        print '   --ducc_head nodename the name of the "ducc head" where ducc is started from'
+        print '   --simtest If specified, use unblocked broker for sim tests.'
         print '   arguments - any additional arguments to pass to the component.'
         sys.exit(1)
     
@@ -315,9 +317,10 @@ class Ducc(DuccUtil):
         or_parms = None
         nodup = False           # we allow duplicates unless asked not to
         localdate = time.time()
+        simtest = False
 
         try:
-           opts, args = getopt.getopt(argv, 'bc:d:n:o:sk?v', ['or_parms=', 'nodup' ])
+           opts, args = getopt.getopt(argv, 'bc:d:n:o:sk?v', ['or_parms=', 'nodup', 'simtest' ])
         except:
             self.usage('Bad arguments ' + ' '.join(argv))
     
@@ -340,6 +343,8 @@ class Ducc(DuccUtil):
                 or_parms = a
             elif ( o == '--nodup' ):
                 nodup = True
+            elif ( o == '--simtest' ):
+                simtest = True
             elif ( o == '-v'):
                 self.version()
             else:
@@ -361,7 +366,7 @@ class Ducc(DuccUtil):
             return
 
         if ( component == 'broker' ):
-            self.run_broker(background)
+            self.run_broker(simtest)
             return
 
         # fall-through, runs one of the ducc components proper

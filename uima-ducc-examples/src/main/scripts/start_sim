@@ -45,9 +45,10 @@ from ducc       import Ducc
 from ducc_util  import ThreadPool
 
 # multi-threaded start can overwhelm ssh if going to the same target host.  We inject
-# a short sleep between starts to make it better.  This is how long to sleep.
+# a short sleep between starts to make it better.  This is how long to sleep in secs.
+# Note: when 0.1 the ducc.properties merge step run by each agent caused problems/hangs
 global SLEEP_TIME
-SLEEP_TIME = .1
+SLEEP_TIME = 0.5
 
 class StartSim(DuccUtil):
 
@@ -61,7 +62,7 @@ class StartSim(DuccUtil):
 
         broker_host = self.ducc_properties.get('ducc.broker.hostname')
         print 'broker host', broker_host
-        lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', "'")
+        lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', '--simtest', "'")
 
         for i in range(0, 9):
             if ( self.is_amq_active() ):

@@ -76,9 +76,9 @@
                 
       <plugins>
         <!-- Configure authentication; Username, passwords and groups -->
-        <!-- The anonymousAccessAllowed=false prevents clients connecting with no username or password -->
-        <!-- from being assigned to username 'annonymous' and group 'annonymous'                       -->
-        <simpleAuthenticationPlugin anonymousAccessAllowed="false">
+        <!-- The anonymousAccessAllowed=true - clients connecting with no username or password -->
+        <!-- will be auto assigned to username 'annonymous' and group 'annonymous'             -->
+        <simpleAuthenticationPlugin anonymousAccessAllowed="true">
             <users>
                 <authenticationUser username="${ducc.broker.admin.username}" password="${ducc.broker.admin.password}"
                     groups="ducc-admin"/>
@@ -87,13 +87,19 @@
 
 
         <!--  Configure authorization  -->
-        <!--  Creating and writing to Topics and Queues is restricted to users in ducc-admin group -->
+        <!--  Creating and writing to Topics and Queues is NOT restricted  -->
         <authorizationPlugin>
           <map>
             <authorizationMap>
               <authorizationEntries>
                 <authorizationEntry topic=">" read="ducc-admin" write="ducc-admin" admin="ducc-admin" />
                 <authorizationEntry queue=">" read="ducc-admin" write="ducc-admin" admin="ducc-admin" />
+
+				<!-- The following should be used ONLY for cluster simulation testing.              -->
+				<!-- The megas use this broker as an application broker for the simulated services. -->
+                <authorizationEntry queue=">" read="anonymous" write="anonymous" admin="anonymous" />
+                <authorizationEntry topic="ActiveMQ.Advisory.>" read="anonymous" write="anonymous" admin="anonymous"/>
+
               </authorizationEntries>
             </authorizationMap>
           </map>
