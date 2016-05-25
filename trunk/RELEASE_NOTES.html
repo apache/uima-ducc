@@ -1,0 +1,108 @@
+<html>
+  <!--
+   ***************************************************************
+   * Licensed to the Apache Software Foundation (ASF) under one
+   * or more contributor license agreements.  See the NOTICE file
+   * distributed with this work for additional information
+   * regarding copyright ownership.  The ASF licenses this file
+   * to you under the Apache License, Version 2.0 (the
+   * "License"); you may not use this file except in compliance
+   * with the License.  You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   * 
+   * Unless required by applicable law or agreed to in writing,
+   * software distributed under the License is distributed on an
+   * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   * KIND, either express or implied.  See the License for the
+   * specific language governing permissions and limitations
+   * under the License.
+   ***************************************************************
+   -->
+<head>
+  <title>Apache Distributed UIMA Cluster Computing (DUCC) 2.0.0 Release Notes</title>
+</head>
+<body>
+<h1>Apache UIMA-DUCC (Unstructured Information Management Architecture - Distributed UIMA Cluster Computing ) v.2.0.0 Release Notes</h1>
+
+<h2>Contents</h2>
+<p>
+<a href="#what.is.uima-ducc">1. What is UIMA-DUCC?</a><br/>
+<a href="#major.changes">2. Major Changes in this Release</a><br/>
+</p>  
+   
+<h2><a name="what.is.uima-ducc">1. What is UIMA-DUCC?</a></h2>
+<p>
+  			DUCC stands for Distributed UIMA Cluster Computing. DUCC is a cluster management system providing tooling,
+management, and scheduling facilities to automate the scale-out of applications written to the UIMA framework.
+Core UIMA provides a generalized framework for applications that process unstructured information such as human
+language, but does not provide a scale-out mechanism. UIMA-AS provides a scale-out mechanism to distribute UIMA
+pipelines over a cluster of computing resources, but does not provide job or cluster management of the resources.
+DUCC defines a formal job model that closely maps to a standard UIMA pipeline. Around this job model DUCC
+provides cluster management services to automate the scale-out of UIMA pipelines over computing clusters.
+</p>
+      
+<h2><a name="major.changes">2. Major Changes in this Release</a></h2>
+<p>
+UIMA DUCC 2.0.0 Apache is a major release containing new features and bug fixes. What's new:<br>
+
+<h3>2.1 Non-preemptive (NP) workloads</h3>
+In order to prevent the cluster from being filled with non-preemptable (NP) allocations it is possible to place 
+limit on total NP allocations for each user.  The limit applies globally and can be overridden on a per-user 
+basis by the DUCC administrator.  Additionally all NP allocations are now limited to a single instance per request.  
+Please refer to sections "13.4 Allotment", "12.8 Ducc User Definitions", and "12.4.6 Resource Manager Properties" of
+DUCC Administrative Guide for more details.
+
+<h3>2.2 Classpath isolation</h3> 
+User's code now runs with only the classpath it supplies. The user's classpath specification for jobs must now include 
+uima-core.jar. 
+Any jobs calling UIMA-AS services, "DD jobs" and UIMA-AS services themselves will need to include all UIMA jars and 
+any additional 3rd party jars that are required
+
+<h3>2.3 DUCC error handler </h3>
+The interface to this optional capability has changed. 
+
+<h3>2.4 Job Processes (JP's) now pull Work Items (WIs) from their Job Driver (JD) via HTTP </h3>
+JD's no longer uses ActiveMQ to push WI's to JP's for processing. Instead JP's use HTTP to 
+pull WIs from their associated JD.
+
+<h3>2.5 DUCC flow controller typesystem </h3>
+The original name of the flow controller typesystem file has been deprecated. The old 
+version will remain available for now. 
+
+For the future, please make the following change to CR/CM/CC components using this typesystem: 
+change 
+&lt;import name="org.apache.uima.ducc.common.uima.DuccJobFlowControlTS"/&gt; 
+to 
+&lt;import name="org.apache.uima.ducc.FlowControllerTS"/&gt; 
+
+
+<h3>2.6 CGROUPS to control CPU share as well as memory share.</h3>
+    CPU shares are set proportionally to memory shares when CGROUPS are enabled.
+
+<h3>2.7 Queue resource requests that were previously unfulfillable</h3>
+    Requests for resources are held pending if they can't be fulfilled for any reason
+    other than the scheduling class being missing.  Shares may be made available when
+    other work exits, or if resources are dynamically added to the cluster.  The
+    WebServer shows the reason for work that is enqueued, WaitngForResources.
+
+<h3>2.8 Queue service requests that were previously unfulfillable</h3>
+    Work that is dependent on a service is held pending even if the service can't be started successfully.  
+    The work will continue when the service becomes available.
+
+<h3>2.9 Service Manager instances</h3>
+    A unique instance ID is assigned for each of the multiple instances of a service.
+    This ID is made available to the running instances to enable reasoning (such as how to
+    partition a data set) on the instance. If a service instance terminates unexpectedly,
+    a new instance will be started with the appropriate ID.
+
+
+<br><br>
+
+For a complete list of issues fixed and up-to-date information on UIMA-DUCC issues, see our issue tracker: 
+<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.0.0-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.0.0-Ducc%22%20</a>
+</p> 
+      
+
+</body>
+</html>

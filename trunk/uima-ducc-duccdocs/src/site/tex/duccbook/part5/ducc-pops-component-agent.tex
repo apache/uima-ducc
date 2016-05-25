@@ -1,0 +1,277 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+    
+    \subsection{\varAgent}  
+
+    There is one \varAgent~per~\varNodeMachineComputer~per \varDUCC~cluster.
+    The \varAgents~collectively provide essential functionality for operation
+    of the \varDUCC~system.
+    
+    The duties of the \varAgent~are:
+    \textit{
+      \input{part5/c01-Agent.tex}
+    }
+ 
+    At the direction of the \varProcessManager, each \varAgent~is
+    instructed to manage its assigned \varShares~by means of
+    \varLinuxControlGroups, and by injecting into them local 
+    process elements comprising
+    Job Drivers, Job Processes, Service Processes, and Managed Processes.
+    
+    The \varAgent~is subdivided into several responsibility areas:
+
+    \begin{itemize}
+      \item Core
+      \item Config
+      \item Deploy
+      \item Event
+      \item Exceptions
+      \item Launcher
+      \item Metrics Collectors
+      \item Monitor
+      \item Processors
+    \end{itemize}
+                     
+    \subsubsection{Core}    
+    
+    The \varAgent~publishes information about the state of the
+    \varNodeMachineComputer~it controls.
+    It also receives publications which it interprets to control
+    processes deployed thereon.
+    It also monitors activity on the \varNodeMachineComputer~and
+    ensures that only sanctioned processes are running.
+    
+    The \varAgent~is normally launched at \varDUCC~system
+    start-up time.
+    However, \varAgents~may be started/stopped independently over time.
+    
+    \varDUCC~is only able to deploy user submitted applications to a
+    \varNodeMachineComputer~upon which there exists an active \varAgent.
+    
+    \subsubsection{Config}     
+    
+    \begin{itemize}
+      \item Agent Configuration
+      
+      The \varAgent configures itself according to the 
+      \varDuccProperties~file.  Aspects include:
+      
+      \begin{itemize}
+        \item launcher.thread.pool.size
+        \item launcher.process.stop.timeout
+        \item rogue.process.exclusion.filter
+        
+        Processes in this list are exempt for rogue process detection
+        and termination.
+        
+        \item rogue.process.user.exclusion.filter
+        
+        Users in this list are exempt for rogue process detection
+        and termination.
+        
+      \end{itemize} 
+      
+      The \varAgent publishes reports at configurable intervals:
+      
+      \begin{itemize}
+        \item Node Inventory
+        
+        Node Inventory is a report on the \varAgent-managed processes
+        on this node.
+        
+        \item Node Metrics
+        
+        Node Metrics is a report on the \varAgent-observed metrics
+        on this node.
+        
+      \end{itemize} 
+      
+    \end{itemize}  
+            
+    \subsubsection{Deploy}
+    
+    \begin{itemize}
+      \item Managed UIMA Service
+      
+      The module is the \varAgent-managed integration between
+      \varUIMAAS~and the user supplied application code which is
+      deployed thereto.
+      
+    \end{itemize}    
+    
+    \subsubsection{Event}  
+    
+    \begin{itemize}
+      \item Event Listener
+      
+      The module handles publication events:
+      \begin{itemize}
+      \item Process Start 
+      
+      A notification from the \varProcessManager~to start a user submitted 
+      process constrained to a \varResourceManager~allocated number of \varShares.
+      
+      \item Process Stop
+      
+      A notification from the \varProcessManager~to stop a user submitted 
+      process.
+      
+      \item Process Modify
+            
+      A notification from the \varProcessManager~to modify a user submitted 
+      process.
+      
+      \item Process Purge
+                  
+      A notification from the \varProcessManager~to purge a user submitted 
+      process.
+      
+      \item Job State
+                        
+      A notification from the \varProcessManager~comprising abbreviated
+      state of the \varDUCC-managed collection of entities: 
+      \varJobs, \varReservations~and \varServices.
+      
+      \end{itemize}  
+
+    \end{itemize}     
+                 
+    \subsubsection{Launcher}   
+          
+    The modules comprising the Launcher package are tasked with
+    starting user processes on the \varAgent-managed \varNodeMachineComputer.
+    The modules are:
+            
+    \begin{itemize}
+      \item CGroups Manager
+      
+      This module provides functionality to partition the \varAgent-managed
+      \varNodeMachineComputer~into \varShares, each \varShare~with limits on one
+      or more aspects, including but not limited to memory and swap space. 
+      
+      The CGroups Manager essentially starts, maintains, and stops instant
+      virtual machines in correspondence with \varResourceManager~allocated
+      \varShares~into which user submitted processes are launched.
+      
+      \item Command Executor
+      
+      This module is the base class that provides functionality to
+      launch a user specified process within the 
+      \varResourceManager~allocated \varShare. 
+      
+      \item \varDUCC~Command Executor
+      
+      This module launches a user specified process within the 
+      \varResourceManager~allocated \varShare. 
+      The process may be constrained by a \varLinuxControlGroup~and
+      may be spawned as the submitting \varUser.
+      
+      \item \varJVM~Args Parser
+      
+      The \varJVM~Args Parser module extracts user specified \varJVM~arguments
+      for use in building an \varAgent-launchable subprocess comprising
+      the user specified executable code.
+      
+      \item Launcher
+      
+      The Managed Process module provides virtual \varAgent~capability.
+      
+      This module comprises a method used to launch multiple Agents
+      on the same physical machine. 
+      It allows for the scale up Agents on a single machine to simulate load.
+      Each Agent instance assumes a given name and IP address.
+      
+      \item Managed Process
+
+      The Managed Process module manages a state machine for each
+      \varAgent-managed user process.  The states comprise:
+      
+         \begin{itemize}
+           \item Starting
+           \item Initializing
+           \item Ready
+           \item Failed
+           \item Stopped
+         \end{itemize}
+         
+      \item Process Stream Consumer
+      
+      The Process Stream Consumer module captures and redirects user process output
+      to a log file.
+      
+    \end{itemize}  
+    
+    \subsubsection{Metrics Collectors} 
+    
+    The modules comprising the Metrics Collectors package observe, calculate
+    or otherwise gather specific metrics. Metrics collected are relative to
+    these main categories:
+        
+    \begin{itemize}
+      \item Garbage Collection Statistics
+      \item Node CPU, Node CPU Usage, Node CPU Utilization
+      \item Node Load Average
+      \item Node Memory Info
+      \item Node Users
+      \item Process CPU Usage
+      \item Process Major Faults
+      \item Process Resident Memory
+      \item Process Swap Usage
+    \end{itemize}  
+    
+    \subsubsection{Monitor} 
+
+    The modules comprising the Monitor package observe various states and
+    trigger actions when specific events occur.
+        
+    \begin{itemize}
+      \item \varAgent~Monitor
+      
+      When the \varAgent~detects problems with the network, broker, or ping
+      functions it terminates all \varAgent~deployed processes.
+       
+      \item Rogue Process Detector
+      
+      The \varAgent~detects aliens processes, those not expected for running
+      the \varOS~or \varDUCC~or user processes deployed by \varDUCC.
+      According to policy, the \varAgent~may take one or more actions:
+      \begin{itemize}
+        \item log an \varAlienDetected~event
+        \item send notification to subscribers of alien detection events
+        \item with root privilege, signal the alien process to terminate
+      \end{itemize} 
+      
+    \end{itemize}   
+    
+    \subsubsection{Processors} 
+    
+    The modules comprising the Processors package assemble information for
+    consideration when carrying out the \varAgent~duties as well as for publication
+    to other interested \varDUCC~daemons.  Information collected are relative to
+    these main categories:
+    
+    \begin{itemize}
+      \item Linux Node Metrics
+      \item Linux Process Metrics
+      \item Node Inventory
+      \item Node Metrics
+      \item Process Lifecycle
+      \item Process Metrics
+    \end{itemize}   
+    

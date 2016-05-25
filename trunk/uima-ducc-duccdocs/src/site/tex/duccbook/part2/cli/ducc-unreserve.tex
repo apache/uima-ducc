@@ -1,0 +1,51 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_CLI_UNRESERVE'></a>}
+\fi
+    \section{ducc\_unreserve}
+    \label{sec:cli.unreserve}
+
+    \paragraph{Description:}
+    The unreserve CLI is used to release reserved resources. 
+
+    \paragraph{Usage:}
+    \begin{description}
+    \item[Script wrapper] \ducchome/bin/ducc\_unreserve {\em options}
+    \item[Java Main]      java -cp \ducchome/lib/uima-ducc-cli.jar org.apache.uima.ducc.cli.DuccReservationCancel {\em options}
+    \end{description}
+
+    \paragraph{Options:}
+    \begin{description}
+        \item[$--$debug ]          
+          Prints internal debugging information, intended for DUCC developers or extended problem determination.
+        \item[$--$id {[jobid]}]
+          The ID is the id of the reservation to cancel. (Required)
+        \item[$--$help]
+          Prints the usage text to the console. 
+        \item[$--$role\_administrator] The command is being issued in the role of a DUCC administrator.
+          If the user is not also a registered administrator this flag is ignored.  (This helps to
+          protect administrators from inadvertently canceling jobs they do not own.)          
+     \end{description}
+        
+    \paragraph{Notes:}
+    None.
+
