@@ -617,7 +617,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						String tE = t.getEnd(""+now);
 						initTime = getDuration(jobid,tE,tS,Precision.Whole);
 						if(t.isEstimated()) {
-							isp0 = "<span title=\"estimated\" class=\"health_green\">";
+							isp0 = "<span class=\"health_green\">";
 						}
 						else {
 							isp0 = "<span class=\"health_black\">";
@@ -716,7 +716,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						String tE = t.getEnd(""+now);
 						runTime = getDuration(jobid,tE,tS,Precision.Whole);
 						if(t.isEstimated()) {
-							rsp0 = "<span title=\"estimated\" class=\"health_green\">";
+							rsp0 = "<span class=\"health_green\">";
 						}
 						else {
 							rsp0 = "<span class=\"health_black\">";
@@ -1783,7 +1783,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						case start:
 						case queued:
 						case operating:
-							row.append("<span title=\"estimated\" class=\"health_green\">");
+							row.append("<span class=\"health_green\">");
 							break;
 						default:
 							row.append("<span class=\"health_black\">");
