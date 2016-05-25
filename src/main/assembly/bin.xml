@@ -280,12 +280,12 @@ under the License.
       <directoryMode>755</directoryMode>        
     </fileSet>
 
-	<!-- Put the DUCC broker configuration file in ACTIVEMQ -->
+	<!-- Put the DUCC broker configuration files in ACTIVEMQ -->
     <fileSet>
       <directory>src/main/config/</directory>
       <outputDirectory>apache-uima/apache-activemq/conf</outputDirectory>
       <includes>
-        <include>activemq-ducc.xml</include>
+        <include>activemq*</include>
       </includes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
