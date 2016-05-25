@@ -72,17 +72,15 @@ under the License.
     </fieldset>
   </form>
     <div class="log-display-top">
-        <b style="display:none">
-        <small>
+        <b>
         <%
         if (request.getParameter("fname") == null) {
-            out.println("?");
+            //out.println("?");
         } 
         else {
             out.println(request.getParameter("fname"));
         }
         %>
-        </small>
         </b>
         <div class="text-left">
             <ul id="pagination-demo" class="pagination-sm"></ul>
