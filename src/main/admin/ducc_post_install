@@ -95,6 +95,38 @@ class PostInstall():
             print 'Failure, cannot continue.'
             sys.exit(1)
 
+    # set username and password in broker credentials file        
+    def configure_broker(self):
+        cf = self.DUCC_HOME+"/resources.private/ducc-broker-credentials.properties"
+        # create file if it does not exist
+        if ( not os.path.exists(cf) ):
+            # create file with username & password
+            print "broker configuration create"
+            with open(cf, 'w') as f:
+                line = 'ducc.broker.admin.username=admin'+'\n'
+                print line
+                f.write(line)
+                line = 'ducc.broker.admin.password='+self.generate_pw()+'\n'
+                print line
+                f.write(line)
+        # update existing file
+        else:
+            # re-write file replacing username & password
+            print "broker configuration edit"
+            with open(cf, 'r+') as f:
+                lines = f.readlines()
+                f.seek(0)
+                f.truncate()
+                for line in lines:
+                    if 'ducc.broker.admin.username=' in line:
+                        line = 'ducc.broker.admin.username=admin'+'\n'
+                        print line
+                    if 'ducc.broker.admin.password=' in line:
+                        line = 'ducc.broker.admin.password='+self.generate_pw()+'\n'  
+                        print line
+                    f.write(line)
+        return
+        
     def configure_database(self):
         # for cassandra:
         # in ducc_runtime/cassandra-server/conf we need to update cassandra.yaml to establish
@@ -129,11 +161,17 @@ class PostInstall():
 
         return
 
+    # generate a random string between 8 and 16 characters long
+    def generate_pw(self):
+        pwlen = random.randrange(8,16)
+        reply = ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(pwlen)])
+        return reply
+    
+    # if password is not specified then generate a random one
     def get_pw(self, given):
         reply = given
         if ( given == None ):
-            pwlen = random.randrange(8,16)
-            reply = ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(pwlen)])
+            reply = self.generate_pw()
         return reply
 
     def create_keystore(self, keytool):
@@ -430,6 +468,9 @@ class PostInstall():
             os.mkdir(logwsdir)
         if ( not os.path.exists(historydir) ):
             os.mkdir(historydir)
+
+        # configure the AMQ broker
+        self.configure_broker()
 
         # configure the database for local system and initialize the schema
         self.configure_database()
