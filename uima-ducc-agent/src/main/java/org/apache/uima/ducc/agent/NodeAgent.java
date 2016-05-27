@@ -225,11 +225,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     if (!virtualAgent
             && (cgroups = System.getProperty("ducc.agent.launcher.cgroups.enable")) != null) {
       if (cgroups.equalsIgnoreCase("true")) {
+    	logger.info("nodeAgent", null,"ducc.properties [ducc.agent.launcher.cgroups.enable=true]");
         // Load exclusion file. Some nodes may be excluded from cgroups
         String exclusionFile;
 
         // get the name of the exclusion file from ducc.properties
         if ((exclusionFile = System.getProperty("ducc.agent.exclusion.file")) != null) {
+          logger.info("nodeAgent",null, "Ducc configured with cgroup node exclusion file - ducc.properties [ducc.agent.exclusion.file="+exclusionFile+"]");
           // Parse node exclusion file and determine if cgroups and AP
           // deployment
           // is allowed on this node
@@ -247,13 +249,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           System.out.println("excludeNodeFromCGroups=" + excludeNodeFromCGroups + " excludeAPs="
                   + excludeAPs);
         } else {
-          System.out.println("Running with No exclusion File");
+          logger.info("nodeAgent",null,"Agent node *not* excluded from using cgroups");
         }
         // node not in the exclusion list for cgroups
         if (!excludeNodeFromCGroups) {
         	//	fetch a list of paths the agent will search to find cgroups utils
         	//  like cgexec. The default location is /usr/bin
-        	
+        	logger.info("nodeAgent",null,"Testing cgroups to check if runtime utilities (cgexec) exist in expected locations in the filesystem");
         	String cgroupsUtilsDirs = System.getProperty("ducc.agent.launcher.cgroups.utils.dir");
             if (cgroupsUtilsDirs == null) {
             	cgUtilsPath = "/usr/bin";  // default
@@ -271,6 +273,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             	useCgroups = false;
                 logger.info("nodeAgent", null, "------- CGroups Disabled - Unable to Find Cgroups Utils Directory. Add/Modify ducc.agent.launcher.cgroups.utils.dir property in ducc.properties");
             } else {
+            	logger.info("nodeAgent",null,"Agent found cgroups runtime in "+cgUtilsPath);
                 // get the top level cgroup folder from ducc.properties. If
                 // not defined, use /cgroup/ducc as default
                 String cgroupsBaseDir = System.getProperty("ducc.agent.launcher.cgroups.basedir");
@@ -296,7 +299,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 // and cgroups convenience package are installed and the
                 // daemon is up and running.
                 if (cgroupsManager.cgroupExists(cgroupsBaseDir)) {
-                 
+                	logger.info("nodeAgent",null,"Agent found cgroup base directory in "+cgroupsBaseDir);
                   try {
                     // remove stale CGroups
                     cgroupsManager.cleanupOnStartup();
@@ -328,7 +331,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                   }
 
                 } else {
-                  logger.info("nodeAgent", null, "------- CGroups Not Installed on this Machine");
+                  logger.info("nodeAgent",null,"Agent failed to find cgroup base directory in "+cgroupsBaseDir+". Check if cgroups is installed on this node and the cgroup daemon is running");
+                  //logger.info("nodeAgent", null, "------- CGroups Not Installed on this Machine");
                   cgroupFailureReason = "------- CGroups Not Installed on this Machine";
                 }
             }
