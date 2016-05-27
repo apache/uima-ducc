@@ -617,6 +617,15 @@ public class CGroupsManager {
 					String line;
 					agentLogger.info("launchCommand", null, "Consuming Process Streams");
 					while ((line = reader.readLine()) != null) {
+						// per team discussin 6/23/ dont need to log "Operation not permitted"
+						// which is logged by cgcreate erroneously. The cgroup is actually created
+						// but cgcreate still dumps this msg to stdout. If we log this, a user
+						// may get confused. If there is a legitimate problem a subsequent test
+						// for existence of cgroup will catch a missing cgroup and report it as 
+						// error.
+						if ( line.indexOf("Operation not permitted") > -1 ) {
+							continue;  // dont log if the above string is in the stdout stream
+						}
 						agentLogger.info("launchCommand", null, ">>>>" + line);
 						System.out.println(line);
 					}
