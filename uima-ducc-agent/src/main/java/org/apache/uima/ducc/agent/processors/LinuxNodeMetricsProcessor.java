@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.agent.processors;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +29,7 @@ import java.util.concurrent.Future;
 import org.apache.camel.Exchange;
 import org.apache.uima.ducc.agent.Agent;
 import org.apache.uima.ducc.agent.NodeAgent;
+import org.apache.uima.ducc.agent.metrics.collectors.NodeCpuCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeLoadAverageCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeMemInfoCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeUsersCollector;
@@ -125,12 +128,15 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 
 			NodeMemInfoCollector memCollector = new NodeMemInfoCollector(MeminfoTargetFields);
 			Future<NodeMemory> nmiFuture = pool.submit(memCollector);
-			NodeLoadAverageCollector loadAvgCollector = new NodeLoadAverageCollector(
-					loadAvgFile, 5, 0);
+//			NodeLoadAverageCollector loadAvgCollector = new NodeLoadAverageCollector(
+//					loadAvgFile, 5, 0);
+			// 
+			NodeLoadAverageCollector loadAvgCollector = new NodeLoadAverageCollector();
+
 			Future<NodeLoadAverage> loadFuture = pool.submit(loadAvgCollector);
-//			NodeCpuCollector cpuCollector = new NodeCpuCollector();
+			NodeCpuCollector cpuCollector = new NodeCpuCollector();
 //			Future<NodeCpuInfo> cpuFuture = pool.submit(cpuCollector);
-		    NodeCpuInfo cpuInfo = new NodeCpuInfo(agent.numProcessors);
+			NodeCpuInfo cpuInfo = new NodeCpuInfo(agent.numProcessors, String.valueOf(cpuCollector.call()));
 		    
 			e.getIn().setHeader("node", agent.getIdentity().getName());
 			NodeMemory memInfo = nmiFuture.get();
@@ -148,8 +154,8 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 			} else {
 				users = new TreeMap<String, NodeUsersInfo>();
 			}
-	    
-            NodeMetrics nodeMetrics = new NodeMetrics(agent.getIdentity(), memInfo, loadFuture.get(),
+			NodeLoadAverage lav = loadFuture.get();
+            NodeMetrics nodeMetrics = new NodeMetrics(agent.getIdentity(), memInfo, lav,
               cpuInfo, users);
       
 			Node node = new DuccNode(agent.getIdentity(), nodeMetrics, agent.useCgroups);
@@ -165,7 +171,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
                                         " OS Version:" + osversion +
                                         " OS Arch:" + osarch +
 					" CPU Count:" + cpuInfo.getAvailableProcessors() +
-					" CPU Load:" +cpuInfo.getCurrentLoad() +
+					" CPU Load Average:" +lav.getLoadAvg1() +
 					" Posting Memory (KB):"
 					+ node.getNodeMetrics().getNodeMemory().getMemTotal()+
 					" Memory Free (KB):"+node.getNodeMetrics().getNodeMemory().getMemFree()+
@@ -181,21 +187,8 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 			NodeMetricsUpdateDuccEvent updateEvent = new NodeMetricsUpdateDuccEvent(node,agent.getInventoryRef().size());
 			e.getIn().setBody(updateEvent, NodeMetricsUpdateDuccEvent.class);
 
-			//  Add header property which will allow the agent to filter in its pings
-//			Map<String, Object> headers = new HashMap<String, Object>();
-//			headers.put(agent.configurationFactory.agentPingSelectorName, 
-//			        agent.getIdentity().getIp());
-		
-			// Dispatch ping to self via common agent ping topic. A property in the header 
-			// allow the agent to filter in its pings
-//			agent.
-//			  configurationFactory.
-//			    getAgentPingDispatcher().
-//			      dispatch(new AgentPingEvent(EventType.AGENT_PING, node), headers);
-
 		} catch (Exception ex) {
 			logger.error(methodName, null, ex, new Object[] { "Agent" });
 		}
 	}
-
 }

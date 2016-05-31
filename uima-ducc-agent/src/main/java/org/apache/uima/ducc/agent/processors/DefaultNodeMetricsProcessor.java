@@ -28,6 +28,7 @@ import org.apache.uima.ducc.agent.Agent;
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.metrics.collectors.DefaultNodeLoadAverageCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.DefaultNodeMemoryCollector;
+import org.apache.uima.ducc.agent.metrics.collectors.NodeCpuCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeUsersCollector;
 import org.apache.uima.ducc.common.DuccNode;
 import org.apache.uima.ducc.common.Node;
@@ -67,10 +68,10 @@ public class DefaultNodeMetricsProcessor extends BaseProcessor implements
 	            new DefaultNodeLoadAverageCollector();
 	    Future<NodeLoadAverage> loadFuture = pool.submit(loadAvgCollector);
 
-//	    NodeCpuCollector cpuCollector = new NodeCpuCollector();
+	    NodeCpuCollector cpuCollector = new NodeCpuCollector();
 //	    Future<NodeCpuInfo> cpuFuture = pool.submit(cpuCollector);
 
-	    NodeCpuInfo cpuInfo = new NodeCpuInfo(agent.numProcessors);
+	    NodeCpuInfo cpuInfo = new NodeCpuInfo(agent.numProcessors, cpuCollector.call().getCurrentLoad());
 	    
 	    NodeUsersCollector nodeUsersCollector = new NodeUsersCollector(agent, logger);
 	    Future<TreeMap<String,NodeUsersInfo>> nuiFuture = pool.submit(nodeUsersCollector);
