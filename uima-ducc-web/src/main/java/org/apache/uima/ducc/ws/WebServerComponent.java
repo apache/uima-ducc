@@ -64,8 +64,6 @@ implements IWebServer {
 	private static AtomicLong updateLast = new AtomicLong(System.currentTimeMillis());
 	public static long updateIntervalSeconds = 60;
 	public static long updateIntervalMilliSeconds = updateIntervalSeconds*1000;
-	private static AtomicLong updateCount = new AtomicLong(0);
-	private static long warmup = 10;
 	
 	public WebServerComponent(CamelContext context, CommonConfiguration common) {
 		super("WebServer",context);
@@ -158,14 +156,15 @@ implements IWebServer {
 		}
 	}
 	
-	private void sortMachines() {
+	/**
+	 * Sort machines if interval has elapsed (60 seconds) 
+	 * or if a new machine has been detected (force == true)
+	 */
+	private void sortMachines(boolean force) {
 		long last = updateLast.get();
 		long deadline = last + updateIntervalMilliSeconds;
-		if(updateCount.getAndIncrement() < warmup) {
-			deadline = last + updateIntervalMilliSeconds/10;
-		}
 		long now = System.currentTimeMillis();
-		if(now > deadline) {
+		if(now > deadline || force) {
 			boolean success = updateLast.compareAndSet(last, now);
 			if(success) {
 				DuccMachinesData.getInstance().updateSortedMachines();
@@ -177,8 +176,10 @@ implements IWebServer {
 		String methodName = "update";
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
 		duccLogger.trace(methodName, jobid, duccMsg.fetchLabel("received")+"NodeMetricsUpdateDuccEvent");
-		DuccMachinesData.getInstance().put(new DatedNodeMetricsUpdateDuccEvent(duccEvent));
-		sortMachines();
+		DuccMachinesData dmd = DuccMachinesData.getInstance();
+		DatedNodeMetricsUpdateDuccEvent datedEvent = new DatedNodeMetricsUpdateDuccEvent(duccEvent);
+		boolean force = dmd.put(datedEvent);
+		sortMachines(force);
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
 

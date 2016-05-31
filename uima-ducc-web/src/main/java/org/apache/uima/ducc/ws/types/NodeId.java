@@ -90,4 +90,12 @@ public class NodeId implements Comparable<NodeId> {
 		}
 		return retVal;
 	}
+		
+	// @return use long name as hashCode
+	
+	@Override
+	public int hashCode()
+	{
+		return getLongName().hashCode();
+	}
 }

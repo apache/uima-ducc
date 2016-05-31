@@ -1490,7 +1490,12 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			while(iterator.hasNext()) {
 				NodeId key = iterator.next();
 				MachineInfo machineInfo = machines.get(key);
-				Properties properties = DuccDaemonRuntimeProperties.getInstance().getAgent(machineInfo.getName());
+				DuccDaemonRuntimeProperties drp = DuccDaemonRuntimeProperties.getInstance();
+				String machineName = machineInfo.getName();
+				if(machineName.startsWith("=")) {
+					continue;
+				}
+				Properties properties = drp.getAgent(machineName);
 				sb.append(trGet(counter));
 				// Status
 				StringBuffer status = new StringBuffer();

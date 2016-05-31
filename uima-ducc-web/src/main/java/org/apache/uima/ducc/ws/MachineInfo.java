@@ -21,13 +21,11 @@ package org.apache.uima.ducc.ws;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
-import org.apache.uima.ducc.ws.server.DuccWebProperties;
 
 
 public class MachineInfo implements Comparable<MachineInfo> {
@@ -35,10 +33,16 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(MachineInfo.class.getName());
 	private static DuccId jobid = null;
 	
-	private long down_fudge = 10;
-	private long DOWN_AFTER_SECONDS = WebServerComponent.updateIntervalSeconds + down_fudge;
-	private long SECONDS_PER_MILLI = 1000;
-	
+	public enum MachineStatus { 
+		Defined, 
+		Down, 
+		Up;
+		public String getLowerCaseName() {
+			String retVal = name().toLowerCase();
+			return retVal;
+		}
+	};
+
 	private String fileDef;
 	private String ip;
 	private String name;
@@ -56,7 +60,23 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private long pubSize;
 	private long pubSizeMax;
 	
+	private MachineStatus machineStatus = MachineStatus.Defined;
+	private Boolean responsive = null;
+	private Boolean online = null;
+	private Boolean blacklisted = null;
+	
+	private Integer quantum = null;
+	
 	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroups, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
+		init(MachineStatus.Defined, fileDef, ip, name, memTotal, memFree, swapInuse, swapFree, cpu, cGroups, alienPids, heartbeat, pubSize);
+	}
+	
+	public MachineInfo(MachineStatus machineStatus, String fileDef, String ip, String name, String memTotal, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroups, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
+		init(machineStatus, fileDef, ip, name, memTotal, memFree, swapInuse, swapFree, cpu, cGroups, alienPids, heartbeat, pubSize);
+	}
+	
+	private void init(MachineStatus machineStatus, String fileDef, String ip, String name, String memTotal, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroups, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
+		this.machineStatus = machineStatus;
 		this.fileDef = fileDef;
 		this.ip = ip;
 		this.name = name;
@@ -78,44 +98,155 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		this.pubSizeMax = 0;
 	}
 	
-	private long getAgentMillisMIA() {
-		String location = "getAgentMillisMIA";
-		long millisMIA = DOWN_AFTER_SECONDS*SECONDS_PER_MILLI;
-		Properties properties = DuccWebProperties.get();
-		String s_tolerance = properties.getProperty("ducc.rm.node.stability");
-		String s_rate = properties.getProperty("ducc.agent.node.metrics.publish.rate");
-		try {
-			long tolerance = Long.parseLong(s_tolerance.trim());
-			long rate = Long.parseLong(s_rate.trim());
-			long secondsRM = (tolerance * rate) / SECONDS_PER_MILLI;
-			logger.trace(location, jobid, "default:"+DOWN_AFTER_SECONDS+" "+"secondsRM:"+secondsRM);
-			if(DOWN_AFTER_SECONDS < secondsRM) {
-				millisMIA = secondsRM * SECONDS_PER_MILLI;
-			}
-		}
-		catch(Throwable t) {
-			logger.warn(location, jobid, t);
-		}
-		return millisMIA;
-	}
-	
-	private String calculateStatus() {
-		String status = "";
-		if(getElapsedSeconds() < 0) {
-			status = "defined";
-		}
-		else if(isExpired(getAgentMillisMIA())) {
-			status = "down";
-		}
-		else {
-			status = "up";
-		}
-		return status;
-	}
+	/*
+	 * Derived status based on DB or Agent supplied data, 
+	 * one of: defined, down, up
+	 */
 	
 	public String getStatus() {
-		return calculateStatus();
+		return machineStatus.getLowerCaseName();
 	}
+	
+	public MachineStatus getMachineStatus() {
+		return this.machineStatus;
+	}
+	
+	public void setMachineStatus(MachineStatus machineStatus) {
+		this.machineStatus = machineStatus;
+	}
+	
+	/**
+	 * Hover string for status of Down/Up on Machine page
+	 */
+	
+	public String getMachineStatusReason() {
+		String retVal = "";
+		StringBuffer sb = new StringBuffer();
+		sb.append(getResponsive());
+		sb.append(" ");
+		sb.append(getOnline());
+		sb.append(" ");
+		sb.append(getBlacklisted());
+		sb.append(" ");
+		retVal = sb.toString().trim();
+		return retVal;
+	}
+	
+	/**
+	 * Resource Manager determined value for "responsive"
+	 */
+	
+	public void setResponsive(boolean value) {
+		if(value) {
+			setResponsive();
+		}
+		else {
+			setNotResponsive();
+		}
+	}
+	
+	public void setResponsive() {
+		responsive = new Boolean(true);
+	}
+	
+	public void setNotResponsive() {
+		responsive = new Boolean(false);
+	}
+	
+	public String getResponsive() {
+		String retVal = "";
+		if(responsive != null) {
+			if(responsive.booleanValue()) {
+				retVal = "responsive=true";
+			}
+			else {
+				retVal = "responsive=false";
+			}
+		}
+		return retVal;
+	}
+	
+	/**
+	 * Resource Manager determined value for "online"
+	 */
+	
+	public void setOnline(boolean value) {
+		if(value) {
+			setOnline();
+		}
+		else {
+			setNotOnline();
+		}
+	}
+	
+	public void setOnline() {
+		online = new Boolean(true);
+	}
+	
+	public void setNotOnline() {
+		online = new Boolean(false);
+	}
+	
+	public String getOnline() {
+		String retVal = "";
+		if(online != null) {
+			if(online.booleanValue()) {
+				retVal = "online=true";
+			}
+			else {
+				retVal = "online=false";
+			}
+		}
+		return retVal;
+	}
+	
+	/**
+	 * Resource Manager determined value for "blacklisted"
+	 */
+	
+	public void setBlacklisted(boolean value) {
+		if(value) {
+			setBlacklisted();
+		}
+		else {
+			setNotBlacklisted();
+		}
+	}
+	
+	public void setBlacklisted() {
+		blacklisted = new Boolean(true);
+	}
+	
+	public void setNotBlacklisted() {
+		blacklisted = new Boolean(false);
+	}
+	
+	public String getBlacklisted() {
+		String retVal = "";
+		if(blacklisted != null) {
+			if(blacklisted.booleanValue()) {
+				retVal = "blacklisted=true";
+			}
+			else {
+				retVal = "blacklisted=false";
+			}
+		}
+		return retVal;
+	}
+	
+	/**
+	 * Resource Manager determined value for "quantum"
+	 */
+	
+	public void setQuantum(Integer quantum) {
+		this.quantum = quantum;
+	}
+	
+	public Integer getQuantum() {
+		return quantum;
+	}
+	
+	//
 	
 	public String getFileDef() {
 		return this.fileDef;
@@ -316,33 +447,78 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		return retVal;
 	}
 	
+	/**
+	 * @param m1
+	 * @param m2
+	 * @return 0 if m1 == m2, -1 if m1 < m2, +1 if m1 > m2, where
+	 *           Defined < Down < Up
+	 */
 	private int compareStatus(MachineInfo m1, MachineInfo m2) {
+		String location = "compareStatus";
 		int retVal = 0;
 		try {
-			String v1 = m1.getStatus();
-			String v2 = m2.getStatus();
-			if(!v1.equals(v2)) {
-				if(v1.equals("defined")) {
-					return -1;
+			MachineStatus v1 = m1.getMachineStatus();
+			MachineStatus v2 = m2.getMachineStatus();
+			switch(v1) {
+			default:
+			case Defined:
+				switch(v2) {
+				default:
+				case Defined:
+					retVal = 0;
+					break;
+				case Down:
+					retVal = -1;
+					break;
+				case Up:
+					retVal = -1;
+					break;
 				}
-				if(v2.equals("defined")) {
-					return 1;
+				break;
+			case Down:
+				switch(v2) {
+				default:
+				case Defined:
+					retVal = 1;
+					break;
+				case Down:
+					retVal = 0;
+					break;
+				case Up:
+					retVal = -1;
+					break;
 				}
-				if(v1.equals("down")) {
-					return -1;
+				break;
+			case Up:
+				switch(v2) {
+				default:
+					retVal = 1;
+				case Defined:
+					break;
+				case Down:
+					retVal = 1;
+					break;
+				case Up:
+					retVal = 0;
+					break;
 				}
-				if(v2.equals("down")) {
-					return 1;
-				}
-				if(v1.equals("up")) {
-					return 1;
-				}
-				if(v2.equals("up")) {
-					return -1;
-				}
+				break;
 			}
+			StringBuffer sb = new StringBuffer();
+			sb.append(m1.getName());
+			sb.append(" ");
+			sb.append(m1.getMachineStatus().getLowerCaseName());
+			sb.append(" ");
+			sb.append(m2.getName());
+			sb.append(" ");
+			sb.append(m2.getMachineStatus().getLowerCaseName());
+			sb.append(" ");
+			sb.append(" "+retVal);
+			logger.trace(location, jobid, sb);
 		}
+		
 		catch(Throwable t) {
+			logger.error(location, jobid, t);
 		}
 		return retVal;
 	}

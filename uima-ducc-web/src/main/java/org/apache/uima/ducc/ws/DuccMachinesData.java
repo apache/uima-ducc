@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -42,8 +43,10 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
+import org.apache.uima.ducc.ws.MachineInfo.MachineStatus;
 import org.apache.uima.ducc.ws.db.DbQuery;
 import org.apache.uima.ducc.ws.db.IDbMachine;
+import org.apache.uima.ducc.ws.server.DuccWebProperties;
 import org.apache.uima.ducc.ws.types.Ip;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
@@ -95,16 +98,120 @@ public class DuccMachinesData {
 		return retVal;
 	}
 	
+	private long down_fudge = 10;
+	private long DOWN_AFTER_SECONDS = WebServerComponent.updateIntervalSeconds + down_fudge;
+	private long SECONDS_PER_MILLI = 1000;
+	
+	private long getAgentMillisMIA() {
+		String location = "getAgentMillisMIA";
+		long millisMIA = DOWN_AFTER_SECONDS*SECONDS_PER_MILLI;
+		Properties properties = DuccWebProperties.get();
+		String s_tolerance = properties.getProperty("ducc.rm.node.stability");
+		String s_rate = properties.getProperty("ducc.agent.node.metrics.publish.rate");
+		try {
+			long tolerance = Long.parseLong(s_tolerance.trim());
+			long rate = Long.parseLong(s_rate.trim());
+			long secondsRM = (tolerance * rate) / SECONDS_PER_MILLI;
+			logger.trace(location, jobid, "default:"+DOWN_AFTER_SECONDS+" "+"secondsRM:"+secondsRM);
+			if(DOWN_AFTER_SECONDS < secondsRM) {
+				millisMIA = secondsRM * SECONDS_PER_MILLI;
+			}
+		}
+		catch(Throwable t) {
+			logger.warn(location, jobid, t);
+		}
+		return millisMIA;
+	}
+	
+	private void determineStatus(MachineInfo mi, IDbMachine dbMachine) {
+		String location = "determineStatus";
+		if(dbMachine != null) {
+			// determine defined/down/up based on DB
+			Boolean responsive = dbMachine.getResponsive();
+			Boolean online = dbMachine.getOnline();
+			Boolean blacklisted = dbMachine.getBlacklisted();
+			MachineStatus machineStatus = MachineStatus.Down;
+			if(responsive) {
+				if(online) {
+					if(!blacklisted) {
+						machineStatus = MachineStatus.Up;
+					}
+				}
+			}
+			mi.setMachineStatus(machineStatus);
+			mi.setResponsive(responsive);
+			mi.setOnline(online);
+			mi.setBlacklisted(blacklisted);
+			StringBuffer sb = new StringBuffer();
+			sb.append(mi.getName());
+			sb.append(" ");
+			sb.append(mi.getMachineStatus());
+			sb.append(" ");
+			sb.append(mi.getMachineStatusReason());
+			sb.append(" ");
+			String text = sb.toString().trim();
+			logger.trace(location, jobid, text);
+			mi.setQuantum(dbMachine.getQuantum());
+		}
+		else {
+			// determine defined/down/up based on Agent
+			if(mi.getElapsedSeconds() < 0) {
+				mi.setMachineStatus(MachineStatus.Defined);
+			}
+			else if(mi.isExpired(getAgentMillisMIA())) {
+				mi.setMachineStatus(MachineStatus.Down);
+			}
+			else {
+				mi.setMachineStatus(MachineStatus.Up);
+			}
+		}
+	}
+	
+	private Map<String, IDbMachine> getDbMapMachines() {
+		String location = "getDbMapMachines";
+		Map<String, IDbMachine> retVal = null;
+		try {
+			DbQuery dbQuery = DbQuery.getInstance();
+			//if(!dbQuery.isEnabled()) {
+				retVal = dbQuery.getMapMachines();
+			//}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	private IDbMachine getDbMachine(Map<String, IDbMachine> dbMapMachines, NodeId nodeId) {
+		String location = "getDbMachine";
+		IDbMachine retVal = null;
+		try {
+			if(dbMapMachines != null) {
+				if(nodeId != null) {
+					String name = nodeId.getLongName();
+					retVal = dbMapMachines.get(name);
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
 	public void updateSortedMachines() {
 		String location = "updateSortedMachines";
 		logger.debug(location, jobid, "start");
 		try {
 			ConcurrentSkipListMap<MachineInfo,NodeId> map = new ConcurrentSkipListMap<MachineInfo,NodeId>();
+			Map<String, IDbMachine> dbMapMachines = getDbMapMachines();
 			for(Entry<NodeId,MachineInfo> entry : unsortedMachines.entrySet()) {
-				NodeId value = entry.getKey();
-				MachineInfo key = entry.getValue();
-				map.put(key, value);
-				logger.debug(location, jobid, "put: "+value);
+				NodeId nodeId = entry.getKey();
+				IDbMachine dbMachine = getDbMachine(dbMapMachines, nodeId);
+				MachineInfo machineInfo = entry.getValue();
+				determineStatus(machineInfo, dbMachine);
+				map.put(machineInfo, nodeId);
+				logger.debug(location, jobid, "put: "+nodeId);
 			}
 			sortedMachines = map;
 			updateMachineFactsList();
@@ -225,17 +332,30 @@ public class DuccMachinesData {
 		return cpu;
 	}
 	
-	public void put(DatedNodeMetricsUpdateDuccEvent duccEvent) {
+	/**
+	 * 
+	 * @param duccEvent
+	 * @return true is new node or false if already known node
+	 * 
+	 * Put new or updated node metrics into map of Agent node metric reports
+	 */
+	public boolean put(DatedNodeMetricsUpdateDuccEvent duccEvent) {
+		boolean retVal = true;
 		String location = "put";
 		MachineSummaryInfo msi = new MachineSummaryInfo();
 		NodeMetricsUpdateDuccEvent nodeMetrics = duccEvent.getNodeMetricsUpdateDuccEvent();
 		Ip ip = new Ip(nodeMetrics.getNodeIdentity().getIp().trim());
 		TreeMap<String, NodeUsersInfo> map = nodeMetrics.getNodeUsersMap();
 		if(map != null) {
-			ipToNodeUsersInfoMap.put(ip.toString(), map);
+			String ipString = ip.toString();
+			ipToNodeUsersInfoMap.put(ipString, map);
 		}
 		String machineName = nodeMetrics.getNodeIdentity().getName().trim();
 		NodeId nodeId = new NodeId(machineName);
+		// determine if this is new machine (true) or already known machine (false)
+		if(ipToNameMap.containsKey(ip)) {
+			retVal = false;
+		}
 		ipToNameMap.put(ip,nodeId);
 		nameToIpMap.put(nodeId,ip);
 		// mem: total
@@ -305,6 +425,7 @@ public class DuccMachinesData {
 		putMachine(current);
 		updateTotals(nodeId,msi);
 		setPublished();
+		return retVal;
 	}
 	
 	public List<String> getPids(Ip ip, UserId user) {
@@ -400,20 +521,6 @@ public class DuccMachinesData {
 		return retVal;
 	}
 	
-	private void enhance(MachineFacts facts, Map<String, IDbMachine> dbMachineMap) {
-		if(facts != null) {
-			if(dbMachineMap != null) {
-				String[] machineStatus = DuccMachinesDataHelper.getMachineStatus(facts, dbMachineMap);
-				facts.status = machineStatus[0];
-				facts.statusReason = machineStatus[1];
-				String reserveSize = DuccMachinesDataHelper.getMachineReserveSize(facts, dbMachineMap);
-				facts.memReserve = reserveSize;
-				String quantum = DuccMachinesDataHelper.getMachineQuantum(facts, dbMachineMap);
-				facts.quantum = quantum;
-			}
-		}
-	}
-	
 	/**
 	 * Create a cached data set employed by the WS 
 	 * to display the System -> Machines page.  The
@@ -485,7 +592,6 @@ public class DuccMachinesData {
 	 * in part on the data comprising the ducc.nodes file.
 	 */
 	private void updateMachineFactsListAgent() {
-		
 		MachineFactsList factsList = new MachineFactsList();
 		long quantum = getQuantum();
 		ConcurrentSkipListMap<MachineInfo,NodeId> sortedMachines = getSortedMachines();
@@ -493,7 +599,9 @@ public class DuccMachinesData {
 		iterator = sortedMachines.keySet().iterator();
 		while(iterator.hasNext()) {
 			MachineInfo machineInfo = iterator.next();
-			String status = machineInfo.getStatus();
+			MachineStatus machineStatus = machineInfo.getMachineStatus();
+			String status = machineStatus.getLowerCaseName();
+			String statusReason = "";
 			String ip = machineInfo.getIp();
 			String name = machineInfo.getName();
 			String memTotal = calculateMem(quantum, machineInfo.getMemTotal());
@@ -505,7 +613,7 @@ public class DuccMachinesData {
 			boolean cGroups = machineInfo.getCgroups();
 			List<String> aliens = machineInfo.getAliens();
 			String heartbeat = ""+machineInfo.getElapsed();
-			MachineFacts facts = new MachineFacts(status,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
+			MachineFacts facts = new MachineFacts(status,statusReason,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
 			// when not using DB, memResrve == memTotal
 			facts.memReserve = memTotal;
 			factsList.add(facts);
@@ -520,6 +628,7 @@ public class DuccMachinesData {
 	 * in part on the data comprising the ducc.nodes file.
 	 */
 	private void updateMachineFactsListDb() {
+		String location = "updateMachineFactsListDb";
 		// The returnable
 		MachineFactsList mfl = new MachineFactsList();
 		// Working map used to generate the returnable
@@ -543,11 +652,14 @@ public class DuccMachinesData {
 		// Initialize returnable with "defined" machines
 		ArrayList<String> duccNodes = DuccNodes.getInstance().get();
 		for(String name : duccNodes) {
+			NodeId nodeId = new NodeId(name);;
+			String shortName = nodeId.getShortName();
 			// skip defined machine if it already appears in DB
-			if(knownShortNames.contains(name)) {
+			if(knownShortNames.contains(shortName)) {
 				continue;
 			}
 			String status = "defined";
+			String statusReason = "";
 			String ip = "";
 			String memTotal = "";
 			String memFree = "";
@@ -558,13 +670,15 @@ public class DuccMachinesData {
 			boolean cGroups = false;
 			List<String> aliens = new ArrayList<String>();
 			String heartbeat = "";
-			MachineFacts facts = new MachineFacts(status,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
+			MachineFacts facts = new MachineFacts(status,statusReason,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
 			mfl.add(facts);
 		}
 		// Augment returnable with data from Agents & RM (from DB)
 		for(Entry<MachineInfo, NodeId> entry : dbSortedMachines.entrySet()) {
 			MachineInfo machineInfo = entry.getKey();
-			String status = machineInfo.getStatus();
+			MachineStatus machineStatus = machineInfo.getMachineStatus();
+			String status = machineStatus.getLowerCaseName();
+			String statusReason = machineInfo.getMachineStatusReason();
 			String ip = machineInfo.getIp();
 			String name = machineInfo.getName();
 			String memTotal = machineInfo.getMemTotal();
@@ -576,9 +690,10 @@ public class DuccMachinesData {
 			boolean cGroups = machineInfo.getCgroups();
 			List<String> aliens = machineInfo.getAliens();
 			String heartbeat = ""+machineInfo.getElapsed();
-			MachineFacts facts = new MachineFacts(status,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
-			// Add info from Agent that DB does not have
-			enhance(facts, dbMapMachines);
+			MachineFacts facts = new MachineFacts(status,statusReason,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
+			facts.memReserve = machineInfo.getMemTotal();
+			facts.quantum = ""+machineInfo.getQuantum();
+			logger.trace(location, jobid, facts.status+" "+facts.statusReason);
 			mfl.add(facts);
 		}
 		machineFactsList = mfl;
