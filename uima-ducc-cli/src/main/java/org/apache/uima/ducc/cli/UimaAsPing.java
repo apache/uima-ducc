@@ -18,7 +18,9 @@
 */
 package org.apache.uima.ducc.cli;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
@@ -42,7 +44,6 @@ import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQTextMessage;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.uima.aae.message.AsynchAEMessage;
 import org.apache.uima.aae.message.UIMAMessage;
 import org.apache.uima.ducc.common.IServiceStatistics;
@@ -198,12 +199,23 @@ public class UimaAsPing
             stats.setHealthy(true);       // this pinger defines 'healthy' as
                                           // 'service responds to get-meta and broker returns jmx stats'
         } catch ( Throwable t ) {
-            doLog("evaluateService", "EXCEPTION::::"+ExceptionUtils.getStackTrace(t));
+            doLog("evaluateService", "EXCEPTION::::"+serializeThrowable(t));
         	stats.setHealthy(false);
             monitor.setJmxFailure(t.getMessage());
         }
     }
 
+    private String serializeThrowable(Throwable t) {
+    	String msg="";
+    	if ( t != null ) {
+    	   ByteArrayOutputStream bstream = new ByteArrayOutputStream();
+    	   PrintStream pstream = new PrintStream(bstream);
+    	   t.printStackTrace(pstream);
+    	   pstream.close();
+    	   msg = bstream.toString();
+    	}
+    	return msg;
+    }
     /**
      * Override from AServicePing
      */
@@ -336,4 +348,4 @@ public class UimaAsPing
 
         return statistics;
     }
-}
+ }
