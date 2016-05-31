@@ -317,12 +317,12 @@ public class DuccMachinesData {
 		}
 	}
 	
-	private double getCpu(Node node) {
-		String location = "getCpu";
+	private double getCpuLoadAvg(Node node) {
+		String location = "getCpuLoadAvg";
 		double cpu = 0;
 		try {
 			if(node != null) {
-				String load = node.getNodeMetrics().getNodeCpu().getCurrentLoad();
+				String load = node.getNodeMetrics().getNodeLoadAverage().getLoadAvg1();
 				cpu = ConvertSafely.String2Double(load);
 			}
 		}
@@ -391,7 +391,7 @@ public class DuccMachinesData {
 		String swapFree = ""+lvalSwapFree/*+memUnits*/;
 		List<ProcessInfo> alienPids = nodeMetrics.getRogueProcessInfoList();
 		Node node = nodeMetrics.getNode();
-		double cpu = getCpu(node);
+		double cpu = getCpuLoadAvg(node);
 		boolean cGroups = nodeMetrics.getCgroups();
 		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, cpu, cGroups, alienPids, duccEvent.getMillis(), duccEvent.getEventSize());
 		
