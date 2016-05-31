@@ -18,8 +18,6 @@
 */
 package org.apache.uima.ducc.agent.processors;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
