@@ -18,8 +18,6 @@
  */
 package org.apache.uima.ducc.common.node.metrics;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.Serializable;
 
 public class NodeCpuInfo implements Serializable {
@@ -27,13 +25,10 @@ public class NodeCpuInfo implements Serializable {
 	private String availableProcessors = "0";
     private String currentLoad = "0.0";
     
-	public NodeCpuInfo(int availableProcessors) {
+	public NodeCpuInfo(int availableProcessors, String cpu) {
 		setAvailableProcessors(String.valueOf(availableProcessors));
-		try {
-			currentLoad = String.valueOf(getCPULoad());
-		} catch( Exception e) {
-			e.printStackTrace();
-		}
+		currentLoad = cpu;
+
 	}
     public String getCurrentLoad() {
     	return currentLoad;
@@ -46,43 +41,5 @@ public class NodeCpuInfo implements Serializable {
 		this.availableProcessors = availableProcessors;
 	}
 
-	private double getCPULoad() throws Exception {
-		double cpu = 0.0;
-		InputStreamReader in = null;
-		String[] command = {
-				"/bin/sh",
-				"-c",
-				"/bin/grep 'cpu' /proc/stat | /bin/awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'" };
-		try {
-			ProcessBuilder pb = new ProcessBuilder();
-			pb.command(command);
 
-			pb.redirectErrorStream(true);
-			Process swapCollectorProcess = pb.start();
-			in = new InputStreamReader(swapCollectorProcess.getInputStream());
-			BufferedReader reader = new BufferedReader(in);
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				System.out.println(line);
-				try {
-					cpu = Double.parseDouble(line.trim());
-				} catch (NumberFormatException e) {
-					cpu = 0;
-					e.printStackTrace();
-				}
-			}
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (Exception e) {
-				}
-
-			}
-		}
-
-		return cpu;
-	}
 }
