@@ -133,7 +133,7 @@ public class MachineFactsTest {
 		boolean cgroups = createCgroups();
 		List<String> aliens = createAliens();
 		String heartbeat = createHeartbeat();
-		MachineFacts machineFacts = new MachineFacts(status,ip,name, memTotal, memFree, swap, delta, free, cpu, cgroups, aliens, heartbeat);
+		MachineFacts machineFacts = new MachineFacts(status,"",ip,name, memTotal, memFree, swap, delta, free, cpu, cgroups, aliens, heartbeat);
 		return machineFacts;
 	}
 	

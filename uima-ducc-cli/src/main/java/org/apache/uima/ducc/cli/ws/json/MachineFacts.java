@@ -41,7 +41,8 @@ public class MachineFacts implements Serializable {
 	public List<String> aliens;
 	public String heartbeat;
 	
-	public MachineFacts(String status, 
+	public MachineFacts(String status,
+			       String statusReason,
 				   String ip,
 				   String name,
 				   String memTotal,
@@ -56,7 +57,7 @@ public class MachineFacts implements Serializable {
 				   ) 
 	{
 		this.status = status;
-		this.statusReason = "";
+		this.statusReason = statusReason;
 		this.ip = ip;
 		this.name = name;
 		this.memTotal = memTotal;
