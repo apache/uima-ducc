@@ -18,22 +18,61 @@
 */
 package org.apache.uima.ducc.agent.metrics.collectors;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.util.concurrent.Callable;
 
 import org.apache.uima.ducc.common.node.metrics.NodeLoadAverage;
-import org.apache.uima.ducc.common.node.metrics.NodeLoadAverageInfo;
+import org.apache.uima.ducc.common.node.metrics.UptimeNodeLoadAverage;
 
 
 public class NodeLoadAverageCollector extends AbstractMetricCollector 
 implements Callable<NodeLoadAverage>{
   
+ public NodeLoadAverageCollector() {
+	super(null,0,0);
+	
+ }
   public NodeLoadAverageCollector(RandomAccessFile metricFile,  int howMany, int offset) {
     super(metricFile, howMany, offset);
   }
 
   public NodeLoadAverage call() throws Exception {
-    super.parseMetricFile();
-    return new NodeLoadAverageInfo(super.metricFileContents, super.metricFieldOffsets, super.metricFieldLengths);
+    //super.parseMetricFile();
+    
+//	 UptimeNodeLoadAverage uptimeLoadAverage = new UptimeNodeLoadAverage();
+	 return collect();
+	 //return new NodeLoadAverageInfo(super.metricFileContents, super.metricFieldOffsets, super.metricFieldLengths);
   }
+	private NodeLoadAverage collect() throws Exception {
+		   InputStream stream = null;
+		   BufferedReader reader = null;
+		   UptimeNodeLoadAverage uptimeLoadAverage = new UptimeNodeLoadAverage(); 
+		   ProcessBuilder pb = 
+				   new ProcessBuilder("uptime");;
+	       pb.redirectErrorStream(true);
+		   Process proc = pb.start();
+		   //  spawn uptime command and scrape the output
+		   stream = proc.getInputStream();
+		   reader = new BufferedReader(new InputStreamReader(stream));
+		   String line;
+		   String regex = "\\s+";
+		   String filter = "load average:";
+		   // read the next line from ps output
+		   while ((line = reader.readLine()) != null) {
+//			   System.out.println("UPTIME:"+line);
+		       int pos=0;   
+			   if ( (pos = line.indexOf(filter)) > -1 ) {
+		          String la =  line.substring(pos+filter.length()).replaceAll(regex,"");
+				  String[] averages = la.split(",");
+				  uptimeLoadAverage.setLoadAvg1(averages[0]);
+				  uptimeLoadAverage.setLoadAvg1(averages[1]);
+				  uptimeLoadAverage.setLoadAvg1(averages[2]);
+			   }
+		   }
+		   proc.waitFor();
+		   return uptimeLoadAverage; 
+		}
 }
