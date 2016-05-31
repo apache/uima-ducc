@@ -68,8 +68,8 @@ implements Callable<NodeLoadAverage>{
 		          String la =  line.substring(pos+filter.length()).replaceAll(regex,"");
 				  String[] averages = la.split(",");
 				  uptimeLoadAverage.setLoadAvg1(averages[0]);
-				  uptimeLoadAverage.setLoadAvg1(averages[1]);
-				  uptimeLoadAverage.setLoadAvg1(averages[2]);
+				  uptimeLoadAverage.setLoadAvg5(averages[1]);
+				  uptimeLoadAverage.setLoadAvg15(averages[2]);
 			   }
 		   }
 		   proc.waitFor();
