@@ -108,7 +108,7 @@ if (table_style.equals("scroll")) {
 	<th align="left" title="The host node pool">Nodepool</th>
 	<th align="left" title="The host usable memory size, in GB" >Memory(GB):usable</th>
 	<th align="left" title="The host free memory size, in GB" >Memory(GB):free</th>
-	<th align="left" title="The host CPU load average" >%CPU</th>
+	<th align="left" title="The host CPU one minute load average" >CPU</th>
 	<th align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
 	<th align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
 	<th align="left" title="The host C-Groups status" >C-Groups</th>
@@ -138,7 +138,7 @@ if (table_style.equals("classic")) {
 		<th align="left" class="none"              title="The host node pool">Nodepool</th>
 		<th align="left" class="sorttable_numeric" title="The host usable memory size, in GB" >Memory(GB):usable</th>
 		<th align="left" class="sorttable_numeric" title="The host free memory size, in GB" >Memory(GB):free</th>
-		<th align="left" class="sorttable_numeric" title="The host CPU load average" >%CPU</th>
+		<th align="left" class="sorttable_numeric" title="The host CPU one minute load average" >CPU</th>
 		<th align="left" class="sorttable_numeric" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
 		<th align="left" class="sorttable_numeric" title="The host free swap size, in GB" >Swap(GB):free</th>
 		<th align="left" class="none"              title="The host C-Groups status" >C-Groups</th>
