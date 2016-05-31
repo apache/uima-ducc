@@ -18,7 +18,9 @@
 */
 package org.apache.uima.ducc.common.node.metrics;
 
-public interface NodeLoadAverage {
+import java.io.Serializable;
+
+public interface NodeLoadAverage extends Serializable {
 	  public String getLoadAvg1();
 		  public String getLoadAvg5();
 		  public String getLoadAvg15();
