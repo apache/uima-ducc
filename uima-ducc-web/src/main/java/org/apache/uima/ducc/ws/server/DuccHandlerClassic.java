@@ -1299,6 +1299,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		String wsHostName = getWebServerHostName();
 		
 		DuccDaemonsData duccDaemonsData = DuccDaemonsData.getInstance();
+		DuccMachinesData duccMachinesData = DuccMachinesData.getInstance();
+		
 		int counter = 0;
 		daemons:
 		for(DaemonName daemonName : DuccDaemonRuntimeProperties.daemonNames) {
@@ -1485,11 +1487,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		if(cookie.equals(DuccCookies.valueAgentsShow)) {
 			duccLogger.trace(methodName, jobid, "== show: "+cookie);
 			
-			ConcurrentSkipListMap<NodeId,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
-			Iterator<NodeId> iterator = machines.keySet().iterator();
+			ConcurrentSkipListMap<MachineInfo,NodeId> machines = duccMachinesData.getMachines();
+			Iterator<MachineInfo> iterator = machines.keySet().iterator();
 			while(iterator.hasNext()) {
-				NodeId key = iterator.next();
-				MachineInfo machineInfo = machines.get(key);
+				MachineInfo machineInfo = iterator.next();
 				DuccDaemonRuntimeProperties drp = DuccDaemonRuntimeProperties.getInstance();
 				String machineName = machineInfo.getName();
 				if(machineName.startsWith("=")) {

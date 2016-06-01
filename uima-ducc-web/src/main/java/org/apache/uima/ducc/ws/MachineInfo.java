@@ -26,6 +26,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
+import org.apache.uima.ducc.ws.types.NodeId;
 
 
 public class MachineInfo implements Comparable<MachineInfo> {
@@ -67,6 +68,8 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	
 	private Integer quantum = null;
 	
+	private NodeId nodeid;
+	
 	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroups, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
 		init(MachineStatus.Defined, fileDef, ip, name, memTotal, memFree, swapInuse, swapFree, cpu, cGroups, alienPids, heartbeat, pubSize);
 	}
@@ -96,6 +99,8 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		this.heartbeatMaxTOD = 0;
 		this.pubSize = pubSize;
 		this.pubSizeMax = 0;
+		
+		this.nodeid = new NodeId(name);
 	}
 	
 	/*
@@ -260,8 +265,16 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		return this.name;
 	}
 	
+	public void setMemTotal(String value) {
+		this.memTotal = value;
+	}
+	
 	public String getMemTotal() {
 		return this.memTotal;
+	}
+	
+	public void setMemFree(String value) {
+		this.memFree = value;
 	}
 	
 	public String getMemFree() {
@@ -604,6 +617,28 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	
 	private int compareName(MachineInfo m1, MachineInfo m2) {
 		return m1.name.compareTo(m2.name);
+	}
+	
+	// @return true if the long names match
+	
+	@Override
+	public boolean equals(Object object) {
+		boolean retVal = false;
+		if(object != null) {
+			if(object instanceof NodeId) {
+				MachineInfo that = (MachineInfo) object;
+				return (this.compareTo(that) == 0);
+			}
+		}
+		return retVal;
+	}
+		
+	// @return use long name as hashCode
+	
+	@Override
+	public int hashCode()
+	{
+		return this.nodeid.hashCode();
 	}
 
 }

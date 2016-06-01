@@ -89,8 +89,8 @@ public class DuccMachinesData {
 		return isSwapping.containsKey(ip);
 	}
 	
-	public ConcurrentSkipListMap<NodeId,MachineInfo> getMachines() {
-		return unsortedMachines;
+	public ConcurrentSkipListMap<MachineInfo,NodeId> getMachines() {
+		return getSortedMachines();
 	}
 	
 	public ConcurrentSkipListMap<MachineInfo,NodeId> getSortedMachines() {
@@ -643,7 +643,13 @@ public class DuccMachinesData {
 			String name = entry.getKey();
 			NodeId nodeId = new NodeId(name);
 			MachineInfo mi = unsortedMachines.get(nodeId);
+			IDbMachine dbMachine = entry.getValue();
 			if(mi != null) {
+				int quantum = dbMachine.getQuantum();
+				int total = quantum*dbMachine.getShareOrder();
+				int free = quantum*dbMachine.getSharesLeft();
+				mi.setMemTotal(""+total);
+				mi.setMemFree(""+free);
 				dbSortedMachines.put(mi, nodeId);
 				String shortName = nodeId.getShortName();
 				knownShortNames.add(shortName);

@@ -273,13 +273,13 @@ public class NodeViz
         }
 
         logger.debug(methodName, null, "Generateing visualizaiton");
-        ConcurrentSkipListMap<NodeId,MachineInfo> m = machineData.getMachines();
+        ConcurrentSkipListMap<MachineInfo,NodeId> m = machineData.getMachines();
 
-        for (Entry<NodeId, MachineInfo> entry : m.entrySet()) {
+        for (Entry<MachineInfo, NodeId> entry : m.entrySet()) {
         	// 
             // This is for hosts that have no work on them so they didn't come in the work map
             //
-        	MachineInfo mi = entry.getValue();
+        	MachineInfo mi = entry.getKey();
             // NOTE: the map changes all the time so the value may be gone.  This situation
             //       will be fixed one day but for now just forget the node, it will show up 
             //       next time we get here.            

@@ -3509,11 +3509,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieAgents);
 		if(cookie.equals(DuccCookies.valueAgentsShow)) {
 			duccLogger.trace(methodName, jobid, "== show: "+cookie);
-			ConcurrentSkipListMap<NodeId,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
-			Iterator<NodeId> iterator = machines.keySet().iterator();
+			ConcurrentSkipListMap<MachineInfo,NodeId> machines = DuccMachinesData.getInstance().getMachines();
+			Iterator<MachineInfo> iterator = machines.keySet().iterator();
 			while(iterator.hasNext()) {
-				NodeId key = iterator.next();
-				MachineInfo machineInfo = machines.get(key);
+				MachineInfo machineInfo = iterator.next();
 				Properties properties = DuccDaemonRuntimeProperties.getInstance().getAgent(machineInfo.getName());
 				if(first) {
 					first = false;

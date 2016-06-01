@@ -1843,6 +1843,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonArray row;
 		
 		DuccDaemonsData duccDaemonsData = DuccDaemonsData.getInstance();
+		DuccMachinesData duccMachinesData = DuccMachinesData.getInstance();
 		
 		String wsHostIP = getWebServerHostIP();
 		String wsHostName = getWebServerHostName();
@@ -2017,12 +2018,11 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 
 		if(showAgents) {
-			ConcurrentSkipListMap<NodeId,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
-			Iterator<NodeId> iterator = machines.keySet().iterator();
+			ConcurrentSkipListMap<MachineInfo,NodeId> machines = duccMachinesData.getMachines();
+			Iterator<MachineInfo> iterator = machines.keySet().iterator();
 			while(iterator.hasNext()) {
 				row = new JsonArray();
-				NodeId key = iterator.next();
-				MachineInfo machineInfo = machines.get(key);
+				MachineInfo machineInfo = iterator.next();
 				DuccDaemonRuntimeProperties drp = DuccDaemonRuntimeProperties.getInstance();
 				String machineName = machineInfo.getName();
 				if(machineName.startsWith("=")) {
