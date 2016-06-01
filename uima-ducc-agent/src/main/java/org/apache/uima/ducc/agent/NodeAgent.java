@@ -301,13 +301,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 if (cgroupsManager.cgroupExists(cgroupsBaseDir)) {
                 	logger.info("nodeAgent",null,"Agent found cgroup base directory in "+cgroupsBaseDir);
                   try {
-                    // remove stale CGroups
-                    cgroupsManager.cleanupOnStartup();
-                  } catch (Exception e) {
-                    logger.error("nodeAgent", null, e);
-
-                  }
-                  try {
                 	  String containerId = "test";
                 	  String uid = "ducc";
                 	  // validate cgroups by creating a dummy cgroup. The code checks if cgroup actually got created by
@@ -329,6 +322,14 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 	  cgroupFailureReason = ee.getMessage();
                 	  useCgroups = false;
                   }
+
+                  try {
+                      // remove stale CGroups
+                      cgroupsManager.cleanupOnStartup();
+                    } catch (Exception e) {
+                      logger.error("nodeAgent", null, e);
+
+                    }
 
                 } else {
                   logger.info("nodeAgent",null,"Agent failed to find cgroup base directory in "+cgroupsBaseDir+". Check if cgroups is installed on this node and the cgroup daemon is running");

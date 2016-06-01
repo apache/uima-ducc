@@ -159,6 +159,7 @@ public class CGroupsManager {
 		File cgroupsFolder = new File(cgroupBaseDir);
 		String[] files = cgroupsFolder.list();
 		
+
 		for (String cgroupFolder : files) {
 			Matcher m = p.matcher(cgroupFolder);
 			//	only look at ducc's cgroups
@@ -170,6 +171,11 @@ public class CGroupsManager {
 							+ "/cgroup.procs");
 					//	collect all pids
 					String[] pids = readPids(f);
+
+					if ( pids != null && pids.length > 0 ) {
+						agentLogger.info("cleanupOnStartup", null,"Agent found "+pids.length+" cgroup proceses still active after Agent restart. Proceeding to remove stale processes");
+					}
+
 					int zombieCount=0;
 					// kill each runnig process via -9
 					if (pids != null && pids.length > 0) {
