@@ -345,11 +345,15 @@ public class Machine
         long now = System.currentTimeMillis();
         activeShares.put(s, s);
         shares_left -= s.getShareOrder();
+        if (shares_left < 0) {
+            logger.warn(methodName, s.getJob().getId(), "Node", this.id, "must have shrunk as it has",
+                    -shares_left, "more slots in use than than its current size of", share_order);
+        }
         try {
             // Not transactional.  If this turns into a problem we'll have to find a way
 			persistence.setNodeProperties(id, RmNodes.Assignments, activeShares.size(), RmNodes.NPAssignments, countNpShares(), RmNodes.SharesLeft, shares_left);
 			persistence.addAssignment(id, s.getJob().getId(), s, getQuantum(), s.getJob().getShortType()); // update jobs on machine and specific shares
-            logger.info(methodName, s.getJob().getId(), "Time to assign share", s.getId(), "in db", System.currentTimeMillis() - now);
+            logger.debug(methodName, s.getJob().getId(), "Time to assign share", s.getId(), "in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, s.getJob().getId(), "Cannot save state for share", s.getId(), "shares_left", shares_left, e);
 		}
@@ -368,7 +372,7 @@ public class Machine
             // Not transactional.  If this turns into a problem we'll have to find a way
 			persistence.setNodeProperties(id, RmNodes.Assignments,  activeShares.size(), RmNodes.NPAssignments, countNpShares(),  RmNodes.SharesLeft, shares_left);
 			persistence.removeAssignment(id, s.getJob().getId(), s);  // update jobs on machine and specific shares
-            logger.info(methodName, s.getJob().getId(), "Time to remove share", s.getId(), "in db", System.currentTimeMillis() - now);
+            logger.debug(methodName, s.getJob().getId(), "Time to remove share", s.getId(), "in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, s.getJob().getId(), "Cannot save state for share", s.getId(), "shares_left", shares_left);
 		}

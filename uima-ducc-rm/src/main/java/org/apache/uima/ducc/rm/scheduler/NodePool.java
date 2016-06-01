@@ -1063,7 +1063,7 @@ class NodePool
             HashMap<Node, Machine> mlist = machinesByOrder.get(oldorder);
             mlist.remove(m.key());
             m.setShareOrder(neworder);                          //    hardware changes.
-            
+            signalDb(m, RmNodes.ShareOrder, neworder);          // Jira 4913 Update DB so ducc-mon can show the current size 
             mlist = machinesByOrder.get(neworder);
             if ( mlist == null ) {
                 mlist = new HashMap<Node, Machine>();
