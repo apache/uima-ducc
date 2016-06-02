@@ -430,7 +430,7 @@ public class ProcessAccounting {
 				IDuccWorkJob service = job;
 				String userName = service.getStandardInfo().getUser();
 				String userLogDir = service.getUserLogsDir();
-				UserLogging.error(userName, userLogDir, process.getReasonForStoppingProcess());
+				UserLogging.error(userName, userLogDir, "reason for stopping service instance["+service.getDuccId().getFriendly()+"]: "+process.getReasonForStoppingProcess());
 				break;
 			}
 			break;
