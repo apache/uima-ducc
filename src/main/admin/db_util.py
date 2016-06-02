@@ -89,7 +89,7 @@ def format(header, lines):
 # --------------------------------------------------------------------------------
 
 def stop_database(pidfile):
-    print "Stopping the dtabase."
+    print "Stopping the database."
 
     CMD = ['kill', '-TERM', '`cat ' + pidfile + '`']
     CMD = ' '.join(CMD)
@@ -136,7 +136,7 @@ def configure_database(DUCC_HOME, DUCC_HEAD, java, db_pw):
             print "Must enter a DB password or 'bypass' to continue."
         return False
 
-    if ( os.path.exists(DUCC_HOME + "/database/data") ):
+    if ( os.path.exists(DUCC_HOME + "/state/database/data") ):
         print 'Database is already defined in', DUCC_HOME + '/database', '- not rebilding.'
         return False
 

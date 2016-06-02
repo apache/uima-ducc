@@ -27,8 +27,10 @@ import shutil
 import subprocess
 from  stat import *
 
-from ducc_util import DuccUtil
+import string
+import random
 
+from ducc_util import DuccUtil
 
 from ducc_base import Properties
 from ducc_base import Property
@@ -57,7 +59,7 @@ class DbCreate(DuccUtil):
         print ''
         print "Usage:"
         print "   db_create [options]"
-        print "        If no options prompts are given for expected parameters."
+        print "        If no options defaults are used for expected parameters."
         print ""
         print "Options:"
         print "   [-d, --db-password] <root password for database>"
@@ -86,7 +88,7 @@ class DbCreate(DuccUtil):
         
 
         if ( self.database_pw == None ):
-            self.usage("Must specify your database password.");
+            self.database_pw = self.generate_pw()
 
         # start with merged properties
         self.merge_properties();
@@ -118,7 +120,13 @@ class DbCreate(DuccUtil):
 
         # remerge to insure it's all correct and ready to go
         self.merge_properties();
-
+    
+    # generate a random string between 8 and 16 characters long
+    def generate_pw(self):
+        pwlen = random.randrange(8,16)
+        reply = ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(pwlen)])
+        return reply
+        
 if __name__ == "__main__":
 
     postinstall = DbCreate()
