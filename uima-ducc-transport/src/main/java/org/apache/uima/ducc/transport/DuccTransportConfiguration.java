@@ -20,7 +20,9 @@ package org.apache.uima.ducc.transport;
 
 import java.util.List;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.camel.component.ActiveMQComponent;
+import org.apache.activemq.jms.pool.PooledConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.authentication.BrokerCredentials;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -55,16 +57,17 @@ public class DuccTransportConfiguration {
 			duccAMQComponent.setBrokerURL(connectURL);
 			logger.info("configureJMSTransport", null, "Broker URL: "+connectURL);
 	      
-	      logger.info("configureJMSTransport", null, "brokerCredentialsFile:"+brokerCredentialsFile);
+	      //logger.info("configureJMSTransport", null, "brokerCredentialsFile:"+brokerCredentialsFile);
 	      if ( brokerCredentialsFile != null ) {
 	    	  String path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
-		      logger.info("configureJMSTransport", null, "brokerCredentialsFile Path:"+path);
+		      //logger.info("configureJMSTransport", null, "brokerCredentialsFile Path:"+path);
 	    	  credentials = BrokerCredentials.get(path);
-		      logger.info("configureJMSTransport", null, "Username:"+credentials.getUsername()+" Password:"+credentials.getPassword());
+		      //logger.info("configureJMSTransport", null, "Username:"+credentials.getUsername()+" Password:"+credentials.getPassword());
 				if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
 					duccAMQComponent.setUserName(credentials.getUsername());
 				    duccAMQComponent.setPassword(credentials.getPassword());
 				    System.out.println(">>>>>>>>>>>>>>> Running with AMQ Credentials");
+				    logger.info("configureJMSTransport", null, ">>>>>>>>>>>>>>> Running with AMQ Credentials");
 				} 
 	      }
 	      List<String> cs =context.getComponentNames();
@@ -74,6 +77,7 @@ public class DuccTransportConfiguration {
 	      context.addComponent("activemq",duccAMQComponent);
 	    }
 	  }
+	  whiteListAllPkgs();
 	}
 	public void configureJMSTransport( String endpoint, CamelContext context) throws Exception {
 		BrokerCredentials.Credentials credentials = null;
@@ -96,6 +100,7 @@ public class DuccTransportConfiguration {
 	      context.addComponent("activemq",duccAMQComponent);
 	    }
 	  }
+	  whiteListAllPkgs();
 	}
 	public DuccEventDispatcher duccEventDispatcher(DuccLogger logger,String requestEndpoint,CamelContext context) throws Exception {
     configureJMSTransport(logger, requestEndpoint, context);
@@ -105,5 +110,17 @@ public class DuccTransportConfiguration {
 	    configureJMSTransport(requestEndpoint, context);
 			return new DuccEventDispatcher(context, requestEndpoint);
 	}
+    private void whiteListAllPkgs() {
+        System.out.println("Getting AMQ Factory");
+      PooledConnectionFactory amqf = (PooledConnectionFactory)duccAMQComponent.getConfiguration().getConnectionFactory();
+      ActiveMQConnectionFactory f = (ActiveMQConnectionFactory)amqf.getConnectionFactory();
+
+   f.setTrustAllPackages(true);
+//      logger.info("Component",null,"Whitelisted All Packages For AMQ Exchanges");                                                                           
+  System.out.println("White Listed Packages for AMQ Exchanges");
+
+
+}
+
 }
 
