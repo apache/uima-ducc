@@ -127,7 +127,12 @@ public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSum
 			mb.append(Standardize.Label.max.get()+timeMax);
 			mb.append(Standardize.Label.count.get()+count.get());
 			mb.append(Standardize.Label.total.get()+total.get());
-			logger.debug(location, ILogger.null_id, mb.toString());
+			if((lTimeSum < 0)||(lTimeAvg < 0)||(lTimeMin < 0)||(lTimeMax < 0)) {
+				logger.warn(location, ILogger.null_id, mb.toString());
+			}
+			else {
+				logger.debug(location, ILogger.null_id, mb.toString());
+			}
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);

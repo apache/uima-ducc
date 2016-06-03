@@ -108,7 +108,12 @@ public class WorkItemPerformanceIndividualKeeper implements IWorkItemPerformance
 				MessageBuffer mb = new MessageBuffer();
 				mb.append(Standardize.Label.name.get()+name);
 				mb.append(Standardize.Label.sum.get()+timeSum);
-				logger.debug(location, ILogger.null_id, mb.toString());
+				if(lTimeSum < 0) {
+					logger.warn(location, ILogger.null_id, mb.toString());
+				}
+				else {
+					logger.debug(location, ILogger.null_id, mb.toString());
+				}
 			}
 			catch(Exception e) {
 				logger.error(location, ILogger.null_id, e);

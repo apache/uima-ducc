@@ -132,8 +132,8 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 							size = list.size();
 							JobDriver jd = JobDriver.getInstance();
 							String logdir = jd.getLogDir();
-							String wiNo = ""+wi.getSeqNo();
-							IWorkItemPerformanceIndividualKeeper wipik = new WorkItemPerformanceIndividualKeeper(logdir, wiNo);
+							String seqNo = ""+wi.getSeqNo();
+							IWorkItemPerformanceIndividualKeeper wipik = new WorkItemPerformanceIndividualKeeper(logdir, seqNo);
 							IWorkItemPerformanceSummaryKeeper wipsk = jd.getWorkItemPerformanceSummaryKeeper();
 							wipsk.count();
 							long total_time = 0;
@@ -147,6 +147,10 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 								}
 								catch(Exception e) {
 									logger.error(location, ILogger.null_id, e);
+								}
+								if(time < 0) {
+									String text = "seqNo="+seqNo+" "+"time="+time+" "+"analysisTime="+analysisTime+" "+"uniqueName="+uniqueName;
+									logger.warn(location, ILogger.null_id, text);
 								}
 								wipik.dataAdd(name, uniqueName, time);
 								wipsk.dataAdd(name, uniqueName, time);
