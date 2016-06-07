@@ -129,11 +129,11 @@
 		<jiraVersion>12328879</jiraVersion>
 		<maven.build.timestamp.format>MM-dd-yyyy HH:mm</maven.build.timestamp.format>
 		<ducc.version>${project.version}</ducc.version>
-		<org.springframework.version>3.2.11.RELEASE</org.springframework.version>
-		<org.apache.activemq.version>5.7.0</org.apache.activemq.version>
-		<org.apache.camel.version>2.15.3</org.apache.camel.version>
+		<org.springframework.version>4.1.9.RELEASE</org.springframework.version>
+		<org.apache.activemq.version>5.13.2</org.apache.activemq.version>
+		<org.apache.camel.version>2.16.2</org.apache.camel.version>
 		<org.apache.uima.version>2.8.1</org.apache.uima.version> <!--Same as uima-as-->
-		<org.apache.uima.as.version>2.6.0</org.apache.uima.as.version>
+		<org.apache.uima.as.version>2.8.1</org.apache.uima.as.version>
 		<!--org.apache.uima.as.version>2.8.1-SNAPSHOT</org.apache.uima.as.version-->
 		<com.google.guava.version>14.0.1</com.google.guava.version>        <!-- updated from r09 for cassandra -->
 		<commons.cli.version>1.2</commons.cli.version>
@@ -157,7 +157,8 @@
 
 		<!--geronimo.servlet-spec.version>1.2</geronimo.servlet-spec.version-->
 		<xpp3.version>1.1.4c</xpp3.version>
-		<xstream.version>1.3.1</xstream.version>   <!-- 1.4.3 requires xmlpull ?? -->
+		<xstream.version>1.4.8</xstream.version>   
+		<xmlpull.version>1.1.3.1</xmlpull.version>
 		<mina.core.version>1.1.7</mina.core.version>
 		<aopalliance.version>1.0</aopalliance.version>
 		<google.gson.version>2.2.2</google.gson.version>
@@ -165,7 +166,7 @@
 		<libpam.version>1.7</libpam.version>
 		<jna.version>4.0.0</jna.version>
 		<datatables.version>1.9.1</datatables.version>
-		<jetty.version>8.1.16.v20140903</jetty.version>
+		<jetty.version>9.2.13.v20150730</jetty.version>
 		<!--jetty.version>7.4.4.v20110707</jetty.version-->
 		<orbit-org-apache-jasper.version>2.1.0.v201110031002</orbit-org-apache-jasper.version>
 		<servlet-api.version>2.5</servlet-api.version>
@@ -180,7 +181,7 @@
         <hdr.version>2.1.4</hdr.version>
         <!-- end of cassandra client -->
         <cassandra.server.version>2.1.11</cassandra.server.version>
-        
+        <apache.httpcomponents.httpclient.version>4.3.5</apache.httpcomponents.httpclient.version>
 		<http.commons.client.version>4.3.5</http.commons.client.version>
 		<http.commons.client-cache.version>4.3.5</http.commons.client-cache.version>
 		<http.commons.core.version>4.3.2</http.commons.core.version>
@@ -226,8 +227,8 @@ ${uimaDUCCNoticeText}
 		<dependencies>
 
             <dependency>
-				<groupId>org.eclipse.jetty.aggregate</groupId>
-				<artifactId>jetty-all-server</artifactId>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-server</artifactId>
 				<version>${jetty.version}</version>
 			</dependency>
 			
@@ -235,6 +236,12 @@ ${uimaDUCCNoticeText}
               <groupId>xpp3</groupId>
               <artifactId>xpp3</artifactId>
               <version>${xpp3.version}</version>
+            </dependency>
+            
+            <dependency>
+              <groupId>org.apache.httpcomponents</groupId>
+              <artifactId>httpclient</artifactId>
+              <version>${apache.httpcomponents.httpclient.version}</version>
             </dependency>
 
 
@@ -463,7 +470,13 @@ ${uimaDUCCNoticeText}
 
 			<dependency>
 				<groupId>org.apache.activemq</groupId>
-				<artifactId>activemq-core</artifactId>
+				<artifactId>activemq-server</artifactId>
+				<version>${org.apache.activemq.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>activemq-server</artifactId>
 				<version>${org.apache.activemq.version}</version>
 			</dependency>
 
@@ -515,6 +528,12 @@ ${uimaDUCCNoticeText}
 				<version>${org.apache.camel.version}</version>
 			</dependency>
 
+            <dependency>
+				<groupId>org.apache.camel</groupId>
+				<artifactId>camel-http-common</artifactId>
+				<version>${org.apache.camel.version}</version>
+			</dependency>
+			
 			<dependency>
 				<groupId>org.apache.camel</groupId>
 				<artifactId>camel-jetty</artifactId>
@@ -581,6 +600,12 @@ ${uimaDUCCNoticeText}
 				<version>${org.apache.camel.version}</version>
 			</dependency>
 
+            <dependency>
+				<groupId>xmlpull</groupId>
+				<artifactId>xmlpull</artifactId>
+				<version>${xmlpull.version}</version>
+			</dependency>
+			
 			<dependency>
 				<groupId>commons-pool</groupId>
 				<artifactId>commons-pool</artifactId>
@@ -632,10 +657,14 @@ ${uimaDUCCNoticeText}
 	<!-- runtime dependencies that must be included in the build -->
 
 	<dependencies>
+			<dependency>
+				<groupId>commons-pool</groupId>
+				<artifactId>commons-pool</artifactId>
+			</dependency>
 
         <dependency>
-				<groupId>org.eclipse.jetty.aggregate</groupId>
-				<artifactId>jetty-all-server</artifactId>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-server</artifactId>
 		</dependency>
 			
         <dependency>
@@ -646,6 +675,12 @@ ${uimaDUCCNoticeText}
         <dependency>
            <groupId>org.apache.httpcomponents</groupId>
            <artifactId>httpclient</artifactId>
+           <scope>runtime</scope>
+        </dependency>
+        
+        <dependency>
+           <groupId>xmlpull</groupId>
+           <artifactId>xmlpull</artifactId>
            <scope>runtime</scope>
         </dependency>
         
@@ -678,6 +713,18 @@ ${uimaDUCCNoticeText}
 			<artifactId>camel-http4</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-http</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-http-common</artifactId>
+		</dependency>
+
+
 			<dependency>
 				<groupId>org.apache.camel</groupId>
 			<artifactId>camel-jetty-common</artifactId>

@@ -22,14 +22,19 @@ import java.lang.management.ManagementFactory;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.RequestEntity;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.http.ConnectionReuseStrategy;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.pool.BasicConnPool;
 import org.apache.http.impl.pool.BasicPoolEntry;
 import org.apache.http.protocol.HttpCoreContext;
@@ -40,6 +45,7 @@ import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
+import org.apache.http.util.EntityUtils;
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -65,8 +71,13 @@ public class DuccHttpClient {
 	// New --------------------
     HttpClient httpClient = null;
 	String jdUrl;
-	MultiThreadedHttpConnectionManager cMgr = null;
-	
+	PoolingHttpClientConnectionManager cMgr = null;
+
+	//MultiThreadedHttpConnectionManager cMgr = null;
+	 int ClientMaxConnections = 0;
+     int ClientMaxConnectionsPerRoute = 0;
+     int ClientMaxConnectionsPerHostPort = 0;
+     
 	public void setTimeout( int timeout) {
 		this.timeout = timeout;
 	}
@@ -78,15 +89,39 @@ public class DuccHttpClient {
 	public String getJdUrl() {
 		return jdUrl;
 	}
+	
 	public void initialize(String jdUrl) throws Exception {
 		this.jdUrl = jdUrl;
+		
+		int pos = jdUrl.indexOf("//");
+        int ipEndPos = jdUrl.indexOf(":", pos);
+        String jdIP = jdUrl.substring(pos+2,ipEndPos);
+        int portEndPos = jdUrl.indexOf("/", ipEndPos);
+        String jdScheme = jdUrl.substring(portEndPos+1);
+        String jdPort = jdUrl.substring(ipEndPos+1, portEndPos);
+
+		
 		pid = getProcessIP("N/A");
 		nodeIdentity = new NodeIdentity();
-		cMgr = new MultiThreadedHttpConnectionManager();
+		cMgr = new PoolingHttpClientConnectionManager();
 		
-		httpClient = 
-    		new HttpClient(cMgr);
-	 
+        if(ClientMaxConnections > 0) {
+            cMgr.setMaxTotal(ClientMaxConnections);
+        }
+        // Set default max connections per route                                                                                                                   
+        if(ClientMaxConnectionsPerRoute > 0) {
+            cMgr.setDefaultMaxPerRoute(ClientMaxConnectionsPerRoute);
+        }
+		
+		// Set max connections for host:port                                                                                                                       
+        
+        HttpHost httpHost = new HttpHost(jdIP, Integer.valueOf(jdPort),jdScheme);
+        if(ClientMaxConnectionsPerHostPort > 0) {
+          cMgr.setMaxPerRoute(new HttpRoute(httpHost), ClientMaxConnectionsPerHostPort);
+        }
+
+        httpClient = HttpClients.custom().setConnectionManager(cMgr).build();
+
 	}
 	public void stop() throws Exception {
 		if ( cMgr != null ) {
@@ -183,18 +218,20 @@ public class DuccHttpClient {
     	logger.trace(location, null, "threadId:"+transaction.getRequesterThreadId());
     }
     
-    private void addCommonHeaders( PostMethod method ) {
+    private void addCommonHeaders( HttpPost method ) {
     	synchronized( DuccHttpClient.class) {
-        	method.setRequestHeader(IDuccUser.EnvironmentVariable.DUCC_IP.value(), getIP());
-        	method.setRequestHeader("Hostname", getNodeName());
-        	method.setRequestHeader("ThreadID",
-    				String.valueOf(Thread.currentThread().getId()));
-        	method.setRequestHeader("PID", pid);
+    		
+    		 method.setHeader("IP", getIP());
+             method.setHeader("Hostname", getNodeName());
+             method.setHeader("ThreadID",
+                             String.valueOf(Thread.currentThread().getId()));
+             method.setHeader("PID", pid);
+    		
     	}
 		
     }
 
-	public IMetaCasTransaction execute( IMetaCasTransaction transaction, PostMethod postMethod ) throws Exception {
+	public IMetaCasTransaction execute( IMetaCasTransaction transaction, HttpPost postMethod ) throws Exception {
 		int retry = 2;
 		Exception lastError = null;
 		IMetaCasTransaction reply=null;
@@ -206,20 +243,36 @@ public class DuccHttpClient {
 			try {
 				// Serialize request object to XML
 				String body = XStreamUtils.marshall(transaction);
-	            RequestEntity e = new StringRequestEntity(body,"application/xml","UTF-8" );
-	            
-	            postMethod.setRequestEntity(e);
+	            //HttpEntity e = new StringEntity(body,"application/xml","UTF-8" );
+	            HttpEntity e = new StringEntity(body,ContentType.APPLICATION_XML); //, "application/xml","UTF-8" );
+	         
+	            postMethod.setEntity(e);
 	            
 	            addCommonHeaders(postMethod);
 	    
-	            postMethod.setRequestHeader("Content-Length", String.valueOf(body.length()));
+	           //postMethod.setRequestHeader("Content-Length", String.valueOf(body.length()));
 	            logger.debug("execute",null, "calling httpClient.executeMethod()");
 	            // wait for a reply
-	            httpClient.executeMethod(postMethod);
+	            //httpClient.executeMethod(postMethod);
+	            HttpResponse response = httpClient.execute(postMethod);
+	            
+	            
+	            
 	            logger.debug("execute",null, "httpClient.executeMethod() returned");
-                
-                String content = new String(postMethod.getResponseBody());
-                
+	            HttpEntity entity = response.getEntity();
+                String content = EntityUtils.toString(entity);
+                StatusLine statusLine = response.getStatusLine();
+                if ( statusLine.getStatusCode() != 200) {
+                        logger.error("execute", null, "Unable to Communicate with JD - Error:"+statusLine);
+                        logger.error("execute", null, "Content causing error:"+content);
+                        System.out.println("Thread::"+Thread.currentThread().getId()+" ERRR::Content causing error:"+content);
+                        throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+statusLine);
+                }
+                logger.debug("execute", null, "Thread:"+Thread.currentThread().getId()+" JD Reply Status:"+statusLine);
+                logger.debug("execute", null, "Thread:"+Thread.currentThread().getId()+" Recv'd:"+content);
+
+               // String content = new String(postMethod.getResponseBody());
+                /*
 				if ( postMethod.getStatusLine().getStatusCode() != 200) {
 					logger.error("execute", null, "Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
 					logger.error("execute", null, "Content causing error:"+postMethod.getResponseBody());
@@ -228,12 +281,13 @@ public class DuccHttpClient {
 				}
 				logger.debug("execute", null, "Thread:"+Thread.currentThread().getId()+" JD Reply Status:"+postMethod.getStatusLine());
 				logger.debug("execute", null, "Thread:"+Thread.currentThread().getId()+" Recv'd:"+content);
+			*/
 				Object o;
 				try {
 					o = XStreamUtils.unmarshall(content); //sb.toString());
 					
 				} catch( Exception ex) {
-					logger.error("execute", null, "Thread:"+Thread.currentThread().getId()+" ERRR::Content causing error:"+postMethod.getResponseBody(),ex);
+					logger.error("execute", null, "Thread:"+Thread.currentThread().getId()+" ERRR::Content causing error:"+content,ex);
 					throw ex;
 				}
 				if ( o instanceof IMetaCasTransaction) {

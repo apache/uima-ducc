@@ -24,7 +24,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.jetty8.JettyHttpComponent8;
+import org.apache.camel.component.jetty9.JettyHttpComponent9;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.config.DuccBlastGuardPredicate;
 import org.apache.uima.ducc.common.exception.DuccRuntimeException;
@@ -123,7 +123,7 @@ public class OrchestratorConfiguration {
     return new RouteBuilder() {
           public void configure() {
             
-            JettyHttpComponent8 jettyComponent = new JettyHttpComponent8();
+            JettyHttpComponent9 jettyComponent = new JettyHttpComponent9();
             
 			//ExchangeMonitor xmError = new ExchangeMonitor(LifeStatus.Error, ExchangeType.Receive);
 			

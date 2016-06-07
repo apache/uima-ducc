@@ -128,6 +128,7 @@ public class ProcessManagerConfiguration {
 			String methodName="process";
 			if ( pm.getLogLevel().toLowerCase().equals("trace")) {
 				XStreamDataFormat xStreamDataFormat = new XStreamDataFormat();
+				xStreamDataFormat.setPermissions("*");
 		        XStream xStream = xStreamDataFormat.getXStream(new DefaultClassResolver());
 				String marshalledEvent = xStream.toXML(exchange.getIn().getBody());
 				pm.logAtTraceLevel(methodName, marshalledEvent);

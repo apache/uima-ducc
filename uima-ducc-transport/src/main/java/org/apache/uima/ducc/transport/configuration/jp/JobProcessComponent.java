@@ -33,8 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.camel.CamelContext;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.container.FlagsHelper;
@@ -139,13 +138,13 @@ implements IJobProcessor{
 		if ( httpClient != null && transactionMap.containsKey(key) ) {
 			// Fetch a transaction object associated with a WI id (key)
 			IMetaCasTransaction transaction = transactionMap.get(key);
-			PostMethod postMethod = new PostMethod(httpClient.getJdUrl());
+			HttpPost postMethod = new HttpPost(httpClient.getJdUrl());
 			// Dont return serialized CAS to reduce the msg size
 			transaction.getMetaCas().setUserSpaceCas(null);
 			transaction.setType(Type.InvestmentReset);
 			
 			// Set request timeout
-			postMethod.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, getTimeout());
+			//postMethod.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, getTimeout());
  			// Retries timeouts, otherwise throws RuntimeException. Don't rethrow
 			// the original Exception as it may contain classes that are not
 			// loaded into the user container from which this call originated.

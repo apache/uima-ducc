@@ -22,7 +22,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.jetty8.JettyHttpComponent8;
+import org.apache.camel.component.jetty9.JettyHttpComponent9;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.exception.DuccRuntimeException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -116,7 +116,7 @@ public class ServiceManagerConfiguration
         return new RouteBuilder() {
             public void configure() {
             
-                JettyHttpComponent8 jettyComponent = new JettyHttpComponent8();
+                JettyHttpComponent9 jettyComponent = new JettyHttpComponent9();
                 String port = System.getProperty("ducc.sm.http.port");
                 //ExchangeMonitor xmError = new ExchangeMonitor(LifeStatus.Error, ExchangeType.Receive);
 			

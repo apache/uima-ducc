@@ -31,8 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
@@ -72,7 +71,7 @@ public class HttpWorkerThread implements Runnable {
 		maxFrameworkErrors = maxFrameworkFailures.get();
 	}   
 
-	public IMetaCasTransaction getWork(PostMethod postMethod, int major, int minor) throws Exception {
+	public IMetaCasTransaction getWork(HttpPost postMethod, int major, int minor) throws Exception {
 		String command="";
 
 		IMetaCasTransaction transaction = new MetaCasTransaction();
@@ -123,7 +122,7 @@ public class HttpWorkerThread implements Runnable {
 	@SuppressWarnings("unchecked")
 	public void run() {
 		//String command="";
-		PostMethod postMethod = null;
+		HttpPost postMethod = null;
 	    logger.info("HttpWorkerThread.run()", null, "Starting JP Process Thread Id:"+Thread.currentThread().getId());
 	    Method processMethod = null;
 	    Method getKeyMethod = null;
@@ -143,9 +142,9 @@ public class HttpWorkerThread implements Runnable {
 			}
 
 			// each thread needs its own PostMethod
-			postMethod = new PostMethod(httpClient.getJdUrl());
+			postMethod = new HttpPost(httpClient.getJdUrl());
 			// Set request timeout
-			postMethod.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, duccComponent.getTimeout());
+			//postMethod.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, duccComponent.getTimeout());
 	   	} catch( Throwable t) {
 	   		error = true;
 	   		synchronized(JobProcessComponent.class) {
@@ -204,8 +203,20 @@ public class HttpWorkerThread implements Runnable {
 					int major = IdGenerator.addAndGet(1);
 					int minor = 0;
 					IMetaCasTransaction transaction = getWork(postMethod, major, minor);
+					/*	
+					new MetaCasTransaction();
+                    TransactionId tid = new TransactionId(major, minor);
+                    transaction.setTransactionId(tid);
+                    transaction.setType(Type.Get);  // Tell JD you want a Work Item                                                                    
+                    command = Type.Get.name();
+                    logger.debug("HttpWorkerThread.run()", null, "Thread Id:"+Thread.currentThread().getId()+" Requesting next WI from JD");;
+                    // send a request to JD and wait for a reply                                                                                       
+                    transaction = httpClient.execute(transaction, postMethod);
 					
-					// if the JD did not provide a Work Item, most likely the CR is
+                    */
+                    
+                    
+                    // if the JD did not provide a Work Item, most likely the CR is
 					// done. In such case, reduce frequency of Get requests
 					// by sleeping in between Get's. Eventually the OR will 
 					// deallocate this process and the thread will exit

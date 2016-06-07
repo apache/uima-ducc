@@ -42,7 +42,9 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -101,10 +103,14 @@ import org.springframework.context.annotation.Import;
 	    }
 
 		public Server createServer(int port, String app, IJobDriverComponent jdc) throws Exception {
-			Server server = new Server(port);
-			QueuedThreadPool threadPool = new QueuedThreadPool();
-			int cores = Runtime.getRuntime().availableProcessors();
 			
+			 //HTTP port                                                                                                                                        
+            int portHttp = port;
+            // Server thread pool
+			QueuedThreadPool threadPool = new QueuedThreadPool();
+			// Max cores
+			int cores = Runtime.getRuntime().availableProcessors();
+
 			if ( common.jettyMaxThreads != null) {
 				try {
 					int maxThreads = Integer.parseInt(common.jettyMaxThreads.trim());
@@ -120,18 +126,14 @@ import org.springframework.context.annotation.Import;
 			if ( cores > threadPool.getMaxThreads() ) {
 				logger.warn("JobDriver", jobid, "Invalid value for jetty MaxThreads("+threadPool.getMaxThreads()+") - it should be greater or equal to "+cores+". Defaulting to Number of CPU Cores="+cores);
 				threadPool.setMaxThreads(cores);
-			}
-			
-			if ( common.jettyThreadIdleTime != null ) {
-				try {
-					threadPool.setMaxIdleTimeMs(Integer.parseInt(common.jettyThreadIdleTime.trim()));
-					
-				} catch(NumberFormatException e) {
-					logger.warn("JobDriver", jobid, "Invalid value for jetty ThreadIdleTime - check ducc.properties - defaulting to 60000ms");
-				}
-			} 
-			server.setThreadPool(threadPool);
-			
+			} // Server                                                                                                                                          
+            Server server = new Server(threadPool);
+
+            // Server connector                                                                                                                                
+            ServerConnector connector = new ServerConnector(server);
+            connector.setPort(portHttp);
+            server.setConnectors(new Connector[] { connector });
+
 			 ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		     context.setContextPath("/");
 		     server.setHandler(context);

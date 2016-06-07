@@ -25,6 +25,7 @@ import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
+import com.thoughtworks.xstream.security.AnyTypePermission;
 /**
  * Implementation of the HTTP based dispatcher. Uses commons HTTPClient for 
  * messaging. The body of each message is converted to a String (xml format).
@@ -62,6 +63,8 @@ public class DuccEventHttpDispatcher
     {        
         DomDriver dd = new DomDriver();        
         XStream xStream = new XStream(dd);
+        xStream.addPermission(AnyTypePermission.ANY);
+        
         return xStream.toXML(ev);
     }
 
@@ -70,6 +73,7 @@ public class DuccEventHttpDispatcher
     {        
         DomDriver dd = new DomDriver();
         XStream xStream = new XStream(dd);
+        xStream.addPermission(AnyTypePermission.ANY);
         return xStream.fromXML(str);
     }
 

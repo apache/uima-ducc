@@ -62,6 +62,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.security.AnyTypePermission;
 //import org.apache.uima.ducc.agent.event.AgentPingEvent;
 
 @Configuration
@@ -281,7 +282,9 @@ public class AgentConfiguration {
       String methodName = "process";
       // if ( logger.isLevelEnabled(Level.TRACE) ) {
       XStreamDataFormat xStreamDataFormat = new XStreamDataFormat();
+      xStreamDataFormat.setPermissions("*");
       XStream xStream = xStreamDataFormat.getXStream(new DefaultClassResolver());
+      xStream.addPermission(AnyTypePermission.ANY);
       String marshalledEvent = xStream.toXML(exchange.getIn().getBody());
       logger.info(methodName, null, marshalledEvent);
       // }
