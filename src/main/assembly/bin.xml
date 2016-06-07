@@ -190,10 +190,9 @@ under the License.
     </dependencySet>
 
 	<!-- Only used by some daemons -->
-    <dependencySet>
+    <!-- dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
-        <include>commons-httpclient:commons-httpclient</include>
         <include>commons-codec:commons-codec</include>
         <include>org.apache.httpcomponents:httpcore</include>
         <include>org.apache.httpcomponents:httpclient</include>
@@ -202,7 +201,7 @@ under the License.
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
-    </dependencySet>
+    </dependencySet-->
 
 
 	<!-- Combine the shared common jars -->
@@ -212,7 +211,7 @@ under the License.
         <include>commons-cli:commons-cli</include>
         <include>commons-collections:commons-collections</include>
         <include>commons-lang:commons-lang</include>
-        <include>commons-pool:commons-pool</include>
+        <!-- include>commons-pool:commons-pool</include-->
       </includes>      
       <outputDirectory>lib/apache-commons</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
@@ -241,6 +240,7 @@ under the License.
         <include>org.apache.camel:camel-core</include>
         <include>org.apache.camel:camel-context</include>
         <include>org.apache.camel:camel-http</include>
+        <include>org.apache.camel:camel-http-common</include>
         <include>org.apache.camel:camel-http4</include>
         <include>org.apache.camel:camel-jetty</include>
         <include>org.apache.camel:camel-jetty-common</include>
@@ -249,8 +249,9 @@ under the License.
         <include>org.apache.camel:camel-spring</include>
         <include>org.apache.camel:camel-xmlbeans</include>
         <include>org.apache.camel:camel-xstream</include>
-        <include>com.thoughtworks.xstream:xstream</include>
+        <!--include>com.thoughtworks.xstream:xstream</include-->
         <include>org.apache.mina:mina-core</include>
+        <!--include>xmlpull:xmlpull</include-->
 
         <include>org.apache.camel:camel-servlet</include>
         <include>org.apache.camel:camel-stream</include>
