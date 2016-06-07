@@ -3204,6 +3204,86 @@ function ducc_refresh(type) {
     ducc_console_exit(fname);
 }
 
+var wip_alerts = false;
+
+function ducc_alerts() {
+    var fname = "ducc_alerts";
+    var data = null;
+    if(wip_alerts) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_alerts = true;
+    try {
+        var servlet = "/ducc-servlet/alerts";
+        var tomsecs = ms_timeout;
+        $.ajax({
+            url: servlet,
+            timeout: tomsecs
+        }).done(function(data) {
+            wip_alerts = false;
+            target = "alerts_div";
+            display = "initial";
+            if(data != null) {
+            	tdata = data.trim();
+            	if(tdata.length == 0) {
+            		display = "none";
+            	}
+            }
+            document.getElementById(target).style.display = display;
+            $("#alerts_area").html(data);
+            data = null;
+            ducc_console_success(fname);
+        }).fail(function(jqXHR, textStatus) {
+            wip_alerts = false;
+            ducc_console_fail(fname, textStatus);
+        });
+    } catch (err) {
+        wip_alerts = false;
+        ducc_error(fname, err);
+    }
+}
+
+var wip_messages = false;
+
+function ducc_messages() {
+    var fname = "ducc_messages";
+    var data = null;
+    if(wip_messages) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_messages = true;
+    try {
+        var servlet = "/ducc-servlet/banner-message";
+        var tomsecs = ms_timeout;
+        $.ajax({
+            url: servlet,
+            timeout: tomsecs
+        }).done(function(data) {
+            wip_messages = false;
+            target = "messages_div";
+            display = "initial";
+            if(data != null) {
+            	tdata = data.trim();
+            	if(tdata.length == 0) {
+            		display = "none";
+            	}
+            }
+            document.getElementById(target).style.display = display;
+            $("#messages_area").html(data);
+            data = null;
+            ducc_console_success(fname);
+        }).fail(function(jqXHR, textStatus) {
+            wip_messages = false;
+            ducc_console_fail(fname, textStatus);
+        });
+    } catch (err) {
+        wip_messages = false;
+        ducc_error(fname, err);
+    }
+}
+
 var to_timed_loop = null;
 
 function ducc_timed_loop(type) {
@@ -3211,6 +3291,8 @@ function ducc_timed_loop(type) {
     ducc_console_enter(fname);
     try {
     	ducc_cookies();
+    	ducc_alerts();
+    	ducc_messages();
         var refreshmode = ducc_appl("refreshmode");
         var c_value = ducc_get_cookie(refreshmode);
         if (c_value == null) {

@@ -178,6 +178,16 @@ tr.heading {
 	background-color: #ddddff;
 }
 
+tr.heading-alerts {
+	font-weight: bold;
+	color: #ffffff;
+	background-color: #ff0000;
+}
+
+tr.heading-messages {
+	background-color: #ffff00;
+}
+
 table.flex-heading {
 	width: 100%;
 }

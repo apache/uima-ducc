@@ -100,6 +100,7 @@ import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 import org.apache.uima.ducc.ws.authentication.DuccAuthenticator;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
+import org.apache.uima.ducc.ws.helper.DatabaseHelper;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
@@ -179,6 +180,8 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccClusterName 					= duccContext+"/cluster-name";
 	private String duccClusterUtilization 			= duccContext+"/cluster-utilization";
 	private String duccTimeStamp   					= duccContext+"/timestamp";
+	private String duccAlerts   					= duccContext+"/alerts";
+	private String duccBannerMessage   				= duccContext+"/banner-message";
 	private String duccJobSubmit   					= duccContext+"/job-submit-request";
 	private String duccJobCancel   					= duccContext+"/job-cancel-request";
 	private String duccReservationSubmit    		= duccContext+"/reservation-submit-request";
@@ -3691,6 +3694,82 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
 	
+	private static BrokerHelper brokerHelper = BrokerHelper.getInstance();
+	private static DatabaseHelper databaseHelper = DatabaseHelper.getInstance();
+	
+	private void addDownDaemon(StringBuffer sb, String name) {
+		if(sb.length() == 0) {
+			sb.append("ALERT - critical component(s) unresponsive: "+name);
+		}
+		else {
+			sb.append(", "+name);
+		}
+	}
+	
+	private void handleDuccServletAlerts(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletAlerts";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		daemons:
+		for(DaemonName daemonName : DuccDaemonRuntimeProperties.daemonNames) {
+			switch(daemonName) {
+			case Database:
+				if(databaseHelper.isDisabled()) {
+					continue daemons;
+				}
+				if(!databaseHelper.isAlive()) {
+					addDownDaemon(sb, daemonName.name());
+				}
+				break;
+			case Broker:
+				if(!brokerHelper.isAlive()) {
+					addDownDaemon(sb, daemonName.name());
+				}
+				break;
+			case Orchestrator:
+			case ProcessManager:
+			case ResourceManager:
+			case ServiceManager:
+				long timeout = getMillisMIA(daemonName)/1000;
+				if(timeout > 0) {
+					try {
+						long heartbeatLast = Long.parseLong(DuccDaemonsData.getInstance().getHeartbeat(daemonName));
+						long overtime = timeout - heartbeatLast;
+						if(overtime < 0) {
+							addDownDaemon(sb, daemonName.name());
+						}
+					}
+					catch(Exception e) {
+						addDownDaemon(sb, daemonName.name());
+					}
+				}
+				break;
+			}
+		}
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}	
+	
+	private void handleDuccServletBannerMessage(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletBannerMessage";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		String key = DuccPropertiesResolver.ducc_ws_banner_message;
+		String value = DuccPropertiesResolver.getInstance().getFileProperty(key);
+		if(value != null) {
+			String message = value.trim();
+			if(message.length() > 0) {
+				sb.append(message);
+			}
+		}
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}	
+	
 	private void handleDuccServletReservationSchedulingClasses(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws Exception
 	{
@@ -4702,6 +4781,14 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else if(reqURI.startsWith(duccTimeStamp)) {
 				handleDuccServletTimeStamp(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccAlerts)) {
+				handleDuccServletAlerts(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccBannerMessage)) {
+				handleDuccServletBannerMessage(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobSubmit)) {

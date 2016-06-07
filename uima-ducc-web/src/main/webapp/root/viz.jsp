@@ -56,6 +56,10 @@ under the License.
 </td>
 </table>
 <!-- *********************** /table ************************ -->
+<!-- *********************** table ************************* -->
+<%@ include file="$banner/t2-alerts.jsp" %>
+<%@ include file="$banner/t2-messages.jsp" %>
+<!-- *********************** /table ************************ -->
 <!-- ####################### /common ####################### -->
 <span class="viz-nodes" id="viz-nodes"></span>
 	<script>
