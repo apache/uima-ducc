@@ -210,8 +210,8 @@ class Ducc(DuccUtil):
                 os.chdir(self.DUCC_HOME + '/webserver')
                 if ( self.ws_jvm_args != None ):
                     jvm_opts.append(self.ws_jvm_args)
-
-                self.add_to_classpath(ducc_home + '/lib/http-client/*')
+                self.add_to_classpath(ducc_home + '/apache-uima/apache-activemq/lib/optional/*')
+#                self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/jsp/*')
                 self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
@@ -221,7 +221,8 @@ class Ducc(DuccUtil):
                     args = '-' + or_parms
                 if ( self.or_jvm_args != None ):
                     jvm_opts.append(self.or_jvm_args)
-                self.add_to_classpath(ducc_home + '/lib/http-client/*')
+                self.add_to_classpath(ducc_home + '/apache-uima/apache-activemq/lib/optional/*')
+#                self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')       
                 self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
 
@@ -233,7 +234,7 @@ class Ducc(DuccUtil):
                 if ( self.sm_jvm_args != None ):
                     jvm_opts.append(self.sm_jvm_args)
                 self.add_to_classpath(ducc_home + '/apache-uima/apache-activemq/lib/optional/*')
-                self.add_to_classpath(ducc_home + '/lib/http-client/*')
+#                self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')       
                 self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
 

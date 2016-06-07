@@ -41,7 +41,8 @@ public class DuccEventHttpDispatcherCl
     private ClassManager classManager = null;
 
     String[] classpath = {
-        "lib/apache-camel/xstream*",
+//            "lib/apache-camel/xstream*",
+        "apache-uima/apache-activemq/lib/optional/xstream*",
         "lib/google-gson/gson*",
     };        
 

@@ -376,6 +376,7 @@ class DuccUtil(DuccBase):
 
         CLASSPATH = CLASSPATH + ':' + DH  + 'apache-uima/lib/*'           
         CLASSPATH = CLASSPATH + ':' + DH  + 'apache-uima/apache-activemq/lib/*'           
+        CLASSPATH = CLASSPATH + ':' + DH  + 'apache-uima/apache-activemq/lib/optional/*'           
         CLASSPATH = CLASSPATH + ':' + LIB + 'apache-commons/*'
         CLASSPATH = CLASSPATH + ':' + LIB + 'guava/*'
         CLASSPATH = CLASSPATH + ':' + LIB + 'google-gson/*'
