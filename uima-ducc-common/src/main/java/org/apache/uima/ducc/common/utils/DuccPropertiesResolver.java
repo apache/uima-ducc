@@ -170,6 +170,10 @@ public class DuccPropertiesResolver {
     
     public static final String ducc_transport_trace = "ducc.transport.trace";
     
+    public static final String ducc_ws_port_https = "ducc.ws.port.https";
+    public static final String ducc_ws_idle_timeout = "ducc.ws.idle.timeout";
+    public static final String ducc_ws_max_threads = "ducc.ws.max.threads";
+
     private void initDefaultProperties() {
         defaultProperties.put(ducc_runmode,"Production");
         defaultProperties.put(ducc_broker_url,"tcp://localhost:61616");
