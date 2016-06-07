@@ -48,6 +48,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.security.AnyTypePermission;
 
 /**
  * This class provides the API and CLI to the Resource Managager administrative functions.
@@ -160,7 +161,10 @@ public class DuccRmAdmin
         throws Exception 
     {
         XStreamDataFormat xStreamDataFormat = new XStreamDataFormat();
+        xStreamDataFormat.setPermissions("*");
         XStream xStream = xStreamDataFormat.getXStream(new DefaultClassResolver());
+        xStream.addPermission(AnyTypePermission.ANY);
+        
         return xStream.toXML(duccEvent);
     }
     
