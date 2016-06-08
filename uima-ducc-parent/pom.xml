@@ -245,11 +245,11 @@ ${uimaDUCCNoticeText}
             </dependency>
 
 
-            <dependency>
+            <!--dependency>
               <groupId>org.apache.httpcomponents</groupId>
               <artifactId>httpclient</artifactId>
               <version>${http.commons.client.version}</version>
-            </dependency>
+            </dependency-->
         
             <dependency>
               <groupId>org.apache.httpcomponents</groupId>
@@ -476,7 +476,7 @@ ${uimaDUCCNoticeText}
 
 			<dependency>
 				<groupId>org.apache.activemq</groupId>
-				<artifactId>activemq-server</artifactId>
+				<artifactId>activemq-client</artifactId>
 				<version>${org.apache.activemq.version}</version>
 			</dependency>
 
