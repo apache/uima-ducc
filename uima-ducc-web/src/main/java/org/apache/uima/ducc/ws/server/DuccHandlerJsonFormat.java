@@ -2018,7 +2018,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 
 		if(showAgents) {
-			ConcurrentSkipListMap<MachineInfo,NodeId> machines = duccMachinesData.getMachines();
+			Map<MachineInfo,NodeId> machines = duccMachinesData.getMachines();
 			Iterator<MachineInfo> iterator = machines.keySet().iterator();
 			while(iterator.hasNext()) {
 				row = new JsonArray();

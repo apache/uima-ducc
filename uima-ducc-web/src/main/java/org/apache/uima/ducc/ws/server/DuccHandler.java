@@ -3098,7 +3098,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("{ ");
 		sb.append("\"aaData\": [ ");
 		DuccMachinesData instance = DuccMachinesData.getInstance();
-		ConcurrentSkipListMap<MachineInfo,NodeId> sortedMachines = instance.getSortedMachines();
+		Map<MachineInfo,NodeId> sortedMachines = instance.getSortedMachines();
 		Iterator<MachineInfo> iterator;
 		// pass 1
 		iterator = sortedMachines.keySet().iterator();
@@ -3512,7 +3512,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieAgents);
 		if(cookie.equals(DuccCookies.valueAgentsShow)) {
 			duccLogger.trace(methodName, jobid, "== show: "+cookie);
-			ConcurrentSkipListMap<MachineInfo,NodeId> machines = DuccMachinesData.getInstance().getMachines();
+			Map<MachineInfo,NodeId> machines = DuccMachinesData.getInstance().getMachines();
 			Iterator<MachineInfo> iterator = machines.keySet().iterator();
 			while(iterator.hasNext()) {
 				MachineInfo machineInfo = iterator.next();

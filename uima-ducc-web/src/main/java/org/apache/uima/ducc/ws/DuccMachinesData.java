@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.ws;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -89,17 +90,18 @@ public class DuccMachinesData {
 		return isSwapping.containsKey(ip);
 	}
 	
-	public ConcurrentSkipListMap<MachineInfo,NodeId> getMachines() {
+	public Map<MachineInfo,NodeId> getMachines() {
 		return getSortedMachines();
 	}
 	
-	public ConcurrentSkipListMap<MachineInfo,NodeId> getSortedMachines() {
-		ConcurrentSkipListMap<MachineInfo,NodeId> retVal = sortedMachines;
+	public Map<MachineInfo,NodeId> getSortedMachines() {
+		Map<MachineInfo,NodeId> retVal = new TreeMap<MachineInfo,NodeId>();
+		retVal.putAll(sortedMachines);
 		return retVal;
 	}
 	
 	private long down_fudge = 10;
-	private long DOWN_AFTER_SECONDS = WebServerComponent.updateIntervalSeconds + down_fudge;
+	private long DOWN_AFTER_SECONDS = WebServerComponent.updateIntervalSecondsNormal + down_fudge;
 	private long SECONDS_PER_MILLI = 1000;
 	
 	private long getAgentMillisMIA() {
@@ -339,8 +341,7 @@ public class DuccMachinesData {
 	 * 
 	 * Put new or updated node metrics into map of Agent node metric reports
 	 */
-	public boolean put(DatedNodeMetricsUpdateDuccEvent duccEvent) {
-		boolean retVal = true;
+	public void put(DatedNodeMetricsUpdateDuccEvent duccEvent) {
 		String location = "put";
 		MachineSummaryInfo msi = new MachineSummaryInfo();
 		NodeMetricsUpdateDuccEvent nodeMetrics = duccEvent.getNodeMetricsUpdateDuccEvent();
@@ -352,10 +353,6 @@ public class DuccMachinesData {
 		}
 		String machineName = nodeMetrics.getNodeIdentity().getName().trim();
 		NodeId nodeId = new NodeId(machineName);
-		// determine if this is new machine (true) or already known machine (false)
-		if(ipToNameMap.containsKey(ip)) {
-			retVal = false;
-		}
 		ipToNameMap.put(ip,nodeId);
 		nameToIpMap.put(nodeId,ip);
 		// mem: total
@@ -370,7 +367,7 @@ public class DuccMachinesData {
 		long lvalMemFree = (long) ((1.0*nodeMemFree)/(1024*1024)+0.0);  // do NOT round up!
 		msi.memFree = lvalMemFree;
 		String memFree = ""+lvalMemFree/*+memUnits*/;
-		// swap: in-usewell
+		// swap: in-use
 		double dvalSwapTotal = nodeMetrics.getNodeMemory().getSwapTotal();
 		long lvalSwapTotal = (long) (dvalSwapTotal/(1024*1024)+0.5);
 		double dvalSwapFree = nodeMetrics.getNodeMemory().getSwapFree();
@@ -425,7 +422,6 @@ public class DuccMachinesData {
 		putMachine(current);
 		updateTotals(nodeId,msi);
 		setPublished();
-		return retVal;
 	}
 	
 	public List<String> getPids(Ip ip, UserId user) {
@@ -594,7 +590,7 @@ public class DuccMachinesData {
 	private void updateMachineFactsListAgent() {
 		MachineFactsList factsList = new MachineFactsList();
 		long quantum = getQuantum();
-		ConcurrentSkipListMap<MachineInfo,NodeId> sortedMachines = getSortedMachines();
+		Map<MachineInfo,NodeId> sortedMachines = getSortedMachines();
 		Iterator<MachineInfo> iterator;
 		iterator = sortedMachines.keySet().iterator();
 		while(iterator.hasNext()) {
@@ -632,16 +628,18 @@ public class DuccMachinesData {
 		// The returnable
 		MachineFactsList mfl = new MachineFactsList();
 		// Working map used to generate the returnable
-		ConcurrentSkipListMap<MachineInfo,NodeId> dbSortedMachines = new ConcurrentSkipListMap<MachineInfo,NodeId>();
+		Map<MachineInfo,NodeId> dbSortedMachines = new TreeMap<MachineInfo,NodeId>();
 		// Get map from DB courtesy of RM
 		DbQuery dbQuery = DbQuery.getInstance();
-		Map<String, IDbMachine> dbMapMachines = dbQuery.getMapMachines();
+		// Working list of known machines, by long name
+		Map<String, IDbMachine> dbMapMachinesLong = dbQuery.getMapMachines();
 		// Working list of known machines, by short name
-		List<String> knownShortNames = new ArrayList<String>();
-		// Update working map and list of short name from DB
-		for(Entry<String, IDbMachine> entry : dbMapMachines.entrySet()) {
+		Map<String, IDbMachine> dbMapMachinesShort = new HashMap<String, IDbMachine>();
+		// Update working map and map of short names
+		for(Entry<String, IDbMachine> entry : dbMapMachinesLong.entrySet()) {
 			String name = entry.getKey();
 			NodeId nodeId = new NodeId(name);
+			dbMapMachinesShort.put(nodeId.getShortName(),entry.getValue());
 			MachineInfo mi = unsortedMachines.get(nodeId);
 			IDbMachine dbMachine = entry.getValue();
 			if(mi != null) {
@@ -651,19 +649,27 @@ public class DuccMachinesData {
 				mi.setMemTotal(""+total);
 				mi.setMemFree(""+free);
 				dbSortedMachines.put(mi, nodeId);
-				String shortName = nodeId.getShortName();
-				knownShortNames.add(shortName);
 			}
 		}
 		// Initialize returnable with "defined" machines
 		ArrayList<String> duccNodes = DuccNodes.getInstance().get();
+		Map<String,String> sortedDuccNodes = new TreeMap<String,String>();
 		for(String name : duccNodes) {
-			NodeId nodeId = new NodeId(name);;
-			String shortName = nodeId.getShortName();
-			// skip defined machine if it already appears in DB
-			if(knownShortNames.contains(shortName)) {
+			NodeId nodeId = new NodeId(name);
+			sortedDuccNodes.put(nodeId.getShortName(),nodeId.getLongName());
+		}
+		// Process defined nodes, unless already present from DB
+		for(Entry<String, String> entry : sortedDuccNodes.entrySet()) {
+			String shortName = entry.getKey();
+			String longName = entry.getValue();
+			// Skip defined machine if it already appears in DB
+			if(dbMapMachinesShort.containsKey(shortName)) {
 				continue;
 			}
+			if(dbMapMachinesLong.containsKey(longName)) {
+				continue;
+			}
+			// Add defined machine
 			String status = "defined";
 			String statusReason = "";
 			String ip = "";
@@ -676,7 +682,7 @@ public class DuccMachinesData {
 			boolean cGroups = false;
 			List<String> aliens = new ArrayList<String>();
 			String heartbeat = "";
-			MachineFacts facts = new MachineFacts(status,statusReason,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
+			MachineFacts facts = new MachineFacts(status,statusReason,ip,longName,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
 			mfl.add(facts);
 		}
 		// Augment returnable with data from Agents & RM (from DB)

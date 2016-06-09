@@ -24,7 +24,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeConfiguration;
@@ -273,7 +272,7 @@ public class NodeViz
         }
 
         logger.debug(methodName, null, "Generateing visualizaiton");
-        ConcurrentSkipListMap<MachineInfo,NodeId> m = machineData.getMachines();
+        Map<MachineInfo,NodeId> m = machineData.getMachines();
 
         for (Entry<MachineInfo, NodeId> entry : m.entrySet()) {
         	// 

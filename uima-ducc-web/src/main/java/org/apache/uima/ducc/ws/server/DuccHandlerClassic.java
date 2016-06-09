@@ -1487,7 +1487,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		if(cookie.equals(DuccCookies.valueAgentsShow)) {
 			duccLogger.trace(methodName, jobid, "== show: "+cookie);
 			
-			ConcurrentSkipListMap<MachineInfo,NodeId> machines = duccMachinesData.getMachines();
+			Map<MachineInfo,NodeId> machines = duccMachinesData.getMachines();
 			Iterator<MachineInfo> iterator = machines.keySet().iterator();
 			while(iterator.hasNext()) {
 				MachineInfo machineInfo = iterator.next();

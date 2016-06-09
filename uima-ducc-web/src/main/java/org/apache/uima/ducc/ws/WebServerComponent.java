@@ -62,13 +62,24 @@ implements IWebServer {
 	private static AtomicInteger reservationCount = new AtomicInteger(0);
 	
 	private static AtomicLong updateLast = new AtomicLong(System.currentTimeMillis());
-	public static long updateIntervalSeconds = 60;
-	public static long updateIntervalMilliSeconds = updateIntervalSeconds*1000;
+	public static long updateIntervalSecondsInitial = 5;
+	public static long updateIntervalSecondsNormal = 60;
+	public static AtomicLong updateIntervalCount = new AtomicLong(0);
+	public static long updateIntervalLimit = 12;
 	
 	public WebServerComponent(CamelContext context, CommonConfiguration common) {
 		super("WebServer",context);
 		String methodName = "WebServerComponent";
 		duccLogger.info(methodName, jobid, "##### boot #####");
+		
+		String cp = System.getProperty("java.class.path");
+		String[] cpArray = cp.split(":");
+		int lc = 0;
+		for(String line : cpArray) {
+			duccLogger.trace(methodName, jobid, "cp."+lc+" "+line);
+			lc++;
+		}
+		
 		String[] propertyNames = { "ducc.broker.url" };
 		for(String property : propertyNames) {
 			duccLogger.info(methodName, jobid, property+"="+System.getProperty(property));
@@ -158,17 +169,34 @@ implements IWebServer {
 	
 	/**
 	 * Sort machines if interval has elapsed (60 seconds) 
-	 * or if a new machine has been detected (force == true)
+	 * 
+	 * Note: Use an initial short interval (e.g. every 5 seconds)
+	 * when the Web Server first boots in order to populate quickly.
+	 * After N (e.g. 12) quick recalculations, revert to the normal
+	 * interval (e.g. every 60 seconds).
 	 */
-	private void sortMachines(boolean force) {
+	private void sortMachines() {
+		String methodName = "sortMachines";
 		long last = updateLast.get();
+		long updateIntervalMilliSeconds = updateIntervalSecondsNormal * 1000;
+		if(updateIntervalCount.get() < updateIntervalLimit) {
+			updateIntervalMilliSeconds = updateIntervalSecondsInitial * 1000;
+		}
 		long deadline = last + updateIntervalMilliSeconds;
 		long now = System.currentTimeMillis();
-		if(now > deadline || force) {
+		if(now > deadline) {
 			boolean success = updateLast.compareAndSet(last, now);
 			if(success) {
 				DuccMachinesData.getInstance().updateSortedMachines();
+				updateIntervalCount.incrementAndGet();
+				duccLogger.trace(methodName, jobid, "count: "+updateIntervalCount.get());
 			}
+			else {
+				duccLogger.trace(methodName, jobid, "missed: "+"last="+last+" "+"now="+now);
+			}
+		}
+		else {
+			duccLogger.trace(methodName, jobid, "togo: "+(deadline - now)/1000);
 		}
 	}
 	
@@ -178,8 +206,8 @@ implements IWebServer {
 		duccLogger.trace(methodName, jobid, duccMsg.fetchLabel("received")+"NodeMetricsUpdateDuccEvent");
 		DuccMachinesData dmd = DuccMachinesData.getInstance();
 		DatedNodeMetricsUpdateDuccEvent datedEvent = new DatedNodeMetricsUpdateDuccEvent(duccEvent);
-		boolean force = dmd.put(datedEvent);
-		sortMachines(force);
+		dmd.put(datedEvent);
+		sortMachines();
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
 

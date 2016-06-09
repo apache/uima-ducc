@@ -416,210 +416,8 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		String retVal = getElapsed();
 		return retVal;
 	}	
-	
-	
-	public int compareTo(MachineInfo machine) {
-		int retVal = 0;
-		MachineInfo m1 = this;
-		MachineInfo m2 = machine;
-		String s1 = m1.name;
-		String s2 = m2.name;
-		if(s1 != null) {
-			if(s2 != null) {
-				if(s1.trim().equals(s2.trim()))
-					return retVal;
-			}
-		}
-		retVal = compareStatus(m1, m2);
-		if(retVal != 0) {
-			return retVal;
-		}
-		retVal = compareSwapInuse(m1, m2);
-		if(retVal != 0) {
-			return retVal;
-		}
-		retVal = compareSwapDelta(m1, m2);
-		if(retVal != 0) {
-			return retVal;
-		}
-		retVal = compareAlienPids(m1, m2);
-		if(retVal != 0) {
-			return retVal;
-		}
-		/*
-		retVal = compareHeartbeat(m1, m2);
-		if(retVal != 0) {
-			return retVal;
-		}
-		*/
-		retVal = compareIp(m1, m2);
-		if(retVal != 0) {
-			return retVal;
-		}
-		retVal = compareName(m1, m2);
-		return retVal;
-	}
-	
-	/**
-	 * @param m1
-	 * @param m2
-	 * @return 0 if m1 == m2, -1 if m1 < m2, +1 if m1 > m2, where
-	 *           Defined < Down < Up
-	 */
-	private int compareStatus(MachineInfo m1, MachineInfo m2) {
-		String location = "compareStatus";
-		int retVal = 0;
-		try {
-			MachineStatus v1 = m1.getMachineStatus();
-			MachineStatus v2 = m2.getMachineStatus();
-			switch(v1) {
-			default:
-			case Defined:
-				switch(v2) {
-				default:
-				case Defined:
-					retVal = 0;
-					break;
-				case Down:
-					retVal = -1;
-					break;
-				case Up:
-					retVal = -1;
-					break;
-				}
-				break;
-			case Down:
-				switch(v2) {
-				default:
-				case Defined:
-					retVal = 1;
-					break;
-				case Down:
-					retVal = 0;
-					break;
-				case Up:
-					retVal = -1;
-					break;
-				}
-				break;
-			case Up:
-				switch(v2) {
-				default:
-					retVal = 1;
-				case Defined:
-					break;
-				case Down:
-					retVal = 1;
-					break;
-				case Up:
-					retVal = 0;
-					break;
-				}
-				break;
-			}
-			StringBuffer sb = new StringBuffer();
-			sb.append(m1.getName());
-			sb.append(" ");
-			sb.append(m1.getMachineStatus().getLowerCaseName());
-			sb.append(" ");
-			sb.append(m2.getName());
-			sb.append(" ");
-			sb.append(m2.getMachineStatus().getLowerCaseName());
-			sb.append(" ");
-			sb.append(" "+retVal);
-			logger.trace(location, jobid, sb);
-		}
-		
-		catch(Throwable t) {
-			logger.error(location, jobid, t);
-		}
-		return retVal;
-	}
-	
-	private int compareSwapInuse(MachineInfo m1, MachineInfo m2) {
-		int retVal = 0;
-		try {
-			long v1 = Long.parseLong(m1.getSwapInuse());
-			long v2 = Long.parseLong(m2.getSwapInuse());
-			if(v1 > v2) {
-				return -1;
-			}
-			if(v1 < v2) {
-				return 1;
-			}
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
-	}
-	
-	private int compareSwapDelta(MachineInfo m1, MachineInfo m2) {
-		int retVal = 0;
-		try {
-			long v1 = m1.getSwapDelta();
-			long v2 = m2.getSwapDelta();
-			if(v1 > v2) {
-				return -1;
-			}
-			if(v1 < v2) {
-				return 1;
-			}
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
-	}
-	
-	private int compareAlienPids(MachineInfo m1, MachineInfo m2) {
-		int retVal = 0;
-		try {
-			long v1 = m1.getAlienPidsCount();
-			long v2 = m2.getAlienPidsCount();
-			if(v1 > v2) {
-				return -1;
-			}
-			if(v1 < v2) {
-				return 1;
-			}
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
-	}
-	
-/*	
-	private int compareHeartbeat(MachineInfo m1, MachineInfo m2) {
-		int retVal = 0;
-		try {
-			long v1 = m1.getHeartbeat();
-			long v2 = m2.getHeartbeat();
-			if(v1 > v2) {
-				return 1;
-			}
-			if(v1 < v2) {
-				return -1;
-			}
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
-	}
-*/
-	private int compareIp(MachineInfo m1, MachineInfo m2) {
-		int retVal = 0;
-		if(m1.ip.trim().length() > 0) {
-			if(m2.ip.trim().length() > 0) {
-				retVal = m1.ip.compareTo(m2.ip);
-			}
-		}
-		return retVal;
-	}
-	
-	private int compareName(MachineInfo m1, MachineInfo m2) {
-		return m1.name.compareTo(m2.name);
-	}
-	
-	// @return true if the long names match
+
+	// @return true if the short names match
 	
 	@Override
 	public boolean equals(Object object) {
@@ -627,18 +425,147 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		if(object != null) {
 			if(object instanceof NodeId) {
 				MachineInfo that = (MachineInfo) object;
-				return (this.compareTo(that) == 0);
+				retVal = (this.hashCode() == that.hashCode());
 			}
 		}
 		return retVal;
 	}
 		
-	// @return use long name as hashCode
+	// @return use short name as hashCode
 	
 	@Override
 	public int hashCode()
 	{
-		return this.nodeid.hashCode();
+		return this.nodeid.getShortName().hashCode();
+	}
+	
+	private int compareString(String s1, String s2) {
+		int retVal = 0;
+		if(s1 != null) {
+			if(s2 != null) {
+				retVal = s1.compareTo(s2);
+			}
+		}
+		return retVal;
+	}
+	
+	private int compareToMachineName(MachineInfo that) {
+		int retVal = 0;
+		if(this.nodeid != null) {
+			if(that.nodeid != null) {
+				retVal = compareString(this.nodeid.getShortName(), that.nodeid.getShortName());
+			}
+		}
+		return retVal;
+	}
+	
+	private int compareToMachineStatus(MachineInfo that) {
+		int retVal = 0;
+		MachineStatus v1 = this.getMachineStatus();
+		MachineStatus v2 = that.getMachineStatus();
+		switch(v1) {
+		default:
+		case Defined:
+			switch(v2) {
+			default:
+			case Defined:
+				retVal = 0;
+				break;
+			case Down:
+				retVal = -1;
+				break;
+			case Up:
+				retVal = -1;
+				break;
+			}
+			break;
+		case Down:
+			switch(v2) {
+			default:
+			case Defined:
+				retVal = 1;
+				break;
+			case Down:
+				retVal = 0;
+				break;
+			case Up:
+				retVal = -1;
+				break;
+			}
+			break;
+		case Up:
+			switch(v2) {
+			default:
+				retVal = 1;
+			case Defined:
+				break;
+			case Down:
+				retVal = 1;
+				break;
+			case Up:
+				retVal = 0;
+				break;
+			}
+			break;
+		}
+		return retVal;
+	}
+	
+	private int compareToMachineSwapInuse(MachineInfo that) {
+		int retVal = 0;
+		try {
+			long v1 = Long.parseLong(this.getSwapInuse());
+			long v2 = Long.parseLong(that.getSwapInuse());
+			if(v1 > v2) {
+				return -1;
+			}
+			if(v1 < v2) {
+				return 1;
+			}
+		}
+		catch(Throwable t) {
+		}
+		return retVal;
+	}
+	
+	private int compareToMachineAlienPIDs(MachineInfo that) {
+		int retVal = 0;
+		try {
+			long v1 = this.getAlienPidsCount();
+			long v2 = that.getAlienPidsCount();
+			if(v1 > v2) {
+				return -1;
+			}
+			if(v1 < v2) {
+				return 1;
+			}
+		}
+		catch(Throwable t) {
+		}
+		return retVal;
+	}
+	
+	/**
+	 * Sort order: status, swap-inuse, alien-PIDs, machine short name
+	 */
+	@Override
+	public int compareTo(MachineInfo that) {
+		int retVal = 0;
+		if(that != null) {
+			if(retVal == 0) {
+				retVal = compareToMachineStatus(that);
+			}
+			if(retVal == 0) {
+				retVal = compareToMachineSwapInuse(that);
+			}
+			if(retVal == 0) {
+				retVal = compareToMachineAlienPIDs(that);
+			}
+			if(retVal == 0) {
+				retVal = compareToMachineName(that);
+			}
+		}
+		return retVal;
 	}
 
 }
