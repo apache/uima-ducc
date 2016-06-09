@@ -18,6 +18,9 @@
 # under the License.
 # -----------------------------------------------------------------------
 
+# Intended for cooperative scheduling.
+# Dumps important information that a "proxy" RM would need to make the 
+# bridge between an external scheduler and DUCC RM. 
 
 import os
 import sys
