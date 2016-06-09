@@ -239,7 +239,7 @@ public class DuccHttpClient {
 		addCommonHeaders(transaction);
 		transaction.setDirection(Direction.Request);
 		
-		while( retry-- > 0 ) {
+//		while( retry-- > 0 ) {
 			try {
 				// Serialize request object to XML
 				String body = XStreamUtils.marshall(transaction);
@@ -292,19 +292,19 @@ public class DuccHttpClient {
 				}
 				if ( o instanceof IMetaCasTransaction) {
 					reply = (MetaCasTransaction)o;
-					break;
+//					break;
 				} else {
 					throw new InvalidClassException("Expected IMetaCasTransaction - Instead Received "+o.getClass().getName());
 				}
 			} catch( Exception t) {
 				lastError = t;
-				logger.error("run", null, t);
+//				logger.error("run", null, t);
 			}
 			finally {
 				postMethod.releaseConnection();
 			}
 			
-		}
+//		}
 		if ( reply != null ) {
 			return reply;
 		} else {

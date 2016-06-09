@@ -32,6 +32,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
@@ -107,7 +108,7 @@ public class HttpWorkerThread implements Runnable {
 		} catch( SocketTimeoutException e) {
 			logger.warn("run", null, "Timed Out While Awaiting Response from JD for "+command+" Request - Retrying ...");
 			System.out.println("Time Out While Waiting For a Reply from JD For "+command+" Request");
-		}
+		} 
     	return transaction;
 
 	}
@@ -121,7 +122,8 @@ public class HttpWorkerThread implements Runnable {
 	}
 	@SuppressWarnings("unchecked")
 	public void run() {
-		//String command="";
+		// when this thread looses connection to its JD, log error once
+		boolean logConnectionToJD = true;
 		HttpPost postMethod = null;
 	    logger.info("HttpWorkerThread.run()", null, "Starting JP Process Thread Id:"+Thread.currentThread().getId());
 	    Method processMethod = null;
@@ -203,18 +205,10 @@ public class HttpWorkerThread implements Runnable {
 					int major = IdGenerator.addAndGet(1);
 					int minor = 0;
 					IMetaCasTransaction transaction = getWork(postMethod, major, minor);
-					/*	
-					new MetaCasTransaction();
-                    TransactionId tid = new TransactionId(major, minor);
-                    transaction.setTransactionId(tid);
-                    transaction.setType(Type.Get);  // Tell JD you want a Work Item                                                                    
-                    command = Type.Get.name();
-                    logger.debug("HttpWorkerThread.run()", null, "Thread Id:"+Thread.currentThread().getId()+" Requesting next WI from JD");;
-                    // send a request to JD and wait for a reply                                                                                       
-                    transaction = httpClient.execute(transaction, postMethod);
-					
-                    */
-                    
+					if ( !logConnectionToJD ) {
+						logConnectionToJD = true;   // reset flag in case we loose connection to JD in the future
+						logger.info("run", null, "T["+Thread.currentThread().getId()+"] - Regained Connection to JD");
+					}
                     
                     // if the JD did not provide a Work Item, most likely the CR is
 					// done. In such case, reduce frequency of Get requests
@@ -395,6 +389,13 @@ public class HttpWorkerThread implements Runnable {
 				} catch( InterruptedException e) {
 					logger.error("run", null, "WorkerThread Interrupted - Terminating Thread "+Thread.currentThread().getId());
 					return;
+				} catch( HttpHostConnectException e) {
+					// Each thread should log once when it looses a connection to its JD. When a connection is recovered
+					// re-enable the flag.
+					if ( logConnectionToJD ) {
+						logConnectionToJD = false;
+						logger.error("run", null, "T["+Thread.currentThread().getId()+"] Lost Conection to JD - Will retry "+maxFrameworkErrors+" times - Failure caused by:\t"+e);
+					}
 				}
 				catch (Exception e ) {
 					logger.error("run", null, e);
