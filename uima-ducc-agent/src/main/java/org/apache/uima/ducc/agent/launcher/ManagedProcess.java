@@ -463,7 +463,12 @@ public class ManagedProcess implements Process {
 								getDuccProcess().setReasonForStoppingProcess(
 										ReasonForStoppingProcess.Croaked.toString());
 							}
-						}  
+						} else if ( exitcode - 128 == 9 || exitcode - 128 == 15 ) {
+							// Process terminated unexpectedly. It stopped on its own due to Ducc framework
+							// error or due to some external event not initiated by an agent
+							getDuccProcess().setReasonForStoppingProcess(
+									ReasonForStoppingProcess.Croaked.toString());
+						} 
 					}
 				} else {
 					if ( exitcode - 128 == 9 || exitcode - 128 == 15 ) { // check if the process was killed with -9 or -15
