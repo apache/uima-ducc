@@ -441,9 +441,6 @@ print "     NOTE - if your ducc_ling is privileged you should update it"
 #orchestrator.state.update.endpoint=ducc.orchestrator.state
 #orchestrator.state.update.endpoint.type=topic
 #orchestrator.state.publish.rate=10000
-#orchestrator.abbreviated.state.update.endpoint=ducc.orchestrator.abbreviated.state
-#orchestrator.abbreviated.state.update.endpoint.type=topic
-#orchestrator.abbreviated.state.publish.rate=10000
 #orchestrator.maintenance.rate=60000
 #orchestrator.http.port=19988
 #orchestrator.http.node=${ducc.head}

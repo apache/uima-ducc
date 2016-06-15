@@ -36,7 +36,6 @@ import subprocess
 # ducc.sm.meta.ping.rate                            10000
 # ducc.sm.default.linger                            15000
 # ducc.orchestrator.state.publish.rate              10000
-# ducc.orchestrator.abbreviated.state.publish.rate  10000
 # ducc.rm.state.publish.ratio                           1
 # ducc.agent.node.metrics.publish.rate              10000
 # ducc.agent.node.inventory.publish.rate            10000
