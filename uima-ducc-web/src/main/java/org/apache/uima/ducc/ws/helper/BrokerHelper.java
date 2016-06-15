@@ -274,7 +274,59 @@ public class BrokerHelper extends JmxHelper {
 	}
 	
 	private void conditionalAdd(Map<String,Map<String,String>> map, ObjectName objectName) throws InstanceNotFoundException, ReflectionException, IOException {
-		String location = "conditionalAdd";
+		String key = getBrokerVersion();
+		if(key != null) {
+			if(key.equals("5.7.0")) {
+				conditionalAdd5_7_0(map, objectName);
+			}
+			else {
+				conditionalAdd5_13_2(map, objectName);
+			}
+		}
+		else {
+			conditionalAdd5_13_2(map, objectName);
+		}
+	}
+	
+	private void conditionalAdd5_13_2(Map<String,Map<String,String>> map, ObjectName objectName) throws InstanceNotFoundException, ReflectionException, IOException {
+		String location = "conditionalAdd5_13_2";
+		if(map != null) {
+			if(objectName != null) {
+				String dName = null;
+				String dType = objectName.getKeyProperty("destinationType");
+				if(dType != null) {
+					if(dType.equals("Topic") || dType.equals("Queue")) {
+						dName = objectName.getKeyProperty("destinationName");
+						if(dName != null) {
+							if(dName.startsWith("ducc.")) {
+								logger.trace(location, jobid, dType+": "+dName);
+								Map<String,String> attributes = new TreeMap<String,String>();
+								AttributeList  attributeList = mbsc.getAttributes(objectName, topicAttributeNames);
+								for(Object object : attributeList) {
+								   	Attribute attribute = (Attribute) object;
+								   	String attrName = attribute.getName();
+									String attrValue = ""+attribute.getValue();
+									attributes.put(attrName, attrValue);
+									logger.trace(location, jobid, attrName+"="+attrValue);
+							   	}
+								String key = JmxKeyWord.Type.name();
+								String value = dType;
+								attributes.put(key, value);
+								map.put(dName, attributes);
+							}
+							else {
+								logger.trace(location, jobid, dType+": "+dName+" "+"skip");
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	@Deprecated
+	private void conditionalAdd5_7_0(Map<String,Map<String,String>> map, ObjectName objectName) throws InstanceNotFoundException, ReflectionException, IOException {
+		String location = "conditionalAdd5_7_0";
 		if(map != null) {
 			if(objectName != null) {
 				Hashtable<String, String> plist = objectName.getKeyPropertyList();
@@ -308,8 +360,10 @@ public class BrokerHelper extends JmxHelper {
 		Map<String,Map<String,String>> map = new TreeMap<String,Map<String,String>>();
 		Set<ObjectName> objectNames = new TreeSet<ObjectName>(mbsc.queryNames(null, null));
 		for (ObjectName objectName : objectNames) {
-			conditionalAdd(map,objectName);
 			brokerAdd(objectName);
+		}
+		for (ObjectName objectName : objectNames) {
+			conditionalAdd(map,objectName);
 		}
 		return map;
 	}
