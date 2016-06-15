@@ -437,7 +437,7 @@
     <artifactId>maven-antrun-plugin</artifactId>
     <executions>
       <execution>
-        <phase>verify</phase>
+        <phase>package</phase>
         <configuration>
           <tasks>
 
