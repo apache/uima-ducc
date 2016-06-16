@@ -235,6 +235,8 @@ public class JobDriver {
 					jdState = value;
 					wipsk.publish();
 					break;
+				default:
+					break;
 				}
 				break;
 			case Initializing:
@@ -245,12 +247,16 @@ public class JobDriver {
 				case Active:
 					jdState = value;
 					break;
+				default:
+					break;
 				}
 				break;
 			case Prelaunch:
 				switch(value) {
 				case Initializing:
 					jdState = value;
+					break;
+				default:
 					break;
 				}
 				break;

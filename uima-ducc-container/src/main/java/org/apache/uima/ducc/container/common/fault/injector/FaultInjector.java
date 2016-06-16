@@ -56,6 +56,8 @@ public class FaultInjector {
 			break;
 		case End:
 			break;
+		default:
+			break;
 		}
 		return time;
 	}
