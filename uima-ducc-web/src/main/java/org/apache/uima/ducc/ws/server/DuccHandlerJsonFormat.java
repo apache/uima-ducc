@@ -292,6 +292,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 							style = DisplayStyle.Textual;
 						}
 						break;
+				default:
+					break;
 				}
 				switch(style) {
 				case Textual:
@@ -1868,6 +1870,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				if(databaseHelper.isDisabled()) {
 					continue daemons;
 				}
+			default:
+				break;
 			}
 			switch(daemonName) {
 			case Broker:

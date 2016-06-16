@@ -220,6 +220,8 @@ public class NodeViz
                             case Service:                                
                                 service_gb += jobmem;
                                 break;
+                            default:
+                            	break;
                         }
 
                         if ( n != null ) {

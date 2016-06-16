@@ -870,6 +870,8 @@ public class DuccHandler extends DuccAbstractHandler {
 							long msecsInit = process.getTimeWindowInit().getElapsedMillis();
 							msecsRun = msecsRun - msecsInit;
 							break;
+						default:
+							break;
 						}
 						double secsCPU = (msecsCPU*1.0)/1000.0;
 						double secsRun = (msecsRun*1.0)/1000.0;
@@ -1116,6 +1118,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			cbList[index].append("</span>");
 			logAppend(index,"actual",actual);
 			logAppend(index,"requested",requested);
+			break;
+		default:
 			break;
 		}
 		// State:scheduler
@@ -1392,6 +1396,8 @@ public class DuccHandler extends DuccAbstractHandler {
 				rb.append("</tr>");
 				pb.append(rb.toString());
 			}
+			break;
+		default:
 			break;
 		}
 	}
@@ -3745,6 +3751,8 @@ public class DuccHandler extends DuccAbstractHandler {
 						addDownDaemon(sb, daemonName.name());
 					}
 				}
+				break;
+			default:
 				break;
 			}
 		}

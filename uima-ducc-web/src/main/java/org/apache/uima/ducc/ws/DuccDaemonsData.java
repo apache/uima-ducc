@@ -65,6 +65,8 @@ public class DuccDaemonsData {
 			putHeartbeat(key);
 			putEventSize(key, duccEvent);
 			break;
+		default:
+			break;
 		}
 	}
 	

@@ -119,6 +119,8 @@ public class DuccData {
                     case Service:
                         history = hpm.restoreService(duccId.getFriendly());
                         break;
+					default:
+						break;
                     }
                     if(history != null) {
                         map.put(duccId, history);

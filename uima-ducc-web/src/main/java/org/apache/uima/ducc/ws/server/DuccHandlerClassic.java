@@ -264,6 +264,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 							style = DisplayStyle.Textual;
 						}
 						break;
+				default:
+					break;
 				}
 				switch(style) {
 				case Textual:
@@ -1309,6 +1311,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				if(databaseHelper.isDisabled()) {
 					continue daemons;
 				}
+			default:
+				break;
 			}
 			String status = "";
 			String bootTime = "";

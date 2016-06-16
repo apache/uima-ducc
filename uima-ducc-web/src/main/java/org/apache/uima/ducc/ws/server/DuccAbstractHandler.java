@@ -524,6 +524,8 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 				duccLogger.debug(methodName, null, t);
 			}
 			break;
+		default:
+			break;
 		}
 		return secondsMIA;
 	}
@@ -628,6 +630,8 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 						}
 					}
 				}
+				break;
+			default:
 				break;
 			}
 		}
