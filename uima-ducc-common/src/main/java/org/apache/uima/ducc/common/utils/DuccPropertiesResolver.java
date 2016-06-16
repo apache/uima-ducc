@@ -162,8 +162,7 @@ public class DuccPropertiesResolver {
     
     public static final String ducc_rm_node_stability = "ducc.rm.node.stability";
     public static final String ducc_agent_node_metrics_publish_rate = "ducc.agent.node.metrics.publish.rate";
-    public static final String ducc_rm_state_publish_rate = "ducc.rm.state.publish.rate";
-    
+  
     public static final String ducc_agent_node_inventory_publish_rate ="ducc.agent.node.inventory.publish.rate";
     public static final String ducc_agent_node_inventory_publish_rate_skip ="ducc.agent.node.inventory.publish.rate.skip";
     

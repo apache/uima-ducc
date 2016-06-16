@@ -137,9 +137,6 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.agent.node.inventory.publish.rate'] }")
 	public String nodeInventoryPublishRate;
 
-	@Value("#{ systemProperties['ducc.rm.state.publish.rate'] }")
-	public String rmStatePublishRate;
-
 	@Value("#{ systemProperties['ducc.uima-as.endpoint'] }")
 	public String managedServiceEndpoint;
 

@@ -215,8 +215,6 @@ public class ResourceManagerComponent
         minRmPublishingRate   = orPublishingRate - DEFAULT_RM_PUBLISHING_SLOP;
         if ( minRmPublishingRate <=0 ) minRmPublishingRate = DEFAULT_RM_PUBLISHING_SLOP;        // somewhat arbitrary, but what else?
 
-        // schedulingEpoch       = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.rate", DEFAULT_SCHEDULING_RATE);
-        
         String adminEndpoint         = System.getProperty("ducc.rm.admin.endpoint");
         if ( adminEndpoint == null ) {
             logger.warn(methodName, null, "No admin endpoint configured.  Not starting admin channel.");

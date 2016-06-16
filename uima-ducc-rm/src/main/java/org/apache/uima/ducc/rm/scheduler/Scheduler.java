@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.rm.scheduler;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -245,7 +244,6 @@ public class Scheduler
         logger.info(methodName, null, "                       node stability          : ", nodeStability);
         logger.info(methodName, null, "                       init stability          : ", SystemPropertyResolver.getIntProperty("ducc.rm.init.stability"));
         logger.info(methodName, null, "                       fast recovery           : ", SystemPropertyResolver.getBooleanProperty("ducc.rm.fast.recovery", true));
-        logger.info(methodName, null, "                       RM publish rate         : ", SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.rate", 60));
         logger.info(methodName, null, "                       metrics update rate     : ", SystemPropertyResolver.getIntProperty("ducc.agent.node.metrics.publish.rate", 
                                                                                                                                  DEFAULT_NODE_METRICS_RATE));
         logger.info(methodName, null, "                       initialization cap      : ", SystemPropertyResolver.getIntProperty("ducc.rm.initialization.cap"));
