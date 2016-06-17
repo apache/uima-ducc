@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -66,9 +67,42 @@ public class DuccWebServerHelper {
 		return rootDir;
 	}
 	
+	/**
+	 * retrieve keystore pw from resources.private/ducc.private.properties
+	 */
+	public static String getKeyStorePassword() {
+		String location = "getKeyStorePassword";
+		String retVal = null;
+		String pwDir = IDuccEnv.DUCC_HOME_DIR+"resources.private";
+		String fileName = pwDir+File.separator+"ducc.private.properties";
+		try {
+			File file = new File(fileName);
+			FileInputStream fis = new FileInputStream(file);
+			Properties properties = new Properties();
+			properties.load(fis);
+			fis.close();
+			String key = "ducc.ws.port.ssl.pw";
+			retVal = properties.getProperty(key);
+		}
+		catch (FileNotFoundException e) {
+			logger.debug(location, jobid, fileName+" not found");
+		} 
+		catch (IOException e) {
+			logger.debug(location, jobid, fileName+" load error");
+		}
+		return retVal;
+	}
+	
+	public static String getKeyManagerPassword() {
+		return getKeyStorePassword();
+	}
+	
+	/**
+	 * formulate file path to keystore (used for https)
+	 */
 	public static String getDuccWebKeyStore() {
-		String rootDir = getDuccWeb()+File.separator+"etc"+File.separator+"keystore";
-		return rootDir;
+		String retVal = IDuccEnv.DUCC_HOME_DIR+"webserver"+File.separator+"etc"+File.separator+"keystore";
+		return retVal;
 	}
 	
 	private static boolean exists(String fileName) {

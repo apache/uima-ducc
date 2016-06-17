@@ -35,10 +35,13 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.DuccPlugins;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.NCSARequestLog;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
@@ -87,14 +90,6 @@ public class DuccWebServer {
 		  }
 	 }
 	
-	
-	/**
-	 * The default port can be overridden in ducc.properties file, for example:
-	 * 		ducc.ws.port = 41233
-	 */
-	//private int port = 42133;
-	//private String ipaddress = null;
-	
 	/**
 	 * To support https, do the following:
 	 * 
@@ -102,22 +97,11 @@ public class DuccWebServer {
 	 *    keystore in ducc_web/etc directory
 	 * 2. in ducc.properties set SSL port, for example:
 	 * 		ducc.ws.port.ssl = 42155
-	 * 3. in ducc.properties set SSL password, for example:
-     * 		ducc.ws.port.ssl.pw = quackquack
-     *       
-     * Note: if SSL port is not set in ducc.properties, the webserver will not create
-     *       the SSL connection, and thus secure communications will be unsupported.
 	 */
-	private int portSsl = -1;
-	private String portSslPw = "quackquack";
+	
 	private String rootDir = "?";
-
-	//
-	
 	private Server server;
-	
 	private CommonConfiguration commonConfiguration;
-	
 	
 	public DuccWebServer(CommonConfiguration commonConfiguration) {
 		this.commonConfiguration = commonConfiguration;
@@ -141,11 +125,21 @@ public class DuccWebServer {
 	}
 	
 	public int getPortSsl() {
-		return portSsl;
+		String property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port_https);
+        int portHttps = ConfigValue.PortHttps.getInt(property);
+        return portHttps;
 	}
 	
 	public String getRootDir() {
 		return rootDir;
+	}
+
+	public String getKeyStorePassword() {
+		return DuccWebServerHelper.getKeyStorePassword();
+	}
+
+	public String getKeyManagerPassword() {
+		return DuccWebServerHelper.getKeyManagerPassword();
 	}
 	
 	private void init() {
@@ -154,102 +148,92 @@ public class DuccWebServer {
 		logger.info(methodName, null, messages.fetchLabel("cluster name")+getClusterName());
 		logger.info(methodName, null, messages.fetchLabel("class definition file")+getClassDefinitionFile());
 		
-		 String property;
+		String property;
 
-         /**                                                                                                                                                        
-          * Determine server idle timeout                                                                                                                           
-          * ducc.ws.idle.timeout                                                                                                                                    
-          */
-         property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_idle_timeout);
-         int idleTimeout = ConfigValue.IdleTimeout.getInt(property);
+        /**                                                                                                                                                        
+         * Determine server idle timeout                                                                                                                           
+         * ducc.ws.idle.timeout                                                                                                                                    
+         */
+        property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_idle_timeout);
+        int idleTimeout = ConfigValue.IdleTimeout.getInt(property);
 
-         /**                                                                                                                                                        
-          * Determine server max threads                                                                                                                            
-          * ducc.ws.max.threads                                                                                                                                     
-          */
-         property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_max_threads);
-         int maxThreads = ConfigValue.MaxThreads.getInt(property);
+        /**                                                                                                                                                        
+         * Determine server max threads                                                                                                                            
+         * ducc.ws.max.threads                                                                                                                                     
+         */
+        property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_max_threads);
+        int maxThreads = ConfigValue.MaxThreads.getInt(property);
 
-         /**                                                                                                                                                        
-          * Determine server http port                                                                                                                              
-          * ducc.ws.port                                                                                                                                            
-          */
-         property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port);
-         int portHttp = ConfigValue.PortHttp.getInt(property);
+        /**                                                                                                                                                        
+         * Determine server http port                                                                                                                              
+         * ducc.ws.port                                                                                                                                            
+         */
+        property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port);
+        int portHttp = ConfigValue.PortHttp.getInt(property);
 
         /**                                                                                                                                                        
           * Determine server https port                                                                                                                             
           * ducc.ws.port.https                                                                                                                                      
           */
-         property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port_https);
-         int portHttps = ConfigValue.PortHttps.getInt(property);
+        property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port_https);
+        int portHttps = ConfigValue.PortHttps.getInt(property);
 
-         try {
-                 InetAddress inetAddress = InetAddress.getLocalHost();
-                 String host = inetAddress.getCanonicalHostName();
-                 DuccWebMonitor.getInstance().register(host, ""+portHttp);
-         }
-         catch(Exception e) {
-                 logger.error(methodName, jobid, e);
-         }
-
-         // === jetty.xml ===                                                                                                                                       
-
-         // Setup Threadpool                                                                                                                                        
-         QueuedThreadPool threadPool = new QueuedThreadPool();
-         threadPool.setMaxThreads(maxThreads);
-
-         // Server                                                                                                                                                          
-         server = new Server(threadPool);
-
-         // Scheduler                                                                                                                                                       
-         server.addBean(new ScheduledExecutorScheduler());
-
-         // === jetty-http.xml ===                                                                                                                                          
-         ServerConnector http = new ServerConnector(server, new HttpConnectionFactory());
-         http.setPort(portHttp);
-         http.setIdleTimeout(idleTimeout);
-         server.addConnector(http);
-
-         // === jetty-https.xml ===                                                                                                                                         
-         // SSL Context Factory                                                                                                                                             
-         SslContextFactory sslContextFactory = new SslContextFactory();
-         String keystore = DuccWebServerHelper.getDuccWebKeyStore();
-
-
-
-         
-         
-         
-         
-         /*
-         
-		server = new Server();
-		SelectChannelConnector connector0 = new SelectChannelConnector();
-        connector0.setPort(port);
-        if(ipaddress != null) {
-        	connector0.setHost(ipaddress);
+        try {
+        	InetAddress inetAddress = InetAddress.getLocalHost();
+            String host = inetAddress.getCanonicalHostName();
+            DuccWebMonitor.getInstance().register(host, ""+portHttp);
         }
-        if(portSsl < 0) {
-        	server.setConnectors(new Connector[]{ connector0 });
+        catch(Exception e) {
+            logger.error(methodName, jobid, e);
         }
-        else {
-        	SslSelectChannelConnector ssl_connector = new SslSelectChannelConnector();
-        	ssl_connector.setPort(portSsl);
-        	if(ipaddress != null) {
-            	ssl_connector.setHost(ipaddress);
-            }
-        	org.eclipse.jetty.util.ssl.SslContextFactory cf = ssl_connector.getSslContextFactory();
-        	//SslContextFactory cf = ssl_connector.getSslContextFactory();
-        	String keystore = DuccWebServerHelper.getDuccWebKeyStore();
-        	logger.info(methodName, null, "keystore:"+keystore);
-        	cf.setKeyStorePath(keystore);
-        //	cf.setKeyStore(keystore);
-        	cf.setKeyStorePassword(portSslPw);
-        	server.setConnectors(new Connector[]{ connector0, ssl_connector });
-        }
-        */
-        //
+
+        // === jetty.xml ===                                                                                                                                       
+
+        // Setup Threadpool                                                                                                                                        
+        QueuedThreadPool threadPool = new QueuedThreadPool();
+        threadPool.setMaxThreads(maxThreads);
+
+        // Server                                                                                                                                                          
+        server = new Server(threadPool);
+
+        // Scheduler                                                                                                                                                       
+        server.addBean(new ScheduledExecutorScheduler());
+
+        // === jetty-http.xml ===                                                                                                                                          
+        ServerConnector http = new ServerConnector(server, new HttpConnectionFactory());
+        http.setPort(portHttp);
+        http.setIdleTimeout(idleTimeout);
+        server.addConnector(http);
+
+        // === jetty-https.xml ===                                                                                                                                         
+        // SSL Context Factory                                                                                                                                             
+        SslContextFactory sslContextFactory = new SslContextFactory();
+        String keystore = DuccWebServerHelper.getDuccWebKeyStore();
+
+        logger.info(methodName, jobid, "keystore="+keystore);
+        HttpConfiguration http_config = new HttpConfiguration();
+ 		http_config.setSecureScheme("https");
+ 		http_config.setSecurePort(portHttps);
+ 		logger.info(methodName, jobid, "portHttps="+portHttps);
+        HttpConfiguration https_config = new HttpConfiguration(http_config);
+        https_config.addCustomizer(new SecureRequestCustomizer());
+         
+        ServerConnector https = new ServerConnector(server,
+             new SslConnectionFactory(sslContextFactory,"http/1.1"),
+             new HttpConnectionFactory(https_config));
+
+        https.setPort(portHttps);
+        sslContextFactory.setKeyStorePath(keystore);
+        String pw = getKeyStorePassword();
+        logger.trace(methodName, jobid, "pw="+pw);
+        sslContextFactory.setKeyStorePassword(getKeyStorePassword());    
+        sslContextFactory.setKeyManagerPassword(getKeyManagerPassword());
+        
+        server.setConnectors(new Connector[] { http });
+        server.addConnector(https);
+        
+        // JSP
+         
         ServletContextHandler jspHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
         jspHandler.setContextPath("/");
         jspHandler.setResourceBase("root");
@@ -258,13 +242,13 @@ public class DuccWebServer {
         ServletHolder jsp = jspHandler.addServlet(JspServlet.class, "*.jsp");
         jsp.setInitParameter("classpath", jspHandler.getClassPath());
         //
-		ResourceHandler resourceHandler = new ResourceHandler();
-		resourceHandler.setDirectoriesListed(true);
-		resourceHandler.setWelcomeFiles(new String[]{ "index.html" });
-		rootDir = DuccWebServerHelper.getDuccWebRoot();
-		resourceHandler.setResourceBase(rootDir);
-		//
-		try {
+        ResourceHandler resourceHandler = new ResourceHandler();
+        resourceHandler.setDirectoriesListed(true);
+        resourceHandler.setWelcomeFiles(new String[]{ "index.html" });
+        rootDir = DuccWebServerHelper.getDuccWebRoot();
+        resourceHandler.setResourceBase(rootDir);
+        //
+        try {
 			Properties properties = DuccWebProperties.get();
 			String ducc_runmode = properties.getProperty("ducc.runmode","Production");
 			logger.debug(methodName, null, "ducc.runmode:"+ducc_runmode);
@@ -285,18 +269,18 @@ public class DuccWebServer {
 			out.println(text);
 			out.flush();
 			out.close();
-		}
-		catch(Exception e) {
+        }
+        catch(Exception e) {
 			logger.info(methodName, null, e);
-		}
-		//
-		HandlerList handlers = new HandlerList();
+        }
+        //
+        HandlerList handlers = new HandlerList();
 		
-		String key = "ducc.ws.requestLog.RetainDays";
-		int dflt = 0;
-		int requestLogRetainDays = DuccPropertiesResolver.get(key, dflt);
-		logger.info(methodName, jobid, "requestLogRetainDays="+requestLogRetainDays);
-		if(requestLogRetainDays > 0) {
+        String key = "ducc.ws.requestLog.RetainDays";
+        int dflt = 0;
+        int requestLogRetainDays = DuccPropertiesResolver.get(key, dflt);
+        logger.info(methodName, jobid, "requestLogRetainDays="+requestLogRetainDays);
+        if(requestLogRetainDays > 0) {
 			String requestLogTimeZone = "GMT";
 			String requestLogFmt = "yyyy_MM_dd";
 			String requestLogFile = IDuccEnv.DUCC_LOGS_WEBSERVER_DIR+requestLogFmt+".request.log";
@@ -312,32 +296,32 @@ public class DuccWebServer {
 		    requestLogHandler.setRequestLog(requestLog);
 		    handlers.addHandler(requestLogHandler);
 		    logger.info(methodName, jobid, "requestLogFile="+requestLogFile);
-		}
+        }
 		
-		DuccHandler duccHandler = new DuccHandler(this);
-		ArrayList<Handler> localHandlers = DuccPlugins.getInstance().gethandlers(this);
-		DuccHandlerClassic duccHandlerClassic = new DuccHandlerClassic(this);
-		DuccHandlerJsonFormat duccHandlerJson = new DuccHandlerJsonFormat(this);
-		DuccHandlerProxy duccHandlerProxy = new DuccHandlerProxy();
-		DuccHandlerViz duccHandlerViz = new DuccHandlerViz();
-		DuccHandlerUserAuthentication duccHandlerUserAuthentication = new DuccHandlerUserAuthentication();
-		SessionHandler sessionHandler = new SessionHandler();
-		handlers.addHandler(sessionHandler);
-		handlers.addHandler(duccHandlerUserAuthentication);
-		for(Handler handler: localHandlers) {
-			handlers.addHandler(handler);
-		}
-		handlers.addHandler(duccHandlerJson);
-		handlers.addHandler(duccHandlerProxy);
-		handlers.addHandler(duccHandlerClassic);
-		handlers.addHandler(duccHandlerViz);
-		handlers.addHandler(duccHandler);
-		handlers.addHandler(jspHandler);
-		handlers.addHandler(resourceHandler);
-		handlers.addHandler(new DefaultHandler());
-		server.setHandler(handlers);
+        DuccHandler duccHandler = new DuccHandler(this);
+        ArrayList<Handler> localHandlers = DuccPlugins.getInstance().gethandlers(this);
+        DuccHandlerClassic duccHandlerClassic = new DuccHandlerClassic(this);
+        DuccHandlerJsonFormat duccHandlerJson = new DuccHandlerJsonFormat(this);
+        DuccHandlerProxy duccHandlerProxy = new DuccHandlerProxy();
+        DuccHandlerViz duccHandlerViz = new DuccHandlerViz();
+        DuccHandlerUserAuthentication duccHandlerUserAuthentication = new DuccHandlerUserAuthentication();
+        SessionHandler sessionHandler = new SessionHandler();
+        handlers.addHandler(sessionHandler);
+        handlers.addHandler(duccHandlerUserAuthentication);
+        for(Handler handler: localHandlers) {
+        	handlers.addHandler(handler);
+        }
+        handlers.addHandler(duccHandlerJson);
+        handlers.addHandler(duccHandlerProxy);
+        handlers.addHandler(duccHandlerClassic);
+        handlers.addHandler(duccHandlerViz);
+        handlers.addHandler(duccHandler);
+        handlers.addHandler(jspHandler);
+        handlers.addHandler(resourceHandler);
+        handlers.addHandler(new DefaultHandler());
+        server.setHandler(handlers);
 		
-		logger.trace(methodName, null, messages.fetch("exit"));
+        logger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
 	public void start() throws Exception {

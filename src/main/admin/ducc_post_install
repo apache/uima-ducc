@@ -221,9 +221,9 @@ class PostInstall():
             rc = os.system(cmd);
 
         self.default_keystore_prop.v = reply
-        print 'keystore created as', reply
-            
-
+        print 'keystore = ', keystore
+        #print 'keypass = ', reply
+        #print 'storepass = ', reply
     # Setup and verify amq
     # make sure verify_ducc is sufficient - maybe move some checks to there?
 
