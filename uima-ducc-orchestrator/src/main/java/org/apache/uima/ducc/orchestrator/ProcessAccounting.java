@@ -419,6 +419,8 @@ public class ProcessAccounting {
 					}
 					process.setProcessDeallocationType(ProcessDeallocationType.Killed);
 					break;
+				default:
+					break;
 				}
 				break;
 			default:
@@ -431,6 +433,8 @@ public class ProcessAccounting {
 				String userName = service.getStandardInfo().getUser();
 				String userLogDir = service.getUserLogsDir();
 				UserLogging.error(userName, userLogDir, "reason for stopping service instance["+service.getDuccId().getFriendly()+"]: "+process.getReasonForStoppingProcess());
+				break;
+			default:
 				break;
 			}
 			break;
@@ -652,6 +656,8 @@ public class ProcessAccounting {
 			break;
 		case Undefined:
 			break;
+		default:
+			break;
 		}
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
 	}
@@ -712,10 +718,16 @@ public class ProcessAccounting {
 												case Initializing:
 													stateJobAccounting.stateChange(job, JobState.Running);
 													break;
+												default:
+													break;
 												}
+												break;
+											default:
 												break;
 											}
 										}
+									default:
+										break;
 									}
 									// Process Pipeline Components State
 									copyUimaPipelineComponentsState(job, inventoryProcess, process);
@@ -833,6 +845,8 @@ public class ProcessAccounting {
 						process.advanceProcessState(processState);
 					}
 					break;
+				default:
+					break;
 				}
 			}
 		}
@@ -849,6 +863,8 @@ public class ProcessAccounting {
 			deallocate(job,processDeallocationType,processState,job.getDriver().getProcessMap(),"driver");
 			break;
 		case Service:
+			break;
+		default:
 			break;
 		}
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));

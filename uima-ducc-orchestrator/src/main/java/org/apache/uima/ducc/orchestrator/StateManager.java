@@ -160,6 +160,8 @@ public class StateManager {
 				}
 			}
 			break;
+		default:
+			break;
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return status;
@@ -209,6 +211,8 @@ public class StateManager {
 			case Service:
 				hpm.saveService((IDuccWorkService)duccWorkJob);
 				retVal = true;
+				break;
+			default:
 				break;
 			}
 		}
@@ -279,6 +283,8 @@ public class StateManager {
 						changes ++;
 					}
 				}
+				break;
+			default:
 				break;
 			}
 		}
@@ -573,6 +579,8 @@ public class StateManager {
 							break;
 						case Initializing:
 							break;
+						default:
+							break;
 						}
 						break;
 					case Running:
@@ -607,6 +615,8 @@ public class StateManager {
 						case Assigned:	
 						case Initializing:
 							stateJobAccounting.stateChange(duccWorkJob, JobState.Running);
+							break;
+						default:
 							break;
 						}
 						break;
@@ -1102,7 +1112,11 @@ public class StateManager {
 						case Undefined:
 							logger.warn(methodName, duccId, messages.fetchLabel("unsuitable state")+serviceState);
 							break;
+						default:
+							break;
 						}
+						break;
+					default:
 						break;
 					}
 				}
@@ -1422,6 +1436,8 @@ public class StateManager {
 					case Undefined:
 						logger.warn(methodName, duccId, messages.fetchLabel("unexpected job state")+jobState);
 						break;
+					default:
+						break;
 					}
 				}
 				else {
@@ -1581,6 +1597,8 @@ public class StateManager {
 								advanceToCompleted(service);
 								// </UIMA-3923>
 								break;
+							default:
+								break;
 							}
 						}
 						else {
@@ -1676,6 +1694,8 @@ public class StateManager {
 						}
 						service.setCompletion(completionType, exitCode);
 						service.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+						break;
+					default:
 						break;
 					}
 					advanceToCompleting(service);

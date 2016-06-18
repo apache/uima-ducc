@@ -314,6 +314,8 @@ implements Orchestrator {
 							break;
 						}
 						break;
+					default:
+						break;
 					}
 				}
 			}

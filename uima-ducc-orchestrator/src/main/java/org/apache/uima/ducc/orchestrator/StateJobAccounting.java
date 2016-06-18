@@ -131,6 +131,8 @@ public class StateJobAccounting {
 			switch(state) {
 			case Completing:
 				job.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+			default:
+				break;
 			}
 			switch(state) {
 			case Completed:
@@ -334,6 +336,8 @@ public class StateJobAccounting {
 		switch(job.getCompletionType()) {
 		case Undefined:
 			retVal = true;
+			break;
+		default:
 			break;
 		}
 		if(retVal) {
