@@ -71,6 +71,10 @@ public class DbQuery {
 		return enabled;
 	}
 	
+	public boolean isUp() {
+		return (getMapMachines().size() > 0);
+	}
+	
 	public static void dumpMap(Map<String, IDbMachine> dbMachineMap) {
 		String location = "dumpMap";
 		if(dbMachineMap != null) {

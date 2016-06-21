@@ -25,6 +25,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.ws.db.DbQuery;
 
 public class DatabaseHelper extends JmxHelper {
 	
@@ -102,10 +103,7 @@ public class DatabaseHelper extends JmxHelper {
 	// Runtime Info //
 	
 	public boolean isAlive() {
-		boolean retVal = false;
-		if(getPID() != 0) {
-			retVal = true;
-		}
+		boolean retVal = DbQuery.getInstance().isUp();
 		return retVal;
 	}
 	
