@@ -634,6 +634,30 @@
             \item[Type] Tuning
           \end{description}
 
+      \item[ducc.ws.state.update.endpoint] \hfill \\
+        This is the name of the JMS endpoint through which the Webserver broadcasts its state messages. 
+        These messages are broadcast to self to determine viability of the broker. 
+        \begin{description}
+          \item[Default Value] ducc.ws.request
+          \item[Type] Private 
+        \end{description}
+
+      \item[ducc.ws.state.update.endpoint.type] \hfill \\
+        This is the JMS endpoint type used for the state messages sent by the Webserver. 
+        \begin{description}
+          \item[Default Value] topic 
+          \item[Type] Private
+        \end{description} 
+        
+      \item[ducc.ws.state.publish.rate] \hfill \\
+          \phantomsection\label{itm:props-ws.state.publish.rate}
+
+        The interval in milliseconds between Webserver publications of its state. 
+        \begin{description}
+          \item[Default Value] 5000
+          \item[Type] Private 
+        \end{description}
+
       \end{description}  
             
     
@@ -925,7 +949,7 @@
         state messages. These messages include full job information and can be large. This state is 
         used by the Process Manager and the Webserver. 
         \begin{description}
-          \item[Default Value] ducc.orchestrator.request?requestTimeout=180000
+          \item[Default Value] ducc.orchestrator.request
           \item[Type] Private 
         \end{description}
 

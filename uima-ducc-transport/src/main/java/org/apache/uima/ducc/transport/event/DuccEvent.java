@@ -36,6 +36,7 @@ public interface DuccEvent extends Serializable { // extends Map<Object, Object>
             SERVICE_REPLY, 
             START_PROCESS, 
             STOP_PROCESS, 
+            WEBSERVER_STATE,
             JD_STATE, 
             ORCHESTRATOR_STATE, 
             RM_STATE, 

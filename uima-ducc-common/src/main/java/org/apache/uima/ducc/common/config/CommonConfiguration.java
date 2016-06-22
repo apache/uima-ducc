@@ -98,6 +98,14 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.orchestrator.state.publish.rate'] }")
 	public String orchestratorStatePublishRate;
 	
+	//	fetch the name of an endpoint where the Web Server should post state updates
+	@Value("#{ systemProperties['ducc.ws.state.update.endpoint'] }")
+	public String wsStateUpdateEndpoint;
+	
+	//	fetch the rate at which the Web Server should post its state
+	@Value("#{ systemProperties['ducc.ws.state.publish.rate'] }")
+	public String wsStatePublishRate;
+	
 	//	fetch the name of an endpoint where the Job Driver should post state updates
 	@Value("#{ systemProperties['ducc.jd.state.update.endpoint'] }")
 	public String jdStateUpdateEndpoint;
