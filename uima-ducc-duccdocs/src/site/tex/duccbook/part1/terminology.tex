@@ -24,36 +24,6 @@
 \chapter{Glossary}
 
 \begin{description}
-\item[Autostarted Service] An autostarted service is a registered service that is started automatically
-  by DUCC when the DUCC system is booted.
-
-\item[Dependent service or job] A dependent service or job is a service or job that specifies one
-  or more service dependencies in their job specification. The service or job is dependent upon the
-  referenced service being operational before being started by DUCC.
-
-\item[DUCC] Distributed UIMA Cluster Computing.
-
-\item[Registered service] A registered service is a service that is registered with DUCC. DUCC
-  saves the service specification and fully manages the service, insuring it is running when needed,
-  and shutdown when not.
-
-\item[Service Instance] A service instance is one physical process which runs a CUSTOM or UIMA-AS
-  service.  UIMA-AS services are usually scaled-out with multiple instances implementing the
-  same underlying service logic.
-
-\item[Orchestrator (OR)] The Orchestrator manages the life cycle of all entities within DUCC.
-
-\item[Process Manager (PM) ] The Process Manager coordinates distribution of work among the Agents.
-
-\item[Resource Manager (RM) ] The Resource Manager schedules physical resources for DUCC work.
-
-\item[Service Endpoint] In DUCC, the service endpoint provides a unique identifier for a service. In
-  the case of UIMA-AS services, the endpoint also serves as a well-known address for contacting the
-  service. 
-
-\item[Service Manager (SM)] The Service Manager manages the life-cycles of UIMA-AS and CUSTOM
-  services. It coordinates registration of services, starting and stopping of services, and ensures
-  that services are available and remain available for the lifetime of the jobs.
 
 \item[Agent] DUCC Agent processes run on every node in the system. The Agent receives orders to
   start and stop processes on each node. Agents monitors nodes, sending heartbeat packets with node
@@ -61,7 +31,20 @@
   the cluster, the Agent is responsible for managing the CGroups for each job process. All processes
   other than the DUCC management processes are are managed as children of the agents.
 
+\item[Autostarted Service] An autostarted service is a registered service that is started automatically
+  by DUCC when the DUCC system is booted.
+
+\item[Dependent Service or Job] A dependent service or job is a service or job that specifies one
+  or more service dependencies in their job specification. The service or job is dependent upon the
+  referenced service being operational before being started by DUCC.
+
+\item[DUCC] Distributed UIMA Cluster Computing.
+
 \item[DUCC-MON]  DUCC-MON is the DUCC web-server.
+
+\item[Job] A DUCC job consists of the components required to deploy and execute a UIMA pipeline over
+  a computing cluster. It consists of a JD to run the Collection Reader, a set of JPs to run the UIMA
+  AEs, and a Job Specification to describe how the parts fit together.
 
 \item[Job Driver (JD)]The Job Driver is a thin wrapper that encapsulates a Job's Collection
   Reader. The JD executes as a process that is scheduled and deployed by DUCC.
@@ -69,24 +52,46 @@
 \item[Job Process (JP)] The Job Process is a thin wrapper that encapsulates a job's pipeline
   components. The JP executes in a process that is scheduled and deployed by DUCC.
 
-\item[Job specification] The Job Specification is a collection of properties that describe work to be
+\item[Job Specification] The Job Specification is a collection of properties that describe work to be
   scheduled and deployed by DUCC. It
   identifies the UIMA components (CR, AE, etc) that comprise the job and the system-wide
   properties of the job (CLASSPATHs, RAM requirements, etc). 
 
-\item[Job] A DUCC job consists of the components required to deploy and execute a UIMA pipeline over
-  a computing cluster. It consists of a JD to run the Collection Reader, a set of JPs to run the UIMA
-  AEs, and a Job Specification to describe how the parts fit together.
+\item[Machine] A physical computing resource managed by the DUCC Resource Manager.
+
+\item[Node] See Machine.
+
+\item[Orchestrator (OR)] The Orchestrator manages the life cycle of all entities within DUCC.
+
+\item[Process] A process is one physical process executing on a machine in the DUCC cluster. DUCC
+  jobs are comprised of one or more processes (JDs and JPs).  Each process is assigned one or
+  more {\em shares} by the DUCC scheduler.
+
+\item[Process Manager (PM) ] The Process Manager coordinates distribution of work among the Agents.
+
+\item[Registered Service] A registered service is a service that is registered with DUCC. DUCC
+  saves the service specification and fully manages the service, insuring it is running when needed,
+  and shutdown when not.
+
+\item[Resource Manager (RM) ] The Resource Manager schedules physical resources for DUCC work.
+
+\item[Service Endpoint] In DUCC, the service endpoint provides a unique identifier for a service. In
+  the case of UIMA-AS services, the endpoint also serves as a well-known address for contacting the
+  service. 
+
+\item[Service Instance] A service instance is one physical process which runs a CUSTOM or UIMA-AS
+  service.  UIMA-AS services are usually scaled-out with multiple instances implementing the
+  same underlying service logic.
+
+\item[Service Manager (SM)] The Service Manager manages the life-cycles of UIMA-AS and CUSTOM
+  services. It coordinates registration of services, starting and stopping of services, and ensures
+  that services are available and remain available for the lifetime of the jobs.
 
 \item[Share Quantum] The DUCC scheduler abstracts the nodes in the cluster as a single large
   conglomerate of resources: memory, processor cores, etc.  The scheduler logically decomposes 
   the collection of resources into some number of equal-sized atomic units.  Each unit of work requiring
   resources is apportioned one or more of these atomic units.  The smallest possible atomic 
   unit is called the {\em share quantum}, or simply, {\em share}.
-
-\item[Process]A process is one physical process executing on a machine in the DUCC cluster. DUCC
-  jobs are comprised of one or more processes (JDs and JPs).  Each process is assigned one or
-  more {\em shares} by the DUCC scheduler.
 
 \item[Weighted Fair Share] A weighted fair share calculation is used to apportion resources
   equitably to the outstanding work in the system.  In a non-weighted fair-share system, all
