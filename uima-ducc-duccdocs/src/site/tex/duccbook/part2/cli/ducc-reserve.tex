@@ -24,10 +24,10 @@
     \section{ducc\_reserve}
 
     \paragraph{Description:}
-    The reserve CLI is used request a reservation of resources. Reservations can be for entire 
-    machines or partial machines, based on memory requirements. All reservations are persistent: 
-    the resources remain dedicated to the requestor until explicitly returned. All reservations are 
-    performeed on an "all-or-nothing" basis: either the entire set of requested resources is reserved, 
+    The reserve CLI is used request a reservation of resources. Reservations can be for machines 
+    based on memory requirements. All reservations are persistent: 
+    the resources remain dedicated to the requester until explicitly returned. All reservations are 
+    performed on an "all-or-nothing" basis: either the entire set of requested resources is reserved, 
     or the reservation request fails. 
 
     All forms of ducc\_reserve block until the reservation is complete (or fails) at which point the DUCC
