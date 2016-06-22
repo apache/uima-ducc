@@ -18,16 +18,21 @@
 */
 package org.apache.uima.ducc.ws;
 
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.transport.event.AbstractDuccEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
-
+import org.apache.uima.ducc.ws.server.DuccWebProperties;
 
 public class DuccDaemonsData {
-
+	
+	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccDaemonsData.class.getName());
+	
 	private static DuccDaemonsData duccDaemonsData = new DuccDaemonsData();
 	private static ConcurrentHashMap<DaemonName,String> mapCurr = new ConcurrentHashMap<DaemonName,String>();
 	private static ConcurrentHashMap<DaemonName,String> mapPrev = new ConcurrentHashMap<DaemonName,String>();
@@ -65,6 +70,11 @@ public class DuccDaemonsData {
 			putHeartbeat(key);
 			putEventSize(key, duccEvent);
 			break;
+		case WEBSERVER_STATE:
+			key = DaemonName.Webserver;
+			putHeartbeat(key);
+			putEventSize(key, duccEvent);
+			break;	
 		default:
 			break;
 		}
@@ -159,6 +169,54 @@ public class DuccDaemonsData {
 		String retVal = "";
 		if(mapMaxTOD.containsKey(key)) {
 			retVal = mapMaxTOD.get(key);
+		}
+		return retVal;
+	}
+	
+	/**
+	 * @return number of millis since last receipt of self publication
+	 */
+	private long getWsTod() {
+		long retVal = Long.MAX_VALUE;
+		DaemonName key = DaemonName.Webserver;
+		if(mapCurr.containsKey(key)) {
+			String t1 = TimeStamp.getCurrentMillis();
+			String t0 = mapCurr.get(key);
+			long millis = TimeStamp.diffMillis(t1, t0);
+			retVal = millis;
+		}
+		return retVal;
+	}
+	
+	/**
+	 * @return number of millis after which webserver publication is considered late
+	 */
+	private long getMillisMIA() {
+		String methodName = "getMillisMIA";
+		long secondsMIA = -1;
+		Properties properties = DuccWebProperties.get();
+		String ws_rate = properties.getProperty("ducc.ws.state.publish.rate");
+		String ws_ratio = "1";
+		try {
+			long rate = Long.parseLong(ws_rate.trim());
+			long ratio = Long.parseLong(ws_ratio .trim());
+			secondsMIA = 3 * rate * ratio;
+		}
+		catch(Throwable t) {
+			duccLogger.debug(methodName, null, t);
+		}
+		return secondsMIA;
+	}
+	
+	/**
+	 * 
+	 * @return true if webserver self publications are on time, false otherwise
+	 */
+	public boolean isWsPublicationOntime() {
+		boolean retVal = true;
+		long expiry = getMillisMIA();
+		if(getWsTod() > expiry) {
+			retVal = false;
 		}
 		return retVal;
 	}

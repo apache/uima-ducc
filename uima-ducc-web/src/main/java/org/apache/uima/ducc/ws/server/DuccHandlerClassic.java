@@ -1304,6 +1304,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		DuccMachinesData duccMachinesData = DuccMachinesData.getInstance();
 		
 		int counter = 0;
+		boolean brokerAlive = brokerHelper.isAlive();
 		daemons:
 		for(DaemonName daemonName : DuccDaemonRuntimeProperties.daemonNames) {
 			switch(daemonName) {
@@ -1328,7 +1329,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			Properties properties = DuccDaemonRuntimeProperties.getInstance().get(daemonName);
 			switch(daemonName) {
 			case Broker:
-				if(brokerHelper.isAlive()) {
+				if(brokerAlive) {
 					status = DuccHandlerUtils.up();
 				}
 				else {
@@ -1398,7 +1399,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					try {
 						long overtime = timeout - Long.parseLong(heartbeatLast);
 						if(overtime < 0) {
-							status = DuccHandlerUtils.down();
+							if(brokerAlive) {
+								status = DuccHandlerUtils.down();
+							}
 							if(daemonName.equals(DaemonName.Orchestrator)) {
 								if(ComponentHelper.isLocked(IDuccEnv.DUCC_STATE_DIR,"orchestrator")) {
 									String filename = ComponentHelper.getLockFileName(IDuccEnv.DUCC_STATE_DIR,"orchestrator");
@@ -1409,7 +1412,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 							}
 						}
 						else {
-							status = DuccHandlerUtils.up();
+							if(brokerAlive) {
+								status = DuccHandlerUtils.up();
+							}
 							if(daemonName.equals(DaemonName.Orchestrator)) {
 								int jdCount = DuccData.getInstance().getLive().getJobDriverNodeCount();
 								if(jdCount == 0) {
@@ -1504,16 +1509,21 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				sb.append(trGet(counter));
 				// Status
 				StringBuffer status = new StringBuffer();
-				String machineStatus = machineInfo.getStatus();
-				if(machineStatus.equals("down")) {
-					//status.append("<span class=\"health_red\""+">");
-					status.append(DuccHandlerUtils.down());
-					//status.append("</span>");
-				}
-				else if(machineStatus.equals("up")) {
-					//status.append("<span class=\"health_green\""+">");
-					status.append(DuccHandlerUtils.up());
-					//status.append("</span>");
+				if(brokerAlive) {
+					String machineStatus = machineInfo.getStatus();
+					if(machineStatus.equals("down")) {
+						//status.append("<span class=\"health_red\""+">");
+						status.append(DuccHandlerUtils.down());
+						//status.append("</span>");
+					}
+					else if(machineStatus.equals("up")) {
+						//status.append("<span class=\"health_green\""+">");
+						status.append(DuccHandlerUtils.up());
+						//status.append("</span>");
+					}
+					else {
+						status.append(DuccHandlerUtils.unknown());
+					}
 				}
 				else {
 					status.append(DuccHandlerUtils.unknown());

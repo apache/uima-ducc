@@ -42,6 +42,7 @@ import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
+import org.apache.uima.ducc.ws.self.message.WebServerStateDuccEvent;
 import org.apache.uima.ducc.ws.server.DuccListeners;
 import org.apache.uima.ducc.ws.server.DuccWebServer;
 import org.apache.uima.ducc.ws.utils.DatedNodeMetricsUpdateDuccEvent;
@@ -239,4 +240,14 @@ implements IWebServer {
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
 	
+	/**
+	 * process the received self-publication (broker is alive!)
+	 */
+	public void update(WebServerStateDuccEvent duccEvent) {
+		String methodName = "update";
+		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
+		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"PmStateDuccEvent");
+		DuccDaemonsData.getInstance().put(duccEvent);
+		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
+	}
 }

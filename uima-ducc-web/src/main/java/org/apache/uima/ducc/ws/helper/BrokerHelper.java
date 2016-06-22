@@ -44,6 +44,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.ws.DuccDaemonsData;
 
 public class BrokerHelper extends JmxHelper {
 
@@ -483,11 +484,12 @@ public class BrokerHelper extends JmxHelper {
 		return startTime;
 	}
 	
+	/**
+	 * @return true if regular self-publications via broker are being received, 
+	 *         false otherwise
+	 */
 	public boolean isAlive() {
-		boolean retVal = false;
-		if(getPID() != 0) {
-			retVal = true;
-		}
+		boolean retVal = DuccDaemonsData.getInstance().isWsPublicationOntime();
 		return retVal;
 	}
 

@@ -31,6 +31,7 @@ import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 import org.apache.uima.ducc.ws.IWebServer;
+import org.apache.uima.ducc.ws.self.message.WebServerStateDuccEvent;
 
 public class WebServerEventListener implements DuccEventDelegateListener {
 	
@@ -95,6 +96,20 @@ public class WebServerEventListener implements DuccEventDelegateListener {
 	
 	public void onPmStateDuccEvent(@Body PmStateDuccEvent duccEvent, @Header("pubSize")Long pubSize) {
 		String location = "onPmStateDuccEvent";
+		try {
+			duccEvent.setEventSize(pubSize);
+			webServer.update(duccEvent);
+		}
+		catch(Throwable t) {
+			duccLogger.error(location, jobid, t);
+		}
+	}
+	
+	/**
+	 * Receipt of self-publication indicates that broker is alive!
+	 */
+	public void onWsStateDuccEvent(@Body WebServerStateDuccEvent duccEvent, @Header("pubSize")Long pubSize) {
+		String location = "onWsStateDuccEvent";
 		try {
 			duccEvent.setEventSize(pubSize);
 			webServer.update(duccEvent);

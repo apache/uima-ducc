@@ -25,10 +25,12 @@ import javax.jms.ObjectMessage;
 import org.apache.activemq.command.ActiveMQMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.apache.camel.Exchange;
+import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.JmsMessage;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
+import org.apache.uima.ducc.common.config.DuccBlastGuardPredicate;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -36,6 +38,7 @@ import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.ws.DuccBoot;
 import org.apache.uima.ducc.ws.WebServerComponent;
 import org.apache.uima.ducc.ws.event.WebServerEventListener;
+import org.apache.uima.ducc.ws.self.message.WebServerStateProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -95,6 +98,39 @@ public class WebServerConfiguration {
     }
 	
 	/**
+	 * Creates Camel router that will publish WebServer state at regular intervals.
+	 * 
+	 * Note: failure to receive these self-publications indicates that broker is down!
+	 * 
+	 * @param targetEndpointToReceiveWebServerStateUpdate - endpoint where to publish WS state 
+	 * @param statePublishRate - how often to publish state
+	 * @return
+	 * @throws Exception
+	 */
+	private RouteBuilder routeBuilderForWebServerStatePost(final String targetEndpointToReceiveWebServerStateUpdate, final int statePublishRate) throws Exception {
+		final WebServerStateProcessor wssp =  // an object responsible for generating the state 
+			new WebServerStateProcessor();
+		
+		return new RouteBuilder() {
+		      public void configure() {		            
+		    	
+		    	final Predicate blastFilter = new DuccBlastGuardPredicate(duccLogger);
+		    	
+		        from("timer:webserverStateDumpTimer?fixedRate=true&period=" + statePublishRate)
+		              // This route uses a filter to prevent sudden bursts of messages which
+		        	  // may flood DUCC daemons causing chaos. The filter disposes any event
+		        	  // that appears in a window of 1 sec or less.
+		        	  .filter(blastFilter)	
+		              //.process(xmStart)
+		        	  .process(wssp)
+		        	  //.process(xmEnded)
+		        	  .to(targetEndpointToReceiveWebServerStateUpdate)
+		        	  ;
+		      }
+		    };
+	}
+	
+	/**
 	 * Creates and initializes {@link WebServerComponent} instance. @Bean annotation identifies {@link WebServerComponent}
 	 * as a Spring framework Bean which will be managed by Spring container.  
 	 * 
@@ -129,6 +165,8 @@ public class WebServerConfiguration {
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.rmStateUpdateEndpoint, delegateListener));
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.smStateUpdateEndpoint, delegateListener));
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.pmStateUpdateEndpoint, delegateListener));
+			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.wsStateUpdateEndpoint, delegateListener));
+			ws.getContext().addRoutes(this.routeBuilderForWebServerStatePost(common.wsStateUpdateEndpoint, Integer.parseInt(common.wsStatePublishRate)));
 			String dbEndpoint = common.dbComponentStateUpdateEndpoint;
 			if(dbEndpoint != null) {
 				ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.dbComponentStateUpdateEndpoint, delegateListener));

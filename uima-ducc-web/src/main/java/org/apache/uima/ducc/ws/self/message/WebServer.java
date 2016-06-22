@@ -16,20 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ws;
+package org.apache.uima.ducc.ws.self.message;
 
-import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
-import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
-import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
-import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
-import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
-import org.apache.uima.ducc.ws.self.message.WebServerStateDuccEvent;
+public interface WebServer {
 
-public interface IWebServer {
-	public void update(OrchestratorStateDuccEvent duccEvent);
-	public void update(NodeMetricsUpdateDuccEvent duccEvent);
-	public void update(RmStateDuccEvent duccEvent);
-	public void update(SmStateDuccEvent duccEvent);
-	public void update(PmStateDuccEvent duccEvent);
-	public void update(WebServerStateDuccEvent duccEvent);
+	public WebServerStateDuccEvent getState();
 }
