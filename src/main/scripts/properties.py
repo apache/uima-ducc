@@ -70,6 +70,9 @@ class Properties:
             elif ( machine == 'x86_64' ):
                 self.builtin['os.arch'] = 'amd64'
                 self.builtin['os.name'] = 'Linux'
+            elif ( machine == 'ppc64le' ):
+                self.builtin['os.arch'] = 'ppc64le'
+                self.builtin['os.name'] = 'Linux'
 
 
     #
