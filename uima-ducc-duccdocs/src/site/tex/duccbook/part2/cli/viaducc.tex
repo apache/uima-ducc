@@ -50,11 +50,11 @@
 
     \paragraph{Usage:}
 \begin{verbatim}
-     viaducc [defines] [command and parameters]"
+     viaducc [defines] [command and parameters]
 \end{verbatim}
      or
 \begin{verbatim}
-     java_viaducc [defines] [java-class and parameters]"
+     java_viaducc [defines] [java-class and parameters]
 \end{verbatim}
 
      The ``defines'' are described below.  The ``command and parameters'' are either any command
@@ -75,9 +75,9 @@
 \begin{verbatim}
       -DDUCC_ENVIRONMENT="DUCC_RLIMIT_NOFILE=1000 V1=V2 A=B"
 \end{verbatim}
-         \item[-DJAVA\_BIN] This species the exact ``java'' command to use, for ``java\_viaducc''.  it
+         \item[-DJAVA\_BIN] This species the exact ``java'' command to use, for ``java\_viaducc''.  It
            must be a full path to some JRE that is known to be installed on all the DUCC nodes.  If not
-           specified, the JRE used to run ducc is uses.
+           specified, the JRE used to run ducc is used.
          \item[-DDUCC\_DESCRIPTION] The description string to use for the submission.
            If not specified, the description defaults to the executable name, viaducc or java\_viaducc.
          \item[-DDUCC\_NO\_CANCEL\_ON\_INTERRUPT] If specified this no-argument option disables 
