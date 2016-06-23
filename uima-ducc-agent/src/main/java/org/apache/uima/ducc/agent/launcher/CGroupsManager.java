@@ -575,19 +575,29 @@ public class CGroupsManager {
 				}
 				// Any process remaining in a cgroup will be killed hard
 				killChildProcesses(containerId, userId, NodeAgent.SIGKILL);
-				
-				String[] command = new String[] { "/bin/rmdir",
-						cgroupBaseDir + "/" + containerId };
+				String[] command = new String[] { cgroupUtilsDir+"/cgdelete",cgroupSubsystems + ":ducc/" + containerId };
+
+//				String[] command = new String[] { "/bin/rmdir",
+//						cgroupBaseDir + "/" + containerId };
+
 				int retCode = launchCommand(command);
-				if (retCode == 0) {
+				if ( cgroupExists(cgroupBaseDir + "/" + containerId)) {
+					agentLogger.info("destroyContainer", null, "Failed to remove Container "+containerId+" Using cgdelete command. Exit code:"+retCode);
+					return false;
+				} else {
 					containerIds.remove(containerId);
 					return true;
-				} else {
-					return false;
 				}
+//				if (retCode == 0) {
+//					containerIds.remove(containerId);
+//					return true;
+//				} else {
+//					return false;
+//				}
 			}
 			return true; // nothing to do, cgroup does not exist
 		} catch (Exception e) {
+			agentLogger.info("destroyContainer", null, e);
 			return false;
 		}
 	}
@@ -626,11 +636,13 @@ public class CGroupsManager {
 						// per team discussin 6/23/ dont need to log "Operation not permitted"
 						// which is logged by cgcreate erroneously. The cgroup is actually created
 						// but cgcreate still dumps this msg to stdout. If we log this, a user
-						// may get confused. If there is a legitimate problem a subsequent test
+						// may get confused. If thercannot remove groupe is a legitimate problem a subsequent test
 						// for existence of cgroup will catch a missing cgroup and report it as 
 						// error.
 						if ( line.indexOf("Operation not permitted") > -1 ) {
 							continue;  // dont log if the above string is in the stdout stream
+						} else if ( line.indexOf("cannot remove group") > -1 ) {
+							continue;   // could be false positive. Validation will catch if unable to remove
 						}
 						agentLogger.info("launchCommand", null, ">>>>" + line);
 						System.out.println(line);
