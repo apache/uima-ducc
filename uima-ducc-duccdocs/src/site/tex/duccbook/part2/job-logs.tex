@@ -31,12 +31,7 @@ configuration mechanism. Details on log4j can be found at \url{http://logging.ap
 \end{sloppypar}
 
 The "user logs" are the Job Driver (JD) and Job Process (JP) logs. There is one log for each process 
-of a job. The JD log is divided between two physical files: 
-
-\begin{enumerate}
-   \item Stdout and default UIMA logging output written by the UIMA collection reader.      
-   \item The diagnostic logs written by the DUCC JD wrapper around the job's collection reader. 
-\end{enumerate}
+of a job.
 
 \paragraph{Contents of the Log Directory} A number of other useful files are written to the log directory: 
 
@@ -131,8 +126,11 @@ In this example,
        is a JP log for job 100, that ran on node
        node291-63, in process 13594
 
-     \item[jd.out.log]  \hfill \\
-       is the user's JD log, containing the user's collection reader output.
+     \item[ducc.log]  \hfill \\
+       is the job state log file.
+
+     \item[jd.err.log]  \hfill \\
+       is the job error log file.
 
      \item[job-performance-summary.json.gz]  \hfill \\
        This contains the raw statistics describing
@@ -144,7 +142,7 @@ In this example,
        the performance of each individual job process.  It corresponds \hyperref[subsec:ws-processes]{Processes}
        tab of the Job Details page in the Web Server.
 
-     \item[work-item-status.json.gz]  \hfill \\
+     \item[work-item-state.json.gz]  \hfill \\
        This contains the raw statistics describing
        the operation of each individual work-item.  It corresponds to \hyperref[subsec:ws-work-items]{Work Items}
        tab of the Job Details page in the Web Server.
