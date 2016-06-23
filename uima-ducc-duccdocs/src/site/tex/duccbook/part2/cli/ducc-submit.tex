@@ -248,9 +248,9 @@
              Note that the job is NOT killed if there are processes that have passed initialization and are 
              running. If this limit is reached, the only action is to not start new processes for the job. 
 
-           \item[$--$process\_initialization\_time\_max {[integer]}] This is the maximum time a process
-             is allowed to remain in the ``initializing'' state, before DUCC terminates it.  The error
-             counts as an initialization error towards the initialization failure cap.
+           \item[$--$process\_initialization\_time\_max {[integer]}] This is the maximum time in minutes that 
+             a process is allowed to remain in the ``initializing'' state, before DUCC terminates it.  The 
+             error counts as an initialization error towards the initialization failure cap.
 
            \item[$--$process\_jvm\_args {[list]} ] This specifies additional arguments to be passed to
              all of the job processes as a blank-delimited list of strings. Example:
