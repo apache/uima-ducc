@@ -41,8 +41,7 @@
             unrelated non-preemptable processes.  
 
         \item[Reservations]
-            A reservation provides non-preemptable, persistent, dedicated use of a full machine or
-            some part of a machine to a specific user.
+            A reservation provides non-preemptable, persistent, dedicated use of a machine to a specific user.
 
         \item[Arbitrary Processes]
             An {\em arbitrary process} or {\em managed reservation} is any process at all, which may
@@ -199,7 +198,7 @@
               as a convenience for running managed reservations.
           \end{itemize}                    
           
-        \item[RESERVE] The RESERVE policy is used to allocate a full, dedicated machine.
+        \item[RESERVE] The RESERVE policy is used to allocate a dedicated machine.
           The allocation may be {\em evicted} but it is never {\em preempted}. It is
           restricted to a single machine per request.  The memory size
           specified in the reservation must match machine size
