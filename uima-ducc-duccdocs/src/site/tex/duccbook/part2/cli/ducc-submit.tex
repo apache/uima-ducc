@@ -356,7 +356,7 @@ process_memory_size                 = 15
   filesystem or Java classpath according to the following rules:
   \begin{enumerate}
     \item If the resource ends in .xml it is assumed the resource is a file in the filesystem 
-      and the path is either an absolute path or a path relative to the specified working directory.
+      and the path is either an absolute path or a path relative to the specified working directory. [by location]
     \item If the resource does not end in .xml, it is assumed the resource is in the Java
-      classpath. DUCC creates a resource name by replacing the "." separators with "/" and appending ".xml".
+      classpath. DUCC creates a resource name by replacing the "." separators with "/" and appending ".xml". [by name]
   \end{enumerate}
