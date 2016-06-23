@@ -90,8 +90,8 @@
         \end{description}
             
     \paragraph{Notes:}
-    Reservations must be for full machines, in a job class implementing the RESERVE scheduling
-    policy. The default DUCC distribution configures class {\em reserve} for full machine
+    Reservations must be for entire machines, in a job class implementing the RESERVE scheduling
+    policy. The default DUCC distribution configures class {\em reserve} for entire machine
     reservations.  If there is no available machine in that class matching the requested size (after
     rounding up) the request is queued.  The user may cancel the request with {\em ducc\_unreserve}
     or with CTRL-C if $--$cancel\_on\_interrupt was specified.
