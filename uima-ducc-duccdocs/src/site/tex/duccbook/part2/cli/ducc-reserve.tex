@@ -24,7 +24,7 @@
     \section{ducc\_reserve}
 
     \paragraph{Description:}
-    The reserve CLI is used request a reservation of resources. Reservations can be for machines 
+    The reserve CLI is used to request a reservation of resources. Reservations can be for machines 
     based on memory requirements. All reservations are persistent: 
     the resources remain dedicated to the requester until explicitly returned. All reservations are 
     performed on an "all-or-nothing" basis: either the entire set of requested resources is reserved, 
@@ -64,7 +64,7 @@
               Alias: $--$instance\_memory\_size
 
             \item[$--$scheduling\_class {[classname]}]               
-              This specifies the name of the scheduling class the RM will use to determine the resource 
+              This specifies the name of the scheduling class used to determine the resource 
               allocation for each process. It must be one implementing the RESERVE policy.
               If not specified, the RESERVE default is taken from the site class definitions file
               described \hyperref[subsubsec:class.configuration]{here.} 
