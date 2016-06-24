@@ -51,10 +51,12 @@ public class Utils {
 	}
 	public static int findFreePort() {
 	    ServerSocket socket = null;
+	    int port = 0;
 	    try {
 	      //  by passing 0 as an arg, let ServerSocket choose an arbitrary
 	      //  port that is available.
 	      socket = new ServerSocket(0);
+	      port = socket.getLocalPort();
 	    } catch (IOException e) {
 	    } finally { 
 	      try {
@@ -64,7 +66,7 @@ public class Utils {
 	        } 
 	      } catch( Exception ex) {}
 	    }
-	    return socket.getLocalPort();
+	    return port;
 	  }
 	public static boolean portAvailable(int port ) {
 		ServerSocket sock = null;
