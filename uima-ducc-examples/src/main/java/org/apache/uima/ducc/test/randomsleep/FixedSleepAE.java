@@ -79,15 +79,21 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             logger.log(Level.INFO, "Init bypassed in PID:TID " + pid + ":" + tid + ", already completed. ");
             return;
         } else {
-            logger.log(Level.INFO, "Init procedes in PID:TIDs " + pid + ":" + tid + " Environment:");
+        	if ( logger != null )
+               logger.log(Level.INFO, "Init procedes in PID:TIDs " + pid + ":" + tid + " Environment:");
             for ( String k : env.keySet() ) {
-                logger.log(Level.INFO, String.format("Environment[%s] = %s", k, env.get(k)));
+                if ( logger != null )
+            	   logger.log(Level.INFO, String.format("Environment[%s] = %s", k, env.get(k)));
             }
             File workingdir = new File(System.getProperty("user.dir"));
             File[] files = workingdir.listFiles();
-            logger.log(Level.INFO, "Working directory is " + workingdir.toString());
-            for ( File f : files ) {
-                logger.log(Level.INFO, "File: " + f.toString());
+            if ( logger != null )
+               logger.log(Level.INFO, "Working directory is " + workingdir.toString());
+            if ( files != null ) {
+                for ( File f : files ) {
+                	if ( logger != null )
+                	   logger.log(Level.INFO, "File: " + f.toString());
+                }
             }
         }
 
@@ -103,7 +109,8 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
 
         if ( i_error > 0 ) {
             int toss = nextrand(100);
-            logger.log(Level.INFO, "Init errors: probability[" + i_error + "] toss[" + toss + "]");
+            if ( logger != null )
+               logger.log(Level.INFO, "Init errors: probability[" + i_error + "] toss[" + toss + "]");
             if ( i_error > toss ) {
                 throwAnException("Random Error in Initialization");
             }
@@ -111,9 +118,11 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
 
         if ( i_exit > 0 ) {
             int toss = nextrand(100);
-            logger.log(Level.INFO, "Init hard exit: probability[" + i_exit + "] toss[" + toss + "]");
+            if ( logger != null )
+               logger.log(Level.INFO, "Init hard exit: probability[" + i_exit + "] toss[" + toss + "]");
             if ( i_exit > toss ) {
-                logger.log(Level.INFO, "Init hard exit: croaking hard now.");
+            	if ( logger != null )
+            	   logger.log(Level.INFO, "Init hard exit: croaking hard now.");
                 Runtime.getRuntime().halt(0);
             }
         }
@@ -127,24 +136,28 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         }
         
         sleep = i_itime + nextrand(i_irange);  // pick off some random number of milliseconds, min of 5 minutes init sleep
-
-        logger.log(Level.INFO, "^^--------> Initialization sleep time is " + sleep + " milliseconds");
+        if ( logger != null )
+           logger.log(Level.INFO, "^^--------> Initialization sleep time is " + sleep + " milliseconds");
                    
         String bloat = System.getenv("INIT_BLOAT");
         if ( bloat != null ) {
-            logger.log(Level.INFO, "INIT_BLOAT is set to " + bloat + "; starting bloat in init");
+        	if ( logger != null )
+        	   logger.log(Level.INFO, "INIT_BLOAT is set to " + bloat + "; starting bloat in init");
             runBloater(bloat);
         }
         
         String ok = "INTERRUPTED";
-        logger.log(Level.INFO, "^^-------> AE process " + pid + " TID " + tid + " initialization starts: sleep " + sleep + "MS");
+        if ( logger != null )
+           logger.log(Level.INFO, "^^-------> AE process " + pid + " TID " + tid + " initialization starts: sleep " + sleep + "MS");
         try {
             Thread.sleep(sleep);
             ok = "OK";
         } catch (InterruptedException e) {
-            logger.log(Level.INFO, "^^-------> AE process " + pid + " TID " + tid + " my sleep has been disturbed!");
+        	if ( logger != null )
+        	   logger.log(Level.INFO, "^^-------> AE process " + pid + " TID " + tid + " my sleep has been disturbed!");
         }
-        logger.log(Level.INFO, "^^-------> AE process " + pid + " TID " + tid + " initialization " + ok);
+        if ( logger != null )
+           logger.log(Level.INFO, "^^-------> AE process " + pid + " TID " + tid + " initialization " + ok);
         return;
     }
 
@@ -159,7 +172,8 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         try {
             return Integer.parseInt(s);
         } catch (NumberFormatException e) {
-            logger.log(Level.INFO, "Invalid " + key + "[" + s + "].  Must be integer.");
+        	if ( logger != null )
+        	   logger.log(Level.INFO, "Invalid " + key + "[" + s + "].  Must be integer.");
             throw e;
         }
     }
@@ -175,7 +189,8 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         try {
             return Double.parseDouble(s);
         } catch (NumberFormatException e) {
-            logger.log(Level.INFO, "Invalid " + key + "[" + s + "].  Must be double.");
+        	if ( logger != null )
+        	   logger.log(Level.INFO, "Invalid " + key + "[" + s + "].  Must be double.");
             throw e;
         }
     }
@@ -313,7 +328,8 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         }
         String s = sb.toString();
         System.out.println("FROM PRINTLN: " + s);
-        logger.log(Level.INFO, "FROM LOGGER:" + s);
+        if ( logger != null )
+           logger.log(Level.INFO, "FROM LOGGER:" + s);
     }
 
     public void destroy()
