@@ -434,7 +434,9 @@ public class ServicePingMain
 			}
 		} finally {
 			try {
-				sock.close();
+				if ( sock != null ) {
+					sock.close();
+				}
 			} catch (IOException e) {
 				// Junk catch to keep Eclipse from whining
 				e.printStackTrace();
