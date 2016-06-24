@@ -202,7 +202,9 @@ public class JmxAEProcessInitMonitor implements Runnable {
 									+ aeStateList.size());
 				}
 				try {
-					agent.notify(false, aeStateList);
+					if ( agent != null ) {
+						agent.notify(false, aeStateList);
+					}
 				} catch (Exception ex) {
 					throw ex;
 				} finally {
