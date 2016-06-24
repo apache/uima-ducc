@@ -86,7 +86,10 @@ public class AnonymousPinger
         	t.printStackTrace();
             stats.setInfo(t.getMessage());
         } finally {
-        	try { sock.close(); } catch (IOException e) {}
+        	try { 
+        		if ( sock != null )
+        		   sock.close(); 
+        	} catch (IOException e) {}
         }
         return stats;        
     }
