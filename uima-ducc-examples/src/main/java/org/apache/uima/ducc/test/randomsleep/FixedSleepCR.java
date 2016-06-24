@@ -97,8 +97,10 @@ public class FixedSleepCR extends CollectionReader_ImplBase
         File workingdir = new File(System.getProperty("user.dir"));
         File[] files = workingdir.listFiles();
         System.out.println("Working directory is " + workingdir.toString());
-        for ( File f : files ) {
-            System.out.println("File: " + f.toString());
+        if ( files != null ) {
+            for ( File f : files ) {
+                System.out.println("File: " + f.toString());
+            }
         }
 
         // set these up for use in getNext
