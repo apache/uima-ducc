@@ -165,7 +165,7 @@ public class DbLoader
         }
 
         File[] files = dir.listFiles();
-        if ( files.length == 0 ) {
+        if ( files == null || files.length == 0 ) {
             logger.info(methodName, null, "No jobs to move to database.");
             return;
         }
@@ -244,7 +244,7 @@ public class DbLoader
         }
 
         File[] files = dir.listFiles();
-        if ( files.length == 0 ) {
+        if ( files == null || files.length == 0 ) {
             logger.info(methodName, null, "No reservation history files to convert.");
             return;
         }
@@ -326,7 +326,7 @@ public class DbLoader
 
         File[] files = dir.listFiles();
 
-        if ( files.length == 0 ) {
+        if ( files == null || files.length == 0 ) {
             logger.info(methodName, null, "No service history files to convert.");
             return;
         }
@@ -406,7 +406,7 @@ public class DbLoader
 
         File[] files = dir.listFiles();
         
-        if ( files.length == 0 ) {
+        if ( files == null || files.length == 0 ) {
             if ( isHistory ) {
                 logger.info(methodName, null, "Nothing in service registry history to move to database");
             } else {
@@ -512,8 +512,12 @@ public class DbLoader
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
-			fis.close();
-			in.close();
+			if ( fis != null ) {
+				fis.close();
+			}
+			if ( in != null ) {
+				in.close();
+			}
 		}
 
         if ( archive ) {
