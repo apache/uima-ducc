@@ -24,6 +24,8 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
@@ -49,6 +51,7 @@ public class ServiceComponent extends AbstractDuccComponent implements
 	protected String dd;
 	private Object processorInstance = null;
     private CountDownLatch exitLatch = new CountDownLatch(1);
+	private Lock stateLock = new ReentrantLock();
 	
 	public ServiceComponent(String componentName, CamelContext ctx,
 			ServiceConfiguration jpc) {
@@ -62,7 +65,8 @@ public class ServiceComponent extends AbstractDuccComponent implements
 	}
 
 	public void setState(ProcessState state) {
-		synchronized (currentState) {
+		try {
+			stateLock.lock();
 			if (currentState.name().equals(
 					ProcessState.FailedInitialization.name())) {
 				return;
@@ -71,6 +75,8 @@ public class ServiceComponent extends AbstractDuccComponent implements
 				currentState = state;
 				agent.notify(currentState, super.getProcessJmxUrl());
 			}
+		} finally {
+			stateLock.unlock();
 		}
 	}
 
