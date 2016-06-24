@@ -134,7 +134,7 @@ public class DuccUimaLoader {
 		File pf = new File(p);
 		if (pf.isDirectory()) {
 			File[] jars = pf.listFiles(jarFilter);
-			if (jars.length == 0) {
+			if (jars == null && jars.length == 0) {
 				// this is the case where the user wants to include
 				// a directory containing non-jar'd .class files
 				add(urls, pf);
