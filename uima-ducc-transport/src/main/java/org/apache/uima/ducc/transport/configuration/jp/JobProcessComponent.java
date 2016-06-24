@@ -31,6 +31,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.camel.CamelContext;
 import org.apache.http.client.methods.HttpPost;
@@ -60,10 +62,13 @@ implements IJobProcessor{
 	private AtomicInteger maxFrameworkFailures = null;
 	ScheduledThreadPoolExecutor executor = null;
 	ExecutorService tpe = null;
+	Lock stateLock = new ReentrantLock();
+	
     private volatile boolean uimaASJob=false;
     Map<String, IMetaCasTransaction> transactionMap =
     		new ConcurrentHashMap<String, IMetaCasTransaction>();
     
+    final static Lock lock = new ReentrantLock();;
     
 	private DuccHttpClient httpClient = null;
     private Object processorInstance=null;
@@ -79,7 +84,8 @@ implements IJobProcessor{
 		setState(state,super.getProcessJmxUrl() );
 	}
 	public void setState(ProcessState state, String message) {
-		synchronized(currentState) {
+		try {
+			stateLock.lock();
 			if ( currentState.name().equals(ProcessState.FailedInitialization.name()) ) {
 				return;
 			}
@@ -92,8 +98,10 @@ implements IJobProcessor{
 
 				agent.notify(currentState, message);
 			} 
+			
+		} finally {
+			stateLock.unlock();
 		}
-		
 	}
     public void setThreadSleepTime(int sleepTime) {
     	threadSleepTime = sleepTime;
@@ -122,8 +130,13 @@ implements IJobProcessor{
 	}
 	
 	public DuccLogger getLogger() {
-		if ( logger == null ) {
-			logger = new DuccLogger(JobProcessComponent.class);
+		try {
+			lock.lock();
+			if ( logger == null ) {
+				logger = new DuccLogger(JobProcessComponent.class);
+			}
+		} finally {
+			lock.unlock();
 		}
 		return logger;
 	}
