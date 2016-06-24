@@ -42,7 +42,7 @@ public class Rationale implements IRationale {
 		String retVal = "";
 		if(text != null) {
 			retVal = text.trim();
-			retVal.replace("\"", "");
+			retVal = retVal.replace("\"", "");
 			if(!retVal.startsWith("\"")) {
 				retVal = "\""+retVal+"\"";
 			}
