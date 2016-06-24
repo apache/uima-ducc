@@ -366,7 +366,9 @@ implements IJobProcessor{
 	}
 	public void stop() {
 		currentState = ProcessState.Stopping;
-		agent.notify(currentState);
+		if ( agent != null ) {
+			agent.notify(currentState);
+		}
 		if ( super.isStopping() ) {
 			return;  // already stopping - nothing to do
 		}
