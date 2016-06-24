@@ -214,7 +214,7 @@ public class DuccJobTextCR extends CollectionReader_ImplBase {
    */
   private void addFilesFromDir(File dir) {
     File[] files = dir.listFiles();
-    for (int i = 0; i < files.length; i++) {
+    for (int i = 0; files != null && i < files.length; i++) {
       if (!files[i].isDirectory()) {
         String outfilename = files[i].getAbsolutePath();
         outfilename = outfilename.substring(mInputdirectory.length());
