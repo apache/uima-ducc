@@ -429,7 +429,7 @@ class PingDriver
         }
 
         File[] files = dir.listFiles();
-        if ( files.length == 0 ) {
+        if ( files == null || files.length == 0 ) {
             return;
         }
 
