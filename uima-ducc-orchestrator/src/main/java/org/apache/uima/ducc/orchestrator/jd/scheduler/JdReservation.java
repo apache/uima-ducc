@@ -140,7 +140,7 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 		NodeIdentity retVal = null;
 		ConcurrentHashMap<DuccId, SizeBytes> map = getMap();
 		if(jdId != null) {
-			synchronized(map) {
+			synchronized(this) {
 				if(!map.containsKey(jdId)) {
 					if(!isFull()) {
 						map.put(jdId, size);
@@ -160,7 +160,7 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 		NodeIdentity retVal = null;
 		ConcurrentHashMap<DuccId, SizeBytes> map = getMap();
 		if(jdId != null) {
-			synchronized(map) {
+			synchronized(this) {
 				if(map.containsKey(jdId)) {
 					map.remove(jdId);
 					retVal = getNodeIdentity();
