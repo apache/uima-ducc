@@ -158,7 +158,9 @@ public class CGroupsManager {
 
 		File cgroupsFolder = new File(cgroupBaseDir);
 		String[] files = cgroupsFolder.list();
-		
+		if ( files == null || files.length == 0 ) {
+			return;
+		}
 
 		for (String cgroupFolder : files) {
 			Matcher m = p.matcher(cgroupFolder);
@@ -262,7 +264,9 @@ public class CGroupsManager {
 
 	    File cgroupsFolder = new File(cgroupBaseDir);
 	    String[] files = cgroupsFolder.list();
-	    
+	    if ( files == null || files.length == 0 ) {
+	    	return new String[0];  // empty better than NULL
+	    }
 	    for (String cgroupFolder : files) {
 	      Matcher m = p.matcher(cgroupFolder);
 	      //  only look at ducc's cgroups
@@ -606,7 +610,9 @@ public class CGroupsManager {
 		
 		int retryCount=0;
 		Object sleepMonitor = new Object();
-
+		if ( command == null) {
+			return -1;
+		}
 		synchronized(CGroupsManager.class) {
 			long delay = delayFactor;//
 			while( retryCount <= retryMax ) {
@@ -623,6 +629,7 @@ public class CGroupsManager {
 				try {
 					agentLogger.info("launchCommand", null, "Launching Process - Commandline:"+sb.toString());
 					ProcessBuilder processLauncher = new ProcessBuilder();
+					
 					processLauncher.command(command);
 					processLauncher.redirectErrorStream(true);
 					java.lang.Process process = processLauncher.start();
@@ -711,9 +718,11 @@ public class CGroupsManager {
 		File duccCGroupBaseDir = new File(cgroupBaseDir);
 		if (duccCGroupBaseDir.exists()) {
 			File[] existingCGroups = duccCGroupBaseDir.listFiles();
-			for (File cgroup : existingCGroups) {
-				if (cgroup.isDirectory()) {
-					containerIds.add(cgroup.getName());
+			if ( existingCGroups != null ) {
+				for (File cgroup : existingCGroups) {
+					if (cgroup.isDirectory()) {
+						containerIds.add(cgroup.getName());
+					}
 				}
 			}
 		}
@@ -890,7 +899,12 @@ public class CGroupsManager {
 	  		    File f = new File(cgroupsBaseDir + "/" + "test/cpu.shares");
  			    reader = new BufferedReader(new FileReader(f));
 				// read 1st line. It should be equal to cpuShares
-    			shares = reader.readLine().trim();
+ 			    if ( reader != null  ) {
+ 			    	shares = reader.readLine();
+ 			    	if ( shares != null ) {
+ 			    		shares = shares.trim();
+ 			    	}
+ 			    }
     			System.out.println("----- Cgroup cgset verifier - cpu.shares read from file:"+shares);
     			if ( !String.valueOf(cpuShares).equals(shares)) {
     					throw new CGroupsException().addCommand(CGroupCommand.CGSET.cmd())
