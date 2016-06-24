@@ -45,7 +45,8 @@ public class ServiceComponent extends AbstractDuccComponent implements
 	private String jmxConnectString = "";
 	protected ProcessState currentState = ProcessState.Undefined;
 	protected ProcessState previousState = ProcessState.Undefined;
-	protected static DuccLogger logger;
+	protected static DuccLogger logger =
+			new DuccLogger(ServiceComponent.class);
 	protected String saxonJarPath;
 	protected String dd2SpringXslPath;
 	protected String dd;
@@ -101,9 +102,6 @@ public class ServiceComponent extends AbstractDuccComponent implements
 	}
 
 	public DuccLogger getLogger() {
-		if (logger == null) {
-			logger = new DuccLogger(ServiceComponent.class);
-		}
 		return logger;
 	}
 
@@ -207,7 +205,9 @@ public class ServiceComponent extends AbstractDuccComponent implements
 
 	public void stop() {
 		currentState = ProcessState.Stopping;
-		agent.notify(currentState);
+		if ( agent != null ) {
+			agent.notify(currentState);
+		}
 		if (super.isStopping()) {
 			return; // already stopping - nothing to do
 		}
