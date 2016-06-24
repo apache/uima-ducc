@@ -79,7 +79,7 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract implements IWorkI
 					if(logger != null) {
 						logger.trace(location, jobid, "node: "+node+" "+"pid: "+pid+" "+"time: "+value);
 					}
-					if(map.contains(key)) {
+					if(map.containsKey(key)) {
 						value += map.get(key);
 					}
 					map.put(key,value);
