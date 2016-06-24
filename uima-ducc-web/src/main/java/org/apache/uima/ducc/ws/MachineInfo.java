@@ -423,7 +423,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	public boolean equals(Object object) {
 		boolean retVal = false;
 		if(object != null) {
-			if(object instanceof NodeId) {
+			if(object instanceof MachineInfo) {
 				MachineInfo that = (MachineInfo) object;
 				retVal = (this.hashCode() == that.hashCode());
 			}

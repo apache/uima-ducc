@@ -36,7 +36,7 @@ import com.google.gson.reflect.TypeToken;
 
 public class AlienWorkItemStateReader extends WorkItemStateReader {
 	
-	protected DuccLogger logger = DuccLogger.getLogger(AlienWorkItemStateReader.class, null);
+	protected static DuccLogger logger = DuccLogger.getLogger(AlienWorkItemStateReader.class, null);
 	
 	private String user = null;
 	

@@ -2449,7 +2449,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						String link = logfile;
 						String reason = process.getReasonForStoppingProcess();
 						if(reason != null) {
-							if(reason.trim() != "") {
+							if(reason.trim().length() > 0) {
 								link = logfile+":"+reason;
 							}
 						}
@@ -2499,7 +2499,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						String link = logfile;
 						String reason = process.getReasonForStoppingProcess();
 						if(reason != null) {
-							if(reason.trim() != "") {
+							if(reason.trim().length() > 0) {
 								link = logfile+":"+reason;
 							}
 						}
