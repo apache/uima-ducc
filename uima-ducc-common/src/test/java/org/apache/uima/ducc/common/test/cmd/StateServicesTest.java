@@ -39,7 +39,7 @@ public class StateServicesTest
 			System.out.println("DUCC_HOME not set in environment");
 			return;
 		}
-		if(ducc_home.trim() == "") {
+		if(ducc_home.trim().length() == 0) {
 			System.out.println("DUCC_HOME not set in environment");
 			return;
 		}
