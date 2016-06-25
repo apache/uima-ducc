@@ -3117,20 +3117,28 @@ public class DuccHandler extends DuccAbstractHandler {
 			try {
 				memTotal += Long.parseLong(machineInfo.getMemTotal());
 			}
-			catch(Exception e) {};
+			catch(Exception e) {
+				duccLogger.trace(methodName, jobid, e);
+			};
 			try {swapInuse += Long.parseLong(machineInfo.getSwapInuse());
 			}
-			catch(Exception e) {};
+			catch(Exception e) {
+				duccLogger.trace(methodName, jobid, e);
+			};
 			try {swapFree += Long.parseLong(machineInfo.getSwapFree());
 			}
-			catch(Exception e) {};
+			catch(Exception e) {
+				duccLogger.trace(methodName, jobid, e);
+			};
 			try {
 				List<ProcessInfo> alienPidsList = machineInfo.getAlienPids();
 				if(alienPidsList != null) {
 					alienPids += alienPidsList.size();
 				}
 			}
-			catch(Exception e) {};
+			catch(Exception e) {
+				duccLogger.trace(methodName, jobid, e);
+			};
 		}
 		// pass 2
 		iterator = sortedMachines.keySet().iterator();

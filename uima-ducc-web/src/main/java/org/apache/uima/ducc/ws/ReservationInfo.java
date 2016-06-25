@@ -63,16 +63,18 @@ public class ReservationInfo implements Comparable<ReservationInfo> {
 	 
 	public boolean equals(Object object) {
 		boolean retVal = false;
-		try {
-			ReservationInfo i1 = this;
-			ReservationInfo i2 = (ReservationInfo)object;
-			DuccWorkReservation j1 = i1.getReservation();
-			DuccWorkReservation j2 = i2.getReservation();
-			String s1 = j1.getDuccId().toString();
-			String s2 = j2.getDuccId().toString();
-			retVal = s1.equals(s2);
-		}
-		catch(Throwable t) {	
+		if(object != null) {
+			try {
+				ReservationInfo i1 = this;
+				ReservationInfo i2 = (ReservationInfo)object;
+				DuccWorkReservation j1 = i1.getReservation();
+				DuccWorkReservation j2 = i2.getReservation();
+				String s1 = j1.getDuccId().toString();
+				String s2 = j2.getDuccId().toString();
+				retVal = s1.equals(s2);
+			}
+			catch(Throwable t) {	
+			}
 		}
 		return retVal;
 	}

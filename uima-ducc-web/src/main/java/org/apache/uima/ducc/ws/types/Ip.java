@@ -56,4 +56,12 @@ public class Ip implements Comparable<Ip> {
 		}
 		return retVal;
 	}
+	
+	// @return use ip as hashCode
+	
+	@Override
+	public int hashCode()
+	{
+		return ip.hashCode();
+	}
 }

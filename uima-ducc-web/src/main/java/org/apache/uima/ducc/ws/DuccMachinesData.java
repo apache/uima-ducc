@@ -201,6 +201,10 @@ public class DuccMachinesData {
 		return retVal;
 	}
 	
+	private static void setSortedMachines(ConcurrentSkipListMap<MachineInfo,NodeId> value) {
+		sortedMachines = value;
+	}
+	
 	public void updateSortedMachines() {
 		String location = "updateSortedMachines";
 		logger.debug(location, jobid, "start");
@@ -215,7 +219,7 @@ public class DuccMachinesData {
 				map.put(machineInfo, nodeId);
 				logger.debug(location, jobid, "put: "+nodeId);
 			}
-			sortedMachines = map;
+			setSortedMachines(map);
 			updateMachineFactsList();
 		}
 		catch(Exception e) {

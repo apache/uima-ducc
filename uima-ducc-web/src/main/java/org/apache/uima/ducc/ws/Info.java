@@ -86,18 +86,20 @@ public class Info implements Comparable<Info> {
 	 
 	public boolean equals(Object object) {
 		boolean retVal = false;
-		try {
-			IDuccWork dw1 = this._dw;
-			IDuccWork dw2 = (IDuccWork)object;
-			String s1 = dw1.getDuccId().toString();
-			String s2 = dw2.getDuccId().toString();
-			DuccType dt1 = dw1.getDuccType();
-			DuccType dt2 = dw2.getDuccType();
-			if(dt1 == dt2) {
-				retVal = s1.equals(s2);
+		if(object != null) {
+			try {
+				IDuccWork dw1 = this._dw;
+				IDuccWork dw2 = (IDuccWork)object;
+				String s1 = dw1.getDuccId().toString();
+				String s2 = dw2.getDuccId().toString();
+				DuccType dt1 = dw1.getDuccType();
+				DuccType dt2 = dw2.getDuccType();
+				if(dt1 == dt2) {
+					retVal = s1.equals(s2);
+				}
 			}
-		}
-		catch(Throwable t) {	
+			catch(Throwable t) {	
+			}
 		}
 		return retVal;
 	}

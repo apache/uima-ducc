@@ -63,16 +63,18 @@ public class JobInfo implements Comparable<JobInfo> {
 	 
 	public boolean equals(Object object) {
 		boolean retVal = false;
-		try {
-			JobInfo i1 = this;
-			JobInfo i2 = (JobInfo)object;
-			DuccWorkJob j1 = i1.getJob();
-			DuccWorkJob j2 = i2.getJob();
-			String s1 = j1.getDuccId().toString();
-			String s2 = j2.getDuccId().toString();
-			retVal = s1.equals(s2);
-		}
-		catch(Throwable t) {	
+		if(object != null) {
+			try {
+				JobInfo i1 = this;
+				JobInfo i2 = (JobInfo)object;
+				DuccWorkJob j1 = i1.getJob();
+				DuccWorkJob j2 = i2.getJob();
+				String s1 = j1.getDuccId().toString();
+				String s2 = j2.getDuccId().toString();
+				retVal = s1.equals(s2);
+			}
+			catch(Throwable t) {	
+			}
 		}
 		return retVal;
 	}

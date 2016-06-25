@@ -336,7 +336,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		if(users != null) {
 			if(user != null) { 
 				if(!users.isEmpty()) {
-					if(!user.contains(user)) {
+					if(!users.contains(user)) {
 						retVal = false;
 					}
 				}

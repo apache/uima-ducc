@@ -83,14 +83,14 @@ public class DuccWebMonitorManagedReservation {
 			gone.remove(duccId);
 			if(!mMap.containsKey(duccId)) {
 				MonitorInfo monitorInfo = new MonitorInfo();
-				mMap.put(duccId, monitorInfo);
+				mMap.putIfAbsent(duccId, monitorInfo);
 				duccLogger.info(location, duccId, "monitor start");
 				if(!tMap.containsKey(duccId)) {
 					if(dw.isCancelOnInterrupt()) {
 						TrackingInfo ti = new TrackingInfo();
 						ti.time = expiryMillis;
 						ti.user = dw.getStandardInfo().getUser();
-						tMap.put(duccId,ti);
+						tMap.putIfAbsent(duccId,ti);
 						duccLogger.info(location, duccId, "auto-cancel on");
 					}
 					else {

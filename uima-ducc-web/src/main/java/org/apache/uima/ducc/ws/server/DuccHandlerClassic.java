@@ -1736,6 +1736,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				// Status
 				StringBuffer sb = new StringBuffer();
 				String status = facts.status;
+				if(status == null) {
+					status = "?";
+				}
 				hover = "title=\""+facts.statusReason+"\"";
 				if(status.equals("down")) {
 					sb.append("<span "+hover+" class=\"health_red\""+">");

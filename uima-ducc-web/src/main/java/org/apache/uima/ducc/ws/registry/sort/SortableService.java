@@ -86,20 +86,12 @@ public class SortableService extends ServiceAdapter implements Comparable<Sortab
 		boolean a1 = this.isAlert();
 		boolean a2 = that.isAlert();
 		if(a2) {
-			if(a1) {
-				retVal = 0;
-			}
-			else {
+			if(!a1) {
 				retVal = 1;
 			}
 		}
 		else if(a1) {
-			if(a2) {
-				retVal = 0;
-			}
-			else {
-				retVal = 0-1;
-			}
+			retVal = 0-1;
 		}
 		return retVal;
 	}

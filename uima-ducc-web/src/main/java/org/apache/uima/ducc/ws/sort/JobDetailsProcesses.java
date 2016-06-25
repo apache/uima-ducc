@@ -212,16 +212,18 @@ public class JobDetailsProcesses implements Comparable<JobDetailsProcesses> {
 	@Override
 	public boolean equals(Object object) {
 		boolean retVal = false;
-		try {
-			JobDetailsProcesses j1 = this;
-			JobDetailsProcesses j2 = (JobDetailsProcesses)object;
-			IDuccProcess p1 = j1.getProcess();
-			IDuccProcess p2 = j2.getProcess();
-			String s1 = p1.getDuccId().toString();
-			String s2 = p2.getDuccId().toString();
-			retVal = s1.equals(s2);
-		}
-		catch(Throwable t) {	
+		if(object != null) {
+			try {
+				JobDetailsProcesses j1 = this;
+				JobDetailsProcesses j2 = (JobDetailsProcesses)object;
+				IDuccProcess p1 = j1.getProcess();
+				IDuccProcess p2 = j2.getProcess();
+				String s1 = p1.getDuccId().toString();
+				String s2 = p2.getDuccId().toString();
+				retVal = s1.equals(s2);
+			}
+			catch(Throwable t) {	
+			}
 		}
 		return retVal;
 	}
