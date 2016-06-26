@@ -253,7 +253,7 @@ public class JdScheduler {
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
 		long slicesReserveActual = getSlicesReserveActual();
 		if(map.size() > 1) {
-			synchronized(map) {
+			synchronized(this) {
 				for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 					JdReservation jdReservation = entry.getValue();
 					if(jdReservation.isEmpty()) {
@@ -356,7 +356,7 @@ public class JdScheduler {
 	private void reservationDivest(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		String location = "reservationDivest";
 		DuccId jdReservationDuccId = null;
-		synchronized(map) {
+		synchronized(this) {
 			for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 				JdReservation jdReservation = entry.getValue();
 				if(jdReservation.isEmpty()) {
@@ -450,7 +450,7 @@ public class JdScheduler {
 		JdReservation jdReservation = null;
 		SizeBytes reservationSize = JdHelper.getReservationSize(dwr);
 		SizeBytes sliceSize = JdHelper.getSliceSize(jdHostProperties);
-		synchronized(map) {
+		synchronized(this) {
 			jdReservation = map.get(jdReservationDuccId);
 			if(jdReservation == null) {
 				jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
@@ -477,7 +477,7 @@ public class JdScheduler {
 		DuccId jdReservationDuccId = (DuccId) duccId;
 		JdReservation jdReservation = null;
 		List<JdReservation> list = new ArrayList<JdReservation>();
-		synchronized(map) {
+		synchronized(this) {
 			jdReservation = map.get(jdReservationDuccId);
 			if(jdReservation != null) {
 				map.remove(jdReservationDuccId);
@@ -499,7 +499,7 @@ public class JdScheduler {
 		JdReservation jdReservation = null;
 		SizeBytes reservationSize = JdHelper.getReservationSize(dwr);
 		SizeBytes sliceSize = JdHelper.getSliceSize(jdHostProperties);
-		synchronized(map) {
+		synchronized(this) {
 			jdReservation = map.get(jdReservationDuccId);
 			if(jdReservation == null) {
 				jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
@@ -514,7 +514,7 @@ public class JdScheduler {
 	private void reservationVanished(DuccId jdReservationDuccId) {
 		String location = "reservationVanished";
 		List<JdReservation> list = new ArrayList<JdReservation>();
-		synchronized(map) {
+		synchronized(this) {
 			JdReservation jdReservation = map.get(jdReservationDuccId);
 			if(jdReservation != null) {
 				jdReservation = map.remove(jdReservationDuccId);
@@ -559,7 +559,7 @@ public class JdScheduler {
 		NodeIdentity nodeIdentity = null;
 		if(jdId != null) {
 			String host = null;
-			synchronized(map) {
+			synchronized(this) {
 				for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 					JdReservation jdReservation = entry.getValue();
 					nodeIdentity = jdReservation.allocate(jdId, jobId);
@@ -585,7 +585,7 @@ public class JdScheduler {
 		if(jdId != null) {
 			String host = null;
 			logger.debug(location, jobId, "map size: "+map.size());
-			synchronized(map) {
+			synchronized(this) {
 				for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 					JdReservation jdReservation = entry.getValue();
 					logger.debug(location, jobId, "get host: "+jdReservation.getHost());

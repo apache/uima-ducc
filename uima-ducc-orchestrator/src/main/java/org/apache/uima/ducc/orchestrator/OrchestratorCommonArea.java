@@ -189,7 +189,7 @@ public class OrchestratorCommonArea {
 		DuccWorkMap ckptWorkMap;
 		ConcurrentHashMap<DuccId,DuccId> ckptProcessToJobMap;
 		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
-		synchronized(workMap) {
+		synchronized(this) {
 			ts.using();
 			ckptWorkMap = (DuccWorkMap)SerializationUtils.clone(workMap);
 			ckptProcessToJobMap = (ConcurrentHashMap<DuccId,DuccId>)SerializationUtils.clone(processAccounting.getProcessToJobMap());
@@ -201,7 +201,7 @@ public class OrchestratorCommonArea {
 	public void setCheckpointable(Checkpointable checkpointable) {
 		String methodName = "setCheckpointable";
 		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
-		synchronized(workMap) {
+		synchronized(this) {
 			ts.using();
 			workMap = checkpointable.getWorkMap();
 			processAccounting = new ProcessAccounting(checkpointable.getProcessToJobMap());
