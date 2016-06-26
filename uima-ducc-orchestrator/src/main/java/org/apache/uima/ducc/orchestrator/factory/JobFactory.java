@@ -490,8 +490,8 @@ public class JobFactory implements IJobFactory {
 		}
 		else {
 			String[] notificationsArray = notifications.split(" ,");
-			for(String notification : notificationsArray) {
-				notification.trim();
+			for(int i=0; i < notificationsArray.length; i++) {
+				notificationsArray[i] =  notificationsArray[i].trim();
 			}
 			standardInfo.setNotifications(notificationsArray);
 		}
