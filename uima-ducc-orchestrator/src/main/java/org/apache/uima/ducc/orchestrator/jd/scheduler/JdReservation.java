@@ -143,8 +143,10 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 			synchronized(this) {
 				if(!map.containsKey(jdId)) {
 					if(!isFull()) {
-						map.put(jdId, size);
-						retVal = getNodeIdentity();;
+						SizeBytes previous = map.putIfAbsent(jdId, size);
+						if(previous == null) {
+							retVal = getNodeIdentity();
+						}
 					}
 				}
 			}
