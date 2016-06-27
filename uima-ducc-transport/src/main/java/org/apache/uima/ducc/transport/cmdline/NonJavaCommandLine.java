@@ -30,6 +30,10 @@ public class NonJavaCommandLine extends ACommandLine {
 		String[] args = new String[super.args.size()];
 		return super.args.toArray(args);
 	}
+	public String getCommandLineString() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	public static void main(String[] args) {
 		try {
 			NonJavaCommandLine cmdLine = new NonJavaCommandLine("someExecutable.exe");

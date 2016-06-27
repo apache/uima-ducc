@@ -627,7 +627,7 @@ public class JobFactory implements IJobFactory {
 			String processEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 			int envCountProcess = addEnvironment(job, "process", executableProcessCommandLine, processEnvironmentVariables);
 			logger.info(methodName, job.getDuccId(), "process env vars: "+envCountProcess);
-			logger.debug(methodName, job.getDuccId(), "ducclet: "+executableProcessCommandLine.getCommandLine());
+			logger.debug(methodName, job.getDuccId(), "ducclet: "+executableProcessCommandLine.getCommandLineString());
 			job.setCommandLine(executableProcessCommandLine);
 			// Tokenize arguments string and strip any quotes, then add to command line.
 			// Note: placeholders replaced by CLI so can avoid the add method.
