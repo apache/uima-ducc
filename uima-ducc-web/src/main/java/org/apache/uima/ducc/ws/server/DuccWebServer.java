@@ -85,7 +85,7 @@ public class DuccWebServer {
 		         }
 		      }
 		      String text = name()+"="+retVal+" "+desc;
-		      logger.info(location, jobid, text.trim());
+		      logger.debug(location, jobid, text.trim());
 		      return retVal;
 		  }
 	 }
