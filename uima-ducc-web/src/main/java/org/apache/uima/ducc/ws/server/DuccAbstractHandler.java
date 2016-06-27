@@ -187,9 +187,9 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		String methodName = "";
 		Date date = new Date(tod);
 		String sDate = format.format(date);
-		duccLogger.info(methodName, null, "fm="+sDate);
+		duccLogger.trace(methodName, null, "fm="+sDate);
 		String retVal = getTimeStamp(dateStyle,  sDate);
-		duccLogger.info(methodName, null, "ts="+retVal);
+		duccLogger.trace(methodName, null, "ts="+retVal);
 		return retVal;
 	}
 	
