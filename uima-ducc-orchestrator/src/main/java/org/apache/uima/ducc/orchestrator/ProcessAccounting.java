@@ -105,16 +105,14 @@ public class ProcessAccounting {
 		logger.trace(methodName, null, messages.fetch("enter"));
 		boolean retVal = false;
 		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
-		synchronized(workMap) {
-			ts.using();
-			if(!processToJobMap.containsKey(processId)) {
-				processToJobMap.put(processId, jobId);
-				retVal = true;
-				logger.info(methodName, jobId, processId, messages.fetch("added"));
-			}
-			else {
-				logger.warn(methodName, jobId, processId, messages.fetch("exists"));
-			}
+		ts.using();
+		DuccId key = processToJobMap.put(processId, jobId);
+		if(key == null) {
+			retVal = true;
+			logger.info(methodName, jobId, processId, messages.fetch("added"));
+		}
+		else {
+			logger.warn(methodName, jobId, processId, messages.fetch("exists"));
 		}
 		ts.ended();
 		logger.trace(methodName, null, messages.fetch("exit"));
