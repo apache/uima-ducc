@@ -450,20 +450,16 @@ public class JdScheduler {
 		JdReservation jdReservation = null;
 		SizeBytes reservationSize = JdHelper.getReservationSize(dwr);
 		SizeBytes sliceSize = JdHelper.getSliceSize(jdHostProperties);
-		synchronized(this) {
-			jdReservation = map.get(jdReservationDuccId);
-			if(jdReservation == null) {
-				jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
-				map.put(jdReservationDuccId, jdReservation);
-			}
-			else if(!jdReservation.isUp()) {
-				jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
-				map.put(jdReservationDuccId, jdReservation);
-			}
-			else {
-				jdReservation = null;
-			}
+		jdReservation = map.get(jdReservationDuccId);
+		if(jdReservation == null) {
+			jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
+			map.putIfAbsent(jdReservationDuccId, jdReservation);
 		}
+		else if(!jdReservation.isUp()) {
+			jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
+			map.putIfAbsent(jdReservationDuccId, jdReservation);
+		}
+		jdReservation = map.get(jdReservationDuccId);
 		if(jdReservation != null) {
 			logger.debug(location, duccId, "host: "+jdReservation.getHost());
 		}
@@ -499,13 +495,12 @@ public class JdScheduler {
 		JdReservation jdReservation = null;
 		SizeBytes reservationSize = JdHelper.getReservationSize(dwr);
 		SizeBytes sliceSize = JdHelper.getSliceSize(jdHostProperties);
-		synchronized(this) {
-			jdReservation = map.get(jdReservationDuccId);
-			if(jdReservation == null) {
-				jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
-				map.put(jdReservationDuccId, jdReservation);
-			}
+		jdReservation = map.get(jdReservationDuccId);
+		if(jdReservation == null) {
+			jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
+			map.putIfAbsent(jdReservationDuccId, jdReservation);
 		}
+		jdReservation = map.get(jdReservationDuccId);
 		logger.trace(location, duccId, "total: "+countReservationsTotal()+" "+"up: "+countReservationsUp());
 	}
 	
