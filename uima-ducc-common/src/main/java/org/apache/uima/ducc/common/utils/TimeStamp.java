@@ -30,7 +30,7 @@ public class TimeStamp {
 	
 	public static String simpleFormat(String millis) {
 		String retVal = "";
-		if((millis != null) && (millis != "")) {
+		if((millis != null) && (millis.length() > 0)) {
 			retVal = simpleDateFormat.format(new Date(Long.parseLong(millis)));
 		}
 		return retVal;
