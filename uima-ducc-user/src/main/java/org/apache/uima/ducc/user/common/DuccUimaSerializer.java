@@ -19,10 +19,7 @@
 
 package org.apache.uima.ducc.user.common;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -30,23 +27,10 @@ import java.io.Writer;
 
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
 
-import org.apache.uima.aae.InProcessCache.CacheEntry;
 import org.apache.uima.cas.CAS;
-import org.apache.uima.cas.Marker;
-import org.apache.uima.cas.SerialFormat;
-import org.apache.uima.cas.TypeSystem;
-import org.apache.uima.cas.impl.AllowPreexistingFS;
-import org.apache.uima.cas.impl.BinaryCasSerDes6;
-import org.apache.uima.cas.impl.BinaryCasSerDes6.ReuseInfo;
-import org.apache.uima.cas.impl.MarkerImpl;
-import org.apache.uima.cas.impl.OutOfTypeSystemData;
-import org.apache.uima.cas.impl.Serialization;
-import org.apache.uima.cas.impl.TypeSystemImpl;
 import org.apache.uima.cas.impl.XmiCasDeserializer;
 import org.apache.uima.cas.impl.XmiCasSerializer;
-import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.util.XMLSerializer;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
@@ -59,58 +43,17 @@ import org.xml.sax.helpers.XMLReaderFactory;
 //import java.util.concurrent.ConcurrentHashMap;
 
 public class DuccUimaSerializer {
-  private final ThreadLocal<XMLReader> localXmlReader = new ThreadLocal<XMLReader>();
-
-
-  /**
-   * Serializes CAS into a given OutputStream in Xmi format
-   * 
-   * @param stream
-   * @param aCAS
-   * @param encoding
-   * @param typeSystem
-   * @throws IOException
-   * @throws SAXException
-   */
-  public void serializeToXMI(OutputStream stream, CAS aCAS, String encoding, TypeSystem typeSystem,
-          OutOfTypeSystemData otsd) throws IOException, SAXException {
-
-    if (typeSystem == null)
-      typeSystem = aCAS.getTypeSystem();
-    XMLSerializer xmlSer = new XMLSerializer(stream, false);
-    if (encoding != null)
-      xmlSer.setOutputProperty(OutputKeys.ENCODING, encoding);
-
-    XmiCasSerializer ser = new XmiCasSerializer(typeSystem);
-
-    ser.serialize(aCAS, xmlSer.getContentHandler());
-  }
 
   /**
    * Utility method for serializing a CAS to an XMI String
    */
-  public String serializeCasToXmi(CAS aCAS, XmiSerializationSharedData serSharedData)
+  public String serializeCasToXmi(CAS aCAS)
           throws Exception {
     Writer writer = new StringWriter();
     try {
       XMLSerializer xmlSer = new XMLSerializer(writer, false);
       XmiCasSerializer ser = new XmiCasSerializer(aCAS.getTypeSystem());
-      ser.serialize(aCAS, xmlSer.getContentHandler(), null, serSharedData);
-      return writer.toString();
-    } catch (SAXException e) {
-      throw e;
-    } finally {
-      writer.close();
-    }
-  }
-
-  public String serializeCasToXmi(CAS aCAS, XmiSerializationSharedData serSharedData, Marker aMarker)
-          throws Exception {
-    Writer writer = new StringWriter();
-    try {
-      XMLSerializer xmlSer = new XMLSerializer(writer, false);
-      XmiCasSerializer ser = new XmiCasSerializer(aCAS.getTypeSystem());
-      ser.serialize(aCAS, xmlSer.getContentHandler(), null, serSharedData, aMarker);
+      ser.serialize(aCAS, xmlSer.getContentHandler());
       return writer.toString();
     } catch (SAXException e) {
       throw e;
@@ -124,122 +67,15 @@ public class DuccUimaSerializer {
    * Does both processing of requests arriving to this service
    *   and responses returning to this service, or to a client. 
    */
-  public void deserializeCasFromXmi(String anXmlStr, CAS aCAS,
-          XmiSerializationSharedData aSharedData, boolean aLenient, int aMergePoint)
+  public void deserializeCasFromXmi(String anXmlStr, CAS aCAS)
           throws FactoryConfigurationError, ParserConfigurationException, SAXException, IOException {
 
-    if (localXmlReader.get() == null) {
-      localXmlReader.set(XMLReaderFactory.createXMLReader());
-    }
     XMLReader xmlReader = XMLReaderFactory.createXMLReader(); // localXmlReader.get();
-
     Reader reader = new StringReader(anXmlStr);
     XmiCasDeserializer deser = new XmiCasDeserializer(aCAS.getTypeSystem());
-    ContentHandler handler = deser.getXmiCasHandler(aCAS, aLenient, aSharedData, aMergePoint);
+    ContentHandler handler = deser.getXmiCasHandler(aCAS);
     xmlReader.setContentHandler(handler);
     xmlReader.parse(new InputSource(reader));
   }
-
-  /**
-   * Only does the processing of responses (not requests) returning from remotes.
-   * Has extra param: AllowPreexistingFS which can be allow, disallow, and ignore
-   *   This is for parallel dispatch of remotes, normally configured to disallow
-   *     modifications below the delta-cas point
-   *     3 cases: allow - for non parallel
-   *              disallow - for parallel, with delta cas being returned
-   *              ignore - for parallel, with no delta cas being returned
-   *                       because earlier version of client wasn't supporting delta cas
-   * See above method for requests and responses
-   */
-  public void deserializeCasFromXmi(String anXmlStr, CAS aCAS,
-          XmiSerializationSharedData aSharedData, boolean aLenient, int aMergePoint,
-          AllowPreexistingFS allow) throws FactoryConfigurationError, ParserConfigurationException,
-          SAXException, IOException {
-
-    if (localXmlReader.get() == null) {
-      localXmlReader.set(XMLReaderFactory.createXMLReader());
-    }
-    XMLReader xmlReader = localXmlReader.get();
-    Reader reader = new StringReader(anXmlStr);
-    XmiCasDeserializer deser = new XmiCasDeserializer(aCAS.getTypeSystem());
-    ContentHandler handler = deser
-            .getXmiCasHandler(aCAS, aLenient, aSharedData, aMergePoint, allow);
-    xmlReader.setContentHandler(handler);
-    xmlReader.parse(new InputSource(reader));
-  }
-
-  /** Utility method for deserializing a CAS from a binary */
-  public SerialFormat deserializeCasFromBinary(byte[] binarySource, CAS aCAS) throws Exception {
-    ByteArrayInputStream fis = null;
-    try {
-      fis = new ByteArrayInputStream(binarySource);
-      return Serialization.deserializeCAS(aCAS, fis);
-    } catch (Exception e) {
-      throw e;
-    } finally {
-      if (fis != null) {
-        fis.close();
-      }
-    }
-  }
-
-  public byte[] serializeCasToBinary(CAS aCAS) throws Exception {
-    ByteArrayOutputStream fos = null;
-    try {
-      fos = new ByteArrayOutputStream();
-      Serialization.serializeCAS(aCAS, fos);
-      return fos.toByteArray();
-    } catch (Exception e) {
-      throw e;
-    } finally {
-      if (fos != null) {
-        fos.close();
-      }
-    }
-  }
-
-  public byte[] serializeCasToBinary(CAS aCAS, Marker aMark) throws Exception {
-    ByteArrayOutputStream fos = null;
-    try {
-      fos = new ByteArrayOutputStream();
-      Serialization.serializeCAS(aCAS, fos, aMark);
-      return fos.toByteArray();
-    } catch (Exception e) {
-      throw e;
-    } finally {
-      if (fos != null) {
-        fos.close();
-      }
-    }
-  }
-  
-  // used to return non-delta cas's (used if delta cas disallowed, for instance by having a CPP delegate)
-  public byte[] serializeCasToBinary6(CAS aCAS) throws Exception {
-    ByteArrayOutputStream fos = null;
-    fos = new ByteArrayOutputStream();
-    BinaryCasSerDes6 bcs = new BinaryCasSerDes6(aCAS);
-    bcs.serialize(fos);
-    return fos.toByteArray();
-  }
-
-  // used to send CASes to remotes
-  public byte[] serializeCasToBinary6(CAS aCAS, CacheEntry entry, TypeSystemImpl tgtTs) throws Exception {
-    ByteArrayOutputStream fos = null;
-    fos = new ByteArrayOutputStream();
-    BinaryCasSerDes6 bcs = new BinaryCasSerDes6(aCAS, tgtTs);
-    bcs.serialize(fos);
-    entry.setCompress6ReuseInfo(bcs.getReuseInfo());
-    return fos.toByteArray();
-  }
-  
-  public byte[] serializeCasToBinary6(CAS aCAS, Marker aMark, ReuseInfo reuseInfo) throws Exception {
-    ByteArrayOutputStream fos = null;
-    fos = new ByteArrayOutputStream();
-    BinaryCasSerDes6 bcs = new BinaryCasSerDes6(aCAS, (MarkerImpl) aMark, null, reuseInfo);
-    bcs.serialize(fos);
-    return fos.toByteArray();
-  }
-  
- 
   
 }

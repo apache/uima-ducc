@@ -34,7 +34,6 @@ import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.analysis_engine.AnalysisEngineManagement;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
-import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.ducc.user.jp.uima.UimaAnalysisEngineInstancePoolWithThreadAffinity;
 import org.apache.uima.impl.UimaVersion;
@@ -107,8 +106,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 	public byte[] getLastSerializedError() throws Exception {
 
 		if (lastError != null) {
-
-			return super.serialize(lastError);
+			return serialize(lastError);
 		}
 		return null;
 
@@ -188,10 +186,8 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 		try {
 			// reset last error
 			lastError = null;
-			XmiSerializationSharedData deserSharedData = new XmiSerializationSharedData();
 			// deserialize the CAS
-			super.getUimaSerializer().
-			    deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,-1);
+			getUimaSerializer().deserializeCasFromXmi((String)xmi, cas);
 
 			// the following checks out AE instance pinned to this thread
 			ae = instanceMap.checkout();
@@ -222,7 +218,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 			
 			return metricsList;
 		} catch( Throwable e ) {
-			super.lastError = e;
+			lastError = e;
 			Logger logger = UIMAFramework.getLogger();
 			logger.log(Level.WARNING, "UimaProcessContainer", e);
 			e.printStackTrace();

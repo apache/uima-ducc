@@ -48,7 +48,6 @@ import org.apache.uima.aae.monitor.statistics.AnalysisEnginePerformanceMetrics;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
-import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.collection.EntityProcessStatus;
 import org.apache.uima.ducc.IUser;
 import org.apache.uima.util.Level;
@@ -69,10 +68,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 	protected Object initializeMonitor = new Object();
 	public volatile boolean initialized = false;
 	private static final Class<?> CLASS_NAME = UimaASProcessContainer.class;
-	private static final char FS = System.getProperty("file.separator").charAt(
-			0);
-	// use this map to pin each thread to its own instance of UimaSerializer
-//	private static Map<Long, UimaSerializer> serializerMap = new HashMap<Long, UimaSerializer>();
+	private static final char FS = System.getProperty("file.separator").charAt(0);
     private String[] deploymentDescriptors = null;
 	private String[] ids = null;
     private String duccHome=null;
@@ -124,8 +120,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 	public byte[] getLastSerializedError() throws Exception {
 
 		if (lastError != null) {
-
-			return super.serialize(lastError);
+			return serialize(lastError);
 		}
 		return null;
 
@@ -180,8 +175,6 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 
 			} finally {
 			}
-			//	Pin thread to its own CAS serializer
-//			serializerMap.put( Thread.currentThread().getId(), new UimaSerializer());
 		}
 	}
 	  public static void dump(ClassLoader cl, int numLevels) {
@@ -344,10 +337,8 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		try {
 			// reset last error
 			lastError = null;
-			XmiSerializationSharedData deserSharedData = new XmiSerializationSharedData();
 			// Use thread dedicated UimaSerializer to de-serialize the CAS
-			super.getUimaSerializer().
-				deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,-1);
+			getUimaSerializer().deserializeCasFromXmi((String)xmi, cas);
 
 			/*
 			 * The following code commented for now. Re-enable when uima-as

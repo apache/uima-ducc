@@ -30,8 +30,6 @@ public class AllInOne {
 	
 	private static DuccUimaSerializer uimaSerializer = new DuccUimaSerializer();
 	
-	private static XmiSerializationSharedData xmiSerializationSharedData = new XmiSerializationSharedData();
-	
     private MsgHandler mh = new MsgHandler();
     
     private Properties jobRequestProperties = new Properties();
@@ -54,7 +52,7 @@ public class AllInOne {
 	CasGenerator casGenerator;
 	CasPipeline casPipeline;
 
-    private boolean timestamp;
+    //private boolean timestamp;
 
     private boolean debug;
 	
@@ -68,7 +66,7 @@ public class AllInOne {
 	        }
 	  }
       // Properties will have been validated in AllInOneLauncher
-      timestamp = jobRequestProperties.containsKey(Timestamp);
+      //timestamp = jobRequestProperties.containsKey(Timestamp);
       debug = jobRequestProperties.containsKey(Debug);
 	}
 	
@@ -102,9 +100,9 @@ public class AllInOne {
 			mh.frameworkDebug(cid, mid, "cas:"+count);
 			
 			// Emulate a DUCC job by serializing then deserializing into the aggregate's possibly larger typesystem
-			String serializedCas = uimaSerializer.serializeCasToXmi(cas, xmiSerializationSharedData);
+			String serializedCas = uimaSerializer.serializeCasToXmi(cas);
 			CAS cas2 = casPipeline.getEmptyCas();  // Always returns the same CAS
-			uimaSerializer.deserializeCasFromXmi(serializedCas, cas2, xmiSerializationSharedData, true, -1);
+			uimaSerializer.deserializeCasFromXmi(serializedCas, cas2);
 			
 			casPipeline.process(cas2);
 			count++;

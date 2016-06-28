@@ -28,7 +28,6 @@ import java.util.Properties;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
 import org.apache.uima.cas.CAS;
-import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.ducc.CasHelper;
 import org.apache.uima.ducc.user.common.DuccUimaSerializer;
 import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
@@ -74,9 +73,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 			cas = CasCreationUtils.createCas(tsd, tp, fsid, props);
 		}
 		// deserialize the CAS
-		XmiSerializationSharedData deserSharedData = new XmiSerializationSharedData();
-		getUimaSerializer().
-		    deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,-1);
+		getUimaSerializer().deserializeCasFromXmi((String)xmi, cas);
 		
 		String key = CasHelper.getId(cas);
 		cas.release();

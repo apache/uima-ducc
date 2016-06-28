@@ -25,12 +25,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.cas.CAS;
-import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.collection.CollectionException;
 import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.ducc.CasHelper;
@@ -49,12 +45,10 @@ import org.apache.uima.util.InvalidXMLException;
 import org.apache.uima.util.Progress;
 import org.apache.uima.util.XMLInputSource;
 import org.apache.uima.util.XMLParser;
-import org.xml.sax.SAXException;
 
 public class JdUserCollectionReader {
 
 	private static DuccUimaSerializer uimaSerializer = new DuccUimaSerializer();
-	private static XmiSerializationSharedData xmiSerializationSharedData = new XmiSerializationSharedData();
 	
 	private String crXml = null;
 	private String crCfg = null;
@@ -183,16 +177,8 @@ public class JdUserCollectionReader {
 	}
 	
 	public String serialize(CAS cas) throws Exception {
-		String serializedCas = uimaSerializer.serializeCasToXmi(cas, xmiSerializationSharedData);
+		String serializedCas = uimaSerializer.serializeCasToXmi(cas);
 		return serializedCas;
-	}
-	
-	public CAS deserialize(String serializedCas) throws ResourceInitializationException, FactoryConfigurationError, ParserConfigurationException, SAXException, IOException {
-		CAS cas = cm.getEmptyCas();
-		boolean lenient = true;
-		int mergePoint = -1;
-		uimaSerializer.deserializeCasFromXmi(serializedCas, cas, xmiSerializationSharedData, lenient, mergePoint);
-		return cas;
 	}
 	
 	public void recycle(CAS cas) {
