@@ -182,18 +182,19 @@ public class ActionGet implements IAction {
 				JobProcessBlacklist jobProcessBlacklist = JobProcessBlacklist.getInstance();
 				IMetaMetaCas mmc = getMetaMetaCas(actionData);
 				if(mmc.isExhausted()) {
-					if(!warnedExhausted.containsKey(rwp)) {
+					Long time = warnedExhausted.putIfAbsent(rwp, new Long(System.currentTimeMillis()));
+					if(time != null) {
 						MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
 						mbx.append(Standardize.Label.node.get()+rwp.getNodeName());
 						mbx.append(Standardize.Label.pid.get()+rwp.getPid());
 						mbx.append(Standardize.Label.text.get()+allCasesProcessed);
 						logger.debug(location, ILogger.null_id, mbx.toString());
-						warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
 					}
 					TransactionHelper.addResponseHint(trans, Hint.Exhausted);
 				}
 				if(mmc.isPremature()) {
-					if(!warnedExhausted.containsKey(rwp)) {
+					Long time = warnedPremature.putIfAbsent(rwp, new Long(System.currentTimeMillis()));
+					if(time != null) {
 						String text = fewerWorkItemsAvailableThanExpected;
 						jd.killJob(CompletionType.Exception, text);
 						MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
@@ -201,29 +202,28 @@ public class ActionGet implements IAction {
 						mbx.append(Standardize.Label.pid.get()+rwp.getPid());
 						mbx.append(Standardize.Label.text.get()+text);
 						logger.debug(location, ILogger.null_id, mbx.toString());
-						warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
 					}
 					TransactionHelper.addResponseHint(trans, Hint.Premature);
 				}
 				else if(mmc.isKillJob()) {
-					if(!warnedJobDiscontinued.containsKey(rwp)) {
+					Long time = warnedJobDiscontinued.putIfAbsent(rwp, new Long(System.currentTimeMillis()));
+					if(time != null) {
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						mb.append(Standardize.Label.node.get()+rwp.getNodeName());
 						mb.append(Standardize.Label.pid.get()+rwp.getPid());
 						mb.append(Standardize.Label.text.get()+"job discontinued");
 						logger.warn(location, ILogger.null_id, mb.toString());
-						warnedJobDiscontinued.put(rwp, new Long(System.currentTimeMillis()));
 					}
 					TransactionHelper.addResponseHint(trans, Hint.Killed);
 				}
 				else if(jobProcessBlacklist.includes(rwp)) {
-					if(!warnedProcessDiscontinued.containsKey(rwp)) {
+					Long time = warnedProcessDiscontinued.put(rwp, new Long(System.currentTimeMillis()));
+					if(time != null) {
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						mb.append(Standardize.Label.node.get()+rwp.getNodeName());
 						mb.append(Standardize.Label.pid.get()+rwp.getPid());
 						mb.append(Standardize.Label.text.get()+"process discontinued");
 						logger.warn(location, ILogger.null_id, mb.toString());
-						warnedProcessDiscontinued.put(rwp, new Long(System.currentTimeMillis()));
 					}
 					TransactionHelper.addResponseHint(trans, Hint.Blacklisted);
 				}
@@ -260,18 +260,19 @@ public class ActionGet implements IAction {
 					mb.append("No CAS found for processing");
 					logger.debug(location, ILogger.null_id, mb.toString());
 					if(mmc.isExhausted()) {
-						if(!warnedExhausted.containsKey(rwp)) {
+						Long time = warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
+						if(time == null) {
 							MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
 							mbx.append(Standardize.Label.node.get()+rwp.getNodeName());
 							mbx.append(Standardize.Label.pid.get()+rwp.getPid());
 							mbx.append(Standardize.Label.text.get()+allCasesProcessed);
 							logger.warn(location, ILogger.null_id, mbx.toString());
-							warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
 						}
 						TransactionHelper.addResponseHint(trans, Hint.Exhausted);
 					}
 					if(mmc.isPremature()) {
-						if(!warnedPremature.containsKey(rwp)) {
+						Long time = warnedPremature.put(rwp, new Long(System.currentTimeMillis()));
+						if(time == null) {
 							String text = fewerWorkItemsAvailableThanExpected;
 							jd.killJob(CompletionType.Exception, text);
 							MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
@@ -279,7 +280,7 @@ public class ActionGet implements IAction {
 							mbx.append(Standardize.Label.pid.get()+rwp.getPid());
 							mbx.append(Standardize.Label.text.get()+text);
 							logger.debug(location, ILogger.null_id, mbx.toString());
-							warnedPremature.put(rwp, new Long(System.currentTimeMillis()));
+							
 						}
 						TransactionHelper.addResponseHint(trans, Hint.Premature);
 					}

@@ -50,9 +50,8 @@ public class ActionGetRedux implements IAction {
 				IRemoteWorkerThread rwt = actionData.getRemoteWorkerThread();
 				WiTracker tracker = WiTracker.getInstance();
 				IWorkItem wi = tracker.find(rwt);
-				IFsm fsm = wi.getFsm();
-				IEvent event = WiFsm.CAS_Unavailable;
 				if(wi != null) {
+					IEvent event = WiFsm.CAS_Unavailable;
 					IMetaCas metaCas = wi.getMetaCas();
 					if(metaCas != null) {
 						event = WiFsm.CAS_Available;
@@ -66,9 +65,14 @@ public class ActionGetRedux implements IAction {
 						mb.append("No CAS found for processing");
 						logger.info(location, ILogger.null_id, mb.toString());
 					}
+					IFsm fsm = wi.getFsm();
+					fsm.transition(event, actionData);
 				}
-				//
-				fsm.transition(event, actionData);
+				else {
+					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+					mb.append("No work item found for processing");
+					logger.warn(location, ILogger.null_id, mb.toString());
+				}
 			}
 			else {
 				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
