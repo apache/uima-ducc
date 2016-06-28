@@ -24,14 +24,19 @@ import glob
 import shutil
 import subprocess
 
-# simple bootstratp to establish DUCC_HOME and to set the python path so it can
-# find the common code in DUCC_HOME/admin
-# Infer DUCC_HOME from our location - no longer use a (possibly inaccurate) environment variable
+# Start by finding DUCC_HOME and and setting the python path so it can
+# find the common code in DUCC_HOME/bin
+# Infer DUCC_HOME from our location - assume we're running from one level below
 me = os.path.abspath(__file__)    
 ndx = me.rindex('/')
 ndx = me.rindex('/', 0, ndx)
 DUCC_HOME = me[:ndx]          # split from 0 to ndx
     
+cwd = os.getcwd()
+if cwd != DUCC_HOME+'/admin':
+    print '>>> ERROR - this script must be run from the admin directory'
+    sys.exit(99)
+
 sys.path.append(DUCC_HOME + '/bin')
 from ducc_base import DuccBase
 from properties import Properties

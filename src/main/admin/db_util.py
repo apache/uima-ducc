@@ -136,15 +136,13 @@ def configure_database(DUCC_HOME, DUCC_HEAD, java, db_pw):
             print "Must enter a DB password or 'bypass' to continue."
         return False
 
-    if ( os.path.exists(DUCC_HOME + "/state/database/data") ):
-        print 'Database is already defined in', DUCC_HOME + '/database', '- not rebilding.'
-        return False
-
-
     if ( db_pw == 'bypass' ):
         print 'Database support will be bypassed'
         return True
         
+    if ( os.path.exists(DUCC_HOME + "/state/database/data") ):
+        print 'Database is already defined in', DUCC_HOME + '/database', '- but will try to rebuild.'
+
     update_cassandra_config(DUCC_HOME, DUCC_HEAD)
 
     here = os.getcwd()

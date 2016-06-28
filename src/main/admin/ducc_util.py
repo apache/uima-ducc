@@ -468,6 +468,9 @@ class DuccUtil(DuccBase):
             return False
         return True
 
+    def verify_head(self):
+        return ( self.localhost == self.ducc_properties.get("ducc.head"))
+
     #
     # Verify the viability of ducc_ling.
     # Returns a tuple (viable, elevated, safe)
@@ -914,7 +917,7 @@ class DuccUtil(DuccBase):
         self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'db', 'broker']
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
 
-	if ( self.localhost == self.ducc_properties.get("ducc.head")):
+        if ( self.localhost == self.ducc_properties.get("ducc.head")):
             self.is_ducc_head = True
 
         os.environ['DUCC_NODENAME'] = self.localhost    # to match java code's implicit propery so script and java match

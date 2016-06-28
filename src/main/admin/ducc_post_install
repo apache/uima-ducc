@@ -127,7 +127,7 @@ class PostInstall():
                     f.write(line)
         return
         
-    def configure_database(self):
+    def setup_database(self):
         # for cassandra:
         # in ducc_runtime/cassandra-server/conf we need to update cassandra.yaml to establish
         # the data directories and db connection addresses
@@ -135,17 +135,15 @@ class PostInstall():
         # Note this is a bootstrap routine and doesn't try to use common code that may depend on
         # things being initialized correctly.
 
-
-        if ( os.path.exists(self.DUCC_HOME + "/database/data") ):
-            print 'Database is already defined.  Not configuring'
-            return
-
-        db_pw = self.get_pw(self.database_pw)
+        # If are re-running the DB may already have been created so use the saved password
+        db_pw = self.ducc_private_properties.get('db_password')
+        if (db_pw == None):
+            db_pw = self.get_pw(self.database_pw)
 
         if ( db_pw == 'bypass' ):
             print 'Database support will be disabled'
             self.update_property('ducc.database.host', '--disabled--', '# Database support is disabled')
-            return;
+            return True;
             
         if ( dbu.configure_database(self.DUCC_HOME, self.ducc_head, self.path_to_java, db_pw) ):
             print 'Configuring DUCC to use the database.'
@@ -157,9 +155,10 @@ class PostInstall():
 
             self.ducc_private_properties.delete('db_password')
             self.ducc_private_properties.put('db_password', db_pw, ['#Db password, default is randomly generated']);
-
-
-        return
+            
+            return True
+        else:
+            return False
 
     # generate a random string between 8 and 16 characters long
     def generate_pw(self):
@@ -387,6 +386,14 @@ class PostInstall():
             
     def main(self, argv):                    
 
+        self.DUCC_HOME = find_ducc_home()
+        self.localhost = find_localhost()
+        cwd = os.getcwd()
+        if cwd != self.DUCC_HOME+'/admin':
+            print '>>> ERROR - this script must be run from the admin directory'
+            sys.exit(99)
+        print 'Using DUCC HOME:', self.DUCC_HOME, '\n'
+
         if ( not self.verify_permissions() ):
             print '--------------------------------------------------------------------------------'
             print 'Package verificaiton fails.  Most likely cause is an unexpected UMASK unpacking the distribution.'
@@ -421,10 +428,6 @@ class PostInstall():
             elif o in ('-h', '-?', '--help'):
                 self.usage(None)
         
-        self.DUCC_HOME = find_ducc_home()
-        self.localhost = find_localhost()
-
-        print 'Using DUCC HOME:', self.DUCC_HOME, '\n'
         resources = self.DUCC_HOME + '/resources'
         self.site_properties_name = resources + '/site.ducc.properties'
         self.ducc_properties = resources + '/ducc.properties'
@@ -473,7 +476,9 @@ class PostInstall():
         self.configure_broker()
 
         # configure the database for local system and initialize the schema
-        self.configure_database()
+        if not self.setup_database():
+            print 'Database creation failed - DUCC setup incomplete'
+            sys.exit(1)
 
         self.keytool = self.get_java_keytool(self.java_bindir)
         print 'Java version:', self.get_java_version()

@@ -261,7 +261,7 @@ if not os.path.exists(runtime):
         os.makedirs(runtimeParent)
     newducc = expand_tarball( tarfile, nversion, runtimeParent ) 
     os.rename(newducc, runtime)
-    print "\n", " --- Installation completed ... please run 'admin/ducc_post_install'"
+    print "\n", " --- Installation completed ... please run './ducc_post_install' from the admin directory"
     exit(0)
 
 #-----------------------------------------------------------------------------------------
