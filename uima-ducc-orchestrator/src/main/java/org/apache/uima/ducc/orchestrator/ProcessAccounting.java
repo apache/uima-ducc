@@ -164,7 +164,7 @@ public class ProcessAccounting {
 		return retVal;
 	}
 	
-	public void copyInventoryPID(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyInventoryPID(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyInventoryPID";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		String newValue = inventoryProcess.getPID();
@@ -192,7 +192,7 @@ public class ProcessAccounting {
 		return;
 	}
 	
-	public void copyInventorySwapUsage(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyInventorySwapUsage(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyInventorySwapUsage";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		long value = inventoryProcess.getSwapUsage();
@@ -205,7 +205,7 @@ public class ProcessAccounting {
 		return;
 	}
 	
-	public void copyInventoryMajorFaults(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyInventoryMajorFaults(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyInventoryMajorFaults";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		process.setMajorFaults(inventoryProcess.getMajorFaults());
@@ -213,28 +213,13 @@ public class ProcessAccounting {
 		return;
 	}
 	
-	public void copyInventoryRss(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyInventoryRss(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyInventoryRss";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		process.setResidentMemory(inventoryProcess.getResidentMemory());
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return;
 	}
-	
-	/*
-	private void injectError(DuccId jobid, DuccId processId, ProcessGarbageCollectionStats newGCS, ProcessGarbageCollectionStats oldGCS) {
-		String location = "injectError";
-		Random random = new Random();
-		if(random.nextBoolean()) {
-			long falseCount = oldGCS.getCollectionCount()+newGCS.getCollectionCount()+1;
-			logger.warn(location, jobid, processId, "falseCount: "+falseCount);
-			oldGCS.setCollectionCount(falseCount);
-			long falseTime = oldGCS.getCollectionTime()+newGCS.getCollectionTime()+10*1000;
-			logger.warn(location, jobid, processId, "falseTime: "+falseTime);
-			oldGCS.setCollectionTime(falseTime);
-		}
-	}
-	*/
 	
 	private boolean validateGCStats(DuccId jobid, DuccId processId, ProcessGarbageCollectionStats newGCS, ProcessGarbageCollectionStats oldGCS) {
 		String location = "validateGCStats";
@@ -263,7 +248,7 @@ public class ProcessAccounting {
 		return retVal;
 	}
 	
-	public void copyInventoryGCStats(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyInventoryGCStats(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyInventoryGCStats";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		DuccId jobId = dw.getDuccId();
@@ -282,7 +267,7 @@ public class ProcessAccounting {
 		return;
 	}
 	
-	public void copyInventoryCpuTime(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyInventoryCpuTime(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyInventoryCpuTime";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		process.setCpuTime(inventoryProcess.getCpuTime());
@@ -293,7 +278,7 @@ public class ProcessAccounting {
 		return;
 	}
 	
-	public void copyTimeInit(IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyTimeInit(IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyTimeInit";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		DuccId processId = inventoryProcess.getDuccId();
@@ -320,27 +305,7 @@ public class ProcessAccounting {
 		return;
 	}
 	
-	/*
-	private void validate(IDuccProcess inventoryProcess) {
-		String methodName = "validate";
-		if(inventoryProcess != null) {
-			ITimeWindow twInit = inventoryProcess.getTimeWindowInit();
-			ITimeWindow twRun = inventoryProcess.getTimeWindowRun();
-			if(twInit != null) {
-				if(twRun != null) {
-					long initEnd = twInit.getEndLong();
-					long runStart = twRun.getStartLong();
-					if(initEnd > runStart) {
-						DuccId duccPid = inventoryProcess.getDuccId();
-						logger.warn(methodName, null, duccPid, "initEnd:"+initEnd+" "+"runStart:"+runStart);
-					}
-				}
-			}
-		}
-	}
-	*/
-	
-	public void copyTimeRun(IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyTimeRun(IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyTimeRun";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		//validate(inventoryProcess);
@@ -443,7 +408,7 @@ public class ProcessAccounting {
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
 	}
 	
-	public void copyInventoryProcessState(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyInventoryProcessState(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyInventoryProcessState";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
 		
@@ -465,7 +430,7 @@ public class ProcessAccounting {
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
 	}
 	
-	public void copyReasonForStoppingProcess(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyReasonForStoppingProcess(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyReasonForStoppingProcess";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
 		switch(inventoryProcess.getProcessState()) {
@@ -495,7 +460,7 @@ public class ProcessAccounting {
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
 	}	
 	
-	public void copyProcessExitCode(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyProcessExitCode(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyProcessExitCode";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
 		switch(inventoryProcess.getProcessState()) {
@@ -518,7 +483,7 @@ public class ProcessAccounting {
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
 	}	
 	
-	public void copyUimaPipelineComponentsState(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void copyUimaPipelineComponentsState(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyUimaPipelineComponentsState";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
 		List<IUimaPipelineAEComponent> list = inventoryProcess.getUimaPipelineComponents();
@@ -627,7 +592,31 @@ public class ProcessAccounting {
 		}
 	}
 	
-	public void updateProcessTime(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
+	private void updateProcessInitilization(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
+		switch(inventoryProcess.getProcessState()) {
+		case Running:
+			process.setInitialized();
+			if(job != null) {
+				switch(job.getDuccType()) {
+				case Service:
+					switch(job.getJobState()) {
+					case Initializing:
+						stateJobAccounting.stateChange(job, JobState.Running);
+						break;
+					default:
+						break;
+					}
+					break;
+				default:
+					break;
+				}
+			}
+		default:
+			break;
+		}
+	}
+	
+	private void updateProcessTime(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "updateProcessTime";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
 		switch(inventoryProcess.getProcessState()) {
@@ -706,27 +695,7 @@ public class ProcessAccounting {
 									// Process Init & Run times
 									updateProcessTime(job, inventoryProcess, process);
 									// Process Initialization State
-									switch(inventoryProcess.getProcessState()) {
-									case Running:
-										process.setInitialized();
-										if(job != null) {
-											switch(job.getDuccType()) {
-											case Service:
-												switch(job.getJobState()) {
-												case Initializing:
-													stateJobAccounting.stateChange(job, JobState.Running);
-													break;
-												default:
-													break;
-												}
-												break;
-											default:
-												break;
-											}
-										}
-									default:
-										break;
-									}
+									updateProcessInitilization(job, inventoryProcess, process);
 									// Process Pipeline Components State
 									copyUimaPipelineComponentsState(job, inventoryProcess, process);
 									// Process Swap Usage
