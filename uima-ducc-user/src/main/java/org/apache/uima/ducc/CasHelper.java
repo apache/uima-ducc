@@ -29,26 +29,25 @@ public class CasHelper {
 		String retVal = null;
 		if (cas != null) {
 			retVal = cas.getDocumentText();
-		}
-		try {
-			Iterator<TOP> fsIter = null;
-
-			Workitem wi = null;
-			if (cas.getJCas().getTypeSystem().getType(Workitem.class.getName()) != null) {
-				fsIter = cas.getJCas().getJFSIndexRepository().getAllIndexedFS(Workitem.type);
-			}
-			if (fsIter != null && fsIter.hasNext()) {
-				wi = (Workitem) fsIter.next();
-			}
-			if (wi != null) {
-				String id = wi.getInputspec();
-				if(id != null) {
-					retVal = id;
+			try {
+				Iterator<TOP> fsIter = null;
+				Workitem wi = null;
+				if (cas.getJCas().getTypeSystem().getType(Workitem.class.getName()) != null) {
+					fsIter = cas.getJCas().getJFSIndexRepository().getAllIndexedFS(Workitem.type);
 				}
+				if (fsIter != null && fsIter.hasNext()) {
+					wi = (Workitem) fsIter.next();
+				}
+				if (wi != null) {
+					String id = wi.getInputspec();
+					if(id != null) {
+						retVal = id;
+					}
+				}
+			} 
+			catch (Exception e) {
+				e.printStackTrace();
 			}
-		} 
-		catch (Exception e) {
-			e.printStackTrace();
 		}
 		return retVal;
 	}
