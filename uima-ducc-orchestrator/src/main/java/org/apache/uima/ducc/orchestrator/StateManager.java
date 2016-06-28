@@ -247,7 +247,16 @@ public class StateManager {
 		while(workMapIterator.hasNext()) {
 			DuccId duccId = workMapIterator.next();
 			IDuccWork duccWork = WorkMapHelper.findDuccWork(workMap, duccId, this, methodName);
-			switch(duccWork.getDuccType()) {
+			if(duccWork == null) {
+				logger.warn(methodName, duccId, "not found");
+				continue;
+			}
+			DuccType duccType = duccWork.getDuccType();
+			if(duccType == null) {
+				logger.warn(methodName, duccId, "no type?");
+				continue;
+			}
+			switch(duccType) {
 			case Job:
 			case Service:
 				DuccWorkJob duccWorkJob = (DuccWorkJob)duccWork;
