@@ -293,7 +293,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		if(standardInfo != null) {
 			String logDirectory = standardInfo.getLogDirectory();
 			if(logDirectory != null) {
-				if(logDirectory != "") {
+				if(logDirectory.length() > 0) {
 					retVal = logDirectory;
 				}
 			}
