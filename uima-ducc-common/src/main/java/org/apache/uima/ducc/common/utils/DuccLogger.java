@@ -58,7 +58,7 @@ public class DuccLogger
 
     private boolean debug = System.getProperty("log4j.debug") != null;    // Use the log4j debugging flag
 
-    static protected void initLogger()
+    static synchronized protected void initLogger()
     {
         if ( log_thread == null ) {
             events = new LinkedBlockingQueue<DuccLoggingEvent>();
@@ -569,7 +569,7 @@ public class DuccLogger
     public void shutdown()
     {
         if ( threaded.get() ) {
-            DuccLoggingEvent ev = new DuccLoggingEvent(null, null, null, null, null, null, null, 0, null);
+            DuccLoggingEvent ev = new DuccLoggingEvent();
             ev.done = true;
             events.offer(ev);
         }
@@ -587,6 +587,9 @@ public class DuccLogger
         String threadName;
         String method;
         String jobid;
+        
+        DuccLoggingEvent() {
+        }
         
         DuccLoggingEvent(Logger logger, String component, Level level, String method, DuccId jobid, Object msg, Throwable throwable, long threadId, String threadName)
         {

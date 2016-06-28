@@ -83,12 +83,8 @@ public class PerformanceMetricsSummaryMap implements Serializable {
 	}
 	
 	private void addEntry(String key, String displayName) {
-		synchronized(map) {
-			if(!map.containsKey(key)) {
-				PerformanceMetricsSummaryItem summaryItem = new PerformanceMetricsSummaryItem(displayName,key);
-				map.put(key, summaryItem);
-			}
-		}
+		PerformanceMetricsSummaryItem summaryItem = new PerformanceMetricsSummaryItem(displayName,key);
+		map.putIfAbsent(key, summaryItem);
 	}
 	
 	/**
@@ -108,7 +104,7 @@ public class PerformanceMetricsSummaryMap implements Serializable {
 			String displayName = getDisplayName(item);
 			addEntry(key,displayName);
 			PerformanceMetricsSummaryItem summaryItem = map.get(key);
-			synchronized(map) {
+			synchronized(this) {
 				long timeBefore = summaryItem.getAnalysisTime();
 				long timeItem   = item.getAnalysisTime();
 				long timeAfter  = summaryItem.addAndGetAnalysisTime(item.getAnalysisTime());
