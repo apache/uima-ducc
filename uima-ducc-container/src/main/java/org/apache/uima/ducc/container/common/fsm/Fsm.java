@@ -152,7 +152,7 @@ public class Fsm implements IFsmBuilder {
 	@Override
 	public void transition(IEvent event, Object actionData) throws FsmException {
 		try {
-			synchronized(map) {
+			synchronized(this) {
 				IState _stateCurrent = getStateCurrent();
 				IStateEventKey key = new StateEventKey(_stateCurrent, event);
 				IStateEventValue value = get(key);
@@ -181,7 +181,7 @@ public class Fsm implements IFsmBuilder {
 	public void reset() throws FsmException {
 		String location = "reset";
 		try {
-			synchronized(map) {
+			synchronized(this) {
 				IState _stateCurrent = getStateInitial();
 				IState _statePrevious = getStateCurrent();
 				if(!_stateCurrent.equals(_statePrevious)) {

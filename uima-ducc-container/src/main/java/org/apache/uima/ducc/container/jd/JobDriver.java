@@ -214,7 +214,7 @@ public class JobDriver {
 	}
 	
 	public JdState getJdState() {
-		synchronized(jdState) {
+		synchronized(this) {
 			return jdState;
 		}
 	}
@@ -224,7 +224,7 @@ public class JobDriver {
 		String request = value.name();
 		String current = null;
 		String result = null;
-		synchronized(jdState) {
+		synchronized(this) {
 			current = jdState.name();
 			switch(jdState) {
 			case Ended:

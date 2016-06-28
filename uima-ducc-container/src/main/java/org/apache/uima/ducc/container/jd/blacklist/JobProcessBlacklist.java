@@ -45,9 +45,8 @@ public class JobProcessBlacklist {
 		String location = "add";
 		if(!disabled) {
 			if(rwp != null) {
-				if(!map.containsKey(rwp)) {
-					Long time = new Long(System.currentTimeMillis());
-					map.put(rwp, time);
+				Long time = map.putIfAbsent(rwp, new Long(System.currentTimeMillis()));
+				if(time == null) {
 					MessageBuffer mb = new MessageBuffer();
 					mb.append(Standardize.Label.node.get()+rwp.getNodeName());
 					mb.append(Standardize.Label.pid.get()+rwp.getPid());
@@ -87,7 +86,11 @@ public class JobProcessBlacklist {
 		return retVal;
 	}
 	
-	public void disable() {
+	private static void setDisable() {
 		disabled = true;
+	}
+	
+	public void disable() {
+		setDisable();
 	}
 }
