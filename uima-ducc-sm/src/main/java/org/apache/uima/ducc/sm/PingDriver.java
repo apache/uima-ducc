@@ -409,14 +409,15 @@ class PingDriver
 //                    logger.warn(methodName, sset.getId(), "Service shrink value capped by registered min of", reg_instances, "at", ndeletions);
 //                }            
 //            }
-            int refs = sset.countReferences();
-            int impls = sset.countImplementors();
-            if ( (impls <= ndeletions) && (refs > 0) ) {
-                ndeletions = Math.max(0, impls - 1);
-                logger.warn(methodName, sset.getId(), "Service shrink value capped at", ndeletions, "because there are still", refs, "references.");
-            }
+//            int refs = sset.countReferences();
+//            int impls = sset.countImplementors();
+//            if ( (impls <= ndeletions) && (refs > 0) ) {
+//                ndeletions = Math.max(0, impls - 1);
+//                logger.warn(methodName, sset.getId(), "Service shrink value capped at", ndeletions, "because there are still", refs, "references.");
+//            }
         }
 
+        //TODO safe against invalid or repeated deletion IDs?
         sset.signalRebalance(additions, deletions, ndeletions, response.isExcessiveFailures());
     }
     
