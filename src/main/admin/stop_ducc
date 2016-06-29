@@ -168,9 +168,7 @@ class StopDucc(DuccUtil):
     
     def main(self, argv):
 
-        if ( not self.verify_head() ):
-            print ">>> ERROR - this script must be run from the head node"
-            sys.exit(1);
+        self.verify_head()
 
         if ( len(argv) == 0 ):
             self.usage(None)
@@ -210,7 +208,7 @@ class StopDucc(DuccUtil):
             elif ( o == '-v' ) :
                 print self.version()
                 sys.exit(0)
-            elif ( o == '-h'):
+            elif o in ( '-h', '--help' ):
                self.usage(None)
             elif ( o == '-?'):
                self.usage(None)

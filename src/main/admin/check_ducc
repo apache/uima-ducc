@@ -196,6 +196,8 @@ class CheckDucc(DuccUtil):
     
     def main(self, argv):
 
+        self.verify_head()
+
         try:
             opts, args = getopt.getopt(argv, 'cikn:opqx:h?v', ['configuration', 'nodelist=', 'int', 'quit', 'kill', 'pids', 'verbose', 'nothreading', ])
         except:

@@ -468,8 +468,13 @@ class DuccUtil(DuccBase):
             return False
         return True
 
+    # Exit if this is not the head node.  Ignore the domain as uname sometimes drops it.
     def verify_head(self):
-        return ( self.localhost == self.ducc_properties.get("ducc.head"))
+        head = self.ducc_properties.get("ducc.head").split('.')[0]
+        local = self.localhost.split('.')[0]
+        if local != head:
+            print ">>> ERROR - this script must be run from the head node"
+            sys.exit(1);
 
     #
     # Verify the viability of ducc_ling.

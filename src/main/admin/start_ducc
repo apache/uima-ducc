@@ -221,9 +221,7 @@ class StartDucc(DuccUtil):
     
     def main(self, argv):
 
-        if ( not self.verify_head() ):
-            print ">>> ERROR - this script must be run from the head node"
-            sys.exit(1);
+        self.verify_head()
 
         if ( not self.verify_jvm() ):
             sys.exit(1);
