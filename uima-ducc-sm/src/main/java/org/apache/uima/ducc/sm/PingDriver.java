@@ -401,13 +401,14 @@ class PingDriver
         int ndeletions = 0;
         if ( deletions != null ) {
             ndeletions = deletions.length;
-            if ( sset.isAutostart() && (ndeletions > 0) ) {
-                int reg_instances = meta_props.getIntProperty("instances", 1);
-                if ( instances - ndeletions < reg_instances ) {
-                    ndeletions = Math.max(0, instances - reg_instances); 
-                    logger.warn(methodName, sset.getId(), "Service shrink value capped by registered min of", reg_instances, "at", ndeletions);
-                }            
-            }
+//UIMA-4995
+//            if ( sset.isAutostart() && (ndeletions > 0) ) {
+//                int reg_instances = meta_props.getIntProperty("instances", 1);
+//                if ( instances - ndeletions < reg_instances ) {
+//                    ndeletions = Math.max(0, instances - reg_instances); 
+//                    logger.warn(methodName, sset.getId(), "Service shrink value capped by registered min of", reg_instances, "at", ndeletions);
+//                }            
+//            }
             int refs = sset.countReferences();
             int impls = sset.countImplementors();
             if ( (impls <= ndeletions) && (refs > 0) ) {
