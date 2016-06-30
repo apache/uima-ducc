@@ -1290,8 +1290,10 @@ public class ServiceSet
         }
         
         for ( int i = 0; i < ndeletions; i++ ) {
-            instances = Math.max(0, instances - 1);   // prevent autostart and error handling from restarting things
-            stop(deletions[i]);
+            instances -= stop(deletions[i]); // stop() may return 0 or 1
+        }
+        if (this.isAutostart() && instances == 0) {
+          instances = 1;  // keep autostarted services running at least one instance on rebalance
         }
 
         try {
@@ -2161,7 +2163,7 @@ public class ServiceSet
     /**
      * Stop a specific instance.
      */
-    synchronized void stop(Long iid)
+    synchronized int stop(Long iid)
     {
         String methodName = "stop(id)";
 
@@ -2170,10 +2172,12 @@ public class ServiceSet
         ServiceInstance si = implementors.get(iid);
         if ( si == null ) {
             logger.warn(methodName, id, "Can't find instance", iid, ", perhaps it's already gone.");
+            return 0;
         } else {
             si.stop();
             stash_instance_id(si.getInstanceId());         // UIMA-4258
             signal(si);
+            return 1;
         }
     }
 
