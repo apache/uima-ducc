@@ -41,7 +41,7 @@ public class ReservationFactsTest {
 	
 	private Random random = new Random();
 	
-	private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss EEE");
+	private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss EEE");
 	
 	private String[] rClassSet = { "fixed", "reserve", "reserve-p7", "JobDriver" };
 	private String[] stateSet = { "Assigned", "Completed", "WaitingForResources" };
