@@ -32,13 +32,14 @@
 \label{subsec:admin.start-ducc}
 
     \subsubsection{{\em Description}}
-    The command \ducchome/admin/start\_ducc is used to start DUCC processes. If run with no parameters
-    it takes the following actions:
+    The command \ducchome/admin/start\_ducc is used to start DUCC processes. 
+    It must be run from the head node.
+    If run with no parameters it takes the following actions:
     \begin{itemize}
       \item Starts the ActiveMQ server.
       \item Starts the database.
       \item Starts the management processes Resource Manager, Orchestrator, Process Manager,      
-      Services Manager, and Web Server on the local node (where start\_ducc is executed.       
+      Services Manager, and Web Server on the local node.
       \item Starts an agent process on every node named in the default node list. 
     \end{itemize}
 
@@ -77,7 +78,7 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
             \item[pm]The Process Manager
             \item[sm]The Service Manager
             \item[ws]The Web Server
-            \item[agent]Node Agents
+            \item[agent@node]Node Agents
             \item[broker] ActiveMQ broker
             \item[db] Database
           \end{description}
@@ -92,21 +93,17 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
       lists may be specified, in which case Agents are started on all the nodes in the multiple node 
       lists. 
       
-      To start only agents, run start\_ducc specifying a nodelist explicitly. When started like this, the 
-      management daemons are not started unless explicitly requested. 
-      
-      To start only management processes, run start\_ducc with the -m or --management flags. When 
-      started like the the agents are not started unless explicitly requested. 
+      To start only agents, run start\_ducc specifying a nodelist explicitly. Note that the broker
+      must have already been started.
       
       To start a specific management process, run start\_ducc with the -c component parameter, 
       specify the component that should be started. 
       
       \subsubsection{{\em Examples: }}
 
-      Start some nodes from two different nodelist.  This doesn't start any of the management processes
-      but it does insure the ActiveMQ Broker is available.
+      Start some nodes from two different nodelist and start the broker.  
 \begin{verbatim}
-        start\_ducc -n foo.nodes -n bar.nodes 
+        start\_ducc -n foo.nodes -n bar.nodes -c broker
 \end{verbatim}
                   
       Start an agent on a specific node: 
@@ -124,7 +121,7 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
       Sometimes something will not start and it can be difficult to understand why.  To diagnose, it is
       helpful to know that {\em start\_ducc} is simply a wrapper around a lower-level bit of scripting
       that does the actual work.  That lower-level code can be invoked stand-alone, in which case
-      console messages that {\em check\_ducc} will have suppressed are presented to the console.
+      console messages that {\em start\_ducc} will have suppressed are presented to the console.
 
       The lower-level script is called {\em ducc.py} and accepts the same {\em -c component} flag as
       start\_ducc.  If some component will not start, try running {\em ducc.py -c component} directly.
@@ -168,12 +165,12 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
           \item[-a --all] \hfill \\
             Stop all the DUCC processes, including agents and management processes. This 
             broadcasts a "shutdown" command to all DUCC processes. Shutdown is normally 
-            performed gracefully will all process including job processes given time to save state. 
+            performed gracefully with all processes given time to save state. 
             All user processes, both jobs and services, are sent shutdown signals. Job and service 
             processes which do not shutdown within a designated grace period are then forcibly 
             terminated with kill -9. 
             
-          \item[-n, --nodelist [nodefile]] \hfill \\
+          \item[-n, --nodelist {[nodefile]}] \hfill \\
             Only the DUCC agents in the designated nodelists are shutdown. The processes are sent 
             kill -INT signals which triggers the Java shutdown hooks and enables graceful shutdown. 
             All user processes on the indicated nodes, both jobs and services, are sent "shutdown" 
@@ -184,7 +181,7 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
 stop\_ducc -n foo.nodes -n bar.nodes -n baz.nodes 
 \end{verbatim}
 
-          \item[-c, --component [component]] \hfill \\
+          \item[-c, --component {[component]}] \hfill \\
             Stop a specific DUCC component. 
 
             This may be used to stop an errant management component and subsequently restart it 
@@ -215,7 +212,7 @@ start_ducc -c rm
               \item[ws] The Web Server.                 
               \item[db] The database.
               \item[broker] The ActiveMQ broker (only if the broker is auto-managed).
-              \item[agent\@node] Node Agent on the specified node.
+              \item[agent@node] Node Agent on the specified node.
               \end{description}
 
           \item[-w, --wait {[time in seconds]}] If given, this signals the time to wait
@@ -297,13 +294,10 @@ check_ducc -n nlist1 -n nlist2
               Use this to forcibly kill a component using kill -9. This should only be used if {\em stop\_ducc}
               or {\em check\_ducc -i} does not work.  
 
-            \item[-s, --single\_user] \hfill \\
-              Bypass the multi-user permission checks normally done on the ducc\_ling utility.
-              
             \item[--nothreading] If specified, the command does not run in multi-threaded mode
               even if it is supported on the local platform.
 
-            \item[-v, --verboase] \hfill \\
+            \item[-v, --verbose] \hfill \\
               When specified with {\em -c} to check the configuration, this emits a formatted version
               of the node list showing the full structure of the scheduling classes.
               
@@ -374,7 +368,7 @@ check_ducc -n nlist1 -n nlist2
       \end{description}
              
        
-
+\iffalse  % Dropped this script for 2.1 .... needs work
 
 \subsection{rm\_qload}
 \label{subsec:admin.rm-qload}
@@ -453,7 +447,8 @@ Nodepool power
       \item[rm\_qload] \hfill \\ 
         This command has no options.
       \end{description}
-             
+
+\fi     % End of dropped rm_qload         
        
 \subsection{rm\_qoccupancy}
 \label{subsec:admin.rm-qoccupancy}
@@ -524,12 +519,12 @@ Nodepool power
 \label{subsec:admin.vary-off}
     \subsubsection{{\em Description:}}
 
-    Vary\_off is used to remove a host from scheduling and to evict the work that is running on it.
+    Vary\_off is used to remove a host from scheduling and to evict the preemptable work that is running on it.
     This allows for graceful clearance of a host so the host can be take offline for maintenance,
-    or any other purpose (such as sharing the host with other applications.)  The DUCC agent
-    is NOT stoppped; use 
-    \hyperref[subsec:admin.stop-ducc]{stop\_ducc} to stop the agent.  Reservations are not 
-    canceled by {\em vary\_off}.
+    or any other purpose (such as sharing the host with other applications.)  
+    The DUCC agent is NOT stoppped; use \hyperref[subsec:admin.stop-ducc]{stop\_ducc} to stop the
+    agent.  
+    Managed and unmanaged reservations are not canceled by {\em vary\_off}.
     
     Only the userid that started DUCC may issue {\em vary\_off}; attempts from other userids
     are rejected.
@@ -538,7 +533,7 @@ Nodepool power
 
         \begin{description} 
           \item[vary\_off list-of-hosts]
-            The {\em list-of-nodes} is a space delimited list of host to be removed from
+            The {\em list-of-nodes} is a space delimited list of hosts to be removed from
               scheduling in the DUCC cluster.
         \end{description}
             
@@ -558,7 +553,7 @@ Nodepool power
 
         \begin{description} 
           \item[vary\_on list-of-hosts]
-            The {\em list-of-nodes} is a space delimited list of host to be restored for
+            The {\em list-of-nodes} is a space delimited list of hosts to be restored for
               scheduling in the DUCC cluster.
         \end{description}
             
@@ -646,7 +641,7 @@ Nodepool power
 \label{subsec:cli.db.loader}
 
     \paragraph{Description:}
-        This command is used to copy the data from DUCC's older file-based persistence
+        This command is used to copy the data from DUCC's older (pre 2.1.0) file-based persistence
         into the database.  The database schema must already exist, created either
         with {\em ducc\_post\_install} or with {\em db\_create}.
 
@@ -658,7 +653,7 @@ Nodepool power
           \item Loads all job history from {\em DUCC\_HOME/history/jobs}.
           \item Loads all reservation history from {\em DUCC\_HOME/history/reservations}.
           \item Loads all service instance and AP history from {\em DUCC\_HOME/history/services}.
-          \item Loads the service registry from {\em DUCC\_HONE/state/services}.
+          \item Loads the service registry from {\em DUCC\_HOME/state/services}.
           \item Loads the service registry histroy from {\em DUCC\_HOME/history/service-registry}.  
           \item Reloads the Orchestratory checkpoint, as a spot-check of the loader's instrumentation (to insure
             load times stay reasonable.)
@@ -681,7 +676,7 @@ Nodepool power
 
     \paragraph{Options:}
     \begin{description}
-        \item[$-i$ {\em some-ducc-home}]          en 
+        \item[$-i$ {\em some-ducc-home}] 
           This specifies the DUCC\_HOME you wish to load.  Most of the time it is the DUCC\_HOME you
           are running within, but it can be some other DUCC\_HOME if you have multiple installations and
           want other history and state loaded.
