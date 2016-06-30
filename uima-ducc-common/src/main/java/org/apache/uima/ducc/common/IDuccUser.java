@@ -31,6 +31,9 @@ public interface IDuccUser {
 		//
 		DUCC_IP("DUCC_IP"),
 		DUCC_NODENAME("DUCC_NODENAME"),
+		//
+		DUCC_USER_CP_PREPEND("DUCC_USER_CP_PREPEND"),
+		//
 		USER("USER"),
 		;
 		

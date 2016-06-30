@@ -18,12 +18,18 @@
 */
 package org.apache.uima.ducc.orchestrator.factory;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
+import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 
 public class JobFactoryHelper {
 	
@@ -93,6 +99,75 @@ public class JobFactoryHelper {
 			logger.error(location, jobid, e);
 		}
 		logger.debug(location, jobid, retVal);
+		return retVal;
+	}
+	
+	/**
+	 * @param jobid the DuccId for the Job
+	 * @param jobSpec the Job specification
+	 * @return environment variable map derived from user specified environment variable string
+	 */
+	public static Map<String, String> getEnvMap(DuccId jobid, JobRequestProperties jobSpec) {
+		String location = "getEnvMap";
+		Map<String, String> retVal = new HashMap<String,String>();
+		if(jobSpec != null) {
+			String environmentVariables = jobSpec.getProperty(JobSpecificationProperties.key_environment);
+			if(environmentVariables != null) {
+				ArrayList<String> envVarList = QuotedOptions.tokenizeList(environmentVariables, true);
+				try {
+					Map<String, String> envMap = QuotedOptions.parseAssignments(envVarList, 0);
+					if(envMap != null) {
+						retVal = envMap;
+					}
+				} 
+				catch (IllegalArgumentException e) {
+	                logger.warn(location, jobid,"Invalid environment syntax in: " + environmentVariables);
+				}
+			}
+			else {
+				logger.trace(location, jobid, "environmentVariables="+environmentVariables);
+			}
+		}
+		else {
+			logger.debug(location, jobid, "jobSpec="+jobSpec);
+		}
+		return retVal;
+	}
+	
+	/**
+	 * @param jobid the DuccId for the Job
+	 * @param jobSpec the Job specification
+	 * @param envKey the environment variable key (name)
+	 * @return the environment variable value for the specified key (name)
+	 */
+	public static String getEnvVal(DuccId jobid, JobRequestProperties jobSpec, String envKey) {
+		String location = "getEnvVal";
+		String retVal = null;
+		if(envKey != null) {
+			Map<String, String> envMap = getEnvMap(jobid, jobSpec);
+			retVal = envMap.get(envKey);
+			logger.debug(location, jobid, "envKey="+envKey+" "+"envVal="+retVal);
+		}
+		else {
+			logger.debug(location, jobid, "envKey="+envKey);
+		}
+		return retVal;
+	}
+	
+	/**
+	 * @param jobid the DuccId for the Job
+	 * @param jobSpec the Job specification
+	 * @param envKey the environment variable key (name)
+	 * @param envVal the environment variable default value
+	 * @return the environment variable value for the specified key (name)
+	 */
+	public static String getEnvVal(DuccId jobid, JobRequestProperties jobSpec, String envKey, String envVal) {
+		String location = "getEnvVal";
+		String retVal = getEnvVal(jobid, jobSpec, envKey);
+		if(retVal == null) {
+			retVal = envVal;
+			logger.debug(location, jobid, "envKey="+envKey+" "+"envVal="+retVal+" "+"(default)");
+		}
 		return retVal;
 	}
 }

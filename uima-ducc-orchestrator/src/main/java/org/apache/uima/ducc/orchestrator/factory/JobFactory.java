@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.IDuccEnv;
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.container.FlagsHelper;
@@ -219,10 +220,21 @@ public class JobFactory implements IJobFactory {
 		}
 	}
 	
-	private String addUimaDucc(String cp) {
+	private String getPrependUserCP(DuccId jobid, JobRequestProperties jobSpec) {
+		String envKey = IDuccUser.EnvironmentVariable.DUCC_USER_CP_PREPEND.value();
+		String prependDefault = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"user"+File.separator+"*";
+		String retVal = JobFactoryHelper.getEnvVal(jobid, jobSpec, envKey, prependDefault);
+		return retVal;
+	}
+	
+	/**
+	 * @param prependCP - DUCC classes needed to run JD/JP
+	 * @param cp - user classes needed to run JD/JP
+	 * @return the entirety of classes needed to run JD/JP: DUCC first, user second
+	 */
+	private String addUimaDucc(String prependCP, String cp) {
 		StringBuffer sb = new StringBuffer();
-		String prepend = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"user"+File.separator+"*";
-		sb.append(prepend);
+		sb.append(prependCP);
 		sb.append(File.pathSeparator);
 		if(cp != null) {
 			String tcp = cp.trim();
@@ -277,8 +289,9 @@ public class JobFactory implements IJobFactory {
 			jcl.addOption(opt);
 		}
 		// add userCP
+		String prependUserCP = getPrependUserCP(jobid, jobRequestProperties);
 		String userCP = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
-		userCP = addUimaDucc(userCP);
+		userCP = addUimaDucc(prependUserCP, userCP);
 		opt = FlagsHelper.Name.UserClasspath.dname()+"="+userCP;
 		jcl.addOption(opt);
 		// add WorkItemTimeout	
@@ -445,6 +458,7 @@ public class JobFactory implements IJobFactory {
 	private DuccWorkJob create(CommonConfiguration common, JobRequestProperties jobRequestProperties, DuccWorkJob job) {
 		String methodName = "create";
 		jobRequestProperties.normalize();
+		DuccId jobid = job.getDuccId();
 		DuccType duccType = job.getDuccType();
         // Service Deployment Type
         if(jobRequestProperties.containsKey(ServiceRequestProperties.key_service_type_custom)) {
@@ -580,8 +594,9 @@ public class JobFactory implements IJobFactory {
 				dump(job, uimaAggregate);
 			}
 			// user CP
+			String prependUserCP = getPrependUserCP(jobid, jobRequestProperties);
 			String userCP = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
-			userCP = addUimaDucc(userCP);
+			userCP = addUimaDucc(prependUserCP, userCP);
 			pipelineCommandLine.setClasspath(userCP);
 			// jvm args
 			String process_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_jvm_args);

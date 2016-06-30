@@ -127,6 +127,18 @@
              \\Note: When used as a CLI option, the environment string must usually be
              quoted to protect it from the shell.
 
+   
+             The following cause special runtime behavior. 
+             They are considered experimental and are not guaranteed 
+             to be effective from release to release.
+             
+  \begin{enumerate}
+    \item[DUCC\_USER\_CP\_PREPEND {[path-to-ducc-jars-and-classes]}  ]
+    If specified, this path is used to supply the DUCC classes required for running
+    the Job Driver and Job Process(es), normally set to $DUCC_HOME/lib/uima-ducc/users/*.
+  \end{enumerate}
+
+
            \item[$--$help ]
              Prints the usage text to the console. 
 
