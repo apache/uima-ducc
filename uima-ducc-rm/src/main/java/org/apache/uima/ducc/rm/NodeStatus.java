@@ -35,7 +35,7 @@ public class NodeStatus {
 	
 	private static NodeStatus instance = new NodeStatus();
 	
-	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+	private SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
 	
 	public static NodeStatus getInstance() {
 		return instance;

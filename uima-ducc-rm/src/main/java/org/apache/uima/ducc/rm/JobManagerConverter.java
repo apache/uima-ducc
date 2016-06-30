@@ -152,9 +152,9 @@ public class JobManagerConverter
             NodeIdentity ni = proc.getNodeIdentity();
             Machine m = scheduler.getMachine(ni);
             int share_order = 1;
-            quantum = m.getQuantum();
             
             if ( m != null ) {
+            	quantum = m.getQuantum();
                 if ( proc.isActive() || (proc.getProcessState() == ProcessState.Undefined) ) {                                    
                     logger.info(methodName, job.getDuccId(), "blacklist", proc.getDuccId(), 
                                 "state", proc.getProcessState(), "isActive", proc.isActive(), "isComplete", proc.isComplete());
