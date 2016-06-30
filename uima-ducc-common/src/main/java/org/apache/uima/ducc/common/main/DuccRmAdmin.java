@@ -19,8 +19,11 @@
 package org.apache.uima.ducc.common.main;
 
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.camel.component.ActiveMQComponent;
+import org.apache.activemq.jms.pool.PooledConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.ProducerTemplate;
@@ -130,7 +133,16 @@ public class DuccRmAdmin
 						System.exit(-1);
 			    	}
 			    }
-				context.addComponent("activemq",duccAMQComponent);
+				
+			    // Whitelist the packages for the objects returned to rm_reconfigure and vary_on/off
+			    String[] pkgs = { "org.apache.uima.ducc.common.admin.event", "java.util" };
+		        PooledConnectionFactory amqf = (PooledConnectionFactory)duccAMQComponent.getConfiguration().getConnectionFactory();
+		        ActiveMQConnectionFactory f = (ActiveMQConnectionFactory)amqf.getConnectionFactory();
+		        f.setTrustedPackages(Arrays.asList(pkgs));
+		        //System.out.println("RmAdmin: White Listed Packages for AMQ Exchanges");
+
+		        context.addComponent("activemq",duccAMQComponent);
+		        
 				this.pt = context.createProducerTemplate();
 			} catch( Throwable exx) {
 				System.out.println("DuccRmAdmin Failed:"+exx);
