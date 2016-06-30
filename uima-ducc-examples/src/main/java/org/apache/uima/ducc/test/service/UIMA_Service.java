@@ -90,7 +90,7 @@ public class UIMA_Service implements ApplicationListener {
     // Check if broker URL is specified on the command line. If it is not, use the default
     // localhost:61616. In either case, set the System property defaultBrokerURL. It will be used
     // by Spring Framework to substitute a place holder in Spring xml.
-    if (brokerURL != "") {
+    if ((brokerURL != null) && (brokerURL.trim().length() > 0)) {
       System.setProperty("defaultBrokerURL", brokerURL);
       System.out.println(">>> Setting defaultBrokerURL to:" + brokerURL);
     } else if ( System.getProperty("defaultBrokerURL") == null) {  // perhaps already set using -D
