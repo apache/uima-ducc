@@ -237,7 +237,6 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
     /**
      * This thows all kinds of stuff.
      */
-    @SuppressWarnings("null")
     void throwAnException(String msgheader)
     {
         int MAX_EXCEPTIONS = 7;        // deliberately wrong, this is a foul-up simulator after all!

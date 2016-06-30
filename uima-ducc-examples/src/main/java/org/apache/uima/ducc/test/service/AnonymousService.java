@@ -138,7 +138,9 @@ public class AnonymousService
                 return;
 			} finally {
                 try {
-					server.close();
+                	if(server != null) {
+                		server.close();
+                	}
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

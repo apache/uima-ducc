@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
@@ -59,10 +60,11 @@ public class FixedSleepCR extends CollectionReader_ImplBase
                 
     private volatile Logger logger;
     private volatile ArrayList<Long> workitems;
-    private volatile int index = 0;
     private volatile String logdir = "None";
     private volatile String jobid;
 
+    private AtomicInteger indexProvider = new AtomicInteger(0);
+    
     double error_rate;
     double exit_rate;
     int    bloat;
@@ -197,7 +199,6 @@ public class FixedSleepCR extends CollectionReader_ImplBase
     /**
      * This thows all kinds of stuff.
      */
-    @SuppressWarnings("null")
     void throwAnException(String msgheader)
     {
         int MAX_EXCEPTIONS = 7;        // deliberately wrong, this is a foul-up simulator after all!
@@ -314,7 +315,8 @@ public class FixedSleepCR extends CollectionReader_ImplBase
     
     public synchronized void getNext(CAS cas) throws IOException, CollectionException 
     {
-
+    	int index = indexProvider.getAndIncrement();
+    	
         String msgheader = " ****** getNext[" + index + "]: ";
         logger.log(Level.INFO, msgheader + workitems.get(index) + " getNext invocation " + get_next_counter++);
         String parm = "" + workitems.get(index) + " " + (index+1) + " " + workitems.size() + " " + logdir;
@@ -326,7 +328,6 @@ public class FixedSleepCR extends CollectionReader_ImplBase
         logger.log(Level.INFO, "getNext");
         cas.reset();
         cas.setSofaDataString(parm, "text");
-        index++;
         return;
     }
 
@@ -344,6 +345,7 @@ public class FixedSleepCR extends CollectionReader_ImplBase
     
     public Progress[] getProgress() 
     {
+    	int index = indexProvider.get();
         logger.log(Level.INFO, "getProgress");
         ProgressImpl[] retVal = new ProgressImpl[1];
         retVal[0] = new ProgressImpl(index,workitems.size(),"WorkItems");
@@ -354,6 +356,7 @@ public class FixedSleepCR extends CollectionReader_ImplBase
     public boolean hasNext() throws IOException, CollectionException 
     {
         logger.log(Level.INFO, "hasNext");
+        int index = indexProvider.get();
         boolean answer = (index < workitems.size());
         if ( ! answer ) {
             logger.log(Level.INFO, "" + System.currentTimeMillis() + " " + jobid + " No more work, hasNext returns " + answer);
