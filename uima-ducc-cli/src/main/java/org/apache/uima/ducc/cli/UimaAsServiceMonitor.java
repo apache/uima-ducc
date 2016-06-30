@@ -42,7 +42,7 @@ public class UimaAsServiceMonitor
     private String broker_url;
 
     private JMXConnector jmxc;
-    BrokerViewMBean brokerMBean;
+    private BrokerViewMBean brokerMBean;
     private QueueViewMBean monitoredQueue;
     private IServiceStatistics qstats;
 
@@ -301,6 +301,7 @@ public class UimaAsServiceMonitor
             enqueueCount   = monitoredQueue.getEnqueueCount();
             dispatchCount  = monitoredQueue.getDispatchCount();
             expiredCount   = monitoredQueue.getExpiredCount();
+            monitoredQueue.resetStatistics();
         } else {
             enqueueTime    = 0;
             consumerCount  = 0;
@@ -315,7 +316,6 @@ public class UimaAsServiceMonitor
             expiredCount   = 0;
         }
 
-        monitoredQueue.resetStatistics();
         stop();
     }
 

@@ -78,7 +78,7 @@ public class MessageHandler implements IMessageHandler {
 	}
 
 	public void setTimestamping(Toggle toggle) {
-		synchronized(timestamping) {
+		synchronized(this) {
 			if(toggle != null) {
 				timestamping = toggle;
 			}
@@ -86,13 +86,13 @@ public class MessageHandler implements IMessageHandler {
 	}
 
 	public Toggle getTimestamping() {
-		synchronized(timestamping) {
+		synchronized(this) {
 			return timestamping;
 		}
 	}
 
 	public void setTypeIdentifying(Toggle toggle) {
-		synchronized(typeIdentifying) {
+		synchronized(this) {
 			if(toggle != null) {
 				typeIdentifying = toggle;
 			}
@@ -100,7 +100,7 @@ public class MessageHandler implements IMessageHandler {
 	}
 
 	public Toggle getTypeIdentifying() {
-		synchronized(typeIdentifying) {
+		synchronized(this) {
 			return typeIdentifying;
 		}
 	}

@@ -310,7 +310,12 @@ public class SubmitAndCancel
                 success(testid, "Job " + submit.getDuccId() + " not submitted, rc = " + submit.getReturnCode());
             }
         } catch (Exception e) {
-            success(testid, "Job " + submit.getDuccId() + " could not be submitted.");
+        	if(submit != null) {
+        		success(testid, "Job " + submit.getDuccId() + " could not be submitted.");
+        	}
+        	else {
+        		success(testid, "Job " + "?" + " could not be submitted.");
+        	}
             return;
         }
 

@@ -646,7 +646,7 @@ public class TestCommandLine
                             expected = null;
                             break;
                     }
-                    if ( expected == null && expected == cl.get(o) ) {
+                    if ( expected == null ) {
                         success(testid, "Received expected null for", o.pname());
                     } else if ( expected.equals(cl.get(o)) ) {
                         success(testid, "Received expected", expected, "for", o.pname());
