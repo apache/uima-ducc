@@ -241,11 +241,7 @@ public class FixedSleepCR extends CollectionReader_ImplBase
                 throw new IllegalStateException(msgheader + " test message.");
             case 1:
                 logger.log(Level.INFO, "FixedSleepCR: Throwing a NullPointer.");
-
-                Thread notAThread = null;
-                @SuppressWarnings("unused")
-                long xx = notAThread.getId();               // down with a null pointer!
-            break;
+                throw new NullPointerException(); // down with a null pointer!
             default:
                 throw new IllegalStateException(msgheader + " -- Message " + whichmessage + " seems to blow the case statment in the test!");
         }
