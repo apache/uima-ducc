@@ -21,7 +21,6 @@ package org.apache.uima.ducc.cli.aio;
 import java.util.Properties;
 
 import org.apache.uima.cas.CAS;
-import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.ducc.user.common.DuccUimaSerializer;
 
 public class AllInOne {

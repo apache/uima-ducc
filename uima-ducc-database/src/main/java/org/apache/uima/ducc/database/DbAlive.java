@@ -26,7 +26,6 @@ import com.datastax.driver.core.Host;
 import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.PlainTextAuthProvider;
-import com.datastax.driver.core.Session;
 import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.exceptions.AuthenticationException;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
@@ -64,7 +63,7 @@ public class DbAlive
     };
 
     private Cluster cluster;
-    private Session session;
+    //private Session session;
 
     public DbAlive(String dburl, String adminid, String adminpw)
     {
@@ -121,11 +120,6 @@ public class DbAlive
 
     public void close() {
         cluster.close();
-    }
-    
-    public Session getSession()
-    {
-        return this.session;
     }
 
     static void usage()

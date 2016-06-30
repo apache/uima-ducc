@@ -766,6 +766,9 @@ public class HistoryManagerDb
             ResultSet rs = h.execute(cql);
             for ( Row r : rs ) {
                 logger.info(methodName, null, "Found checkpoint.");
+                if(r == null) {
+                	continue;
+                }
                 ByteBuffer bbWork = r.getBytes("work");
                 ByteBuffer bbmap = r.getBytes("p2jmap");
 

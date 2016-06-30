@@ -18,18 +18,13 @@
  */
 package org.apache.uima.ducc.transport.configuration.jp;
 
-import java.net.InetAddress;
-
 import org.apache.camel.CamelContext;
-import org.apache.camel.Exchange;
-import org.apache.camel.Predicate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
-import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
@@ -164,13 +159,6 @@ public class JobProcessConfiguration {
 			throw e;
 		}
 		try {
-
-			// Assume IP address provided from environment. In production this
-			// will be the actual node IP. In testing, the IP can be virtual
-			// when running multiple agents on the same node. The agent is
-			// responsible for providing the IP in this process environment.
-			String thisNodeIP = (System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()) == null) ? InetAddress
-					.getLocalHost().getHostAddress() : System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value());
 			camelContext = common.camelContext();
 
 			// currently supported jobType values:
@@ -282,34 +270,4 @@ public class JobProcessConfiguration {
 		}
 	}
 
-	private class DuccProcessFilter implements Predicate {
-		String thisNodeIP;
-
-		public DuccProcessFilter(final String thisNodeIP) {
-			this.thisNodeIP = thisNodeIP;
-		}
-
-		public synchronized boolean matches(Exchange exchange) {
-			// String methodName="DuccProcessFilter.matches";
-			boolean result = false;
-			try {
-				String pid = (String) exchange.getIn().getHeader(
-						DuccExchange.ProcessPID);
-				String targetIP = (String) exchange.getIn().getHeader(
-						DuccExchange.DUCCNODEIP);
-				// check if this message is targeting this process. Check if the
-				// process PID
-				// and the node match target process.
-				if (Utils.getPID().equals(pid) && thisNodeIP.equals(targetIP)) {
-					result = true;
-					System.out
-							.println(">>>>>>>>> Process Received a Message. Is Process target for message:"
-									+ result + ". Target PID:" + pid);
-				}
-			} catch (Throwable e) {
-				e.printStackTrace();
-			}
-			return result;
-		}
-	}
 }

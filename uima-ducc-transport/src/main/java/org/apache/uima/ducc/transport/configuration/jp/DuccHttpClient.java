@@ -232,7 +232,6 @@ public class DuccHttpClient {
     }
 
 	public IMetaCasTransaction execute( IMetaCasTransaction transaction, HttpPost postMethod ) throws Exception {
-		int retry = 2;
 		Exception lastError = null;
 		IMetaCasTransaction reply=null;
 
