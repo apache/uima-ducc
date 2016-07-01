@@ -81,8 +81,8 @@ public class DuccCommandExecutor extends CommandExecutor {
 	private boolean createCGroupContainer(IDuccProcess duccProcess,
 			String containerId, String owner) throws Exception {
 		// create cgroups container and assign limits
-		if (agent.cgroupsManager.createContainer(containerId, owner,
-				useDuccSpawn())) {
+		if (agent.cgroupsManager.createContainer(containerId, System.getProperty("user.name"),
+				agent.cgroupsManager.getUserGroupName(System.getProperty("user.name")), useDuccSpawn())) {
 			logger.info("createCGroupContainer", null,
 					"Calculating CPU shares \nProcess Max Memory="
 							+ duccProcess.getCGroup().getMaxMemoryLimit()

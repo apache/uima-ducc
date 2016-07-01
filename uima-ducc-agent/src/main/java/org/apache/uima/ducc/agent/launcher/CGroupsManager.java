@@ -20,6 +20,7 @@ package org.apache.uima.ducc.agent.launcher;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
@@ -33,7 +34,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.uima.ducc.agent.NodeAgent;
-import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
@@ -44,10 +44,23 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
  * Supported operations: - cgcreate - creates cgroup container - cgset - sets
  * max memory limit for an existing container
  * 
- * 
+ * This code supports both new and old cgconfig. The old configuration adds cgroups
+ * to <cgroup location>/ducc where the new adds it to:
+ * <cgroup location/cpu/ducc  and <cgroup location>/memory/ducc. 
+ * On startup the agent detects which cgconfig is active and adjusts accordingly. 
+ *  
  */
 public class CGroupsManager {
 	private DuccLogger agentLogger = null;
+	private static final String SYSTEM = "ducc";
+	// the following three properties are only used for the new cgconfig
+	private static final String CGDuccMemoryPath = "/memory/"+SYSTEM+"/";
+	private static final String CGDuccCpuPath = "/cpu/"+SYSTEM+"/";
+	private static final String CGProcsFile = "/cgroup.procs";
+	
+	// legacy means that the cgonfig points to <cgroup location>/ducc
+	private boolean legacyCgConfig = false;
+	
 	enum CGroupCommand {
    	 CGSET("cgset"),
    	 CGCREATE("cgcreate");
@@ -60,24 +73,67 @@ public class CGroupsManager {
    		 return cmd;
    	 }
     };
-    
+    // manages list of 'active' cgroup containers by container id
 	private Set<String> containerIds = new LinkedHashSet<String>();
+	// stores cgroup base location
 	private String cgroupBaseDir = "";
+	// stores cgroup utils location like cgcreate, cgset, etc
 	private String cgroupUtilsDir=null;
+	// stores comma separated list of subsystems like cpu,memory
 	private String cgroupSubsystems = ""; // comma separated list of subsystems
 	private long retryMax = 4;
 	private long delayFactor = 2000;  // 2 secs in millis
-											// eg. memory,cpu
-        private long maxTimeToWaitForProcessToStop;
-    
+    private long maxTimeToWaitForProcessToStop;
+    private static  String fetchCgroupsBaseDir(String mounts) {
+  	  String cbaseDir=null;
+  	  BufferedReader br = null;
+  	  try {
+  		  FileInputStream fis = new FileInputStream(mounts);
+  			//Construct BufferedReader from InputStreamReader
+  		  br = new BufferedReader(new InputStreamReader(fis));
+  		 
+  		String line = null;
+  		while ((line = br.readLine()) != null) {
+  			System.out.println(line);
+  			if ( line.trim().startsWith("cgroup") ) { 
+  				String[] cgroupsInfo = line.split(" ");
+  				if ( cgroupsInfo[1].indexOf("/memory") > -1 ) {
+  					// return the mount point minus the memory part
+  					cbaseDir = cgroupsInfo[1].substring(0, cgroupsInfo[1].indexOf("/memory") );
+  				} else if ( cgroupsInfo[1].indexOf("cpu") > -1){
+  					// return the mount point minus the memory part
+  					cbaseDir = cgroupsInfo[1].substring(0, cgroupsInfo[1].indexOf("/cpu") );
+  				} else {
+  					cbaseDir = cgroupsInfo[1].trim();
+  				}
+  			    break;
+  			}
+  		}
+  		 
+  	  } catch( Exception e) {
+  		  e.printStackTrace();
+  	  } finally {
+  		  if ( br != null ) {
+  			  try {
+  				  br.close();
+  			  } catch( Exception ex ) {}
+  		  }
+  	  }
+  	  return cbaseDir;
+    }
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		try {
 
-			CGroupsManager cgMgr = new CGroupsManager("/usr/bin","/cgroup/ducc", "memory",
+			String cgBaseDir = fetchCgroupsBaseDir("/proc/mounts");
+			
+			CGroupsManager cgMgr = new CGroupsManager("/usr/bin",cgBaseDir, "memory",
 					null, 10000);
+      	  cgMgr.validator(cgBaseDir, "test2", System.getProperty("user.name"),false)
+          .cgcreate();
+
 			System.out.println("Cgroups Installed:"
 					+ cgMgr.cgroupExists("/cgroup/ducc"));
 			Set<String> containers = cgMgr.collectExistingContainers();
@@ -85,7 +141,7 @@ public class CGroupsManager {
 				System.out.println("Existing CGroup Container ID:"
 						+ containerId);
 			}
-			cgMgr.createContainer(args[0], args[2], true);
+			cgMgr.createContainer(args[0], args[2], cgMgr.getUserGroupName(args[2]),true);
 			cgMgr.setContainerMaxMemoryLimit(args[0], args[2], true,
 					Long.parseLong(args[1]));
 			synchronized (cgMgr) {
@@ -97,9 +153,6 @@ public class CGroupsManager {
 			e.printStackTrace();
 		}
 	}
-	public String getCGroupsUtilsDir( ){
-		return cgroupUtilsDir;
-	}
 	public CGroupsManager(String cgroupUtilsDir, String cgroupBaseDir, String cgroupSubsystems,
 			DuccLogger agentLogger, long maxTimeToWaitForProcessToStop) {
 		this.cgroupUtilsDir = cgroupUtilsDir;
@@ -107,7 +160,46 @@ public class CGroupsManager {
 		this.cgroupSubsystems = cgroupSubsystems;
 		this.agentLogger = agentLogger;
 		this.maxTimeToWaitForProcessToStop = maxTimeToWaitForProcessToStop;
+		// determine what cgroup base location should be. For legacy cgconfig
+		// it will be <cgroup folder>/ducc
+		try {
+			// check if the new (standard) cgconfig is active. It should have 
+			// the following format <cgroup location>/memory
+			File f = new File(cgroupBaseDir+"/memory");
+			if ( !f.exists()) {
+				// legacy cgconfig is active
+				this.cgroupBaseDir += "/"+SYSTEM+"/";
+				legacyCgConfig = true;
+			} else {
+				// new (standard) cgconfig is active
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+			// if there is an error here, the new cgconfig is assumed and subject
+			// to additional testing on agent startup.
+		}
 	}
+
+	/**
+	 * Return location where cgroups utils like cgcreate can be found
+	 * 
+	 * @return - absolute path to cgroup utils
+	 */
+	public String getCGroupsUtilsDir( ){
+		return cgroupUtilsDir;
+	}
+	/**
+	 * Return cgroup base dir for legacy cgconfig or base dir/subsystem 
+	 * for the new cgconfig. The old looks like <cgroup folder>/ducc where
+	 * the new looks like <cgroup folder>/memory
+	 */
+	private String getCGroupLocation(String subsystem) {
+		if ( legacyCgConfig ) {
+			return cgroupBaseDir;
+		}
+		return cgroupBaseDir + subsystem;
+	}
+	
 	public void configure(NodeAgent agent ) {
 		if ( agent != null ) {
 			if ( agent.configurationFactory.maxRetryCount != null ) {
@@ -118,11 +210,13 @@ public class CGroupsManager {
 			}
 		}
 	}
-	public Validator validator( String cgroupsBaseDir,String containerId, String uid, boolean useDuccling) {
-		return new Validator(this, cgroupsBaseDir, containerId, uid, useDuccling);
+	public Validator validator( String cgroupsBaseDir,String containerId, String userName, boolean useDuccling) throws Exception {
+		return new Validator(this, getCGroupLocation("memory"), containerId, userName, getUserGroupName(userName),useDuccling);
 	}
 	public String[] getPidsInCgroup(String cgroupName) throws Exception {
-		File f = new File(cgroupBaseDir + "/" + cgroupName + "/cgroup.procs");
+		
+//		File f = new File(cgroupBaseDir + CGDuccMemoryPath + cgroupName + CGProcsFile);
+		File f = new File(getCGroupLocation(CGDuccMemoryPath)+ cgroupName + CGProcsFile);
 		//	collect all pids
 		return readPids(f);
 	}
@@ -137,11 +231,11 @@ public class CGroupsManager {
 		return pids.toArray(new String[pids.size()]);
 	}
 	/**
-	 * Finds all stale CGroups in /cgroup/ducc folder and cleans them
-	 * up. The code only cleans up cgroups folders with names that follow
+	 * Finds all stale CGroups and cleans them up. The code only 
+	 * cleans up cgroups folders with names that follow
 	 * ducc's cgroup naming convention: <id>.<id>.<id>.
 	 * First, each cgroup is checked for still running processes in the
-	 * cgroup by looking at /cgroup/ducc/<id>/cgroup.proc file which
+	 * cgroup by looking at /<cgroup base dir>/<id>/cgroup.proc file which
 	 * includes PIDs of processes associated with the cgroups. If 
 	 * processes are found, each one is killed via -9 and the cgroup
 	 * is removed.
@@ -156,7 +250,7 @@ public class CGroupsManager {
 		// This syntax is assigned by ducc to each cgroup
 		Pattern p = Pattern.compile("((\\d+)\\.(\\d+)\\.(\\d+))");
 
-		File cgroupsFolder = new File(cgroupBaseDir);
+		File cgroupsFolder = new File(getCGroupLocation(CGDuccMemoryPath));
 		String[] files = cgroupsFolder.list();
 		if ( files == null || files.length == 0 ) {
 			return;
@@ -169,8 +263,7 @@ public class CGroupsManager {
 				try {
 					// open proc file which may include PIDs if processes are 
 					// still running
-					File f = new File(cgroupBaseDir + "/" + cgroupFolder
-							+ "/cgroup.procs");
+					File f = new File(getCGroupLocation(CGDuccMemoryPath) + cgroupFolder+ CGProcsFile);
 					//	collect all pids
 					String[] pids = readPids(f);
 
@@ -224,7 +317,7 @@ public class CGroupsManager {
 					// Don't remove CGroups if there are zombie processes there. Otherwise, attempt
 					// to remove the CGroup may hang a thread.
 					if ( zombieCount == 0 )  {  // no zombies in the container
-	 					destroyContainer(cgroupFolder, "ducc", NodeAgent.SIGTERM);
+	 					destroyContainer(cgroupFolder, SYSTEM, NodeAgent.SIGTERM);
 						agentLogger.info("cleanupOnStartup", null,
 								"--- Agent Removed Empty CGroup:" + cgroupFolder);
 					} else {
@@ -257,12 +350,12 @@ public class CGroupsManager {
 
 	   List<String> cgroupPids = new ArrayList<String>();
 	   
-	    // Match any folder under /cgroup/ducc that has syntax
+	    // Match any folder under <cgroup base dir> that has syntax
 	    // <number>.<number>.<number>
 	    // This syntax is assigned by ducc to each cgroup
 	    Pattern p = Pattern.compile("((\\d+)\\.(\\d+)\\.(\\d+))");
 
-	    File cgroupsFolder = new File(cgroupBaseDir);
+	    File cgroupsFolder = new File(getCGroupLocation(CGDuccMemoryPath));
 	    String[] files = cgroupsFolder.list();
 	    if ( files == null || files.length == 0 ) {
 	    	return new String[0];  // empty better than NULL
@@ -274,9 +367,9 @@ public class CGroupsManager {
 	        try {
 	          // open proc file which may include PIDs if processes are 
 	          // still running
-	          File f = new File(cgroupBaseDir + "/" + cgroupFolder
-	              + "/cgroup.procs");
-	          //  collect all pids
+				File f = new File(getCGroupLocation(CGDuccMemoryPath) + cgroupFolder+ CGProcsFile);
+
+	        	//  collect all pids
 	          String[] pids = readPids(f);
 	          for( String pid : pids ) {
 		          cgroupPids.add(pid);
@@ -366,16 +459,17 @@ public class CGroupsManager {
 	 * 
 	 * @throws Exception
 	 */
-	public  boolean createContainer(String containerId, String userId,
+	public  boolean createContainer(String containerId, String userName, String groupName,
 			boolean useDuccSpawn) throws Exception {
-
 		String message = "";
 		agentLogger.info("createContainer", null, "Creating CGroup Container:" + containerId);
 		String[] command = new String[] { cgroupUtilsDir+"/cgcreate", "-t",
-							"ducc", "-a", "ducc", "-g",
-							cgroupSubsystems + ":ducc/" + containerId };
+				userName+":"+groupName, "-a", userName+":"+groupName, "-g",
+							cgroupSubsystems + ":"+SYSTEM+"/" + containerId };
 		int retCode = launchCommand(command);
-		if ( cgroupExists(cgroupBaseDir + "/" + containerId)) {
+		// first fetch the location of cgroups on this system. If cgroups is configured
+		// with newer cgconfig add 'memory' to the base dir
+		if ( cgroupExists(getCGroupLocation(CGDuccMemoryPath) + containerId)) {
 			// Starting with libcgroup v.0.38, the cgcreate fails
 			// with exit code = 96 even though the cgroup gets
 			// created! The following code treats such return code
@@ -388,7 +482,7 @@ public class CGroupsManager {
 				return true;
 			} 
 		} else {
-			message = ">>> CGroup Container:"+containerId+ " not found in "+cgroupBaseDir;
+			message = ">>> CGroup Container:"+containerId+ " not found in "+getCGroupLocation(CGDuccMemoryPath)+containerId;
 		}
 		agentLogger.error("createContainer", null, message);
 		System.out.println(message);
@@ -416,10 +510,9 @@ public class CGroupsManager {
 			String userId, boolean useDuccSpawn, long containerMaxSize)
 			throws Exception {
 		try {
-			///usr/bin
 			String[] command = new String[] { cgroupUtilsDir+"/cgset", "-r",
 					"memory.limit_in_bytes=" + containerMaxSize,
-					"ducc/" + containerId };
+	        		SYSTEM+"/" + containerId };
 			int retCode = launchCommand(command);
 			if (retCode == 0) {
 				agentLogger.info("setContainerMaxMemoryLimit", null, ">>>>"
@@ -460,10 +553,9 @@ public class CGroupsManager {
 			String userId, boolean useDuccSpawn, long containerCpuShares)
 			throws Exception {
 		try {
-			///usr/bin
 			String[] command = new String[] { cgroupUtilsDir+"/cgset", "-r",
 					"cpu.shares=" + containerCpuShares,
-					"ducc/" + containerId };
+        			SYSTEM+"/" + containerId };
 			int retCode = launchCommand(command);
 			if (retCode == 0) {
 				agentLogger.info("setContainerCpuShares", null, ">>>>"
@@ -505,10 +597,9 @@ public class CGroupsManager {
 			String userId, boolean useDuccSpawn, long swappiness)
 			throws Exception {
 		try {
-			///usr/bin
 			String[] command = new String[] { cgroupUtilsDir+"/cgset", "-r",
 					"memory.swappiness=" + swappiness,
-					"ducc/" + containerId };
+					SYSTEM + "/" + containerId };
 			int retCode = launchCommand(command);
 			if (retCode == 0) {
 				agentLogger.info("setContainerSwappiness", null, ">>>>"
@@ -558,7 +649,7 @@ public class CGroupsManager {
 	 */
 	public boolean destroyContainer(String containerId, String userId, int signal) throws Exception {
 		try {
-			if (cgroupExists(cgroupBaseDir + "/" + containerId)) {
+			if (cgroupExists(getCGroupLocation(CGDuccMemoryPath) + containerId)) {
 				if ( signal == NodeAgent.SIGTERM ) {
 					agentLogger.info("destroyContainer", null, "Destroying Container "+containerId+" Using signal:"+signal +" to kill child processes if any still exist in cgroups container");
 
@@ -579,13 +670,9 @@ public class CGroupsManager {
 				}
 				// Any process remaining in a cgroup will be killed hard
 				killChildProcesses(containerId, userId, NodeAgent.SIGKILL);
-				String[] command = new String[] { cgroupUtilsDir+"/cgdelete",cgroupSubsystems + ":ducc/" + containerId };
-
-//				String[] command = new String[] { "/bin/rmdir",
-//						cgroupBaseDir + "/" + containerId };
-
+				String[] command = new String[] { cgroupUtilsDir+"/cgdelete",cgroupSubsystems + ":"+SYSTEM+"/" + containerId };
 				int retCode = launchCommand(command);
-				if ( cgroupExists(cgroupBaseDir + "/" + containerId)) {
+				if ( cgroupExists(getCGroupLocation(CGDuccMemoryPath) + containerId)) {
 					agentLogger.info("destroyContainer", null, "Failed to remove Container "+containerId+" Using cgdelete command. Exit code:"+retCode);
 					return false;
 				} else {
@@ -605,7 +692,45 @@ public class CGroupsManager {
 			return false;
 		}
 	}
+    public String getUserGroupName(String userName) throws Exception {
+    	String groupName="";
+    	InputStreamReader isr = null;
+    	BufferedReader reader = null;
+    	try {
+    		String cmd[] = {"/usr/bin/id","-g","-n",userName};;//System.getProperty("user.name")};
+		    StringBuffer sb = new StringBuffer();
+		    for (String s : cmd) {
+			   sb.append(s).append(" ");
+			}
+			agentLogger.info("getuserGroupName", null, "Launching Process - Commandline:"+sb.toString());
 
+    		ProcessBuilder processLauncher = new ProcessBuilder();
+			processLauncher.command(cmd);
+			processLauncher.redirectErrorStream(true);
+			java.lang.Process process = processLauncher.start();
+			isr = new InputStreamReader(process.getInputStream());
+			reader = new BufferedReader(isr);
+			String line;
+			agentLogger.info("getUserGroupName", null, "Consuming Process Streams");
+			while ((line = reader.readLine()) != null) {
+				agentLogger.info("getUserGroupName", null, ">>>>" + line);
+				System.out.println(line);
+				groupName = line.trim();
+			}
+			agentLogger.info("getUserGroupName", null, "Waiting for Process to Exit");
+			int retCode = process.waitFor();
+			agentLogger.info("getUserGroupName", null, "Pocess Exit Code="+retCode);
+    	    		
+    	} catch( Exception e) {
+			agentLogger.error("getUserGroupName", null, e);
+    	
+    	} finally {
+    		if ( reader != null ) {
+    			reader.close();
+    		}
+    	}
+    	return groupName;
+    }
 	private int launchCommand(String[] command/*,	String userId*/) throws Exception {
 		
 		int retryCount=0;
@@ -715,7 +840,8 @@ public class CGroupsManager {
 	 * @throws Exception
 	 */
 	public Set<String> collectExistingContainers() throws Exception {
-		File duccCGroupBaseDir = new File(cgroupBaseDir);
+//		File duccCGroupBaseDir = new File(cgroupBaseDir);
+		File duccCGroupBaseDir = new File(getCGroupLocation(CGDuccMemoryPath));
 		if (duccCGroupBaseDir.exists()) {
 			File[] existingCGroups = duccCGroupBaseDir.listFiles();
 			if ( existingCGroups != null ) {
@@ -851,17 +977,19 @@ public class CGroupsManager {
  	public class Validator {
 		private CGroupsManager cgmgr=null;
 		String containerId;
-		String uid;
+		String userName;
+		String userGroupName;
 		boolean useDuccling;
 		String cgroupsBaseDir;
 	    
 		
 		
-		Validator(CGroupsManager instance, String cgroupsBaseDir,String containerId, String uid, boolean useDuccling) {
+		Validator(CGroupsManager instance, String cgroupsBaseDir,String containerId, String uid, String usergroup, boolean useDuccling) {
 			cgmgr = instance;
 			this.containerId = containerId;
-			this.uid = uid;
+			this.userName= uid;
 			this.useDuccling = useDuccling;
+			this.userGroupName = usergroup;
 			this.cgroupsBaseDir = cgroupsBaseDir;
 		}
 		public Validator cgcreate() throws CGroupsException {
@@ -869,11 +997,13 @@ public class CGroupsManager {
 			String msg2 = "------- CGroups cgcreate failed to validate a cgroup - disabling cgroups";
 			String msg3 = "------- CGroups cgcreate failed - disabling cgroups";
 			try {
-				if ( !cgmgr.createContainer(containerId, uid, useDuccling) ) {
+				
+				if ( !cgmgr.createContainer(containerId, userName, userGroupName, useDuccling) ) {
 					throw new CGroupsException().addCommand(CGroupCommand.CGCREATE.cmd())
 							                     .addMessage(msg1);
 				}
-				if (!cgmgr.cgroupExists(cgroupsBaseDir + "/" + containerId)) {
+//				if (!cgmgr.cgroupExists(cgroupsBaseDir + "/memory/ducc/" + containerId)) {
+				if (!cgmgr.cgroupExists(getCGroupLocation(CGDuccMemoryPath)+ containerId)) {
 					throw new CGroupsException().addCommand(CGroupCommand.CGCREATE.cmd())
 	                .addMessage(msg2);
 				}
@@ -891,12 +1021,13 @@ public class CGroupsManager {
 		    BufferedReader reader = null;
 			String shares = "";
 			try {
-				if (!cgmgr.setContainerCpuShares(containerId, uid, useDuccling, cpuShares) ) {
+				if (!cgmgr.setContainerCpuShares(containerId, userName, useDuccling, cpuShares) ) {
 					throw new CGroupsException().addCommand(CGroupCommand.CGSET.cmd())
 	                .addMessage(msg1);
 				}
 	  		    // now try to read created file 
-	  		    File f = new File(cgroupsBaseDir + "/" + "test/cpu.shares");
+//	  		    File f = new File(cgroupsBaseDir + "/cpu/ducc/" + "test/cpu.shares");
+	  		    File f = new File(getCGroupLocation(CGDuccCpuPath)+ containerId+"/cpu.shares");
  			    reader = new BufferedReader(new FileReader(f));
 				// read 1st line. It should be equal to cpuShares
  			    if ( reader != null  ) {

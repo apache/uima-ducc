@@ -120,7 +120,9 @@ public class CGroupsTest {
 			containerId = idFactory.next().toString()+"."+idFactory.next().toString();
 			
 			System.out.println(">>>> Thread::"+Thread.currentThread().getId()+" creating cgroup with id:"+containerId);
-			if ( !cgroupsManager.createContainer(containerId, "ducc", true) ) {
+			if ( !cgroupsManager.createContainer(containerId, System.getProperty("user.name"), 
+					cgroupsManager.getUserGroupName(System.getProperty("user.name")),
+					true) ) {
 				System.out.println("Thread::"+Thread.currentThread().getId()+" Failure to create cgroup with id:"+containerId);
 				System.exit(-1);
 				
