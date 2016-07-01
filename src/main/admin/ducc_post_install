@@ -296,15 +296,6 @@ class PostInstall():
         nf.close()
         print "Initial", nodes, "created."
             
-        jdnodes = self.DUCC_HOME +  "/resources/jobdriver.nodes"
-        self.mkbackup(jdnodes)
-
-        rn = open(jdnodes, "w")
-        rn.write(self.localhost)
-        rn.close()
-        print "Initial nodepool", jdnodes, "created.\n"
-        
-
     def merge_properties(self):
         # first task, always, merge the properties so subsequent code can depend on their validity.
         base_props = self.DUCC_HOME + '/resources/default.ducc.properties'

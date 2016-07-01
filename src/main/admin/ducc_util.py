@@ -355,10 +355,6 @@ class DuccUtil(DuccBase):
     def ssh(self, host, do_wait, *CMD):
 
         cmd = ' '.join(CMD)
-        if ( host == self.localhost ):
-            if (cmd[0] == "" and cmd[-1] == ""):
-                cmd = cmd[1:len(cmd)-2]
-                return self.popen(cmd)
         if ( do_wait ):
             return self.popen('ssh -q -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
         else:

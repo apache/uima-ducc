@@ -52,7 +52,7 @@ global modifiableDirectories
 global lenRuntime
 
 def usage():
-    print "Usage: ducc_install   ducc-binary-tarfile  ducc-runtime"
+    print "Usage: ducc_update   ducc_runtime  ducc-binary-tarfile"
     print ""
     print "  Installs or updates DUCC at 'ducc_runtime' from the build in 'ducc-binary-tarfile'"
     print "   If there is no existing runtime a fresh installation will be placed in 'ducc_runtime'"
@@ -225,7 +225,7 @@ def update_directory(olddir, newdir, archdir):
 #-----------------------------------------------------------------------------------------
 
 # List of customizable files that must not be replaced
-preserveFiles = [ 'ducc.classes', 'ducc.administrators', 'ducc.nodes', 'jobdriver.nodes',
+preserveFiles = [ 'ducc.classes', 'ducc.administrators', 'ducc.nodes',
                   'local_hooks.py', 'keystore', 'site.jsp', 'ducc.local.js' ]
 
 # List of directories all of whose files nust not be replaced
@@ -242,8 +242,8 @@ if len(sys.argv) != 3:
     usage()
     exit(1)
 
-tarfile = sys.argv[1]
-rtime   = sys.argv[2]
+rtime   = sys.argv[1]
+tarfile = sys.argv[2]
 runtime = os.path.realpath(rtime)
 
 if not os.path.exists(tarfile):
@@ -304,6 +304,7 @@ if not os.path.exists(weblogdir):
 
 #-----------------------------------------------------------------------------------------
 # Create a site.ducc.properties file if missing ... only for DUCC 1.1.0
+# Archive original ducc.properties for safety
 #-----------------------------------------------------------------------------------------
 siteProps = os.path.join(runtime, 'resources/site.ducc.properties')
 if not os.path.exists(siteProps):
@@ -311,6 +312,11 @@ if not os.path.exists(siteProps):
         print "Missing site.ducc.properties - can only be created for 1.1.0"
         exit(9)
     currentProps = os.path.join(runtime, 'resources/ducc.properties')
+    archdir = os.path.join(archive,'resources')
+    if not os.path.exists(archdir):
+        os.mkdir(archdir)
+    shutil.copy(currentProps, archdir)
+
     originalProps = os.path.join(runtime, 'resources/ducc-1.1.0.properties')
     create_110_properties(os.path.realpath(sys.argv[0]), originalProps)
 
@@ -359,6 +365,20 @@ if (rc != 0):
 
 print "\n", " --- Installation completed!"
 print "     NOTE - if your ducc_ling is privileged you should update it" 
+
+#-----------------------------------------------------------------------------------------
+# Warn if DB disabled
+#-----------------------------------------------------------------------------------------
+siteprops = runtime + '/resources/site.ducc.properties'
+dbcreated = False
+with open(siteprops) as f:
+    for line in f:
+        if line.startswith("ducc.database.host"):
+            dbcreated = True
+            break
+if not dbcreated:
+    print "   WARNING - The database has not yet been created - DUCC will have reduced functionality."
+    print "             Run db_create then db_loader to convert existing state and history"
 
 #->->->->->->->   DO NOT CHANGE ANYTHING BELOW THIS MARKER <-<-<-<-<-<-<-
 #=====MARKER===== The following are the original ducc.properties shipped with DUCC 1.1.0 

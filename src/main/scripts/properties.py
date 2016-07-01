@@ -76,10 +76,10 @@ class Properties:
 
 
     #
-    # Expand all ${} values from env or from this properties file itself
-    # The search order is:
+    # Expand all ${} values. The search order is:
     #    1 look in this properties file
     #    2 look in the environment
+    #    3 look in a subset of the Java system properties (os.name & os.arch)
     #
     def do_subst(self, st):
         key = None
