@@ -22,7 +22,7 @@
    The administrative commands include a command to start DUCC, one to stop it, and one to 
    verify the configuration and query the state of the cluster.
 
-   Note: The scripting that supports these functions runs (by default) in multi-threaded mode so
+   Note: The scripting that supports some of these functions runs (by default) in multi-threaded mode so
    large clusters can be started, stopped, and queried quickly.  If DUCC is running on an older
    system, the threading may not work right, in which case the scripts detect this and run
    single-threaded.  As well, all these commands support a ``--nothreading'' option to manually
@@ -303,6 +303,86 @@ check_ducc -n nlist1 -n nlist2
               
 
            \end{description}               
+
+
+\subsection{ducc\_post\_install}
+\label{subsec:admin.ducc-post-install}
+
+    \paragraph{Description:}
+    The post-installation script must be run only after the first installation of DUCC. 
+    When updating an existing installation use \hyperref[subsec:admin.ducc-update]{\em ducc\_update}.
+    ducc\_post\_install performs these tasks:
+    \begin{enumerate}
+      \item Verifies that the correct level of Java and Python are installed and available.
+      \item Creates a default nodelist, \duccruntime/resources/ducc.nodes, containing the name of the node you are installing on.
+      \item Defines the ``ducc head'' node to be the node you are installing from.
+      \item Initializes the database.
+      \item Sets up the default https keystore for the webserver.
+      \item Installs the DUCC documentation ``ducc book'' into the DUCC webserver root.
+      \item Builds and installs the C program, ``ducc\_ling'', into the default location.
+      \item Ensures that the (supplied) ActiveMQ broker is runnable.
+    \end{enumerate}
+
+    Once the script completes successfully \hyperref[subsec:admin.start-ducc]{\em start\_ducc} will run a single-user/unprivileged DUCC.
+
+    \paragraph{Notes:}
+    If the script is rerun it will rename the previously created files so any customizations applied
+    can be recovered.
+
+\subsection{ducc\_update}
+\label{subsec:admin.ducc-update}
+
+    \paragraph{Description:}
+        This command is used to unpack a new release of DUCC and create a new installion or update
+        an existing one.
+        For a new installation it simply unpacks the tar file with the appropriate permissions.
+        The setup must be completed by running \hyperref[subsec:admin.ducc-post-install]{\em ducc\_post\_install}.
+
+        When updating an existing installation it performs the following actions:
+        \begin{enumerate}
+          \item Checks that DUCC is not running.
+          \item Creates a site.ducc.properties file if updating from DUCC 1.1.0.
+          \item Creates a time-stamped archive directory to hold the old runtime.
+          \item Archives current files before updating them, except for the customizable ones.
+          \item Leaves in place any files added to the directories that may hold csite-specific files.
+          \item Reports which are replaced, added, or kept.
+          \item Rebuilds the non-privileged ducc\_ling.
+        \end{enumerate}
+
+        The site-specific customized files (i.e. those holding node and class definitions,
+        passwords etc.) are left in place, 
+        while all replaced files are archived under a folder called {\em ducc\_archives} 
+        so the previous installation can be restored if necessary.
+
+        Note that the update does not create the database.  After updating to 2.1.0 from an earlier
+        version with the file-based persistent scheme the database should be created with
+        \hyperref[subsec:admin.db-create]{\em db\_create} 
+        and the files holding state such as job history and service registrations loaded into the database with
+        \hyperref[subsec:admin.db-loader]{\em db\_loader}.
+        If this conversion is omitted DUCC will continue to use the file-based scheme but with some
+        loss of functionality that the database design would provide.
+        
+    \paragraph{Usage:}
+        This command takes two parameters, a pointer to the DUCC\_HOME to be updated or created,
+        and the name of the tar file containg the new build.
+    \begin{description}
+      \item[ducc\_update {\em some-ducc-home} {\em binary-tar-file}]
+        Update an existing DUCC installation or install a new one.
+    \end{description}
+
+    \paragraph{Arguments:}
+    \begin{description}
+        \item[{\em some-ducc-home}] 
+          This specifies the DUCC\_HOME you wish to create or update.  If it doesn't exist a new
+          installation is created, otherwise it is updated.
+        \item[{\em binary-tar-file}]
+          The name of the binary tar file containing the new build.
+     \end{description}
+
+    \paragraph{Example:}
+\begin{verbatim}
+ducc_update ducc_runtime /home/ducc/ducc_runtime Downloads/uima-ducc-2.1.0-bin.tar.gz 
+\end{verbatim}
 
 \subsection{rm\_reconfigure}
 \label{subsec:admin.rm-reconfigure}
@@ -612,7 +692,7 @@ Nodepool power
     None.
 
 \subsection{db\_create}
-\label{subsec:cli.db.create}
+\label{subsec:admin.db-create}
 
     \paragraph{Description:}
         This command is used to initialize the database.  Normally the database is initialized
@@ -638,7 +718,7 @@ Nodepool power
          they are used and maintained by the database only.
 
 \subsection{db\_loader}
-\label{subsec:cli.db.loader}
+\label{subsec:admin.db-loader}
 
     \paragraph{Description:}
         This command is used to copy the data from DUCC's older (pre 2.1.0) file-based persistence

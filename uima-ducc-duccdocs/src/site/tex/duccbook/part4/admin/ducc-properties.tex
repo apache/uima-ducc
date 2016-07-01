@@ -284,7 +284,7 @@
          This property declares the node where the DUCC adminstrative processes run (Orchestrator,
          Resource Manager, Process Manager, Service Manager).  This property is required and MUST be
          configured in new installation.  The installation script
-         \hyperref[subsec:install.single-user]{ducc\_post\_install} initializes this property to the
+         \hyperref[subsec:admin.ducc-post-install]{ducc\_post\_install} initializes this property to the
          node the script is executed on.
          \begin{description}
            \item[Default] There is no default, this must be configured during system installation.
@@ -317,7 +317,7 @@
        \item[ducc.jvm] \hfill \\
          This specifies the full path to the JVM to be used by the DUCC processes. This MUST be
          configured.  The installation script
-         \hyperref[subsec:install.single-user]{ducc\_post\_install} initializes this property to 
+         \hyperref[subsec:admin.ducc-post-install]{ducc\_post\_install} initializes this property to 
          full path to ``java'' in the installer's environment.  (If the ``java'' command cannot
          be found, ducc\_post\_install exits with error.)
          \begin{description}
@@ -1857,7 +1857,7 @@ org.apache.uima.ducc.common.persistence.rm.NullRmStatePersistence
     
         \item[ducc.ws.port.ssl.pw] \hfill \\
           This is the password used to generate the Web Server's keystore used for HTTPS requests.  Usually
-          this keystore is created at initial installation time using \hyperref[subsec:install.single-user]{ducc\_post\_install.}
+          this keystore is created at initial installation time using \hyperref[subsec:admin.ducc-post-installl]{ducc\_post\_install.}
           \begin{description}
             \item[Default Value] Randomly generated at install time. 
             \item[Type] Local

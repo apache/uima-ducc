@@ -221,18 +221,6 @@ cd $DUCC_HOME/admin
 That's it, DUCC is installed and ready to run. (If errors were displayed during ducc\_post\_install
 they must be corrected before continuing.)
 
-The post-installation script performs these tasks:
-\begin{enumerate}
-    \item Verifies that the correct level of Java and Python are installed and available.
-    \item Creates a default nodelist, \duccruntime/resources/ducc.nodes, containing the name of the node you are installing on.
-    \item Defines the ``ducc head'' node to be to node you are installing from.
-    \item Initializes the database.
-    \item Sets up the default https keystore for the webserver.
-    \item Installs the DUCC documentation ``ducc book'' into the DUCC webserver root.
-    \item Builds and installs the C program, ``ducc\_ling'', into the default location.
-    \item Ensures that the (supplied) ActiveMQ broker is runnable.
-\end{enumerate}
-
 \section{Initial System Verification}
 
 Here we verify the system configuration, start DUCC, run a test Job, and then shutdown DUCC.

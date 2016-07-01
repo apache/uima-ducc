@@ -26,12 +26,12 @@
 
    \subsection{Overview}
 
-    During first-time installation, the \hyperref[subsec:install.single-user]{\em ducc\_post\_install} utility
+    During first-time installation, the \hyperref[subsec:admin.ducc-post-install]{\em ducc\_post\_install} utility
     randomly generates a (database) super-user password, which is kept in the protected file {\em DUCC\_HOME/resources.private/ducc.private.properties}.
     The utility proceeds to configure the database and install the schema.
 
-    If DUCC is being upgraded, generally \hyperref[subsec:install.single-user]{\em ducc\_post\_install} is not used, in 
-    which case, again, \hyperref[subsec:cli.db.create]{\em db\_create} and \hyperref[subsec:cli.db.loader]{\em db\_loader} may be used to
+    If DUCC is being upgraded, generally \hyperref[subsec:admin.ducc-post-intall]{\em ducc\_post\_install} is not used, in 
+    which case, again, \hyperref[subsec:admin.db-create]{\em db\_create} and \hyperref[subsec:admin.db-loader]{\em db\_loader} may be used to
     convert the older file-based state to the database.
 
     \subsubsection{Orchestrator use of the Database}
