@@ -260,7 +260,7 @@ public class DuccProperties extends Properties {
     public String getProperty(String k)
     {
         String val = super.getProperty(k);
-        if ( val != null & resolvePlaceholders && val.contains("${") ) {
+        if ( val != null && resolvePlaceholders && val.contains("${") ) {
             val = Utils.resolvePlaceholders(val, this);
         }
         return val;

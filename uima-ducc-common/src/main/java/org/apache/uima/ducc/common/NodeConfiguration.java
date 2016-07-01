@@ -38,6 +38,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 /**
  * This class reads and parses a node configuration file.  It is used primarily by RM for scheduling
@@ -209,24 +210,24 @@ public class NodeConfiguration
      */
     private String getDomainName()
     {
-        // String methodName = "getDomainName";
-
+        String location = "getDomainName";
+        DuccId jobid = null;
         if ( defaultDomain != null ) return defaultDomain;
 
         InetAddress me = null;
         try {
             me = InetAddress.getLocalHost();
+            String my_happy_name = me.getHostName();
+            String my_canonical_name = me.getCanonicalHostName();
+            
+            if ( my_canonical_name.startsWith(my_happy_name) ) {
+                int ndx = my_canonical_name.indexOf(".");
+                return my_canonical_name.substring(ndx+1);
+            }
         } catch (UnknownHostException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+            logger.error(location, jobid, e1);
         }
-        String my_happy_name = me.getHostName();
-        String my_canonical_name = me.getCanonicalHostName();
-        
-        if ( my_canonical_name.startsWith(my_happy_name) ) {
-            int ndx = my_canonical_name.indexOf(".");
-            return my_canonical_name.substring(ndx+1);
-        }
+       
         return null;
     }
 
