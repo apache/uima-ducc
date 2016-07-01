@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -269,17 +270,23 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             		}
             	}
             }
+            String cgroupsBaseDir = fetchCgroupsBaseDir("/proc/mounts");
+            
             if ( cgUtilsPath == null ) {
             	useCgroups = false;
                 logger.info("nodeAgent", null, "------- CGroups Disabled - Unable to Find Cgroups Utils Directory. Add/Modify ducc.agent.launcher.cgroups.utils.dir property in ducc.properties");
+            } else if ( cgroupsBaseDir == null || cgroupsBaseDir.trim().length() == 0) {
+            	useCgroups = false;
+                logger.info("nodeAgent", null, "------- CGroups Disabled - Unable to Find Cgroups Root Directory in /proc/mounts");
+            	
             } else {
-            	logger.info("nodeAgent",null,"Agent found cgroups runtime in "+cgUtilsPath);
+            	logger.info("nodeAgent",null,"Agent found cgroups runtime in "+cgUtilsPath+" cgroups base dir="+cgroupsBaseDir);
                 // get the top level cgroup folder from ducc.properties. If
                 // not defined, use /cgroup/ducc as default
-                String cgroupsBaseDir = System.getProperty("ducc.agent.launcher.cgroups.basedir");
-                if (cgroupsBaseDir == null) {
-                  cgroupsBaseDir = "/cgroup/ducc";
-                }
+            	//String cgroupsBaseDir = System.getProperty("ducc.agent.launcher.cgroups.basedir");
+//                if (cgroupsBaseDir == null) {
+//                  cgroupsBaseDir = "/cgroup/ducc";
+//                }
                 // get the cgroup subsystems. If not defined, default to the
                 // memory and cpu subsystem
                 String cgroupsSubsystems = System.getProperty("ducc.agent.launcher.cgroups.subsystems");
@@ -310,12 +317,12 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 	  // value from cpu.shares file to make sure the values match. Any exception in the above steps
                 	  // will cause cgroups to be disabled.
                 	  //
-                	  cgroupsManager.validator(cgroupsBaseDir, containerId, uid,false)
+                	  cgroupsManager.validator(cgroupsBaseDir, containerId, System.getProperty("user.name"),false)
                 	              .cgcreate()
                 	              .cgset(100);   // write cpu.shares=100 and validate
                 	  
                 	  // cleanup dummy cgroup
-                	  cgroupsManager.destroyContainer(containerId, uid, SIGKILL);
+                	  cgroupsManager.destroyContainer(containerId, System.getProperty("user.name"), SIGKILL);
                 	  useCgroups = true;
                   } catch( CGroupsManager.CGroupsException ee) {
                 	  logger.info("nodeAgent", null, ee);
@@ -362,6 +369,45 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       }
 
     }
+  }
+  
+  private String fetchCgroupsBaseDir(String mounts) {
+	  String cbaseDir=null;
+	  BufferedReader br = null;
+	  try {
+		  FileInputStream fis = new FileInputStream(mounts);
+			//Construct BufferedReader from InputStreamReader
+		  br = new BufferedReader(new InputStreamReader(fis));
+		 
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			System.out.println(line);
+			if ( line.trim().startsWith("cgroup") ) { 
+				String[] cgroupsInfo = line.split(" ");
+				if ( cgroupsInfo[1].indexOf("/memory") > -1 ) {
+					// return the mount point minus the memory part
+					cbaseDir = cgroupsInfo[1].substring(0, cgroupsInfo[1].indexOf("/memory") );
+				} else if ( cgroupsInfo[1].indexOf("cpu") > -1){
+					// return the mount point minus the memory part
+					cbaseDir = cgroupsInfo[1].substring(0, cgroupsInfo[1].indexOf("/cpu") );
+				} else {
+					cbaseDir = cgroupsInfo[1].trim();
+				}
+			    break;
+			}
+		}
+		 
+	  } catch( Exception e) {
+	        logger.info("nodeAgent", null,
+	                "------- Agent failed while checking for existence of ducc_ling", e);
+	  } finally {
+		  if ( br != null ) {
+			  try {
+				  br.close();
+			  } catch( Exception ex ) {}
+		  }
+	  }
+	  return cbaseDir;
   }
   public int getNodeProcessors() {
 	    return runOSCommand(new String[] { "/usr/bin/getconf", "_NPROCESSORS_ONLN" });
