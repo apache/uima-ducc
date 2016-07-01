@@ -18,11 +18,13 @@
 */
 package org.apache.uima.ducc.common.utils.id;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.uima.ducc.common.persistence.IPropertiesFileManager;
 
 public class DuccIdFactory implements IDuccIdFactory {
 	
-	private volatile long seqno = -1;
+	private AtomicLong seqno = new AtomicLong(-1);
 
 	private IPropertiesFileManager propertiesFileManager = null;
 	private String propertiesFileKey = null;       
@@ -36,7 +38,7 @@ public class DuccIdFactory implements IDuccIdFactory {
 	}
 	
 	public DuccIdFactory(long seed) {
-		seqno = seed-1;
+		seqno.set(seed-1);
 	}
 	
     /**
@@ -45,19 +47,19 @@ public class DuccIdFactory implements IDuccIdFactory {
      * recovered IDs.
      */
     public DuccId next(long s) {
-        seqno = Math.max(s, seqno);
+        seqno.set(Math.max(s, seqno.get()));
         return new DuccId(s);
     }
 
 	public DuccId next() {
 		synchronized(this) {
 			if(propertiesFileManager != null) {
-				seqno = propertiesFileManager.increment(propertiesFileKey);
+				seqno.set(propertiesFileManager.increment(propertiesFileKey));
 			}
 			else {
-				seqno++;                
+				seqno.incrementAndGet();                
 			}
-			return new DuccId(seqno);
+			return new DuccId(seqno.get());
 		}
 	}
 }

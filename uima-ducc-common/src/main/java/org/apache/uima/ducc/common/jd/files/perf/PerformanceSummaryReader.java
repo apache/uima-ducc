@@ -68,15 +68,17 @@ public class PerformanceSummaryReader extends PerformanceSummaryBase {
 			catch(Exception e) {
 			}
 		}
-		Integer casCount = data.getCasCount();
-		map.putCasCount(casCount);
-		ConcurrentSkipListMap<String, JobPerformanceSummary> gzMap = data.getMap();
-		Set<Entry<String, JobPerformanceSummary>> entries = gzMap.entrySet();
-		for(Entry<String, JobPerformanceSummary> entry : entries) {
-			String key = entry.getKey();
-			IJobPerformanceSummary jps = entry.getValue();
-			PerformanceMetricsSummaryItem value = new PerformanceMetricsSummaryItem(jps.getName(),jps.getUniqueName(),jps.getAnalysisTime(),jps.getNumProcessed(),jps.getAnalysisTimeMin(),jps.getAnalysisTimeMax());
-			map.putItem(key, value);
+		if(data != null) {
+			Integer casCount = data.getCasCount();
+			map.putCasCount(casCount);
+			ConcurrentSkipListMap<String, JobPerformanceSummary> gzMap = data.getMap();
+			Set<Entry<String, JobPerformanceSummary>> entries = gzMap.entrySet();
+			for(Entry<String, JobPerformanceSummary> entry : entries) {
+				String key = entry.getKey();
+				IJobPerformanceSummary jps = entry.getValue();
+				PerformanceMetricsSummaryItem value = new PerformanceMetricsSummaryItem(jps.getName(),jps.getUniqueName(),jps.getAnalysisTime(),jps.getNumProcessed(),jps.getAnalysisTimeMin(),jps.getAnalysisTimeMax());
+				map.putItem(key, value);
+			}
 		}
 		return map;
 	}

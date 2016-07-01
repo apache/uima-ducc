@@ -39,14 +39,11 @@ public class DuccSchedulerClasses {
 
 	private String fileName = null;
 	
-	public static DuccSchedulerClasses getInstance() {
-	    // Use double check locking for safety
-		if (instance == null) {
-		    synchronized(DuccSchedulerClasses.class){
-                if (instance == null) {
-                    instance = new DuccSchedulerClasses();
-                }
-		    }
+	public static DuccSchedulerClasses getInstance() { 
+		synchronized(DuccSchedulerClasses.class){
+			if (instance == null) {
+				instance = new DuccSchedulerClasses();
+			}
 		}
 		return instance;
 	}

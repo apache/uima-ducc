@@ -176,7 +176,9 @@ public class Utils {
 				throw e;
 			} finally {
 				// Close the input stream
-				in.close();
+				if(in != null) {
+					in.close();
+				}
 			}
 		}
 		return nodeList; // empty list
