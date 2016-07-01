@@ -1292,8 +1292,10 @@ public class ServiceSet
         for ( int i = 0; i < ndeletions; i++ ) {
             instances -= stop(deletions[i]); // stop() may return 0 or 1
         }
-        if (this.isAutostart() && instances == 0) {
-          instances = 1;  // keep autostarted services running at least one instance on rebalance
+        // keep services with autostart=true or with active references 
+        // running with at least one instance on a rebalance
+        if ((this.isAutostart() || (this.countReferences() > 0) ) && instances == 0) {
+          instances = 1;
         }
 
         try {
