@@ -130,6 +130,7 @@ class DuccUtil(DuccBase):
         if ( self.ducc_properties == None ):
             DuccBase.read_properties(self)
 
+        self.ssh_enabled       = self.ducc_properties.get('ducc.ssh')
         self.duccling          = self.ducc_properties.get('ducc.agent.launcher.ducc_spawn_path')
 
         # self.broker_url     = self.ducc_properties.get('ducc.broker.url')
@@ -341,6 +342,9 @@ class DuccUtil(DuccBase):
 
 
     def nohup(self, cmd, showpid=True):
+        # Skip use of ssh?
+        if cmd[0] == "ssh" and 'false' == self.ssh_enabled:
+            cmd = cmd[2:]
         cmd = ' '.join(cmd)
         # print '**** nohup', cmd, '****'
         devnw = open(os.devnull, 'w')
@@ -352,12 +356,20 @@ class DuccUtil(DuccBase):
             print 'PID', ducc.pid
 
     # like popen, only it spawns via ssh
+    # Skip use of ssh?
+    # NOTE: Current callers always have do_wait True
     def ssh(self, host, do_wait, *CMD):
-
         cmd = ' '.join(CMD)
+        # Some callers quote the string which is OK for ssh but not the direct call
+        if cmd[0] == "'" and cmd[-1] == "'":
+            cmd = cmd[1:len(cmd)-2]
         if ( do_wait ):
+            if 'false' == self.ssh_enabled:
+                return self.popen(cmd)
             return self.popen('ssh -q -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
         else:
+            if 'false' == self.ssh_enabled:
+                return self.spawn(cmd)
             return self.spawn('ssh -q -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
 
 
