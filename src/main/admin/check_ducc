@@ -196,8 +196,6 @@ class CheckDucc(DuccUtil):
     
     def main(self, argv):
 
-        self.verify_head()
-
         try:
             opts, args = getopt.getopt(argv, 'cikn:opqx:h?v', ['configuration', 'nodelist=', 'int', 'quit', 'kill', 'pids', 'verbose', 'nothreading', ])
         except:
@@ -258,6 +256,9 @@ class CheckDucc(DuccUtil):
             # if validating, ONLY validate, called via ssh usually
             self.validate(checkdate)
             return
+
+        # When called directly must be from the head node
+        self.verify_head()
 
         self.set_duccling_version()
 
