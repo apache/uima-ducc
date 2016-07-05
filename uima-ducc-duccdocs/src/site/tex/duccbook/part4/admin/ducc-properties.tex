@@ -468,6 +468,22 @@
          \end{description}
 
 
+       \item[ducc.ssh] \hfill \\
+         When set to "False" this property bypasses use of ssh.
+         
+         It is intended for use ONLY by DUCC developers. It allows developers of DUCC 
+         to simulate a multinode environment without the need for ssh to "remote" nodes
+         for a single host deployment. 
+         
+         Note: WARNING! Enabling this feature in a production DUCC system is a serious
+         distributed computing usability hinderance. It should only be set by DUCC developers 
+         for testing or demo purposes.
+         
+         \begin{description}            
+            \item[Default] True             
+            \item[Type] Local
+          \end{description}
+
         \item[ducc.signature.required] \hfill \\
           When set, the CLI signs each request so the Orchestrator can be sure the requestor is 
           actually who he claims to be. 
