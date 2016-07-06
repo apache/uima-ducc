@@ -32,7 +32,7 @@ global DUCC_HOME
 global autostart
 
 
-DUCC_HOME = os.environ['HOME'] + '/ducc/install'
+DUCC_HOME = os.environ['HOME'] + '/ducc_runtime'
 autostart = True
 
 
