@@ -64,7 +64,9 @@ public class Utils {
 	        if (socket != null) {
 	          socket.close(); 
 	        } 
-	      } catch( Exception ex) {}
+	      } catch( Exception ex) {
+	    	  ex.printStackTrace();
+	      }
 	    }
 	    return port;
 	  }
