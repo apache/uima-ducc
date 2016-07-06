@@ -39,32 +39,36 @@ public class DuccProcessMemoryPageLoadUsage implements
 		builder.redirectErrorStream(true);
 		Process process = builder.start();
 		InputStream is = process.getInputStream();
-		InputStreamReader isr = new InputStreamReader(is);
-		BufferedReader br = new BufferedReader(isr);
-		String line;
-		int count = 0;
-		String faults = null;
-		try {
-			while ((line = br.readLine()) != null) {
-				// skip the header line
-				if (count == 1) {
-					faults = line.trim();
+		if ( is != null ) {
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader br = new BufferedReader(isr);
+			String line;
+			int count = 0;
+			String faults = null;
+			try {
+				while ((line = br.readLine()) != null) {
+					// skip the header line
+					if (count == 1) {
+						faults = line.trim();
+					}
+					count++;
 				}
-				count++;
+			} finally {
+				if (is != null) {
+					is.close();
+				}
+				process.waitFor();
+				process.destroy();
 			}
-		} finally {
-			if (is != null) {
-				is.close();
+			if ( faults != null) {
+				return Long.parseLong(faults.trim());
+			} else {
+				return 0;
 			}
-			process.waitFor();
-			process.destroy();
+			
 		}
+		return 0;
 		
-		if ( faults != null) {
-			return Long.parseLong(faults.trim());
-		} else {
-			return 0;
-		}
 	}
 
 }
