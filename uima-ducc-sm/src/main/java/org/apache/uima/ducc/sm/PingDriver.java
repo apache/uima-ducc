@@ -665,9 +665,28 @@ class PingDriver
             arglist.add("--");
         }
 
-        arglist.add(System.getProperty("ducc.jvm"));
+        // Jira 4805 - run the pinger with the same environment as the service
+        // Tokenize & unquote the assignments, and convert to a map of environment settings after any substitutions
+        // Suntax errors usually caught when registered, but --modify does not check
+        ArrayList<String> envVarList = QuotedOptions.tokenizeList(environment, true);
+        Map<String, String> envMap;
+        try {
+        	envMap = QuotedOptions.parseAssignments(envVarList, +1);
+        } catch (IllegalArgumentException e) {
+            logger.error(methodName, sset.getId(), "Invalid environment:", e);
+            pingState = ServiceState.Stopped;
+            return;
+        }
+        
+        // Jira 5002 - check for user-specified JVM
+        String javaHome = envMap.get("JAVA_HOME");
+        if (javaHome != null) {
+        	arglist.add(javaHome + "/bin/java");
+        } else {
+        	arglist.add(System.getProperty("ducc.jvm"));
+        }
+        
         arglist.add("-DSM_MONITOR=T");
-
         if ( jvm_args != null ) {
             for ( String s : jvm_args) {
                 arglist.add(s);
@@ -704,11 +723,6 @@ class PingDriver
         InputStream stdout = null;
         InputStream stderr = null;
         try {
-            // Jira 4805 - run the pinger with the same environment as the service
-            // Tokenize & unquote the assignments, and convert to a map of environment settings after any substitutions
-            // Could throw IllegalArgumentException which will be caught below
-            ArrayList<String> envVarList = QuotedOptions.tokenizeList(environment, true);
-            Map<String, String> envMap = QuotedOptions.parseAssignments(envVarList, +1);
             Map<String, String> env = pb.environment();
             env.clear();
             env.putAll(envMap);
