@@ -384,18 +384,16 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 			System.out.println(line);
 			if ( line.trim().startsWith("cgroup") ) { 
 				String[] cgroupsInfo = line.split(" ");
-				if ( cgroupsInfo[1].indexOf("/memory") > -1 ) {
+				if ( cgroupsInfo[1].trim().equals("/cgroup") ) {
+					cbaseDir = cgroupsInfo[1].trim();
+					break;
+				} else if ( cgroupsInfo[1].trim().endsWith("/memory") ) {
 					// return the mount point minus the memory part
 					cbaseDir = cgroupsInfo[1].substring(0, cgroupsInfo[1].indexOf("/memory") );
-				} else if ( cgroupsInfo[1].indexOf("cpu") > -1){
-					// return the mount point minus the memory part
-					cbaseDir = cgroupsInfo[1].substring(0, cgroupsInfo[1].indexOf("/cpu") );
-				} else {
-					cbaseDir = cgroupsInfo[1].trim();
-				}
-			    break;
+					break;
+				} 
 			}
-		}
+		}  // while
 		 
 	  } catch( Exception e) {
 	        logger.info("nodeAgent", null,
