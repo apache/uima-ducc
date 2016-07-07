@@ -625,14 +625,16 @@ class PingDriver
 
         File libdir = new File(dh + "/lib/uima-ducc");
         String[] jars = libdir.list();
-        for ( String j : jars ) {
-            if ( j.contains("ducc-sm") ) {
-                cp = cp + ":" + dh + "/lib/uima-ducc/" + j;
-                continue;
-            }
-            if ( j.contains("ducc-common") ) {
-                cp = cp + ":" + dh + "/lib/uima-ducc/" + j;
-                continue;
+        if ( jars != null ) {
+            for ( String j : jars ) {
+                if ( j.contains("ducc-sm") ) {
+                    cp = cp + ":" + dh + "/lib/uima-ducc/" + j;
+                    continue;
+                }
+                if ( j.contains("ducc-common") ) {
+                    cp = cp + ":" + dh + "/lib/uima-ducc/" + j;
+                    continue;
+                }
             }
         }
 
