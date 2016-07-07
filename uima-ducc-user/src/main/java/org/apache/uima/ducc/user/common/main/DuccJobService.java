@@ -38,7 +38,6 @@ import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 public class DuccJobService {
 	boolean DEBUG = false;
 	private Investment investment = null;
-	private HashMap<String, String> savedPropsMap;
 	
 	public static URLClassLoader create(String classPath)
 			throws MalformedURLException {
@@ -90,7 +89,7 @@ public class DuccJobService {
 	public void start(String[] args) throws Exception {
 		try {
 	        investment = new Investment();
-	        
+            
 	        // cache current context classloader
 			ClassLoader sysCL = Thread.currentThread().getContextClassLoader();
 
@@ -115,7 +114,7 @@ public class DuccJobService {
 			Logger logger = Logger.getLogger(DuccJobService.class.getName());
 			logger.log(Level.INFO, ">>>>>>>>> Booting Ducc Container");
 
-			hideLoggingProperties();  // Ensure DUCC doesn't try to use the user's logging setup
+			HashMap<String, String> savedPropsMap = hideLoggingProperties();  // Ensure DUCC doesn't try to use the user's logging setup
 			
 			// Construct & initialize Ducc fenced container. 
 			// It calls component's Configuration class
@@ -124,7 +123,7 @@ public class DuccJobService {
 			bootMethod.invoke(duccContainerInstance, (Object) args);
 
 			logger.log(Level.INFO, "<<<<<<<< Ducc Container booted");
-			restoreLoggingProperties();  // May not be necessary as user's logger has been established
+			restoreLoggingProperties(savedPropsMap);  // May not be necessary as user's logger has been established
 			
 			// below property is set by component's Configuration class. It can also
 			// be provided on the command line in case a custom processor is needed.
@@ -165,12 +164,12 @@ public class DuccJobService {
 
 	}
 	
-	private void hideLoggingProperties() {
+	public static HashMap<String,String> hideLoggingProperties() {
 		String[] propsToSave = { "log4j.configuration", 
 				                 "java.util.logging.config.file",
 							     "java.util.logging.config.class",
 							     "org.apache.uima.logger.class"};
-		savedPropsMap = new HashMap<String,String>();
+		HashMap<String, String> savedPropsMap = new HashMap<String,String>();
 		for (String prop : propsToSave) {
 			String val = System.getProperty(prop);
 			if (val != null) {
@@ -179,10 +178,10 @@ public class DuccJobService {
 				//System.out.println("!!!! Saved prop " + prop + " = " + val);
 			}
 		}
-
+		return savedPropsMap;
 	}
 	
-	private void restoreLoggingProperties() {
+	public static void restoreLoggingProperties(HashMap<String,String> savedPropsMap) {
 		for (String prop : savedPropsMap.keySet()) {
 			System.setProperty(prop, savedPropsMap.get(prop));
 			//System.out.println("!!!! Restored prop " + prop + " = " + System.getProperty(prop));

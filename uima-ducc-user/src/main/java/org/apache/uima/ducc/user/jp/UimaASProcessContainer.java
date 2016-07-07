@@ -24,9 +24,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.net.BindException;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.SocketException;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,6 +48,7 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.EntityProcessStatus;
 import org.apache.uima.ducc.IUser;
+import org.apache.uima.ducc.user.common.main.DuccJobService;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 import org.xml.sax.Attributes;
@@ -177,21 +176,13 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			}
 		}
 	}
-	  public static void dump(ClassLoader cl, int numLevels) {
-		    int n = 0;
-		    for (URLClassLoader ucl = (URLClassLoader) cl; ucl != null && ++n <= numLevels; ucl = (URLClassLoader) ucl.getParent()) {
-		      System.out.println("Class-loader " + n + " has " + ucl.getURLs().length + " urls:");
-		      for (URL u : ucl.getURLs()) {
-		        System.out.println("  " + u );
-		      }
-		    }
-		  }
 
 	private void deployBroker(String duccHome) throws Exception {
 		// Save current context class loader. When done loading the broker jars
 		// this class loader will be restored
 		ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
-
+		HashMap<String, String> savedPropsMap = null;
+		
 		try {
 			// setup a classpath for Ducc broker
 			String[] brokerClasspath = new String[] {
@@ -200,11 +191,15 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			};
 			
 			// isolate broker in its own Class loader
-			URLClassLoader ucl = create(brokerClasspath);
+			URLClassLoader ucl = DuccJobService.create(brokerClasspath);
 			Thread.currentThread().setContextClassLoader(ucl);
+			savedPropsMap = DuccJobService.hideLoggingProperties();  // Ensure DUCC doesn't try to use the user's logging setup
 			
 			classToLaunch = ucl.loadClass("org.apache.activemq.broker.BrokerService");
-			dump(ucl, 4);
+			if (System.getProperty("ducc.debug") != null) {
+				System.out.println("Classpath for the internal broker");
+				DuccJobService.dump(ucl, 4);
+			}
 			brokerInstance = classToLaunch.newInstance();
 			
 			Method setDedicatedTaskRunnerMethod = classToLaunch.getMethod("setDedicatedTaskRunner", boolean.class);
@@ -249,6 +244,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			// restore context class loader
 			Thread.currentThread().setContextClassLoader(currentCL);
 			brokerLatch.countDown();
+			DuccJobService.restoreLoggingProperties(savedPropsMap);  // May not be necessary as user's logger has been established
 		}
 		
 	}
@@ -267,29 +263,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			return false;
 		}
 	}
-	  public static URLClassLoader create(String[] classPathElements) throws MalformedURLException {
-		    ArrayList<URL> urlList = new ArrayList<URL>(classPathElements.length);
-		    for (String element : classPathElements) {
-		      if (element.endsWith("*")) {
-		        File dir = new File(element.substring(0, element.length() - 1));
-		        File[] files = dir.listFiles();   // Will be null if missing or not a dir
-		        if (files != null) {
-		          for (File f : files) {
-		            if (f.getName().endsWith(".jar")) {
-		              urlList.add(f.toURI().toURL());
-		            }
-		          }
-		        }
-		      } else {
-		        File f = new File(element);
-		        if (f.exists()) {
-		          urlList.add(f.toURI().toURL());
-		        }
-		      }
-		    }
-		    URL[] urls = new URL[urlList.size()];
-		    return new URLClassLoader(urlList.toArray(urls), ClassLoader.getSystemClassLoader().getParent());
-		  }
+
 	/** 
 	 * This method is called via reflection and stops the UIMA-AS service,
 	 * the client, and the colocated broker.
