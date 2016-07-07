@@ -43,7 +43,7 @@ class Installer():
         file = 'site.ducc.properties'
         src = ducc_home+'/examples/uima-ducc-vm/config/resources/'+file
         tgt = ducc_home+'/resources/'+file
-        command = 'cp -p'+' '+src+' '+tgt
+        command = 'cat'+' '+src+' >> '+tgt
         os.system(command)
         print 'installed: '+tgt
         #
