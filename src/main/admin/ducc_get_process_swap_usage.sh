@@ -18,6 +18,10 @@
 # under the License.
 # -----------------------------------------------------------------------
 
+# !!!!!
+# !!!!! Used by agent as defined in default.ducc.properties
+# !!!!!
+
 # Sums up swap use of a process with a given PID as reported by /proc/<PID>/smaps file
 
 for swap in `grep Swap /proc/$1/smaps 2>/dev/null|awk '{print $2}'`; 
