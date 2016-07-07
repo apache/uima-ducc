@@ -205,56 +205,204 @@
 =====================================
 
 ====- Apache Software License 2.0 =============
-   uima v.2.6.0
-   uima-as v.2.6.0
-   camel v2.10.1
-   activemq v7.0
-   spring framework v.3.0.7.RELEASE
+   uima v.2.8.1
+       uima-core.jar
+       uimaj-json.jar
+       jackson-core-2.4.2.jar  
+       uima-cpe.jar
+       uima-document-annotation.jar  
+       uima-tools.jar
+       uima-examples.jar
+       jVinci.jar
+       uima-adapter-soap.jar   
+       uima-adapter-vinci.jar  
+
+   uima-as v.2.8.1
+       uimaj-as-core.jar      
+       uimaj-as-activemq.jar  
+       uimaj-bootstrap.jar
+       uimaj-as-jms.jar
+       uimaj-as-camel.jar
+       xmlbeans.jar
+
+   camel v2.16.2
+       camel-context-2.16.2.jar
+       camel-core-2.16.2.jar
+       camel-http-2.16.2.jar
+       camel-http4-2.16.2.jar
+       camel-http-common-2.16.2.jar
+       camel-jetty-2.16.2.jar
+       camel-jetty-common-2.16.2.jar  
+       camel-test-2.16.2.jar
+       camel-jms-2.16.2.jar           
+       camel-test-spring-2.16.2.jar
+       camel-mina-2.16.2.jar          
+       camel-xmlbeans-2.16.2.jar
+       camel-servlet-2.16.2.jar       
+       camel-xstream-2.16.2.jar
+       camel-spring-2.16.2.jar
+       camel-stream-2.16.2.jar
+
+   activemq v5.13.2
+       activemq-amqp-5.13.2.jar
+       activemq-broker-5.13.2.jar
+       activemq-camel-5.13.2.jar 
+       activemq-client-5.13.2.jar
+       activemq-console-5.13.2.jar
+       activemq-http-5.13.2.jar
+       activemq-jaas-5.13.2.jar
+       activemq-jms-pool-5.13.2.jar
+       activemq-kahadb-store-5.13.2.jar
+       activemq-leveldb-store-5.13.2.jar   
+       activemq-log4j-appender-5.13.2.jar  
+       activemq-mqtt-5.13.2.jar            
+       activemq-partition-5.13.2.jar       
+       activemq-pool-5.13.2.jar            
+       activemq-runtime-config-5.13.2.jar  
+       activemq-shiro-5.13.2.jar           
+       activemq-spring-5.13.2.jar          
+       activemq-stomp-5.13.2.jar
+
+   spring framework v.4.1.9.RELEASE
+       spring-aop-4.1.9.RELEASE.jar   
+       spring-beans-4.1.9.RELEASE.jar 
+       spring-context-4.1.9.RELEASE.jar
+       spring-core-4.1.9.RELEASE.jar
+       spring-expression-4.1.9.RELEASE.jar
+       spring-jms-4.1.9.RELEASE.jar
+       spring-tx-4.1.9.RELEASE.jar
+       xbean-spring-3.18.jar
+
+   jetty v9.2.13.v20150730
+       jetty-proxy-9.2.13.v20150730.jar
+       jetty-quickstart-9.2.13.v20150730.jar
+       jetty-rewrite-9.2.13.v20150730.jar
+       jetty-schemas-3.1.jar
+       jetty-security-9.2.13.v20150730.jar
+       jetty-server-9.2.13.v20150730.jar
+       jetty-alpn-client-9.2.13.v20150730.jar   
+       jetty-servlet-9.2.13.v20150730.jar
+       jetty-alpn-server-9.2.13.v20150730.jar   
+       jetty-servlets-9.2.13.v20150730.jar
+       jetty-annotations-9.2.13.v20150730.jar   
+       jetty-util-9.2.13.v20150730.jar
+       jetty-cdi-9.2.13.v20150730.jar           
+       jetty-webapp-9.2.13.v20150730.jar
+       jetty-client-9.2.13.v20150730.jar        
+       jetty-xml-9.2.13.v20150730.jar
+       jetty-continuation-9.2.13.v20150730.jar
+       jetty-deploy-9.2.13.v20150730.jar
+       jetty-http-9.2.13.v20150730.jar
+       jetty-io-9.2.13.v20150730.jar
+       jetty-jaas-9.2.13.v20150730.jar
+       jetty-jaspi-9.2.13.v20150730.jar
+       jetty-jmx-9.2.13.v20150730.jar
+       jetty-jndi-9.2.13.v20150730.jar
+       jetty-plus-9.2.13.v20150730.jar
+       jetty-spring-9.2.13.v20150730.jar
+       jetty-jsp-9.2.13.v20150730.jar
+       jetty-monitor-9.2.13.v20150730.jar   
+
+   cassandra v2.1.8 ( Client side )
+       cassandra-driver-core-2.1.8.jar
+       cassandra-driver-dse-2.1.8.jar
+       cassandra-driver-mapping-2.1.8.jar
+
+   (cassandra client) lz4-1.3.0.jar 
+   (cassandra client) metrics-core-3.0.2.jar
+   (cassandra client) netty-buffer-4.0.27.Final.jar
+   (cassandra client) netty-codec-4.0.27.Final.jar
+   (cassandra client) netty-common-4.0.27.Final.jar
+   (cassandra client) netty-transport-4.0.27.Final.jar
+   (cassandra client) netty-handler-4.0.27.Final.jar
+   (cassandra client) snappy-java-1.0.5.jar
+
+   cassandra v2.1.11 ( Server side )
+       apache-cassandra-2.1.11.jar   
+       apache-cassandra-clientutil-2.1.11.jar
+       apache-cassandra-thrift-2.1.11.jar
+       cassandra-driver-internal-only-2.7.2.zip
+
+   (cassandra server) airline-0.6.jar 
+   (cassandra server) compress-lzf-0.8.4.jar
+   (cassandra server) commons-math3-3.2.jar
+   (cassandra server) concurrentlinkedhashmap-lru-1.4.jar
+   (cassandra server) disruptor-3.0.1.jar
+   (cassandra server) guava-16.0.jar 
+   (cassandra server) jackson-core-asl-1.9.2.jar
+   (cassandra server) jackson-mapper-asl-1.9.2.jar
+   (cassandra server) jamm-0.3.0.jar
+   (cassandra server) json-simple-1.1.jar
+   (cassandra server) javax.inject.jar
+   (cassandra server) libthrift-0.9.2.jar
+   (cassandra server) metrics-core-2.2.0.jar
+   (cassandra server) netty-all-4.0.23.Final.jar 
+   (cassandra server) reporter-config-2.1.0.jar
+   (cassandra server) snakeyaml-1.11.jar
+   (cassandra server) snappy-java-1.0.5.2.jar
+   (cassandra server) stream-2.5.2.jar
+   (cassandra server) super-csv-2.1.0.jar
+   (cassandra server) thrift-server-0.3.7.jar
+
+   (webserver) org.mortbay.jasper.apache-jsp-8.0.9.M3.jar
+   (webserver) org.mortbay.jasper.apache-el-8.0.9.M3.jar
+   (webserver) org.apache.taglibs.taglibs-standard-impl-1.2.1.jar
+   (webserver) org.apache.taglibs.taglibs-standard-spec-1.2.1.jar
+   (webserver) javax.security.auth.message-1.0.0.v201108011116.jar
+   (webserver) jetty-jsp-jdt-2.3.3.jar
+   (webserver) JPagination
+
+
+
+   (activemq) hawtbuf-1.11.jar
+
+
+************ !!!!DUPLICATE WITH CASSANDRA  commons-cli-1.1.jar
    commons-cli-1.2.jar
+******************************************************
+
    commons-collections-3.2.1.jar
+
+************ !!!!DUPLICATE WITH CASSANDRA  commons-lang-3.2.1
    commons-lang-2.6.jar
-   commons-pool-1.5.4.jar
+****************************************
+   commons-pool2-2.4.2.jar
+************ !!!!! DUPLICATE WITH ducc/lib  and apache-activemq/lib/optional vers 1.2.17
    log4j-1.2.16.jar
+****************************************
    gson-2.2.2.jar
+************ !!!!! DUPLICATE WITH CASSANDRA guava-16.0
    guava-r09.jar
+***************************************
+************ !!!!! DUPLICATE WITH CASSANDRA jna-4.0.0
    jna-4.0.0.jar
+***************************************
    joda-time-2.1.jar
-   xmlbeans.jar v.2.4.0-r670094
-   commons-logging-1.0.4.jar
+   commons-logging-1.2.0.jar
    geronimo-j2ee-management_1.1_spec-1.0.1.jar
    geronimo-jms_1.1_spec-1.1.1.jar 
-   kahadb-5.7.0.jar
-   xbean-spring-3.11.1.jar
-   commons-httpclient-3.1.jar
-   geronimo-servlet_2.5_spec-1.2.jar
-   httpcore-4.3.2.jar
-   httpclient-4.3.5.jar
-   (webserver)javax.activation_1.1.0.v201005080500.jar
-   (webserver)javax.el_2.1.0.v201004190952.jar 
-   (webserver)javax.servlet.jsp_2.1.0.v201004190952.jar
-   (webserver)javax.servlet.jsp.jstl_1.2.0.v201004190952.jar
-   (webserver)(org.apache.jasper.glassfish_2.1.0.v201007080150.jar
-   (webserver)(org.apache.taglibs.standard.glassfish_1.2.0.v201004190952.jar
-   (webserver)javax.transaction_1.1.1.v201004190952.jar
-   (webserver)servlet-api-2.5.jar
-   (webserver)javax.annotation_1.0.0.v20100513-0750.jar
-   (webserver)jPagination
-   (webserver)jetty 7.4.4.v20110707
-   
-   
+   geronimo-servlet_3.0_spec-1.0.jar
+   httpcore-4.4.4.jar
+   httpclient-4.5.1.jar
+
 ===-Apache Software License v 1.0 =============  
    xpp3-1.1.4c.jar
        Applies to the class javax.xml.namespace.QName
 
 ===-The Apache Software License, Version 1.1 ======
-	commons-codec-1.2.jar 
-	(Webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
+
+
+*********** !!!!!!!!!!! DUPLICATE found in cassandra and amq/optional
+	(activemq) commons-codec-1.9.jar 
+************************
 	   BCEL 5.1
 	   Resolver
 	   Apache Commons Logging
 	   Apache Commons Digester
 	   Apache Commons Bean Utils
 	   Apache Commons Beans Collections
+
+
 
 ===-http://creativecommons.org/licenses/publicdomain =============
     xpp3-1.1.4c.jar  
@@ -264,13 +412,17 @@
     xpp3-1.1.4c.jar  
 	  Applies to the Xpp3 classes
 
-===-W3C LICENSE =============
-   geronimo-servlet_2.5_spec-1.2 library  
-
 ===-MIT License  ============= 
+   (cassandra) high-scale-lib-1.0.6.jar
+
+***** DUPLICATE CASSANDRA /cassandra-server/lib/slf4j-api-1.7.2.jar
+
    slf4j-api-1.6.4.jar
-   slf4j-log4j-1.6.4.jar
-   jcl-over-slf4j-1.6.4.jar
+
+**************************************************************
+
+   slf4j-log4j-1.7.13.jar
+   jcl-over-slf4j-1.7.13.jar
    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
         iso-relax
    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
@@ -284,26 +436,44 @@
    (webserver)DataTables-plugins v.1.10.1
    (webserver>navigation
    
+
+=== six-1.7.3-py2.py3-none-any.zip ===
+
+=== ST4-4.0.8.jar ====================
+
+===-ANTLR Runtime License ==========
+   (cassandra) antlr-runtime-3.5.2.jar
+
+=== jLine License ==================
+   (cassandra) jline-1.0.jar
+
+=== Futures License ==========
+   (cassandra) futures-2.1.6-py2.py3-none-any.zip
+
+=== XMLPull License ======================
+xmlpull-1.1.3.1.jar
+
+
 ===-BSD Style License =============
-   xstream-1.4.3.jar
-   xstream-1.3.1.jar
+   (cassandra) HdrHistogram-2.1.4.jar
+
+   xstream-1.4.8.jar
+
    SVG Icons
    mina-core-1.1.7.jar
    
-===-BSD - INRIA, France Telecom License 
+===-BSD - INRIA, France Telecom License
+   asm-5.0.1.jar 
    com.springsource.net.sf.cglib-2.2.0.jar   
-   org.objectweb.asm_3.1.0.v200803061910.jar
+   asm-commons-5.0.1.jar
    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
-      ASM
-   RelaxNG Object Model/Parser
-   (webserver) org.objectweb.asm_3.1.0.v200803061910.jar       	
    
 ===-Ben Nolan License =============
    behaviour.js   
 	
 ===-Sam Stephenson License =============
    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
-      prototype.js
+    prototype.js
 
 ===-Tanuki Software, Inc License =============
    Java Service Wrapper 
@@ -312,18 +482,48 @@
    Saxon 8.9    
    
 ===-COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) version 1 =============
+
+   (webserver) javax.websocket-api-1.0.jar
+   (webserver)  servlet-api-3.1.jar
+   (webserver) org.eclipse.jetty.orbit.javax.servlet.jsp.jstl-1.2.0.v201105211821.jar
+   (webserver) javax.servlet.jsp.jstl-1.2.2.jar
+   (webserver) javax.servlet.jsp-api-2.3.1.jar
+   (webserver) javax.servlet.jsp-2.3.2.jar
+   (webserver) javax.el-3.0.0.jar
+   (webserver) javax.annotation-api-1.2.jar
+   (webserver) javax.mail.glassfish_1.4.1.v201005082020.jar
+   (webserver) javax.transaction-api-1.2.jar
    jaxb-api 
    jaxb-impl   
-   (webserver)com.sun.el_1.0.0.v201004190952.jar
-      Java Server Pages Expression Language 2.1
+ 
+=== jBCrypt License ============================
+   jbcrypt-0.3m.jar	  
 
-	  
 ===-Common Public License - v 1.0  =============
    (Webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
        wsdl4j 
  
 ===-Eclipse Public License - v 1.0  =============
-   (webserver)ecj-3-6.jar
+   (cassandra) logback-classic-1.1.2.jar
+   (cassandra) logback-core-1.1.2.jar
+   (webserver) javax-websocket-client-impl-9.2.13.v20150730.jar
+   (webserver) javax-websocket-server-impl-9.2.13.v20150730.jar
+   (webserver) websocket-api-9.2.13.v20150730.jar
+   (webserver) websocket-client-9.2.13.v20150730.jar
+   (websocket) websocket-common-9.2.13.v20150730.jar
+   (websocket) websocket-server-9.2.13.v20150730.jar
+   (webserver) websocket-servlet-9.2.13.v20150730.jar
+   (webserver) spdy-server-9.2.13.v20150730.jar
+   (webserver) spdy-http-server-9.2.13.v20150730.jar
+   (webserver) spdy-http-common-9.2.13.v20150730.jar
+   (webserver) spdy-core-9.2.13.v20150730.jar
+   (webserver) spdy-client-9.2.13.v20150730.jar
+   (webserver) jetty-setuid-java-1.0.1.jar
+   (webserver) org.eclipse.jdt.core-3.8.2.v20130121.jar
+   (webserver) org.eclipse.jetty.apache-jsp-9.2.13.v20150730.jar   
+   (webserver) fcgi-client-9.2.13.v20150730.jar
+   (webserver) fcgi-server-9.2.13.v20150730.jar
+   (webserver) org.eclipse.jetty.orbit.org.eclipse.jdt.core-3.8.2.v20130121.jar
  
 ===-Sun Microsystems, Inc License =============
    (Webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
@@ -366,14 +566,11 @@
 ===-Twitter, Inc. License =============
     (webserver)bootstrap	
 
-===- jGrowl License =============
-    (webserver)jGrowl 1.3
-
 ===-jetty-util License =============
     (webserver)jetty-util
  	
 ===-Creative Commons Attribution License v 2.5 =============
-	httpcore-4.2.1.jar
+	httpcore-4.4.4.jar
 	    - Thread-safety annotations based on JCIP-ANNOTATIONS (org.apache.http.annotation*)
 
 ===-Creative Commons CC-BY-SA-3.0		
@@ -521,55 +718,6 @@ ts-2.0x1.3.jpeg
  * SUCH DAMAGE.
 
 =====================================================
-
-W3C LICENSE
-
-Copyright 1994-2002 World Wide Web Consortium, (Massachusetts Institute of
-Technology, Institut National de Recherche en Informatique et en Automatique,
-Keio University). All Rights Reserved. http://www.w3.org/Consortium/Legal/
-
-This W3C work (including software, documents, or other related items) is
-being provided by the copyright holders under the following license. By
-obtaining, using and/or copying this work, you (the licensee) agree that you
-have read, understood, and will comply with the following terms and
-conditions:
-
-Permission to use, copy, modify, and distribute this software and its
-documentation, with or without modification,  for any purpose and without
-fee or royalty is hereby granted, provided that you include the following on
-ALL copies of the software and documentation or portions thereof, including
-modifications, that you make:
-
-   1. The full text of this NOTICE in a location viewable to users of the
-         redistributed or derivative work.
-   2. Any pre-existing intellectual property disclaimers, notices, or terms
-         and conditions. If none exist, a short notice of the following form
-         (hypertext is preferred, text is permitted) should be used within
-         the body of any redistributed or derivative code: "Copyright Â©
-         [$date-of-software] World Wide Web Consortium, (Massachusetts Institute
-         of Technology, Institut National de Recherche en Informatique et en
-         Automatique, Keio University). All Rights Reserved.
-         http://www.w3.org/Consortium/Legal/"
-   3. Notice of any changes or modifications to the W3C files, including the
-         date changes were made. (We recommend you provide URIs to the location
-         from which the code is derived.)
-
-THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE
-NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
-TO, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT
-THE USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY PATENTS,
-COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
-
-COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR
-CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR DOCUMENTATION.
-
-The name and trademarks of copyright holders may NOT be used in advertising or
-publicity pertaining to the software without specific, written prior permission.
-Title to copyright in this software and any associated documentation will at all
-times remain with copyright holders.
-
-
-====================================================================
 
 ====================================================================
 
@@ -1097,6 +1245,8 @@ Silver Egg Techology License -----------------------------------
 END Silver Egg Techology License -------------------------------------
 
 =========================================================================
+javax.annotation-api-1.2.jar,
+
 COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL)
 Version 1.0
 
@@ -2266,6 +2416,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================
+asm-5.0.1.jar, asm-commons-5.0.1.jar
 
 BSD License
 
@@ -2298,6 +2449,35 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
+======================================================
+HdrHistogram-2.1.4.jar
+
+Copyright (c) 2012, 2013, 2014 Gil Tene
+ Copyright (c) 2014 Michael Barker
+ Copyright (c) 2014 Matt Warren
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================
 
@@ -4329,31 +4509,6 @@ navigation - Copyright (c) 2013 Mato llic <info@matoilc.ch>
  THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   
 ========================================================================= 
-== The following products are licensed: jGrowl
-=========================================================================
-
- jGrowl License ==============
-
-Copyright (c) 2012 Stan Lemon
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -----
-
-========================================================================= 
 == The following products are licensed: SVG Icons
 =========================================================================
 
@@ -4389,3 +4544,307 @@ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+==========================================================================
+== The following products are licensed: ANTLR Runtime License
+==========================================================================
+
+Copyright (c) 2003-2006 Terence Parr
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. The name of the author may not be used to endorse or promote products
+    derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+==========================================================================
+== The following products are licensed: Futures
+==========================================================================
+Copyright 2009 Brian Quinlan. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+   1. Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+   2. Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY BRIAN QUINLAN "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+HALL THE FREEBSD PROJECT OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+==========================================================================
+== The following products are licensed: jBCrypt
+==========================================================================
+
+ Copyright (c) 2006 Damien Miller <djm@mindrot.org>
+
+ Permission to use, copy, modify, and distribute this software for any
+ purpose with or without fee is hereby granted, provided that the above
+ copyright notice and this permission notice appear in all copies.
+
+ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+==========================================================================
+== The following products are licensed: jLine
+==========================================================================
+
+Copyright (c) 2002-2006, Marc Prud'hommeaux <mwp1@cornell.edu>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or
+without modification, are permitted provided that the following
+conditions are met:
+
+Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with
+the distribution.
+
+Neither the name of JLine nor the names of its contributors
+may be used to endorse or promote products derived from this
+software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+==========================================================================
+== The following products are licensed: six-1.7.3-py2.py3-none-any.zip
+==========================================================================
+Copyright (c) 2010-2014 Benjamin Peterson
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+==========================================================================
+== The following products are licensed: ST4-4.0.8.jar
+==========================================================================
+Copyright (c) 2003-2006 Terence Parr
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. The name of the author may not be used to endorse or promote products
+    derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+==========================================================================
+== The following products are licensed: xmlpull
+==========================================================================
+
+
+XMLPULL API IS FREE
+-------------------
+
+All of the XMLPULL API source code, compiled code, and documentation
+contained in this distribution *except* for tests (see separate LICENSE_TESTS.txt)
+are in the Public Domain.
+
+XMLPULL API comes with NO WARRANTY or guarantee of fitness for any purpose.
+
+Initial authors:
+
+  Stefan Haustein
+  Aleksander Slominski
+
+2001-12-12
+
+=========================================
+
+From spring-core-4.1.9.RELEASE.jar (license.txt)
+
+
+To the extent any open source subcomponents are licensed under the EPL and/or
+other similar licenses that require the source code and/or modifications to
+source code to be made available (as would be noted above), you may obtain a
+copy of the source code corresponding to the binaries for such open source
+components and modifications thereto, if any, (the "Source Files"), by
+downloading the Source Files from http://www.springsource.org/download, or by
+sending a request, with your name and address to:
+
+    Pivotal, Inc., 875 Howard St,
+    San Francisco, CA 94103
+    United States of America
+
+or email info@gopivotal.com.  All such requests should clearly specify:
+
+    OPEN SOURCE FILES REQUEST
+    Attention General Counsel
+
+Pivotal shall mail a copy of the Source Files to you on a CD or equivalent
+physical medium. This offer to obtain a copy of the Source Files is valid for
+three years from the date you acquired this Software product.
+
+=============================================================
+==== LICENSE.txt geronimo-servlet_3.0_spec-1.0.jar
+=============================================================
+
+The XMLSchema.dtd included in this project was developed by the
+W3C Consortium (http://www.w3c.org/).
+Use of the source code, thus licensed, and the resultant binary are
+subject to the terms and conditions of the following license.
+
+W3C® SOFTWARE NOTICE AND LICENSE
+Copyright © 1994-2002 World Wide Web Consortium, (Massachusetts Institute of
+Technology, Institut National de Recherche en Informatique et en Automatique,
+Keio University). All Rights Reserved. http://www.w3.org/Consortium/Legal/
+
+This W3C work (including software, documents, or other related items) is
+being provided by the copyright holders under the following license. By
+obtaining, using and/or copying this work, you (the licensee) agree that you
+have read, understood, and will comply with the following terms and
+conditions:
+
+Permission to use, copy, modify, and distribute this software and its
+documentation, with or without modification,  for any purpose and without
+fee or royalty is hereby granted, provided that you include the following on
+ALL copies of the software and documentation or portions thereof, including
+modifications, that you make:
+
+   1. The full text of this NOTICE in a location viewable to users of the
+         redistributed or derivative work.
+   2. Any pre-existing intellectual property disclaimers, notices, or terms
+         and conditions. If none exist, a short notice of the following form
+         (hypertext is preferred, text is permitted) should be used within
+         the body of any redistributed or derivative code: "Copyright ©
+         [$date-of-software] World Wide Web Consortium, (Massachusetts Institute
+         of Technology, Institut National de Recherche en Informatique et en
+         Automatique, Keio University). All Rights Reserved.
+         http://www.w3.org/Consortium/Legal/"
+   3. Notice of any changes or modifications to the W3C files, including the
+         date changes were made. (We recommend you provide URIs to the location
+         from which the code is derived.)
+
+THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE
+NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT
+THE USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY PATENTS,
+COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+
+COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR
+CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR DOCUMENTATION.
+
+The name and trademarks of copyright holders may NOT be used in advertising or
+publicity pertaining to the software without specific, written prior permission.
+Title to copyright in this software and any associated documentation will at all
+times remain with copyright holders.
+
+============================================
+
+    From: commons-pool2-2.4.2.jar
+     APACHE COMMONS POOL DERIVATIVE WORKS:
+
+     The LinkedBlockingDeque implementation is based on an implementation written by
+     Doug Lea with assistance from members of JCP JSR-166 Expert Group and released
+     to the public domain, as explained at
+     http://creativecommons.org/licenses/publicdomain
+
+
+
+Public Domain License
+
+The person or persons who have associated work with this document (the "Dedicator" or "Certifier") hereby ei\
+ther (a) certifies that, to the best of
+his knowledge, the work of authorship identified is in the public domain of the country from which the work \
+is published, or (b) hereby dedicates
+whatever copyright the dedicators holds in the work of authorship identified below (the "Work") to the publi\
+c domain. A certifier, moreover, dedicates
+any copyright interest he may have in the associated work, and for these purposes, is described as a "dedica\
+tor" below.
+
+A certifier has taken reasonable steps to verify the copyright status of this work. Certifier recognizes tha\
+t his good faith efforts may not shield
+him from liability if in fact the work certified is not in the public domain.
+
+Dedicator makes this dedication for the benefit of the public at large and to the detriment of the Dedicator\
+'s heirs and successors. Dedicator intends
+1this dedication to be an overt act of relinquishment in perpetuity of all present and future rights under c\
+opyright law, whether vested or contingent,
+in the Work. Dedicator understands that such relinquishment of all rights includes the relinquishment of all\
+ rights to enforce (by lawsuit or otherwise)
+those copyrights in the Work.
+
+Dedicator recognizes that, once placed in the public domain, the Work may be freely reproduced, distributed,\
+ transmitted, used, modified, built upon,
+or otherwise exploited by anyone for any purpose, commercial or non-commercial, and in any way, including by\
+ methods that have not yet been invented or conceived.
+

@@ -19,6 +19,11 @@
 
 This readme includes notes related to DUCC NOTICE and LICENSE files.
 
+
+06/16/2016 Added cassandra and its dependencies. 
+07/23/2015 Added missing xmlbeans attributions to NOTICE file
+
+
 UIMA DUCC binary release includes a trimmed down version of ActiveMQ. Only the 
 necessary parts of ActiveMQ are included.
 
@@ -54,4 +59,20 @@ These dependencies are not bundled (packaged) in derby jar though. For this
 reason DUCC NOTICE file does not mention these dependencies. DUCC uses core
 functionality of Derby. 
 
-07/23/2015 Added missing xmlbeans attributions to NOTICE file
+================
+Ducc 2.1.0
+
+Cassandra snappy, netty, and lz4 License mentions found in the jar manifests
+Ducc includes Cassandra server (in DUCC_HOME/cassandra-server) and client
+   side is in DUCC_HOME/lib/cassandra. On 6/16/2016 seems like client jar
+   versions are older from the server.
+
+high-scale-lib-1.0.6.jar - license http://mvnrepository.com/artifact/com.boundary/high-scale-lib/1.0.6
+
+jBCrypt License - http://www.mindrot.org/files/jBCrypt/LICENSE
+
+jLine License - http://jline.sourceforge.net/license.html
+
+
+
+
