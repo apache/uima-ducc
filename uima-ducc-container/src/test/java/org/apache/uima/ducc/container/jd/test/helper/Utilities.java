@@ -44,9 +44,14 @@ public class Utilities {
 		userCP = resource("/");
 		StringBuilder sb = new StringBuilder(userCP);
 		File dir = new File(userCP);
-		for (File file : dir.listFiles()) {
-			if (file.getName().endsWith(".jar")) {
-				sb.append(':').append(file.getPath());
+		if ( dir != null ) {
+			File[] files = dir.listFiles();
+			if ( files != null ) {
+				for (File file : files) {
+					if (file.getName().endsWith(".jar")) {
+						sb.append(':').append(file.getPath());
+					}
+				}
 			}
 		}
 		userCP = sb.toString();
