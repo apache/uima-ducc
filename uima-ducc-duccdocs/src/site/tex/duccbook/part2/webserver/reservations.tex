@@ -17,7 +17,7 @@
 % under the License.
 % 
 
-\section{Reservation Page}
+\section{Reservations Page}
 \label{sec:ws-reservations}
 
 This page shows details of all reservations.  There are two types of reservations: {\em managed}
@@ -31,8 +31,7 @@ starts at the time {\DUCC} assigns a unique ID, and ends when the process termin
 An {\em unmanaged reservation} is essentially a sandbox for the user.  {\DUCC} starts no processes
 in the reservation and manages none of the processes which run on that host.  The lifetime of the
 reservation starts at the time {\DUCC} assigns a unique ID, and ends when the submitter or system
-administrator cancels it.  {\em Managed reservations} can potentially last an indefinite
-period of time.
+administrator cancels it.
 
 The Reservations page contains the following columns: 
 \begin{description}
@@ -44,14 +43,14 @@ The Reservations page contains the following columns:
   details on the process running in the reservation.
 
 \item[Start] \hfill \\
-  This is the time the reservation was mode.
+  This is the time the reservation was made.
   
 \item[Duration] \hfill \\
   A time in green is the length of time the active reservation has been assigned.  
   A time in black is the length of time the completed reservation was assigned. 
   
 \item[User] \hfill \\
-  This is the userid if the person who made the reservation.
+  This is the userid that made the reservation.
   
 \item[Class] \hfill \\
   This is the scheduling class used to schedule the reservation.
@@ -93,13 +92,12 @@ The Reservations page contains the following columns:
   \item[CanceledByAdmin] - The {\DUCC} administrator released the reservation. 
   \item[CanceledByUser] - The reservation owner released the reservation. 
   \item[ResourcesUnavailable] - The Resource Manager was unable to find free or freeable resources 
-    match the resource request. 
+    to match the resource request. 
   \item[ProgramExit] - The reservation is a {\em managed} reservation and the associated
     process has exited.
   \end{description}
 
-\item[User Processes] This is the number of processes owned by the user running in all
-  shares of the reservation.  
+\item[User Processes] This is the number of processes owned by the user running in the reservation.  
   
   Note that even for {\em unmanaged} reservations, the {\DUCC} agent tracks processes owned
   by the user and reports on them.  This allows better identification and management of
@@ -110,7 +108,7 @@ The Reservations page contains the following columns:
 \item[Swap] This is the total swap space for the managed reservation.
 
 \item[Memory] \hfill \\
-  The memory size in GB of the each allocated unit.  This is the amount of memory that
+  The memory size in GB of the reservation.  This is the amount of memory that
   was {\em requested}.  In the case of RESERVE policy reservations, that actual memory
   of the reserved machine may be greater.
   
