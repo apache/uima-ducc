@@ -75,7 +75,7 @@
           % The information comes from here:
           % Reason Scheduler: org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType
           This column provides a reason for the scheduler state, when the scheduler state is other than ``Allocated''. 
-          These all have ``hovers'' that provide more information
+          These may have ``hovers'' that provide more information
           if it is available.
 
             \begin{description}          
@@ -118,11 +118,11 @@
           % State Agent: org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState
             This shows the {\DUCC} Agent's view of the state of the process.
             \begin{description}
-               \item[Starting] The {\DUCC} process manager as issued a request to the assigned to
+               \item[Starting] The {\DUCC} process manager as issued a request to the assigned {\DUCC} Agent to
                  start the process.
                \item[Initializing] The process is initializing.  Usually this means the UIMA analytic
-                 pipeline (Job Process) is executing it's initialization method.
-              \item[Running] The Job Process has completed the initialization phase and is ready for, 
+                 pipeline (Job Process) is executing its initialization method.
+              \item[Running] The Job Process has completed the initialization phase and is ready for 
                 or actively executing work.
               \item[Stopped] The {\DUCC} Agent reports the process is stopped and (and has exited).
               \item[Failed] The {\DUCC} Agent reports the process failed with errors.  This usually
@@ -136,10 +136,10 @@
                 \begin{enumerate}
                   \item The Job Processes failed to initialize,
                   \item The Job Process timed out during initialization,
-                  \item The process Exocet's its allowed swap.
+                  \item The process exceeded its allowed swap.
                 \end{enumerate}
               \item[Abandoned] It is possible to cancel a specific process of a job.  Usually
-                this is because it became ``stuck'' because of hardware failure.  It a process
+                this is because it became ``stuck'' because of hardware failure.  If a process
                 is killed in \hyperref[sec:cli.ducc-cancel]{this way}, the state is recorded as {\em Abandoned}.
             \end{description}
             
@@ -154,7 +154,7 @@
                 from the {\DUCC} Orchestrator.  Timer on this wait has expired.  This usually 
                 indicates an infrastructure or communication problem.
               \item[Croaked] The process exited for no good or clear reason, it simply vanished.
-              \item[Deallocated] WHAT IS THIS?
+              \item[Discontinued] This is the normal reason when the process is stopped as directed.
               \item[ExceededShareSize] The process exceeded it's declared memory size.
               \item[ExceededSwapThreshold] The process exceeded the configured swap threshold.
               \item[FailedInitialization] The process was terminated because the UIMA 
@@ -206,7 +206,7 @@
             This is the average time in seconds spent per work item in the process.
             
           \item[Time Max] \hfill \\
-            This is the minimum time in seconds spent per work item in the process.
+            This is the maximum time in seconds spent per work item in the process.
             
           \item[Time Min] \hfill \\
             This is the minimum time in seconds spent per work item in the process.
@@ -257,26 +257,22 @@
        \begin{description}
          \item[ended] The work item is complete.
          \item[error] The work item ended with errors.
-         \item[lost] The work item was queued to ActiveMQ but never dequeued by
-         any Job Process.
          \item[operating] The work item is current being executed.
          \item[retry] The work item is being retried.
          \item[start] The work item has been picked up for execution and {\DUCC} is waiting
            for confirmation that it is running.
-         \item[queued] The work item has been queued to ActiveMQ but not picked up by any
-           Job Process yet.
        \end{description}
        If a work item has not yet been retrieved from the Collect Reader it does not show
        on this page.
      \item[Delivery Time (sec)]  \hfill \\
        The time spent in getting a work item from the Job Driver to a Job Process.
-     \item[Processing Time (sec)]  \hfill \\
+     \item[Process Time (sec)]  \hfill \\
        The time spent processing the work item.
      \item[Investment Time (sec)]  \hfill \\
        The time spent processing the work item during the current epoch.
-     \item[Host (IP)]  \hfill \\
+     \item[Node (IP)]  \hfill \\
        The host IP where the work item was processed.
-     \item[Host (Name)]  \hfill \\
+     \item[Node (Name)]  \hfill \\
        The host name where the work item was processed.
      \item[PID]  \hfill \\
        The Unix Process Id that the work item was processed in.
