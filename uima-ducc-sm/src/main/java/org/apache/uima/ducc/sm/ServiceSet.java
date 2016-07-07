@@ -563,19 +563,19 @@ public class ServiceSet
         return ping_only;
     }
 
-    long getLastUse()
+    synchronized long getLastUse()
     {
         return last_use;
     }
 
     // UIMA-4309
-    long getLastPing()
+    synchronized long getLastPing()
     {
         return last_ping;
     }
 
     // UIMA-4309
-    long getLastRunnable()
+    synchronized long getLastRunnable()
     {
         return last_runnable;
     }
