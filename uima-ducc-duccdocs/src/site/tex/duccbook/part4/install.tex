@@ -19,27 +19,36 @@
 \section{Overview}
 
 DUCC is a multi-user, multi-system distributed application.
-The instuctions below follow a staged installation/verification methodology,
+For first-time users a staged installation/verification methodology is recommended,
 roughly as follows:
 
 \begin{itemize}
-    \item Single system installation.
+    \item Single system installation - single node - all work runs with the credentials of the installer.
       
-    \item Add new machines to DUCC control.
+    \item Optionally add more nodes. 
       
-    \item Enable processes to run with the credentials of multiple submitting user.
+    \item Enable multiple-user support - processes run with the credentials of the submitting user.
       This step requires root authority on one or more machines.
       
     \item Enable CGroup containers. This step requires root authority on every DUCC machine.
 \end{itemize}
 
-DUCC is distributed as a compressed tar file.  The instructions below assume installation from one
-of this distribution media.  If building from source, the build creates this file in your svn
+When upgrading from an existing installation the {\em ducc\_update} script may be used
+to replace the system files while leaving the site-specific configuration files in place. 
+See more info at
+\ifdefined\DUCCSTANDALONE
+{\em ``ducc\_update''} in the duccbook. 
+\else
+\hyperref[subsec:admin.ducc-update] {ducc\_update}. 
+\fi
+
+
+DUCC is distributed as a compressed tar file.  If building from source, this file will be created in your svn
 trunk/target directory. The distribution file is in the form
 \begin{verbatim}
    uima-ducc-[version]-bin.tar.gz
 \end{verbatim}
-where [version] is the DUCC version; for example, {\em uima-ducc-VERSION-bin.tar.gz} (where VERSION is the current DUCC version).  This document will refer to the distribution
+where [version] is the DUCC version; for example, {\em uima-ducc-2.1.0-bin.tar.gz}.  This document will refer to the distribution
 file as the ``$<$distribution.file$>$''.
 
 \section{Software Prerequisites}
@@ -48,7 +57,7 @@ file as the ``$<$distribution.file$>$''.
 Single system installation:
 
 \begin{itemize}
-  \item Reasonably current Linux.  DUCC has been tested on SLES 11.x and RHEL 6.x
+  \item Reasonably current Linux.  DUCC has been tested on SLES 11, RHEL 6 \& 7, and Ubuntu 14.04 
     
     {\em Note:} On some systems the default {\em user limits}
     for max user processes (ulimit -u) and nfiles (ulimit -n) are defined too
@@ -59,8 +68,8 @@ Single system installation:
     processes running on the cluster.
 
   \item Python 2.x, where 'x' is 4 or greater.  DUCC has not been tested on Python 3.x.
-  \item Java 7. DUCC has been tested and run using IBM and Oracle JDK 1.7.
-  \item Passwordless ssh for user running DUCC
+  \item Java 7 or 8. DUCC has been tested and run using IBM and Oracle JDK 1.7 \& 1.8.
+  \item Passwordless ssh for the userid running DUCC
 \end{itemize}
   
 Additional requirements for multiple system installation:
@@ -409,9 +418,9 @@ privileged operations.
 
 If a different location is chosen for ducc\_ling the new path needs to be specified 
 for ducc.agent.launcher.ducc\_spawn\_path in \$DUCC\_HOME/resources/site.ducc.properties.
-See more info at see 
+See more info at
 \ifdefined\DUCCSTANDALONE
-{\em properties merging} in the duccbook. 
+{\em ``Properties merging''} in the duccbook. 
 \else
 \hyperref[sec:admin.properties-merge] {Properties merging}. 
 \fi
