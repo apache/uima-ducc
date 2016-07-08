@@ -12,16 +12,16 @@ To build UIMA-DUCC, install Java SDK 7.
 Then build from the directory containing this README by issuing the command
    mvn clean install.
    
-This builds everything except the ...source-release.zip file and DUCC documentation. 
+This builds everything except the source-release.zip file and DUCC documentation. 
 To build documentation make sure you have LATEX installed and change the command to:
 
    mvn clean install -Pbuild-duccdocs
 
-To build everything including the ...source-release.zip, change the command to 
+To build everything including the source-release.zip and documentation, use:
 
    mvn clean install -Papache-release
    
-The above also builds DUCC documentation.   
+To setup GPG signing see http://uima.apache.org/one-time-release-setup.html
    
 Look for the result in the two artifacts: 
    target/uima-ducc-[version]-source-release.zip (if run with -Papache-release) and
