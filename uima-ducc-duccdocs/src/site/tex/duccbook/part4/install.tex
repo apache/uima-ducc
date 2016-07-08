@@ -83,7 +83,8 @@ Additional requirements for CGroup containers:
 \begin{itemize}
   \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must the the only member of group {\em ducc}.
   \item DUCC run with user {\em ducc} credentials.
-  \item libcgroup1-0.37+ on SLES and libcgroup-0.37+ on RHEL, along with a custom /etc/cgconfig.conf
+  \item libcgroup1-0.37+ on SLES, libcgroup-0.37+ on RHEL, and on Ubuntu all of cgroup-bin cgroup-lite libcgroup1
+  \item along with a customized /etc/cgconfig.conf
 \end{itemize}
 
   
@@ -443,10 +444,17 @@ See more info at see
 
        \item Configure /etc/cgconfig.conf as follows:
 \begin{verbatim}
-   # Mount cgroups
+   # Mount cgroups for older OS (e.g. RHEL v6)
+   # For newer OS, remove entire mount block 
    mount {
-      memory = /cgroup;
-      cpu = /cgroup;
+#      cpuset = /cgroup/cpuset;
+      cpu = /cgroup/cpu;
+#      cpuacct = /cgroup/cpuacct;
+      memory = /cgroup/memory;
+#      devices = /cgroup/devices;
+#      freezer = /cgroup/freezer;
+#      net_cls = /cgroup/net_cls;
+#      blkio = /cgroup/blkio;
    }
    # Define cgroup ducc and setup permissions
    group ducc {
