@@ -906,11 +906,17 @@ ${uimaDUCCNoticeText}
 										<exclude>**/*.log</exclude>
 										<exclude>.pydevproject</exclude>
 										<exclude>**/*.out</exclude>
-										<exclude>**/*.aux</exclude>
+										<exclude>**/*.png</exclude>
+										<exclude>**/*.jpg</exclude>
+										<exclude>**/*.yaml</exclude>
+										<exclude>**/crontab.txt</exclude>
+										<exclude>**/*.tex</exclude>
+										<exclude>**/Makefile</exclude>
 										<exclude>uima-ducc-spawn/src/Makefile</exclude>
 										<exclude>uima-ducc-examples/**</exclude>
 										<exclude>uima-ducc-jd/**</exclude>
 										<exclude>uima-ducc-orchestrator/**</exclude>
+										<exclude>**/src/test/resources/**/*</exclude>
 										<exclude>uima-ducc-parent/**</exclude>
 										<exclude>uima-ducc-pm/**</exclude>
 										<exclude>uima-ducc-rm/**</exclude>
