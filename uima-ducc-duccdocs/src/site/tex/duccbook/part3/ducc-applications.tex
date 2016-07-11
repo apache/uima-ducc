@@ -20,15 +20,14 @@
 
 \section{Overview}
 
-A DUCC job consists of two process types, a Job Driver process and one or more
-Job Processes. These processes are connected together via UIMA-AS.
+A DUCC job consists of two process types, a Job Driver (JD) and one or more
+Job Processes (JPs). These processes communicate via HTTP.
 The Job Driver process wraps the job's Collection Reader (CR). The CR
-function is to define the collection of Work Items to be processed.
-The Collection Reader returns a small CAS for each Work Item containing a
-reference to the Work Item data
-The Job Driver uses the UIMA-AS client API to send Work Item CASes 
-to the job's input queue. Job Processes containing the analytic pipeline are deployed
-as UIMA-AS services and comsume CASes from the job input queue.
+function is to define the set of Work Items to be processed.
+The Collection Reader provides a small CAS for each Work Item containing a
+reference to the Work Item data.
+The Job Processes request Work Item CASes from the Job Driver via HTTP 
+and present them to the job's analytic pipeline.
 
 A basic job's analytic pipeline consists of an Aggregate Analysis Engine comprised by
 the user specified CAS Multiplier (CM), Analysis Engine (AE) and CAS
@@ -50,7 +49,7 @@ or to the AE \& CC to complete all processing for that Work Item.
    Job Process (using the job specification parameter: process\_thread\_count).
    Each pipeline thread receives Work Items independently.
 
-   DUCC creates an aggreate descriptor for the pipeline, and then creates a
+   DUCC creates an aggregate descriptor for the pipeline, and then creates a
    Deployment Descriptor for the Job Process which specifying the number
    of synchronous pipelines.
    
@@ -80,7 +79,7 @@ or to the AE \& CC to complete all processing for that Work Item.
 \section{Collection Segmentation and Artifact Extraction}
 
 UIMA is built around artifact processing. A classic UIMA pipeline starts with
-a Collection Reader (CR) that defines collection seqmentation, extracts the artifacts
+a Collection Reader (CR) that defines collection segmentation, extracts the artifacts
 to be analyzed and puts them into the CASes to be delivered to subsequent analytic components. 
 A CR designed for a specific data collection is highly reusable
 for many different analytic scenarios.
@@ -109,7 +108,7 @@ jobs, to avoid scale out bottlenecks, to preserve collection level
 processing, or to flush results at end-of-work-item processing.
    
 	\begin{description}
-	    \item[Federated ouput:] Scaled out DUCC jobs distribute artifact processing
+	    \item[Federated output:] Scaled out DUCC jobs distribute artifact processing
 	    to multiple pipeline instances. All instances of a CAS Consumer should have
 	    independent access to the output target (filesystem, service, database, etc.).
 	    \item[Singleton processing:] Collection level processing
@@ -130,7 +129,7 @@ processing, or to flush results at end-of-work-item processing.
 \section{Job Development for an Existing Pipeline Design}
 
 Assuming that an existing job input-output design (CR, CM, CC) is to be reused, job
-development is focussed on the Analysis Engine (AE) to be plugged in. Before deploying a new
+development is focused on the Analysis Engine (AE) to be plugged in. Before deploying a new
 AE in a multithreaded Job Process it is best to run it single threaded
 (process\_thread\_count=1) to separate basic logic errors from threading
 problems.
@@ -148,7 +147,7 @@ that will connect back to the eclipse debug configuration.
 \section{Job Development for a New Pipeline Design}
 
 A DUCC job is a UIMA application comprised of user code broken into a Collection
-Reader running in the Job Driver and an Agreggate Analysis Engine (analysis pipeline) running in one 
+Reader running in the Job Driver and an Aggregate Analysis Engine (analysis pipeline) running in one 
 or more Job Processes. Each Job Process may run multiple instances of the pipeline, each in a different
 thread. The major components of the basic Job Process application are as follows:
 
@@ -358,7 +357,7 @@ There will be an output zipfile for every Work Item, with zipfiles containing a 
 found in a Work Item. If UseBinaryCompression=true each zipfile will also contain the TypeSystem for the CASes. 
 This is needed when deserializing these CASes into a different TypeSystem.
 
-DuccTextCM finds 19245 paragraphs in the three txt files. If the output CASes are stored as 19245 uncompressed XMI files, the total size is 911MB. Using the default ZIP compressed XMI format and packed into 100 Work Item zip files, the total size is 165MB, a 5.5x compression. Using UIMA binary compressed format further reduces total size to 62MB.
+DuccTextCM finds 19245 paragraphs in the three text files. If the output CASes are stored as 19245 uncompressed XMI files, the total size is 911MB. Using the default ZIP compressed XMI format and packed into 100 Work Item zip files, the total size is 165MB, a 5.5x compression. Using UIMA binary compressed format further reduces total size to 62MB.
 
 This output data will be used as input data for the following CAS input processing sample application.
 
@@ -448,7 +447,7 @@ re-written in 9 seconds.
 \begin{figure}[H]
   \centering
   \includegraphics[width=5.5in]{images/BooksCasPerf.png}
-  \caption{CAS Input Processing Performacne}
+  \caption{CAS Input Processing Performance}
   \label{fig:CAS-Input-Processing}
 \end{figure}
 
