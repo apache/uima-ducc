@@ -46,13 +46,14 @@
                   start-up of a service.  If a service stops responding to its pinger after becoming
                   available, the state can regress to Waiting.
                 \item[NotAvailable] No service instance is running or initializing. 
+                \item[Stopped] The service has been stopped.
                 \item[Stopping] The service has been stopped for some reason, but not all 
                   instances have terminated.  This is an intermediate state between Available and
                   NotAvailable to signify that the service is no longer available but not all its
                   resources have been returned yet.
               \end{description}
 
-              {\DUCC} will start dependent jobs ONLY if it's services are in state Available.  Otherwise
+              {\DUCC} will start dependent jobs ONLY if its services are in state Available.  Otherwise
               {\DUCC} attempts to start the service, and if successful, allows the job to start.  
 
               If a job is already running and a service becomes other than Available, the

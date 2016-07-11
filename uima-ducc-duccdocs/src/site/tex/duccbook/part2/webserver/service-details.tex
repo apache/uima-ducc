@@ -42,9 +42,9 @@ The information is divided between four tabs:
 \begin{verbatim}
     RESID.SHAREID
 \end{verbatim}
-        Here, the {\em RESID} is the reservation ID.  The {\em SHAREID} is the 
-        share ID assigned by the Resource Manager.  Together these form a unique
-        ID for each process that runs in the reservation.
+        Here, the {\em RESID} is the Orchestrator assigned instance ID.  The {\em SHAREID} is the 
+        instance ID assigned by the Resource Manager.  Together these form a unique
+        ID for each process that runs in the service.
                
       \item[State] \hfill \\
         The state of this service instance.
@@ -69,11 +69,11 @@ The information is divided between four tabs:
         The service process actual memory size (GB).
                 
       \item[State Scheduler] \hfill \\
-        This shows the Resource Manager state of the job. It is one of:
+        This shows the Resource Manager state of the service instance. It is one of:
         
         \begin{description}
-            \item[Allocated] - The node is still allocated for this job by the RM.
-            \item[Deallocated] - The resource manager has deallocated the shares for the job on
+            \item[Allocated] - The node is still allocated for this service instance by the RM.
+            \item[Deallocated] - The resource manager has deallocated the resources for the service instance on
               this node.
         \end{description}
         
@@ -94,7 +94,7 @@ The information is divided between four tabs:
         to their lifetimes.  This field shows the time spent in that phase.
 
       \item[Time Run] \hfill \\
-        The current duration of the reservation, or total duration if it has 
+        The current duration of the instance, or total duration if it has 
         terminated.
         
       \item[Time GC] \hfill \\
