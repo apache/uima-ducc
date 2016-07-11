@@ -17,10 +17,10 @@
 % under the License.
 % 
 
-\section{System  Details Page}
+\section{System Pages}
 \label{sec:system-details}
 
-This page shows information relating to the {\DUCC} System itself:
+These pages show information relating to the {\DUCC} System itself:
 \begin{description}
   \item[Administration]This displays system administrators and implements
     the interface to various administrative controls.
@@ -28,7 +28,7 @@ This page shows information relating to the {\DUCC} System itself:
   \item[Classes] This shows the system's scheduling class definitions.
   \item[Daemons] This shows the status of all {\DUCC} processes.
   \item[DuccBook] This is a link to the book you are reading.
-  \item[Machines] This shows details of all the machines in the {\DUCC} cluster.
+  \item[Machines] This shows details of all the machines (nodes) in the {\DUCC} cluster.
 \end{description}
 
 \subsection{Administration}
@@ -121,7 +121,7 @@ The columns shown on this page include
       
 \subsection{Machines}
 
-This page shows the states of all the machines in the {\DUCC} cluster.
+This page shows the states of all the machines (nodes) in the {\DUCC} cluster.
 
 The columns shown on this page include
 
@@ -134,10 +134,10 @@ The columns shown on this page include
             started there, or else there is a communication problem and
             the state messages are not being delivered.
             \item[up] The node has a {\DUCC} Agent process running on it and the
-              web server is receiving regular heartbeat packets from it.
+              resource manager is receiving regular heartbeat packets from it.
             \item[down] The node had a healthy {\DUCC} Agent on it at some point
-              in the past (since the last {\DUCC} boot), but the web server has stopped
-              receiving heartbeats from it. 
+              in the past (since the last {\DUCC} boot), but the resource manager
+              has stopped receiving heartbeats from it. 
 
               The agent may have been manually shut down, may have crashed, or there
               may be a communication problem.
@@ -146,7 +146,6 @@ The columns shown on this page include
               the {\DUCC} Agents heartbeats to be delayed.
         \end{description}
 
-
       \item[IP] \hfill \\
         This is the IP address of the node.
 
@@ -154,25 +153,32 @@ The columns shown on this page include
       \item[Name] \hfill \\
         This is the hostname of the node.
 
+      \item[Nodepool] \hfill \\
+        This is the host nodepool.
 
       \item[Memory(GB) usable] \hfill \\
-        This is the amount of memory, in GB, as reported by each machine.
+        This is the amount of usable memory, in GB, as reported by each machine.  
+        This is the maximum amount that can be allocated by the resource manager.
         
         Usually the amount will be slightly less than the installed memory.  This is because
         a small bit of memory is usually reserved by the hardware for its own purposes.  For 
         example, a machine with 48GB of installed memory may report only 47GB available.
 
-
+      \item[Memory(GB) free] \hfill \\
+        This is the amount of free memory, in GB, as reported by each machine.
+        This is the amount not presently allocated by the resource manager.
+        
+      \item[CPU] \hfill \\
+        This is the host CPU one minute load average.
+        
       \item[Swap(GB) inuse] \hfill \\
         This is the total size in-use swap data.  {\DUCC} shows any value greater than 0 in
         red as swapping can very significantly slow applications.  However, swap use does
         not always mean there is a performance problem.  This is flagged by {\DUCC} simply
         as an alert of a potential problem
 
-
       \item[Swap(GB) free] \hfill \\
         This is the total size of swap area.  
-
 
       \item[C-Groups] \hfill \\
         If on then C-Groups are in use and processes deployed by {\DUCC} will
