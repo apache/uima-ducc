@@ -46,17 +46,17 @@ or to the AE \& CC to complete all processing for that Work Item.
    \subsection{Basic Job Process Threading Model}
    In addition to the pipeline definition of explicitly named CM, AE and CC components, the job
    specification also includes the number of pipeline threads to run in each
-   Job Process (using the job specification parameter: process\_thread\_count).
+   Job Process (using the job specification parameter: process\_pipeline\_count).
    Each pipeline thread receives Work Items independently.
 
    DUCC creates an aggregate descriptor for the pipeline, and then creates a
-   Deployment Descriptor for the Job Process which specifying the number
+   Deployment Descriptor for the Job Process which specifies the number
    of synchronous pipelines.
    
    \subsection{Alternate Pipeline Threading Model}
    Alternately a Job Process can be fully specified by a user submitted UIMA-AS
    Deployment Descriptor. Thus any UIMA-AS service deployment can be used as a
-   Job Process. Here the parameter process\_thread\_count just defines
+   Job Process. Here the parameter process\_pipeline\_count just defines
    how many Work Items CASes will be sent to each Job Process concurrently.
    
 	\begin{description}
@@ -67,7 +67,7 @@ or to the AE \& CC to complete all processing for that Work Item.
 	\end{description}
 
    \subsection{Overriding UIMA Configuration Parameters}
-   UIMA configuration parameters in the CR, CM, AE or CC components can be overriden using
+   UIMA configuration parameters in the CR, CM, AE or CC components can be overridden using
    job specification parameters: driver\_descriptor\_CR\_overrides, process\_descriptor\_CM\_overrides,
    process\_descriptor\_AE\_overrides and process\_descriptor\_CC\_overrides, respectively.
 
@@ -131,7 +131,7 @@ processing, or to flush results at end-of-work-item processing.
 Assuming that an existing job input-output design (CR, CM, CC) is to be reused, job
 development is focused on the Analysis Engine (AE) to be plugged in. Before deploying a new
 AE in a multithreaded Job Process it is best to run it single threaded
-(process\_thread\_count=1) to separate basic logic errors from threading
+(process\_pipeline\_count=1) to separate basic logic errors from threading
 problems.
 
 To debug a Job Process with eclipse, first create a debug configuration for a
@@ -207,8 +207,9 @@ for a DUCC job application. Here is the complete list of features:
 
 \subsection{Deployment Descriptor (DD) Jobs}
 Job Processes with arbitrary aggregate hierarchy, flow control and threading can be fully specified
-via a UIMA AS Deployment Descriptor. DUCC will modify the input queue to use DUCC's private
-broker and change the queue name to correspond to the DUCC job ID.
+via a UIMA AS Deployment Descriptor. 
+The Job Process uses a container which employs a UIMA-AS client to send a JMS message comprising
+each CAS to the service via an internal broker.
 
 \subsection{Debugging}
 It is best to develop and debug the interactions between job application components as one, 
@@ -455,7 +456,7 @@ re-written in 9 seconds.
 Although this 8-threaded Job Process was primarily CPU bound doing serialization work, it is possible to become I/O bound 
 with enough threads banging on a shared filesystem.
 DuccCasInputSpec.job demonstrates how to limit the total number of processing threads to 32 using the combination 
-of process\_thread\_count=8 and process\_deployments\_max=4.
+of process\_pipeline\_count=8 and process\_deployments\_max=4.
 
 I/O vs CPU bottlenecks can be detected using the detailed performance job data reported by DUCC and comparing results
 with various levels of scale out.
