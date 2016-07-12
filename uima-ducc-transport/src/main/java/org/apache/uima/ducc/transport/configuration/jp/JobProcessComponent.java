@@ -394,7 +394,9 @@ implements IJobProcessor{
         	if ( agent != null) {
             	agent.stop();
         	}
-        	httpClient.stop();
+        	if ( httpClient != null ) {
+            	httpClient.stop();
+        	}
 	    } catch( Exception e) {
 	    	e.printStackTrace();
 	    } finally {
