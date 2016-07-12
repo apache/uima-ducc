@@ -81,7 +81,6 @@ installation instructions.
 -----------------------
 
 UIMA-DUCC has been tested with Oracle Java 7 & 8 as well as IBM Java 7 & 8 on Linux. 
-Currently user jobs must use the same version of Java as DUCC.
 The cluster of machines DUCC manages
 must all be running a reasonably current level of Linux; other operating systems are not supported.
 . 
