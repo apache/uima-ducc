@@ -338,7 +338,7 @@ public class StateManager {
 	private void copyInvestmentReport(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "copyInvestmentReport";
 		try {
-			ConcurrentHashMap<RemoteLocation, Long> omMap = jdStatusReport.getInvestmentMillisMap();
+			Map<RemoteLocation, Long> omMap = jdStatusReport.getInvestmentMillisMap();
 			IDuccProcessMap processMap = job.getProcessMap();
 			for(Entry<DuccId, IDuccProcess> entry : processMap.entrySet()) {
 				IDuccProcess process = entry.getValue();

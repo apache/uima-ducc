@@ -38,10 +38,9 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.dispatcher.IDuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.JdReplyEvent;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
-import org.apache.uima.ducc.transport.event.common.DuccProcessConcurrentMap;
+import org.apache.uima.ducc.transport.event.common.DuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
@@ -69,7 +68,7 @@ public class JobDriverStateExchanger extends Thread {
 	
 	private AtomicInteger getStateReqNo = new AtomicInteger(0);
 	
-	private IDuccProcessMap dpMap = new DuccProcessConcurrentMap();
+	private IDuccProcessMap dpMap = new DuccProcessMap();
 	
 	public static IDuccEventDispatcher create(Object specs) throws Exception {
 		IDuccEventDispatcher retVal = null;
@@ -143,7 +142,7 @@ public class JobDriverStateExchanger extends Thread {
 	}
 	
 	public void setProcessMap(IDuccProcessMap value) {
-		dpMap = value;
+		dpMap = new DuccProcessMap(value);
 	}
 	
 	public JdReplyEvent request(JdRequestEvent jdRequestEvent) {
@@ -179,85 +178,82 @@ public class JobDriverStateExchanger extends Thread {
 	
 	private void handle(JdReplyEvent jdReplyEvent) {
 		String location = "handle";
-		IDuccWorkJob dwj = jdReplyEvent.getJob();
 		try {
 			JobDriver jd = JobDriver.getInstance();
 			IMessageHandler mh = jd.getMessageHandler();
-			if(dwj != null) {
-				setProcessMap(dwj.getProcessMap());
-				IWorkItemStateKeeper wisk = JobDriver.getInstance().getWorkItemStateKeeper();
-				wisk.persist();
-				IDuccProcessMap pMap = dwj.getProcessMap();
-				for(Entry<DuccId, IDuccProcess> entry : pMap.entrySet()) {
-					IDuccProcess p = entry.getValue();
-					ProcessState state = p.getProcessState();
-					NodeIdentity ni = p.getNodeIdentity();
-					String node = ni.getName();
-					String ip = ni.getIp();
-					String pidName = p.getDuccId().getFriendly()+"";
-					String pid = p.getPID();
-					StringBuffer sb = new StringBuffer();
-					sb.append("node: "+node);
+			setProcessMap(jdReplyEvent.getProcessMap());
+			IWorkItemStateKeeper wisk = JobDriver.getInstance().getWorkItemStateKeeper();
+			wisk.persist();
+			IDuccProcessMap pMap = jdReplyEvent.getProcessMap();
+			for(Entry<DuccId, IDuccProcess> entry : pMap.entrySet()) {
+				IDuccProcess p = entry.getValue();
+				ProcessState state = p.getProcessState();
+				NodeIdentity ni = p.getNodeIdentity();
+				String node = ni.getName();
+				String ip = ni.getIp();
+				String pidName = p.getDuccId().getFriendly()+"";
+				String pid = p.getPID();
+				StringBuffer sb = new StringBuffer();
+				sb.append("node: "+node);
+				sb.append(" ");
+				sb.append("ip: "+ip);
+				sb.append(" ");
+				sb.append("pid: "+pid);
+				sb.append(" ");
+				sb.append("state:"+state.name());
+				sb.append(" ");
+				String reasonStopped = p.getReasonForStoppingProcess();
+				if(reasonStopped != null) {
+					sb.append("reason[stopped]:"+reasonStopped);
 					sb.append(" ");
-					sb.append("ip: "+ip);
-					sb.append(" ");
-					sb.append("pid: "+pid);
-					sb.append(" ");
-					sb.append("state:"+state.name());
-					sb.append(" ");
-					String reasonStopped = p.getReasonForStoppingProcess();
-					if(reasonStopped != null) {
-						sb.append("reason[stopped]:"+reasonStopped);
-						sb.append(" ");
-					}
-					String reasonDeallocated = null;
-					ProcessDeallocationType processDeallocationType = p.getProcessDeallocationType();
-					if(processDeallocationType != null) {
-						switch(processDeallocationType) {
-						case Undefined:
-							break;
-						default:
-							reasonDeallocated = processDeallocationType.name();
-							sb.append("reason[deallocated]:"+reasonDeallocated);
-							sb.append(" ");
-							break;
-						}
-					}
-					RemoteWorkerProcess rwp = RemoteWorkerProcess.factory(node, ip, pidName, pid);
-					if(jobProcessBlacklist.includes(rwp)) {
-						logger.trace(location, jobid, sb.toString());
-						continue;
-					}
-					logger.debug(location, jobid, sb.toString());
-					switch(state) {
-					case Starting:    
-					case Initializing:
-					case Running:
+				}
+				String reasonDeallocated = null;
+				ProcessDeallocationType processDeallocationType = p.getProcessDeallocationType();
+				if(processDeallocationType != null) {
+					switch(processDeallocationType) {
+					case Undefined:
 						break;
 					default:
-						try {
-							if(pid != null) {
-								int iPid = Integer.parseInt(pid.trim());
-								IProcessInfo processInfo = new ProcessInfo(node, ip, pidName, iPid, reasonStopped, reasonDeallocated);
-								if(p.isFailedInitialization()) {
-									mh.handleProcessFailedInitialization(processInfo);
-								}
-								else if(p.isPreempted()) {
-									mh.handleProcessPreempt(processInfo);
-								}
-								else if(p.isVolunteered()) {
-									mh.handleProcessVolunteered(processInfo);
-								}
-								else {
-									mh.handleProcessDown(processInfo);
-								}
-							}
-						}
-						catch(Exception e) {
-							logger.error(location, jobid, e);
-						}
+						reasonDeallocated = processDeallocationType.name();
+						sb.append("reason[deallocated]:"+reasonDeallocated);
+						sb.append(" ");
 						break;
 					}
+				}
+				RemoteWorkerProcess rwp = RemoteWorkerProcess.factory(node, ip, pidName, pid);
+				if(jobProcessBlacklist.includes(rwp)) {
+					logger.trace(location, jobid, sb.toString());
+					continue;
+				}
+				logger.debug(location, jobid, sb.toString());
+				switch(state) {
+				case Starting:    
+				case Initializing:
+				case Running:
+					break;
+				default:
+					try {
+						if(pid != null) {
+							int iPid = Integer.parseInt(pid.trim());
+							IProcessInfo processInfo = new ProcessInfo(node, ip, pidName, iPid, reasonStopped, reasonDeallocated);
+							if(p.isFailedInitialization()) {
+								mh.handleProcessFailedInitialization(processInfo);
+							}
+							else if(p.isPreempted()) {
+								mh.handleProcessPreempt(processInfo);
+							}
+							else if(p.isVolunteered()) {
+								mh.handleProcessVolunteered(processInfo);
+							}
+							else {
+								mh.handleProcessDown(processInfo);
+							}
+						}
+					}
+					catch(Exception e) {
+						logger.error(location, jobid, e);
+					}
+					break;
 				}
 			}
 		}

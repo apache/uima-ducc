@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.transport.event.jd;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
 import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
@@ -100,6 +99,6 @@ public interface IDriverStatusReport {
 	
 	public IDuccProcessWorkItemsReport getDuccProcessWorkItemsMap();
 	
-	public ConcurrentHashMap<RemoteLocation, Long> getOperatingMillisMap();
-	public ConcurrentHashMap<RemoteLocation, Long> getInvestmentMillisMap();
+	public Map<RemoteLocation, Long> getOperatingMillisMap();
+	public Map<RemoteLocation, Long> getInvestmentMillisMap();
 }

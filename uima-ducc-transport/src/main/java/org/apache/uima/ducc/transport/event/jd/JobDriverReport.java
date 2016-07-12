@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
 import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
@@ -82,8 +81,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	
 	private ArrayList<IWorkItemInfo> listActiveWorkItemInfo = null;
 	
-	private ConcurrentHashMap<RemoteLocation, Long> mapProcessOperatingMillis = null;
-	private ConcurrentHashMap<RemoteLocation, Long> mapProcessInvestmentMillis = null;
+	private Map<RemoteLocation, Long> mapProcessOperatingMillis = null;
+	private Map<RemoteLocation, Long> mapProcessInvestmentMillis = null;
 	
 	private Map<IRemoteLocation, ProcessDeallocationType> processKillMap = null;
 	
@@ -527,9 +526,9 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	}
 
 	@Override
-	public ConcurrentHashMap<RemoteLocation, Long> getOperatingMillisMap() {
+	public synchronized Map<RemoteLocation, Long> getOperatingMillisMap() {
 		if(mapProcessOperatingMillis == null) {
-			mapProcessOperatingMillis = new ConcurrentHashMap<RemoteLocation, Long>();
+			mapProcessOperatingMillis = new HashMap<RemoteLocation, Long>();
 			if(listActiveWorkItemInfo != null) {
 				for(IWorkItemInfo wii: listActiveWorkItemInfo) {
 					String nodeIP = wii.getNodeAddress();
@@ -547,8 +546,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	}
 
 	@Override
-	public ConcurrentHashMap<RemoteLocation, Long> getInvestmentMillisMap() {
-		mapProcessInvestmentMillis = new ConcurrentHashMap<RemoteLocation, Long>();
+	public synchronized Map<RemoteLocation, Long> getInvestmentMillisMap() {
+		mapProcessInvestmentMillis = new HashMap<RemoteLocation, Long>();
 		if(listActiveWorkItemInfo != null) {
 			for(IWorkItemInfo wii: listActiveWorkItemInfo) {
 				String nodeIP = wii.getNodeAddress();

@@ -166,7 +166,7 @@ public class OrchestratorConfiguration {
 			if(obj instanceof JdRequestEvent) {
 				JdRequestEvent jdRequestEvent = exchange.getIn().getBody(JdRequestEvent.class);
 				JdReplyEvent jdReplyEvent = new JdReplyEvent();
-				jdReplyEvent.setJob(jdRequestEvent.getJob());
+				jdReplyEvent.setProcessMap(jdRequestEvent.getProcessMap());
 				exchange.getIn().setBody(jdReplyEvent);
 			}
 			if(obj instanceof DuccWorkRequestEvent) {

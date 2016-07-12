@@ -38,6 +38,12 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 	 */
 	private static final long serialVersionUID = 1L;
 
+	public DuccProcessMap() {
+	}
+	
+	public DuccProcessMap(IDuccProcessMap map) {
+		putAll(map);
+	}
 	
 	public void addProcess(IDuccProcess process) {
 		synchronized(this) {

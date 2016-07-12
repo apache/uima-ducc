@@ -65,6 +65,7 @@ import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
+import org.apache.uima.ducc.transport.event.common.DuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
@@ -72,6 +73,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobComple
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.ReservationCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
@@ -381,7 +383,8 @@ implements Orchestrator {
 			stateManager.reconcileState(dsr);
 			String sid = ""+duccId.getFriendly();
 			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.cloneDuccWork(workMap, sid, this, methodName);
-			duccEvent.setJob(duccWorkJob);
+			IDuccProcessMap processMap = duccWorkJob.getProcessMap();
+			duccEvent.setProcessMap(new DuccProcessMap(processMap));
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}

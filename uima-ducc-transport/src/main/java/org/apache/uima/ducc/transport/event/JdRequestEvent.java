@@ -18,14 +18,14 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 
 @SuppressWarnings("serial")
 public class JdRequestEvent extends AbstractDuccJobEvent {
 	
 	private IDriverStatusReport driverStatusReport = null;
-	private IDuccWorkJob job = null;
+	private IDuccProcessMap processMap = null;
 	
 	public JdRequestEvent() {
 		super(EventType.JD_STATE);
@@ -39,11 +39,11 @@ public class JdRequestEvent extends AbstractDuccJobEvent {
 		driverStatusReport = value;
 	}
 	
-	public IDuccWorkJob getJob() {
-		return job;
+	public IDuccProcessMap getProcessMap() {
+		return processMap;
 	}
 	 
-	public void setJob(IDuccWorkJob value) {
-		job = value;
+	public void setProcessMap(IDuccProcessMap value) {
+		processMap = value;
 	}
 }
