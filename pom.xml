@@ -445,7 +445,9 @@
               <include name="**/dd2spring.xsl"/>
              <replacefilter     token="scope=&quot;singleton&quot;" value=""/>
             </replace>             
-
+ 
+            <chmod file="${project.build.directory}/uima-as/apache-uima-as-${org.apache.uima.as.version}/bin/dd2spring.xsl" 
+            perm="ugo+rx"/>
           </tasks>
         </configuration>
         <goals>
