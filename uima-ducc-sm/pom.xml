@@ -33,13 +33,13 @@
 		cutting/pasting the <scm> element, and just changing the following two properties -->
   <scm>
 	<connection>
-      scm:svn:http://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/trunk/uima-ducc-sm
+      scm:svn:http://svn.apache.org/repos/asf/uima/uima-ducc/trunk/uima-ducc-sm
     </connection>
 	<developerConnection>
-      scm:svn:https://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/trunk/uima-ducc-sm
+      scm:svn:https://svn.apache.org/repos/asf/uima/uima-ducc/trunk/uima-ducc-sm
     </developerConnection>
 	<url>
-      http://svn.apache.org/viewvc/uima/sandbox/uima-ducc/trunk/uima-ducc-sm
+      http://svn.apache.org/viewvc/uima/uima-ducc/trunk/uima-ducc-sm
     </url>
   </scm>
   
