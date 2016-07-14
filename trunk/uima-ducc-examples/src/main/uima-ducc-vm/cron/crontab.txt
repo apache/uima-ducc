@@ -1,2 +1,0 @@
-*/5 * * * * /home/degenaro/ducc/install/examples/uima-ducc-vm/cron/autostart.sh
-* 22 * * * /home/degenaro/ducc/install/examples/uima-ducc-vm/cron/cleanup.sh
