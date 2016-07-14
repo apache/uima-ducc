@@ -28,7 +28,7 @@
 	</parent>
 
 	<artifactId>uima-ducc-parent</artifactId>
-	<version>2.2.0-SNAPSHOT</version>
+	<version>2.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<!-- Add project inception year. This is used by javadoc plugin   -->
 	<!-- also used when generating NOTICE file for DUCC's jars -->
@@ -904,7 +904,7 @@ ${uimaDUCCNoticeText}
 										<exclude>uima-ducc-duccdocs/**</exclude>
 										<exclude>**/*.dict</exclude>
 										<exclude>**/*.log</exclude>
-										<exclude>**/.pydevproject</exclude>
+										<exclude>.pydevproject</exclude>
 										<exclude>**/*.out</exclude>
 										<exclude>**/*.png</exclude>
 										<exclude>**/*.jpg</exclude>
