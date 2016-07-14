@@ -904,7 +904,7 @@ ${uimaDUCCNoticeText}
 										<exclude>uima-ducc-duccdocs/**</exclude>
 										<exclude>**/*.dict</exclude>
 										<exclude>**/*.log</exclude>
-										<exclude>.pydevproject</exclude>
+										<exclude>**/.pydevproject</exclude>
 										<exclude>**/*.out</exclude>
 										<exclude>**/*.png</exclude>
 										<exclude>**/*.jpg</exclude>
