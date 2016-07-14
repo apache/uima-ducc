@@ -1,0 +1,67 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_RM'></a>}
+\fi
+\chapter{Service Management}
+\label{chap:sm}
+    The only administrative task relating to Service Management is registering
+    global pingers, as described in
+    \hyperref[subsec:services.pingers]{\em Service Pingers section} of this document.
+
+    A globally-registered service pinger is a properties file that contains only
+    service registraton options pertaining to pingers.  This file must be placed
+    in DUCC's {\em runtime}/resources/service\_monitors directory.  It may be
+    given any name but ``best practices'' would suggest it be named the
+    same as the {\em service\_ping\_class}.  Services then use this pinger
+    by specifying its filename in their {\em service\_ping\_class} option.
+    
+    Globally-registered pingers may be run internally as threads within the
+    SM, or externally as processes.  To specify that a pinger be run internally,
+    add the property 
+\begin{verbatim}
+    internal = true
+\end{verbatim}
+    to the registration file.  To specify that it run externall, add the property
+\begin{verbatim}
+    internal = false
+\end{verbatim}
+    to the registration file.
+
+    The ``internal'' option is flagged as in illegal option when
+    specified in service registrations and all pingers not specified as
+    ``internal'' are run as {\em external} processes managed by the SM.
+
+    Best practices dictate that the filename of an {\em external} pinger contain the
+    postfix {\em .external} to clearly identify it as external.  
+
+    As an example, the default UIMA-AS pinger is supplied in the global registery
+    under the two names:
+\begin{verbatim}
+    org.apache.uima.ducc.cli.UimaAsPing
+    org.apache.uima.ducc.cli.UimaAsPing.external
+\end{verbatim}
+
+    Note that users may override any of the properties in globally-registered
+    {\em external} pingers, but only the {\em service\_ping\_arguments} of an {\em internal}
+    pinger to protect its integrity by speicfy that argument in their own
+    service registrations.
+

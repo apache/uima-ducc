@@ -1,0 +1,210 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+
+\section{System Pages}
+\label{sec:system-details}
+
+These pages show information relating to the {\DUCC} System itself:
+\begin{description}
+  \item[Administration]This displays system administrators and implements
+    the interface to various administrative controls.
+  \item[Broker] This shows selective information for the system's broker.
+  \item[Classes] This shows the system's scheduling class definitions.
+  \item[Daemons] This shows the status of all {\DUCC} processes.
+  \item[DuccBook] This is a link to the book you are reading.
+  \item[Machines] This shows details of all the machines (nodes) in the {\DUCC} cluster.
+\end{description}
+
+\subsection{Administration}
+
+   This page has two tabs:
+   \begin{description}   
+     \item[Administrators] This shows the user-ids that are authorized to administer
+       {\DUCC}.  In addition to executing the ``Control'' functions described below,
+       administrators may cancel any job, reservation, or service, and may modify
+       services they do not own.  
+
+       In order to perform administrative functions, the following must be satisfied:
+       \begin{enumerate}
+         \item The user is logged-in to the web server.
+         \item The user is a registered administrator.
+         \item The user has set the role as ``administrator'' in the {\DUCC} Preferences
+           page.  This is a safeguard so that administrators who are also users
+           are less likely to inadvertently affect other people's jobs.
+       \end{enumerate}
+     \item[Control] Currently {\DUCC} supports a single administrative control function
+       via the web server: Stop new job submissions and re-enable them.  If submissions
+       are blocked, all existing work runs normally, but no new work is accepted.
+     \end{description}
+
+
+\subsection{Broker}
+This page shows selective information for the system's broker.
+Information includes host, port, version, uptime, memory used, threads, load average, topics and queues.
+
+\subsection{Classes}
+This page shows the definitions of the {\DUCC} scheduling classes.  The scheduling classes are
+discussed in more detail in the \hyperref[sec:rm.job-classes]{Resource Manager} section.
+
+\subsection{Daemons}
+\label{sec:system-details.daemons}
+
+This page shows the current state of all {\DUCC} processes.  By default, only the administrative
+processes, Broker, Database, Orchestrator, ProcessManager, ResourceManager, ServiceManager, and Webserver are
+shown.  A button in the upper left of the page titled ``Show Agents'' enables display of
+the status of all the {\DUCC} agents as well. (Agents are suppressed by default because the
+page is expensive to render for large systems.)
+
+The columns shown on this page include
+
+   \begin{description}
+      \item[Status] \hfill \\
+        This indicates whether the daemon is running and broadcasting state {\em up},
+        or not {\em down}.  
+        
+        All {\DUCC} daemons broadcast a heartbeat containing process state.  If the Status
+        is {\em down}, either the daemon is not functioning, or something is preventing
+        state from reaching the web server via {\DUCC}'s ActiveMQ instance.
+
+      \item[Daemon Name] \hfill \\
+        This is the name of the process.
+
+      \item[Boot Time] \hfill \\ 
+        This shows the date and time of the latest boot of the specific process.
+          
+      \item[Host IP] \hfill \\ 
+        This is the IP address of the processor where the process is running.
+
+      \item[Host Name] \hfill \\ 
+        This shows the hostname of the processor where the process is running.
+
+      \item[PID] \hfill \\ 
+        This is the Unix process Id of the {\DUCC} process.
+
+      \item[Publication Size (last)] \hfill \\ 
+        This shows the size of the most recent state publication of the process, in bytes.
+
+      \item[Publication Size (max)] \hfill \\ 
+        This shows the size of the largest state publication of the process, in bytes.
+
+      \item[Heartbeat (last)] \hfill \\ 
+        This shows the number of seconds since the last state publication for the process. 
+         Large numbers here indicate potential cluster or {\DUCC} problems.
+
+      \item[Heartbeat (max)] \hfill \\ 
+        This shows the longest delay since a state publication for the process was received
+        at the web server.  Large numbers here indicate potential cluster or {\DUCC} problems.
+
+      \item[Heartbeat (max) TOD] \hfill \\ 
+        This shows the time the longest delay of a state publication occurred.
+
+      \item[JConsole URL] \hfill \\ 
+        This is the jconsole URL for the process.
+
+   \end{description}
+      
+\subsection{Machines}
+
+This page shows the states of all the machines (nodes) in the {\DUCC} cluster.
+
+The columns shown on this page include
+
+   \begin{description}
+      \item[Status] \hfill \\
+        This shows the current state of a machine.  Values include:
+        \begin{description}
+          \item[defined] The node is in the {\DUCC}
+            \hyperref[sec:admin-ducc.nodes]{nodes file}, but no {\DUCC} process has been
+            started there, or else there is a communication problem and
+            the state messages are not being delivered.
+            \item[up] The node has a {\DUCC} Agent process running on it and the
+              resource manager is receiving regular heartbeat packets from it.
+            \item[down] The node had a healthy {\DUCC} Agent on it at some point
+              in the past (since the last {\DUCC} boot), but the resource manager
+              has stopped receiving heartbeats from it. 
+
+              The agent may have been manually shut down, may have crashed, or there
+              may be a communication problem.
+
+              Additionally, very heavy loads from jobs running the the node can cause
+              the {\DUCC} Agents heartbeats to be delayed.
+        \end{description}
+
+      \item[IP] \hfill \\
+        This is the IP address of the node.
+
+
+      \item[Name] \hfill \\
+        This is the hostname of the node.
+
+      \item[Nodepool] \hfill \\
+        This is the host nodepool.
+
+      \item[Memory(GB) usable] \hfill \\
+        This is the amount of usable memory, in GB, as reported by each machine.  
+        This is the maximum amount that can be allocated by the resource manager.
+        
+        Usually the amount will be slightly less than the installed memory.  This is because
+        a small bit of memory is usually reserved by the hardware for its own purposes.  For 
+        example, a machine with 48GB of installed memory may report only 47GB available.
+
+      \item[Memory(GB) free] \hfill \\
+        This is the amount of free memory, in GB, as reported by each machine.
+        This is the amount not presently allocated by the resource manager.
+        
+      \item[CPU] \hfill \\
+        This is the host CPU one minute load average.
+        
+      \item[Swap(GB) inuse] \hfill \\
+        This is the total size in-use swap data.  {\DUCC} shows any value greater than 0 in
+        red as swapping can very significantly slow applications.  However, swap use does
+        not always mean there is a performance problem.  This is flagged by {\DUCC} simply
+        as an alert of a potential problem
+
+      \item[Swap(GB) free] \hfill \\
+        This is the total size of swap area.  
+
+      \item[C-Groups] \hfill \\
+        If on then C-Groups are in use and processes deployed by {\DUCC} will
+        be limited in resource consumption.
+
+
+      \item[Alien PIDs] \hfill \\
+        This shows the number of processes not owned by {\DUCC}, the operating system, or
+        jobs scheduled on each node.  The Unix Process IDS of these processes is displayed
+        in a hover.
+
+        {\DUCC} preconfigures many of the standard operating 
+        \hyperref[itm:props-rogue.process]{system process} and 
+        \hyperref[itm:props-rogue.user]{userids}.  This list may be updated by each
+        installation.
+
+        A common cause of alien PIDs is errant process run in unmanaged reservations.  A
+        user may reserve a machine for use as a sandbox.  If the reservation is released
+        without properly terminating all the processes, they may linger.  When {\DUCC} 
+        schedules the node for other purposes, significant performance penalties may be
+        paid due to competition between the legitimately scheduled work and the leftover
+        ``alien'' processes.  The purpose of this column is to bring attention to this situation.
+
+
+      \item[Heartbeat(last)] \hfill \\
+        This shows the number of seconds since the last agent heartbeat from this machine.
+
+      \end{description}
+      

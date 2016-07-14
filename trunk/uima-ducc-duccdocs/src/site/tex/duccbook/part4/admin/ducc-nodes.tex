@@ -1,0 +1,88 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+\section{Ducc Node Definitions}
+\label{sec:admin-ducc.nodes}
+    The DUCC node definitions are specified by default in the file {\em ducc.nodes}.
+
+    The DUCC node list is used to configure the nodes used to run jobs and assign reservations. 
+    When DUCC is started, the nodelist is read an a DUCC Agent is started on every node in the list.
+
+    The node list can be composed of multiple node lists to assist organization of the DUCC cluster. 
+    All the administrative commands operate upon node lists. By carefully organized these lists it is 
+    possible to administer portions of a cluster independently. 
+
+    In particular, it is highly recommended that the nodelists reflect the nodepool structure.  In
+    this way, the configuration used to start DUCC is guaranteed to match the nodeppool definitions.
+
+    Several types of records are permitted in nodelists:
+    \begin{description}
+
+      \item[Comments] A comment starts with the symbol ``$\#$''.  All text on the line
+        following this symbol is ignored.
+
+      \item[import] If a line starts with the symbol {\em import}, the next symbol on that line
+        is expected to be the name of another node list.  This permits the DUCC cluster's
+        nodes to be configured in a structured manner.
+
+        For instance, the file {\em ducc.nodes} might consist entirely of {\em import} statements
+        naming all of the nodepool files.
+      \item[domain] This must be the first line of the file.  If specified, it should name
+        the default domain to be used for all the nodes in this file, and the nodes named
+        in imported files.  If not specified, then during start-up, nodes without domain names are assigned
+        domain names according to the global domain name specified in the \hyperref[subsubsec:nodepool.configuration]{Resource Manager configuration}
+        file, and if none is specified there, the domain name on the host starting DUCC is used.
+
+      \item[nodename] This is a single token consisting of the name of a node on which an
+        agent it to be started.
+
+    \end{description}
+
+    The example below shows a partial, hypothetical node configuration corresponding to the
+    \hyperref[fig:nodepool.configuration]{nodepool configuration} above.
+
+    \begin{figure}[H]
+
+\begin{verbatim}
+> cat ducc.nodes
+# import all the nodes corresponding to my nodepools 
+domain my.domain
+import intel.nodes
+import power.nodes
+import jobdriver.nodes
+import nightly-test.nodes
+import timing-p7.nodes
+
+> cat intel.nodes
+# import the intel nodes, by frame
+import intel-frame1.nodes
+import intel-frame2.nodes
+import intel-frame3.nodes
+
+>cat intel-frame1.nodes
+#import the specific nodes from frame1
+r1s1node1
+r1s1node2
+r1s1node3
+r1s1node4
+\end{verbatim}
+      \caption{Sample Node Configuration}
+      \label{fig:node.configuration}
+
+    \end{figure}    
+    

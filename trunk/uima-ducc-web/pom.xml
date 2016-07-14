@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.    
+-->	
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<artifactId>uima-ducc-parent</artifactId>
+		<groupId>org.apache.uima</groupId>
+		<version>2.1.0</version>
+		<relativePath>../uima-ducc-parent/pom.xml</relativePath>
+	</parent>
+
+	<!-- Inherits groupid and version from the parent pom project coordinates -->
+	<!-- Uses default packaging ie. jar -->
+	<artifactId>uima-ducc-web</artifactId>
+	<!-- >packaging>pom</packaging -->
+    <name>${uima.ducc} ${project.artifactId}</name>
+    
+ <!-- Special inheritance note even though the <scm> element that follows 
+		is exactly the same as those in super poms, it cannot be inherited because 
+		there is some special code that computes the connection elements from the 
+		chain of parent poms, if this is omitted. Keeping this a bit factored allows 
+		cutting/pasting the <scm> element, and just changing the following two properties -->
+  <scm>
+	<connection>
+      scm:svn:http://svn.apache.org/repos/asf/uima/uima-ducc/tags/uima-ducc-2.1.0/uima-ducc-web
+    </connection>
+	<developerConnection>
+      scm:svn:https://svn.apache.org/repos/asf/uima/uima-ducc/tags/uima-ducc-2.1.0/uima-ducc-web
+    </developerConnection>
+	<url>
+      http://svn.apache.org/viewvc/uima/uima-ducc/tags/uima-ducc-2.1.0/uima-ducc-web
+    </url>
+  </scm>
+
+	<!-- Manage the jetty dependencies here as all (or most) are used only by this project -->
+
+	<dependencyManagement>
+		<dependencies>
+
+		<dependency>
+			<groupId>org.eclipse.jetty.orbit</groupId>
+			<artifactId>org.apache.jasper.glassfish</artifactId>
+			<version>${orbit-org-apache-jasper.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-annotations</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-ajp</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-client</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-continuation</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-deploy</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-http</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-io</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-jmx</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-jndi</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-overlay-deployer</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-plus</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-policy</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-rewrite</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-security</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlets</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-util</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-webapp</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-websocket</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-xml</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>${servlet-api.version}</version>
+		</dependency>
+
+        <dependency>
+	       <groupId>net.java.dev.jna</groupId>
+	       <artifactId>jna</artifactId>
+	       <version>4.0.0</version>
+        </dependency>
+            
+		</dependencies>
+	</dependencyManagement>
+
+
+
+	<dependencies>
+
+       <dependency>
+	       <groupId>net.java.dev.jna</groupId>
+	       <artifactId>jna</artifactId>
+        </dependency>
+
+		<!-- For org.apache.jasper.servlet.JspServlet in DuccWebServer -->
+		<dependency>
+			<groupId>org.eclipse.jetty.orbit</groupId>
+			<artifactId>org.apache.jasper.glassfish</artifactId>
+		</dependency>
+
+		<!-- Dependencies on other DUCC projects -->
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-common</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-transport</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-orchestrator</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-cli</artifactId>
+		</dependency>
+
+        <dependency>
+            <groupId>org.kohsuke</groupId>
+            <artifactId>libpam4j</artifactId>
+        </dependency>
+
+	</dependencies>
+</project>

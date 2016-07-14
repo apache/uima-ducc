@@ -1,0 +1,86 @@
+<html>
+  <!--
+   ***************************************************************
+   * Licensed to the Apache Software Foundation (ASF) under one
+   * or more contributor license agreements.  See the NOTICE file
+   * distributed with this work for additional information
+   * regarding copyright ownership.  The ASF licenses this file
+   * to you under the Apache License, Version 2.0 (the
+   * "License"); you may not use this file except in compliance
+   * with the License.  You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   * 
+   * Unless required by applicable law or agreed to in writing,
+   * software distributed under the License is distributed on an
+   * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   * KIND, either express or implied.  See the License for the
+   * specific language governing permissions and limitations
+   * under the License.
+   ***************************************************************
+   -->
+<head>
+  <title>Apache Distributed UIMA Cluster Computing (DUCC) 2.1.0 Release Notes</title>
+</head>
+<body>
+<h1>Apache UIMA-DUCC (Unstructured Information Management Architecture - Distributed UIMA Cluster Computing ) v.2.1.0 Release Notes</h1>
+
+<h2>Contents</h2>
+<p>
+<a href="#what.is.uima-ducc">1. What is UIMA-DUCC?</a><br/>
+<a href="#major.changes">2. Major Changes in this Release</a><br/>
+</p>  
+   
+<h2><a name="what.is.uima-ducc">1. What is UIMA-DUCC?</a></h2>
+<p>
+  			DUCC stands for Distributed UIMA Cluster Computing. DUCC is a cluster management system providing tooling,
+management, and scheduling facilities to automate the scale-out of applications written to the UIMA framework.
+Core UIMA provides a generalized framework for applications that process unstructured information such as human
+language, but does not provide a scale-out mechanism. UIMA-AS provides a scale-out mechanism to distribute UIMA
+pipelines over a cluster of computing resources, but does not provide job or cluster management of the resources.
+DUCC defines a formal job model that closely maps to a standard UIMA pipeline. Around this job model DUCC
+provides cluster management services to automate the scale-out of UIMA pipelines over computing clusters.
+</p>
+      
+<h2><a name="major.changes">2. Major Changes in this Release</a></h2>
+<p>
+Apache UIMA DUCC 2.1.0 is a major release containing new features and bug fixes. What's new:<br>
+
+<ul>
+
+<li>DUCC framework runs on Java 7 or Java 8, each supporting applications using either JRE </li>
+<li>Ubuntu and RHEL 7 support </li>
+<li>cgroup enhancements </li>
+   <ul>
+     <li>uses standard cgroups organization</li>
+     <li>supports cgroup swappiness setting, restricting any swapping if desired</li>   
+   </ul>
+<li>DUCC state and history storage moved from flat files to Cassandra DB, reducing storage size 5x </li>
+<li>Ships with the latest UIMA-AS v2.8.1 </li>
+<li>Ships with recent ActiveMQ v5.13.2 </li>
+<li>DUCC's UIMA-AS services support failover and ssl connectors </li>
+<li>Many DUCC webpage improvements </li>
+<li>Clear user display of DUCC classes and relation to machines </li>
+<li>Robust handling of dynamic changes to DUCC class and nodepool definitions </li>
+<li>Full support of nodepools with different quantum </li>
+<li>DUCC broker access restricted to user ducc </li>
+<li>Eliminate need for user home directories located on a shared filesystem </li>
+<li>Built-in Job error handler programmable per job </li>
+<li>Migration utility for DUCC updates </li>
+<li>Change to vary-off behavior to facilitate cluster management </li>
+<li>Horizontal stacking of services instance allocations </li>
+<li>java-viaducc improvements including separation of stdout from stderr respoonses </li>
+<li>An alert banner is displayed on ducc-mon pages if daemons are down </li>
+<li>Promoted DUCC from sandbox to the regular Apache project in the SVN </li>
+
+</ul>
+
+<br><br>
+
+For a complete list of issues fixed and up-to-date information on UIMA-DUCC issues, see our issue tracker: 
+<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.1.0-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.1.0-Ducc%22%20</a>
+</p> 
+      
+
+</body>
+</html>

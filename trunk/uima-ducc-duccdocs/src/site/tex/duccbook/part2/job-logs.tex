@@ -1,0 +1,150 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_LOGS'></a>}
+\fi
+\chapter{Job Logs}
+\label{chap:job-logs}
+
+\begin{sloppypar}
+\paragraph{Overview}The DUCC logs are managed by Apache log4j.  The DUCC log4j configuration file is found in
+\duccruntime/resources/log4j.xml. It is not in the scope of this document to describe log4j or its
+configuration mechanism. Details on log4j can be found at \url{http://logging.apache.org/log4j}.
+\end{sloppypar}
+
+The "user logs" are the Job Driver (JD) and Job Process (JP) logs. There is one log for each process 
+of a job.
+
+\paragraph{Contents of the Log Directory} A number of other useful files are written to the log directory: 
+
+\begin{enumerate}
+    \item A properties file containing the full job specification for the job. This includes all the 
+      parameters specified by the user as well as the default parameters. This file is called
+      {\tt job-specification.properties.}
+    \item The UIMA pipeline descriptor constructed by DUCC that describes the process that is 
+      dispatched to each Job Process (JP). The name of this file is of the form 
+\begin{verbatim}
+         JOBID-uima-ae-descriptor-PROCESS.xml 
+\end{verbatim}
+      where 
+      \begin{description}
+          \item[JOBID] This is the numerical id of the job as assigned by DUCC.
+          \item[PROCESS] This is the process id of the Job Driver (JD) process.
+      \end{description}      
+
+    \item The UIMA-AS service descriptor that defines the process that defines the job as as UIMAAS 
+      service. The name of this file is of the form 
+\begin{verbatim}
+         JOBID-uima-as-dd-PROCESS.xml 
+\end{verbatim}
+      
+      where 
+      \begin{description}
+         \item[JOBID] This is the numerical id of the job as assigned by DUCC.
+         \item[PROCESS] This is the process id of the Job Driver (JD) process.
+      \end{description}
+      
+    \item A colllection of gzipped ``json'' files containing the performance breakdown of the job.
+
+\end{enumerate}
+
+\paragraph{Job Process Logs}
+The Job Process logs are written to the configured log directory.  There is one job process log
+for every job processes started for the job.  The log names are of the following form:
+\begin{verbatim}
+         JOBID-TYPE-NODE-PROCESS.log 
+\end{verbatim}
+where 
+\begin{description}
+\item[JOBID] This is the numerical id of the job as assigned by DUCC.
+\item[TYPE] This is either the string "UIMA" for JP logs, or "JD" for JD logs.
+\item[NODE] This is the name of the machine where the process ran.
+\item[PROCESS] This is the Unix process id of the process on the indicated node.
+\end{description}
+
+\paragraph{Job Driver Logs}
+There are several Job Driver logs.
+   988-JD-agent86-1-58087.log
+   jd.out.log
+   jd.err.log
+
+\paragraph{Sample Log Directory}
+This shows the contents a sample log directory for a small job that consisted of two processes.
+
+\begin{verbatim}
+    100-JD-node290-1-29383.log 
+    100-uima-ae-descriptor-29383.xml 
+    100-uima-as-dd-29383.xml 
+    100-UIMA-node290-2-32766.log 
+    100-UIMA-node291-63-13594.log 
+    jd.out.log 
+    job-specification.properties 
+    job-performance-summary.json.gz
+    job-processes-data.json.gz
+    work-item-status.json.gz
+
+\end{verbatim}
+
+In this example, 
+
+\begin{description}
+     \item[100-JD-node290-1-29383.log]  \hfill \\
+       is the diagnostic JD log, where the JD executed on node
+       node290-1 in process 29383.
+
+     \item[100-uima-ae-descriptor-29383.xml]  \hfill \\
+       is the UIMA pipeline descriptor describing the
+       service process that is launched in each JP, where the JD process is 29383.
+
+     \item[100-uima-as-dd-29383.xml]  \hfill \\
+       is the UIMA-AS service descriptor where the client is
+       the JD process running in process 29383.
+
+     \item[100-UIMA-node290-2-32766.log]  \hfill \\
+       is a JP log for job 100, that ran on node
+       node290-2, in process 32766.
+
+     \item[100-UIMA-node291-63-13594.log]  \hfill \\
+       is a JP log for job 100, that ran on node
+       node291-63, in process 13594
+
+     \item[ducc.log]  \hfill \\
+       is the job state log file.
+
+     \item[jd.err.log]  \hfill \\
+       is the job error log file.
+
+     \item[job-performance-summary.json.gz]  \hfill \\
+       This contains the raw statistics describing
+       the operation of each analytic.  It corresponds to \hyperref[subsec:performance]{Performance}
+       tab of the Job Details page in the Web Server.
+
+     \item[job-process.json.gz]  \hfill \\
+       This contains the raw statistics describing
+       the performance of each individual job process.  It corresponds \hyperref[subsec:ws-processes]{Processes}
+       tab of the Job Details page in the Web Server.
+
+     \item[work-item-state.json.gz]  \hfill \\
+       This contains the raw statistics describing
+       the operation of each individual work-item.  It corresponds to \hyperref[subsec:ws-work-items]{Work Items}
+       tab of the Job Details page in the Web Server.
+ \end{description}
+     

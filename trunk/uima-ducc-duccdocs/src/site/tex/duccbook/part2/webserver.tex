@@ -1,0 +1,227 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_WEBSERVER'></a>}
+\fi
+\chapter{DUCC Web Server}
+
+    The {\DUCC} Web Server default address is accessed from the URL http://[DUCC-HOST]:42133.  The
+    {\em[DUCC-HOST]} is the hostname where the local installation has installed the {\DUCC}
+    Web Server.
+    
+  \begin{center}     
+  \cfbox{green}{The hostname and port are configurable by
+  the {\DUCC} administrator in ducc.properties}
+  \end{center}
+  
+    The Webserver is designed to be mostly self-documenting. The design is intentionally simple 
+    and contains a link to this document.  Most of the interesting fields and column headers
+    have ``mouse hovers'' which display a short 
+    description if you hover your mouse pointer over it for a moment.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=90mm]{images/ducc-webserver/System-Daemons.png}
+\caption{Sample Webserver Page}
+\end{figure}
+
+    Normally, the Web Server automatically fetches new data from {\DUCC} and updates the display.
+    This is controlled by setting one of the two refresh modes:
+    \begin{itemize}
+      \item Manual refresh.  In this mode, the browser windows are updated only by using the
+        browser's refresh button, or the {\DUCC} refresh button to the left in the header of
+        each page.
+      \item Automatic refresh. In this mode, the browser automatically fetches and displays
+        new data.  The rate of refresh is currently fixed and cannot be configured.
+    \end{itemize}
+    
+    There is a behavior difference between refresh and reload.
+    \paragraph{Refresh}
+    Refresh causes the current data on the page to be updated with the most
+    current information in the Webserver's possession.  This is performed
+    when the refresh button is clicked.
+    \paragraph{Reload}
+    Reload occurs when the enter key is pressed.  Reload causes not just the
+    data to be updated but rather the entire page is replaced.
+    
+    Two different table styles are supported:
+    \begin{itemize}
+      \item Scroll, and
+      \item Classic.
+    \end{itemize}
+    Table styles are switched using the {\em Preferences} link.
+
+    \paragraph{Scroll Mode}  When {\em scroll table style} is the preference, a scroll bar is
+    shown to the right, within the main window.  The scroll bar allows scrolling to be restricted to the data
+    display, leaving column and {\DUCC} headers in place.  In this mode any column may be sorted
+    simply by clicking on it.
+    
+    With respect to sorting, any specified sort is remembered for refresh
+    but forgotten for reload.  Sorting is permitted when either manual
+    or automatic refresh mode is selected.
+    
+    The column sort order is maintained until the page is reloaded.
+
+	Note that not all pages have a scroll version - some only have a classic version.
+	
+    \paragraph{Classic Mode}  When {\em classic table style} is the preference, the
+    main data may extend below the bottom of the page and it will be necessary to use the browser's scroller on the right
+    to access it.  The column headers and {\DUCC} header scrolls off when doing this.  Columns
+    may be sorted in this mode but it is necessary to first switch to ``Manual'' refresh mode to
+    prevent browser refreshes during sorting and display of data. 
+    
+    With respect to sorting, any specified sort is forgotten for refresh
+    and reload.  Sorting is only permitted when manual refresh mode is
+    selected.
+    
+    The column sort order is maintained until the page is refreshed or reloaded.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=90mm]{images/ducc-webserver/Preferences.png}
+\caption{Preferences Page}
+\end{figure}
+
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_WS_COMMON'></a>}
+\fi
+    \section{Common Links}
+
+        Every page contains a common header containing links and controls. The links permit navigation
+        to other content at the site. The controls provide page-wise configuration of the content at
+        that page.
+
+        The following links are available on every page of the web server: 
+
+        \begin{description}
+          \item[Authentication] \hfill \\ 
+            Authentication is needed in order to cancel jobs and reservations, to create a
+            reservation, and to perform administration. It is not required to simply view the pages.
+
+            \begin{itemize}
+              \item Login - Authenticate and start a session with the Web Server.             
+              \item Logout - Terminate the Web Server session 
+            \end{itemize}
+
+          \item[Preferences]
+            The following preferences may be set:
+            \begin{description}
+              \item[Table Style] This selects ``scroll'' or ``classic'' display, as
+                described above.
+              \item[Date Style] This selects long, medium, or short formats for dates.
+              \item[Description Style] This selects long or short formats for the various
+                description fields.
+              \item[Display Style] Choose to display text or (in some circumstances) icons.
+              \item[Filter Users] This controls the ``filter'' box near the middle of
+                the header on each page.  It allows various levels of inclusion and
+                exclusion of active or completed work for the filtered users.
+              \item[Role] This allows selection of ``User'' or ``Administrator'' roles.
+                This protects registered {\DUCC} administrators from accidentally affecting
+                other people's work.
+            \end{description}
+            
+          \item[DuccBook] \hfill \\
+            This is a link to the HTML version of the document you are reading.
+
+          \item[Jobs] \hfill \\
+            This navigates to the Jobs page, showing all the jobs in the system.
+
+          \item[Reservations] \hfill \\
+            This navigates to the Reservations page, showing all the reservations
+            in the system and provides a button that can be used to request new reservations. 
+
+          \item[Services] \hfill \\
+            This navigates to the Services page, showing all the services in the
+            system.
+
+          \item[System] \hfill \\
+            This opens a sub-menu with system-related links:
+            \begin{itemize}
+              \item Administration - This opens a page with administrative functions. 
+              \item Broker - This shows information about the AMQ broker employed by the system. 
+              \item Classes - This shows all the scheduling classes defined to the system. 
+              \item Daemons - This shows the status of {\DUCC}'s management processes. 
+              \item DuccBook - This manual. 
+              \item Machines - This shows the status of all the {\DUCC} worker nodes. 
+            \end{itemize}
+
+            \item[Viz]
+            This opens a page with a visualization of the system hosts, showing all
+            scheduled work in the system.
+      \end{description}              
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_JOBS'></a>}
+      \fi
+      \input{part2/webserver/jobs.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_JOB_DETAILS'></a>}
+      \fi
+      \input{part2/webserver/job-details.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_RESERVATIONS'></a>}
+      \fi
+      \input{part2/webserver/reservations.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_RESERVATIONS_DETAILS'></a>}
+      \fi
+      \input{part2/webserver/managed-reservations.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_SERVICES'></a>}
+      \fi
+      \input{part2/webserver/services.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_SERVICE_DETAILS'></a>}
+      \fi
+      \input{part2/webserver/service-details.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_SYSTEM'></a>}
+      \fi
+      \input{part2/webserver/system.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_Viz'></a>}
+      \fi
+      \input{part2/webserver/viz.tex}
