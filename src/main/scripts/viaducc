@@ -102,6 +102,8 @@ def usage():
     print "   If java_viaducc is used as a 'normal' command, the JRE is searched for in this order:"
     print "      1. Use the java specified by -DJAVA_BIN="
     print "      2. Use the java configured for DUCC"
+    print ""
+    print "   If -jar is used it must be the last JVM arg before any command line args"
     
     print
     sys.exit(0)
@@ -186,7 +188,7 @@ def parse_java_command_line():
         if arg.startswith('-'):
             # these are the only options that take an argument and require
             # a space between the flag and the argument
-            if arg in ('-cp', '-classpath', '-jar'):
+            if arg in ('-cp', '-classpath'):
                 skip_next_arg = True
             elif arg.startswith('-xmx'): # maximum Java heap size
                 maximum_memory_required = parse_memory_string(arg[4:])

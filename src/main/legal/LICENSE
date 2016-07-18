@@ -357,26 +357,14 @@
    (activemq) hawtbuf-1.11.jar
 
 
-************ !!!!DUPLICATE WITH CASSANDRA  commons-cli-1.1.jar
    commons-cli-1.2.jar
-******************************************************
-
    commons-collections-3.2.1.jar
-
-************ !!!!DUPLICATE WITH CASSANDRA  commons-lang-3.2.1
    commons-lang-2.6.jar
-****************************************
    commons-pool2-2.4.2.jar
-************ !!!!! DUPLICATE WITH ducc/lib  and apache-activemq/lib/optional vers 1.2.17
    log4j-1.2.16.jar
-****************************************
    gson-2.2.2.jar
-************ !!!!! DUPLICATE WITH CASSANDRA guava-16.0
    guava-r09.jar
-***************************************
-************ !!!!! DUPLICATE WITH CASSANDRA jna-4.0.0
    jna-4.0.0.jar
-***************************************
    joda-time-2.1.jar
    commons-logging-1.2.0.jar
    geronimo-j2ee-management_1.1_spec-1.0.1.jar
@@ -391,10 +379,7 @@
 
 ===-The Apache Software License, Version 1.1 ======
 
-
-*********** !!!!!!!!!!! DUPLICATE found in cassandra and amq/optional
 	(activemq) commons-codec-1.9.jar 
-************************
 	   BCEL 5.1
 	   Resolver
 	   Apache Commons Logging
