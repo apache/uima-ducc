@@ -465,7 +465,10 @@ public class CustomPing
 \begin{verbatim}
      service_ping_dolog = false
 \end{verbatim}
-      
+
+      If your pinger requires a different version of Java than is used by DUCC, include a
+      setting for the JAVA\_HOME variable in the environment option.
+
       A sample service registration may look something like the following.  Note that you do not need
       to include any of the DUCC jars in the classpath for the pinger.  DUCC will add the jars it
       requires to interact with the pinger automatically.  (However you may need other jars to
@@ -480,7 +483,8 @@ public class CustomPing
      service_ping_dolog       = true
      service_ping_timeout     = 500
      service_ping_aruments    = Arg1 Arg2
-     service_ping_jvm_args   = -DXmx50M
+     service_ping_jvm_args    = -DXmx50M
+     environment              = JAVA_HOME=/share/jdk1.8 OTHER_VARIABLE=something
 \end{verbatim}
        
       \paragraph{3. Register and start the service and pinger} Start up your custom service so the pinger with
