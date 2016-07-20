@@ -18,22 +18,21 @@
 # under the License.
 # -----------------------------------------------------------------------
 
-# this section reports what the script will remove
-togo=`find /tmp/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +7 | wc -l`
-echo Removing $togo directories in /tmp/degenaro/ducc/logs/
-find /tmp/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +7 | xargs -i ls -ld {}
-togo=`find /home/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +7 | wc -l`
-echo Removing $togo directories in /home/degenaro/ducc/logs/
-find /home/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +7 | xargs -i ls -ld {}
-togo=`find /tmp/ducc/driver/ -maxdepth 4 -name "[0-9]*"  -mtime +7 | wc -l`
-echo Removing $togo directories in /tmp/ducc/driver/
-find /tmp/ducc/driver/ -maxdepth 4 -name "[0-9]*"  -mtime +7 | xargs -i ls -ld {}
-togo=`find /tmp/ -maxdepth 1 -name "*.xml" -mtime +7 | wc -l`
-echo Removing $togo xml files in /tmp
+# handle /home/duccy/spool/
 
+togo=`find /home/duccy/spool/* -mtime +7 -user duccy`
+echo Removing $togo
+`find /home/duccy/spool/* -mtime +7 -user duccy | xargs -i rm -rf {}`
 
-# this section actually removes stuff
-find /tmp/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +7 | xargs -i rm -rf {}
-find /home/degenaro/ducc/logs/ -maxdepth 1 -name "[0-9]*"  -mtime +7 | xargs -i rm -rf {}
-find /tmp/ducc/driver/ -maxdepth 4 -name "[0-9]*"  -mtime +7 | xargs -i rm -rf {}
-find /tmp/ -maxdepth 1 -name "*.xml" -mtime +7 | xargs -i rm -f {}
+# handle /home/duccy/ducc/logs/
+
+togo=`find /home/duccy/ducc/logs/* -mtime +7 -user duccy`
+echo Removing $togo
+`find /home/duccy/ducc/logs/* -mtime +7 -user duccy | xargs -i rm -rf {}`
+
+# handle /tmp/UIMA*
+
+togo=`find /tmp -mtime +7 -user duccy`
+echo Removing $togo
+`find /tmp -mtime +7 -user duccy | xargs -i rm -rf {}`
+

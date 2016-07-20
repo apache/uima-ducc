@@ -28,24 +28,21 @@ then
         /bin/echo "killall -9 java python service"
         /usr/bin/killall -9 java python service >/dev/null 2>&1
         /bin/echo "mkdir logdir"
-        /bin/mkdir /tmp/degenaro >/dev/null 2>&1
-        /bin/mkdir /tmp/degenaro/ducc >/dev/null 2>&1
-        /bin/mkdir /tmp/degenaro/ducc/logs >/dev/null 2>&1
         /bin/echo "start DUCC"
-        cd ~/ducc/install/examples/systemtest
+        cd ~/ducc_runtime/examples/systemtest
         ./start_sim --nothreading -n ducc.nodes -c all
-        /bin/sleep 90
+        /bin/sleep 180
         /bin/echo "start registered services"
-        cd ~/ducc/install/bin
+        cd ~/ducc_runtime/bin
         ./ducc_services --start 0 --role_administrator
         ./ducc_services --start 1 --role_administrator
         ./ducc_services --start 2 --role_administrator
         ./ducc_services --start 3 --role_administrator
         ./ducc_services --start 4 --role_administrator
         ./ducc_services --start 5 --role_administrator
-        /bin/sleep 30
+        /bin/sleep 60
         /bin/echo "start workload manager"
-        cd ~/ducc/install/examples/uima-ducc-vm/driver
+        cd ~/ducc_runtime/examples/uima-ducc-vm/driver
         ./driver_start >/dev/null 2>&1
 #else
 #        /bin/echo "DUCC is running"

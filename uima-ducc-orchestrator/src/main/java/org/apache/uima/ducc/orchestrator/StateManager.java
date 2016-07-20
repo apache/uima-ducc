@@ -99,7 +99,7 @@ public class StateManager {
 	private DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 	private StateJobAccounting stateJobAccounting = StateJobAccounting.getInstance();
 	
-	IHistoryPersistenceManager hpm = orchestratorCommonArea.getHistoryPersistencemanager();
+	private IHistoryPersistenceManager hpm = orchestratorCommonArea.getHistoryPersistencemanager();
 	
 	private boolean jobDriverTerminated(DuccWorkJob duccWorkJob) {
 		String methodName = "jobDriverTerminated";
