@@ -274,6 +274,7 @@
        xbean-spring-3.18.jar
 
    jetty v9.2.13.v20150730
+       jetty-all-9.2.13.v20150730.jar
        jetty-proxy-9.2.13.v20150730.jar
        jetty-quickstart-9.2.13.v20150730.jar
        jetty-rewrite-9.2.13.v20150730.jar
@@ -343,7 +344,7 @@
    (cassandra server) stream-2.5.2.jar
    (cassandra server) super-csv-2.1.0.jar
    (cassandra server) thrift-server-0.3.7.jar
-
+   (cassandra) jna-4.0.0.jar
    (webserver) org.mortbay.jasper.apache-jsp-8.0.9.M3.jar
    (webserver) org.mortbay.jasper.apache-el-8.0.9.M3.jar
    (webserver) org.apache.taglibs.taglibs-standard-impl-1.2.1.jar
@@ -352,26 +353,23 @@
    (webserver) jetty-jsp-jdt-2.3.3.jar
    (webserver) JPagination
 
-
-
    (activemq) hawtbuf-1.11.jar
-
-
    commons-cli-1.2.jar
    commons-collections-3.2.1.jar
    commons-lang-2.6.jar
    commons-pool2-2.4.2.jar
    log4j-1.2.16.jar
    gson-2.2.2.jar
-   guava-r09.jar
-   jna-4.0.0.jar
+   guava-14.0.1.jar
+   jna-4.2.2.jar
    joda-time-2.1.jar
-   commons-logging-1.2.0.jar
+   commons-logging-1.2.jar
    geronimo-j2ee-management_1.1_spec-1.0.1.jar
    geronimo-jms_1.1_spec-1.1.1.jar 
    geronimo-servlet_3.0_spec-1.0.jar
    httpcore-4.4.4.jar
    httpclient-4.5.1.jar
+   log4j-1.2.17.jar
 
 ===-Apache Software License v 1.0 =============  
    xpp3-1.1.4c.jar
@@ -399,19 +397,24 @@
 
 ===-MIT License  ============= 
    (cassandra) high-scale-lib-1.0.6.jar
-
-***** DUPLICATE CASSANDRA /cassandra-server/lib/slf4j-api-1.7.2.jar
-
-   slf4j-api-1.6.4.jar
-
-**************************************************************
-
-   slf4j-log4j-1.7.13.jar
+   (cassandra) slf4j-api-1.7.2.jar
+   (activemq) slf4j-api-1.7.13.jar
+   slf4j-log4j12-1.7.13.jar
    jcl-over-slf4j-1.7.13.jar
+
+   (webserver)jgrowl-1.3
+   (webserver)sorttable.js v.2
+   (webserver)clueTip 1.2.6
+   (webserver)jQuery v2.0.3
+   (webserver)jQuery UI v.1.11.0
+   (webserver)DataTables v.1.10.1
+   (webserver)DataTables-plugins v.1.10.1
+   (webserver>navigation
    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
         iso-relax
    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
         RelaxNG Object Model/Parser 
+
    (webserver)libpam4j-1.7.jar
    (webserver)sorttable.js v.2
    (webserver)clueTip 1.2.6
