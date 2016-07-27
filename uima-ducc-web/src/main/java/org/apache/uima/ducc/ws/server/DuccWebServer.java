@@ -125,7 +125,7 @@ public class DuccWebServer {
 	}
 	
 	public int getPortSsl() {
-		String property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port_https);
+		String property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port_ssl);
         int portHttps = ConfigValue.PortHttps.getInt(property);
         return portHttps;
 	}
@@ -173,9 +173,9 @@ public class DuccWebServer {
 
         /**                                                                                                                                                        
           * Determine server https port                                                                                                                             
-          * ducc.ws.port.https                                                                                                                                      
+          * ducc.ws.port.ssl                                                                                                                                      
           */
-        property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port_https);
+        property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port_ssl);
         int portHttps = ConfigValue.PortHttps.getInt(property);
 
         try {

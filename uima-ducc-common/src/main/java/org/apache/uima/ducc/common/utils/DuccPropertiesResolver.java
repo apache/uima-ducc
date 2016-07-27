@@ -168,7 +168,7 @@ public class DuccPropertiesResolver {
     
     public static final String ducc_transport_trace = "ducc.transport.trace";
     
-    public static final String ducc_ws_port_https = "ducc.ws.port.https";
+    public static final String ducc_ws_port_ssl = "ducc.ws.port.ssl";
     public static final String ducc_ws_idle_timeout = "ducc.ws.idle.timeout";
     public static final String ducc_ws_max_threads = "ducc.ws.max.threads";
 
