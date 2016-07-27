@@ -457,14 +457,14 @@ See more info at
    # Mount cgroups for older OS (e.g. RHEL v6)
    # For newer OS, remove entire mount block 
    mount {
-#      cpuset = /cgroup/cpuset;
+      cpuset = /cgroup/cpuset;
       cpu = /cgroup/cpu;
-#      cpuacct = /cgroup/cpuacct;
+      cpuacct = /cgroup/cpuacct;
       memory = /cgroup/memory;
-#      devices = /cgroup/devices;
-#      freezer = /cgroup/freezer;
-#      net_cls = /cgroup/net_cls;
-#      blkio = /cgroup/blkio;
+      devices = /cgroup/devices;
+      freezer = /cgroup/freezer;
+      net_cls = /cgroup/net_cls;
+      blkio = /cgroup/blkio;
    }
    # Define cgroup ducc and setup permissions
    group ducc {
