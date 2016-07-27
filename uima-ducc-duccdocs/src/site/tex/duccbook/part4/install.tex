@@ -36,7 +36,7 @@ roughly as follows:
 
 When upgrading from an existing installation the {\em ducc\_update} script may be used
 to replace the system files while leaving the site-specific configuration files in place. 
-See more info at
+For more information see
 \ifdefined\DUCCSTANDALONE
 {\em ``ducc\_update''} in the Administrative Commands section of the DuccBook. 
 \else
@@ -44,9 +44,9 @@ See more info at
 \fi
 
 Since with this release the persistence data about completed work is stored in a database, 
-additional steps are required to convert the older file-based data in order to preserve information
+additional upgrade steps are required to convert the older file-based data in order to preserve information 
 about past work. 
-See more info at
+For more information see
 \ifdefined\DUCCSTANDALONE
 {\em ``db\_create''} and {\em ``db\_loader''} in the Administrative Commands section of the DuccBook. 
 \else
@@ -183,7 +183,7 @@ working, one may proceed installing additional features.
 
 \section{Minimal Hardware Requirements for Single System Installation}
 \begin{itemize}
-    \item One Intel-based or IBM Power-based system.  (More systems may be added later.)
+    \item One Intel-based or IBM Power-based system (Big or Little Endian).  (More systems may be added later.)
 
     \item 8GB of memory.  16GB or more is preferable for developing and testing applications beyond
       the non-trivial.  
@@ -431,7 +431,7 @@ privileged operations.
 
 If a different location is chosen for ducc\_ling the new path needs to be specified 
 for ducc.agent.launcher.ducc\_spawn\_path in \$DUCC\_HOME/resources/site.ducc.properties.
-See more info at
+For more information see
 \ifdefined\DUCCSTANDALONE
 {\em ``Properties merging''} in the DuccBook. 
 \else
