@@ -376,7 +376,6 @@
        Applies to the class javax.xml.namespace.QName
 
 ===-The Apache Software License, Version 1.1 ======
-
 	(activemq) commons-codec-1.9.jar 
 	   BCEL 5.1
 	   Resolver
@@ -385,9 +384,7 @@
 	   Apache Commons Bean Utils
 	   Apache Commons Beans Collections
 
-
-
-===-http://creativecommons.org/licenses/publicdomain =============
+===- creativecommons.org public domain License =============
     xpp3-1.1.4c.jar  
 	  Applies to the XmlPull API 
   
@@ -705,41 +702,6 @@ ts-2.0x1.3.jpeg
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
 
-=====================================================
-
-====================================================================
-
-http://creativecommons.org/licenses/publicdomain
-
-The person or persons who have associated work with this document 
-(the "Dedicator" or "Certifier") hereby either (a) certifies that, to 
-the best of his knowledge, the work of authorship identified is in 
-the public domain of the country from which the work is published, 
-or (b) hereby dedicates whatever copyright the dedicators holds in 
-the work of authorship identified below (the "Work") to the public 
-domain. A certifier, moreover, dedicates any copyright interest he 
-may have in the associated work, and for these purposes, is described 
-as a "dedicator" below.
-
-A certifier has taken reasonable steps to verify the copyright status 
-of this work. Certifier recognizes that his good faith efforts may not 
-shield him from liability if in fact the work certified is not in the 
-public domain.
-
-Dedicator makes this dedication for the benefit of the public at large 
-and to the detriment of the Dedicator's heirs and successors. Dedicator 
-intends this dedication to be an overt act of relinquishment in perpetuity 
-of all present and future rights under copyright law, whether vested or 
-contingent, in the Work. Dedicator understands that such relinquishment of 
-all rights includes the relinquishment of all rights to enforce 
-(by lawsuit or otherwise) those copyrights in the Work.
-
-Dedicator recognizes that, once placed in the public domain, the Work 
-may be freely reproduced, distributed, transmitted, used, modified, built 
-upon, or otherwise exploited by anyone for any purpose, commercial 
-or non-commercial, and in any way, including by methods that have not 
-yet been invented or conceived.
-
 =====================================================================
 
 Indiana University Extreme! Lab Software License
@@ -805,11 +767,6 @@ granted provided that the copyright notice appears in all copies.
 httpcore
 
 Creative Commons Attribution License v 2.5
-
-This project contains annotations derived from JCIP-ANNOTATIONS
-Copyright (c) 2005 Brian Goetz and Tim Peierls.
-See http://www.jcip.net and the Creative Commons Attribution License
-(http://creativecommons.org/licenses/by/2.5)
 
 License
 
@@ -2178,9 +2135,7 @@ modification. This license may not be modified without the express written
 permission of its copyright owner.
 
 =========================================================================
-
-ANTLR 1989-2000 Developed by jGuru.com (MageLang Institute), 
-http://www.ANTLR.org  and http://www.jGuru.com
+ANTLR License
 
 We reserve no legal rights to the ANTLR--it is fully in the
 public domain. An individual or company may do whatever
@@ -4797,18 +4752,10 @@ Title to copyright in this software and any associated documentation will at all
 times remain with copyright holders.
 
 ============================================
+xpp3-1.1.4c.jar is licensed:
+============================================
 
-    From: commons-pool2-2.4.2.jar
-     APACHE COMMONS POOL DERIVATIVE WORKS:
-
-     The LinkedBlockingDeque implementation is based on an implementation written by
-     Doug Lea with assistance from members of JCP JSR-166 Expert Group and released
-     to the public domain, as explained at
-     http://creativecommons.org/licenses/publicdomain
-
-
-
-Public Domain License
+CreativeCommons.org Public Domain License
 
 The person or persons who have associated work with this document (the "Dedicator" or "Certifier") hereby ei\
 ther (a) certifies that, to the best of
