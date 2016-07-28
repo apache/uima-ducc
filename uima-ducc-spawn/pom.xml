@@ -20,6 +20,7 @@
 	</parent>
   
     <artifactId>uima-ducc-spawn</artifactId>
+    <name>${uima.ducc} ${project.artifactId}</name>
     <packaging>pom</packaging>
 
  <!-- Special inheritance note even though the <scm> element that follows 

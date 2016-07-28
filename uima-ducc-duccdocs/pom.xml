@@ -22,6 +22,7 @@
 	</parent>
 
     <artifactId>uima-ducc-duccdocs</artifactId>
+    <name>${uima.ducc} ${project.artifactId}</name>
     <packaging>pom</packaging>
 
  <!-- Special inheritance note even though the <scm> element that follows 

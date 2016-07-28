@@ -249,6 +249,16 @@ provided this notice is preserved.
 --------------------------------------------------------------------------------
 
 =========================================================================
+------------------ Jetty (jetty-util) Notice
+
+The UnixCrypt.java code implements the one way cryptography used by
+Unix systems for simple password protection.  Copyright 1996 Aki Yoshida,
+modified April 2001  by Iris Van den Broeke, Daniel Deville.
+Permission to use, copy, modify and distribute UnixCrypt
+for non-commercial or commercial purposes and without fee is
+granted provided that the copyright notice appears in all copies.
+
+=========================================================================
 ------------------- www.ibatis.com Notice -------
 =========================================================================
 This product also includes software developed by
@@ -421,14 +431,12 @@ Joda.org (http://www.joda.org/).
 
 (C) Copyright IBM Corp. 2003. 
 
-=========================================================================
-==  XMLBeans Notice                                                      ==
-=========================================================================
+-------------------- xmlbean library Notice
 
-This product includes Apache XMLBeans software, developed at the Apache Software
-Foundation (http://www.apache.org/). From binary distribution of XMLBeans NOTICE
-file:
-Portions of this software were originally based on the following:
+   This product includes software developed by
+   The Apache Software Foundation (http://www.apache.org/).
+
+   Portions of this software were originally based on the following:
      - software copyright (c) 2000-2003, BEA Systems, <http://www.bea.com/>.
 
    Aside from contributions to the Apache XMLBeans project, this
@@ -440,6 +448,15 @@ Portions of this software were originally based on the following:
     - W3C XML Schema documents Copyright 2001-2003 (c) World Wide Web
       Consortium (Massachusetts Institute of Technology, European Research
       Consortium for Informatics and Mathematics, Keio University)
+
+    - resolver.jar from Apache Xml Commons project,
+      Copyright (c) 2001-2003 Apache Software Foundation
+
+    - Piccolo XML Parser for Java from http://piccolo.sourceforge.net/,
+      Copyright 2002 Yuval Oren under the terms of the Apache Software License 2.0
+
+    - JSR-173 Streaming API for XML from http://sourceforge.net/projects/xmlpullparser/,
+      Copyright 2005 BEA under the terms of the Apache Software License 2.0
 
 =========================================================================
 

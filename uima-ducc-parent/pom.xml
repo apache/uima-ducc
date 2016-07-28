@@ -29,6 +29,7 @@
 
 	<artifactId>uima-ducc-parent</artifactId>
 	<version>2.1.0</version>
+        <name>${uima.ducc} ${project.artifactId}</name>
 	<packaging>pom</packaging>
 	<!-- Add project inception year. This is used by javadoc plugin   -->
 	<!-- also used when generating NOTICE file for DUCC's jars -->

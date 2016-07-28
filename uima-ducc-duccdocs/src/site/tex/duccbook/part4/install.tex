@@ -27,7 +27,8 @@ roughly as follows:
       
     \item Optionally add more nodes. 
       
-    \item Enable multiple-user support - processes run with the credentials of the submitting user.
+    \item Enable multiple-user support - processes run with the credentials of the submitting user,
+      while DUCC runs as user {\em ducc}.
       This step requires root authority on one or more machines.
       
     \item Enable CGroup containers. This step requires root authority on every DUCC machine.
@@ -35,11 +36,21 @@ roughly as follows:
 
 When upgrading from an existing installation the {\em ducc\_update} script may be used
 to replace the system files while leaving the site-specific configuration files in place. 
-See more info at
+For more information see
 \ifdefined\DUCCSTANDALONE
-{\em ``ducc\_update''} in the duccbook. 
+{\em ``ducc\_update''} in the Administrative Commands section of the DuccBook. 
 \else
-\hyperref[subsec:admin.ducc-update] {ducc\_update}. 
+\hyperref[subsec:admin.ducc-update] {\em ducc\_update}. 
+\fi
+
+Since with this release the persistence data about completed work is stored in a database, 
+additional upgrade steps are required to convert the older file-based data in order to preserve information 
+about past work. 
+For more information see
+\ifdefined\DUCCSTANDALONE
+{\em ``db\_create''} and {\em ``db\_loader''} in the Administrative Commands section of the DuccBook. 
+\else
+\hyperref[subsec:admin.db-create] {\em db\_create} and \hyperref[subsec:admin.db-loader] {\em db\_loader}. 
 \fi
 
 
@@ -58,6 +69,7 @@ Single system installation:
 
 \begin{itemize}
   \item Reasonably current Linux.  DUCC has been tested on SLES 11, RHEL 6 \& 7, and Ubuntu 14.04 
+    with 64-bit Intel, IBM Power (Big and Little Endian) hardware.
     
     {\em Note:} On some systems the default {\em user limits}
     for max user processes (ulimit -u) and nfiles (ulimit -n) are defined too
@@ -159,10 +171,10 @@ If building from source, Maven places the documentation in
 
 \section{Single System Installation and Verification}
 
-Although any user ID can be used to run DUCC, it is recommended to create user ``ducc''
-to later enable use of cgroups as well as running processes with the credentials of the submitting user.
+Although any user ID can be used to run a single-system DUCC, creating a ``ducc'' userid is recommended
+to enable the later use of cgroups as well as running processes with the credentials of the submitting user.
 
-If multiple nodes are going to be added later, it is recommended to install the ducc runtime tree
+If multiple nodes are going to be added later, the ducc runtime tree should be installed
 on a shared filesystem so that it can be mounted on the additional nodes.
 
 Verification submits a very simple UIMA pipeline for execution under DUCC.  Once this is shown to be
@@ -171,7 +183,7 @@ working, one may proceed installing additional features.
 
 \section{Minimal Hardware Requirements for Single System Installation}
 \begin{itemize}
-    \item One Intel-based or IBM Power-based system.  (More systems may be added later.)
+    \item One Intel-based or IBM Power-based system (Big or Little Endian).  (More systems may be added later.)
 
     \item 8GB of memory.  16GB or more is preferable for developing and testing applications beyond
       the non-trivial.  
@@ -419,9 +431,9 @@ privileged operations.
 
 If a different location is chosen for ducc\_ling the new path needs to be specified 
 for ducc.agent.launcher.ducc\_spawn\_path in \$DUCC\_HOME/resources/site.ducc.properties.
-See more info at
+For more information see
 \ifdefined\DUCCSTANDALONE
-{\em ``Properties merging''} in the duccbook. 
+{\em ``Properties merging''} in the DuccBook. 
 \else
 \hyperref[sec:admin.properties-merge] {Properties merging}. 
 \fi
@@ -457,14 +469,14 @@ See more info at
    # Mount cgroups for older OS (e.g. RHEL v6)
    # For newer OS, remove entire mount block 
    mount {
-#      cpuset = /cgroup/cpuset;
+      cpuset = /cgroup/cpuset;
       cpu = /cgroup/cpu;
-#      cpuacct = /cgroup/cpuacct;
+      cpuacct = /cgroup/cpuacct;
       memory = /cgroup/memory;
-#      devices = /cgroup/devices;
-#      freezer = /cgroup/freezer;
-#      net_cls = /cgroup/net_cls;
-#      blkio = /cgroup/blkio;
+      devices = /cgroup/devices;
+      freezer = /cgroup/freezer;
+      net_cls = /cgroup/net_cls;
+      blkio = /cgroup/blkio;
    }
    # Define cgroup ducc and setup permissions
    group ducc {
@@ -500,13 +512,13 @@ See more info at
   	attempt to use the feature. CGroups can also be disabled for all machines
    	(see 
    \ifdefined\DUCCSTANDALONE
-   {\em ducc.agent.launcher.cgroups.enable} in ducc.properties, described in the Duccbook.)
+   {\em ducc.agent.launcher.cgroups.enable} in ducc.properties, described in the DuccBook.)
    \else
    \hyperref[itm:props-agent.cgroups.enable] {\em ducc.agent.launcher.cgroups.enable}) 
    \fi
    	or it can be disabled for individual machines (see 
    \ifdefined\DUCCSTANDALONE
-   {\em ducc.agent.exclusion.file} in ducc.properties, described in the Duccbook.)
+   {\em ducc.agent.exclusion.file} in ducc.properties, described in the DuccBook.)
    \else
    \hyperref[itm:props-agent.cgroups.exclusion]{\em ducc.agent.exclusion.file}).
    \fi
