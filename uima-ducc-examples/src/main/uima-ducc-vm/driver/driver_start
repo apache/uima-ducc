@@ -31,7 +31,7 @@ class DriverStart():
     def run(self):
         command = 'python -u ./driver_stop'
         os.system(command)
-        command = 'nohup python -u ./driver.py &'
+        command = 'nohup python -u ./driver.py > ~/spool/console &'
         os.system(command)
         
 if __name__ == '__main__':
