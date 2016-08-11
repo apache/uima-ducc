@@ -395,17 +395,8 @@ implements Orchestrator {
 			stateManager.reconcileState(dsr);
 			String sid = ""+duccId.getFriendly();
 			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.cloneDuccWork(workMap, sid, this, methodName);
-			if(duccWorkJob != null) {
-				IDuccProcessMap processMap = duccWorkJob.getProcessMap();
-				duccEvent.setProcessMap(new DuccProcessMap(processMap));
-				
-			}
-			else {
-				String text = "not found in map";
-				duccEvent.setKillDriverReason(text);
-				logger.warn(methodName, duccId, text);
-			}
-			
+			IDuccProcessMap processMap = duccWorkJob.getProcessMap();
+			duccEvent.setProcessMap(new DuccProcessMap(processMap));
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
