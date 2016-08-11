@@ -85,6 +85,12 @@ class StartSim(DuccUtil):
         CMDPARMS.append('-Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties")
         CMDPARMS.append('-Djava.library.path=' + self.DUCC_HOME)
         CMDPARMS.append('-Xmx100M')
+        CMDPARMS.append('-XX:+HeapDumpOnOutOfMemoryError')
+        
+        ducc_heap_dump_path = self.ducc_properties.get('ducc.heap.dump.path')
+        if ducc_heap_dump_path != None:
+            CMDPARMS.append('-XX:HeapDumpPath='+ducc_heap_dump_path)
+            
         CMDPARMS.append('-Dducc.agent.node.metrics.fake.memory.size=' + str(memory))
         CMDPARMS.append('-Dducc.agent.virtual')
         CMDPARMS.append('org.apache.uima.ducc.common.main.DuccService')
