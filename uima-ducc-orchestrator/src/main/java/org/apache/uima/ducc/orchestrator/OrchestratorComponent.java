@@ -360,8 +360,20 @@ implements Orchestrator {
 				if(workMap != null) {
 					IDuccWork dw = workMap.findDuccWork(duccId);
 					duccEvent.setDw(dw);
+					if(dw == null) {
+						logger.warn(methodName, duccId, "dw==null");
+					}
+				}
+				else {
+					logger.warn(methodName, duccId, "workMap==null");
 				}
 			}
+			else {
+				logger.warn(methodName, jobid, "duccId==null");
+			}
+		}
+		else {
+			logger.warn(methodName, jobid, "duccEvent==null");
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
@@ -383,8 +395,17 @@ implements Orchestrator {
 			stateManager.reconcileState(dsr);
 			String sid = ""+duccId.getFriendly();
 			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.cloneDuccWork(workMap, sid, this, methodName);
-			IDuccProcessMap processMap = duccWorkJob.getProcessMap();
-			duccEvent.setProcessMap(new DuccProcessMap(processMap));
+			if(duccWorkJob != null) {
+				IDuccProcessMap processMap = duccWorkJob.getProcessMap();
+				duccEvent.setProcessMap(new DuccProcessMap(processMap));
+				
+			}
+			else {
+				String text = "not found in map";
+				duccEvent.setKillDriverReason(text);
+				logger.warn(methodName, duccId, text);
+			}
+			
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
