@@ -75,7 +75,16 @@ class CheckDucc(DuccUtil):
 
         messages.append((' '))
         messages.append(('Checking', node, '...'))
-
+        
+        if(self.ssh_operational(node)):
+            text = "ssh is operational to "+node
+            #print text
+        else:
+            text = "ssh is NOT operational to "+node
+            print text
+            messages.append((spacer, text))
+            return messages
+            
         response = self.find_ducc_process(node)   # a tuple, (True|False, proclist)
         if ( not response[0] ):
             messages.append((spacer, "No response."))

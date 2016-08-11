@@ -355,6 +355,18 @@ class DuccUtil(DuccBase):
         if ( showpid ) :
             print 'PID', ducc.pid
 
+    def ssh_operational(self, node):
+        is_operational = True
+        cmd = '/bin/hostname'
+        resp = self.popen('ssh -o BatchMode=yes -o ConnectTimeout=10', node, cmd)
+        line = resp.readline().strip()     
+        ssh_errors = self.ssh_ok(node, line)
+        if ( ssh_errors != None ):
+            is_operational = False
+#           for m in ssh_errors:
+#                print m
+        return is_operational
+
     # like popen, only it spawns via ssh
     # Skip use of ssh?
     # NOTE: Current callers always have do_wait True
@@ -486,6 +498,13 @@ class DuccUtil(DuccBase):
         local = self.localhost.split('.')[0]
         if local != head:
             print ">>> ERROR - this script must be run from the head node"
+            sys.exit(1);
+        node = head
+        if(self.ssh_operational(node)):
+            text = "ssh is operational to "+node
+            #print text
+        else:
+            print ">>> ERROR - this script cannot ssh to head node"
             sys.exit(1);
 
     #
