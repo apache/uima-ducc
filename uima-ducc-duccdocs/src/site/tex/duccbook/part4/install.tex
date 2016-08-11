@@ -588,3 +588,33 @@ Red Hat Enterprise Linux Workstation release 6.4 (Santiago)
 9. save   
 \end{verbatim}    
 
+ 
+\section{DUCC daemons monitoring and notification}
+
+\begin{verbatim}
+
+$DUCC_HOME/admin/ducc_watcher is a Python script that, when run, contacts the 
+DUCC Web Server to fetch data and determine the status of the critical head node daemons.
+It can be run as a cron job to detect down daemons and send email notifications
+to a list of receipients specified in ducc.properties (via site.ducc.properties).
+
+Purpose: send e-mail notification when overall DUCC state changes
+
+Configuration: 
+
+ - to ducc.properties (via site.ducc.properties) add:
+   + ducc.watcher.notification.list = user1@host1 user2@host2
+   
+ - add $DUCC_HOME/admin/ducc_watcher as a cron job on a host that:
+   + has access to $DUCC_HOME directory
+   + has access to DUCC WebServer URL
+   + has 'localhost' email server
+
+Files created by script:
+ - $DUCC_HOME/state/watcher 
+   + comprises the last recorded overall state of DUCC
+
+ - $DUCC_HOME/logs/watcher.log
+   + comprises a state change events log
+      
+\end{verbatim}
