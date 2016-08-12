@@ -529,7 +529,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       if (commandLine != null) {
           if (commandLine.getExecutable() != null && commandLine.getExecutable().length() > 0) return false;
           if (commandLine.getCommandLine() != null && commandLine.getCommandLine().length > 0) return false;
-      }
+      } 
       return true;
   }
 
@@ -676,6 +676,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
               logger.info(methodName, workDuccId,
                       "Rejecting Process Start Request. Command line not provided for Process ID:"
                               + process.getDuccId());
+              process.setReasonForStoppingProcess(IDuccProcess.ReasonForStoppingProcess.CommandLineMissing.name());
             } else {
               process.setProcessState(ProcessState.Starting);
               logger.info(
