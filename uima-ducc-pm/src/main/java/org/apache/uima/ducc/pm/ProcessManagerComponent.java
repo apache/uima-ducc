@@ -191,46 +191,45 @@ implements ProcessManager {
 	        case Job:
 	          logger.debug(methodName, dcj.getDuccId(), "case: Job");
 	          dw = dwHelper.fetch(dcj.getDuccId());
-	          // Aug 11, 2016 JIRA 5048
-	          // If the OR returns null from fetch() above, don't send anything to agents.
-	          // The dw contains a command line to launch processes. If its not provided 
-	          // there is nothing to do.
+	          
 	          if ( dw == null ) {
-	        	  logger.info(methodName, dcj.getDuccId(), "The OR did not provide commndline spec and other details required to launch processes for the Job. Received value of NULL from the OR. The PM will ignore this job and will not publish it to agents.");
-	        	  continue;  // nothing to do
+	        	  logger.info(methodName, dcj.getDuccId(), "The OR did not provide commndline spec and other details required to launch processes for the Job. Received value of NULL from the OR");
+				  driverProcess = 
+						  dcj.getDriver().getProcessMap().entrySet().iterator().next().getValue();
+
+	          } else {
+		          IDuccWorkJob job = (IDuccWorkJob) dw;
+		          DuccWorkPopDriver driver = job.getDriver();
+				  if(driver != null) {
+					  driverCmdLine = driver.getCommandLine();
+					  driverProcess = driver.getProcessMap().entrySet().iterator().next().getValue();
+				  }
+		          processCmdLine = job.getCommandLine();
 	          }
-	          IDuccWorkJob job = (IDuccWorkJob) dw;
-	          DuccWorkPopDriver driver = job.getDriver();
-			  if(driver != null) {
-				  driverCmdLine = driver.getCommandLine();
-				  driverProcess = driver.getProcessMap().entrySet().iterator().next().getValue();
-			  }
-	          processCmdLine = job.getCommandLine();
 	          break;
 	        case Service:
 	          logger.debug(methodName, dcj.getDuccId(), "case: Service");
 	          dw = dwHelper.fetch(dcj.getDuccId());
 	          if ( dw == null ) {
-	        	  logger.info(methodName, dcj.getDuccId(), "The OR did not provide commndline spec and other details required to launch Service processes. Received value of NULL from the OR. The PM will ignore this Service and will not publish to agents.");
-	        	  continue;  // nothing to do
+	        	  logger.info(methodName, dcj.getDuccId(), "The OR did not provide commndline spec and other details required to launch Service processes. Received value of NULL from the OR.");
+	              
+	          } else {
+		          IDuccWorkJob service = (IDuccWorkJob) dw;
+		          processCmdLine = service.getCommandLine();
+		          processCmdLine.addOption("-Dducc.deploy.components=service");
 	          }
 
-	          IDuccWorkJob service = (IDuccWorkJob) dw;
-	          processCmdLine = service.getCommandLine();
-	          processCmdLine.addOption("-Dducc.deploy.components=service");
 	          break;
 	        default:
 	          logger.debug(methodName, dcj.getDuccId(), "case: default");
 	          dw = dwHelper.fetch(dcj.getDuccId());
 	          if ( dw == null ) {
-	        	  logger.info(methodName, dcj.getDuccId(), "The OR did not provide commndline spec and other details required to launch processes. Received value of NULL from the OR. The PM will ignore this task and will not publish to agents.");
-	        	  continue;  // nothing to do
-	          }
-
-	          if(dw instanceof IDuccWorkExecutable) {
+	        	  logger.info(methodName, dcj.getDuccId(), "The OR did not provide commndline spec and other details required to launch processes. Received value of NULL from the OR.");
+	          } else if(dw instanceof IDuccWorkExecutable) {
 	        	  IDuccWorkExecutable dwe = (IDuccWorkExecutable) dw;
 	        	  processCmdLine = dwe.getCommandLine();
 	          }
+
 		      break;
 	        }
 	        
