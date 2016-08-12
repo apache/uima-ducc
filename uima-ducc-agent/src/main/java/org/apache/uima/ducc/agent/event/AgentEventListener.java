@@ -40,6 +40,7 @@ import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
+import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -134,7 +135,10 @@ public class AgentEventListener implements DuccEventDelegateListener {
 					//	check if this node is a target for this job's JD 
 					if ( isTargetNodeForProcess(jobDeployment.getJdProcess()) ) {
 						// agent will check the state of JD process and either start, stop, or take no action
-						ICommandLine jdCommandLine = jobDeployment.getJdCmdLine();
+//						ICommandLine jdCommandLine = jobDeployment.getJdCmdLine();
+						agent.reconcileProcessStateAndTakeAction(lifecycleController, jobDeployment.getJdProcess(), jobDeployment.getJdCmdLine(), 
+								jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId());
+/*						
 						if(jdCommandLine != null) {
 							agent.reconcileProcessStateAndTakeAction(lifecycleController, jobDeployment.getJdProcess(), jobDeployment.getJdCmdLine(), 
 								jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId());
@@ -142,13 +146,17 @@ public class AgentEventListener implements DuccEventDelegateListener {
 						else {
 							logger.error("onDuccJobsStateEvent", null, "job is service");
 						}
+*/						
 					} 
-					// check JPs
-					for( IDuccProcess process : jobDeployment.getJpProcessList() ) {
-						if ( isTargetNodeForProcess(process) ) {
-		          // agent will check the state of JP process and either start, stop, or take no action 
-							agent.reconcileProcessStateAndTakeAction(lifecycleController, process, jobDeployment.getJpCmdLine(), 
-									jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId());
+					// reconcile JP procees only if JD is OK
+					if ( !jobDeployment.getJdProcess().getProcessState().equals(ProcessState.Failed) )  {
+						// check JPs
+						for( IDuccProcess process : jobDeployment.getJpProcessList() ) {
+							if ( isTargetNodeForProcess(process) ) {
+			          // agent will check the state of JP process and either start, stop, or take no action 
+								agent.reconcileProcessStateAndTakeAction(lifecycleController, process, jobDeployment.getJpCmdLine(), 
+										jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId());
+							}
 						}
 					}
 				}
