@@ -18,32 +18,7 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
-import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
-
 @SuppressWarnings("serial")
-public class JdRequestEvent extends AbstractDuccJobEvent {
+public class JdRequestEvent extends JdEvent {
 	
-	private IDriverStatusReport driverStatusReport = null;
-	private IDuccProcessMap processMap = null;
-	
-	public JdRequestEvent() {
-		super(EventType.JD_STATE);
-	}
-	
-	public IDriverStatusReport getDriverStatusReport() {
-		return driverStatusReport;
-	}
-	
-	public void setDriverStatusReport(IDriverStatusReport value) {
-		driverStatusReport = value;
-	}
-	
-	public IDuccProcessMap getProcessMap() {
-		return processMap;
-	}
-	 
-	public void setProcessMap(IDuccProcessMap value) {
-		processMap = value;
-	}
 }

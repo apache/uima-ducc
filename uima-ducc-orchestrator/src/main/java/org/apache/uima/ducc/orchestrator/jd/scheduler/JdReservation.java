@@ -130,20 +130,20 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 		return retVal;
 	}
 	
-	protected NodeIdentity allocate(DuccId jdId, DuccId jobId) {
-		NodeIdentity retVal = allocate(jdId, jobId, getSizeOfSlice());
+	protected NodeIdentity allocate(DuccId jobIdentity, DuccId driverIdentity) {
+		NodeIdentity retVal = allocate(jobIdentity, driverIdentity, getSizeOfSlice());
 		return retVal;
 	}
 	
-	protected NodeIdentity allocate(DuccId jdId, DuccId jobId, SizeBytes size) {
+	protected NodeIdentity allocate(DuccId jobIdentity, DuccId driverIdentity, SizeBytes size) {
 		String location = "allocate";
 		NodeIdentity retVal = null;
 		ConcurrentHashMap<DuccId, SizeBytes> map = getMap();
-		if(jdId != null) {
+		if(jobIdentity != null) {
 			synchronized(this) {
-				if(!map.containsKey(jdId)) {
+				if(!map.containsKey(jobIdentity)) {
 					if(!isFull()) {
-						SizeBytes previous = map.putIfAbsent(jdId, size);
+						SizeBytes previous = map.putIfAbsent(jobIdentity, size);
 						if(previous == null) {
 							retVal = getNodeIdentity();
 						}
@@ -151,25 +151,25 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 				}
 			}
 			if(retVal != null) {
-				logger.info(location, jobId, "jdId:"+jdId+" "+"host: "+retVal.getName()+" "+"size: "+map.size());
+				logger.info(location, jobIdentity, "driverId:"+driverIdentity+" "+"host: "+retVal.getName()+" "+"size: "+map.size());
 			}
 		}
 		return retVal;
 	}
 	
-	protected NodeIdentity deallocate(DuccId jdId, DuccId jobId) {
+	protected NodeIdentity deallocate(DuccId jobIdentity, DuccId driverIdentity) {
 		String location = "deallocate";
 		NodeIdentity retVal = null;
 		ConcurrentHashMap<DuccId, SizeBytes> map = getMap();
-		if(jdId != null) {
+		if(jobIdentity != null) {
 			synchronized(this) {
-				if(map.containsKey(jdId)) {
-					map.remove(jdId);
+				if(map.containsKey(jobIdentity)) {
+					map.remove(jobIdentity);
 					retVal = getNodeIdentity();
 				}
 			}
 			if(retVal != null) {
-				logger.info(location, jobId, "jdId:"+jdId+" "+"host: "+retVal.getName()+" "+"size: "+map.size());
+				logger.info(location, jobIdentity, "driverId:"+driverIdentity+" "+"host: "+retVal.getName()+" "+"size: "+map.size());
 			}
 		}
 		return retVal;

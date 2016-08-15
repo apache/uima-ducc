@@ -385,22 +385,22 @@ public class JobFactory implements IJobFactory {
 		DuccWorkPopDriver driver = new DuccWorkPopDriver();    // No longer need the 8-arg constructor
 		driver.setCommandLine(driverCommandLine);
 		//
-		DuccId jdId = jdIdFactory.next();
+		DuccId processIdentity = jdIdFactory.next();
 		int friendlyId = driver.getProcessMap().size();
-		jdId.setFriendly(friendlyId);
-		DuccId jdProcessDuccId = (DuccId) jdId;
-		NodeIdentity nodeIdentity = jdScheduler.allocate(jdProcessDuccId, job.getDuccId());
+		processIdentity.setFriendly(friendlyId);
+		DuccId jobIdentity = (DuccId) job.getDuccId();
+		NodeIdentity nodeIdentity = jdScheduler.allocate(jobIdentity, processIdentity);
 		if(nodeIdentity == null) {
 			throw new ResourceUnavailableForJobDriverException();
 		}
-		DuccProcess driverProcess = new DuccProcess(jdId,nodeIdentity,ProcessType.Pop);
+		DuccProcess driverProcess = new DuccProcess(processIdentity,nodeIdentity,ProcessType.Pop);
 		long driver_max_size_in_bytes = JobFactoryHelper.getByteSizeJobDriver();
 		CGroupManager.assign(job.getDuccId(), driverProcess, driver_max_size_in_bytes);
 		OrUtil.setResourceState(job, driverProcess, ResourceState.Allocated);
 		driverProcess.setNodeIdentity(nodeIdentity);
 		driver.getProcessMap().put(driverProcess.getDuccId(), driverProcess);
 		//
-		orchestratorCommonArea.getProcessAccounting().addProcess(jdId, job.getDuccId());
+		orchestratorCommonArea.getProcessAccounting().addProcess(processIdentity, jobIdentity);
 		//
 		job.setDriver(driver);
 	}

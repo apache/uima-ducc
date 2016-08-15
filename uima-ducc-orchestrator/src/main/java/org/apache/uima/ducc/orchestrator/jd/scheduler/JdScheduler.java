@@ -21,6 +21,7 @@ package org.apache.uima.ducc.orchestrator.jd.scheduler;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,22 +30,31 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
+import org.apache.uima.ducc.common.db.DbQuery;
+import org.apache.uima.ducc.common.db.IDbMachine;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorCheckpoint;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.ReservationFactory;
+import org.apache.uima.ducc.orchestrator.StateManager;
 import org.apache.uima.ducc.orchestrator.WorkMapHelper;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
+import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.ReservationCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IRationale;
+import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.JdReservationBean;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 
@@ -56,6 +66,8 @@ public class JdScheduler {
 	private static ReservationFactory reservationFactory = ReservationFactory.getInstance();
 	
 	private static JdScheduler instance = new JdScheduler();
+	
+	private static OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	
 	public static JdScheduler getInstance() {
 		return instance;
@@ -96,18 +108,17 @@ public class JdScheduler {
 			try {
 				IDuccWorkMap dwm = OrchestratorCommonArea.getInstance().getWorkMap();
 				for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
-					DuccId jdReservationDuccId = entry.getKey();
-					DuccId duccId = (DuccId) jdReservationDuccId;
-					IDuccWork dw = dwm.findDuccWork(duccId);
+					DuccId reservationIdentity = entry.getKey();
+					IDuccWork dw = dwm.findDuccWork(reservationIdentity);
 					if(dw instanceof IDuccWorkReservation) {
 						IDuccWorkReservation dwr = (IDuccWorkReservation) dw;
-						List<JdReservationBean> jdReservationBeanList = getJdReservationBeanList(jdReservationDuccId);
+						List<JdReservationBean> jdReservationBeanList = getJdReservationBeanList(reservationIdentity);
 						dwr.setJdReservationBeanList(jdReservationBeanList);
 						if(jdReservationBeanList != null) {
-							logger.debug(location, duccId, "size: "+jdReservationBeanList.size());
+							logger.debug(location, reservationIdentity, "size: "+jdReservationBeanList.size());
 						}
 						else {
-							logger.debug(location, duccId, "size: "+null);
+							logger.debug(location, reservationIdentity, "size: "+null);
 						}
 					}
 				}
@@ -157,6 +168,125 @@ public class JdScheduler {
 			}
 		}
 		return count;
+	} 
+	
+	// Fetch Reservations on given node (name)
+	
+	private List<JdReservation> getJdReservationsByName(String name) {
+		String location = "getJdReservationByName";
+		List<JdReservation> retVal = new ArrayList<JdReservation>();
+		try {
+			if(name != null) {
+				for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
+					String host = entry.getValue().getHost();
+					if(host.equals(name)) {
+						retVal.add(entry.getValue());
+						break;
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	// Cancel Reservation
+	
+	private void cancelReservation(JdReservation jdReservation, String reason) {
+		String location = "cancelReservation";
+		try {
+			DuccId reservationIdentity = jdReservation.getDuccId();
+			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
+			String id = ""+reservationIdentity.getFriendly();
+			DuccWorkReservation duccWorkReservation = (DuccWorkReservation) WorkMapHelper.findDuccWork(workMap, DuccType.Reservation, id, this, location);
+			switch(duccWorkReservation.getReservationState()) {
+			case Completed:
+				break;
+			default:
+				JdHostProperties jdHostProperties = new JdHostProperties();
+				duccWorkReservation.getStandardInfo().setCancelUser(jdHostProperties.getHostUser());
+				duccWorkReservation.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+				duccWorkReservation.stateChange(ReservationState.Completed);
+				duccWorkReservation.complete(ReservationCompletionType.CanceledBySystem);
+				IRationale rationale = new Rationale(reason);
+				duccWorkReservation.setCompletionRationale(rationale);
+				OrchestratorCheckpoint.getInstance().saveState();
+				logger.warn(location, reservationIdentity, reason);
+				break;
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
+	// Cancel Jobs
+	
+	private void cancelJobs(JdReservation jdReservation, String reason) {
+		String location = "cancelJobs";
+		try {
+			Map<DuccId, SizeBytes> map = jdReservation.getMap();
+			for(Entry<DuccId, SizeBytes> entry : map.entrySet()) {
+				DuccId jobIdentity = entry.getKey();
+				DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
+				String id = ""+jobIdentity.getFriendly();
+				DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, DuccType.Job, id, this, location);
+				IRationale rationale = new Rationale(reason.toString());
+				JobCompletionType jobCompletionType = JobCompletionType.CanceledBySystem;
+				
+				StateManager stateManager = StateManager.getInstance();
+				stateManager.jobTerminate(duccWorkJob, jobCompletionType, rationale, ProcessDeallocationType.JobCanceled);
+				
+				OrchestratorCheckpoint.getInstance().saveState();
+				logger.warn(location, jobIdentity, reason);
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
+	// Handle down JD node
+	
+	private void handleDownNode(JdReservation jdReservation) {
+		String location = "handleDownNode";
+		try {
+			if(jdReservation != null) {
+				String host = jdReservation.getHost();
+				String text = "job driver node down: "+host;
+				cancelReservation(jdReservation, text);
+				cancelJobs(jdReservation, text);
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
+	// Monitor for down JD nodes
+	
+	private void monitor() {
+		String location = "monitor";
+		try {
+			Map<String, IDbMachine> qMap = DbQuery.getInstance().getMapMachines();
+			for(Entry<String, IDbMachine> entry : qMap.entrySet()) {
+				Boolean responsive = entry.getValue().getResponsive();
+				if(!responsive.booleanValue()) {
+					String name = entry.getValue().getName();
+					List<JdReservation> list = getJdReservationsByName(name);
+					if(list != null) {
+						for(JdReservation jdReservation : list) {
+							handleDownNode(jdReservation);
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
 	}
 	
 	// Process an OR publication.
@@ -164,8 +294,8 @@ public class JdScheduler {
 	public void handle(IDuccWorkMap dwm) {
 		String location = "handle";
 		try {
+			monitor();
 			if(dwm != null) {
-				logger.debug(location, jobid, "dwm size: "+dwm.size());
 				JdHostProperties jdHostProperties = new JdHostProperties();
 				resourceAccounting(dwm, jdHostProperties);
 				resourceAdjustment(dwm, jdHostProperties);
@@ -223,8 +353,8 @@ public class JdScheduler {
 					known.remove(entry.getKey());
 				}
 			}
-			for(DuccId jdReservationDuccId : known) {
-				reservationVanished(jdReservationDuccId);
+			for(DuccId reservationIdentity : known) {
+				reservationVanished(reservationIdentity);
 			}
 		}
 		if(pendingFlag) {
@@ -347,29 +477,28 @@ public class JdScheduler {
 		//
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
 		long slicesReserveActual = getSlicesReserveActual();
-		DuccId duccId = dwr.getDuccId();
-		logger.debug(location, duccId, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
+		DuccId reservationIdentity = dwr.getDuccId();
+		logger.debug(location, reservationIdentity, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
 	// Return an unused JD Reservation.
 	
 	private void reservationDivest(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		String location = "reservationDivest";
-		DuccId jdReservationDuccId = null;
+		DuccId reservationIdentity = null;
 		synchronized(this) {
 			for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 				JdReservation jdReservation = entry.getValue();
 				if(jdReservation.isEmpty()) {
-					jdReservationDuccId = entry.getKey();
-					map.remove(jdReservationDuccId);
+					reservationIdentity = entry.getKey();
+					map.remove(reservationIdentity);
 					break;
 				}
 				jdReservation = null;
 			}
 		}
-		if(jdReservationDuccId != null) {
-			DuccId duccId = (DuccId) jdReservationDuccId;
-			IDuccWork dw = dwm.findDuccWork(duccId);
+		if(reservationIdentity != null) {
+			IDuccWork dw = dwm.findDuccWork(reservationIdentity);
 			if(dw != null) {
 				IDuccWorkReservation dwr = (IDuccWorkReservation) dw;
 				// state: Completed
@@ -381,7 +510,7 @@ public class JdScheduler {
 		}
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
 		long slicesReserveActual = getSlicesReserveActual();
-		logger.debug(location, jobid, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
+		logger.debug(location, reservationIdentity, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
 	// Nothing to do.
@@ -399,23 +528,22 @@ public class JdScheduler {
 		if(jdReservationBeanList != null) {
 			for(JdReservationBean entry : jdReservationBeanList) {
 				JdReservation jdReservation = (JdReservation) entry;
-				DuccId jdReservationDuccId = jdReservation.getDuccId();
-				map.put(jdReservationDuccId, jdReservation);
+				DuccId reservationIdentity = jdReservation.getDuccId();
+				map.put(reservationIdentity, jdReservation);
 			}
 		}
 	}
 	
 	// Return a list of JDs (DuccId's) allocated on a JD Reservation.
 	
-	public List<JdReservationBean> getJdReservationBeanList(DuccId jdReservationDuccId) {
+	public List<JdReservationBean> getJdReservationBeanList(DuccId reservationIdentity) {
 		String location = "getJdReservationBeanList";
 		List<JdReservationBean> jdReservationBeanList = new ArrayList<JdReservationBean>();
 		for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 			JdReservation jdReservation = entry.getValue();
-			if(jdReservationDuccId.equals(jdReservation.getDuccId())) {
+			if(reservationIdentity.equals(jdReservation.getDuccId())) {
 				jdReservationBeanList.add(jdReservation);
-				DuccId duccId = (DuccId) jdReservationDuccId;
-				logger.trace(location, duccId, jdReservationBeanList.size());
+				logger.trace(location, reservationIdentity, jdReservationBeanList.size());
 			}
 		}
 		return jdReservationBeanList;
@@ -445,23 +573,22 @@ public class JdScheduler {
 	
 	private void reservationUp(IDuccWorkReservation dwr, JdHostProperties jdHostProperties) {
 		String location = "reservationUp";
-		DuccId duccId = dwr.getDuccId();
-		DuccId jdReservationDuccId = (DuccId) duccId;
+		DuccId reservationIdentity = dwr.getDuccId();
 		JdReservation jdReservation = null;
 		SizeBytes reservationSize = JdHelper.getReservationSize(dwr);
 		SizeBytes sliceSize = JdHelper.getSliceSize(jdHostProperties);
-		jdReservation = map.get(jdReservationDuccId);
+		jdReservation = map.get(reservationIdentity);
 		if(jdReservation == null) {
 			jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
-			map.putIfAbsent(jdReservationDuccId, jdReservation);
+			map.putIfAbsent(reservationIdentity, jdReservation);
 		}
 		else if(!jdReservation.isUp()) {
 			jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
-			map.putIfAbsent(jdReservationDuccId, jdReservation);
+			map.putIfAbsent(reservationIdentity, jdReservation);
 		}
-		jdReservation = map.get(jdReservationDuccId);
+		jdReservation = map.get(reservationIdentity);
 		if(jdReservation != null) {
-			logger.debug(location, duccId, "host: "+jdReservation.getHost());
+			logger.debug(location, reservationIdentity, "host: "+jdReservation.getHost());
 		}
 	}
 	
@@ -469,19 +596,18 @@ public class JdScheduler {
 	
 	private void reservationDown(IDuccWorkReservation dwr) {
 		String location = "reservationDown";
-		DuccId duccId = dwr.getDuccId();
-		DuccId jdReservationDuccId = (DuccId) duccId;
+		DuccId reservationIdentity = dwr.getDuccId();
 		JdReservation jdReservation = null;
 		List<JdReservation> list = new ArrayList<JdReservation>();
 		synchronized(this) {
-			jdReservation = map.get(jdReservationDuccId);
+			jdReservation = map.get(reservationIdentity);
 			if(jdReservation != null) {
-				map.remove(jdReservationDuccId);
+				map.remove(reservationIdentity);
 				list.add(jdReservation);
 			}
 		}
 		if(list.size() > 0) {
-			logger.info(location, duccId, list.size());
+			logger.info(location, reservationIdentity, list.size());
 			defunct(list);
 		}
 	}
@@ -490,34 +616,33 @@ public class JdScheduler {
 	
 	private void reservationOther(IDuccWorkReservation dwr, JdHostProperties jdHostProperties) {
 		String location = " reservationOther";
-		DuccId duccId = dwr.getDuccId();
-		DuccId jdReservationDuccId = (DuccId) duccId;
+		DuccId reservationIdentity = dwr.getDuccId();
 		JdReservation jdReservation = null;
 		SizeBytes reservationSize = JdHelper.getReservationSize(dwr);
 		SizeBytes sliceSize = JdHelper.getSliceSize(jdHostProperties);
-		jdReservation = map.get(jdReservationDuccId);
+		jdReservation = map.get(reservationIdentity);
 		if(jdReservation == null) {
 			jdReservation = new JdReservation(dwr, reservationSize, sliceSize);
-			map.putIfAbsent(jdReservationDuccId, jdReservation);
+			map.putIfAbsent(reservationIdentity, jdReservation);
 		}
-		jdReservation = map.get(jdReservationDuccId);
-		logger.trace(location, duccId, "total: "+countReservationsTotal()+" "+"up: "+countReservationsUp());
+		jdReservation = map.get(reservationIdentity);
+		logger.trace(location, reservationIdentity, "total: "+countReservationsTotal()+" "+"up: "+countReservationsUp());
 	}
 	
 	// Handle a JD Reservation that has disappeared for the Orchestrator publication.
 	
-	private void reservationVanished(DuccId jdReservationDuccId) {
+	private void reservationVanished(DuccId reservationIdentity) {
 		String location = "reservationVanished";
 		List<JdReservation> list = new ArrayList<JdReservation>();
 		synchronized(this) {
-			JdReservation jdReservation = map.get(jdReservationDuccId);
+			JdReservation jdReservation = map.get(reservationIdentity);
 			if(jdReservation != null) {
-				jdReservation = map.remove(jdReservationDuccId);
+				jdReservation = map.remove(reservationIdentity);
 				list.add(jdReservation);
 			}
 		}
 		if(list.size() > 0) {
-			DuccId duccId = (DuccId) jdReservationDuccId;
+			DuccId duccId = (DuccId) reservationIdentity;
 			logger.info(location, duccId, list.size());
 			defunct(list);
 		}
@@ -542,22 +667,24 @@ public class JdScheduler {
 		//TODO phase I  = kill Job
 		//TODO phase II = start new JD
 		if(jdReservation != null) {
-			DuccId duccId = (DuccId) jdReservation.getDuccId();
-			logger.debug(location, duccId, "host: "+jdReservation.getHost());
+			DuccId reservationIdentity = (DuccId) jdReservation.getDuccId();
+			logger.debug(location, reservationIdentity, "host: "+jdReservation.getHost());
 		}
 	}
 	
 	// Get a slice, if one is available.
 	
-	public NodeIdentity allocate(DuccId jdId, DuccId jobId) {
+	public NodeIdentity allocate(DuccId jobIdentity, DuccId driverIdentity) {
 		String location = "allocate";
 		NodeIdentity nodeIdentity = null;
-		if(jdId != null) {
+		if(jobIdentity != null) {
 			String host = null;
 			synchronized(this) {
 				for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 					JdReservation jdReservation = entry.getValue();
-					nodeIdentity = jdReservation.allocate(jdId, jobId);
+					host = jdReservation.getHost();
+					logger.debug(location, jobIdentity, "host: "+host+" "+"job: "+jobIdentity);
+					nodeIdentity = jdReservation.allocate(jobIdentity, driverIdentity);
 					if(nodeIdentity != null) {
 						host = nodeIdentity.getName();
 						changes.set(true);
@@ -566,7 +693,7 @@ public class JdScheduler {
 				}
 			} 
 			if(nodeIdentity != null) {
-				logger.debug(location, jobId, "jdId:"+jdId+" "+"host: "+host);
+				logger.debug(location, jobIdentity, "host: "+host+" "+"job: "+jobIdentity);
 			}
 		}
 		return nodeIdentity;
@@ -574,18 +701,18 @@ public class JdScheduler {
 	
 	// Return a slice.
 	
-	public void deallocate(DuccId jdId, DuccId jobId) {
+	public void deallocate(DuccId jobIdentity, DuccId driverIdentity) {
 		String location = "deallocate";
 		NodeIdentity nodeIdentity = null;
-		if(jdId != null) {
+		if(jobIdentity != null) {
 			String host = null;
-			logger.debug(location, jobId, "map size: "+map.size());
+			logger.debug(location, jobIdentity, "map size: "+map.size());
 			synchronized(this) {
 				for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 					JdReservation jdReservation = entry.getValue();
-					logger.debug(location, jobId, "get host: "+jdReservation.getHost());
-					logger.debug(location, jobId, "jdId: "+jdId);
-					nodeIdentity = jdReservation.deallocate(jdId, jobId);
+					host = jdReservation.getHost();
+					logger.debug(location, jobIdentity, "host: "+host+" "+"job: "+jobIdentity);
+					nodeIdentity = jdReservation.deallocate(jobIdentity, driverIdentity);
 					if(nodeIdentity != null) {
 						host = nodeIdentity.getName();
 						changes.set(true);
@@ -594,47 +721,47 @@ public class JdScheduler {
 				}
 			}
 			if(nodeIdentity != null) {
-				logger.debug(location, jobId, "jdId:"+jdId+" "+"host: "+host);
+				logger.debug(location, jobIdentity, "host: "+host+" "+"job: "+jobIdentity);
 			}
 		}
 	}
 	
 	// Return the number of slices total for the specified JD Reservation.
 	
-	public int countSlicesTotal(DuccId duccId) {
+	public int countSlicesTotal(DuccId reservationIdentity) {
 		String location = "countSlicesTotal";
 		int count = 0;
-		JdReservation jdReservation = map.get(duccId);
+		JdReservation jdReservation = map.get(reservationIdentity);
 		if(jdReservation != null) {
 			count += jdReservation.getSlicesTotal();
 		}
-		logger.trace(location, duccId, count);
+		logger.trace(location, reservationIdentity, count);
 		return count;
 	}
 	
 	// Return the number of slices inuse for the specified JD Reservation.
 	
-	public int countSlicesInuse(DuccId duccId) {
+	public int countSlicesInuse(DuccId reservationIdentity) {
 		String location = "countSlicesInuse";
 		int count = 0;
-		JdReservation jdReservation = map.get(duccId);
+		JdReservation jdReservation = map.get(reservationIdentity);
 		if(jdReservation != null) {
 			count += jdReservation.getSlicesInuse();
 		}
-		logger.trace(location, duccId, count);
+		logger.trace(location, reservationIdentity, count);
 		return count;
 	}
 	
 	// Return the number of slices available for the specified JD Reservation.
 	
-	public int countSlicesAvailable(DuccId duccId) {
+	public int countSlicesAvailable(DuccId reservationIdentity) {
 		String location = "countSlicesAvailable";
 		int count = 0;
-		JdReservation jdReservation = map.get(duccId);
+		JdReservation jdReservation = map.get(reservationIdentity);
 		if(jdReservation != null) {
 			count += jdReservation.getSlicesAvailable();
 		}
-		logger.trace(location, duccId, count);
+		logger.trace(location, reservationIdentity, count);
 		return count;
 	}
 	

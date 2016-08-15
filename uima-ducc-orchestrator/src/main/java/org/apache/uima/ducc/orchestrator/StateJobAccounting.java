@@ -85,6 +85,7 @@ public class StateJobAccounting {
 	public boolean stateChange(IDuccWorkJob job, JobState state) {
 		String methodName = "stateChange";
 		boolean retVal = false;
+		logger.debug(methodName, job.getDuccId(), job.getCompletionType()+" "+job.getCompletionRationale());
 		JobState prev = job.getJobState();
 		JobState next = state;
 		switch(prev) {

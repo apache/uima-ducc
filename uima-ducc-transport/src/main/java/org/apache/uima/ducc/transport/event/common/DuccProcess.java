@@ -149,6 +149,7 @@ public class DuccProcess implements IDuccProcess {
 	
 	public void setProcessState(ProcessState processState) {
 		this.processState = processState;
+		setEndTimes();
 	}
 	
 /*
@@ -162,6 +163,32 @@ public class DuccProcess implements IDuccProcess {
 	Killed,         		// Agent forcefully killed the process
 	Undefined	
 */	
+	
+	private void setEndTime(ITimeWindow tw) {
+		if(tw != null) {
+			if(tw.getStart() != null) {
+				if(tw.getEnd() == null) {
+					tw.setEndLong(System.currentTimeMillis());
+				}
+			}
+		}
+	}
+	
+	private void setEndTimes() {
+		switch(getProcessState()) {
+		case LaunchFailed:
+		case Stopped:
+		case Failed:
+		case FailedInitialization:
+		case InitializationTimeout:
+		case Killed:
+			setEndTime(timeWindowInit);
+			setEndTime(timeWindowRun);
+			break;
+		default:
+			break;
+		}
+	}
 	
 	public void advanceProcessState(ProcessState nextProcessState) {
 		switch(getProcessState()) {
@@ -216,6 +243,7 @@ public class DuccProcess implements IDuccProcess {
 				}
 				break;
 		}
+		setEndTimes();
 	}
 	
 	

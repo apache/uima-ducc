@@ -251,19 +251,20 @@ public class TestSuite {
 			HashMap<DuccId,DuccId> map = new HashMap<DuccId,DuccId>();
 			int expectedInuse = 5;
 			for(int i=0; i < expectedInuse; i++) {
-				DuccId jdId = TestHelper.getJdId();
-				map.put(jdId, jdId);
-				DuccId jdProcessDuccId = (DuccId) jdId;
-				NodeIdentity nodeIdentity = jdScheduler.allocate(jdProcessDuccId, jobId);
+				DuccId jobIdentity = TestHelper.getJobIdentity();
+				DuccId processIdentity = TestHelper.getProcessIdentity();
+				logger.info("jdId", jobIdentity, processIdentity);
+				map.put(jobIdentity, processIdentity);
+				NodeIdentity nodeIdentity = jdScheduler.allocate(jobIdentity, processIdentity);
 				assertTrue(nodeIdentity != null);
 				randomPublication(jdScheduler, dwm);
 			}
 			assertTrue(jdScheduler.countSlicesInuse() == expectedInuse);
 			assertTrue(jdScheduler.countSlicesTotal() > 0);
 			for(Entry<DuccId, DuccId> entry : map.entrySet()) {
-				DuccId jdId = entry.getKey();
-				DuccId jdProcessDuccId = (DuccId) jdId;
-				jdScheduler.deallocate(jdProcessDuccId, jobId);
+				DuccId jobIdentity = entry.getKey();
+				DuccId processIdentity = entry.getValue();
+				jdScheduler.deallocate(jobIdentity, processIdentity);
 				randomPublication(jdScheduler, dwm);
 			}
 			publication(jdScheduler, dwm);
@@ -272,13 +273,13 @@ public class TestSuite {
 			//
 			int allocations = 0;
 			while(allocations < 100) {
-				DuccId jdId = TestHelper.getJdId();
-				DuccId jdProcessDuccId = (DuccId) jdId;
-				map.put(jdId, jdId);
-				NodeIdentity nodeIdentity = jdScheduler.allocate(jdProcessDuccId, jobId);
+				DuccId jobIdentity = TestHelper.getJobIdentity();
+				DuccId processIdentity = TestHelper.getProcessIdentity();
+				map.put(jobIdentity, processIdentity);
+				NodeIdentity nodeIdentity = jdScheduler.allocate(jobIdentity, processIdentity);
 				if(nodeIdentity == null) {
 					publication(jdScheduler, dwm);
-					nodeIdentity = jdScheduler.allocate(jdProcessDuccId, jobId);
+					nodeIdentity = jdScheduler.allocate(jobIdentity, processIdentity);
 				}
 				//assertTrue(nodeIdentity != null);
 				randomPublication(jdScheduler, dwm);

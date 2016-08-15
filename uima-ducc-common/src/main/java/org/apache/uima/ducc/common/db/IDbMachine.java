@@ -16,9 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.transport.event;
+package org.apache.uima.ducc.common.db;
 
-@SuppressWarnings("serial")
-public class JdReplyEvent extends JdEvent {
-	
+public interface IDbMachine {
+	public Boolean getReservable();	
+	public Integer getShareOrder();	
+	public Integer getAssignments();	
+	public Boolean getBlacklisted();	
+	public Integer getMemory();	
+	public Boolean getOnline();
+	public String getIp();
+	public Integer getHeartbeats();
+	public String getNodePool();
+	public Integer getSharesLeft();
+	public Integer getQuantum();
+	public String getName();
+	public Boolean getResponsive();
 }

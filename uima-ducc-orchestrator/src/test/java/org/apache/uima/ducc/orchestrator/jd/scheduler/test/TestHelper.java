@@ -35,6 +35,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 public class TestHelper {
 	
 	private static AtomicInteger jdNumber = new AtomicInteger(0);
+	private static AtomicInteger jpNumber = new AtomicInteger(0);
 	
 	private static AtomicInteger hostNumber = new AtomicInteger(0);
 	
@@ -100,9 +101,18 @@ public class TestHelper {
 		return dwr;		
 	}
 	
-	public static DuccId getJdId() {
+	public static DuccId getJobIdentity() {
 		DuccId jdId = new DuccId(jdNumber.getAndIncrement());
+		long friendly = jdId.getFriendly();
+		System.out.println("friendly:"+friendly);
 		return jdId;
+	}
+	
+	public static DuccId getProcessIdentity() {
+		DuccId jpId = new DuccId(jpNumber.getAndIncrement());
+		long friendly = jpId.getFriendly();
+		System.out.println("friendly:"+friendly);
+		return jpId;
 	}
 	
 	public static void assign(IDuccWorkReservation dwr) {

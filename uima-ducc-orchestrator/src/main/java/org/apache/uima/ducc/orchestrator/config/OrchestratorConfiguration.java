@@ -167,6 +167,8 @@ public class OrchestratorConfiguration {
 				JdRequestEvent jdRequestEvent = exchange.getIn().getBody(JdRequestEvent.class);
 				JdReplyEvent jdReplyEvent = new JdReplyEvent();
 				jdReplyEvent.setProcessMap(jdRequestEvent.getProcessMap());
+				String killDriverReason = jdRequestEvent.getKillDriverReason();
+				jdReplyEvent.setKillDriverReason(killDriverReason);
 				exchange.getIn().setBody(jdReplyEvent);
 			}
 			if(obj instanceof DuccWorkRequestEvent) {

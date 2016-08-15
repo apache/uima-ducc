@@ -212,8 +212,9 @@ public class OrchestratorHelper {
 	public static void jdDeallocate(IDuccWorkJob job, IDuccProcess jdProcess) {
 		String location = "jdDeallocate";
 		if(job != null) {
-			DuccId jobId = job.getDuccId();
+			DuccId jobIdentity = job.getDuccId();
 			if(jdProcess != null) {
+				DuccId driverIdentity = (DuccId) jdProcess.getDuccId();
 				JdScheduler jdScheduler = JdScheduler.getInstance();
 				ProcessState processState = jdProcess.getProcessState();
 				if(processState != null) {
@@ -224,22 +225,20 @@ public class OrchestratorHelper {
 					case Stopped:
 					case Killed:
 					case Abandoned:
-						DuccId jdId = jdProcess.getDuccId();
-						DuccId jdProcessDuccId = (DuccId) jdId;
-						jdScheduler.deallocate(jdProcessDuccId, jobId);
-						logger.debug(location, jobId, "state: "+processState);
+						jdScheduler.deallocate(jobIdentity, driverIdentity);
+						logger.debug(location, driverIdentity, "state: "+processState);
 						break;
 					default:
-						logger.debug(location, jobId, "state: "+processState);
+						logger.debug(location, jobIdentity, "state: "+processState);
 						break; 
 					}
 				}
 				else {
-					logger.debug(location, jobId, "state: "+processState);
+					logger.debug(location, jobIdentity, "state: "+processState);
 				}
 			}
 			else {
-				logger.debug(location, jobId, "jdProcess: "+jdProcess);
+				logger.debug(location, jobIdentity, "jdProcess: "+jdProcess);
 			}
 		}
 		else {
@@ -251,7 +250,7 @@ public class OrchestratorHelper {
 		String location = "jdDeallocate";
 		JdScheduler jdScheduler = JdScheduler.getInstance();
 		if(job != null) {
-			DuccId jobId = job.getDuccId();
+			DuccId jobIdentity = job.getDuccId();
 			DuccWorkPopDriver driver = job.getDriver();
 			if(driver != null) {
 				IDuccProcessMap processMap = job.getDriver().getProcessMap();
@@ -267,26 +266,25 @@ public class OrchestratorHelper {
 							case Stopped:
 							case Killed:
 							case Abandoned:
-								DuccId jdId = entry.getKey();
-								DuccId jdProcessDuccId = (DuccId) jdId;
-								jdScheduler.deallocate(jdProcessDuccId, jobId);
+								DuccId driverIdentity = entry.getKey();
+								jdScheduler.deallocate(jobIdentity, driverIdentity);
 								break;
 							default:
-								logger.debug(location, jobId, "state: "+processState);
+								logger.debug(location, jobIdentity, "state: "+processState);
 								break;
 							}
 						}
 						else {
-							logger.debug(location, jobId, "state: "+processState);
+							logger.debug(location, jobIdentity, "state: "+processState);
 						}
 					}
 				}
 				else {
-					logger.debug(location, jobId, "map: "+processMap);
+					logger.debug(location, jobIdentity, "map: "+processMap);
 				}
 			}
 			else {
-				logger.debug(location, jobId, "driver: "+driver);
+				logger.debug(location, jobIdentity, "driver: "+driver);
 			}
 		}
 		else {

@@ -176,9 +176,28 @@ public class JobDriverStateExchanger extends Thread {
 		return jdRequestEvent;
 	}
 	
+	private void abortIfTold(JdReplyEvent jdReplyEvent) {
+		String location = "abortIfTold";
+		if(jdReplyEvent != null) {
+			String killDriverReason = jdReplyEvent.getKillDriverReason();
+			if(killDriverReason != null) {
+				int code = 255;
+				StringBuffer sb = new StringBuffer();
+				sb.append("System Exit");
+				sb.append(" ");
+				sb.append("code="+code);
+				sb.append(" ");
+				sb.append("reason="+killDriverReason);
+				logger.warn(location, jobid, sb.toString());
+				System.exit(code);
+			}
+		}
+	}
+	
 	private void handle(JdReplyEvent jdReplyEvent) {
 		String location = "handle";
 		try {
+			abortIfTold(jdReplyEvent);
 			JobDriver jd = JobDriver.getInstance();
 			IMessageHandler mh = jd.getMessageHandler();
 			setProcessMap(jdReplyEvent.getProcessMap());
