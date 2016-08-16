@@ -107,19 +107,19 @@
     
     Normally, the DUCC Agents report the name, IP address, and physical memory of the node 
     they actually do reside upon. This is simply for convenience. 
-    It is possible to parametrize the DUCC Agents to report any arbitrary
+    It is possible to parameterize the DUCC Agents to report any arbitrary
     name and address to the DUCC.  DUCC components that need to know
     about Node Agents establish subscriptions to the Agent publications
     with ActiveMQ and build up their internal structures from the 
     node identities in the Agent publications.  Processes which normally 
     establish agent listeners are are the RM, PM, and WS.
 
-    It is also possible to parametrize a DUCC agent to cause it to
+    It is also possible to parameterize a DUCC agent to cause it to
     report any arbitrary memory size.  Thus, an agent running on a
     2GB machine can be started so that it reports 32GB of memory. This
-    parametrization is specifically for testing, of course.
+    parameterization is specifically for testing, of course.
 
-    The ability to parametrize agent identities and memory sizes is what enables 
+    The ability to parameterize agent identities and memory sizes is what enables 
     cluster simulation.  A control file is used by start-up scripting
     to spawn multiple agents per node, each with unique identities. 
 
