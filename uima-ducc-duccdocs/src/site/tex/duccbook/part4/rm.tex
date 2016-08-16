@@ -62,7 +62,7 @@
     Manager maps the share allotments to physical resources.  To map a share allotment to physical
     resources, the Resource Manager considers the amount of memory that each job declares it
     requires for each process. That per-process memory requirement is translated into the minimum
-    number of collocated quantum shares required for the process to run.
+    number of co-located quantum shares required for the process to run.
     
     To compute the memory requirements for a job, the declared memory is rounded up to the nearest
     multiple of the share quantum.  The total number of quantum shares for the job is calculated,
@@ -111,7 +111,7 @@
           ``rich'' jobs and will attempt to preempt some small number
           of processes sufficient to guarantee every job gets at least
           one process allocation. (Note that sometimes this is not possible,
-          in which case unscheduled work remaims pending until such
+          in which case unscheduled work remains pending until such
           time as space is freed-up.)
 
     \end{enumerate}
@@ -147,7 +147,7 @@
 
     {\em Preemption} occurs only as a result of fair-share
     calculations or defragmentation.  Preemption is the process of
-    deallocating shares from jobs beloing to users whose current
+    deallocating shares from jobs belonging to users whose current
     allocation exceeds their fair-share, and conversely, only processes
     belonging to fair-share jobs can be preempted. This is generally 
     dynamic: more jobs in the system result in a smaller fair-share
@@ -166,7 +166,7 @@
     Unmanaged reservations are never evicted for any reason.  If something occurs that
     would result in the reservation being (fatally) misplaced, the node is marked
     unschedulable and remains as such until the condition is corrected or the reservation
-    is canceled.  Once the condition is repaired (either the reservaiton is canceled, or
+    is canceled.  Once the condition is repaired (either the reservation is canceled, or
     the problem is corrected), the node becomes schedulable again.
 
     \section{Scheduling Policies}
@@ -179,12 +179,12 @@
 
         \item[FIXED\_SHARE] The FIXED\_SHARE policy is used to allocate non-preemptable
           shares.  The shares might be {\em evicted} as described above, but they are 
-          never {\em preempted}.  Fixed share alloations are restricted to one
+          never {\em preempted}.  Fixed share allocations are restricted to one
           allocation per request and may be subject to \hyperref[sec:rm.allotment]{allotment caps}.
 
           FIXED\_SHARE allocations have several uses:
           \begin{itemize}
-            \item Unmaged reservations.  In this case DUCC starts no work in the share(s); the user must
+            \item Unmanaged reservations.  In this case DUCC starts no work in the share(s); the user must
               log in (or run something via ssh), and then manually release the reservation to free
               the resources.  This is often used for testing and debugging.
             \item Services.  If a service is registered to run in a FIXED\_SHARE allocation,
@@ -282,7 +282,7 @@
         and there are subpools, the scheduler proceeds to try to allocate resources within
         the subpools, recursively, until either all work is scheduled or there is no more
         work to schedule.  (Allocations made within subpools are referred to as ``squatters'';
-        aloocations made in the directly associated nodepool are referred to as ``residents''.)
+        allocations made in the directly associated nodepool are referred to as ``residents''.)
 
         During eviction, the scheduler attempts to evict squatters first and only evicts
         residents once all the squatters are gone.
