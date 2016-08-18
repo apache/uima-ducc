@@ -112,7 +112,8 @@ class StopSim(DuccUtil):
                   
         for ( o, a ) in opts:
             if o in ( '-c', '--component' ):
-                instances.append(a)
+                if (a != 'all'):   
+                	instances.append(a)
             elif o in ( '-k', '--kill' ):
                 signal = '-KILL'
             elif o in ( '-p', '--pause' ):
