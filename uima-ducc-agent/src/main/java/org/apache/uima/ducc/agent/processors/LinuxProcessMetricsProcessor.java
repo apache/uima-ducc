@@ -29,6 +29,7 @@ import java.util.concurrent.Future;
 
 import org.apache.camel.Exchange;
 import org.apache.uima.ducc.agent.NodeAgent;
+import org.apache.uima.ducc.agent.launcher.CGroupsManager;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.agent.metrics.collectors.DuccGarbageStatsCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.ProcessCpuUsageCollector;
@@ -208,12 +209,15 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 									.submit(processMajorFaultUsageCollector);
 							totalFaults += processMajorFaultUsage.get()
 									.getMajorFaults();
-							RandomAccessFile raf = null;
+							//RandomAccessFile raf = null;
 							try {
+								/*
 								raf = new RandomAccessFile("/proc/" + pid + "/stat", "r");
 								ProcessCpuUsageCollector processCpuUsageCollector = new ProcessCpuUsageCollector(
 										logger, pid, raf, 42, 0);
-
+	*/
+								ProcessCpuUsageCollector processCpuUsageCollector = 
+										new ProcessCpuUsageCollector(logger, agent.cgroupsManager, containerId);
 								// if process is stopping or already dead dont
 								// collect metrics. The Camel
 								// route has just been stopped.
@@ -223,19 +227,19 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 								processCpuUsage = pool
 										.submit(processCpuUsageCollector);
-								totalCpuUsage += (processCpuUsage.get()
-										.getTotalJiffies() / agent.cpuClockRate);
+								long cpuUsage = processCpuUsage.get().getCpuUsage();
+								
+								totalCpuUsage += ( processCpuUsage.get().getCpuUsage() / agent.cpuClockRate );
+								logger.info(
+										"LinuxProcessMetricsProcessor.process",null,
+										"CPU USAGE:"+cpuUsage+ " CLOCK RATE:"+agent.cpuClockRate+" Total CPU USAGE:"+totalCpuUsage);
+								
 								
 							} catch( Exception ee) {
 								logger.warn(
 										"LinuxProcessMetricsProcessor.process",
 										null,ee);
-
-							} finally {
-								if ( raf != null ) {
-									raf.close();
-								}
-							}
+							} 
 
 							currentCpuUsage += collectProcessCurrentCPU(pid);
 
@@ -293,10 +297,11 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 						totalFaults = processMajorFaultUsage.get()
 								.getMajorFaults();
 
+						/*
 						ProcessCpuUsageCollector processCpuUsageCollector = new ProcessCpuUsageCollector(
 								logger, process.getPID(), processStatFile, 42,
 								0);
-
+						
 						// if process is stopping or already dead dont collect
 						// metrics. The Camel
 						// route has just been stopped.
@@ -306,6 +311,12 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 						processCpuUsage = pool.submit(processCpuUsageCollector);
 						totalCpuUsage = processCpuUsage.get().getTotalJiffies()
 								/ agent.cpuClockRate;
+					
+*/
+
+						// Cgroups are not available so percent CPU is not available
+						totalCpuUsage = 0;
+						
 						currentCpuUsage = collectProcessCurrentCPU(process
 								.getPID());
 

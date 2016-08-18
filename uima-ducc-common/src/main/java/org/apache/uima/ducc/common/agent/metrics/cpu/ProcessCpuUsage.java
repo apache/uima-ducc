@@ -21,7 +21,5 @@ package org.apache.uima.ducc.common.agent.metrics.cpu;
 import java.io.Serializable;
 
 public interface ProcessCpuUsage extends Serializable {
-	public long getUserJiffies();
-	public long getKernelJiffies();
-	public long getTotalJiffies();
+	public long getCpuUsage();
 }

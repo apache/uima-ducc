@@ -57,6 +57,7 @@ public class CGroupsManager {
 	private static final String CGDuccMemoryPath = "/memory/"+SYSTEM+"/";
 	private static final String CGDuccCpuPath = "/cpu/"+SYSTEM+"/";
 	private static final String CGProcsFile = "/cgroup.procs";
+	private static final String CGDuccCpuAcctPath = "/cpu/"+SYSTEM+"/";
 	
 	// legacy means that the cgonfig points to <cgroup location>/ducc
 	private boolean legacyCgConfig = false;
@@ -489,6 +490,33 @@ public class CGroupsManager {
 		return false;
 	}
 
+	public String getCpuUsage(String containerId ) throws Exception {
+		String usage = "0";
+		String file = getCGroupLocation("cpuacct")+containerId+System.getProperty("file.separator")+"cpuacct.stat";
+		agentLogger.trace("getCpuUsage", null, "CPUACCT.STAT file:"+file);
+		File f = new File(file);
+		if ( f.exists() ) {
+			InputStreamReader isr = new InputStreamReader(new FileInputStream(f));
+			BufferedReader br = new BufferedReader(isr);
+			String line;
+			try {
+				while ((line = br.readLine()) != null) {
+					agentLogger.trace("getCpuUsage", null, "CPUACCT.STAT Line:"+line);
+					// The line read from cpuacct.stat has: NAME VALUE syntax. 
+					// Need just the VALUE part
+					usage = (line.trim().split(" "))[1];  // get the CPU in user mode
+					break;
+				}
+			} finally {
+				if (isr != null) {
+					isr.close();
+				}
+				agentLogger.trace("getCpuUsage", null, "Done Reading cpuacct.stat file:"+file);
+
+			}
+		}
+		return usage;
+	}
 	/**
 	 * Sets the max memory use for an existing cgroup container.
 	 * 

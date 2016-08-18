@@ -18,34 +18,35 @@
 */
 package org.apache.uima.ducc.agent.metrics.collectors;
 
-import java.io.RandomAccessFile;
 import java.util.concurrent.Callable;
 
+import org.apache.uima.ducc.agent.launcher.CGroupsManager;
 import org.apache.uima.ducc.common.agent.metrics.cpu.DuccProcessCpuUsage;
 import org.apache.uima.ducc.common.agent.metrics.cpu.ProcessCpuUsage;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
-public class ProcessCpuUsageCollector extends AbstractMetricCollector implements
+public class ProcessCpuUsageCollector implements
 		Callable<ProcessCpuUsage> {
-	//private DuccLogger logger;
-	//private String pid;
-
-	public ProcessCpuUsageCollector(DuccLogger logger, String pid,
-			RandomAccessFile fileHandle, int howMany, int offset) {
-		super(fileHandle, howMany, offset);
-		//this.logger = logger;
-		//this.pid = pid;
+	private String containerId=null;
+	private CGroupsManager cgm=null;
+	
+	public ProcessCpuUsageCollector(DuccLogger logger, CGroupsManager mgr, String jobId ) {
+		this.containerId = jobId;
+		this.cgm = mgr;
 	}
 
 	public ProcessCpuUsage call() throws Exception {
 		try {
-			super.parseMetricFile();
-			return new DuccProcessCpuUsage(super.metricFileContents,
-			     super.metricFieldOffsets, super.metricFieldLengths);
+			return new DuccProcessCpuUsage(collect());
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw e;
 		}
+	}
+	
+	private long collect() throws Exception{
+			
+		return Long.parseLong(cgm.getCpuUsage(containerId));
+	
 	}
 /*
 	private String execTopShell() throws Exception {

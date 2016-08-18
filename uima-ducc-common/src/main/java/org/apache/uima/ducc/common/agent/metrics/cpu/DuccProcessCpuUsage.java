@@ -18,25 +18,14 @@
 */
 package org.apache.uima.ducc.common.agent.metrics.cpu;
 
-import org.apache.uima.ducc.common.node.metrics.ByteBufferParser;
-
-public class DuccProcessCpuUsage extends ByteBufferParser 
-implements ProcessCpuUsage {
+public class DuccProcessCpuUsage implements ProcessCpuUsage {
 	private static final long serialVersionUID = 1L;
-	public static final int USERJIFFIES=13;
-	public static final int SYSTEMJIFFIES=14;
+    private long cpuUsage=0;
     
-	public DuccProcessCpuUsage(byte[] memInfoBuffer,
-			int[] memInfoFieldOffsets, int[] memInfoFiledLengths) {
-		super(memInfoBuffer, memInfoFieldOffsets, memInfoFiledLengths);
+	public DuccProcessCpuUsage( long cpuUsage ) {
+		this.cpuUsage = cpuUsage;
 	}	
-	public long getUserJiffies() {
-		return super.getFieldAsLong(USERJIFFIES);
-	}
-	public long getKernelJiffies() {
-		return super.getFieldAsLong(SYSTEMJIFFIES);
-	}
-	public long getTotalJiffies() {
-		return (getUserJiffies()+getKernelJiffies());
+	public long getCpuUsage() {
+		return cpuUsage;
 	}
 }
