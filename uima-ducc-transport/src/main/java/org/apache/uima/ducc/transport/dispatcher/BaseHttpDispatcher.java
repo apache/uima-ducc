@@ -140,7 +140,15 @@ public abstract class BaseHttpDispatcher
             String response =  dispatch(serBody, "text/xml");
             return (DuccEvent) fromXml(response);
     	} catch ( Throwable t ) { 
-            t.printStackTrace(); 
+    		// Do not print stack trace when subject message event is JD-STATE.
+    		// Instead, simply re-throw the exception for the caller to handle.
+    		switch(duccEvent.getEventType()) {
+    		case JD_STATE:
+    			throw t;
+    		default:
+    			t.printStackTrace(); 
+    			break;
+    		}
         }
         return null;
     }

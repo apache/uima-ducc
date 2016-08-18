@@ -65,6 +65,7 @@ public class JobDriverStateExchanger extends Thread {
 	private long lastTime = System.currentTimeMillis();
 	
 	private boolean die = false;
+	private boolean communications_ok = true;
 	
 	private AtomicInteger getStateReqNo = new AtomicInteger(0);
 	
@@ -141,18 +142,19 @@ public class JobDriverStateExchanger extends Thread {
 		jdc = value;
 	}
 	
-	public void setProcessMap(IDuccProcessMap value) {
+	private void setProcessMap(IDuccProcessMap value) {
 		dpMap = new DuccProcessMap(value);
 	}
 	
-	public JdReplyEvent request(JdRequestEvent jdRequestEvent) {
+	private JdReplyEvent request(JdRequestEvent jdRequestEvent) throws Exception {
 		String location = "request";
 		JdReplyEvent jdReplyEvent = null;
 		try {
 			jdReplyEvent = (JdReplyEvent) dispatcher.dispatchAndWaitForDuccReply(jdRequestEvent);
 		} 
 		catch (Exception e) {
-			logger.error(location, jobid, e);
+			logger.trace(location, jobid, e);
+			throw e;
 		}
 		return jdReplyEvent;
 	}
@@ -284,42 +286,64 @@ public class JobDriverStateExchanger extends Thread {
 	private boolean isTime() {
 		String location = "isTime";
 		boolean retVal = true;
-		long currTime = System.currentTimeMillis();
-		long elapsedTime = currTime - lastTime;
-		logger.debug(location, jobid, "elapsedTime: "+elapsedTime);
-		if(elapsedTime < wakeUpMillis) {
-			retVal = false;
-			sleepTime = wakeUpMillis - elapsedTime;
+		try {
+			long currTime = System.currentTimeMillis();
+			long elapsedTime = currTime - lastTime;
+			logger.debug(location, jobid, "elapsedTime: "+elapsedTime);
+			if(elapsedTime < wakeUpMillis) {
+				retVal = false;
+				sleepTime = wakeUpMillis - elapsedTime;
+			}
+			else {
+				lastTime = currTime;
+				sleepTime = wakeUpMillis;
+			}
 		}
-		else {
-			lastTime = currTime;
-			sleepTime = wakeUpMillis;
+		catch(Exception e) {
+			logger.error(location, jobid, e);
 		}
 		return retVal;
 	}
 	
-	public void run() {
-		String location = "run";
-		logger.debug(location, jobid, "begin");
-		while(!die) {
-			try {
-				if(isTime()) {
-					JdRequestEvent jdRequestEvent = getJdRequestEvent();
-					JdReplyEvent jdReplyEvent = request(jdRequestEvent);
-					handle(jdReplyEvent);
-				}
-			}
-			catch(Exception e) {
-				logger.error(location, jobid, e);
-			}
-			try {
-				logger.debug(location, jobid, "sleep "+sleepTime/1000);
-				Thread.sleep(sleepTime);
-			}
-			catch(Exception e) {
-				logger.error(location, jobid, e);
+	private void exchange() {
+		String location = "exchange";
+		try {
+			JdRequestEvent jdRequestEvent = getJdRequestEvent();
+			JdReplyEvent jdReplyEvent = request(jdRequestEvent);
+			handle(jdReplyEvent);
+			if(!communications_ok) {
+				logger.warn(location, jobid, "Status reporting resumed.");
+				communications_ok = true;
 			}
 		}
-		logger.debug(location, jobid, "end");
+		catch(Exception e) {
+			if(communications_ok) {
+				logger.warn(location, jobid, "Status reporting stopped.  Condition may be temporary.");
+				communications_ok = false;
+			}
+		}
+	}
+	
+	private void wait_a_while() {
+		String location = "wait_a_while";
+		try {
+			logger.debug(location, jobid, "sleep "+sleepTime/1000);
+			Thread.sleep(sleepTime);
+		}
+		catch(Exception e) {
+			logger.trace(location, jobid, e);
+		}
+	}
+	
+	public void run() {
+		String location = "run";
+		logger.trace(location, jobid, "begin");
+		while(!die) {
+			if(isTime()) {
+				exchange();
+			}
+			wait_a_while();
+		}
+		logger.trace(location, jobid, "end");
 	}
 }
