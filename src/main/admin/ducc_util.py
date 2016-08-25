@@ -493,6 +493,8 @@ class DuccUtil(DuccBase):
         return True
 
     # Exit if this is not the head node.  Ignore the domain as uname sometimes drops it.
+    # Also check that ssh to this node works
+    # Also restrict operations to the userid that installed ducc
     def verify_head(self):
         head = self.ducc_properties.get("ducc.head").split('.')[0]
         local = self.localhost.split('.')[0]
@@ -506,6 +508,12 @@ class DuccUtil(DuccBase):
         else:
             print ">>> ERROR - this script cannot ssh to head node"
             sys.exit(1);
+        # Ensure that root or another id doesn't start/stop ducc
+        dir_stat = os.stat(DUCC_HOME + '/resources/site.ducc.properties')
+        if dir_stat.st_uid != os.getuid():
+            print ">>> ERROR - this script must be run by the userid that installed DUCC"
+            sys.exit(1);
+
 
     #
     # Verify the viability of ducc_ling.
