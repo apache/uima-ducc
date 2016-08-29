@@ -28,7 +28,6 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.Constants;
-import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuccProcessMap {
@@ -241,38 +240,6 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 			return (IDuccProcessMap) SerializationUtils.clone(this);
 		}
 	}
-
-	public static boolean isUserFailureReasonForStoppingProcess(String reason) {
-		boolean retVal = false;
-		if(reason != null) {
-			if(reason.equals(ReasonForStoppingProcess.Croaked.name())) {
-				retVal = true;
-			}
-			else if(reason.equals(ReasonForStoppingProcess.ExceededShareSize.name())) {
-				retVal = true;
-			}
-			else if(reason.equals(ReasonForStoppingProcess.ExceededSwapThreshold.name())) {
-				retVal = true;
-			}
-			else if(reason.equals(ReasonForStoppingProcess.ExceededErrorThreshold.name())) {
-				retVal = true;
-			}
-		}
-		return retVal;
-	}
-	
-	private boolean isFailedProcess(IDuccProcess process) {
-		boolean retVal = false;
-		ProcessState processState = process.getProcessState();
-		String reason = process.getReasonForStoppingProcess();
-		switch(processState) {
-		case Failed:
-		case Stopped:
-		case Killed:
-			retVal = isUserFailureReasonForStoppingProcess(reason);
-		}
-		return retVal;
-	}
 	
 	// <UIMA-3489>
 	private boolean isFailedInitialization(IDuccProcess process) {
@@ -313,7 +280,7 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 					if(isFailedInitialization(process)) {
 						list.add(process.getDuccId());
 					}
-					else if(isFailedProcess(process)) {
+					else if(DuccProcessHelper.isFailedProcess(process)) {
 						list.add(process.getDuccId());
 					}
 				}
@@ -329,7 +296,7 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 			while(iterator.hasNext()) {
 				IDuccProcess process = iterator.next();
 				if(process.isInitialized()) {
-					if(isFailedProcess(process)) {
+					if(DuccProcessHelper.isFailedProcess(process)) {
 						list.add(process.getDuccId());
 					}
 				}

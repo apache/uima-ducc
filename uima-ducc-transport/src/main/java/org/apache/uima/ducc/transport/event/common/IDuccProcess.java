@@ -122,6 +122,7 @@ public interface IDuccProcess extends Serializable {
 		ExceededErrorThreshold,
 		KilledByDucc,
 		CommandLineMissing,
+		Unexplained,
 		Other
 	}
 	

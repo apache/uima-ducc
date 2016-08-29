@@ -28,7 +28,6 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.Constants;
-import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class DuccProcessConcurrentMap extends ConcurrentHashMap<DuccId,IDuccProcess> implements IDuccProcessMap {
@@ -236,47 +235,6 @@ public class DuccProcessConcurrentMap extends ConcurrentHashMap<DuccId,IDuccProc
 		}
 	}
 
-	public static boolean isUserFailureReasonForStoppingProcess(String reason) {
-		boolean retVal = false;
-		if(reason != null) {
-			if(reason.equals(ReasonForStoppingProcess.Croaked.name())) {
-				retVal = true;
-			}
-			else if(reason.equals(ReasonForStoppingProcess.ExceededShareSize.name())) {
-				retVal = true;
-			}
-			else if(reason.equals(ReasonForStoppingProcess.ExceededSwapThreshold.name())) {
-				retVal = true;
-			}
-			else if(reason.equals(ReasonForStoppingProcess.ExceededErrorThreshold.name())) {
-				retVal = true;
-			}
-		}
-		return retVal;
-	}
-	
-	/**
-	 * Determine if Process has failed due to User or Framework.
-	 * Note that Framework attributed Process failures are not
-	 * counted toward the maximum number of failures allowed
-	 * before the Job is forcibly terminated.
-	 * 
-	 * @param process is the IDuccProcess to consider
-	 * @return true if User or false if Framework
-	 */
-	private boolean isFailedProcess(IDuccProcess process) {
-		boolean retVal = false;
-		ProcessState processState = process.getProcessState();
-		String reason = process.getReasonForStoppingProcess();
-		switch(processState) {
-		case Failed:
-		case Stopped:
-		case Killed:
-			retVal = isUserFailureReasonForStoppingProcess(reason);
-		}
-		return retVal;
-	}
-	
 	// <UIMA-3489>
 	private boolean isFailedInitialization(IDuccProcess process) {
 		boolean retVal = false;
@@ -316,7 +274,7 @@ public class DuccProcessConcurrentMap extends ConcurrentHashMap<DuccId,IDuccProc
 					if(isFailedInitialization(process)) {
 						list.add(process.getDuccId());
 					}
-					else if(isFailedProcess(process)) {
+					else if(DuccProcessHelper.isFailedProcess(process)) {
 						list.add(process.getDuccId());
 					}
 				}
@@ -332,7 +290,7 @@ public class DuccProcessConcurrentMap extends ConcurrentHashMap<DuccId,IDuccProc
 			while(iterator.hasNext()) {
 				IDuccProcess process = iterator.next();
 				if(process.isInitialized()) {
-					if(isFailedProcess(process)) {
+					if(DuccProcessHelper.isFailedProcess(process)) {
 						list.add(process.getDuccId());
 					}
 				}
