@@ -198,14 +198,6 @@ class Ducc(DuccUtil):
                 self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
                 
             if ( c == 'ws' ):
-                #see if the ws jsp compilation directory is specified
-                compdir = self.ducc_properties.get('ducc.ws.jsp.compilation.directory')
-                
-                if ( compdir != None ):
-                    os.system("rm -rf %s" % compdir)
-                    os.makedirs(compdir)
-                    jvm_opts.append('-Djava.io.tmpdir=' + compdir)
-
                 here = os.getcwd()
                 os.chdir(self.DUCC_HOME + '/webserver')
                 if ( self.ws_jvm_args != None ):
