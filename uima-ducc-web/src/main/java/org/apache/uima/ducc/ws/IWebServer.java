@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.ws;
 
+import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
@@ -31,5 +32,6 @@ public interface IWebServer {
 	public void update(RmStateDuccEvent duccEvent);
 	public void update(SmStateDuccEvent duccEvent);
 	public void update(PmStateDuccEvent duccEvent);
+	public void update(DuccJobsStateEvent duccEvent);
 	public void update(WebServerStateDuccEvent duccEvent);
 }

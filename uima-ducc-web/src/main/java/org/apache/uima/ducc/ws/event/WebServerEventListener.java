@@ -24,6 +24,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
@@ -94,6 +95,23 @@ public class WebServerEventListener implements DuccEventDelegateListener {
 		}
 	}
 	
+	/**
+	 * This is what PM publishes to Agents to be acted upon
+	 */
+	public void onDuccJobsStateEvent(@Body DuccJobsStateEvent duccEvent, @Header("pubSize")Long pubSize) throws Exception {
+		String location = "onDuccJobsStateEvent";
+		try {
+			duccEvent.setEventSize(pubSize);
+			webServer.update(duccEvent);
+		}
+		catch(Throwable t) {
+			duccLogger.error(location, jobid, t);
+		}
+	}
+	
+	/**
+	 * This is what PM publishes to WS as aliveness indicator
+	 */
 	public void onPmStateDuccEvent(@Body PmStateDuccEvent duccEvent, @Header("pubSize")Long pubSize) {
 		String location = "onPmStateDuccEvent";
 		try {

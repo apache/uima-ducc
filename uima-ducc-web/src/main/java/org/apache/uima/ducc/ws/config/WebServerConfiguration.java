@@ -165,6 +165,7 @@ public class WebServerConfiguration {
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.rmStateUpdateEndpoint, delegateListener));
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.smStateUpdateEndpoint, delegateListener));
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.pmStateUpdateEndpoint, delegateListener));
+			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.agentRequestEndpoint, delegateListener));
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.wsStateUpdateEndpoint, delegateListener));
 			ws.getContext().addRoutes(this.routeBuilderForWebServerStatePost(common.wsStateUpdateEndpoint, Integer.parseInt(common.wsStatePublishRate)));
 			String dbEndpoint = common.dbComponentStateUpdateEndpoint;
