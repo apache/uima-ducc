@@ -329,14 +329,20 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 	  cgroupFailureReason = ee.getMessage();
                 	  useCgroups = false;
                   }
-
-                  try {
-                      // remove stale CGroups
-                      cgroupsManager.cleanupOnStartup();
-                    } catch (Exception e) {
-                      logger.error("nodeAgent", null, e);
-
-                    }
+                  if ( useCgroups ) {
+                      try {
+                          // remove stale CGroups
+                          cgroupsManager.cleanupOnStartup();
+                        } catch (Exception e) {
+                          logger.error("nodeAgent", null, e);
+                    	  useCgroups = false;
+                          logger.info("nodeAgent",null,"Agent cgroup cleanup failed on this machine base directory in "+cgroupsBaseDir+". Check if cgroups is installed on this node, Agent has correct permissions (consistent with cgconfig.conf), and the cgroup daemon is running");
+                          cgroupFailureReason = "------- CGroups Not Working on this Machine";
+                        }
+                  } else {
+                      logger.info("nodeAgent",null,"Agent cgroup test failed on this machine base directory in "+cgroupsBaseDir+". Check if cgroups is installed on this node, Agent has correct permissions (consistent with cgconfig.conf), and the cgroup daemon is running");
+                      cgroupFailureReason = "------- CGroups Not Working on this Machine";
+                  }
 
                 } else {
                   logger.info("nodeAgent",null,"Agent failed to find cgroup base directory in "+cgroupsBaseDir+". Check if cgroups is installed on this node and the cgroup daemon is running");
