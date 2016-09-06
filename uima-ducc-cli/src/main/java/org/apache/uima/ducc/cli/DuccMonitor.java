@@ -79,6 +79,8 @@ public abstract class DuccMonitor {
 	private DuccContext context = null;
 	protected IDuccCallback messageProcessor = null;
 
+	private volatile MonitorInfo previousMonitorInfo = null;
+	
 	private String delayedRunning = null;
 	
 	private SynchronizedSimpleDateFormat sdf = new SynchronizedSimpleDateFormat(
@@ -369,6 +371,16 @@ public abstract class DuccMonitor {
 			}
 
             if ( monitorInfo != null ) {
+            	// It is  possible after OR "warm" start that
+            	// work item processing status information 
+            	// may be missing or incorrect for a short time.
+            	// Therefore, we assure that newly arrived
+            	// information is not a regression from the
+            	// last good one received, if any.
+            	if(monitorInfo.isRegression(previousMonitorInfo)) {
+            		continue;
+            	}
+            	previousMonitorInfo = monitorInfo;
             	displayRemotePids(monitorInfo);
 				int stateCount = monitorInfo.stateSequence.size();
 				debug("states:" + stateCount);

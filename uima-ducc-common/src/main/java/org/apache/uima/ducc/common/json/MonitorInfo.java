@@ -34,4 +34,49 @@ public class MonitorInfo {
 	public List<String> remotePids = new ArrayList<String>();
 	public List<String> errorLogs = new ArrayList<String>();
 	public List<String> nodes = new ArrayList<String>();
+	
+	private int compareStringNumbers(String sn1, String sn2) {
+		int retVal = 0;
+		try {
+			Integer n1 = Integer.parseInt(sn1);
+			Integer n2 = Integer.parseInt(sn2);
+			retVal = n1.compareTo(n2);
+		}
+		catch(Exception e) {
+			// oh well...
+		}
+		return retVal;
+	}
+	
+	public int compareWith(MonitorInfo that) {
+		int retVal = 0;
+		try {
+			if(retVal == 0) {
+				retVal = compareStringNumbers(this.total, that.total);
+			}
+			if(retVal == 0) {
+				retVal = compareStringNumbers(this.done, that.done);
+			}
+			if(retVal == 0) {
+				retVal = compareStringNumbers(this.error, that.error);
+			}
+			if(retVal == 0) {
+				retVal = compareStringNumbers(this.retry, that.retry);
+			}
+		}
+		catch(Exception e) {
+			// oh well...
+		}
+		return retVal;
+	}
+	
+	public boolean isRegression(MonitorInfo that) {
+		boolean retVal = false;
+		if(that != null) {
+			if(compareWith(that) < 0) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
 }

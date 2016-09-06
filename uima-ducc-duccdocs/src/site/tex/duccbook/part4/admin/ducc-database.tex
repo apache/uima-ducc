@@ -43,8 +43,8 @@
         on previously run jobs.  Prior to the database, this data was saved in the
         {\em DUCC\_HOME/history directory}.
       \item Checkpoint.  On every state change, the Orchestrator saves the state of 
-        all running and allocated work in the system.  This is used to recover reservations
-        when DUCC is started, and to allow hot-start of the Orchestrator without losing work.
+        all running and allocated work in the system.  This is used to recover active allocations
+        when DUCC is started enabling warm-start of the Orchestrator without losing work.
         Prior to the database, this data was saved in the file {\em DUCC\_HOME/state/orchestrator.ckpt}.
     \end{enumerate}
     

@@ -166,9 +166,6 @@ implements Orchestrator {
 			else if(startTypeProperty.equals("warm")) {
 				startType = StartType.warm;
 			}
-			else if(startTypeProperty.equals("hot")) {
-				startType = StartType.hot;
-			}
 			else {
 				logger.warn(methodName, null, "ducc.orchestrator.start.type value in ducc.properties not recognized: "+property);
 			}
@@ -224,9 +221,6 @@ implements Orchestrator {
 				}
 				else if(flag.equals(StartType.warm.toString())) {
 					startType = StartType.warm;
-				}
-				else if(flag.equals(StartType.hot.toString())) {
-					startType = StartType.hot;
 				}
 				else {
 					logger.warn(methodName, null, "unrecognized arg: "+arg);
@@ -292,10 +286,6 @@ implements Orchestrator {
 							saveState = true;
 							break;
 						case warm:
-							force(job, new Rationale("system warm start"));
-							saveState = true;
-							break;
-						case hot:
 							break;
 						}
 						break;
@@ -307,12 +297,6 @@ implements Orchestrator {
 							saveState = true;
 							break;
 						case warm:
-							if(reservation.isJdReservation()) {
-								cancel(reservation);
-								saveState = true;
-							}
-							break;
-						case hot:
 							break;
 						}
 						break;
@@ -327,10 +311,9 @@ implements Orchestrator {
 			}
 			switch(startType) {
 			case cold:
-			case warm:
 				jdScheduler = JdScheduler.getInstance();
 				break;
-			case hot:
+			case warm:
 				jdScheduler = JdScheduler.getInstance();
 				jdScheduler.restore();
 				break;

@@ -63,7 +63,7 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.orchestrator.checkpoint'] }")
 	public String orchestratorCheckpoint;
 	
-	//	fetch the orchestrator start type (cold/warm/hot)
+	//	fetch the orchestrator start type (cold/warm)
 	@Value("#{ systemProperties['ducc.orchestrator.start.type'] }")
 	public String orchestratorStartType;
 	

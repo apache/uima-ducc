@@ -26,7 +26,6 @@ public interface OrchestratorConstants extends Serializable {
 	
 		public enum StartType {
 			cold, // Recover: All is lost					JD host: employ new
-			warm, // Recover: Reservations only (default) 	JD host: employ new
-			hot , // Recover: Reservations and Jobs, 		JD host: employ current
+			warm, // Recover: All is recovered		 		JD host: employ current
 		}
 }

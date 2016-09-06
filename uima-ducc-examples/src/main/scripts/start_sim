@@ -314,7 +314,7 @@ class StartSim(DuccUtil):
         try:
             opts, args = getopt.getopt(argv, 'c:i:n:vh?', ['component=', 'help', 'agent', 'memory=', 
                                                           'instance=', 'addr=', 'pseudoname=', 'node-config=', 
-                                                          'version', 'hot', 'warm', 'cold',
+                                                          'version', 'warm', 'cold',
                                                            'nothreading'])
         except:
             self.invalid('Invalid arguments', ' '.join(argv))
@@ -343,7 +343,7 @@ class StartSim(DuccUtil):
             elif o in ( '-v', '--version' ):
                 print self.version()
                 os.exit(0)
-            elif o in ( '--hot', '--warm', '--cold' ):
+            elif o in ( '--warm', '--cold' ):
                 or_parms = o[2:]
             elif o in ( '-h', '--help' ):
                 self.usage(None)

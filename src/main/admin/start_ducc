@@ -198,6 +198,16 @@ class StartDucc(DuccUtil):
         print "    --nothreading"
         print "        Disable multithreaded operation if it would otherwise be used"
         print ""
+        print "    Choose none or one of the following two options, which is only effective when the orchestrator (or) component is started."
+        print "    When specified here it supersedes that specified for ducc.orchestrator.start.type in ducc.properties."
+        print "    When not specified here or in ducc.properties, the default is --warm."
+        print ""
+        print "    --warm"
+        print "        Do NOT force active Jobs, Services, and Reservations to Completed state."
+        print ""
+        print "    --cold"
+        print "        Force active Jobs, Services, and Reservations to Completed state."
+        print ""
         print "Examples:"
         print "   Start all DUCC processes, using custom nodelists:"
         print "       start_ducc -n foo.nodes -n bar.nodes"
@@ -235,7 +245,7 @@ class StartDucc(DuccUtil):
         self.pids.load_if_exists(self.pid_file)
         
         try:
-            opts, args = getopt.getopt(argv, 'c:mn:sh?v', ['component=', 'components=', 'help', 'nodelist=', 'cold', 'warm', 'hot', 'nothreading'])
+            opts, args = getopt.getopt(argv, 'c:mn:sh?v', ['component=', 'components=', 'help', 'nodelist=', 'cold', 'warm', 'nothreading'])
         except:
             self.invalid('Invalid arguments', ' '.join(argv))
                        
@@ -246,7 +256,7 @@ class StartDucc(DuccUtil):
                 nodefiles.append(a)
             elif o in ( '--nothreading' ):
                 self.disable_threading()
-            elif o in ( '--cold', '--warm', '--hot' ):
+            elif o in ( '--cold', '--warm' ):
                 or_parms = o[2:]         # (strip the leading --)
             elif ( o == '-v'):
                 print self.version()

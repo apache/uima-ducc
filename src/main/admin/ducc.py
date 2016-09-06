@@ -294,7 +294,7 @@ class Ducc(DuccUtil):
         print '   -o <mem-in-GB> rm memory override for use on small machines'
         print '   -k causes the entire DUCC system to shutdown'
         print '   --nodup If specified, do not start a process if it appears to be already started.'
-        print '   --or_parms [cold|warm|hot]'
+        print '   --or_parms [cold|warm]'
         print '   --simtest If specified, use unblocked broker for sim tests.'
         print '   arguments - any additional arguments to pass to the component.'
         sys.exit(1)
