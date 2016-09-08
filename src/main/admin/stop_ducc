@@ -141,6 +141,7 @@ class StopDucc(DuccUtil):
         print '          rm - resource manager'
         print '          sm - services manager'
         print '          ws - web server'
+        print '          head = { or, pm, rm, sm, ws, db, broker }'
         print ''
         print '   -w --wait'
         print '        Time to wait for everything to come down, in seconds.  Default is 60.'
@@ -189,7 +190,16 @@ class StopDucc(DuccUtil):
         
         for ( o, a ) in opts:
             if o in ('-c', '--component', '--components'):
-                components.append(a)
+            	if (a.strip() == 'head'):
+            		components.append('or')
+            		components.append('pm')
+            		components.append('rm')
+            		components.append('sm')
+            		components.append('ws')
+            		components.append('db')
+            		components.append('broker')
+            	else:
+                	components.append(a)
                 do_components = True
             elif o in ( '-a', '--all' ):
                 all = True
@@ -299,9 +309,14 @@ class StopDucc(DuccUtil):
         if ( quiesce ):
             self.quiesce_agents(components, nodes)
         else:
+            host = self.localhost.split('.')[0]
             for c in components:
-                self.stop_component(c, force)
-    
+                c = c.strip()
+                if(c in ('or','pm','rm','sm','ws')):
+                    c = c+'@'+host
+                if(c in ('db','broker')):
+                    time.sleep(2)
+                self.stop_component(c, force)    
             for (nf, nl) in nodes.items():
                 for n in nl:
                     self.stop_agents(n, force)            

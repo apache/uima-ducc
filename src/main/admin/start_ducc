@@ -193,7 +193,8 @@ class StartDucc(DuccUtil):
         print "          pm - process manager"
         print "          sm - services manager"
         print "          ws - web server"
-        print "          agent - node agent"        
+        print "          agent - node agent"     
+        print '          head = { or, pm, rm, sm, ws, db, broker }'   
         print ""
         print "    --nothreading"
         print "        Disable multithreaded operation if it would otherwise be used"
@@ -251,7 +252,16 @@ class StartDucc(DuccUtil):
                        
         for ( o, a ) in opts:
             if o in ( '-c', '--components' ): 
-                components.append(a)
+                if (a.strip() == 'head'):
+            		components.append('or')
+            		components.append('pm')
+            		components.append('rm')
+            		components.append('sm')
+            		components.append('ws')
+            		components.append('db')
+            		components.append('broker')
+            	else:
+                	components.append(a)
             elif o in ( '-n', '--nodelist' ):
                 nodefiles.append(a)
             elif o in ( '--nothreading' ):

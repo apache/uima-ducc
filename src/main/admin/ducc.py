@@ -133,7 +133,9 @@ class Ducc(DuccUtil):
 
         if ( component == 'all' ):
             component = 'rm,sm,pm,ws,orchestrator'
-    
+    	if ( component == 'head' ):
+            component = 'rm,sm,pm,ws,orchestrator'
+            
         complist = component.split(',')
         args = None
 
@@ -287,6 +289,7 @@ class Ducc(DuccUtil):
         print '                agent rm sm pm ws orchestrator broker'
         print '                      -- or --'
         print '                all - to start all but the agents'
+        print '                head - to start rm sm pm ws orchestrator'
         print '        NOTE -- that agents should be started separately'
         print '   -n <numagents> if > 1, multiple agents are started (testing mode)'
         print '   -b uses nohup and places the process into the background'
