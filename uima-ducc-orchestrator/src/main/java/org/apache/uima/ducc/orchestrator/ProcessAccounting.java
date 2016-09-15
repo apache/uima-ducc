@@ -272,8 +272,8 @@ public class ProcessAccounting {
 		logger.trace(methodName, null, messages.fetch("enter"));
 		process.setCpuTime(inventoryProcess.getCpuTime());
 		process.setCurrentCPU(inventoryProcess.getCurrentCPU());
-		logger.info(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time (overall):"+process.getCpuTime());
-		logger.info(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time (current):"+process.getCurrentCPU());
+		logger.trace(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time (overall):"+process.getCpuTime());
+		logger.trace(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time (current):"+process.getCurrentCPU());
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return;
 	}
@@ -330,7 +330,7 @@ public class ProcessAccounting {
 			}
 			ITimeWindow tw = process.getTimeWindowRun();
 			if(tw != null) {
-				logger.info(methodName, jobId, processId, "start:"+tw.getStart()+" "+"end:"+tw.getEnd());
+				logger.trace(methodName, jobId, processId, "start:"+tw.getStart()+" "+"end:"+tw.getEnd());
 			}
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
