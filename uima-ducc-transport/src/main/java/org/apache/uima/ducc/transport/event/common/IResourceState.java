@@ -36,6 +36,7 @@ public interface IResourceState extends Serializable {
 		JobCanceled,			// Job canceled by user (cancel command)
 		JobFailure,				// Job canceled by JD
 		JobCompleted,			// Process active prior to DUCC restart
+		ServiceStopped,			// Service stopped by user (stop command)
 		Exception,				// Process killed by JD exception handler
 		Timeout,				// Process killed by JD timeout handler
 		AutonomousStop,			// Process unexpectedly vanished (not terminated by Agent)

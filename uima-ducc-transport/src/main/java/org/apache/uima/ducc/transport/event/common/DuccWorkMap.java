@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -119,7 +120,7 @@ public class DuccWorkMap implements IDuccWorkMap {
 		return retVal;
 	}
 	
-	public List<DuccWorkJob> getServices(List<String> implementors) {
+	public List<DuccWorkJob> getServicesList(List<String> implementors) {
 		ArrayList<DuccWorkJob> servicesList = new ArrayList<DuccWorkJob>();
 		if(implementors != null) {
 			if(getServiceKeySet().size()> 0) {
@@ -136,6 +137,27 @@ public class DuccWorkMap implements IDuccWorkMap {
 			}
 		}
 		return servicesList;
+	}
+	
+	
+	public Map<Long,DuccWorkJob> getServicesMap(List<String> implementors) {
+		TreeMap<Long,DuccWorkJob> servicesMap = new TreeMap<Long,DuccWorkJob>();
+		if(implementors != null) {
+			if(getServiceKeySet().size()> 0) {
+				Iterator<DuccId> iterator = null;
+				iterator = getServiceKeySet().iterator();
+				while(iterator.hasNext()) {
+					DuccId serviceId = iterator.next();
+					Long lid = serviceId.getFriendly();
+					String fid = ""+lid;
+					if(implementors.contains(fid)) {
+						DuccWorkJob service = (DuccWorkJob) findDuccWork(serviceId);
+						servicesMap.put(lid,service);
+					}
+				}
+			}
+		}
+		return servicesMap;
 	}
 	
 	public Set<DuccId> getManagedReservationKeySet() {

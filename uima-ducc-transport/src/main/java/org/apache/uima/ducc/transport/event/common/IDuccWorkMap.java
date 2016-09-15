@@ -44,7 +44,8 @@ public interface IDuccWorkMap extends Serializable, Map {
 	public IDuccWork findDuccWork(String duccId);
 	public IDuccWork findDuccWork(DuccType duccType, String id);
 	
-	public List<DuccWorkJob> getServices(List<String> implementors);
+	public List<DuccWorkJob> getServicesList(List<String> implementors);
+	public Map<Long,DuccWorkJob> getServicesMap(List<String> implementors);
 	
 	public boolean isJobDriverNodeAssigned();
 	public Map<DuccId,IDuccWork> getMap();

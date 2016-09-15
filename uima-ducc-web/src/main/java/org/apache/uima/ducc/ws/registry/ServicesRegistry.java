@@ -204,7 +204,7 @@ public class ServicesRegistry {
 				Properties meta = payload.meta;
 				if(meta != null) {
                     // UIMA-4258, use common implementors parser
-                    String[] list = DuccDataHelper.parseServiceIds(meta);
+                    String[] list = DuccDataHelper.parseImplementors(meta);
 
 					for( String member : list ) {
 						if(member.equals(id+"")) {
@@ -267,6 +267,37 @@ public class ServicesRegistry {
 						logger.debug(location, jobid, "name: "+name+" "+"service_dependency: "+service_dependency);
 						if(service_dependency != null) {
 							String[] dependencies = service_dependency.split(" ");
+							for(String dependency : dependencies) {
+								String value = dependency.trim();
+								if(value.length() > 0) {
+									ServiceName serviceName = new ServiceName(dependency);
+									retVal.add(serviceName.toString());
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return retVal;
+	}
+	
+	public ArrayList<String> getServiceInstancesHistory(String name) {
+		String location = "getServiceInstancesHistory";
+		ArrayList<String> retVal = new ArrayList<String>();
+		try {
+			if(name != null) {
+				ServicesRegistryMapPayload payload = findService(name);
+				if(payload != null) {
+					Properties properties = payload.svc;
+					if(properties != null) {
+						String work_instances = properties.getProperty(IServicesRegistry.work_instances);
+						logger.debug(location, jobid, "name: "+name+" "+"work_instances: "+work_instances);
+						if(work_instances != null) {
+							String[] dependencies = work_instances.split(" ");
 							for(String dependency : dependencies) {
 								String value = dependency.trim();
 								if(value.length() > 0) {

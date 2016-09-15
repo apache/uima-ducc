@@ -53,7 +53,8 @@ public class DuccTransportConfiguration {
 			}
 
 			brokerUrl = brokerUrl.substring(0, pos);
-			String connectURL = "failover:(" + brokerUrl + ")" + decoration;
+			String backupURLs = ",tcp://bluej324:61617";
+			String connectURL = "failover:(" + brokerUrl + backupURLs + ")" + decoration;
 			duccAMQComponent.setBrokerURL(connectURL);
 			logger.info("configureJMSTransport", null, "Broker URL: "+connectURL);
 	      

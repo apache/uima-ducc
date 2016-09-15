@@ -272,8 +272,8 @@ public class ProcessAccounting {
 		logger.trace(methodName, null, messages.fetch("enter"));
 		process.setCpuTime(inventoryProcess.getCpuTime());
 		process.setCurrentCPU(inventoryProcess.getCurrentCPU());
-		logger.trace(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time (overall):"+process.getCpuTime());
-		logger.trace(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time (current):"+process.getCurrentCPU());
+		logger.info(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time (overall):"+process.getCpuTime());
+		logger.info(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time (current):"+process.getCurrentCPU());
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return;
 	}
@@ -327,6 +327,10 @@ public class ProcessAccounting {
 					ts = TimeStamp.simpleFormat(millis);
 					logger.trace(methodName, jobId, processId, messages.fetchLabel("run end")+ts);
 				}
+			}
+			ITimeWindow tw = process.getTimeWindowRun();
+			if(tw != null) {
+				logger.info(methodName, jobId, processId, "start:"+tw.getStart()+" "+"end:"+tw.getEnd());
 			}
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
@@ -550,20 +554,24 @@ public class ProcessAccounting {
 			}
 		}
 		adjustWindows(job, process);
-		adjustRunTime(process);
+		adjustRunTime(job, process);
 	}
 	
 	// <uima-3351>
-	private void adjustRunTime(IDuccProcess process) {
-		if(!process.isAssignedWork()) {
-			ITimeWindow twr = process.getTimeWindowRun();
-			if(twr == null) {
-				twr = new TimeWindow();
-				process.setTimeWindowRun(twr);
+	private void adjustRunTime(IDuccWorkJob job, IDuccProcess process) {
+		switch(job.getDuccType()) {
+		case Job:
+			if(!process.isAssignedWork()) {
+				ITimeWindow twr = process.getTimeWindowRun();
+				if(twr == null) {
+					twr = new TimeWindow();
+					process.setTimeWindowRun(twr);
+				}
+				long time = 0;
+				twr.setStartLong(time);
+				twr.setEndLong(time);
 			}
-			long time = 0;
-			twr.setStartLong(time);
-			twr.setEndLong(time);
+			break;
 		}
 	}
 	// </uima-3351>

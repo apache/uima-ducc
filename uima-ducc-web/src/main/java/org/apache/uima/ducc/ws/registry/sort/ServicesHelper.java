@@ -86,7 +86,7 @@ public class ServicesHelper {
 		List<DuccWorkJob> retVal = new ArrayList<DuccWorkJob>();
 		List<String> implementors = serviceAdapter.getImplementors();
 		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
-		retVal = duccWorkMap.getServices(implementors);
+		retVal = duccWorkMap.getServicesList(implementors);
 		return retVal;
 	}
 	

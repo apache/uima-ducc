@@ -19,7 +19,9 @@
 package org.apache.uima.ducc.ws;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -65,15 +67,26 @@ public class DuccDataHelper {
 		return map;
 	}
 
-    // UIMA-4258 Common code to parse meta.implementors	
-    public static String[] parseServiceIds(Properties meta)
+    public static String[] parseWorkInstances(Properties meta)
     {
-        String implementors = meta.getProperty(IServicesRegistry.implementors);
+        String stringArray = meta.getProperty(IServicesRegistry.work_instances);
+        return parseStringArray(stringArray);
+    }
+
+    public static String[] parseImplementors(Properties meta)
+    {
+        String stringArray = meta.getProperty(IServicesRegistry.implementors);
+        return parseStringArray(stringArray);
+    }
+	
+    public static String[] parseStringArray(String stringArray)
+    {
+        
         String[] ret = new String[0];
-        if(implementors != null) {
-        	implementors = implementors.trim();
-        	if(implementors.length() > 0) {
-        		String[] tempArray = implementors.trim().split("\\s+");
+        if(stringArray != null) {
+        	stringArray = stringArray.trim();
+        	if(stringArray.length() > 0) {
+        		String[] tempArray = stringArray.trim().split("\\s+");
                 ret = new String[tempArray.length];
                 int i = 0;
                 for (String s : tempArray) {
@@ -91,10 +104,9 @@ public class DuccDataHelper {
         return ret;
     }
 
-    // UIMA-4258 return implementors in arraylist instead of strion[]
-    public static ArrayList<String> parseServiceIdsAsList(Properties meta)
+    public static ArrayList<String> parseImplementorsAsList(Properties meta)
     {
-        String[] impls = parseServiceIds(meta);
+        String[] impls = parseImplementors(meta);
 
         ArrayList<String> ret = new ArrayList<String>();
         for ( String s : impls ) {
@@ -103,7 +115,17 @@ public class DuccDataHelper {
         return ret;
     }
 
-	
+    public static ArrayList<String> parseWorkInstancesAsList(Properties meta)
+    {
+        String[] impls = parseWorkInstances(meta);
+
+        ArrayList<String> ret = new ArrayList<String>();
+        for ( String s : impls ) {
+            ret.add(s);
+        }
+        return ret;
+    }
+    
 	public TreeMap<String,ArrayList<DuccId>> getServiceToReservationsUsageMap() {
 		TreeMap<String,ArrayList<DuccId>> map = new TreeMap<String,ArrayList<DuccId>>();
 		DuccData duccData = DuccData.getInstance();

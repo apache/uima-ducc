@@ -994,7 +994,7 @@ implements Orchestrator {
 					if(reqRole.equals(SpecificationProperties.key_role_administrator)) {
 						jobCompletionType = JobCompletionType.CanceledByAdministrator;
 					}
-					stateManager.jobTerminate(duccWorkJob, jobCompletionType, rationale, ProcessDeallocationType.JobCanceled);
+					stateManager.jobTerminate(duccWorkJob, jobCompletionType, rationale, ProcessDeallocationType.ServiceStopped);
 					OrchestratorCheckpoint.getInstance().saveState();
 					// prepare for reply to canceler
 					properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_canceled);

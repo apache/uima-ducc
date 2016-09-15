@@ -46,6 +46,7 @@ public class IServicesRegistry {
 	public static final String service_type = IStateServices.SvcMetaProps.service_type.pname();
 	public static final String submit_error = IStateServices.SvcMetaProps.submit_error.pname();
 	public static final String user = IStateServices.SvcMetaProps.user.pname();
+	public static final String work_instances = IStateServices.SvcMetaProps.work_instances.pname();
 	
 	public static final String service_type_CUSTOM = IStateServices.CUSTOM;
 	

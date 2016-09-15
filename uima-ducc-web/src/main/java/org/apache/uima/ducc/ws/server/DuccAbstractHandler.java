@@ -604,7 +604,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		if(propertiesMeta != null) {
 			if(propertiesMeta.containsKey(IServicesRegistry.implementors)) {
                 // UIMA-4258, use common implementors parser
-                String[] implementors = DuccDataHelper.parseServiceIds(propertiesMeta);
+                String[] implementors = DuccDataHelper.parseImplementors(propertiesMeta);
 				deployments = ""+implementors.length;
 			}
 		}

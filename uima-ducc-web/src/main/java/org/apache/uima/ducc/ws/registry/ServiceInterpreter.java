@@ -293,7 +293,7 @@ public class ServiceInterpreter {
 		ArrayList<String> retVal = new ArrayList<String>();
 		try {
             // UIMA-4258, use common implementors parser
-            String[] implementors = DuccDataHelper.parseServiceIds(meta);
+            String[] implementors = DuccDataHelper.parseImplementors(meta);
 			for(String implementor : implementors) {
 				retVal.add(implementor);
 			}

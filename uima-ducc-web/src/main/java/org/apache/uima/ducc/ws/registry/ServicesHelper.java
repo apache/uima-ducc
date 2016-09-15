@@ -61,7 +61,7 @@ public class ServicesHelper {
 		if(propertiesMeta != null) {
 			if(propertiesMeta.containsKey(IServicesRegistry.implementors)) {
                 // UIMA-4258, use common implementors parser
-                String[] implementors = DuccDataHelper.parseServiceIds(propertiesMeta);
+                String[] implementors = DuccDataHelper.parseImplementors(propertiesMeta);
 				for(String implementor : implementors) {
 					retVal.add(implementor);
 				}
@@ -78,7 +78,7 @@ public class ServicesHelper {
 		List<DuccWorkJob> retVal = new ArrayList<DuccWorkJob>();
 		List<String> implementors = getImplementors(servicesRegistry, propertiesMeta);
 		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
-		retVal = duccWorkMap.getServices(implementors);
+		retVal = duccWorkMap.getServicesList(implementors);
 		return retVal;
 	}
 	

@@ -72,7 +72,7 @@ public class ServiceSet
     private ServiceHandler handler;
     private IStateServices stateHandler;
 
-    // key is unique id of descriptor.  The descriptor inherites key from a Job's DuccId, or from
+    // key is unique id of descriptor.  The descriptor inherits key from a Job's DuccId, or from
     // a unique-to SM key for implicit references.
 
     Map<Long, ServiceInstance> implementors = new HashMap<Long, ServiceInstance>();
@@ -126,7 +126,7 @@ public class ServiceSet
     // Date of last known use of the service.  0 means "I don't know"
     long last_use = 0;
 
-    // Date of last known succesful ping of the service.  0 means never.  UIMA-4309
+    // Date of last known successful ping of the service.  0 means never.  UIMA-4309
     long last_ping = 0;
 
     boolean notPinging = false;
@@ -165,7 +165,7 @@ public class ServiceSet
                                              // need to govern it
 
     int run_failures = 0;
-    boolean excessiveRunFailures = false;       // signalled by monitor / pinger if we have too many
+    boolean excessiveRunFailures = false;       // signaled by monitor / pinger if we have too many
 
     boolean inShutdown = false;
 
@@ -830,7 +830,7 @@ public class ServiceSet
         if ( isDeregistered() ) return;
 
         //Long strid = id.getFriendly();
-        prepareMetaProperties();     // these always need houssecleaning before storing or syncing
+        prepareMetaProperties();     // these always need house cleaning before storing or syncing
 
         if ( ! isRecovered ) {       // if not recovery, no need to mess with the record
             stateHandler.storeProperties(id, job_props, meta_props);
@@ -1263,7 +1263,7 @@ public class ServiceSet
      * @param deletions            These are the specific instances to stop.
      * @param ndeleteions          This is the number of instances to stop.  This may well be smaller than
      *                             the size of the 'deletions' array because PingDriver caps deletions to
-     *                             prevent over-agressive or buggy monitors from killing a service.
+     *                             prevent over-aggressive or buggy monitors from killing a service.
      * @param isExcessiveFailuress This is set to 'true' if the ping/monitor decides there have been
      *                             too many instance failures and SM should stop trying to restart them.
      */
@@ -1530,7 +1530,7 @@ public class ServiceSet
         }
                 
         // If there is a pinger, and it isn't pinging, we must not advance beyond the pinger's state.
-        // If there is no pinger, we may never advance beyong Waiting
+        // If there is no pinger, we may never advance beyond Waiting
         if ( serviceMeta == null ) {
             response = (response.ordinality() < ServiceState.Waiting.ordinality()) ? response : ServiceState.Waiting;
         } else if ( serviceMeta != null ) {

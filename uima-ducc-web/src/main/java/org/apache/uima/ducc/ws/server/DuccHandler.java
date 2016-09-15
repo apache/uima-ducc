@@ -2267,7 +2267,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			properties = payload.meta;
 
             // UIMA-4258, use common implementors parser
-			ArrayList<String> implementors = DuccDataHelper.parseServiceIdsAsList(properties);
+			ArrayList<String> implementors = DuccDataHelper.parseImplementorsAsList(properties);
 			
 			DuccWorkJob service = null;
 			IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
@@ -2668,32 +2668,50 @@ public class DuccHandler extends DuccAbstractHandler {
 			properties = payload.meta;
 			
             // UIMA-4258, use common implementors parser
-			ArrayList<String> implementors = DuccDataHelper.parseServiceIdsAsList(properties);	
+			List<String> implementors_current = DuccDataHelper.parseImplementorsAsList(properties);	
+			List<String> implementors_defunct = DuccDataHelper.parseWorkInstancesAsList(properties);
 			
 			IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
-			List<DuccWorkJob> servicesList = duccWorkMap.getServices(implementors);
-			int counter = 0;
-			AllocationType type = AllocationType.SPU;
-			String service_type = properties.getProperty(IServicesRegistry.service_type);
-			if(service_type != null) {
-				if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
-					type = AllocationType.SPC;
+			for(int i=0; i<2; i++) {
+				Map<Long,DuccWorkJob> servicesMap = null;
+				switch(i) {
+				case 0:
+					servicesMap = duccWorkMap.getServicesMap(implementors_current);
+					break;
+				case 1:
+					servicesMap = duccWorkMap.getServicesMap(implementors_defunct);
+					break;
 				}
-			}
-			EffectiveUser eu = EffectiveUser.create(request);
-			for(DuccWorkJob service : servicesList) {
-				String directory = service.getLogDirectory()+File.separator+service.getId();
-				Map<String, FileInfo> fileInfoMap = getFileInfoMap(eu, directory);
-				IDuccProcessMap map = service.getProcessMap();
-				if(map.isEmpty()) {
-					buildServiceProcessListEntry(eu, sb, service, null, DetailsType.Service, type, ++counter, fileInfoMap);
+				
+				Map<Long, DuccWorkJob> inverseServicesMap = new TreeMap<Long,DuccWorkJob>();
+				for(Entry<Long, DuccWorkJob> entry : servicesMap.entrySet()) {
+					inverseServicesMap.put(0-entry.getKey(), entry.getValue());
 				}
-				else {
-					for(DuccId key : map.keySet()) {
-						IDuccProcess process = map.get(key);
-						buildServiceProcessListEntry(eu, sb, service, process, DetailsType.Service, type, ++counter, fileInfoMap);
+				
+				int counter = 0;
+				AllocationType type = AllocationType.SPU;
+				String service_type = properties.getProperty(IServicesRegistry.service_type);
+				if(service_type != null) {
+					if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
+						type = AllocationType.SPC;
 					}
 				}
+				EffectiveUser eu = EffectiveUser.create(request);
+				for(Entry<Long, DuccWorkJob> entry : inverseServicesMap.entrySet()) {
+					DuccWorkJob service = entry.getValue();
+					String directory = service.getLogDirectory()+File.separator+service.getId();
+					Map<String, FileInfo> fileInfoMap = getFileInfoMap(eu, directory);
+					IDuccProcessMap map = service.getProcessMap();
+					if(map.isEmpty()) {
+						buildServiceProcessListEntry(eu, sb, service, null, DetailsType.Service, type, ++counter, fileInfoMap);
+					}
+					else {
+						for(DuccId key : map.keySet()) {
+							IDuccProcess process = map.get(key);
+							buildServiceProcessListEntry(eu, sb, service, process, DetailsType.Service, type, ++counter, fileInfoMap);
+						}
+					}
+				}	
 			}
 		}
 		catch(Throwable t) {

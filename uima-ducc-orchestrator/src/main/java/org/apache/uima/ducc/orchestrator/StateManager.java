@@ -1461,6 +1461,130 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 
+	private void inventoryJob(IDuccWork duccWork, IDuccProcess inventoryProcess) {
+		String methodName = "inventoryJob";
+		DuccWorkJob job = (DuccWorkJob) duccWork;
+		DuccId jobId = job.getDuccId();
+		DuccId processId = inventoryProcess.getDuccId();
+		ProcessType processType = inventoryProcess.getProcessType();
+		switch(processType) {
+		case Pop:
+			OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
+			switch(inventoryProcess.getProcessState()) {
+			case LaunchFailed:
+			case Failed:
+				if(inventoryProcess.getDuccId().getFriendly() == 0) {
+					jobTerminate(job, JobCompletionType.DriverProcessFailed, new Rationale(inventoryProcess.getReasonForStoppingProcess()), inventoryProcess.getProcessDeallocationType());
+				}
+				else {
+					jobTerminate(job, JobCompletionType.ProcessFailure, new Rationale(inventoryProcess.getReasonForStoppingProcess()), inventoryProcess.getProcessDeallocationType());
+				}
+				break;
+			default:
+				if(inventoryProcess.isComplete()) {
+					OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(job,ProcessDeallocationType.Stopped);
+					IRationale rationale = new Rationale("state manager reported as normal completion");
+					int errors = job.getSchedulingInfo().getIntWorkItemsError();
+					int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
+					if(errors > 0) {
+						setCompletionIfNotAlreadySet(job, JobCompletionType.Error, new Rationale("state manager detected error work items="+errors));
+					}
+					else if(done == 0) {
+						setCompletionIfNotAlreadySet(job, JobCompletionType.EndOfJob, new Rationale("state manager detected no work items processed"));
+					}
+					// <UIMA-3337>
+					else {
+						setCompletionIfNotAlreadySet(job, JobCompletionType.EndOfJob, rationale);
+					}
+					// </UIMA-3337>
+					completeJob(job, rationale);
+				}
+				break;
+			}
+			break;
+		case Service:
+			logger.warn(methodName, jobId, processId, "unexpected process type: "+processType);
+			break;
+		case Job_Uima_AS_Process:
+			OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
+			try {
+				if(!job.isInitialized()) {
+					IDuccProcessMap map = job.getProcessMap();
+					for(Entry<DuccId, IDuccProcess> entry : map.entrySet()) {
+						IDuccProcess process = entry.getValue();
+						StringBuffer sb = new StringBuffer();
+						sb.append("pid:"+process.getPID()+" ");
+						sb.append("state:"+process.getProcessState()+" ");
+						sb.append("reason:"+process.getReasonForStoppingProcess()+" ");
+						logger.trace(methodName, job.getDuccId(), sb.toString());
+					}
+					long initFailureCount = job.getProcessInitFailureCount();
+					long startup_initialization_error_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_jd_startup_initialization_error_limit, 1);
+					if(initFailureCount >= startup_initialization_error_limit) {
+						String reason = "process inititialization failure count["+initFailureCount+"] meets startup initialization error limit["+startup_initialization_error_limit+"]";
+						logger.warn(methodName, job.getDuccId(), reason);
+						JobCompletionType jobCompletionType = JobCompletionType.CanceledBySystem;
+						Rationale rationale = new Rationale(reason);
+						ProcessDeallocationType processDeallocationType = ProcessDeallocationType.JobCanceled;
+						stateManager.jobTerminate(job, jobCompletionType, rationale, processDeallocationType);
+					}
+					else {
+						String reason = "process failure count["+initFailureCount+"] does not exceed startup initialization error limit["+startup_initialization_error_limit+"]";
+						logger.debug(methodName, job.getDuccId(), reason);
+					}
+				}
+				else {
+					logger.trace(methodName, job.getDuccId(), "job is initialized");
+				}
+			}
+			catch(Exception e) {
+				logger.error(methodName, jobId, e);
+			}
+			break;
+		}
+		// <UIMA-3923>
+		advanceToCompleted(job);
+		// </UIMA-3923>
+	}
+	
+	private void inventoryService(IDuccWork duccWork, IDuccProcess inventoryProcess) {
+		//String methodName = "inventoryService";
+		DuccWorkJob service = (DuccWorkJob) duccWork;
+		ProcessType processType = inventoryProcess.getProcessType();
+		switch(processType) {
+		case Pop:
+			OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
+			if(inventoryProcess.isComplete()) {
+				OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
+			}
+			if(!service.hasAliveProcess()) {
+				completeManagedReservation(service, new Rationale("state manager reported no viable service process exists, type="+processType));
+			}
+			break;
+		case Service:
+			OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
+			if(inventoryProcess.isComplete()) {
+				OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
+			}
+			if(!service.hasAliveProcess()) {
+				completeService(service, new Rationale("state manager reported no viable service process exists, type="+processType));
+			}
+			break;
+		case Job_Uima_AS_Process:
+			OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
+			if(inventoryProcess.isComplete()) {
+				OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
+			}
+			if(!service.hasAliveProcess()) {
+				completeService(service, new Rationale("state manager reported no viable service process exists, type="+processType));
+			}
+			break;
+		}
+		// <UIMA-3923>
+		advanceToCompleted(service);
+		// </UIMA-3923>
+	}
+	
 	/**
 	 * Node Inventory reconciliation
 	 */
@@ -1491,120 +1615,10 @@ public class StateManager {
 							DuccType jobType = duccWork.getDuccType();
 							switch(jobType) {
 							case Job:
-								DuccWorkJob job = (DuccWorkJob) duccWork;
-								switch(processType) {
-								case Pop:
-									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
-									switch(inventoryProcess.getProcessState()) {
-									case LaunchFailed:
-									case Failed:
-										if(inventoryProcess.getDuccId().getFriendly() == 0) {
-											jobTerminate(job, JobCompletionType.DriverProcessFailed, new Rationale(inventoryProcess.getReasonForStoppingProcess()), inventoryProcess.getProcessDeallocationType());
-										}
-										else {
-											jobTerminate(job, JobCompletionType.ProcessFailure, new Rationale(inventoryProcess.getReasonForStoppingProcess()), inventoryProcess.getProcessDeallocationType());
-										}
-										break;
-									default:
-										if(inventoryProcess.isComplete()) {
-											OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(job,ProcessDeallocationType.Stopped);
-											IRationale rationale = new Rationale("state manager reported as normal completion");
-											int errors = job.getSchedulingInfo().getIntWorkItemsError();
-											int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
-											if(errors > 0) {
-												setCompletionIfNotAlreadySet(job, JobCompletionType.Error, new Rationale("state manager detected error work items="+errors));
-											}
-											else if(done == 0) {
-												setCompletionIfNotAlreadySet(job, JobCompletionType.EndOfJob, new Rationale("state manager detected no work items processed"));
-											}
-											// <UIMA-3337>
-											else {
-												setCompletionIfNotAlreadySet(job, JobCompletionType.EndOfJob, rationale);
-											}
-											// </UIMA-3337>
-											completeJob(job, rationale);
-										}
-										break;
-									}
-									break;
-								case Service:
-									logger.warn(methodName, jobId, processId, "unexpected process type: "+processType);
-									break;
-								case Job_Uima_AS_Process:
-									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
-									try {
-										if(!job.isInitialized()) {
-											IDuccProcessMap map = job.getProcessMap();
-											for(Entry<DuccId, IDuccProcess> entry : map.entrySet()) {
-												IDuccProcess process = entry.getValue();
-												StringBuffer sb = new StringBuffer();
-												sb.append("pid:"+process.getPID()+" ");
-												sb.append("state:"+process.getProcessState()+" ");
-												sb.append("reason:"+process.getReasonForStoppingProcess()+" ");
-												logger.trace(methodName, job.getDuccId(), sb.toString());
-											}
-											long initFailureCount = job.getProcessInitFailureCount();
-											long startup_initialization_error_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_jd_startup_initialization_error_limit, 1);
-											if(initFailureCount >= startup_initialization_error_limit) {
-												String reason = "process inititialization failure count["+initFailureCount+"] meets startup initialization error limit["+startup_initialization_error_limit+"]";
-												logger.warn(methodName, job.getDuccId(), reason);
-												JobCompletionType jobCompletionType = JobCompletionType.CanceledBySystem;
-												Rationale rationale = new Rationale(reason);
-												ProcessDeallocationType processDeallocationType = ProcessDeallocationType.JobCanceled;
-												stateManager.jobTerminate(job, jobCompletionType, rationale, processDeallocationType);
-											}
-											else {
-												String reason = "process failure count["+initFailureCount+"] does not exceed startup initialization error limit["+startup_initialization_error_limit+"]";
-												logger.debug(methodName, job.getDuccId(), reason);
-											}
-										}
-										else {
-											logger.trace(methodName, job.getDuccId(), "job is initialized");
-										}
-									}
-									catch(Exception e) {
-										logger.error(methodName, jobId, e);
-									}
-									break;
-								}
-								// <UIMA-3923>
-								advanceToCompleted(job);
-								// </UIMA-3923>
+								inventoryJob(duccWork, inventoryProcess);
 								break;
 							case Service:
-								DuccWorkJob service = (DuccWorkJob) duccWork;
-								switch(processType) {
-								case Pop:
-									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
-									if(inventoryProcess.isComplete()) {
-										OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
-									}
-									if(!service.hasAliveProcess()) {
-										completeManagedReservation(service, new Rationale("state manager reported no viable service process exists, type="+processType));
-									}
-									break;
-								case Service:
-									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
-									if(inventoryProcess.isComplete()) {
-										OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
-									}
-									if(!service.hasAliveProcess()) {
-										completeService(service, new Rationale("state manager reported no viable service process exists, type="+processType));
-									}
-									break;
-								case Job_Uima_AS_Process:
-									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
-									if(inventoryProcess.isComplete()) {
-										OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
-									}
-									if(!service.hasAliveProcess()) {
-										completeService(service, new Rationale("state manager reported no viable service process exists, type="+processType));
-									}
-									break;
-								}
-								// <UIMA-3923>
-								advanceToCompleted(service);
-								// </UIMA-3923>
+								inventoryService(duccWork, inventoryProcess);
 								break;
 							default:
 								break;
