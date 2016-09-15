@@ -19,9 +19,7 @@
 package org.apache.uima.ducc.ws;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -81,7 +79,6 @@ public class DuccDataHelper {
 	
     public static String[] parseStringArray(String stringArray)
     {
-        
         String[] ret = new String[0];
         if(stringArray != null) {
         	stringArray = stringArray.trim();
@@ -107,7 +104,6 @@ public class DuccDataHelper {
     public static ArrayList<String> parseImplementorsAsList(Properties meta)
     {
         String[] impls = parseImplementors(meta);
-
         ArrayList<String> ret = new ArrayList<String>();
         for ( String s : impls ) {
             ret.add(s);
@@ -118,7 +114,6 @@ public class DuccDataHelper {
     public static ArrayList<String> parseWorkInstancesAsList(Properties meta)
     {
         String[] impls = parseWorkInstances(meta);
-
         ArrayList<String> ret = new ArrayList<String>();
         for ( String s : impls ) {
             ret.add(s);
