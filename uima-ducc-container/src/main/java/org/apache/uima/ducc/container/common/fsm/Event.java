@@ -22,19 +22,20 @@ import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 
 public class Event implements IEvent {
 
-	private String name = null;
+	private EventType eventType = null;
 	
-	public Event(String name) throws FsmException {
-		if(name == null) {
-			throw new FsmException("event name is null");
+	public Event(EventType eventType) throws FsmException {
+		if(eventType == null) {
+			throw new FsmException("event type is null");
 		}
-		setName(name);
+		setEventType(eventType);
 	}
 	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		String name = getEventName();
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -45,8 +46,8 @@ public class Event implements IEvent {
 		if(o != null) {
 			if(o instanceof IEvent) {
 				IEvent that = (IEvent)o;
-				String thisName = this.getName();
-				String thatName = that.getName();
+				String thisName = this.getEventName();
+				String thatName = that.getEventName();
 				retVal = thisName.compareTo(thatName) == 0;
 			}
 		}
@@ -56,12 +57,12 @@ public class Event implements IEvent {
 	@Override
 	public int compareTo(Object o) {
 		int retVal = 0;
-		if(name != null) {
+		if(eventType != null) {
 			if(o != null) {
 				if(o instanceof IEvent) {
 					IEvent that = (IEvent)o;
-					String thisName = this.getName();
-					String thatName = that.getName();
+					String thisName = this.getEventName();
+					String thatName = that.getEventName();
 					retVal = thisName.compareTo(thatName);
 				}
 			}
@@ -70,11 +71,16 @@ public class Event implements IEvent {
 	}
 
 	@Override
-	public String getName() {
-		return name;
+	public String getEventName() {
+		return eventType.name();
 	}
 	
-	private void setName(String value) {
-		name = value;
+	@Override
+	public EventType getEventType() {
+		return eventType;
+	}
+	
+	private void setEventType(EventType value) {
+		eventType = value;
 	}
 }

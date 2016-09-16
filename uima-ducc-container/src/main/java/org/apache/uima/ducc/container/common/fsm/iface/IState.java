@@ -20,5 +20,14 @@ package org.apache.uima.ducc.container.common.fsm.iface;
 
 public interface IState extends Comparable<Object> {
 
-	public String getName();
+	public enum StateType {
+		Start,
+		Get_Pending,
+		CAS_Send,
+		CAS_Active,
+		;
+	}
+	
+	public String getStateName();
+	public StateType getStateType();
 }

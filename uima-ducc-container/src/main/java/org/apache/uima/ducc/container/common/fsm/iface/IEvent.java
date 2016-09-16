@@ -20,5 +20,23 @@ package org.apache.uima.ducc.container.common.fsm.iface;
 
 public interface IEvent extends Comparable<Object> {
 
-	public String getName();
+	public enum EventType {
+		Get_Request,
+		CAS_Available,
+		CAS_Unavailable,
+		Ack_Request,
+		Send_Failure,
+		Ack_Timer_Pop,
+		End_Request,
+		End_Timer_Pop,
+		Host_Failure,
+		Process_Failure,
+		Process_Premept,
+		Process_Volunteered,
+		Investment_Reset,
+		;
+	}
+	
+	public String getEventName();
+	public EventType getEventType();
 }

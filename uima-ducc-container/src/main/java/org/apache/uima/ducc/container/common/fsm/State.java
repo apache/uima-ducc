@@ -22,19 +22,20 @@ import org.apache.uima.ducc.container.common.fsm.iface.IState;
 
 public class State implements IState {
 
-	private String name = null;
+	private StateType stateType = null;
 	
-	public State(String name) throws FsmException {
-		if(name == null) {
-			throw new FsmException("state name is null");
+	public State(StateType stateType) throws FsmException {
+		if(stateType == null) {
+			throw new FsmException("state type is null");
 		}
-		setName(name);
+		setStateType(stateType);
 	}
 	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		String name = getStateName();
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -45,8 +46,8 @@ public class State implements IState {
 		if(o != null) {
 			if(o instanceof IState) {
 				IState that = (IState)o;
-				String thisName = this.getName();
-				String thatName = that.getName();
+				String thisName = this.getStateName();
+				String thatName = that.getStateName();
 				retVal = thisName.compareTo(thatName) == 0;
 			}
 		}
@@ -56,12 +57,12 @@ public class State implements IState {
 	@Override
 	public int compareTo(Object o) {
 		int retVal = 0;
-		if(name != null) {
+		if(stateType != null) {
 			if(o != null) {
 				if(o instanceof IState) {
 					IState that = (IState)o;
-					String thisName = this.getName();
-					String thatName = that.getName();
+					String thisName = this.getStateName();
+					String thatName = that.getStateName();
 					retVal = thisName.compareTo(thatName);
 				}
 			}
@@ -70,11 +71,16 @@ public class State implements IState {
 	}
 	
 	@Override
-	public String getName() {
-		return name;
+	public String getStateName() {
+		return stateType.name();
 	}
 	
-	private void setName(String value) {
-		name = value;
+	@Override
+	public StateType getStateType() {
+		return stateType;
+	}
+	
+	private void setStateType(StateType value) {
+		stateType = value;
 	}
 }

@@ -51,13 +51,13 @@ public class Fsm implements IFsmBuilder {
 		if(result != null) {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append("duplicate");
-			mb.append(Standardize.Label.state.get()+current.getName());
-			mb.append(Standardize.Label.event.get()+event.getName());
+			mb.append(Standardize.Label.state.get()+current.getStateName());
+			mb.append(Standardize.Label.event.get()+event.getEventName());
 			throw new FsmException(mb.toString());
 		}
 		MessageBuffer mb = new MessageBuffer();
-		mb.append(Standardize.Label.state.get()+current.getName());
-		mb.append(Standardize.Label.event.get()+event.getName());
+		mb.append(Standardize.Label.state.get()+current.getStateName());
+		mb.append(Standardize.Label.event.get()+event.getEventName());
 		logger.trace(location, ILogger.null_id, mb.toString());
 	}
 
@@ -80,8 +80,8 @@ public class Fsm implements IFsmBuilder {
 		IState s1 = getStateCurrent();
 		if(s0 != null) {
 			if(s1 != null) {
-				String n0 = s0.getName();
-				String n1 = s1.getName();
+				String n0 = s0.getStateName();
+				String n1 = s1.getStateName();
 				if(n0 != null) {
 					if(n1 != null) {
 						retVal = n0.equals(n1);
@@ -121,8 +121,8 @@ public class Fsm implements IFsmBuilder {
 	private IStateEventValue putIfAbsent(IStateEventKey key, IStateEventValue value) {
 		String location = "putIfAbsent";
 		MessageBuffer mb = new MessageBuffer();
-		mb.append(Standardize.Label.state.get()+key.getState().getName());
-		mb.append(Standardize.Label.event.get()+key.getEvent().getName());
+		mb.append(Standardize.Label.state.get()+key.getState().getStateName());
+		mb.append(Standardize.Label.event.get()+key.getEvent().getEventName());
 		mb.append(Standardize.Label.hash.get()+key.hashCode());
 		logger.trace(location, ILogger.null_id, mb.toString());
 		return map.putIfAbsent(key, value);
@@ -131,8 +131,8 @@ public class Fsm implements IFsmBuilder {
 	private IStateEventValue get(IStateEventKey key) {
 		String location = "get";
 		MessageBuffer mb = new MessageBuffer();
-		mb.append(Standardize.Label.state.get()+key.getState().getName());
-		mb.append(Standardize.Label.event.get()+key.getEvent().getName());
+		mb.append(Standardize.Label.state.get()+key.getState().getStateName());
+		mb.append(Standardize.Label.event.get()+key.getEvent().getEventName());
 		mb.append(Standardize.Label.hash.get()+key.hashCode());
 		logger.trace(location, ILogger.null_id, mb.toString());
 		IStateEventValue value = map.get(key);
@@ -143,9 +143,9 @@ public class Fsm implements IFsmBuilder {
 	public void transitionLog(IEvent event, Object actionData) {
 		String location = "transition";
 		MessageBuffer mb = new MessageBuffer();
-		mb.append(Standardize.Label.curr.get()+getStateCurrent().getName());
-		mb.append(Standardize.Label.prev.get()+getStatePrevious().getName());
-		mb.append(Standardize.Label.event.get()+event.getName());
+		mb.append(Standardize.Label.curr.get()+getStateCurrent().getStateName());
+		mb.append(Standardize.Label.prev.get()+getStatePrevious().getStateName());
+		mb.append(Standardize.Label.event.get()+event.getEventName());
 		logger.trace(location, ILogger.null_id, mb.toString());
 	}
 	
@@ -159,8 +159,8 @@ public class Fsm implements IFsmBuilder {
 				if(value == null) {
 					MessageBuffer mb = new MessageBuffer();
 					mb.append("undefined");
-					mb.append(Standardize.Label.state.get()+_stateCurrent.getName());
-					mb.append(Standardize.Label.event.get()+event.getName());
+					mb.append(Standardize.Label.state.get()+_stateCurrent.getStateName());
+					mb.append(Standardize.Label.event.get()+event.getEventName());
 					throw new FsmException(mb.toString());
 				}
 				IState _statePrevious = _stateCurrent;
@@ -186,8 +186,8 @@ public class Fsm implements IFsmBuilder {
 				IState _statePrevious = getStateCurrent();
 				if(!_stateCurrent.equals(_statePrevious)) {
 					MessageBuffer mb = new MessageBuffer();
-					mb.append(Standardize.Label.curr.get()+_stateCurrent.getName());
-					mb.append(Standardize.Label.prev.get()+_statePrevious.getName());
+					mb.append(Standardize.Label.curr.get()+_stateCurrent.getStateName());
+					mb.append(Standardize.Label.prev.get()+_statePrevious.getStateName());
 					logger.info(location, ILogger.null_id, mb.toString());
 				}
 			}
