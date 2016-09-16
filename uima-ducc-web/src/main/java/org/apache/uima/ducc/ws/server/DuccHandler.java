@@ -837,85 +837,113 @@ public class DuccHandler extends DuccAbstractHandler {
 		return sb.toString();
 	}
 	
-	private String getPctCPU(IDuccWorkJob job, IDuccProcess process) {
-		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			String runTime = ""+process.getCpuTime();
-			double pctCPU_overall = 0;
-			double pctCPU_current = 0;
-			String displayCPU = formatter.format(pctCPU_overall);
-			if(process.getDataVersion() < 1) {
-				boolean rt = false;
-				if(runTime != null) {
-					if(runTime.contains(":")) {
-						rt = true;
-					}
-					else {
-						try {
-							long value = Long.parseLong(runTime);
-							if(value > 0) {
-								rt = true;
-							}
-						}
-						catch(Exception e) {
-						}
-					}
-				}
+	// legacy
+	private String getPctCpuV0(IDuccWorkJob job, IDuccProcess process) {
+		String retVal = "";
+		boolean rt = false;
+		double pctCPU_overall = 0;
+		String runTime = ""+process.getCpuTime();
+		if(runTime != null) {
+			if(runTime.contains(":")) {
+				rt = true;
+			}
+			else {
 				try {
-					if(rt) {
-						long msecsCPU = process.getCpuTime()*1000;
-						long msecsRun = process.getTimeWindowRun().getElapsedMillis();
-						switch(process.getProcessState()) {
-						case Running:
-							long msecsInit = process.getTimeWindowInit().getElapsedMillis();
-							msecsRun = msecsRun - msecsInit;
-							break;
-						default:
-							break;
-						}
-						double secsCPU = (msecsCPU*1.0)/1000.0;
-						double secsRun = (msecsRun*1.0)/1000.0;
-						double timeCPU = secsCPU;
-						double timeRun = secsRun;
-						pctCPU_overall = 100*(timeCPU/timeRun);
-						if(!Double.isNaN(pctCPU_overall)) {
-							StringBuffer tb = new StringBuffer();
-							String fmtsecsCPU = formatter.format(secsCPU);
-							String fmtsecsRun = formatter.format(secsRun);
-							String title = "title="+"\""+"seconds"+" "+"CPU:"+fmtsecsCPU+" "+"run:"+fmtsecsRun+"\"";
-							tb.append("<span "+title+">");
-							String fmtPctCPU = formatter.format(pctCPU_overall);
-							tb.append(fmtPctCPU);
-							tb.append("</span>");
-							displayCPU = tb.toString();
-						}
+					long value = Long.parseLong(runTime);
+					if(value > 0) {
+						rt = true;
 					}
 				}
 				catch(Exception e) {
 				}
 			}
-			else {
-				StringBuffer tb = new StringBuffer();
-				pctCPU_overall = process.getCpuTime();
-				pctCPU_current = process.getCurrentCPU();
+		}
+		try {
+			if(rt) {
+				long msecsCPU = process.getCpuTime()*1000;
+				long msecsRun = process.getTimeWindowRun().getElapsedMillis();
 				switch(process.getProcessState()) {
 				case Running:
-					String title = "title="+"\"lifetime: "+formatter.format(pctCPU_overall)+"\"";
-					tb.append("<span "+title+" class=\"health_green\">");
-					tb.append(formatter.format(pctCPU_current));
-					tb.append("</span>");
+					long msecsInit = process.getTimeWindowInit().getElapsedMillis();
+					msecsRun = msecsRun - msecsInit;
 					break;
 				default:
-					tb.append("<span>");
-					tb.append(formatter.format(pctCPU_overall));
-					tb.append("</span>");
 					break;
 				}
-				displayCPU = tb.toString();
+				double secsCPU = (msecsCPU*1.0)/1000.0;
+				double secsRun = (msecsRun*1.0)/1000.0;
+				double timeCPU = secsCPU;
+				double timeRun = secsRun;
+				pctCPU_overall = 100*(timeCPU/timeRun);
+				if(!Double.isNaN(pctCPU_overall)) {
+					StringBuffer sb = new StringBuffer();
+					String fmtsecsCPU = formatter.format(secsCPU);
+					String fmtsecsRun = formatter.format(secsRun);
+					String title = "title="+"\""+"seconds"+" "+"CPU:"+fmtsecsCPU+" "+"run:"+fmtsecsRun+"\"";
+					sb.append("<span "+title+">");
+					String fmtPctCPU = formatter.format(pctCPU_overall);
+					sb.append(fmtPctCPU);
+					sb.append("</span>");
+					retVal = sb.toString();
+				}
 			}
-			sb.append(displayCPU);
 		}
-		return sb.toString();
+		catch(Exception e) {
+		}
+		return retVal;
+	}
+	
+	private String formatPctCpu(double pctCpu) {
+		String retVal = "";
+		if(pctCpu < 0) {
+			retVal = "N/A";
+		}
+		else {
+			retVal = formatter.format(pctCpu);
+		}
+		return retVal;
+	}
+	
+	private String getPctCpuV1(IDuccWorkJob job, IDuccProcess process) {
+		double pctCPU_overall = process.getCpuTime();
+		double pctCPU_current = process.getCurrentCPU();
+		String fmtCPU_overall = formatPctCpu(pctCPU_overall);
+		String fmtCPU_current = formatPctCpu(pctCPU_current);
+		StringBuffer sb = new StringBuffer();
+		switch(process.getProcessState()) {
+		case Running:
+			String title = "title="+"\"lifetime: "+fmtCPU_overall+"\"";
+			sb.append("<span "+title+" class=\"health_green\">");
+			sb.append(fmtCPU_current);
+			sb.append("</span>");
+			break;
+		default:
+			sb.append("<span>");
+			sb.append(fmtCPU_overall);
+			sb.append("</span>");
+			break;
+		}
+		String retVal = sb.toString();
+		return retVal;
+	}
+	
+	private String getPctCpu(IDuccWorkJob job, IDuccProcess process) {
+		String location = "getPctCpu";
+		String retVal = "";
+		if(process != null) {
+			try {
+				if(process.getDataVersion() < 1) {
+					retVal = getPctCpuV0(job, process);
+				}
+				else {
+					retVal = getPctCpuV1(job, process);
+				}
+			}
+			catch(Exception e) {
+				duccLogger.error(location, jobid, e);
+			}
+		}
+		return retVal;
 	}
 	
 	private String getRSS(IDuccWorkJob job, IDuccProcess process) {
@@ -1217,7 +1245,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		// %cpu
 		index++; // jp.16
 		cbList[index].append("<td align=\"right\">");
-		String pctCPU = getPctCPU(job,process);
+		String pctCPU = getPctCpu(job,process);
 		cbList[index].append(pctCPU);
 		logAppend(index,"%cpu",pctCPU);
 		cbList[index].append("</td>");	
