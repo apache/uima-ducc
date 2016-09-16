@@ -75,7 +75,7 @@ public class JobDriverHelper {
 				mb.append(Standardize.Label.node.get()+wii.getNodeName());
 				mb.append(Standardize.Label.pid.get()+wii.getPid());
 				mb.append(Standardize.Label.tid.get()+wii.getTid());
-				mb.append(Standardize.Label.state.get()+fsm.getStateCurrent().getName());
+				mb.append(Standardize.Label.state.get()+fsm.getStateCurrent().getStateName());
 				mb.append(Standardize.Label.operatingMillis.get()+wii.getOperatingMillis());
 				logger.debug(location, ILogger.null_id, mb);
 				if(!fsm.isStateInitial()) {

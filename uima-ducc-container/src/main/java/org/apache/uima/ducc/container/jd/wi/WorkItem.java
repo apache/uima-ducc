@@ -153,7 +153,7 @@ public class WorkItem implements IWorkItem {
 		if(start > 0) {
 			if(end == 0) {
 				IState state = fsm.getStateCurrent();
-				if(state.getName().equals(WiFsm.CAS_Active.getName())) {
+				if(state.getStateName().equals(WiFsm.CAS_Active.getStateName())) {
 					end = System.currentTimeMillis();
 				}
 				else {
@@ -170,7 +170,7 @@ public class WorkItem implements IWorkItem {
 	public long getMillisInvestment() {
 		long retVal = 0;
 		IState state = fsm.getStateCurrent();
-		if(state.getName().equals(WiFsm.CAS_Active.getName())) {
+		if(state.getStateName().equals(WiFsm.CAS_Active.getStateName())) {
 			long now = System.currentTimeMillis();
 			retVal = now - getTodInvestment();
 		}

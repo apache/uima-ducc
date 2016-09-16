@@ -26,7 +26,9 @@ import org.apache.uima.ducc.container.common.fsm.FsmException;
 import org.apache.uima.ducc.container.common.fsm.State;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
+import org.apache.uima.ducc.container.common.fsm.iface.IEvent.EventType;
 import org.apache.uima.ducc.container.common.fsm.iface.IState;
+import org.apache.uima.ducc.container.common.fsm.iface.IState.StateType;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -39,24 +41,24 @@ public class WiFsm extends Fsm {
 
 	private static Logger logger = Logger.getLogger(WiFsm.class, IComponent.Id.JD.name());
 	
-	public static IState Start 						= new State("Start");
-	public static IState Get_Pending 				= new State("Get_Pending");
-	public static IState CAS_Send 					= new State("CAS_Send");
-	public static IState CAS_Active 				= new State("CAS_Active");
+	public static IState Start 						= new State(StateType.Start);
+	public static IState Get_Pending 				= new State(StateType.Get_Pending);
+	public static IState CAS_Send 					= new State(StateType.CAS_Send);
+	public static IState CAS_Active 				= new State(StateType.CAS_Active);
 	
-	public static IEvent Get_Request 				= new Event("Get_Request");
-	public static IEvent CAS_Available				= new Event("CAS_Available");
-	public static IEvent CAS_Unavailable			= new Event("CAS_Unavailable");
-	public static IEvent Ack_Request 				= new Event("Ack_Request");
-	public static IEvent Send_Failure 				= new Event("Send_Failure");
-	public static IEvent Ack_Timer_Pop				= new Event("Ack_Timer_Pop");
-	public static IEvent End_Request 				= new Event("End_Request");
-	public static IEvent End_Timer_Pop				= new Event("End_Timer_Pop");
-	public static IEvent Host_Failure				= new Event("Host_Failure");
-	public static IEvent Process_Failure			= new Event("Process_Failure");
-	public static IEvent Process_Preempt			= new Event("Process_Premept");
-	public static IEvent Process_Volunteered		= new Event("Process_Volunteered");
-	public static IEvent Investment_Reset			= new Event("Investment_Reset");
+	public static IEvent Get_Request 				= new Event(EventType.Get_Request);
+	public static IEvent CAS_Available				= new Event(EventType.CAS_Available);
+	public static IEvent CAS_Unavailable			= new Event(EventType.CAS_Unavailable);
+	public static IEvent Ack_Request 				= new Event(EventType.Ack_Request);
+	public static IEvent Send_Failure 				= new Event(EventType.Send_Failure);
+	public static IEvent Ack_Timer_Pop				= new Event(EventType.Ack_Timer_Pop);
+	public static IEvent End_Request 				= new Event(EventType.End_Request);
+	public static IEvent End_Timer_Pop				= new Event(EventType.End_Timer_Pop);
+	public static IEvent Host_Failure				= new Event(EventType.Host_Failure);
+	public static IEvent Process_Failure			= new Event(EventType.Process_Failure);
+	public static IEvent Process_Preempt			= new Event(EventType.Process_Premept);
+	public static IEvent Process_Volunteered		= new Event(EventType.Process_Volunteered);
+	public static IEvent Investment_Reset			= new Event(EventType.Investment_Reset);
 	
 	public static IAction ActionGet					= new ActionGet();
 	public static IAction ActionGetRedux			= new ActionGetRedux();
@@ -177,9 +179,9 @@ public class WiFsm extends Fsm {
 		String location = "transition";
 		IActionData actionData = (IActionData) objectData;
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		mb.append(Standardize.Label.curr.get()+getStateCurrent().getName());
-		mb.append(Standardize.Label.prev.get()+getStatePrevious().getName());
-		mb.append(Standardize.Label.event.get()+event.getName());
+		mb.append(Standardize.Label.curr.get()+getStateCurrent().getStateName());
+		mb.append(Standardize.Label.prev.get()+getStatePrevious().getStateName());
+		mb.append(Standardize.Label.event.get()+event.getEventName());
 		logger.debug(location, ILogger.null_id, mb.toString());
 	}
 }

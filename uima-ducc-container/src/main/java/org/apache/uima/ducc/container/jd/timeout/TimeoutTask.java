@@ -84,7 +84,7 @@ public class TimeoutTask implements ITimeoutTask {
 	public Object call() throws Exception {
 		String location = "call";
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		mb.append(Standardize.Label.event.get()+event.getName());
+		mb.append(Standardize.Label.event.get()+event.getEventName());
 		logger.warn(location, ILogger.null_id, mb.toString());
 		TimeoutManager.getInstance().timeout(actionData);
 		fsm.transition(event, actionData);

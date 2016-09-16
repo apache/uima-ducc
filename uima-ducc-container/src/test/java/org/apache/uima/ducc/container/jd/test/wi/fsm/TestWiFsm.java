@@ -31,9 +31,11 @@ import org.apache.uima.ducc.container.common.fsm.State;
 import org.apache.uima.ducc.container.common.fsm.StateEventKey;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
+import org.apache.uima.ducc.container.common.fsm.iface.IEvent.EventType;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsmBuilder;
 import org.apache.uima.ducc.container.common.fsm.iface.IState;
+import org.apache.uima.ducc.container.common.fsm.iface.IState.StateType;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
@@ -55,15 +57,15 @@ public class TestWiFsm extends TestBase {
 	@Test
 	public void test_01() {
 		try {
-			IState s0 = new State("a");
-			IState s1 = new State("a");
-			IState s2 = new State("b");
+			IState s0 = new State(StateType.CAS_Active);
+			IState s1 = new State(StateType.CAS_Active);
+			IState s2 = new State(StateType.CAS_Send);
 			assertTrue(s0.equals(s1));
-			asExpected("State "+s0.getName()+" == "+s1.getName());
+			asExpected("State "+s0.getStateName()+" == "+s1.getStateName());
 			assertTrue(!s0.equals(s2));
-			asExpected("State "+s0.getName()+" != "+s2.getName());
+			asExpected("State "+s0.getStateName()+" != "+s2.getStateName());
 			assertTrue(!s1.equals(s2));
-			asExpected("State "+s1.getName()+" != "+s2.getName());
+			asExpected("State "+s1.getStateName()+" != "+s2.getStateName());
 			try {
 				new State(null);
 				fail("expected Exception");
@@ -81,15 +83,15 @@ public class TestWiFsm extends TestBase {
 	@Test
 	public void test_02() {
 		try {
-			IEvent e0 = new Event("c");
-			IEvent e1 = new Event("c");
-			IEvent e2 = new Event("d");
+			IEvent e0 = new Event(EventType.Ack_Request);
+			IEvent e1 = new Event(EventType.Ack_Request);
+			IEvent e2 = new Event(EventType.CAS_Unavailable);
 			assertTrue(e0.equals(e1));
-			asExpected("Event "+e0.getName()+" == "+e1.getName());
+			asExpected("Event "+e0.getEventName()+" == "+e1.getEventName());
 			assertTrue(!e0.equals(e2));
-			asExpected("Event "+e0.getName()+" != "+e2.getName());
+			asExpected("Event "+e0.getEventName()+" != "+e2.getEventName());
 			assertTrue(!e1.equals(e2));
-			asExpected("Event "+e1.getName()+" != "+e2.getName());
+			asExpected("Event "+e1.getEventName()+" != "+e2.getEventName());
 			try {
 				new Event(null);
 				fail("expected Exception");
@@ -107,10 +109,10 @@ public class TestWiFsm extends TestBase {
 	@Test
 	public void test_03() {
 		try {
-			IState s0 = new State("a");
-			IState s1 = new State("b");
-			IEvent e0 = new Event("c");
-			IEvent e1 = new Event("d");
+			IState s0 = new State(StateType.CAS_Active);
+			IState s1 = new State(StateType.CAS_Send);
+			IEvent e0 = new Event(EventType.Ack_Request);
+			IEvent e1 = new Event(EventType.CAS_Unavailable);
 			StateEventKey se00A = new StateEventKey(s0, e0);
 			StateEventKey se00B = new StateEventKey(s0, e0);
 			assertTrue(se00A.equals(se00B));
@@ -148,21 +150,21 @@ public class TestWiFsm extends TestBase {
 	@Test
 	public void test_04() {
 		try {
-			IState s1 = new State("s1");
-			IState s2 = new State("s2");
-			IEvent e1 = new Event("e1");
-			IEvent e2 = new Event("e2");
+			IState s1 = new State(StateType.CAS_Active);
+			IState s2 = new State(StateType.CAS_Send);
+			IEvent e1 = new Event(EventType.Ack_Timer_Pop);
+			IEvent e2 = new Event(EventType.Get_Request);
 			IAction a0 = new Action();
 			IFsmBuilder fsmBuilder = new Fsm();
 			IFsm fsm = fsmBuilder;
-			debug("s1:"+s1.getName());
-			debug("s2:"+s2.getName());
-			debug("e1:"+e1.getName());
-			debug("e2:"+e2.getName());
+			debug("s1:"+s1.getStateName());
+			debug("s2:"+s2.getStateName());
+			debug("e1:"+e1.getEventName());
+			debug("e2:"+e2.getEventName());
 			fsmBuilder.addInitial(s1, e1, a0, s1);
 			fsmBuilder.add(s1, e2, a0, s2);
-			assertTrue(fsm.getStateCurrent().getName().equals(s1.getName()));
-			asExpected("state == "+s1.getName());
+			assertTrue(fsm.getStateCurrent().getStateName().equals(s1.getStateName()));
+			asExpected("state == "+s1.getStateName());
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -190,20 +192,20 @@ public class TestWiFsm extends TestBase {
 			initUserClasspath();
 			WiFsm wiFsm = new WiFsm();
 			Object actionData = null;
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));
-			asExpected("state == "+WiFsm.Start.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Start.getStateName()));
+			asExpected("state == "+WiFsm.Start.getStateName());
 			wiFsm.transition(WiFsm.Get_Request, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Get_Pending.getName()));
-			asExpected("state == "+WiFsm.Get_Pending.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Get_Pending.getStateName()));
+			asExpected("state == "+WiFsm.Get_Pending.getStateName());
 			wiFsm.transition(WiFsm.CAS_Available, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.CAS_Send.getName()));
-			asExpected("state == "+WiFsm.CAS_Send.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.CAS_Send.getStateName()));
+			asExpected("state == "+WiFsm.CAS_Send.getStateName());
 			wiFsm.transition(WiFsm.Ack_Request, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.CAS_Active.getName()));
-			asExpected("state == "+WiFsm.CAS_Active.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.CAS_Active.getStateName()));
+			asExpected("state == "+WiFsm.CAS_Active.getStateName());
 			wiFsm.transition(WiFsm.End_Request, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));
-			asExpected("state == "+WiFsm.Start.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Start.getStateName()));
+			asExpected("state == "+WiFsm.Start.getStateName());
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -217,53 +219,53 @@ public class TestWiFsm extends TestBase {
 			initUserClasspath();
 			WiFsm wiFsm = new WiFsm();
 			Object actionData = null;
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));
-			asExpected("state == "+WiFsm.Start.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Start.getStateName()));
+			asExpected("state == "+WiFsm.Start.getStateName());
 			wiFsm.transition(WiFsm.Process_Preempt, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Start.getStateName()));
 			//
 			wiFsm.transition(WiFsm.Get_Request, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Get_Pending.getName()));
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Get_Pending.getStateName()));
 			wiFsm.transition(WiFsm.Process_Preempt, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Start.getStateName()));
 			//
 			wiFsm.transition(WiFsm.Get_Request, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Get_Pending.getName()));
-			asExpected("state == "+WiFsm.Get_Pending.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Get_Pending.getStateName()));
+			asExpected("state == "+WiFsm.Get_Pending.getStateName());
 			wiFsm.transition(WiFsm.CAS_Available, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.CAS_Send.getName()));
-			asExpected("state == "+WiFsm.CAS_Send.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.CAS_Send.getStateName()));
+			asExpected("state == "+WiFsm.CAS_Send.getStateName());
 			wiFsm.transition(WiFsm.Process_Preempt, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Start.getStateName()));
 			//
 			wiFsm.transition(WiFsm.Get_Request, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Get_Pending.getName()));
-			asExpected("state == "+WiFsm.Get_Pending.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Get_Pending.getStateName()));
+			asExpected("state == "+WiFsm.Get_Pending.getStateName());
 			wiFsm.transition(WiFsm.CAS_Available, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.CAS_Send.getName()));
-			asExpected("state == "+WiFsm.CAS_Send.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.CAS_Send.getStateName()));
+			asExpected("state == "+WiFsm.CAS_Send.getStateName());
 			wiFsm.transition(WiFsm.Ack_Request, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.CAS_Active.getName()));
-			asExpected("state == "+WiFsm.CAS_Active.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.CAS_Active.getStateName()));
+			asExpected("state == "+WiFsm.CAS_Active.getStateName());
 			wiFsm.transition(WiFsm.Process_Preempt, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Start.getStateName()));
 			//
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));
-			asExpected("state == "+WiFsm.Start.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Start.getStateName()));
+			asExpected("state == "+WiFsm.Start.getStateName());
 			wiFsm.transition(WiFsm.Get_Request, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Get_Pending.getName()));
-			asExpected("state == "+WiFsm.Get_Pending.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Get_Pending.getStateName()));
+			asExpected("state == "+WiFsm.Get_Pending.getStateName());
 			wiFsm.transition(WiFsm.CAS_Available, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.CAS_Send.getName()));
-			asExpected("state == "+WiFsm.CAS_Send.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.CAS_Send.getStateName()));
+			asExpected("state == "+WiFsm.CAS_Send.getStateName());
 			wiFsm.transition(WiFsm.Ack_Request, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.CAS_Active.getName()));
-			asExpected("state == "+WiFsm.CAS_Active.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.CAS_Active.getStateName()));
+			asExpected("state == "+WiFsm.CAS_Active.getStateName());
 			wiFsm.transition(WiFsm.End_Request, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));
-			asExpected("state == "+WiFsm.Start.getName());
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Start.getStateName()));
+			asExpected("state == "+WiFsm.Start.getStateName());
 			wiFsm.transition(WiFsm.Process_Preempt, actionData);
-			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));
+			assertTrue(wiFsm.getStateCurrent().getStateName().equals(WiFsm.Start.getStateName()));
 		}
 		catch(Exception e) {
 			e.printStackTrace();
