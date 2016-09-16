@@ -55,6 +55,10 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 	private RandomAccessFile processStatFile;
 
 	private long totalCpuInitUsage = 0;
+	
+	private long previousCPUReadingInMillis = 0;
+	
+	private long previousSnapshotTime = 0;
 
 	private boolean initializing = true;
 
@@ -170,7 +174,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 				// a process
 				long totalSwapUsage = 0;
 				long totalFaults = 0;
-				long totalCpuUsage = 0;
+				long totalCpuUsageInMillis = 0;
 				long totalRss = 0;
 				int currentCpuUsage = 0;
 				Future<ProcessMemoryPageLoadUsage> processMajorFaultUsage = null;
@@ -216,8 +220,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 								ProcessCpuUsageCollector processCpuUsageCollector = new ProcessCpuUsageCollector(
 										logger, pid, raf, 42, 0);
 	*/
-								ProcessCpuUsageCollector processCpuUsageCollector = 
-										new ProcessCpuUsageCollector(logger, agent.cgroupsManager, containerId);
 								// if process is stopping or already dead dont
 								// collect metrics. The Camel
 								// route has just been stopped.
@@ -225,15 +227,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 									return;
 								}
 
-								processCpuUsage = pool
-										.submit(processCpuUsageCollector);
-								long cpuUsage = processCpuUsage.get().getCpuUsage();
-								
-								totalCpuUsage += ( processCpuUsage.get().getCpuUsage() / agent.cpuClockRate );
-								logger.info(
-										"LinuxProcessMetricsProcessor.process",null,
-										"CPU USAGE:"+cpuUsage+ " CLOCK RATE:"+agent.cpuClockRate+" Total CPU USAGE:"+totalCpuUsage);
-								
 								
 							} catch( Exception ee) {
 								logger.warn(
@@ -241,7 +234,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 										null,ee);
 							} 
 
-							currentCpuUsage += collectProcessCurrentCPU(pid);
+							//currentCpuUsage += collectProcessCurrentCPU(pid);
 
 							RandomAccessFile rStatmFile = null;
 							try {
@@ -273,11 +266,26 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 							rStatmFile.close();
 						}
+
+						ProcessCpuUsageCollector processCpuUsageCollector = 
+								new ProcessCpuUsageCollector(logger, agent.cgroupsManager, containerId);
+						processCpuUsage = pool
+								.submit(processCpuUsageCollector);
+						long cpuUsageInNanos = processCpuUsage.get().getCpuUsage();
+						
+//						totalCpuUsage += ( processCpuUsage.get().getCpuUsage() / agent.cpuClockRate );
+//						totalCpuUsage += ( cpuUsage / agent.cpuClockRate );
+						// cpuUsage comes from cpuacct.usage and is in nanos
+						totalCpuUsageInMillis = Math.round( cpuUsageInNanos / 1000000 );  // normalize into millis
+						
+						logger.info(
+								"LinuxProcessMetricsProcessor.process",null,
+								"CPU USAGE:"+cpuUsageInNanos+ " CLOCK RATE:"+agent.cpuClockRate+" Total CPU USAGE:"+totalCpuUsageInMillis);
 					} else {
 						if (swapUsageScript != null) {
 							DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
 									process.getPID(),
-									managedProcess.getOwner(), swapUsageScript,
+									managedProcess.getOwner(), swapUsageScript,        
 									logger);
 							totalSwapUsage = processSwapSpaceUsage
 									.getSwapUsage();
@@ -315,10 +323,9 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 */
 
 						// Cgroups are not available so percent CPU is not available
-						totalCpuUsage = 0;
-						
-						currentCpuUsage = collectProcessCurrentCPU(process
-								.getPID());
+						totalCpuUsageInMillis = -1;   // -1 stands for N/A
+						currentCpuUsage = -1; // -1 stands for N/A
+//						currentCpuUsage = collectProcessCurrentCPU(process.getPID());
 
 						ProcessResidentMemoryCollector collector = new ProcessResidentMemoryCollector(
 								statmFile, 2, 0);
@@ -344,63 +351,53 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 				// report cpu utilization while the process is running
 				if (managedProcess.getDuccProcess().getProcessState()
-						.equals(ProcessState.Running)) {
-					if (agent.cpuClockRate > 0) {
-						// if the process just change state from Initializing to
-						// Running ...
-						if (initializing) {
-							initializing = false;
-							// cache how much cpu was used up during
-							// initialization of the process
-							totalCpuInitUsage = totalCpuUsage;
-							// capture time when process state changed to
-							// Running
-							clockAtStartOfRun = System.currentTimeMillis();
-						}
+						.equals(ProcessState.Running) ||
+						managedProcess.getDuccProcess().getProcessState()
+						.equals(ProcessState.Initializing)	
+						) {
+					if (agent.useCgroups ) {
 						// normalize time in running state into seconds
-						long timeSinceRunningInSeconds = (System
-								.currentTimeMillis() - clockAtStartOfRun) / 1000;
-						if (timeSinceRunningInSeconds > 0) { // prevent division
-																// by zero
-							// normalize cpu % usage to report in seconds. Also
-							// subtract how much cpu was
-							// used during initialization
-							percentCPU = 100
-									* (totalCpuUsage - totalCpuInitUsage)
-									/ timeSinceRunningInSeconds;
-						}
-
-						// Publish cumulative CPU usage
-						process.setCpuTime(percentCPU);
+						percentCPU = Math.round(100*( (totalCpuUsageInMillis*1.0)/ (process.getTimeWindowRun().getElapsedMillis()*1.0)));
+						process.setCpuTime( percentCPU );
 					} else {
-						process.setCpuTime(0);
+						process.setCpuTime(-1);   // -1 stands for N/A
 						logger.info(
 								"process",
 								null,
 								"Agent is unable to determine Node's clock rate. Defaulting CPU Time to 0 For Process with PID:"
 										+ process.getPID());
 					}
-
-				} else if (managedProcess.getDuccProcess().getProcessState()
-						.equals(ProcessState.Initializing)) {
-					// report 0 for CPU while the process is initializing
-					process.setCpuTime(0);
 				} else {
-					process.setCpuTime(0);
 					// if process is not dead, report the last known percentCPU
-					// process.setCpuTime(percentCPU);
+					process.setCpuTime(percentCPU);
 				}
-				process.setCurrentCPU(currentCpuUsage);
+				// publish current CPU usage by computing a delta from the last time
+				// CPU data was fetched.
+				if ( totalCpuUsageInMillis > 0 ) {
+					double millisCPU = ( totalCpuUsageInMillis - previousCPUReadingInMillis )*1.0;
+					double millisRun = ( System.currentTimeMillis() - previousSnapshotTime )*1.0;
+					process.setCurrentCPU(Math.round(100*(millisCPU/millisRun) ) );
+					previousCPUReadingInMillis = totalCpuUsageInMillis;
+					previousSnapshotTime = System.currentTimeMillis();
+					
+				} else {
+					if (agent.useCgroups ) {
+						process.setCurrentCPU(0);
+					} else {
+						process.setCurrentCPU(-1);  // -1 stands for N/A
+					}
+				}
 				logger.info(
 					"process",
 					null,
 					"----------- PID:" + process.getPID()
-					+ " Average CPU Time:" + percentCPU
-					+ "% Current CPU Time:"
-					+ process.getCurrentCPU());
+					+ " Total CPU Time (%):" + process.getCpuTime()
+					+ " Delta CPU Time (%):" +process.getCurrentCPU() );
+//					+ "% Current CPU Time:"
+//					+ process.getCurrentCPU());
 
 				// long majorFaults =
-				// processMajorFaultUsage.get().getMajorFaults();
+				// processMajorFaultUsage.get().getMajorFaults();                   
 				// collects process Major faults (swap in memory)
 				process.setMajorFaults(totalFaults);
 				// Current Process Swap Usage in bytes

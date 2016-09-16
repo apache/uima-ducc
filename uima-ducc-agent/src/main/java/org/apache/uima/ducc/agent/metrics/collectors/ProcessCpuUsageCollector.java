@@ -45,7 +45,7 @@ public class ProcessCpuUsageCollector implements
 	
 	private long collect() throws Exception{
 			
-		return Long.parseLong(cgm.getCpuUsage(containerId));
+		return cgm.getCpuUsage(containerId);
 	
 	}
 /*
