@@ -43,6 +43,8 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 
 public abstract class ActionEndAbstract extends Action implements IAction {
 	
+	public enum ExceptionType { User, Timeout };
+	
 	private Logger logger = Logger.getLogger(ActionEndAbstract.class, IComponent.Id.JD.name());
 	
 	protected ActionEndAbstract(Logger logger) {
@@ -55,7 +57,7 @@ public abstract class ActionEndAbstract extends Action implements IAction {
 		return deallocateReason;
 	}
 	
-	protected void handleException(IActionData actionData, Object userException, String printableException) throws JobDriverException {
+	protected void handleException(IActionData actionData, ExceptionType exceptionType, Object userException, String printableException) throws JobDriverException {
 		String location = "handleException";
 		if(true) {
 			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
@@ -76,11 +78,18 @@ public abstract class ActionEndAbstract extends Action implements IAction {
 		//
 		int seqNo = metaCasHelper.getSystemKey();
 		try {
-			// Identify the timeout case in the header & record in one logger call as is multi-threadsd
-			if (printableException != null) {
-				ActionHelper.toJdErrLog(Standardize.Label.seqNo.get()+seqNo+" ***** EXCEPTION *****\n"+printableException);
-			} else {
+			switch(exceptionType) {
+			case User:
+				if(printableException != null) {
+					ActionHelper.toJdErrLog(Standardize.Label.seqNo.get()+seqNo+" ***** EXCEPTION *****\n"+printableException);
+				}
+				else {
+					ActionHelper.toJdErrLog(Standardize.Label.seqNo.get()+seqNo+" ***** EXCEPTION *****\n");
+				}
+				break;
+			case Timeout:
 				ActionHelper.toJdErrLog(Standardize.Label.seqNo.get()+seqNo+" ***** TIMEOUT *****\n"+userException.toString()+"\n");
+				break;
 			}
 		}
 		catch(Exception e) {

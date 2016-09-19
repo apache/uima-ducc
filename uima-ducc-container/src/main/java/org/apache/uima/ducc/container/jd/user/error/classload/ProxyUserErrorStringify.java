@@ -71,8 +71,8 @@ public class ProxyUserErrorStringify {
 			retVal = (String)printableString;
 		}
 		catch(Exception e) {
-			logger.error(location, ILogger.null_id, e);
-			throw new ProxyUserErrorException(e.toString());
+			logger.trace(location, ILogger.null_id, e);
+			throw new ProxyUserErrorException(e);
 		}
 		return retVal;
 	}

@@ -215,9 +215,11 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 							printableException = proxy.convert(userException);
 						}
 						catch(Exception e) {
-							logger.error(location, ILogger.null_id, e);
+							MessageBuffer eb = LoggerHelper.getMessageBuffer(actionData);
+							eb.append("unable to convert user job process exception into printable form");
+							logger.error(location, ILogger.null_id, eb.toString());
 						}
-						handleException(actionData, userException, printableException);
+						handleException(actionData, ExceptionType.User, userException, printableException);
 						displayProcessStatistics(logger, actionData, wi, pStats);
 					}
 					else {
