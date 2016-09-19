@@ -490,24 +490,36 @@ public class CGroupsManager {
 		return false;
 	}
 
-	public String getCpuUsage(String containerId ) throws Exception {
-		String usage = "0";
-		String file = getCGroupLocation("cpuacct")+containerId+System.getProperty("file.separator")+"cpuacct.stat";
-		agentLogger.trace("getCpuUsage", null, "CPUACCT.STAT file:"+file);
+	public long getCpuUsage(String containerId ) throws Exception {
+		long usage = 0;
+//		String file = getCGroupLocation("cpuacct")+containerId+System.getProperty("file.separator")+"cpuacct.stat";
+		String file = getCGroupLocation("cpuacct")+containerId+System.getProperty("file.separator")+"cpuacct.usage";
+		agentLogger.trace("getCpuUsage", null, "CPUACCT.USAGE file:"+file);
 		File f = new File(file);
 		if ( f.exists() ) {
 			InputStreamReader isr = new InputStreamReader(new FileInputStream(f));
 			BufferedReader br = new BufferedReader(isr);
 			String line;
 			try {
+//				String cpu;
 				while ((line = br.readLine()) != null) {
-					agentLogger.trace("getCpuUsage", null, "CPUACCT.STAT Line:"+line);
+					agentLogger.trace("getCpuUsage", null, "CPUACCT.USAGE Line:"+line);
+/*
 					// The line read from cpuacct.stat has: NAME VALUE syntax. 
 					// Need just the VALUE part
-					usage = (line.trim().split(" "))[1];  // get the CPU in user mode
+					if ( line.trim().length() > 0 ) {
+						cpu = (line.trim().split(" "))[1];  // get the CPU in user mode
+						// convert to long and accumulate. Need cpu both in user and system mode
+						usage += Long.parseLong(cpu);
+					}
+					*/
+					usage = Long.parseLong(line.trim());
 					break;
 				}
-			} finally {
+			} catch ( Exception e) {
+				agentLogger.error("getCpuUsage", null, e);
+			}
+			finally {
 				if (isr != null) {
 					isr.close();
 				}
