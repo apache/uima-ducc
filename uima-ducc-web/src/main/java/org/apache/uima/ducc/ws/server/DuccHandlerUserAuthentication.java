@@ -32,6 +32,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.authentication.DuccAuthenticator;
+import org.apache.uima.ducc.ws.utils.commands.CmdId;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
@@ -47,6 +48,8 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 	private DuccAuthenticator duccAuthenticator = DuccAuthenticator.getInstance();
 	
 	private DuccWebSessionManager duccWebSessionManager = DuccWebSessionManager.getInstance();
+	
+	private CmdId cmdId = new CmdId();
 	
 	public DuccHandlerUserAuthentication() {
 	}
@@ -112,6 +115,35 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}	
 	
+	// check if userid is missing (true) or specified (false)
+	private boolean isLinuxUserMissing(String userId) {
+		boolean retVal = false;	// presume userid is specified
+		if((userId == null) || (userId.trim().length() == 0)) {
+			retVal = true;	// userid is missing
+		}
+		return retVal;
+	}
+	
+	// check if userid is invalid (true) or valid (false) to Linux!
+	
+	private boolean isLinuxUserInvalid(String userId) {
+		boolean retVal = true;	// presume userid is invalid
+		String[] args = { userId };
+		String result = cmdId.runnit(args);
+		if(result != null) {
+			String[] resultParts = result.split(" ");
+			if(resultParts.length > 0) {
+				String useridPart = resultParts[0];
+				if(useridPart != null) {
+					if(useridPart.contains("("+userId+")")) {
+						retVal = false;	// userid is valid
+					}
+				}
+			}
+		}
+		return retVal;
+	}
+	
 	private void handleDuccServletLogin(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -141,8 +173,12 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 		}
 		if(sb.length() == 0) {
 			try {
-				if((userId == null) || (userId.trim().length() == 0)) {
-					duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
+				if(isLinuxUserMissing(userId)) {
+					duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed: user missing"));
+					sb.append("failure");
+				}
+				if(isLinuxUserInvalid(userId)) {
+					duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed: user invalid"));
 					sb.append("failure");
 				}
 				else if(duccAuthenticator.isPasswordChecked() && (((password == null) || (password.trim().length() == 0)))) {
