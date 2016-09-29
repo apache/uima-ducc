@@ -263,9 +263,9 @@ public class Share
 
     /**
      * It's preemptable if:
-     *   - it's not yet preempted
-     *   - it belongs to a job that has a "loser" count > 0
-     *   - it's fair-share share
+     *   - it's not yet preempted, and
+     *   - it's fair-share share, and
+     *   - it belongs to a job that has more shares than it is now allowed
      */
     boolean isPreemptable()
     {

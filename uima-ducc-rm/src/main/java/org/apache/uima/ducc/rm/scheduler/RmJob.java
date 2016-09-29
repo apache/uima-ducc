@@ -66,7 +66,8 @@ public class RmJob
     protected double time_per_item = Double.NaN;      // from OR - mean time per work item
 
     protected int share_order = 0;                    // How many shares per process this job requires (calculated on submission)
-
+    protected boolean share_order_upgraded = false;   // Set true when a Reserve request has been upgraded
+    
     protected int share_cap = Integer.MAX_VALUE;      // initially; scheduler policy will reset as the job ages
     protected int job_cap = 0;                        // current, cached cap on the job, reset at the start of every cycle
     protected int pure_fair_share = 0;                // pure uncapped un-bonused share for this job
@@ -972,6 +973,15 @@ public class RmJob
         return share_order;
     }
 
+    public void upgradeShareOrder(int s) {
+    	share_order = s;
+    	share_order_upgraded = true;
+    }
+    
+    public boolean shareOrderUpgraded() {
+    	return share_order_upgraded;
+    }
+    
     /**
      * During the scheduling algorithm we want to track some things by userid.  The "share cap" stuff is used
      * to keep track of max shares that I can actually use or want during scheduling but is generally just
@@ -1365,6 +1375,12 @@ public class RmJob
         case Service:
             st = ( isArbitraryProcess() ? "M" : "S" );          // UIMA-4142
             break;
+        // These last 2 may not be necessary
+		case Pop:
+            st = "A";
+			break;
+		default:
+			break;
         }
         return st;
     }

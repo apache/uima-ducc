@@ -1658,7 +1658,6 @@ public class Scheduler
         for ( Share s : shares.values() ) {
             sharenames.append(s.toString());
             sharenames.append(" ");
-
             switch ( rc.getPolicy() ) {
                 case FAIR_SHARE:
                     s.setShareOrder(share_order);
@@ -1682,6 +1681,11 @@ public class Scheduler
                 case RESERVE:
                     logger.info(methodName, j.getId(), "Set fixed bit for RESERVE job");
                     s.setFixed();
+                    // Use machine size for the share-order in case the request has been upgraded
+                    // (the share's share_order should be correct but perhaps the machine has become larger!)
+                    share_order = s.getMachineOrder();
+                    s.setShareOrder(share_order);
+                    j.upgradeShareOrder(share_order);
                     if ( j.isService() && !compatibleNodepool(s, j) ) {       // UIMA-4142
                         sharesToShrink.add(s);   // nodepool reconfig snafu, SM will reallocate the process
                     }
@@ -1695,7 +1699,7 @@ public class Scheduler
 
             Machine m = s.getMachine();
             NodePool np = m.getNodepool();
-            np.connectShare(s, m, j, s.getShareOrder());
+            np.connectShare(s, m, j, share_order);
 
             busyShares.put(s.getId(), s);
         }

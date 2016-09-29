@@ -954,6 +954,7 @@ public class StateManager {
 						case WaitingForResources:
 							String rmReason = rmResourceState.getReason();
 							logger.trace(methodName, duccId, messages.fetchLabel("rmReason")+rmReason);
+							duccWork.setRmReason(rmReason);
 							if(rmResourceState.isRefused()) {
 								duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 								duccWorkJob.setCompletionType(JobCompletionType.ResourcesUnavailable);

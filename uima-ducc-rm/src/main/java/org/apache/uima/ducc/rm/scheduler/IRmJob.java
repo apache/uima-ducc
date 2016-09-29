@@ -226,6 +226,9 @@ public interface IRmJob
     public void setShareOrder(int s);
     public int getShareOrder();         // IDbJob UIMA-4577
 
+    public void upgradeShareOrder(int s);
+    public boolean shareOrderUpgraded();
+
     /**
      * This returns the largest number that can actually be used, which will be either the
      * share cap itself, or nProcess / nThreads, in quantum shares.

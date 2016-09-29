@@ -34,13 +34,14 @@ import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmNodes;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
 
 class NodePool
-	implements SchedConstants
+    implements SchedConstants
 {
-	static DuccLogger logger = DuccLogger.getLogger(NodePool.class, COMPONENT_NAME);
+    static DuccLogger logger = DuccLogger.getLogger(NodePool.class, COMPONENT_NAME);
     String id;
     NodePool parent = null;
 
@@ -103,6 +104,8 @@ class NodePool
     IRmPersistence persistence = null;
     boolean canReserve = false;       // if we contain a class with policy Reserve, then stuff in this pool is reservable
 
+    static int reserve_overage = SystemPropertyResolver.getIntProperty("ducc.rm.reserve_overage", 0);
+
 //     NodePool(NodePool parent, String id, EvictionPolicy ep, int order)
 //     {
 //         this.parent = parent;
@@ -114,7 +117,7 @@ class NodePool
 
     NodePool(NodePool parent, String id, Map<String, String> nodes, EvictionPolicy ep, int depth, int search_order, int share_quantum)
     {
-    	String methodName = "NodePool.<init>";
+        String methodName = "NodePool.<init>";
         this.parent = parent;
         this.id = id;
         this.subpoolNames = nodes;
@@ -272,7 +275,7 @@ class NodePool
     Map<Node, Machine> getOfflineMachines()
     {
         @SuppressWarnings("unchecked")
-		Map<Node, Machine> ret = (Map<Node, Machine>) offlineMachines.clone();
+        Map<Node, Machine> ret = (Map<Node, Machine>) offlineMachines.clone();
         for (NodePool np : children.values()) {
             ret.putAll(np.getOfflineMachines());
         }
@@ -286,7 +289,7 @@ class NodePool
     Map<Node, Machine> getUnresponsiveMachines()
     {
         @SuppressWarnings("unchecked")
-		Map<Node, Machine> ret = (Map<Node, Machine>) unresponsiveMachines.clone();
+        Map<Node, Machine> ret = (Map<Node, Machine>) unresponsiveMachines.clone();
         for (NodePool np : children.values()) {
             ret.putAll(np.unresponsiveMachines);
         }
@@ -553,7 +556,7 @@ class NodePool
     }
 
     public Machine getMachine(NodeIdentity ni)
-    {    	
+    {       
         Machine m = machinesByIp.get(ni.getIp());
         if ( m == null ) {
             for ( NodePool np : children.values() ) {
@@ -571,7 +574,7 @@ class NodePool
     }
 
     @SuppressWarnings("unchecked")
-	HashMap<Node, Machine> getAllMachinesForPool()
+    HashMap<Node, Machine> getAllMachinesForPool()
     {
         return (HashMap<Node, Machine>) allMachines.clone();
     }
@@ -579,7 +582,7 @@ class NodePool
     HashMap<Node, Machine> getAllMachines()
     {
         @SuppressWarnings("unchecked")
-		HashMap<Node, Machine> machs = (HashMap<Node, Machine>) allMachines.clone();
+        HashMap<Node, Machine> machs = (HashMap<Node, Machine>) allMachines.clone();
         for ( NodePool np : children.values() ) {
             HashMap<Node, Machine> m = np.getAllMachines();
             if ( m != null ) {
@@ -593,7 +596,7 @@ class NodePool
     HashMap<String, Machine> getMachinesByName()
     {
         @SuppressWarnings("unchecked")
-		HashMap<String, Machine> machs = (HashMap<String, Machine>) machinesByName.clone();
+        HashMap<String, Machine> machs = (HashMap<String, Machine>) machinesByName.clone();
         for ( NodePool np : children.values() ) {
             HashMap<String, Machine> m = np.getMachinesByName();
             if ( m != null ) {
@@ -607,7 +610,7 @@ class NodePool
     HashMap<String, Machine> getMachinesByIp()
     {
         @SuppressWarnings("unchecked")
-		HashMap<String, Machine> machs = (HashMap<String, Machine>) machinesByIp.clone();
+        HashMap<String, Machine> machs = (HashMap<String, Machine>) machinesByIp.clone();
         for ( NodePool np : children.values() ) {
             HashMap<String, Machine> m = np.getMachinesByIp();
             if ( m != null ) {
@@ -619,7 +622,7 @@ class NodePool
     }
 
     @SuppressWarnings("unchecked")
-	HashMap<Node, Machine> getMachinesByOrder(int order)
+    HashMap<Node, Machine> getMachinesByOrder(int order)
     {
 
         HashMap<Node, Machine> machs;
@@ -639,12 +642,12 @@ class NodePool
     }
 
     @SuppressWarnings("unchecked")
-	Map<Node, Machine> getVirtualMachinesByOrder(int order)
+    Map<Node, Machine> getVirtualMachinesByOrder(int order)
     {
         Map<Node, Machine> machs;
 
         if( virtualMachinesByOrder.containsKey(order) ) {
-        	HashMap<Node, Machine> tmp = (HashMap<Node, Machine>) virtualMachinesByOrder.get(order);
+            HashMap<Node, Machine> tmp = (HashMap<Node, Machine>) virtualMachinesByOrder.get(order);
             machs = (HashMap<Node, Machine>) tmp.clone();
         } else {
             machs = new HashMap<Node, Machine>();
@@ -748,7 +751,7 @@ class NodePool
     void rearrangeVirtual(Machine m, int order, Policy policy)
          
     {
-    	String methodName = "rearrangeVirtual";
+        String methodName = "rearrangeVirtual";
         if ( allMachines.containsKey(m.key()) ) {
             int v_order = m.getVirtualShareOrder();
             int r_order = m.getShareOrder();
@@ -826,7 +829,7 @@ class NodePool
      */
     void reset(int order)
     {
-    	String methodName = "reset";
+        String methodName = "reset";
         //
         // TODO: Not all of these are used in every reset cycle.  Maybe we should break up the
         //       reset code so it matches the cycles better.  otoh, this isn't a performance-intensive
@@ -892,7 +895,7 @@ class NodePool
         }
 
         if ( (parent == null) && ( updated > 0 ) ) {
-        	// top-level nodepool will recurse
+            // top-level nodepool will recurse
             logger.info(methodName, null, "Scheduling Tables:\n", toString());
             updated = 0;
         }
@@ -900,7 +903,7 @@ class NodePool
 
     void resetPreemptables()
     {
-    	String methodName = "resetPreemptables";
+        String methodName = "resetPreemptables";
         logger.info(methodName, null, "Resetting preemptables in nodepool", id);
 
         // UIMA-4064 Need to do this recrsively
@@ -1016,12 +1019,12 @@ class NodePool
 
     void signalDb(Machine m, RmNodes key, Object value)
     {
-    	String methodName = "signalDb";
+        String methodName = "signalDb";
         try {
-			persistence.setNodeProperty(m.getNode().getNodeIdentity().getName(), key, value);
-		} catch (Exception e) {
-			logger.warn(methodName, null, "Cannot update DB property", key, "for machine", m);
-		}
+            persistence.setNodeProperty(m.getNode().getNodeIdentity().getName(), key, value);
+        } catch (Exception e) {
+            logger.warn(methodName, null, "Cannot update DB property", key, "for machine", m);
+        }
     }
 
     Map<RmNodes, Object> initDbProperties(Machine m)
@@ -1243,7 +1246,7 @@ class NodePool
 
     private String doVaryOff(String node)
     {
-    	// caller must insure node is known to "me"
+        // caller must insure node is known to "me"
         Machine m = machinesByName.get(node);
         if (offlineMachines.containsKey(m.key()) ) {            
             return "VaryOff: Nodepool " + id + " - Already offline: " + node;
@@ -1278,7 +1281,7 @@ class NodePool
     private String doVaryOn(String node)
     {
 
-    	// caller must insure node is known to "me"
+        // caller must insure node is known to "me"
         Machine m = machinesByName.get(node);
         Node key = m.key();
 
@@ -1325,12 +1328,18 @@ class NodePool
      * A quick check to see if there are any machines of the right size. We make a more
      * comprehensive check to see if they're usable in countFreeableMachines later. We do this
      * so we can try to return an accurate reason for deferral.
+     * UIMA-5086 Consider a range of sizes for Unmanaged Reservations
      */
     int countReservables(IRmJob j)
     {
         int order = j.getShareOrder();
-        if ( ! machinesByOrder.containsKey(order) ) return 0;
-        return machinesByOrder.get(order).size();
+        int max_order = getMaxShareOrder(j);
+        do {
+            if (machinesByOrder.containsKey(order) && machinesByOrder.get(order).size() > 0) {
+                return machinesByOrder.get(order).size();
+            }
+        } while (++order <= max_order);
+        return 0;
     }
 
     /**
@@ -1349,6 +1358,19 @@ class NodePool
         return ret;
     }
 
+    /*
+     * Add the allowable overage to the request and convert to shares
+     * But only for unmanaged reservations
+     */
+    private int getMaxShareOrder(IRmJob j) {
+        if (j.getDuccType() != DuccType.Reservation) {
+            return j.getShareOrder();
+        }
+        long mem = (j.getMemory() + reserve_overage) << 20;              // GB -> KB
+        int share_quantum = j.getShareQuantum();   // share quantum is in KB! 
+        int mso = (int) ((mem + share_quantum - 1) / share_quantum);         // round UP
+        return mso;
+    }
     
     /**
      * Adjust counts for something that takes full machines, like a reservation.
@@ -1360,6 +1382,10 @@ class NodePool
      * counting them if we didn't know FOR SURE at this point that we need them.
      * Sort on least eviction cost to get the cheapest set of preemptables.
      *
+     * UIMA-5086 Consider assigning larger machines.  Change request so later code uses just the new size.
+     * If no machines assigned yet then search machines up to "reserve_overage" larger than the requested size.
+     * If more than one needed they must match the size of the first one found.
+     * 
      * @returns number of machines given
      *          and updates the table of preemptables
      */
@@ -1368,23 +1394,41 @@ class NodePool
         String methodName = "countFreeableMachines";
 
         logger.info(methodName, j.getId(), "Enter nodepool", id, "preemptables.size() =", preemptables.size());
-        int order = j.getShareOrder();
-
-        ArrayList<Machine>  machs = new ArrayList<Machine>();
-        if ( machinesByOrder.containsKey(order) ) {
-            machs.addAll(machinesByOrder.get(order).values());            // candidates
+        int share_order = j.getShareOrder();
+        int max_share_order;
+        int actual_order;
+        
+        // If the reservation size has not yet been upgraded, include larger ones in the search
+        // Once it has been upgraded and is perhaps waiting for preemptions, don't let it be raised again 
+        // as it then might find a free machine more than reserve-overage above the original request.
+        if (! j.shareOrderUpgraded() ) {
+            actual_order = 0;   // Not yet known
+            max_share_order = getMaxShareOrder(j);
         } else {
-            return 0;                                                     // no candidates
+            actual_order = share_order;      // Additional machines must match this
+            max_share_order = share_order;   // Restrict search to just the (possibly adjusted) actual order.
         }
 
-        StringBuffer sb = new StringBuffer("Machines to search:");
+        // Get all machines in this range of sizes and sort by increasing eviction cost, with smallest first if empty
+        ArrayList<Machine>  machs = new ArrayList<Machine>();
+        for (int order = share_order; order <= max_share_order; ++order) {
+            if ( machinesByOrder.containsKey(order) ) {
+                machs.addAll(machinesByOrder.get(order).values());            // candidates
+            }
+        }
+        if (machs.size() == 0) {
+            return 0;
+        }
+        Collections.sort(machs, new MachineByAscendingEvictionCostSorter());
+
+        StringBuffer sb = new StringBuffer("Machines to search in order:");
         for ( Machine m : machs ) {
             sb.append(" ");
             sb.append(m.getId());
+            sb.append(":");
+            sb.append(m.getShareOrder());
         }
         logger.info(methodName, j.getId(), sb.toString());
-
-        Collections.sort(machs, new MachineByAscendingEvictionCostSorter());
 
         int given = 0;           // total to give, free or freeable
         Iterator<Machine> iter = machs.iterator();
@@ -1397,6 +1441,12 @@ class NodePool
               logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is offline or unresponsive or blacklisted");
               continue;
             }
+            
+            if (actual_order > 0 && m.getShareOrder() != actual_order) {
+                logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is not the same size as the first one found");
+                continue;
+            }
+            
             if ( preemptables.containsKey(m.key()) ) {         // already counted, don't count twice
                 logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "already counted.");
                 continue;
@@ -1404,19 +1454,20 @@ class NodePool
 
             if ( m.isFree() ) {
                 logger.info(methodName, j.getId(), "Giving", m.getId(), "because it is free");
-                given++;
-                continue;
-            }
-
-            if ( m.isFreeable() ) {
+            } else if ( m.isFreeable() ) {
                 logger.info(methodName, j.getId(), "Giving", m.getId(), "because it is freeable");
-                given++;
                 pables.add(m);
             } else {
                 logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is not freeable");
+                continue;
+            }
+            given++;
+            if (actual_order == 0) {
+                actual_order = m.getShareOrder();
+                j.upgradeShareOrder(actual_order);
             }
         }
-
+        
         // Remember how many full machines we need to free up when we get to preemption stage.
 
         for ( Machine m : pables ) {
@@ -1425,7 +1476,7 @@ class NodePool
             nMachinesByOrder[m.getShareOrder()]--;
         }
 
-        calcNSharesByOrder();
+        calcNSharesByOrder();  // Fill nSharesByOrder from current free space on each node
         return given;
     }
 
@@ -1511,6 +1562,7 @@ class NodePool
                 if ( s.isPreemptable() ) {
                     IRmJob j = s.getJob();
                     j.shrinkByOne(s);
+                    order = s.getShareOrder();       // Must adjust the pending array for each share
                     nPendingByOrder[order]++;
                 } else {
                     // if the share was evicted or purged we don't care.  otherwise, it SHOULD be evictable so we
@@ -1535,7 +1587,7 @@ class NodePool
      */
     void  findMachines(IRmJob job, ResourceClass rc)
     {
-    	String methodName = "findMachines";        
+        String methodName = "findMachines";        
 
         int order = job.getShareOrder();
 
@@ -1613,7 +1665,7 @@ class NodePool
 
             int new_order = order - found_order;                 // now looking for next order after removing size of what we just fond
             @SuppressWarnings("unchecked")
-			ArrayList<Share> new_shares = (ArrayList<Share>) shares.clone();        //  ... and after removing the share we just found without destroying
+            ArrayList<Share> new_shares = (ArrayList<Share>) shares.clone();        //  ... and after removing the share we just found without destroying
             new_shares.remove(0);                                //      the incoming list
 
             ArrayList<Share> found_shares =  evacuateLargest(new_order, new_shares);
@@ -1678,7 +1730,7 @@ class NodePool
      */
     void doEvictionsByMachine(int [] neededByOrder, boolean force)
     {
-    	String methodName = "doEvictions";
+        String methodName = "doEvictions";
         //
         // Collect losers that are also squatters, by order, and try them first
         //
@@ -1964,7 +2016,7 @@ class NodePool
 
     public void queryMachines()
     {
-    	String methodName = "queryMachines";
+        String methodName = "queryMachines";
         ArrayList<Machine> machines = new ArrayList<Machine>();
         machines.addAll(getAllMachines().values());
         logger.info(methodName, null, "================================== Query Machines Nodepool:", id, "=========================");
@@ -1989,6 +2041,7 @@ class NodePool
 
     //
     // Order shares by INCREASING preemption cost (all free followed by those with least eviction cost)
+    // Order the free ones and those with the same cost by ascending size (UIMA-5086)
     // Don't need to check for unschedulable or un-freeable as they will be ignored later.
     //
     class MachineByAscendingEvictionCostSorter implements Comparator<Machine> {
@@ -1998,22 +2051,28 @@ class NodePool
 
             if (m1.isFree()) {
                 if (m2.isFree())
-                    return 0;
+                    return m1.getShareOrder() - m2.getShareOrder();     // Smallest first
                 else
                     return -1; // m2 not free, m1 to the front of the list
             } else if (m2.isFree())
                 return 1;      // m1 not free, m2 to the front of the list
 
             // Sort the lowest eviction cost first
-            // Since totals are the same, most free shares ==> smallest eviction cost
+            // Either least shares in use or lowest investment
+            int diff;
             switch (evictionPolicy) {
                 case SHRINK_BY_MACHINE :
-                    return m2.countFreeShares() - m1.countFreeShares();
+                    diff = (m1.getShareOrder()-m1.countFreeShares()) - (m2.getShareOrder()-m2.countFreeShares());
                 case SHRINK_BY_INVESTMENT :
-                    return m1.getInvestment() - m2.getInvestment();
+                    diff = m1.getInvestment() - m2.getInvestment();
                 default:
-                    return 0;
+                    diff = 0;
             }
+            // If eviction costs the same, sort smallest machine first
+            if (diff == 0) {
+                diff = m1.getShareOrder() - m2.getShareOrder();
+            }
+            return diff;
         }
     }
 
@@ -2036,9 +2095,9 @@ class NodePool
     }
 
     class InvestmentSorter
-    	implements Comparator<Share>
-    {	
-    	public int compare(Share s1, Share s2)
+        implements Comparator<Share>
+    {   
+        public int compare(Share s1, Share s2)
         {
             return (int) (s1.getInvestment() - s2.getInvestment());           // lowest investment
                                                                       // if we're not tracking investment we
@@ -2047,9 +2106,9 @@ class NodePool
     }
 
     class DescendingShareOrderSorter
-    	implements Comparator<Share>
-    {	
-    	public int compare(Share s1, Share s2)
+        implements Comparator<Share>
+    {   
+        public int compare(Share s1, Share s2)
         {
             return (int) (s2.getShareOrder() - s1.getShareOrder());
         }
@@ -2057,18 +2116,18 @@ class NodePool
 
 
     class MachineByOrderSorter
-    	implements Comparator<Machine>
-    {	
-    	public int compare(Machine m1, Machine m2)
+        implements Comparator<Machine>
+    {   
+        public int compare(Machine m1, Machine m2)
         {
             return m2.getShareOrder() - m1.getShareOrder();
         }
     }
 
     class MachineByAscendingOrderSorter
-    	implements Comparator<Machine>
-    {	
-    	public int compare(Machine m1, Machine m2)
+        implements Comparator<Machine>
+    {   
+        public int compare(Machine m1, Machine m2)
         {
             return m1.getShareOrder() - m2.getShareOrder();
         }
