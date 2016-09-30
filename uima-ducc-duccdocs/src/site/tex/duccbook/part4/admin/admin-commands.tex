@@ -776,3 +776,38 @@ db_loader -i /home/ducc.old/ducc_runtime --no-archive
     The console shows progress of the loader.  Full details of the load are written to a log {\em db-loader-log}
     in the usual DUCC log directory, for reference and potential problem determination if something goes wrong.
     
+    
+\subsection{db\_tool}
+\label{subsec:admin.db-tool}
+
+    \paragraph{Description:}
+        This command is used to backup and restore DUCC's database.
+        
+    \paragraph{Options:}
+    Exactly one of the following options is required.
+    \begin{description}
+	        \item[$--save$ {\em PATH.tar.gz}] 
+	          The file to save the DUCC database contents.  The database must be up.  The file cannot already exist.
+       		\item[$--save-overwrite$ {\em PATH.tar.gz}] 
+	          The file to save the DUCC database contents.  The database must be up.
+	        \item[$--restore$ {\em PATH.tar.gz}] 
+	          The file to restore the DUCC database contents.  The database must be down.  The database directory cannot exist.
+	        \item[$--restore-overwrite$ {\em PATH.tar.gz}] 
+	          The file to restore the DUCC database contents.  The database must be down.
+     \end{description}
+	 The following options are optional and are mutually exclusive wtih each other.
+	 \begin{description}
+	        \item[$--verbose$] 
+	          Print extra debug messages.
+       		\item[$--quiet$] 
+	          Print no informational messages.
+     \end{description}
+	 
+    \paragraph{Example:}
+\begin{verbatim}
+db_tool --save-overwrite /backups/ducc/ducc_db.tar.gz
+db_tool --restore-overwrite /backups/ducc/ducc_db.tar.gz --verbose
+\end{verbatim}
+
+    \paragraph{Notes:}
+    The console shows progress of the db\_tool unless --quiet is specified.   
