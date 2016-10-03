@@ -275,7 +275,7 @@ class DbTool(DuccUtil):
                 self.logger.warn(text)
                 self.terminate()
                 
-    # remove database directory
+    # create database directory
     def create_directory(self):   
         path = self.ducc_database_data
         if(os.path.exists(path)):
@@ -299,7 +299,16 @@ class DbTool(DuccUtil):
                 text = 'remove '+self.targz+' failure'
                 self.logger.warn(text)
                 self.terminate()
-                
+    
+    # create targz directory
+    def makedirs_targz(self):
+        path = self.targz.rsplit('/',1)[0]
+        if(os.path.exists(path)):
+            return
+        text = 'makedirs '+path
+        self.logger.info(text)
+        os.makedirs(path)
+    
     # create tar.gz
     def create_targz(self):
         text = 'create '+self.targz
@@ -398,6 +407,7 @@ class DbTool(DuccUtil):
         self.remove_snapshot()
         self.create_snapshot()
         self.remove_targz()
+        self.makedirs_targz()
         self.create_targz()
         self.complete()       
 
