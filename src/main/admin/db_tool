@@ -20,6 +20,7 @@
 
 import glob
 import os
+import socket
 import subprocess
 import sys
 import tarfile
@@ -128,17 +129,27 @@ class DbTool(DuccUtil):
         epilog = epilog + 'Example:'
         epilog = epilog + '\n'
         epilog = epilog + 'bash-4.1$ ./db_tool --save-overwrite /backups/ducc/ducc-db.tar.gz'
+        epilog = epilog + '\n'
         epilog = epilog + '2016-09-30 14:05:25,938 I save-overwrite'
+        epilog = epilog + '\n'
         epilog = epilog + '2016-09-30 14:05:28,570 I Uptime (seconds) : 506'
+        epilog = epilog + '\n'
         epilog = epilog + '2016-09-30 14:05:28,571 I database is up'
+        epilog = epilog + '\n'
         epilog = epilog + '2016-09-30 14:05:28,571 I remove snapshot'
+        epilog = epilog + '\n'
         epilog = epilog + '2016-09-30 14:05:31,152 I create snapshot'
+        epilog = epilog + '\n'
         epilog = epilog + '2016-09-30 14:05:34,002 I remove /home/degenaro/ducc-db.tar.gz'
+        epilog = epilog + '\n'
         epilog = epilog + '2016-09-30 14:05:34,015 I create /home/degenaro/ducc-db.tar.gz'
+        epilog = epilog + '\n'
         epilog = epilog + '2016-09-30 14:05:34,499 I count[files]=303'
+        epilog = epilog + '\n'
         epilog = epilog + '2016-09-30 14:05:34,499 I size[bytes]=177844'
+        epilog = epilog + '\n'
         epilog = epilog + '2016-09-30 14:05:34,499 I processing completed successfully'
-        print epilog
+        epilog = epilog + '\n'
         return epilog
     
     # parse command line
@@ -430,10 +441,16 @@ class DbTool(DuccUtil):
         self.extract_targz()
         self.complete()   
         
+    # record hostname where invoked
+    def hostname(self):
+        text = 'host='+socket.gethostbyaddr(socket.gethostname())[0]
+        self.logger.info(text)   
+        
     # --save or  --save-overwrite or --restore or --restore-overwrite
     def main(self, argv):
     	self.parse(argv)
         self.logger = Logger(self.options)
+        self.hostname()
         if(self.options.var_save != None):
             self.save_virgin()
         elif (self.options.var_save_overwrite != None):
