@@ -31,7 +31,6 @@ from optparse import OptionParser
 
 import logging
 from numpy import outer
-logging.basicConfig(format='%(asctime)s %(message)s',level=logging.DEBUG)
 
 from ducc_util import DuccUtil
 
@@ -55,10 +54,27 @@ class DbToolOptionParser(OptionParser):
 # See --help
 
 class Logger():
-    
+
     def __init__(self, options):
         self.options = options
         
+        #Get the root logger
+        logger = logging.getLogger()
+        #Have to set the root logger level, it defaults to logging.WARNING
+        logger.setLevel(logging.NOTSET)
+
+        formatter = logging.Formatter('%(asctime)s %(message)s')
+
+        logging_handler_out = logging.StreamHandler(sys.stdout)
+        logging_handler_out.setLevel(logging.INFO)
+        logging_handler_out.setFormatter(formatter)
+        logger.addHandler(logging_handler_out)
+
+        #logging_handler_err = logging.StreamHandler(sys.stderr)
+        #logging_handler_err.setLevel(logging.WARNING)
+        #logging_handler_err.setFormatter(formatter)
+        #logger.addHandler(logging_handler_err)
+            
     def info(self, text):
         if(self.options.var_quiet):
             return
