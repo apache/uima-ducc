@@ -86,7 +86,23 @@ class DbCreate(DuccUtil):
             elif o in ('-h', '-?', '--help'):
                 self.usage(None)
         
-
+        # abort db create if db already running
+        status = 'unknown'
+        cmd = self.DUCC_HOME+'/cassandra-server/bin/nodetool'
+        p = subprocess.Popen([cmd, 'info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if ((err != None) and (err != '')):
+            if (err.startswith(self.cmd_name_nodetool+': Failed to connect')):
+                status = 'down'
+        elif ((out != None) and (out != '')):
+            for line in out.splitlines():
+                if(line.startswith('Uptime')):
+                    status = 'up'
+                    break
+        if(status != 'down'):
+            print 'unsafe to proceed, database status: '+status
+            return
+    
         if ( self.database_pw == None ):
             self.database_pw = self.generate_pw()
 
