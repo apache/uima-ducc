@@ -191,6 +191,18 @@ implements IJobProcessor{
 				logger.warn("start", null, "Missing Deployment Descriptor - the JP Requires argument. Add DD for UIMA-AS job or AE descriptor for UIMA jobs");
                 throw new RuntimeException("Missing Deployment Descriptor - the JP Requires argument. Add DD for UIMA-AS job or AE descriptor for UIMA jobs");
 			}
+
+			int scaleout = 1;
+			String jpThreadCount = System.getProperty(FlagsHelper.Name.JpThreadCount.pname());
+        	if ( jpThreadCount == null ) {
+        		jpThreadCount = "1";
+        	} 
+        	try {
+    			scaleout = Integer.parseInt(jpThreadCount);
+        	} catch(NumberFormatException e) {
+                throw new RuntimeException("Invalid value for "+FlagsHelper.Name.JpThreadCount.pname()+" - it should be an integer but it is "+jpThreadCount);
+        	}
+
 			// this class implements resetInvestment method
 			Method m = this.getClass().getDeclaredMethod("resetInvestment", String.class);
 			// register this class and its method to handle investment reset
@@ -216,6 +228,8 @@ implements IJobProcessor{
 				// existence of -DDucc.Job.Type
 				String jobType = System.getProperty(FlagsHelper.Name.JpType.pname()); 
 
+            	
+
 				String[] jpArgs;
                 // check if this is DD job
 				if ( "uima-as".equals(jobType)) {
@@ -225,12 +239,12 @@ implements IJobProcessor{
     						"-xslt",dd2SpringXslPath};
                 } else if ( "uima".equals(jobType)) {
                 	// this is pieces-parts job
-                	String scaleout = System.getProperty(FlagsHelper.Name.JpThreadCount.pname());
-                	if ( scaleout == null ) {
-                		scaleout = "1";
-                	}
+//                	String scaleout = System.getProperty(FlagsHelper.Name.JpThreadCount.pname());
+//                	if ( scaleout == null ) {
+//                		scaleout = "1";
+//                	}
                 	// aed - analysis engine descriptor. Will use UIMA core only
-                	jpArgs = new String[] { "-aed",args[0], "-t", scaleout};
+                	jpArgs = new String[] { "-aed",args[0], "-t", jpThreadCount};
                 } else if ( "user".equals(jobType)) {
                 	jpArgs = args;  
                 } else {
@@ -240,7 +254,8 @@ implements IJobProcessor{
 				// Using java reflection, initialize instance of IProcessContainer
 				Method initMethod = processorInstance.getClass().getSuperclass().
 						getDeclaredMethod("initialize", Properties.class, String[].class);
-				int scaleout = (Integer)initMethod.invoke(processorInstance, props, jpArgs);
+//				int scaleout = (Integer)initMethod.invoke(processorInstance, props, jpArgs);
+				initMethod.invoke(processorInstance, props, jpArgs);
 				
 				getLogger().info("start", null,"Ducc JP JobType="+jobType);
 				httpClient = new DuccHttpClient();
