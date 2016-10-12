@@ -104,16 +104,8 @@ class NodePool
     IRmPersistence persistence = null;
     boolean canReserve = false;       // if we contain a class with policy Reserve, then stuff in this pool is reservable
 
-    static int reserve_overage = SystemPropertyResolver.getIntProperty("ducc.rm.reserve_overage", 0);
-
-//     NodePool(NodePool parent, String id, EvictionPolicy ep, int order)
-//     {
-//         this.parent = parent;
-//         this.id = id;
-//         this.evictionPolicy = ep;
-//         this.depth = 0;
-//         this.order = order;
-//     }
+    // Allowable excess size in GB for unmanaged reservations (ignore negative values)
+    static int reserve_overage = Math.max(0, SystemPropertyResolver.getIntProperty("ducc.rm.reserve_overage", 0));
 
     NodePool(NodePool parent, String id, Map<String, String> nodes, EvictionPolicy ep, int depth, int search_order, int share_quantum)
     {
@@ -1333,7 +1325,7 @@ class NodePool
     int countReservables(IRmJob j)
     {
         int order = j.getShareOrder();
-        int max_order = getMaxShareOrder(j);
+        int max_order = order + getReserveOverage(j);
         do {
             if (machinesByOrder.containsKey(order) && machinesByOrder.get(order).size() > 0) {
                 return machinesByOrder.get(order).size();
@@ -1359,17 +1351,16 @@ class NodePool
     }
 
     /*
-     * Add the allowable overage to the request and convert to shares
+     * Convert the GB overage to shares (rounding down) 
      * But only for unmanaged reservations
+     * UIMA-5086
      */
-    private int getMaxShareOrder(IRmJob j) {
-        if (j.getDuccType() != DuccType.Reservation) {
-            return j.getShareOrder();
+    private int getReserveOverage(IRmJob j) {
+        if (j.getDuccType() != DuccType.Reservation || reserve_overage <= 0) {
+            return 0;
         }
-        long mem = (j.getMemory() + reserve_overage) << 20;              // GB -> KB
-        int share_quantum = j.getShareQuantum();   // share quantum is in KB! 
-        int mso = (int) ((mem + share_quantum - 1) / share_quantum);         // round UP
-        return mso;
+        int share_quantum = j.getShareQuantum() >> 20;   // why is share quantum in KB?
+        return reserve_overage / share_quantum; 
     }
     
     /**
@@ -1403,7 +1394,7 @@ class NodePool
         // as it then might find a free machine more than reserve-overage above the original request.
         if (! j.shareOrderUpgraded() ) {
             actual_order = 0;   // Not yet known
-            max_share_order = getMaxShareOrder(j);
+            max_share_order = share_order + getReserveOverage(j);
         } else {
             actual_order = share_order;      // Additional machines must match this
             max_share_order = share_order;   // Restrict search to just the (possibly adjusted) actual order.

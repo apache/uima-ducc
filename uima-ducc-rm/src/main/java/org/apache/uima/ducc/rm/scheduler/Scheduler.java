@@ -234,6 +234,7 @@ public class Scheduler
         logger.info(methodName, null, "                       default memory          : ", defaultMemory);
         logger.info(methodName, null, "                       default fairshare class : ", defaultFairShareName);
         logger.info(methodName, null, "                       default reserve         : ", defaultReserveName);
+        logger.info(methodName, null, "                       reserve overage         : ", SystemPropertyResolver.getIntProperty("ducc.rm.reserve_overage", 0), " GB");
         logger.info(methodName, null, "                       class definition file   : ", class_definitions);
         logger.info(methodName, null, "                       default domain          : ", defaultDomain);      // UIMA-4142
         logger.info(methodName, null, "                       eviction policy         : ", evictionPolicy);

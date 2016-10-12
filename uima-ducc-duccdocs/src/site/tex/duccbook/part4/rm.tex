@@ -184,9 +184,9 @@
 
           FIXED\_SHARE allocations have several uses:
           \begin{itemize}
-            \item Unmanaged reservations.  In this case DUCC starts no work in the share(s); the user must
-              log in (or run something via ssh), and then manually release the reservation to free
-              the resources.  This is often used for testing and debugging.
+%            \item Unmanaged reservations.  In this case DUCC starts no work in the share(s); the user must
+%              log in (or run something via ssh), and then manually release the reservation to free
+%              the resources.  This is often used for testing and debugging.
             \item Services.  If a service is registered to run in a FIXED\_SHARE allocation,
               DUCC allocates the resources, starts and manages the service, and releases the
               resource if the service is stopped or unregistered.
@@ -200,14 +200,16 @@
           
         \item[RESERVE] The RESERVE policy is used to allocate a dedicated machine.
           The allocation may be {\em evicted} but it is never {\em preempted}. It is
-          restricted to a single machine per request.  The memory size
-          specified in the reservation must match machine size
-          exactly, within the limits of rounding to the next highest multiple of the
-          quantum.  DUCC will not ``promote'' a reservation request to a larger machine
-          than is asked for.  A reservation that does not adequately match any
+          restricted to a single machine per request.  Usually the memory size
+          of the machine must match the size specified in the reservation 
+          exactly, after rounding up to the next highest multiple of the quantum.
+          But if {\em ducc.rm.reserve\_overage} is positive, DUCC can assign a
+          machine up to this many GB larger.
+          A reservation that does not adequately match any
           machine remains pending until resources are made available or it is 
           canceled by the user or an administrator. Reservations may be
           subject to \hyperref[sec:rm.allotment]{allotment caps}.
+          A class that implements the RESERVE policy is required for unmanaged reservations.
 
     \end{description}
     
