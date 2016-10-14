@@ -21,7 +21,6 @@ package org.apache.uima.ducc.orchestrator;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
@@ -34,6 +33,7 @@ import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
@@ -55,30 +55,17 @@ public class ProcessAccounting {
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private Messages messages = orchestratorCommonArea.getSystemMessages();
-	private DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 	
-	private ConcurrentHashMap<DuccId,DuccId> processToJobMap = new ConcurrentHashMap<DuccId,DuccId>();
-	
+	private ProcessToJobMap processToJobMap = ProcessToJobMap.getInstance();
 	private StateJobAccounting stateJobAccounting = StateJobAccounting.getInstance();
 	
 	public ProcessAccounting() {
 	}
 	
-	public ProcessAccounting(ConcurrentHashMap<DuccId,DuccId> processToJobMap) {
-		setProcessToJobMap(processToJobMap);
-	}
-	
-	public ConcurrentHashMap<DuccId,DuccId> getProcessToJobMap() {
-		return this.processToJobMap;
-	}
-	
-	private void setProcessToJobMap(ConcurrentHashMap<DuccId,DuccId> processToJobMap) {
-		this.processToJobMap = processToJobMap;
-	}
-	
 	public DuccId getJobId(DuccId processId) {
 		String methodName = "getJobId";
 		DuccId retVal;
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {
 			ts.using();
@@ -91,6 +78,7 @@ public class ProcessAccounting {
 	public int processCount() {
 		String methodName = "processCount";
 		int retVal;
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {
 			ts.using();
@@ -104,6 +92,7 @@ public class ProcessAccounting {
 		String methodName = "addProcess";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		boolean retVal = false;
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		ts.using();
 		DuccId key = processToJobMap.put(processId, jobId);
@@ -123,6 +112,7 @@ public class ProcessAccounting {
 		String methodName = "removeProcess";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		boolean retVal = false;
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {
 			ts.using();
@@ -656,10 +646,37 @@ public class ProcessAccounting {
 		}
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
 	}
+
+	private IDuccProcess getProcess(IDuccWorkExecutable dw, DuccId processId) {
+		IDuccProcess process = null;
+		if(dw != null) {
+			if(processId != null) {
+				IDuccProcessMap map = null;
+				map = dw.getProcessMap();
+				if(map != null) {
+					process = map.get(processId);
+					if(process == null) {
+						if(dw instanceof IDuccWorkJob) {
+							IDuccWorkJob job = (IDuccWorkJob) dw;
+							DuccWorkPopDriver driver = job.getDriver();
+							if(driver != null) {
+								map = driver.getProcessMap();
+								if(map != null) {
+									process = map.get(processId);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return process;
+	}
 	
 	public void setStatus(IDuccProcess inventoryProcess) {
 		String methodName = "setStatus";
 		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		try {
 			DuccId processId = inventoryProcess.getDuccId();
 			logger.debug(methodName, null, processId, messages.fetchLabel("node")+inventoryProcess.getNodeIdentity().getName()+" "+messages.fetchLabel("PID")+inventoryProcess.getPID());
@@ -667,59 +684,58 @@ public class ProcessAccounting {
 			synchronized(workMap) {
 				ts.using();
 				if(processToJobMap.containsKey(processId)) {
+					logger.trace(methodName, null, processId, "key found");
 					DuccId jobId = getJobId(processId);
-					IDuccWork duccWork = WorkMapHelper.findDuccWork(workMap, jobId, this, methodName);
-					if(duccWork != null) {
-						if(duccWork instanceof IDuccWorkExecutable) {
-							IDuccWorkExecutable duccWorkExecutable = (IDuccWorkExecutable) duccWork;
+					logger.trace(methodName, jobId, processId, "jobId from process map");
+					IDuccWork dw = WorkMapHelper.findDuccWork(workMap, jobId, this, methodName);
+					if(dw != null) {
+						logger.trace(methodName, dw.getDuccId(), processId, "entity found in work map");
+						if(dw instanceof IDuccWorkExecutable) {
 							IDuccWorkJob job = null;
-							if(duccWork instanceof IDuccWorkJob) { 
-								job = (IDuccWorkJob)duccWork;
-							}
-							IDuccProcessMap processMap = duccWorkExecutable.getProcessMap();
-							IDuccProcess process = processMap.get(processId);
-							if(process == null) {
-								if(job != null) { 
-									process = job.getDriver().getProcessMap().get(processId);
-									OrchestratorHelper.jdDeallocate(job, inventoryProcess);
-								}
-							}
-							if(process != null) {
-								if(process.isComplete()) {
-									logger.trace(methodName, jobId, process.getDuccId(), "finalized");
+							if(dw instanceof IDuccWorkJob) { 
+								job = (IDuccWorkJob)dw;
+								IDuccProcess process = getProcess(job, processId);
+								if(process != null) {
+									logger.trace(methodName, job.getDuccId(), processId, "process found");
+									if(process.isComplete()) {
+										logger.trace(methodName, jobId, process.getDuccId(), "finalized");
+									}
+									else {
+										logger.trace(methodName, jobId, process.getDuccId(), "active");
+										// PID
+										copyInventoryPID(job, inventoryProcess, process);
+										// Scheduler State
+										setResourceStateAndReason(job, inventoryProcess, process);
+										// Process State
+										copyInventoryProcessState(job, inventoryProcess, process);
+										// Process Reason
+										copyReasonForStoppingProcess(job, inventoryProcess, process);
+										// Process Exit code
+										copyProcessExitCode(job, inventoryProcess, process);
+										// Process Init & Run times
+										updateProcessTime(job, inventoryProcess, process);
+										// Process Initialization State
+										updateProcessInitilization(job, inventoryProcess, process);
+										// Process Pipeline Components State
+										copyUimaPipelineComponentsState(job, inventoryProcess, process);
+										// Process Swap Usage
+										copyInventorySwapUsage(job, inventoryProcess, process);
+										// Process Major Faults
+										copyInventoryMajorFaults(job, inventoryProcess, process);
+										// Process Rss
+										copyInventoryRss(job, inventoryProcess, process);
+										// Process GC Stats
+										copyInventoryGCStats(job, inventoryProcess, process);
+										// Process CPU Time
+										copyInventoryCpuTime(job, inventoryProcess, process);
+									}
 								}
 								else {
-									logger.trace(methodName, jobId, process.getDuccId(), "active");
-									// PID
-									copyInventoryPID(job, inventoryProcess, process);
-									// Scheduler State
-									setResourceStateAndReason(job, inventoryProcess, process);
-									// Process State
-									copyInventoryProcessState(job, inventoryProcess, process);
-									// Process Reason
-									copyReasonForStoppingProcess(job, inventoryProcess, process);
-									// Process Exit code
-									copyProcessExitCode(job, inventoryProcess, process);
-									// Process Init & Run times
-									updateProcessTime(job, inventoryProcess, process);
-									// Process Initialization State
-									updateProcessInitilization(job, inventoryProcess, process);
-									// Process Pipeline Components State
-									copyUimaPipelineComponentsState(job, inventoryProcess, process);
-									// Process Swap Usage
-									copyInventorySwapUsage(job, inventoryProcess, process);
-									// Process Major Faults
-									copyInventoryMajorFaults(job, inventoryProcess, process);
-									// Process Rss
-									copyInventoryRss(job, inventoryProcess, process);
-									// Process GC Stats
-									copyInventoryGCStats(job, inventoryProcess, process);
-									// Process CPU Time
-									copyInventoryCpuTime(job, inventoryProcess, process);
+									logger.warn(methodName, dw.getDuccId(), processId, messages.fetch("process not found in job's process table"));
 								}
 							}
 							else {
-								logger.warn(methodName, jobId, processId, messages.fetch("process not found job's process table"));
+								logger.warn(methodName, dw.getDuccId(), processId, "entity is not job");
 							}
 						}
 						else {
@@ -727,7 +743,7 @@ public class ProcessAccounting {
 						}
 					}
 					else {
-						logger.warn(methodName, jobId, processId, messages.fetch("job ID not found"));
+						logger.warn(methodName, jobId, processId, messages.fetch("ID not found"));
 					}
 				}
 				else {

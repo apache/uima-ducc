@@ -84,6 +84,7 @@ import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 
 public class StateManager {
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(StateManager.class.getName());
+	private static final DuccId jobid = null;
 	
 	private static StateManager stateManager = new StateManager();
 	
@@ -238,8 +239,29 @@ public class StateManager {
 		return retVal;
 	}
 	
+	private void dumper() {
+		String location = "dumper";
+		try {
+			DuccWorkMap dwMap = orchestratorCommonArea.getWorkMap();
+			for(DuccId duccId : dwMap.keySet()) {
+				IDuccWork dw = dwMap.findDuccWork(duccId);
+				if(dw != null) {
+					logger.trace(location, duccId, "dw: "+dw.getDuccType());
+				}
+			}
+			ConcurrentHashMap<DuccId, DuccId> p2jMap = ProcessToJobMap.getInstance().getMap();
+			for(Entry<DuccId, DuccId> entry : p2jMap.entrySet()) {
+				logger.trace(location, jobid, "p:"+entry.getKey()+" "+"j:"+entry.getValue());
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
 	public int prune(DuccWorkMap workMap) {
 		String methodName = "prune";
+		dumper();
 		int changes = 0;
 		logger.trace(methodName, null, messages.fetch("enter"));
 		long t0 = System.currentTimeMillis();
@@ -268,15 +290,32 @@ public class StateManager {
 						WorkMapHelper.removeDuccWork(workMap, duccWorkJob, this, methodName);
 						logger.info(methodName, duccId, messages.fetch("removed job"));
 						changes ++;
-						IDuccProcessMap processMap = duccWorkJob.getProcessMap();
-						Iterator<DuccId> processMapIterator = processMap.keySet().iterator();
-						while(processMapIterator.hasNext()) {
-							DuccId processDuccId = processMapIterator.next();
-							orchestratorCommonArea.getProcessAccounting().removeProcess(processDuccId);
-							logger.info(methodName, duccId, messages.fetch("removed process")+" "+processDuccId.toString());
-							changes ++;
+						IDuccProcessMap processMap = null;
+						DuccWorkPopDriver driver = duccWorkJob.getDriver();
+						if(driver != null) {
+							processMap = driver.getProcessMap();
 						}
-						logger.info(methodName, duccId, messages.fetch("processes inactive"));
+						if(processMap != null) {
+							Iterator<DuccId> processMapIterator = processMap.keySet().iterator();
+							while(processMapIterator.hasNext()) {
+								DuccId processDuccId = processMapIterator.next();
+								orchestratorCommonArea.getProcessAccounting().removeProcess(processDuccId);
+								logger.info(methodName, duccId, messages.fetch("removed driver process")+" "+processDuccId.toString());
+								changes ++;
+							}
+							logger.info(methodName, duccId, messages.fetch("processes driver inactive"));
+						}
+						processMap = duccWorkJob.getProcessMap();
+						if(processMap != null) {
+							Iterator<DuccId> processMapIterator = processMap.keySet().iterator();
+							while(processMapIterator.hasNext()) {
+								DuccId processDuccId = processMapIterator.next();
+								orchestratorCommonArea.getProcessAccounting().removeProcess(processDuccId);
+								logger.info(methodName, duccId, messages.fetch("removed process")+" "+processDuccId.toString());
+								changes ++;
+							}
+							logger.info(methodName, duccId, messages.fetch("processes inactive"));
+						}
 					}
 					else {
 						logger.debug(methodName, duccId, messages.fetch("processes active"));
@@ -302,7 +341,7 @@ public class StateManager {
 		if(elapsed > Constants.SYNC_LIMIT) {
 			logger.debug(methodName, null, "elapsed msecs: "+elapsed);
 		}
-		logger.debug(methodName, null, "processToWorkMap.size()="+orchestratorCommonArea.getProcessAccounting().processCount());
+		logger.debug(methodName, null, "processToWorkMap.size="+orchestratorCommonArea.getProcessAccounting().processCount());
 		if(changes > 0) {
 			OrchestratorCheckpoint.getInstance().saveState();
 		}

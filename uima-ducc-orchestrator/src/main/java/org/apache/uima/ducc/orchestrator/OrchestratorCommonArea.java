@@ -183,7 +183,6 @@ public class OrchestratorCommonArea {
 	
 	// **********
 	
-	@SuppressWarnings("unchecked")
 	public Checkpointable getCheckpointable() {
 		String methodName = "getCheckpointable";
 		DuccWorkMap ckptWorkMap;
@@ -192,7 +191,7 @@ public class OrchestratorCommonArea {
 		synchronized(this) {
 			ts.using();
 			ckptWorkMap = (DuccWorkMap)SerializationUtils.clone(workMap);
-			ckptProcessToJobMap = (ConcurrentHashMap<DuccId,DuccId>)SerializationUtils.clone(processAccounting.getProcessToJobMap());
+			ckptProcessToJobMap = ProcessToJobMap.getInstance().getMap();
 		}
 		ts.ended();
 		return new Checkpointable(ckptWorkMap,ckptProcessToJobMap);
@@ -204,14 +203,14 @@ public class OrchestratorCommonArea {
 		synchronized(this) {
 			ts.using();
 			workMap = checkpointable.getWorkMap();
-			processAccounting = new ProcessAccounting(checkpointable.getProcessToJobMap());
+			ProcessToJobMap.getInstance().putMap(checkpointable.getProcessToJobMap());
 		}
 		ts.ended();
 	}
 	
 	// **********
 	
-	private ProcessAccounting processAccounting;
+	private ProcessAccounting processAccounting = null;
 	
 	public ProcessAccounting getProcessAccounting() {
 		return processAccounting;
