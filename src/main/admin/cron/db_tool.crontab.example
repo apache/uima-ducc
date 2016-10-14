@@ -20,15 +20,12 @@
 # under the License.
 # -----------------------------------------------------------------------
 
-DB_TOOL=/home/ducc/ducc_runtime/admin/db_tool
-DB_BKDIR=/backups/ducc/backup_db
-
 # Revise the day-of-week backup each day at 3:30 AM
 
-30 3 * * 0 $DB_TOOL --save-overwrite $DB_BKDIR/Sun.tar.gz 1>$DB_BKDIR/Sun.backup.log 2>&1
-30 3 * * 1 $DB_TOOL --save-overwrite $DB_BKDIR/Mon.tar.gz 1>$DB_BKDIR/Mon.backup.log 2>&1
-30 3 * * 2 $DB_TOOL --save-overwrite $DB_BKDIR/Tue.tar.gz 1>$DB_BKDIR/Tue.backup.log 2>&1
-30 3 * * 3 $DB_TOOL --save-overwrite $DB_BKDIR/Wed.tar.gz 1>$DB_BKDIR/Wed.backup.log 2>&1
-30 3 * * 4 $DB_TOOL --save-overwrite $DB_BKDIR/Thu.tar.gz 1>$DB_BKDIR/Thu.backup.log 2>&1
-30 3 * * 5 $DB_TOOL --save-overwrite $DB_BKDIR/Fri.tar.gz 1>$DB_BKDIR/Fri.backup.log 2>&1
-30 3 * * 6 $DB_TOOL --save-overwrite $DB_BKDIR/Sat.tar.gz 1>$DB_BKDIR/Sat.backup.log 2>&1
+30 3 * * 0 /home/ducc/ducc_runtime/admin/db_tool --save-overwrite /backups/ducc/backup_db/Sun.tar.gz 1>/backups/ducc/backup_db/Sun.backup.log 2>&1
+30 3 * * 1 /home/ducc/ducc_runtime/admin/db_tool --save-overwrite /backups/ducc/backup_db/Mon.tar.gz 1>/backups/ducc/backup_db/Mon.backup.log 2>&1
+30 3 * * 2 /home/ducc/ducc_runtime/admin/db_tool --save-overwrite /backups/ducc/backup_db/Tue.tar.gz 1>/backups/ducc/backup_db/Tue.backup.log 2>&1
+30 3 * * 3 /home/ducc/ducc_runtime/admin/db_tool --save-overwrite /backups/ducc/backup_db/Wed.tar.gz 1>/backups/ducc/backup_db/Wed.backup.log 2>&1
+30 3 * * 4 /home/ducc/ducc_runtime/admin/db_tool --save-overwrite /backups/ducc/backup_db/Thu.tar.gz 1>/backups/ducc/backup_db/Thu.backup.log 2>&1
+30 3 * * 5 /home/ducc/ducc_runtime/admin/db_tool --save-overwrite /backups/ducc/backup_db/Fri.tar.gz 1>/backups/ducc/backup_db/Fri.backup.log 2>&1
+30 3 * * 6 /home/ducc/ducc_runtime/admin/db_tool --save-overwrite /backups/ducc/backup_db/Sat.tar.gz 1>/backups/ducc/backup_db/Sat.backup.log 2>&1
