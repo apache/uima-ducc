@@ -246,8 +246,8 @@ class DuccUtil(DuccBase):
         dbu.update_cassandra_config(self.DUCC_HOME, dbnode)
 
         max_attempts = 5
-        attempt = 0
-        while attempt < max_attempts:
+        attempt = 1
+        while attempt <= max_attempts:
             lines = self.ssh(dbnode, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'db', '--nodup', "'")
             # we'll capture anything that the python shell spews because it may be useful, and then drop the
             # pipe when we see a PID message
@@ -263,6 +263,9 @@ class DuccUtil(DuccBase):
                     break
                 if ( line == '' ):
                     break
+                if ( line == 'Database is already running.' ):
+                    print 'Database process is running ... if connection fails stop the DB and try again'
+                    break
                 if ( line == 'OK' ):
                     print 'GOT OK from db start'
                     lines.close();
@@ -272,7 +275,8 @@ class DuccUtil(DuccBase):
                 return True
 
             attempt = attempt + 1
-            print 'Did not connect to database, retrying (', attempt, 'of', max_attempts, ')'
+            if attempt <= max_attempts:
+                print 'Did not connect to database, retrying (', attempt, 'of', max_attempts, ')'
 
         return False
 
