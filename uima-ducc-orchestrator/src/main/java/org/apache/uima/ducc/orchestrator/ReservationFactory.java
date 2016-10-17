@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
-import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -32,7 +31,6 @@ import org.apache.uima.ducc.transport.event.common.DuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
-
 public class ReservationFactory {
 	private static ReservationFactory reservationFactory = new ReservationFactory();
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(ReservationFactory.class.getName());
@@ -45,7 +43,7 @@ public class ReservationFactory {
 	private Messages messages = orchestratorCommonArea.getSystemMessages();
 	private IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
 	
-	public DuccWorkReservation create(CommonConfiguration common, ReservationRequestProperties reservationRequestProperties) {
+	public DuccWorkReservation create(ReservationRequestProperties reservationRequestProperties) {
 		String methodName = "create";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		DuccWorkReservation duccWorkReservation = new DuccWorkReservation();

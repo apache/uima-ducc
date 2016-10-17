@@ -29,12 +29,10 @@ import java.util.Random;
 
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
-import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorCheckpoint;
-import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdHostProperties;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdReservation;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdScheduler;
@@ -73,8 +71,6 @@ public class TestSuite {
 	private void ducc_config() {
 		try {
 			DuccService.setDuccLogger(logger);
-			CommonConfiguration commonConfiguration = new CommonConfiguration();
-			OrchestratorCommonArea.initialize(commonConfiguration);
 		}
 		catch(Exception e) {
 			e.printStackTrace();

@@ -26,7 +26,6 @@ import java.util.Map;
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.NodeIdentity;
-import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.container.FlagsHelper.Name;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -71,6 +70,7 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 public class JobFactory implements IJobFactory {
 	private static JobFactory jobFactory = new JobFactory();
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(JobFactory.class.getName());
+	private DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 	
 	public static IJobFactory getInstance() {
 		return jobFactory;
@@ -193,7 +193,7 @@ public class JobFactory implements IJobFactory {
 		return retVal;
 	}
 	
-	private void setDebugPorts(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
+	private void setDebugPorts(JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
 		String location = "setDebugPorts";
 		DuccId jobid = job.getDuccId();
 		String portDriver = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_debug);
@@ -369,11 +369,13 @@ public class JobFactory implements IJobFactory {
 		addDashD(jcl, flagName, flagValue);
 	}
 	
-	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) throws ResourceUnavailableForJobDriverException {
+	private void createDriver(JobRequestProperties jobRequestProperties,  DuccWorkJob job) throws ResourceUnavailableForJobDriverException {
 		String methodName = "createDriver";
 		// broker & queue
-		job.setJobBroker(common.brokerUrl);
-		job.setJobQueue(common.jdQueuePrefix+job.getDuccId());
+		String brokerUrl = dpr.getProperty(DuccPropertiesResolver.ducc_broker_url);
+		job.setJobBroker(brokerUrl);
+		String jdQueuePrefix = dpr.getProperty(DuccPropertiesResolver.ducc_jd_queue_prefix);
+		job.setJobQueue(jdQueuePrefix+job.getDuccId());
 
 		// Command line
 		JavaCommandLine driverCommandLine = buildJobDriverCommandLine(jobRequestProperties, job.getDuccId());
@@ -439,23 +441,23 @@ public class JobFactory implements IJobFactory {
 		}
 	}
 		
-	public DuccWorkJob createJob(CommonConfiguration common, JobRequestProperties jobRequestProperties) throws ResourceUnavailableForJobDriverException {
+	public DuccWorkJob createJob(JobRequestProperties jobRequestProperties) throws ResourceUnavailableForJobDriverException {
 		DuccWorkJob job = new DuccWorkJob();
 		job.setDuccType(DuccType.Job);
 		job.setDuccId(duccIdFactory.next());
-		createDriver(common, jobRequestProperties, job);
-		setDebugPorts(common, jobRequestProperties, job);
-		return create(common, jobRequestProperties, job);
+		createDriver(jobRequestProperties, job);
+		setDebugPorts(jobRequestProperties, job);
+		return create(jobRequestProperties, job);
 	}
 	
-	public DuccWorkJob createService(CommonConfiguration common, JobRequestProperties jobRequestProperties) {
+	public DuccWorkJob createService(JobRequestProperties jobRequestProperties) {
 		DuccWorkJob job = new DuccWorkJob();
 		job.setDuccType(DuccType.Service);
 		job.setDuccId(duccIdFactory.next());
-		return create(common, jobRequestProperties, job);
+		return create(jobRequestProperties, job);
 	}
 	
-	private DuccWorkJob create(CommonConfiguration common, JobRequestProperties jobRequestProperties, DuccWorkJob job) {
+	private DuccWorkJob create(JobRequestProperties jobRequestProperties, DuccWorkJob job) {
 		String methodName = "create";
 		jobRequestProperties.normalize();
 		DuccId jobid = job.getDuccId();
@@ -565,7 +567,8 @@ public class JobFactory implements IJobFactory {
 			}
 			else {
 				// UIMA aggregate
-				String name = common.jdQueuePrefix+job.getDuccId().toString();
+				String jdQueuePrefix = dpr.getProperty(DuccPropertiesResolver.ducc_jd_queue_prefix);
+				String name = jdQueuePrefix+job.getDuccId().toString();
 				String description = job.getStandardInfo().getDescription();
 				int threadCount = Integer.parseInt(job.getSchedulingInfo().getThreadsPerProcess());
 				String brokerURL = job.getjobBroker();;

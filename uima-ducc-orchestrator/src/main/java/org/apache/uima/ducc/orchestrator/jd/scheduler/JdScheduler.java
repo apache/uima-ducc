@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
-import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.db.DbQuery;
 import org.apache.uima.ducc.common.db.IDbMachine;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -441,7 +440,6 @@ public class JdScheduler {
 	
 	private void reservationAcquire(IDuccWorkMap dwm, JdHostProperties jdHostProperties) {
 		String location = "reservationAcquire";
-		CommonConfiguration common = null;
 		ReservationRequestProperties reservationRequestProperties = new ReservationRequestProperties();
 		//
 		String key;
@@ -463,7 +461,7 @@ public class JdScheduler {
 		value = jdHostProperties.getHostDescription();
 		reservationRequestProperties.setProperty(key, value);
 		//
-		DuccWorkReservation dwr = reservationFactory.create(common, reservationRequestProperties);
+		DuccWorkReservation dwr = reservationFactory.create(reservationRequestProperties);
 		dwr.setJdReservation();
 		//
 		DuccWorkMap workMap = (DuccWorkMap) dwm;

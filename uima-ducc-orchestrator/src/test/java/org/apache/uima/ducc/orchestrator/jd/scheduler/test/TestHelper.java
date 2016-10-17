@@ -21,7 +21,6 @@ package org.apache.uima.ducc.orchestrator.jd.scheduler.test;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.common.NodeIdentity;
-import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.ReservationFactory;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdHostProperties;
@@ -69,7 +68,6 @@ public class TestHelper {
 	public static IDuccWorkReservation getDWR(String user, String pidAtHost, String description, String schedulingClass, String memorySize) {
 		IDuccWorkReservation dwr = null;
 		ReservationFactory rf = ReservationFactory.getInstance();
-		CommonConfiguration cc = null;
 		ReservationRequestProperties rrp = new ReservationRequestProperties();
 		String key;
 		String value;
@@ -94,7 +92,7 @@ public class TestHelper {
 		value = memorySize;
 		rrp.put(key, value);
 		//
-		dwr = rf.create(cc, rrp);
+		dwr = rf.create(rrp);
 		//
 		assign(dwr);
 		//

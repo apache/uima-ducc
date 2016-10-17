@@ -33,7 +33,6 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.Orchestrator;
-import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.OrchestratorComponent;
 import org.apache.uima.ducc.orchestrator.OrchestratorState;
 import org.apache.uima.ducc.orchestrator.event.OrchestratorEventListener;
@@ -287,7 +286,6 @@ public class OrchestratorConfiguration {
 
 	@Bean 
 	public OrchestratorComponent orchestrator() throws Exception {
-		OrchestratorCommonArea.initialize(common);
 		OrchestratorComponent orchestrator = new OrchestratorComponent(common.camelContext());
         //	Instantiate JobManagerEventListener delegate listener. This listener will receive
         //	incoming messages. 

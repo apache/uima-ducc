@@ -121,9 +121,13 @@ public class DuccPropertiesResolver {
     public static final String ducc_orchestrator_job_factory_classpath_order = "ducc.orchestrator.job.factory.classpath.order";    
     public static final String ducc_orchestrator_unmanaged_reservations_accepted = "ducc.orchestrator.unmanaged.reservations.accepted";  
     public static final String ducc_orchestrator_use_lock_file = "ducc.orchestrator.use.lock.file";  
+    public static final String ducc_orchestrator_start_type = "ducc.orchestrator.start.type";  
+    public static final String ducc_orchestrator_checkpoint = "ducc.orchestrator.checkpoint";  
     
     public static final String ducc_default_process_per_item_time_max = "ducc.default.process.per.item.time.max";
     public static final String ducc_default_process_init_time_max = "ducc.default.process.init.time.max";
+    
+    public static final String ducc_jd_queue_prefix = "ducc.jd.queue.prefix";
     
     public static final String ducc_jd_host_class = "ducc.jd.host.class";
     public static final String ducc_jd_host_description = "ducc.jd.host.description";

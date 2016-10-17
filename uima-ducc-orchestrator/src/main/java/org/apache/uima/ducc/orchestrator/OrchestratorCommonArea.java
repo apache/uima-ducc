@@ -18,12 +18,10 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
-import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.uima.ducc.common.IDuccEnv;
-import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.persistence.IPropertiesFileManager;
 import org.apache.uima.ducc.common.persistence.PropertiesFileManager;
@@ -49,24 +47,19 @@ public class OrchestratorCommonArea {
 	
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorCommonArea.class.getName());
 	
+	private static DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
+	
 	public static OrchestratorCommonArea getInstance() {
-		assert(orchestratorCommonArea != null);
+		synchronized(OrchestratorCommonArea.class) {
+			if(orchestratorCommonArea == null) {
+				orchestratorCommonArea = new OrchestratorCommonArea();
+				orchestratorCommonArea.init();
+			}
+		}
 		return orchestratorCommonArea;
 	}
 	
-	public static void initialize(CommonConfiguration commonConfiguration) throws IOException {
-		orchestratorCommonArea = new OrchestratorCommonArea();
-		orchestratorCommonArea.commonConfiguration = commonConfiguration;
-		orchestratorCommonArea.init();
-	}
-	
 	private OrchestratorCommonArea() {
-	}
-	
-	private CommonConfiguration commonConfiguration = null;
-	
-	public CommonConfiguration getCommonConfiguration() {
-		return commonConfiguration;
 	}
 	
 	private IHistoryPersistenceManager historyPersistenceManager = null;
@@ -120,7 +113,6 @@ public class OrchestratorCommonArea {
 	private void init() {
 		// <Jira 3414>
         String methodName="init";
-		DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 		Boolean use_lock_file = new Boolean(dpr.getProperty(DuccPropertiesResolver.ducc_orchestrator_use_lock_file));
 		if(use_lock_file) {
 			ComponentHelper.oneInstance(IDuccEnv.DUCC_STATE_DIR,"orchestrator");
@@ -131,7 +123,8 @@ public class OrchestratorCommonArea {
 		setDuccIdFactory(new DuccIdFactory(propertiesFileManager,constSeqNo));
 		workMap = new DuccWorkMap();
 		processAccounting = new ProcessAccounting();
-		OrchestratorCheckpoint.getInstance().switchOnOff(commonConfiguration.orchestratorCheckpoint);
+		String ckpt_setting = dpr.getCachedProperty(DuccPropertiesResolver.ducc_orchestrator_checkpoint);
+		OrchestratorCheckpoint.getInstance().switchOnOff(ckpt_setting);
 		OrchestratorCheckpoint.getInstance().restoreState();
 		jdScheduler = JdScheduler.getInstance();
         try {

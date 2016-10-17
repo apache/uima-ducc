@@ -28,7 +28,6 @@ import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
-import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.crypto.CryptoException;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -36,6 +35,7 @@ import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorConstants.StartType;
@@ -91,16 +91,9 @@ import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 import org.apache.uima.ducc.transport.event.rm.IRmJobState;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
-@Configuration
-@Import({CommonConfiguration.class})
 public class OrchestratorComponent extends AbstractDuccComponent 
 implements Orchestrator {
-	//	Springframework magic to inject instance of {@link CommonConfiguration}
-	@Autowired CommonConfiguration common;
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorComponent.class.getName());
 	private static DuccId jobid = null;
 	
@@ -112,10 +105,10 @@ implements Orchestrator {
 	//private MqReaper mqReaper = MqReaper.getInstance();
 	private IJobFactory jobFactory = JobFactory.getInstance();
 	private ReservationFactory reservationFactory = ReservationFactory.getInstance();
-	private CommonConfiguration commonConfiguration = orchestratorCommonArea.getCommonConfiguration();
 	private JdScheduler jdScheduler = orchestratorCommonArea.getJdScheduler();
 	private StateJobAccounting stateJobAccounting = StateJobAccounting.getInstance();
-
+	private DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
+	
 	public OrchestratorComponent(CamelContext context) {
 		super("Orchestrator", context);
 	}
@@ -157,7 +150,7 @@ implements Orchestrator {
 		String methodName = "getStartTypeProperty";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		StartType startType = StartType.warm;
-		String property = commonConfiguration.orchestratorStartType;
+		String property = dpr.getProperty(DuccPropertiesResolver.ducc_orchestrator_start_type);
 		if(property != null) {
 			String startTypeProperty = property.trim().toLowerCase();
 			if(startTypeProperty.equals("cold")) {
@@ -181,7 +174,7 @@ implements Orchestrator {
 	{
 		String methodName = "resolveSignatureRequired";
 		logger.trace(methodName, null, messages.fetch("enter"));
-		String property = commonConfiguration.signatureRequired;
+		String property = dpr.getProperty(DuccPropertiesResolver.ducc_signature_required);
 		if(property != null) {
 			String signatureRequiredProperty = property.trim().toLowerCase();
 			if(signatureRequiredProperty.equals("on")) {
@@ -556,7 +549,7 @@ implements Orchestrator {
 			else {
 				if(Validate.request(duccEvent)) {
 					try {
-						IDuccWorkJob duccWorkJob = jobFactory.createJob(common,properties);
+						IDuccWorkJob duccWorkJob = jobFactory.createJob(properties);
 						WorkMapHelper.addDuccWork(workMap, duccWorkJob, this, methodName);
 						// state: Received
 						stateJobAccounting.stateChange(duccWorkJob, JobState.Received);
@@ -766,7 +759,7 @@ implements Orchestrator {
 				submitError(properties, error_message);
 			}
 			else if(Validate.request(duccEvent)) {
-				DuccWorkReservation duccWorkReservation = reservationFactory.create(common,(ReservationRequestProperties)properties);
+				DuccWorkReservation duccWorkReservation = reservationFactory.create((ReservationRequestProperties)properties);
 				WorkMapHelper.addDuccWork(workMap, duccWorkReservation, this, methodName);
 				// state: Received
 				duccWorkReservation.stateChange(ReservationState.Received);
@@ -913,7 +906,7 @@ implements Orchestrator {
 			}
 			else {
 				if(Validate.request(duccEvent)) {
-					IDuccWorkJob duccWorkJob = jobFactory.createService(common,properties);
+					IDuccWorkJob duccWorkJob = jobFactory.createService(properties);
 					WorkMapHelper.addDuccWork(workMap, duccWorkJob, this, methodName);
 					// state: Received
 					stateJobAccounting.stateChange(duccWorkJob, JobState.Received);
