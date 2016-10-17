@@ -115,6 +115,23 @@ public class User
         }
         ojobs.put(j, j);
     }
+    
+    /* 
+     * Update the jobs-by-order table when the reservation is upgraded
+     */
+    		
+    void upgrade(IRmJob j, int oldOrder, int newOrder) {
+    	Map<IRmJob, IRmJob> ojobs;
+    	ojobs = jobsByOrder.get(oldOrder);
+    	ojobs.remove(j);
+    	
+        ojobs = jobsByOrder.get(newOrder);
+        if (ojobs == null) {
+            ojobs = new HashMap<IRmJob, IRmJob>();
+            jobsByOrder.put(newOrder, ojobs);
+        }
+        ojobs.put(j, j);
+    }
 
     /**
      * Remove a job from the list and return how many jobs remain.

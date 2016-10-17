@@ -203,8 +203,10 @@
           restricted to a single machine per request.  Usually the memory size
           of the machine must match the size specified in the reservation 
           exactly, after rounding up to the next highest multiple of the quantum.
-          But if {\em ducc.rm.reserve\_overage} is positive, DUCC can assign a
-          machine up to this many GB larger.
+          But if {\em ducc.rm.reserve\_overage} is greater than 0 it is added to a reservation 
+          request size to determine the largest possible machine to reserve. 
+          Quantum rounding is done on both the original request size and the overage adjusted size
+          to define the minimum and maximum machine sizes which are targets for the reservation request.
           A reservation that does not adequately match any
           machine remains pending until resources are made available or it is 
           canceled by the user or an administrator. Reservations may be

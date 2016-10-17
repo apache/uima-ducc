@@ -503,6 +503,21 @@ public class ResourceClass
         }
     }
 
+    /*
+     * Update the jobs-by-order table when a reservation is upgraded
+     */
+	void upgrade(IRmJob j, int old_order, int new_order) {
+		HashMap<IRmJob, IRmJob> jbo = jobsByOrder.get(old_order);
+        jbo.remove(j);
+		jbo = jobsByOrder.get(new_order);
+		if (jbo == null) {
+			jbo = new HashMap<IRmJob, IRmJob>();
+			jobsByOrder.put(new_order, jbo);
+			max_job_order = Math.max(max_job_order, new_order);
+		}
+		jbo.put(j, j);
+	}
+    
     int countJobs()
     {
         return allJobs.size();

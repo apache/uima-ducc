@@ -93,6 +93,7 @@
     Reservations must be for entire machines, in a job class implementing the RESERVE scheduling
     policy. The default DUCC distribution configures class {\em reserve} for entire machine
     reservations.  A reservation request will be queued if there is no available machine in that
-    class matching the requested size (after rounding up), or up to {\em ducc.rm.reserve\_overage} larger.
+    class matching the requested size (after rounding up), or up to {\em ducc.rm.reserve\_overage}
+    larger than the request (after rounding up).
     The user may cancel the request with {\em ducc\_unreserve} 
     or with CTRL-C if $--$cancel\_on\_interrupt was specified.

@@ -1686,6 +1686,9 @@ public class Scheduler
                     // (the share's share_order should be correct but perhaps the machine has become larger!)
                     share_order = s.getMachineOrder();
                     s.setShareOrder(share_order);
+                    if (share_order > j.getShareOrder()) {
+                    	logger.info(methodName, j.getId(), "Increased order of RESERVE job to", share_order);
+                    }
                     j.upgradeShareOrder(share_order);
                     if ( j.isService() && !compatibleNodepool(s, j) ) {       // UIMA-4142
                         sharesToShrink.add(s);   // nodepool reconfig snafu, SM will reallocate the process

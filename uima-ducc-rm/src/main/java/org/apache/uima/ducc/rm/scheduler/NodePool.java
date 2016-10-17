@@ -1325,7 +1325,7 @@ class NodePool
     int countReservables(IRmJob j)
     {
         int order = j.getShareOrder();
-        int max_order = order + getReserveOverage(j);
+        int max_order = getMaxShareOrder(j);
         do {
             if (machinesByOrder.containsKey(order) && machinesByOrder.get(order).size() > 0) {
                 return machinesByOrder.get(order).size();
@@ -1351,16 +1351,17 @@ class NodePool
     }
 
     /*
-     * Convert the GB overage to shares (rounding down) 
+     * Add the allowable overage to the request and convert to shares
      * But only for unmanaged reservations
      * UIMA-5086
      */
-    private int getReserveOverage(IRmJob j) {
+    private int getMaxShareOrder(IRmJob j) {
         if (j.getDuccType() != DuccType.Reservation || reserve_overage <= 0) {
-            return 0;
+            return j.getShareOrder();
         }
-        int share_quantum = j.getShareQuantum() >> 20;   // why is share quantum in KB?
-        return reserve_overage / share_quantum; 
+        long mem = (j.getMemory() + reserve_overage) << 20;              // GB -> KB
+        int share_quantum = j.getShareQuantum();                         // share quantum is in KB! 
+        return (int) ((mem + share_quantum - 1) / share_quantum);        // round UP
     }
     
     /**
@@ -1394,7 +1395,7 @@ class NodePool
         // as it then might find a free machine more than reserve-overage above the original request.
         if (! j.shareOrderUpgraded() ) {
             actual_order = 0;   // Not yet known
-            max_share_order = share_order + getReserveOverage(j);
+            max_share_order = getMaxShareOrder(j);
         } else {
             actual_order = share_order;      // Additional machines must match this
             max_share_order = share_order;   // Restrict search to just the (possibly adjusted) actual order.
@@ -1452,11 +1453,20 @@ class NodePool
                 logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is not freeable");
                 continue;
             }
+            
+            // Found a free or freeable machine
             given++;
-            if (actual_order == 0) {
-                actual_order = m.getShareOrder();
-                j.upgradeShareOrder(actual_order);
-            }
+			if (actual_order == 0) {
+				actual_order = m.getShareOrder();
+				j.upgradeShareOrder(actual_order);
+				if (actual_order > share_order) {    // Need to adjust the user & class jobs-by-order tables
+					User user = j.getUser();
+					user.upgrade(j, share_order, actual_order);
+					ResourceClass rc = j.getResourceClass();
+					rc.upgrade(j, share_order, actual_order);
+					logger.info(methodName, j.getId(), "Increased order of RESERVE job to", actual_order);
+				}
+			}
         }
         
         // Remember how many full machines we need to free up when we get to preemption stage.
