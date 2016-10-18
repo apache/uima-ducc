@@ -20,4 +20,6 @@ package org.apache.uima.ducc.common.persistence;
 
 public interface IPropertiesFileManager {
 	public int increment(String key);
+	public String get(String key, String defaultValue);
+	public void set(String key, String value);
 }

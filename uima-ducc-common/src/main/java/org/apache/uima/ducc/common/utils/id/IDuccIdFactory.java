@@ -21,5 +21,5 @@ package org.apache.uima.ducc.common.utils.id;
 public interface IDuccIdFactory {
 	
 	public DuccId next();
-	
+	public long setIfMax(long s);
 }

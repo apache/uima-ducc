@@ -46,6 +46,7 @@ public class OrchestratorCommonArea {
 	private static OrchestratorCommonArea orchestratorCommonArea = null;
 	
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorCommonArea.class.getName());
+	private static final DuccId jobid = null;
 	
 	private static DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 	
@@ -118,7 +119,8 @@ public class OrchestratorCommonArea {
 			ComponentHelper.oneInstance(IDuccEnv.DUCC_STATE_DIR,"orchestrator");
 		}
 		// </Jira 3414>
-		setPropertiesFileManager(new PropertiesFileManager(IDuccLoggerComponents.abbrv_orchestrator, IDuccEnv.DUCC_STATE_DIR, constOrchestratorProperties, false, true));
+		PropertiesFileManager pfm = new PropertiesFileManager(IDuccLoggerComponents.abbrv_orchestrator, IDuccEnv.DUCC_STATE_DIR, constOrchestratorProperties, false, true);
+		setPropertiesFileManager(pfm);
 		initSeqNo();
 		setDuccIdFactory(new DuccIdFactory(propertiesFileManager,constSeqNo));
 		workMap = new DuccWorkMap();
@@ -134,6 +136,13 @@ public class OrchestratorCommonArea {
             System.exit(1);       // what should we do here? exit or acquire the NullHistoryManager?
         }
         logger.info(methodName, null, "Got history manager of class", historyPersistenceManager.getClass().getName());
+        //
+        OrchestratorRecovery orchestratorRecovery = new OrchestratorRecovery(historyPersistenceManager);
+        long historicSeqNo = orchestratorRecovery.recoverSeqNo();
+        long previousSeqNo = getDuccIdFactory().setIfMax(historicSeqNo);
+        if(previousSeqNo != historicSeqNo) {
+        	logger.warn(methodName, jobid, "properties:"+previousSeqNo+" "+""+"historic:"+historicSeqNo);
+        }
 	}
 	
 	public String getStateDirectory() {

@@ -62,4 +62,32 @@ public class DuccIdFactory implements IDuccIdFactory {
 			return new DuccId(seqno.get());
 		}
 	}
+	
+	/**
+	 * set seqno to candidate if it is bigger than previous, return previous value
+	 */
+	public long setIfMax(long candidate) {
+		long previous = seqno.get();
+		synchronized(this) {
+			if(propertiesFileManager != null) {
+				try {
+					String propertiesFileValue = propertiesFileManager.get(propertiesFileKey, ""+previous);
+					previous = Long.parseLong(propertiesFileValue);
+				}
+				catch(Exception e) {
+					// No worries
+				}
+				if(candidate > previous) {
+					propertiesFileManager.set(propertiesFileKey, ""+candidate);
+					seqno.set(candidate);
+				}
+			}
+			else {
+				if(candidate > previous) {
+					seqno.set(candidate);
+				}
+			}
+		}
+		return previous;
+	}
 }
