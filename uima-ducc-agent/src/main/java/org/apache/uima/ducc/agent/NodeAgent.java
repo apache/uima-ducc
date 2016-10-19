@@ -46,6 +46,7 @@ import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.uima.ducc.agent.config.AgentConfiguration;
+import org.apache.uima.ducc.agent.event.AgentEventListener;
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
 import org.apache.uima.ducc.agent.launcher.CGroupsManager;
 import org.apache.uima.ducc.agent.launcher.Launcher;
@@ -160,6 +161,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   
   public int numProcessors=0;
   
+  private AgentEventListener eventListener;
+  
   //  indicates whether or not this agent received at least one publication
   //  from the PM. This flag is used to determine if the agent should use
   //  rogue process detector. The detector will be used if this flag is true.
@@ -177,6 +180,17 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     Utils.findDuccHome();  // add DUCC_HOME to System.properties
   }
 
+  public long getLastORSequence() {
+	  long lastORSequence = 0;
+	  if ( eventListener != null ) {
+		  lastORSequence = eventListener.getLastSequence();
+	  }
+	  return lastORSequence;
+  }
+  public void setAgentEventListener(AgentEventListener listener) {
+	  eventListener = listener;
+  }
+  
   /**
    * C'tor for dependecy injection
    * 
@@ -1715,7 +1729,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     // Send an empty process map as the final inventory 
     HashMap<DuccId, IDuccProcess> emptyMap = 
     		new HashMap<DuccId, IDuccProcess>();
-    DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap);
+    DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap,getLastORSequence());
     inventoryDispatcher.dispatch(duccEvent);
     logger.info("stop", null, "Agent published final inventory");
     

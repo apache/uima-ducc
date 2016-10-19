@@ -246,7 +246,7 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 				logger.info(methodName, null, "Agent "
 						+ agent.getIdentity().getName() + " Posting Inventory:"
 						+ sb.toString());
-				outgoingMessage.getIn().setBody(new NodeInventoryUpdateDuccEvent(inventory));
+				outgoingMessage.getIn().setBody(new NodeInventoryUpdateDuccEvent(inventory,agent.getLastORSequence()));
 
 			} else {
 				// Add null to the body of the message. A filter

@@ -29,12 +29,17 @@ public class NodeInventoryUpdateDuccEvent extends AbstractDuccEvent {
 	private static final long serialVersionUID = -240986007026771587L;
 
 	private HashMap<DuccId, IDuccProcess> processes = null;
+	private long lastORSequence;
 	
-	public NodeInventoryUpdateDuccEvent(HashMap<DuccId, IDuccProcess> processes) {
+	public NodeInventoryUpdateDuccEvent(HashMap<DuccId, IDuccProcess> processes, long lastORSequence) {
 		super(EventType.START_PROCESS);
 		this.processes = processes;
+		this.lastORSequence = lastORSequence;
 	}
 	
+	public long getLastORSequence() {
+		return lastORSequence;
+	}
 	public HashMap<DuccId, IDuccProcess> getProcesses() {
 		return processes;
 	}

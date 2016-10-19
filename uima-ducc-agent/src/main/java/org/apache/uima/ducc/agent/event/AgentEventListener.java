@@ -209,4 +209,8 @@ public class AgentEventListener implements DuccEventDelegateListener {
 		logger.info(">>> onProcessPurgeEvent", null,"... Agent Received ProcessPurgeDuccEvent -"+" Process ID:"+duccEvent.getProcess().getPID());
 		agent.purgeProcess(duccEvent.getProcess());
 	}
+	
+	public long getLastSequence() {
+		return lastSequence.get();
+	}
 }
