@@ -1729,7 +1729,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     // Send an empty process map as the final inventory 
     HashMap<DuccId, IDuccProcess> emptyMap = 
     		new HashMap<DuccId, IDuccProcess>();
-    DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap,getLastORSequence());
+    DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap,getLastORSequence(), getIdentity());
     inventoryDispatcher.dispatch(duccEvent);
     logger.info("stop", null, "Agent published final inventory");
     

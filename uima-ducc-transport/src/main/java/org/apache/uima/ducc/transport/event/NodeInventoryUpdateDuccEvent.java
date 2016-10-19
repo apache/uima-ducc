@@ -20,6 +20,7 @@ package org.apache.uima.ducc.transport.event;
 
 import java.util.HashMap;
 
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 
@@ -30,13 +31,18 @@ public class NodeInventoryUpdateDuccEvent extends AbstractDuccEvent {
 
 	private HashMap<DuccId, IDuccProcess> processes = null;
 	private long lastORSequence;
+	private NodeIdentity nodeIdentity;
 	
-	public NodeInventoryUpdateDuccEvent(HashMap<DuccId, IDuccProcess> processes, long lastORSequence) {
+	public NodeInventoryUpdateDuccEvent(HashMap<DuccId, IDuccProcess> processes, long lastORSequence, NodeIdentity node) {
 		super(EventType.START_PROCESS);
 		this.processes = processes;
 		this.lastORSequence = lastORSequence;
+		this.nodeIdentity = node;
 	}
 	
+	public NodeIdentity getNodeIdentity() {
+		return nodeIdentity;
+	}
 	public long getSequence() {
 		return lastORSequence;
 	}
