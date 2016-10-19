@@ -37,7 +37,7 @@ public class NodeInventoryUpdateDuccEvent extends AbstractDuccEvent {
 		this.lastORSequence = lastORSequence;
 	}
 	
-	public long getLastORSequence() {
+	public long getSequence() {
 		return lastORSequence;
 	}
 	public HashMap<DuccId, IDuccProcess> getProcesses() {
