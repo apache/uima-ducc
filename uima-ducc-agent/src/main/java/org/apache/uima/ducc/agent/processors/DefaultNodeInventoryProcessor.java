@@ -81,6 +81,10 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 		// (ducc.agent.node.inventory.publish.rate.skip)
 		// configured in ducc.properties.
 		if (previousInventory != null) {
+			if ( agent.getEventListener().forceInvotoryUpdate()) {
+				inventoryChanged = true;
+				agent.getEventListener().resetForceInventoryUpdateFlag();
+			}
 			if (inventory.size() != previousInventory.size()) {
 				inventoryChanged = true;
 			} else {

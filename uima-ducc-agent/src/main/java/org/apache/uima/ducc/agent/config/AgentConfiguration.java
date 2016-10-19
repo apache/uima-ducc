@@ -422,6 +422,8 @@ public class AgentConfiguration {
       agentTransport.configureJMSTransport(logger,common.agentRequestEndpoint, camelContext);
       AgentEventListener delegateListener = agentDelegateListener(agent);
 
+      agent.setAgentEventListener(delegateListener);
+      
       if (common.managedProcessStateUpdateEndpointType != null
               && common.managedProcessStateUpdateEndpointType.equalsIgnoreCase("socket")) {
         String agentSocketParams = "";

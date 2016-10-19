@@ -187,6 +187,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	  }
 	  return lastORSequence;
   }
+  public AgentEventListener getEventListener() {
+	  return eventListener;
+  }
   public void setAgentEventListener(AgentEventListener listener) {
 	  eventListener = listener;
   }

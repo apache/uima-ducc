@@ -54,6 +54,7 @@ public class AgentEventListener implements DuccEventDelegateListener {
 	// This cleanup will happen once right after processing of the first OR publication.
 	private boolean cleanupPhase = true;  
 	private AtomicLong lastSequence = new AtomicLong();
+	private volatile boolean forceInventoryUpdateDueToSequence = false;
 	
 	private NodeAgent agent;
 	public AgentEventListener(NodeAgent agent, ProcessLifecycleController lifecycleController) {
@@ -80,6 +81,12 @@ public class AgentEventListener implements DuccEventDelegateListener {
   	      }
   	    }
   	    logger.info("reportIncomingStateForThisNode",null,sb.toString());
+	}
+	public boolean forceInvotoryUpdate() {
+		return forceInventoryUpdateDueToSequence;
+	}
+	public void resetForceInventoryUpdateFlag() {
+		forceInventoryUpdateDueToSequence = false;
 	}
 	/**
 	 * This method is called by Camel when PM sends DUCC state to agent's queue. It 
@@ -109,7 +116,8 @@ public class AgentEventListener implements DuccEventDelegateListener {
 			    } else {
 			    	// Out of band message. Expected message with sequence larger than a previous message
 			    	logger.warn("reportIncomingStateForThisNode",null,"Received Out of Band Message. Expected Sequence Greater Than "+lastSequence+" Received "+sequence+" Instead");
-			  	    return;
+			    	forceInventoryUpdateDueToSequence = true;
+			    	return;
 			    } 
 
 			  //  typically lifecycleController is null and the agent assumes the role. For jUnit testing though, 
