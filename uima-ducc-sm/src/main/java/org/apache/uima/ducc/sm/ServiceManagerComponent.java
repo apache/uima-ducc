@@ -91,16 +91,17 @@ public class ServiceManagerComponent
 	 * 
 	 */
 	private static DuccLogger logger = DuccLogger.getLogger(ServiceManagerComponent.class.getName(), COMPONENT_NAME);	
-    DuccWorkMap localMap = null;
+	private static DuccId jobid = null;
+	
+	private DuccWorkMap localMap = null;
 
     private DuccEventDispatcher eventDispatcher;
     private String stateEndpoint;
 
     private ServiceHandler handler = null;
-    IStateServices stateHandler = null;
+    private IStateServices stateHandler = null;
 
     //HashMap<String, BaseUimaAsService> services = new HashMap<String, BaseUimaAsService>();	
-
 
     static int meta_ping_rate = 60000;       // interval in ms to ping the service
     static int meta_ping_stability = 5;           // number of missed pings before we mark the service down
@@ -123,7 +124,7 @@ public class ServiceManagerComponent
     private boolean testmode = false;
     private boolean orchestrator_alive = false;
 
-    Map<String, String> administrators = new HashMap<String, String>();
+    private Map<String, String> administrators = new HashMap<String, String>();
 
     // Local SM version
     //    1.1.0 - reworked SM
@@ -131,7 +132,7 @@ public class ServiceManagerComponent
     //    1.1.4 - dynamic mod of all registration parms.  Add debug and max-init-time parms.
     //    1.1.0 - resync with release, sigh.
     //    2.0.0 - Update for new release.
-    String version = "2.1.0";
+    private String version = "2.1.0";
 
 	public ServiceManagerComponent(CamelContext context) 
     {
@@ -242,6 +243,12 @@ public class ServiceManagerComponent
             }
         } 
 
+        long dbSeqNo = ServiceManagerHelper.getLargestServiceSeqNo();
+        if(dbSeqNo > seq) {
+        	logger.warn(methodName, jobid, "file:"+seq+" "+"db:"+dbSeqNo);
+        	seq = (int) dbSeqNo;
+        }
+        
         idFactory = new DuccIdFactory(seq);
 
         synchronized(this) {
