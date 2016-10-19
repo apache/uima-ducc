@@ -44,7 +44,6 @@ public class OrchestratorState {
 	private static DuccId jobid = null;
 	
 	private long sequenceNumberState = -1;
-	private long sequenceNumberStateAbbreviated = -1;
 	
 	public static OrchestratorState getInstance() {
 		String location = "getInstance";
@@ -83,30 +82,10 @@ public class OrchestratorState {
 		}
 	}
 	
-	public long getNextSequenceNumberStateAbbreviated() {
-		String location = "getNextSequenceNumberStateAbbreviated";
-		synchronized(this) {
-			sequenceNumberStateAbbreviated++;
-			exportState();
-			logger.debug(location, jobid, ""+sequenceNumberStateAbbreviated);
-			return sequenceNumberStateAbbreviated;
-		}
-	}
-	
-	public void setNextSequenceNumberStateAbbreviated(long value) {
-		String location = "setNextSequenceNumberStateAbbreviated";
-		synchronized(this) {
-			sequenceNumberStateAbbreviated = value;
-			exportState();
-			logger.debug(location, jobid, ""+sequenceNumberStateAbbreviated);
-		}
-	}
-	
 	private void copy(OrchestratorState importedState) {
 		String location = "copy";
 		if(importedState != null) {
 			setNextSequenceNumberState(importedState.getNextSequenceNumberState());
-			setNextSequenceNumberStateAbbreviated(importedState.getNextSequenceNumberStateAbbreviated());
 		}
 		else {
 			logger.warn(location, jobid, "no previous state found");
