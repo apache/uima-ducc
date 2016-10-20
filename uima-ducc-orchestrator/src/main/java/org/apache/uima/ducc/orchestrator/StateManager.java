@@ -283,6 +283,9 @@ public class StateManager {
 			case Service:
 				DuccWorkJob duccWorkJob = (DuccWorkJob)duccWork;
 				if(duccWorkJob != null) {
+					if(jobDriverTerminated(duccWorkJob)) {
+						OrchestratorHelper.jdDeallocate(duccWorkJob);
+					}
 					if(duccWorkJob.isCompleting() && allProcessesTerminated(duccWorkJob)) {
 						stateJobAccounting.stateChange(duccWorkJob, JobState.Completed);
 					}
@@ -1510,6 +1513,9 @@ public class StateManager {
 		switch(processType) {
 		case Pop:
 			OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
+			if(jobDriverTerminated(job)) {
+				OrchestratorHelper.jdDeallocate(job);
+			}
 			switch(inventoryProcess.getProcessState()) {
 			case LaunchFailed:
 			case Failed:
