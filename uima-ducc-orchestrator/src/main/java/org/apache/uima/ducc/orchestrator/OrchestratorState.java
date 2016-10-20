@@ -24,7 +24,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -43,7 +45,7 @@ public class OrchestratorState {
 	private static OrchestratorState instance = null;
 	private static DuccId jobid = null;
 	
-	private long sequenceNumberState = -1;
+	private AtomicLong sequenceNumberState = new AtomicLong(-1);
 	
 	public static OrchestratorState getInstance() {
 		String location = "getInstance";
@@ -66,19 +68,37 @@ public class OrchestratorState {
 	public long getNextSequenceNumberState() {
 		String location = "getNextSequenceNumberState";
 		synchronized(this) {
-			sequenceNumberState++;
+			long value = sequenceNumberState.incrementAndGet();
 			exportState();
 			logger.debug(location, jobid, ""+sequenceNumberState);
-			return sequenceNumberState;
+			return value;
 		}
 	}
 	
 	public void setNextSequenceNumberState(long value) {
 		String location = "setNextSequenceNumberState";
 		synchronized(this) {
-			sequenceNumberState = value;
+			sequenceNumberState.set(value);
 			exportState();
-			logger.debug(location, jobid, ""+sequenceNumberState);
+			logger.debug(location, jobid, ""+value);
+		}
+	}
+	
+	public void setNextSequenceNumberStateIfGreater(NodeIdentity nodeIdentity, long value) {
+		String location = "setNextSequenceNumberStateIfGreater";
+		synchronized(this) {
+			String node = "?";
+			if(nodeIdentity != null) {
+				node = nodeIdentity.getName();
+			}
+			long currentValue = sequenceNumberState.get();
+			if(value > currentValue) {
+				setNextSequenceNumberState(value);
+				logger.warn(location, jobid, "agent:"+node+" "+"value:"+value+" "+"or:"+currentValue);
+			}
+			else {
+				logger.trace(location, jobid, "agent:"+node+" "+"value:"+value+" "+"or:"+currentValue);
+			}
 		}
 	}
 	

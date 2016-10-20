@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.camel.CamelContext;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
@@ -424,8 +425,21 @@ implements Orchestrator {
 		HashMap<DuccId, IDuccProcess> processMap = duccEvent.getProcesses();
 		stateManager.reconcileState(processMap);
 		NodeAccounting.getInstance().heartbeat(processMap);
+		adjustPublicationSequenceNumber(duccEvent);
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
+	
+	/*
+	 * If an Agent has seen a higher sequence number than that currently
+	 * published by Orchestrator, then use the higher value.  The likely
+	 * cause is the loss of access to the orchestrator-state.properties file.
+	 */
+	private void adjustPublicationSequenceNumber(NodeInventoryUpdateDuccEvent duccEvent) {
+		NodeIdentity nodeIdentity = duccEvent.getNodeIdentity();
+		long seqNo = duccEvent.getSequence();
+		OrchestratorState.getInstance().setNextSequenceNumberStateIfGreater(nodeIdentity, seqNo);
+	}
+	
 	/**
 	 * Publish Orchestrator State
 	 */
