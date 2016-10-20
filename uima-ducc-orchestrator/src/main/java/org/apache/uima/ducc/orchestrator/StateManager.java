@@ -283,8 +283,12 @@ public class StateManager {
 			case Service:
 				DuccWorkJob duccWorkJob = (DuccWorkJob)duccWork;
 				if(duccWorkJob != null) {
-					if(jobDriverTerminated(duccWorkJob)) {
-						OrchestratorHelper.jdDeallocate(duccWorkJob);
+					switch(duccType) {
+					case Job:
+						if(jobDriverTerminated(duccWorkJob)) {
+							OrchestratorHelper.jdDeallocate(duccWorkJob);
+						}
+						break;
 					}
 					if(duccWorkJob.isCompleting() && allProcessesTerminated(duccWorkJob)) {
 						stateJobAccounting.stateChange(duccWorkJob, JobState.Completed);
