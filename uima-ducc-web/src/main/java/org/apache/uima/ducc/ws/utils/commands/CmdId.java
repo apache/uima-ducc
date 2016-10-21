@@ -70,6 +70,7 @@ public class CmdId {
 		try {
 			List<String> commandList = new ArrayList<String>();
 			commandList.add(command);
+			commandList.add(args[0]);
 			String[] commandArray = commandList.toArray(new String[0]);
 			ProcessBuilder pb = new ProcessBuilder( commandArray );
 			Process p = pb.start();

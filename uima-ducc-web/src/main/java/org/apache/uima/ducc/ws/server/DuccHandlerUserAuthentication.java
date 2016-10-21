@@ -151,6 +151,14 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		String userId = request.getParameter("userid");
+		String domain = null;
+		if(userId != null) {
+			if(userId.contains("@")) {
+				String[] parts = userId.split("@",2);
+				userId = parts[0];
+				domain = parts[1];
+			}
+		}
 		String password = request.getParameter("password");
 		try {
 			Properties properties = DuccWebProperties.get();
@@ -188,14 +196,6 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 				else {
 					Role role = Role.User;
 					duccLogger.debug(methodName, jobid, messages.fetch("role ")+role);
-					String domain = null;
-					if(userId != null) {
-						if(userId.contains("@")) {
-							String[] parts = userId.split("@",2);
-							userId = parts[0];
-							domain = parts[1];
-						}
-					}
 					duccLogger.info(methodName, jobid, messages.fetch("userId ")+userId+" "+messages.fetch("domain ")+domain);
 					duccLogger.debug(methodName, jobid, messages.fetchLabel("version")+duccAuthenticator.getVersion());
 					IAuthenticationResult result1 = duccAuthenticator.isAuthenticate(userId, domain, password);
