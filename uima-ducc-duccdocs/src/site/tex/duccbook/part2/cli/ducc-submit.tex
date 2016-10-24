@@ -133,9 +133,16 @@
              to be effective from release to release.
              
   \begin{enumerate}
+  
     \item[DUCC\_USER\_CP\_PREPEND {[path-to-ducc-jars-and-classes]}  ]
     If specified, this path is used to supply the DUCC classes required for running
     the Job Driver and Job Process(es), normally set to \$DUCC\_HOME/lib/uima-ducc/users/*.
+    
+    \item[DUCC\_WORK\_ITEM\_PERFORMANCE {[true]}  ]
+    If specified, DUCC will create subdirectory work-item-performance in the user 
+    specified log directory and will place an individual json.gz file for each 
+    work item successfully processed comprising its performance breakdown.
+    
   \end{enumerate}
 
 
