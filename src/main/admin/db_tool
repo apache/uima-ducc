@@ -30,7 +30,6 @@ from optparse import OptionGroup
 from optparse import OptionParser
 
 import logging
-from numpy import outer
 
 from ducc_util import DuccUtil
 
