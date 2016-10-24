@@ -84,19 +84,27 @@ implements IJobProcessor{
 		setState(state,super.getProcessJmxUrl() );
 	}
 	public void setState(ProcessState state, String message) {
+		// check if this process is in terminal state. Don't allow illegal
+		// transition to a new state if already in terminal state
+		if ( isInTerminalState() ) {
+			return;
+		}
 		try {
 			stateLock.lock();
+/*
 			if ( currentState.name().equals(ProcessState.FailedInitialization.name()) ) {
 				return;
 			}
+	*/
 			if ( message == null ) {
 				message = super.getProcessJmxUrl();
 			}
 			if ( !state.name().equals(currentState.name())) {
 				currentState = state;
 				logger.info("setState", null, "Notifying Agent New State:"+state.name());
-
-				agent.notify(currentState, message);
+				if ( agent != null ) {
+					agent.notify(currentState, message);
+				}
 			} 
 			
 		} finally {
@@ -297,12 +305,16 @@ implements IJobProcessor{
 				// wait until all process threads initialize
 				threadReadyCount.await();
                 // if initialization was successful, tell the agent that the JP is running 
-				if ( !currentState.equals(ProcessState.FailedInitialization )) {
+//				if ( !currentState.equals(ProcessState.FailedInitialization )) {
+				if ( !isInTerminalState() ) {
+					setState(ProcessState.Running, processJmxUrl);
+					/*
 			    	// pipelines deployed and initialized. This process is Ready
 			    	currentState = ProcessState.Running;
 					// Update agent with the most up-to-date state of the pipeline
 					// all is well, so notify agent that this process is in Running state
 					agent.notify(currentState, processJmxUrl);
+					*/
 					// Stop polling for AE state. All AEs have initialized. No need
 					// to poll. 
 					try {
@@ -317,10 +329,12 @@ implements IJobProcessor{
 				}
 		    } catch( Exception ee) {
 		    	ee.printStackTrace();
-		    	currentState = ProcessState.FailedInitialization;
 		    	getLogger().info("start", null, ">>> Failed to Deploy UIMA Service. Check UIMA Log for Details");
+/*
+		    	currentState = ProcessState.FailedInitialization;
 				agent.notify(ProcessState.FailedInitialization);
-				
+*/
+		    	setState(ProcessState.FailedInitialization);
 		    } finally {
 				// Stop executor. It was only needed to poll AE initialization status.
 				// Since deploy() completed
@@ -362,28 +376,60 @@ implements IJobProcessor{
 				stop();
 		    }
 		} catch( Exception e) {
+			/*
 			currentState = ProcessState.FailedInitialization;
 			agent.notify(currentState);
+			*/
+			setState(ProcessState.FailedInitialization);
 			e.printStackTrace();
 			stop();
 		} 
 
 	}
-	
+/*	
 	public void setRunning() {
 		currentState = ProcessState.Running;
 	}
+	*/
 	public boolean isRunning() {
-		return currentState.equals(ProcessState.Running);
+		stateLock.lock();
+		try {
+			return currentState.equals(ProcessState.Running);
+		} finally {
+			stateLock.unlock();
+		}
 	}
 	public boolean isUimaASJob() {
 	   return uimaASJob;
 	}
+	public boolean isInTerminalState() {
+		stateLock.lock();
+		try {
+			switch(currentState) {
+			case Stopping:
+			case Stopped:
+			case FailedInitialization:
+			case Failed:
+			case InitializationTimeout:
+			case Killed:
+				return true;
+			default:
+			
+			}
+			
+		} finally {
+			stateLock.unlock();
+		}
+		return false;
+	}
 	public void stop() {
+		setState(ProcessState.Stopping);
+		/*
 		currentState = ProcessState.Stopping;
 		if ( agent != null ) {
 			agent.notify(currentState);
 		}
+		*/
 		if ( super.isStopping() ) {
 			return;  // already stopping - nothing to do
 		}

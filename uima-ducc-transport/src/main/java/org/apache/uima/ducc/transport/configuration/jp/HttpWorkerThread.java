@@ -258,7 +258,10 @@ public class HttpWorkerThread implements Runnable {
 								// add transaction under th
 								transactionMap.put(key, transaction);
 							}
-							
+							// make sure the JP is in the Running state before calling process()
+							if ( !duccComponent.isRunning() ) {
+								break;
+							}
 							//    ********** PROCESS() **************
 							// using java reflection, call process to analyze the CAS. While 
 							// we are blocking, user code may issue investment reset asynchronously.
