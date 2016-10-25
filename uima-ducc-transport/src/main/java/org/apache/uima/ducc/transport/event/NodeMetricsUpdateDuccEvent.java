@@ -75,4 +75,7 @@ public class NodeMetricsUpdateDuccEvent extends AbstractDuccEvent{
 	public boolean getCgroups() {
 		return node.isCgroupEnabled();
 	}
+	public boolean getCgroupsCpuReportingEnabled() {
+		return node.getNodeMetrics().isCpuReportingEnabled();
+	}
 }
