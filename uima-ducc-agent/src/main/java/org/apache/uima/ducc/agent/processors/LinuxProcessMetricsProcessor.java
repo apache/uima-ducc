@@ -18,10 +18,7 @@
  */
 package org.apache.uima.ducc.agent.processors;
 
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,7 +26,6 @@ import java.util.concurrent.Future;
 
 import org.apache.camel.Exchange;
 import org.apache.uima.ducc.agent.NodeAgent;
-import org.apache.uima.ducc.agent.launcher.CGroupsManager;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.agent.metrics.collectors.DuccGarbageStatsCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.ProcessCpuUsageCollector;
@@ -54,13 +50,13 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 	// private RandomAccessFile nodeStatFile;
 	private RandomAccessFile processStatFile;
 
-	private long totalCpuInitUsage = 0;
+	//private long totalCpuInitUsage = 0;
 	
 	private long previousCPUReadingInMillis = 0;
 	
 	private long previousSnapshotTime = 0;
 
-	private boolean initializing = true;
+	//private boolean initializing = true;
 
 	private final ExecutorService pool;
 
@@ -80,7 +76,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 	private volatile boolean closed = true;
 
-	private long clockAtStartOfRun = 0;
+	//private long clockAtStartOfRun = 0;
 
 	private long percentCPU = 0;
 
@@ -176,7 +172,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 				long totalFaults = 0;
 				long totalCpuUsageInMillis = 0;
 				long totalRss = 0;
-				int currentCpuUsage = 0;
+				//int currentCpuUsage = 0;
 				Future<ProcessMemoryPageLoadUsage> processMajorFaultUsage = null;
 				Future<ProcessCpuUsage> processCpuUsage = null;
 				String[] cgroupPids = new String[0];
@@ -213,29 +209,16 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 									.submit(processMajorFaultUsageCollector);
 							totalFaults += processMajorFaultUsage.get()
 									.getMajorFaults();
-							//RandomAccessFile raf = null;
 							try {
-								/*
-								raf = new RandomAccessFile("/proc/" + pid + "/stat", "r");
-								ProcessCpuUsageCollector processCpuUsageCollector = new ProcessCpuUsageCollector(
-										logger, pid, raf, 42, 0);
-	*/
-								// if process is stopping or already dead dont
-								// collect metrics. The Camel
-								// route has just been stopped.
 								if (!collectStats(process.getProcessState())) {
 									return;
 								}
-
 								
 							} catch( Exception ee) {
 								logger.warn(
 										"LinuxProcessMetricsProcessor.process",
 										null,ee);
 							} 
-
-							//currentCpuUsage += collectProcessCurrentCPU(pid);
-
 							RandomAccessFile rStatmFile = null;
 							try {
 								rStatmFile = new RandomAccessFile("/proc/"
@@ -272,12 +255,12 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 						processCpuUsage = pool
 								.submit(processCpuUsageCollector);
 						long cpuUsageInNanos = processCpuUsage.get().getCpuUsage();
-						
-//						totalCpuUsage += ( processCpuUsage.get().getCpuUsage() / agent.cpuClockRate );
-//						totalCpuUsage += ( cpuUsage / agent.cpuClockRate );
-						// cpuUsage comes from cpuacct.usage and is in nanos
-						totalCpuUsageInMillis = Math.round( cpuUsageInNanos / 1000000 );  // normalize into millis
-						
+						if ( cpuUsageInNanos >= 0 ) {
+							// cpuUsage comes from cpuacct.usage and is in nanos
+							totalCpuUsageInMillis = Math.round( cpuUsageInNanos / 1000000 );  // normalize into millis
+						} else {
+							totalCpuUsageInMillis = -1;
+						}
 						logger.info(
 								"LinuxProcessMetricsProcessor.process",null,
 								"CPU USAGE:"+cpuUsageInNanos+ " CLOCK RATE:"+agent.cpuClockRate+" Total CPU USAGE:"+totalCpuUsageInMillis);
@@ -304,28 +287,9 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 								.submit(processMajorFaultUsageCollector);
 						totalFaults = processMajorFaultUsage.get()
 								.getMajorFaults();
-
-						/*
-						ProcessCpuUsageCollector processCpuUsageCollector = new ProcessCpuUsageCollector(
-								logger, process.getPID(), processStatFile, 42,
-								0);
-						
-						// if process is stopping or already dead dont collect
-						// metrics. The Camel
-						// route has just been stopped.
-						if (!collectStats(process.getProcessState())) {
-							return;
-						}
-						processCpuUsage = pool.submit(processCpuUsageCollector);
-						totalCpuUsage = processCpuUsage.get().getTotalJiffies()
-								/ agent.cpuClockRate;
-					
-*/
-
 						// Cgroups are not available so percent CPU is not available
 						totalCpuUsageInMillis = -1;   // -1 stands for N/A
-						currentCpuUsage = -1; // -1 stands for N/A
-//						currentCpuUsage = collectProcessCurrentCPU(process.getPID());
+						//currentCpuUsage = -1; // -1 stands for N/A
 
 						ProcessResidentMemoryCollector collector = new ProcessResidentMemoryCollector(
 								statmFile, 2, 0);
@@ -355,17 +319,13 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 						managedProcess.getDuccProcess().getProcessState()
 						.equals(ProcessState.Initializing)	
 						) {
-					if (agent.useCgroups ) {
+					if (agent.useCgroups && totalCpuUsageInMillis != -1) {
 						// normalize time in running state into seconds
 						percentCPU = Math.round(100*( (totalCpuUsageInMillis*1.0)/ (process.getTimeWindowRun().getElapsedMillis()*1.0)));
 						process.setCpuTime( percentCPU );
 					} else {
 						process.setCpuTime(-1);   // -1 stands for N/A
-						logger.info(
-								"process",
-								null,
-								"Agent is unable to determine Node's clock rate. Defaulting CPU Time to 0 For Process with PID:"
-										+ process.getPID());
+						percentCPU = -1;
 					}
 				} else {
 					// if process is not dead, report the last known percentCPU
@@ -381,7 +341,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 					previousSnapshotTime = System.currentTimeMillis();
 					
 				} else {
-					if (agent.useCgroups ) {
+					if (agent.useCgroups && totalCpuUsageInMillis != -1 ) {
 						process.setCurrentCPU(0);
 					} else {
 						process.setCurrentCPU(-1);  // -1 stands for N/A
@@ -393,11 +353,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 					"----------- PID:" + process.getPID()
 					+ " Total CPU Time (%):" + process.getCpuTime()
 					+ " Delta CPU Time (%):" +process.getCurrentCPU() );
-//					+ "% Current CPU Time:"
-//					+ process.getCurrentCPU());
-
-				// long majorFaults =
-				// processMajorFaultUsage.get().getMajorFaults();                   
 				// collects process Major faults (swap in memory)
 				process.setMajorFaults(totalFaults);
 				// Current Process Swap Usage in bytes
@@ -419,33 +374,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 				if (processSwapUsage > 0
 						&& processSwapUsage > managedProcess
 								.getMaxSwapThreshold()) {
-					/*
-					 * // Disable code that kill a process if it exceeds its
-					 * swap allocation. Per JIRA // UIMA-3320, agent will
-					 * monitor node-wide swap usage and will kill processes that
-					 * // use most of the swap. logger.error( "process", null,
-					 * "\n\n********************************************************\n\tProcess with PID:"
-					 * + managedProcess.getPid() +
-					 * " Exceeded its Max Swap Usage Threshold of " +
-					 * (managedProcess.getMaxSwapThreshold() / 1024) / 1024 +
-					 * " MBs. The Current Swap Usage is: " + (processSwapUsage /
-					 * 1024) / 1024 +
-					 * " MBs .Killing process ...\n********************************************************\n\n"
-					 * ); try { managedProcess.kill(); // mark it for death
-					 * process
-					 * .setReasonForStoppingProcess(ReasonForStoppingProcess
-					 * .ExceededSwapThreshold .toString());
-					 * agent.stopProcess(process);
-					 * 
-					 * if ( agent.useCgroups ) { for( String pid : cgroupPids )
-					 * { // skip the main process that was just killed above.
-					 * Only kill // its child processes. if (
-					 * pid.equals(managedProcess.getDuccProcess().getPID())) {
-					 * continue; } killChildProcess(pid,"-15"); } }
-					 * 
-					 * } catch (Exception ee) { logger.error("process", null,
-					 * ee); } return;
-					 */
 				} else {
 					// Use Memory Guard only if cgroups are disabled and fudge
 					// factor > -1
@@ -541,51 +469,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 				ex.printStackTrace();
 			}
 
-	}
-
-	private int collectProcessCurrentCPU(String pid) throws Exception {
-		InputStream stream = null;
-		BufferedReader reader = null;
-		String cpuTime = "0";
-		ProcessBuilder pb;
-		int cpuint = 0;
-
-		if (process != null
-				&& (process.getProcessState().equals(ProcessState.Running) || (process
-						.getProcessState().equals(ProcessState.Initializing)))) {
-			// run top in batch mode and filter just the CPU
-			pb = new ProcessBuilder("/bin/sh", "-c", "top -b -n 1 -p " + pid
-					+ " | tail -n 2 | head -n 1 | awk '{print $9}'");
-
-			pb.redirectErrorStream(true);
-			Process proc = pb.start();
-			// spawn ps command and scrape the output
-			stream = proc.getInputStream();
-			reader = new BufferedReader(new InputStreamReader(stream));
-			String line;
-			String regex = "\\s+";
-			// read the next line from ps output
-			while ((line = reader.readLine()) != null) {
-				String tokens[] = line.split(regex);
-				if (tokens.length > 0) {
-					logger.info("collectProcessCurrentCPU", null, " PID:"+pid+" " +line
-							+ " == CPUTIME:" + tokens[0]);
-					cpuTime = tokens[0];
-				}
-			}
-			if (cpuTime.indexOf(".") > -1) {
-				cpuTime = cpuTime.substring(0, cpuTime.indexOf("."));
-			}
-			stream.close();
-			proc.waitFor();
-			try {
-				cpuint = Integer.valueOf(cpuTime);
-			} catch (NumberFormatException e) {
-				// ignore, return 0
-			}
-
-		}
-		return cpuint;
 	}
 
 	private void killChildProcess(final String pid, final String signal) {

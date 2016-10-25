@@ -515,6 +515,10 @@ public class CGroupsManager {
 				agentLogger.trace("getCpuUsage", null, "Done Reading cpuacct.stat file:"+file);
 
 			}
+		} else {
+			agentLogger.info("getCpuUsage", null, "CPUACCT.USAGE file:"+file+" Not Found - Process CPU Usage is Unavailable");
+
+			usage = -1;  // cgroups accounting not configured
 		}
 		return usage;
 	}
