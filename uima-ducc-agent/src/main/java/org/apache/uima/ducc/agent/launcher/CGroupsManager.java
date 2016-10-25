@@ -57,7 +57,7 @@ public class CGroupsManager {
 	private static final String CGDuccMemoryPath = "/memory/"+SYSTEM+"/";
 	private static final String CGDuccCpuPath = "/cpu/"+SYSTEM+"/";
 	private static final String CGProcsFile = "/cgroup.procs";
-	private static final String CGDuccCpuAcctPath = "/cpu/"+SYSTEM+"/";
+//	private static final String CGDuccCpuAcctPath = "/cpu/"+SYSTEM+"/";
 	
 	// legacy means that the cgonfig points to <cgroup location>/ducc
 	private boolean legacyCgConfig = false;
@@ -492,7 +492,6 @@ public class CGroupsManager {
 
 	public long getCpuUsage(String containerId ) throws Exception {
 		long usage = 0;
-//		String file = getCGroupLocation("cpuacct")+containerId+System.getProperty("file.separator")+"cpuacct.stat";
 		String file = getCGroupLocation("cpuacct")+containerId+System.getProperty("file.separator")+"cpuacct.usage";
 		agentLogger.trace("getCpuUsage", null, "CPUACCT.USAGE file:"+file);
 		File f = new File(file);
@@ -501,18 +500,8 @@ public class CGroupsManager {
 			BufferedReader br = new BufferedReader(isr);
 			String line;
 			try {
-//				String cpu;
 				while ((line = br.readLine()) != null) {
 					agentLogger.trace("getCpuUsage", null, "CPUACCT.USAGE Line:"+line);
-/*
-					// The line read from cpuacct.stat has: NAME VALUE syntax. 
-					// Need just the VALUE part
-					if ( line.trim().length() > 0 ) {
-						cpu = (line.trim().split(" "))[1];  // get the CPU in user mode
-						// convert to long and accumulate. Need cpu both in user and system mode
-						usage += Long.parseLong(cpu);
-					}
-					*/
 					usage = Long.parseLong(line.trim());
 					break;
 				}
