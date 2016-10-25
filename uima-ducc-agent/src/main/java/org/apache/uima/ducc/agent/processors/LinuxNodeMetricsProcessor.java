@@ -153,8 +153,9 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 				users = new TreeMap<String, NodeUsersInfo>();
 			}
 			NodeLoadAverage lav = loadFuture.get();
+			boolean cpuReportingEnabled = agent.cgroupsManager.isCpuReportingEnabled();
             NodeMetrics nodeMetrics = new NodeMetrics(agent.getIdentity(), memInfo, lav,
-              cpuInfo, users);
+              cpuInfo, users, cpuReportingEnabled);
       
 			Node node = new DuccNode(agent.getIdentity(), nodeMetrics, agent.useCgroups);
 			// Make the agent aware how much memory is available on the node. Do this once.
@@ -175,7 +176,9 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 					" Memory Free (KB):"+node.getNodeMetrics().getNodeMemory().getMemFree()+
 					" Swap Total (KB):"+node.getNodeMetrics().getNodeMemory().getSwapTotal()+
 					" Swap Free (KB):"+node.getNodeMetrics().getNodeMemory().getSwapFree()+
-					" Low Swap Threshold Defined in ducc.properties (KB):"+swapThreshold);
+					" Low Swap Threshold Defined in ducc.properties (KB):"+swapThreshold +
+					" CPU Reporting Enabled:"+cpuReportingEnabled) ;
+			
 			logger.trace(methodName, null, "... Agent "+node.getNodeIdentity().getName()+" Posting Users:"+
 					node.getNodeMetrics().getNodeUsersMap().size());
 			// Check if swap free is less than defined minimum threshold (check ducc.properties) 

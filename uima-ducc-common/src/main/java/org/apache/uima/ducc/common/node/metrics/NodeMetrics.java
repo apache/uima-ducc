@@ -32,19 +32,23 @@ public class NodeMetrics implements Serializable {
   private NodeCpuInfo nodeCpu;
   private NodeIdentity nodeIdentity;
   TreeMap<String,NodeUsersInfo> nodeUsersMap;
+  private boolean cpuReportingEnabled = false;
   
-  public NodeMetrics(NodeIdentity nodeIdentity, NodeMemory nodeMemory, NodeLoadAverage nodeLoadAverage , NodeCpuInfo nodeCpu, TreeMap<String,NodeUsersInfo> userProcessMap) {
+  public NodeMetrics(NodeIdentity nodeIdentity, NodeMemory nodeMemory, NodeLoadAverage nodeLoadAverage , NodeCpuInfo nodeCpu, TreeMap<String,NodeUsersInfo> userProcessMap, boolean cpuReportingEnabled) {
     this.nodeIdentity = nodeIdentity;
 	  setNodeMemory(nodeMemory);
     setNodeLoadAverage(nodeLoadAverage);
     setNodeCpu(nodeCpu);
     //setNodeUsersInfo(nodeUsersInfo);
     this.nodeUsersMap = userProcessMap;
+    this.cpuReportingEnabled = cpuReportingEnabled;
   }
   public TreeMap<String, NodeUsersInfo> getNodeUsersMap() {
     return nodeUsersMap;
   }
-
+  public boolean isCpuReportingEnabled() {
+	  return cpuReportingEnabled;
+  }
    public NodeIdentity getNodeIdentity() {
 	  return nodeIdentity;
   }

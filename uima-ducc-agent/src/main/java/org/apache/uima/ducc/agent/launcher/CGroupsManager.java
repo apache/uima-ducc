@@ -490,6 +490,11 @@ public class CGroupsManager {
 		return false;
 	}
 
+	public boolean isCpuReportingEnabled() {
+		String file = getCGroupLocation("cpuacct")+System.getProperty("file.separator")+"cpuacct.usage";
+		File f = new File(file);
+		return f.exists();
+	}
 	public long getCpuUsage(String containerId ) throws Exception {
 		long usage = 0;
 		String file = getCGroupLocation("cpuacct")+containerId+System.getProperty("file.separator")+"cpuacct.usage";
