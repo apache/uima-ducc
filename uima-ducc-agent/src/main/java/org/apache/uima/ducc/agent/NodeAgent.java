@@ -222,8 +222,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     // fetch Page Size from the OS and cache it
     pageSize = getOSPageSize();
     
-    // begin publishing node metrics
-    factory.startNodeMetrics(this);
     
     numProcessors = getNodeProcessors();
     
@@ -373,6 +371,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       logger.info("nodeAgent", null, "------- CGroups Not Enabled on this Machine");
       cgroupFailureReason = "------- CGroups Not Enabled on this Machine - check ducc.properties: ducc.agent.launcher.cgroups.enable ";
     }
+    
+    // begin publishing node metrics
+    factory.startNodeMetrics(this);
+
     logger.info("nodeAgent", null, "CGroup Support=" + useCgroups + " excludeNodeFromCGroups="
             + excludeNodeFromCGroups + " excludeAPs=" + excludeAPs+" CGroups utils Dir:"+cgUtilsPath);
 

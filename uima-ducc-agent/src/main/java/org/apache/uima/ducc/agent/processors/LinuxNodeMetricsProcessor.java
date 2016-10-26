@@ -153,7 +153,10 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 				users = new TreeMap<String, NodeUsersInfo>();
 			}
 			NodeLoadAverage lav = loadFuture.get();
-			boolean cpuReportingEnabled = agent.cgroupsManager.isCpuReportingEnabled();
+			boolean cpuReportingEnabled = false;
+			if ( agent.cgroupsManager != null ) {
+				cpuReportingEnabled = agent.cgroupsManager.isCpuReportingEnabled();
+			}
             NodeMetrics nodeMetrics = new NodeMetrics(agent.getIdentity(), memInfo, lav,
               cpuInfo, users, cpuReportingEnabled);
       
