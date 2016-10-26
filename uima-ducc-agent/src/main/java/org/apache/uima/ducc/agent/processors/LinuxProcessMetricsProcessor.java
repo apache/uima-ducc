@@ -320,8 +320,16 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 						.equals(ProcessState.Initializing)	
 						) {
 					if (agent.useCgroups && totalCpuUsageInMillis != -1) {
+						
+						long timeRunning = 1;
+						if ( process.getTimeWindowInit() != null ) {
+							timeRunning = process.getTimeWindowInit().getElapsedMillis();
+						}
+						if ( process.getTimeWindowRun() != null ) {
+							timeRunning += process.getTimeWindowRun().getElapsedMillis();
+						}
 						// normalize time in running state into seconds
-						percentCPU = Math.round(100*( (totalCpuUsageInMillis*1.0)/ (process.getTimeWindowRun().getElapsedMillis()*1.0)));
+						percentCPU = Math.round(100*( (totalCpuUsageInMillis*1.0)/ (timeRunning*1.0)));
 						process.setCpuTime( percentCPU );
 					} else {
 						process.setCpuTime(-1);   // -1 stands for N/A
