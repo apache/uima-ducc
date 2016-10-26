@@ -92,7 +92,11 @@ public class MachineFactsTest {
 		return random.nextDouble();
 	}
 	
-	private boolean createCgroups() {
+	private boolean createCgroupsEnabled() {
+		return random.nextBoolean();
+	}
+	
+	private boolean createCgroupsCpuReportingEnabled() {
 		return random.nextBoolean();
 	}
 	
@@ -130,10 +134,11 @@ public class MachineFactsTest {
 		String delta = createSwap();
 		String free = createFree();
 		double cpu = createCPU();
-		boolean cgroups = createCgroups();
+		boolean cgroupsEnabled = createCgroupsEnabled();
+		boolean cgroupsCpuReportingEnabled = createCgroupsCpuReportingEnabled();
 		List<String> aliens = createAliens();
 		String heartbeat = createHeartbeat();
-		MachineFacts machineFacts = new MachineFacts(status,"",ip,name, memTotal, memFree, swap, delta, free, cpu, cgroups, aliens, heartbeat);
+		MachineFacts machineFacts = new MachineFacts(status,"",ip,name, memTotal, memFree, swap, delta, free, cpu, cgroupsEnabled, cgroupsCpuReportingEnabled, aliens, heartbeat);
 		return machineFacts;
 	}
 	

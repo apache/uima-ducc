@@ -248,7 +248,7 @@ public class DuccMachinesData {
 				String swapInuse = "";
 				String swapFree = "";
 				double cpu = 0;
-				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, cpu, false, null, -1, 0);
+				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, cpu, false, false, null, -1, 0);
 				putMachine(machineInfo);
 			}
 			updateSortedMachines();
@@ -393,8 +393,9 @@ public class DuccMachinesData {
 		List<ProcessInfo> alienPids = nodeMetrics.getRogueProcessInfoList();
 		Node node = nodeMetrics.getNode();
 		double cpu = getCpuLoadAvg(node);
-		boolean cGroups = nodeMetrics.getCgroups();
-		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, cpu, cGroups, alienPids, duccEvent.getMillis(), duccEvent.getEventSize());
+		boolean cGroupsEnabled = nodeMetrics.getCgroups();
+		boolean cGroupsCpuReportingEnabled = nodeMetrics.getCgroupsCpuReportingEnabled();
+		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, duccEvent.getMillis(), duccEvent.getEventSize());
 		
 		NodeId key = nodeId;
 		MachineInfo previous = unsortedMachines.get(key);
@@ -610,10 +611,11 @@ public class DuccMachinesData {
 			String swapDelta = ""+machineInfo.getSwapDelta();
 			String swapFree = machineInfo.getSwapFree();
 			double cpu = machineInfo.getCpu();
-			boolean cGroups = machineInfo.getCgroups();
+			boolean cGroupsEnabled = machineInfo.getCgroupsEnabled();
+			boolean cGroupspuReportingEnabled = machineInfo.getCgroupsCpuReportingEnabled();
 			List<String> aliens = machineInfo.getAliens();
 			String heartbeat = ""+machineInfo.getElapsed();
-			MachineFacts facts = new MachineFacts(status,statusReason,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
+			MachineFacts facts = new MachineFacts(status,statusReason,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroupsEnabled,cGroupspuReportingEnabled,aliens,heartbeat);
 			// when not using DB, memResrve == memTotal
 			facts.memReserve = memTotal;
 			factsList.add(facts);
@@ -683,10 +685,11 @@ public class DuccMachinesData {
 			String swapDelta = "";
 			String swapFree = "";
 			double cpu = 0;
-			boolean cGroups = false;
+			boolean cGroupsEnabled = false;
+			boolean cGroupsCpuReportingEnabled = false;
 			List<String> aliens = new ArrayList<String>();
 			String heartbeat = "";
-			MachineFacts facts = new MachineFacts(status,statusReason,ip,longName,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
+			MachineFacts facts = new MachineFacts(status,statusReason,ip,longName,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroupsEnabled,cGroupsCpuReportingEnabled,aliens,heartbeat);
 			mfl.add(facts);
 		}
 		// Augment returnable with data from Agents & RM (from DB)
@@ -703,10 +706,11 @@ public class DuccMachinesData {
 			String swapDelta = ""+machineInfo.getSwapDelta();
 			String swapFree = machineInfo.getSwapFree();
 			double cpu = machineInfo.getCpu();
-			boolean cGroups = machineInfo.getCgroups();
+			boolean cGroupsEnabled = machineInfo.getCgroupsEnabled();
+			boolean cGroupsCpuReportingEnabled = machineInfo.getCgroupsCpuReportingEnabled();
 			List<String> aliens = machineInfo.getAliens();
 			String heartbeat = ""+machineInfo.getElapsed();
-			MachineFacts facts = new MachineFacts(status,statusReason,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroups,aliens,heartbeat);
+			MachineFacts facts = new MachineFacts(status,statusReason,ip,name,memTotal,memFree,swapInuse,swapDelta,swapFree,cpu,cGroupsEnabled,cGroupsCpuReportingEnabled,aliens,heartbeat);
 			facts.memReserve = machineInfo.getMemTotal();
 			facts.quantum = ""+machineInfo.getQuantum();
 			logger.trace(location, jobid, facts.status+" "+facts.statusReason);

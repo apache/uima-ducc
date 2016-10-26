@@ -1846,13 +1846,21 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				}
 				row.append("</td>");
 				// C-Groups
-				boolean isCgroups = facts.cgroups;
+				boolean isCgroupsEnabled = facts.cgroupsEnabled;
+				boolean isCgroupsCpuReportingEnabled = facts.cgroupsCpuReportingEnabled;
 				sb = new StringBuffer();
 				if(status.equals("up")) {
-					if(isCgroups) {
-						sb.append("<span title=\""+"control groups active"+"\" class=\"health_black\""+">");
-						sb.append("on");
-						sb.append("</span>");
+					if(isCgroupsEnabled) {
+						if(isCgroupsCpuReportingEnabled) {
+							sb.append("<span title=\""+"control groups active"+"\" class=\"health_black\""+">");
+							sb.append("on");
+							sb.append("</span>");
+						}
+						else {
+							sb.append("<span title=\""+"control groups CPU reporting not configured"+"\" class=\"health_red\""+">");
+							sb.append("noCPU%");
+							sb.append("</span>");
+						}
 					}
 					else {
 						sb.append("<span title=\""+"control groups inactive"+"\" class=\"health_red\""+">");
