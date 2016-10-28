@@ -128,11 +128,15 @@ public class CGroupsManager {
 	public static void main(String[] args) {
 		try {
 
-			String cgBaseDir = fetchCgroupsBaseDir("/proc/mounts");
+//			String cgBaseDir = "/cgroup"; //"/sys/fs/cgroup";//fetchCgroupsBaseDir("/proc/mounts");
+			String cgBaseDir = "/sys/fs/cgroup";//fetchCgroupsBaseDir("/proc/mounts");
 			
 			CGroupsManager cgMgr = new CGroupsManager("/usr/bin",cgBaseDir, "memory",
 					null, 10000);
-      	  cgMgr.validator(cgBaseDir, "test2", System.getProperty("user.name"),false)
+			System.out.println("Cgroups Accounting Enabled:"+cgMgr.isCpuReportingEnabled());
+			
+			/*
+			cgMgr.validator(cgBaseDir, "test2", System.getProperty("user.name"),false)
           .cgcreate();
 
 			System.out.println("Cgroups Installed:"
@@ -149,7 +153,7 @@ public class CGroupsManager {
 				cgMgr.wait(60000);
 			}
 			cgMgr.destroyContainer(args[0], args[2], NodeAgent.SIGKILL);
-
+*/
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -195,10 +199,14 @@ public class CGroupsManager {
 	 * the new looks like <cgroup folder>/memory
 	 */
 	private String getCGroupLocation(String subsystem) {
+		String location = cgroupBaseDir.trim();
+		
 		if ( legacyCgConfig ) {
-			return cgroupBaseDir;
-		}
-		return cgroupBaseDir + subsystem;
+			return location;
+		} else if (!cgroupBaseDir.endsWith(System.getProperty("file.separator") )) {
+			location += System.getProperty("file.separator");
+		} 
+		return location + subsystem;
 	}
 	
 	public void configure(NodeAgent agent ) {
@@ -489,16 +497,39 @@ public class CGroupsManager {
 		System.out.println(message);
 		return false;
 	}
-
+	private String composeCpuAccountingFileName(String id) {
+		String location = getCGroupLocation("cpuacct").trim();
+		if ( !location.endsWith(System.getProperty("file.separator"))) {
+			location = location + System.getProperty("file.separator");
+		}
+		return location+id+"cpuacct.usage";
+	}
 	public boolean isCpuReportingEnabled() {
-		String file = getCGroupLocation("cpuacct")+System.getProperty("file.separator")+"cpuacct.usage";
-		File f = new File(file);
+//		String file = getCGroupLocation("cpuacct")+System.getProperty("file.separator")+"cpuacct.usage";
+	
+		File f = new File(composeCpuAccountingFileName(""));
+		System.out.println(f.getAbsolutePath());
 		return f.exists();
 	}
 	public long getCpuUsage(String containerId ) throws Exception {
 		long usage = 0;
-		String file = getCGroupLocation("cpuacct")+containerId+System.getProperty("file.separator")+"cpuacct.usage";
-		agentLogger.trace("getCpuUsage", null, "CPUACCT.USAGE file:"+file);
+
+		if (!containerId.endsWith(System.getProperty("file.separator"))) {
+			containerId = containerId + System.getProperty("file.separator");
+		}
+		/*
+		if (!containerId.startsWith(System.getProperty("file.separator"))) {
+			containerId = System.getProperty("file.separator")+containerId;
+		}
+		String location = getCGroupLocation("cpuacct").trim();
+		if ( !location.endsWith(System.getProperty("file.separator"))) {
+			location += System.getProperty("file.separator");
+		}
+//		String file = getCGroupLocation("cpuacct")+containerId+System.getProperty("file.separator")+"cpuacct.usage";
+		String file = location+"cpuacct.usage";
+		*/
+		String file = composeCpuAccountingFileName(containerId.trim());
+		agentLogger.info("getCpuUsage", null, "CPUACCT.USAGE file:"+file);
 		File f = new File(file);
 		if ( f.exists() ) {
 			InputStreamReader isr = new InputStreamReader(new FileInputStream(f));
