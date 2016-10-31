@@ -20,19 +20,19 @@
 
 # handle /home/duccy/spool/
 
-togo=`find /home/duccy/spool/* -mtime +7 -user duccy`
+togo=`find /home/duccy/spool/* -mtime +21 -user duccy`
 echo Removing $togo
-`find /home/duccy/spool/* -mtime +7 -user duccy | xargs -i rm -rf {}`
+`find /home/duccy/spool/* -mtime +21 -user duccy | xargs -i rm -rf {}`
 
 # handle /home/duccy/ducc/logs/
 
-togo=`find /home/duccy/ducc/logs/* -mtime +7 -user duccy`
+togo=`find /home/duccy/ducc/logs/* -mtime +21 -user duccy`
 echo Removing $togo
-`find /home/duccy/ducc/logs/* -mtime +7 -user duccy | xargs -i rm -rf {}`
+`find /home/duccy/ducc/logs/* -mtime +21 -user duccy | xargs -i rm -rf {}`
 
 # handle /tmp/UIMA*
 
-togo=`find /tmp -mtime +7 -user duccy`
+togo=`find /tmp -mtime +21 -user duccy`
 echo Removing $togo
-`find /tmp -mtime +7 -user duccy | xargs -i rm -rf {}`
+`find /tmp -mtime +21 -user duccy | xargs -i rm -rf {}`
 
