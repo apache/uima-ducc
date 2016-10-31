@@ -1,0 +1,159 @@
+#! /usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +
+# + ducc_disk_info
+# +
+# + purpose: report on DUCC_HOME disk usage
+# + 
+# + input: none (DUCC_HOME implied from location of this script)
+# + 
+# + output: filesystem=<i>% quota=<j>%
+# + 
+# + exit code: the greater of { i, j }
+# +
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+import os
+import subprocess
+import sys
+
+from optparse import HelpFormatter
+from optparse import OptionGroup
+from optparse import OptionParser
+
+# ----------------------------------------------
+
+# Extend OptionParser class
+class ExtendedOptionParser(OptionParser):
+    # override epilog formatter so 
+    # that newlines are not deleted!
+    def format_epilog(self, formatter):
+        return self.epilog
+
+# ----------------------------------------------
+
+cmd_df = 'df'
+cmd_quota = 'quota'
+
+code = -1
+message = 'DUCC_HOME: '
+
+# epilog for --help
+def get_epilog():
+    epilog = ''
+    epilog = epilog + '\n'
+    epilog = epilog+'Purpose: display the filesystem and quota usage for the DUCC_HOME directory relative to the location of this script.'
+    epilog = epilog + '\n'
+    return epilog
+
+# parse command line
+def parse_cmdline():
+    global options
+    parser = ExtendedOptionParser(epilog=get_epilog())
+    width = 45
+    parser.formatter.help_position = width
+    parser.formatter.max_help_position = width
+    parser.add_option('--code', action='store_true', dest='flag_code', default=False, 
+        help='display exit code, which is the greater of disk usage percentage and quota usage percentage')
+    parser.add_option('--nomsg', action='store_false', dest='flag_msg', default=True, 
+        help='suppress display of filesystem and quota percentages used message')
+    (options, args) = parser.parse_args()
+
+# determine quota usage
+def check_quota(target):
+    global code
+    global cmd_quota
+    global message
+    global filesystem
+    p = subprocess.Popen([cmd_quota, '-f', filesystem], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    for line in out.splitlines():
+        tokens = line.split()
+    blocks = tokens[0]
+    limit = tokens[2]
+    blocks = int(tokens[0].replace('*',''))
+    limit = int(tokens[2].replace('*',''))
+    try:
+        pctused = str(int(round((blocks*1.0)/(limit*1.0)*100)))
+        message = message+'quota='+pctused+'%'+' '
+        if(pctused > code):
+            code = pctused
+    except:
+        message = message+'quota='+'N/A'+' '
+    return
+
+# determine filesystem usage
+def check_disk(target):
+    global code
+    global cmd_df
+    global message
+    global filesystem
+    p = subprocess.Popen([cmd_df, target], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    pctused = 0
+    for line in out.splitlines():
+        tokens = line.split()
+    filesystem = tokens[0]
+    if(':' in filesystem):
+        filesystem = filesystem.rsplit(':',1)[1]
+    pctused = tokens[4].split('%')[0]
+    try:
+        number = float(pctused)
+        message = message+'filesystem='+pctused+'%'+' '
+        if(pctused > code):
+            code = pctused
+    except:
+        message = message+'filesystem='+'N/A'+' '
+    return
+
+# process
+def process(target):
+    check_disk(target)
+    check_quota(target)
+    return
+
+# initialize
+def initialize():
+    global ducc_home
+    pathname = os.path.dirname(sys.argv[0])   
+    ducc_home = pathname.rsplit('/',2)[0]
+    parse_cmdline()
+    return
+
+# main
+def main(argv):  
+    global ducc_home
+    global message
+    global code
+    try:
+        initialize()
+        process(ducc_home)
+    except Exception,e:
+        message = 'Exception: '+str(e)
+    message = message.strip()
+    if(options.flag_msg):
+        print message
+    if(options.flag_code):
+        sys.exit(code)
+    
+if __name__ == "__main__":
+    main(sys.argv[1:])

@@ -101,6 +101,7 @@ import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 import org.apache.uima.ducc.ws.authentication.DuccAuthenticator;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
 import org.apache.uima.ducc.ws.helper.DatabaseHelper;
+import org.apache.uima.ducc.ws.helper.DiagnosticsHelper;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
@@ -3772,15 +3773,22 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletAlerts";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
+		String additionalInfo = null;
 		daemons:
 		for(DaemonName daemonName : DuccDaemonRuntimeProperties.daemonNames) {
 			switch(daemonName) {
 			case Database:
+				String disk_info = DiagnosticsHelper.get_ducc_disk_info();
+				duccLogger.info(methodName, jobid, disk_info);
 				if(databaseHelper.isDisabled()) {
 					continue daemons;
 				}
 				if(!databaseHelper.isAlive()) {
 					addDownDaemon(sb, daemonName.name());
+					additionalInfo = DiagnosticsHelper.get_ducc_disk_info();
+				}
+				else {
+					DiagnosticsHelper.reset_ducc_disk_info();
 				}
 				break;
 			case Broker:
@@ -3808,6 +3816,12 @@ public class DuccHandler extends DuccAbstractHandler {
 				break;
 			default:
 				break;
+			}
+		}
+		if(additionalInfo != null) {
+			if(additionalInfo.trim().length() > 0) {
+				sb.append("<br>");
+				sb.append(additionalInfo);
 			}
 		}
 		response.getWriter().println(sb);
