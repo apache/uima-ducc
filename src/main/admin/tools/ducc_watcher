@@ -195,31 +195,29 @@ def validate_path(options):
 
 # setup rotating log file handler with
 # 8 versions of 8M bytes with base name
-# ducc_watcher.log unless --log-file specified
-def validate_log_file(options):  
+# ducc_watcher.<target>.log
+def setup_log_file(options):  
     global name
+    global target
     global logger
     log_file = options.path
     if(not log_file.endswith('/')):
         log_file = log_file + '/'
-    if(options.log_file == None):
-        log_file = log_file + name+'.log'
-    else:
-        log_file = log_file + options.log_file
+    log_file = log_file + name + '.' + target +'.log'
     handler = logging.handlers.RotatingFileHandler(
         log_file, maxBytes=8*1024*1024, backupCount=8)
     logger.addHandler(handler)
     debug('log_file: '+log_file)
 
-# use ducc_watcher.state unless --state-file specified
-def validate_state_file(options): 
+# ducc_watcher.<target>.state
+def setup_state_file(options): 
     global name 
+    global target
     global state_file
     state_file = options.path
     if(not state_file.endswith('/')):
         state_file = state_file + '/'
-    if(options.state_file == None):
-        state_file = state_file + name+'.state'
+    state_file = state_file + name + '.' + target +'.state'
     debug('state_file: '+state_file)
 
 # must specify --target host:port of WS for fetching
@@ -257,28 +255,23 @@ def parse_cmdline():
                                help='display debugging messages')
     parser.add_option('-e','--email-list', action='store', dest='email_list', default=None, 
                                help='blank separated list of email addresses to receive down + error notifications')
-    parser.add_option('-l','--log-file', action='store', dest='log_file', default=None, 
-                               help='name of watcher log file, default is '+name+'.log')
     parser.add_option('-p','--path', action='store', dest='path', default=None,
                                help='path to directory where log and state information are written, default is /tmp'+'/'+get_user())
-    parser.add_option('-s','--state-file', action='store', dest='state_file', default=None, 
-                               help='name of watcher state file, default is '+name+'.state')
     parser.add_option('-t','--target', action='store', dest='target', default=None,
                                help='[REQUIRED] <host> with default port of '+port+' or <host>:<port>')
 
     (options, args) = parser.parse_args()
     # -d
     validate_debug(options)
+    # -t
+    validate_target(options)
     # -e
     validate_email_list(options)
     # -p
     validate_path(options)
-    # -l
-    validate_log_file(options)
-    # -s
-    validate_state_file(options)
-    # -t
-    validate_target(options)
+    # dependencies
+    setup_log_file(options)
+    setup_state_file(options)
 
 # read precious daemons state
 def read_state_previous():
