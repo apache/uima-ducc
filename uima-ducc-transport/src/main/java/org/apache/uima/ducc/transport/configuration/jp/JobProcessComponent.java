@@ -50,7 +50,7 @@ implements IJobProcessor{
 	private String jmxConnectString="";
 	private AgentSession agent = null;
 	protected ProcessState currentState = ProcessState.Undefined;
-	protected ProcessState previousState = ProcessState.Undefined;
+//	protected ProcessState previousState = ProcessState.Undefined;
 	protected static DuccLogger logger;
 	protected String saxonJarPath;
 	protected String dd2SpringXslPath;
