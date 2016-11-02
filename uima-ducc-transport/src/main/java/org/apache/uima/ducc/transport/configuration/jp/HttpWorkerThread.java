@@ -215,7 +215,7 @@ public class HttpWorkerThread implements Runnable {
 					// by sleeping in between Get's. Eventually the OR will 
 					// deallocate this process and the thread will exit
 					if ( transaction.getMetaCas() == null || transaction.getMetaCas().getUserSpaceCas() == null) {
-    					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd JD Response, however there is no MetaCas. Sleeping for "+duccComponent.getThreadSleepTime()+" and retrying");
+    					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd Response: JD is presently out of work items. Will retry in "+duccComponent.getThreadSleepTime()/1000+" seconds.");
     					
 						// the JD says there are no more WIs. Sleep awhile
 						// do a GET in case JD changes its mind. The JP will
