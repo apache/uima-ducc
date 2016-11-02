@@ -62,6 +62,9 @@ class DuccHtmlParser(HTMLParser):
     tr_state = False
     daemon_state = None
     daemon_name = None  
+    daemon_date = None
+    daemon_ip = None
+    daemon_host = None
     daemons = {}
     
     def get_daemons(self):
@@ -76,6 +79,9 @@ class DuccHtmlParser(HTMLParser):
             self.tr_state = False
             self.daemon_state = None
             self.daemon_name = None
+            self.daemon_date = None
+            self.daemon_ip = None
+            self.daemon_host = None
         
     def handle_data(self, data):
         if(self.tr_state):
@@ -83,15 +89,25 @@ class DuccHtmlParser(HTMLParser):
                 self.daemon_state = data
             elif(self.daemon_name == None):
                 self.daemon_name = data
+                if(self.daemon_name == 'Agent'):
+                    pass
+                else:
+                    self.daemons[self.daemon_name] = self.daemon_state
+            elif(self.daemon_date == None):
+                self.daemon_date = data
+            elif(self.daemon_ip == None):
+                self.daemon_ip = data
+            elif(self.daemon_host == None):
+                self.daemon_host = data
+                self.daemon_name = data
                 self.daemons[self.daemon_name] = self.daemon_state
-                for key in self.daemons:
-                    value = self.daemons[key]
 
 # ----------------------------------------------
 
 name = 'ducc_watcher'
 
 flag_info = True
+flag_trace = False
 logger = None
 
 port = '42133'
@@ -99,6 +115,8 @@ port = '42133'
 path = None
 log_file = None
 state_file = None
+
+flag_agents = False
 
 mail_host = 'localhost'
 email_list = None
@@ -135,6 +153,16 @@ def info(text):
     type = 'I'
     line = get_timestamp()+' '+get_user()+'@'+get_host()+' '+type+' '+text
     logger.info(line)
+    return line
+
+# trace message to log
+def trace(text):
+    global logger
+    global flag_trace
+    type = 'T'
+    line = get_timestamp()+' '+get_user()+'@'+get_host()+' '+type+' '+text
+    if(flag_trace):
+        logger.debug(line)
     return line
 
 # debug message to log
@@ -186,6 +214,13 @@ def validate_debug(options):
     else:
         logger.setLevel(logging.INFO)
 
+# consider head node daemons only
+# unless --agents is specified
+def validate_agents(options):
+    global flag_agents
+    if(options.flag_agents):
+        flag_agents = True
+    
 # use /tmp/<userid> as log+state directory 
 # unless --path is specified
 def validate_path(options):
@@ -251,6 +286,8 @@ def parse_cmdline():
     width = 45
     parser.formatter.help_position = width
     parser.formatter.max_help_position = width
+    parser.add_option('-a','--agents', action='store_true', dest='flag_agents', default=False, 
+                               help='include agents')
     parser.add_option('-d','--debug', action='store_true', dest='flag_debug', default=False, 
                                help='display debugging messages')
     parser.add_option('-e','--email-list', action='store', dest='email_list', default=None, 
@@ -272,6 +309,8 @@ def parse_cmdline():
     # dependencies
     setup_log_file(options)
     setup_state_file(options)
+    # -a
+    validate_agents(options)
 
 # read precious daemons state
 def read_state_previous():
@@ -310,11 +349,16 @@ def update_state_previous():
 
 # fetch current daemons state
 def fetch_state_current():
+    global flag_agents
     global state_dict_current
     global ducc_url
     state_dict_current = {}
     try:
-        response = urllib.urlopen(ducc_url)
+        import urllib2
+        opener = urllib2.build_opener()
+        if(flag_agents):
+            opener.addheaders.append(('Cookie', 'DUCCagents=show'))
+        response = opener.open(ducc_url)
         data = response.read()
         parser = DuccHtmlParser()
         parser.feed(data)
@@ -324,10 +368,7 @@ def fetch_state_current():
         else:
             for daemon in daemons:
                 status = daemons[daemon]
-                ##### <hack>
-                #status = 'down'
-                ##### </hack>
-                debug(daemon+':'+status+' ')
+                trace(daemon+':'+' '+status+' ')
                 state_dict_current[daemon] = status
     except Exception,e:
         # for WS status to down whenever contact fails
