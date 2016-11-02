@@ -146,11 +146,9 @@ public abstract class BaseHttpDispatcher
     		case JD_STATE:
     			throw t;
     		default:
-    			t.printStackTrace(); 
-    			break;
+    			throw t; 
     		}
         }
-        return null;
     }
 
     /**
