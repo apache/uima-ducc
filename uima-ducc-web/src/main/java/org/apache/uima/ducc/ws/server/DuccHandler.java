@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -39,12 +40,14 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.uima.ducc.cli.DuccUiConstants;
 import org.apache.uima.ducc.cli.ws.json.MachineFacts;
 import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.CancelReasons.CancelReason;
@@ -132,6 +135,9 @@ public class DuccHandler extends DuccAbstractHandler {
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandler.class.getName());
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
+	
+	private final String[] n = {"classpath", "process_executable_args"};
+	private final Set<String> hideableKeys = new HashSet<String>(Arrays.asList(n));
 	
 	private enum DetailsType { Job, Reservation, Service };
 	private enum AllocationType { JD, MR, SPC, SPU, UIMA };
@@ -1735,7 +1741,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(eu, component, directory, wiVersion);
 				ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateReader.getMap();
 			    if( (map == null) || (map.size() == 0) ) {
-			    	sb.append("no accessible data (map empty?)");
+			    	sb.append("no accessible data (not logged in?)");
 			    }
 			    else {
 			    	ConcurrentSkipListMap<IWorkItemState,IWorkItemState> sortedMap = new ConcurrentSkipListMap<IWorkItemState,IWorkItemState>();
@@ -1871,8 +1877,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			catch(Exception e) {
 				duccLogger.warn(methodName, null, e.getMessage());
 				duccLogger.debug(methodName, null, e);
-				sb = new StringBuffer();
-				sb.append("no accessible data");
+				//sb = new StringBuffer();
+				sb.append("no accessible data ("+e+")");
 			}
 		}
 		else {
@@ -1897,7 +1903,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
 			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(eu.get());
 			    if( (performanceMetricsSummaryMap == null) || (performanceMetricsSummaryMap.size() == 0) ) {
-			    	sb.append("no accessible data (map empty?)");
+			    	sb.append("no accessible data (not logged in?)");
 			    }
 			    else {
 			    	int casCount  = performanceMetricsSummaryMap.casCount();
@@ -2004,8 +2010,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			catch(Exception e) {
 				duccLogger.warn(methodName, null, e);
-				sb = new StringBuffer();
-				sb.append("no accessible data");
+				//sb = new StringBuffer();
+				sb.append("no accessible data ("+e+")");
 			}
 		}
 		else {
@@ -2066,6 +2072,52 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 	}
 	
+	/*
+	 * Format both job & reservation specification files
+	 */
+    private void processSpecificationData(DuccWorkJob work, String specFile, HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+        String methodName = "ProcessSpecificationData";
+        StringBuffer sb = new StringBuffer();
+        if (work != null) {
+            try {
+                EffectiveUser eu = EffectiveUser.create(request);
+                Properties usProperties = DuccFile.getUserSpecifiedProperties(eu, work);
+                String path = work.getUserLogsDir() + work.getDuccId().getFriendly() + File.separator + specFile;
+                Properties properties = DuccFile.getProperties(eu, path);
+                if (properties == null) {
+                    sb.append("no accessible data (not logged in?)");
+                } else {
+                    int i = 0;
+                    int counter = 0;
+                    // Process a sorted list of property names
+                    TreeSet<String> list = new TreeSet<String>(properties.stringPropertyNames());
+                    for (String key : list) {
+                        String value = properties.getProperty(key);
+                        String provider = getProvider(key, usProperties, null);
+                        if (hideableKeys.contains(key)) {
+                            if (key.equals("classpath")) {
+                                value = formatClasspath(value);
+                            }       // Could try to format the cp part of the executable args?
+                            String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"
+                                    + i + "\"/></div>";
+                            String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"
+                                    + i + "\"/>" + " " + value + "</div>";
+                            value = show + hide;
+                            i++;
+                        }
+                        putJobSpecEntry(properties, provider, key, value, sb, counter++);
+                    }
+                }
+            } catch (Throwable t) {
+                duccLogger.warn(methodName, null, t);
+                sb.append("no accessible data (" + t + ")");
+            }
+        }
+        response.getWriter().println(sb);
+        duccLogger.trace(methodName, null, messages.fetch("exit"));
+    }
+	
 	private void handleDuccServletJobSpecificationData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -2074,42 +2126,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		String jobNo = request.getParameter("id");
 		DuccWorkJob job = getJob(jobNo);
-		if(job != null) {
-			try {
-				EffectiveUser eu = EffectiveUser.create(request);
-				Properties usProperties = DuccFile.getUserSpecifiedProperties(eu, job);
-				Properties fsProperties = DuccFile.getFileSpecifiedProperties(eu, job);
-				Properties properties = DuccFile.getJobProperties(eu, job);
-				TreeMap<String,String> map = new TreeMap<String,String>();
-				Enumeration<?> enumeration = properties.keys();
-				while(enumeration.hasMoreElements()) {
-					String key = (String)enumeration.nextElement();
-					map.put(key, key);
-				}
-				Iterator<String> iterator = map.keySet().iterator();
-				int i = 0;
-				int counter = 0;
-				while(iterator.hasNext()) {
-					String key = iterator.next();
-					String value = properties.getProperty(key);
-					String provider = getProvider(key, usProperties, fsProperties);
-					if(key.endsWith("classpath")) {
-						value = formatClasspath(value);
-						String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
-						String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
-						value = show+hide;
-						i++;
-					}
-					putJobSpecEntry(properties, provider, key, value, sb, counter++);
-				}
-			}
-			catch(Throwable t) {
-				duccLogger.warn(methodName, null, t);
-				sb = new StringBuffer();
-				sb.append("no accessible data");
-			}
-		}
-		response.getWriter().println(sb);
+		processSpecificationData(job, DuccUiConstants.job_specification_properties, request, response);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
@@ -2159,11 +2176,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					sb.append(row);
 					counter++;
 				}
+				if (counter == 0) {
+				    sb.append("no files found (not logged in?)");
+				}
 			}
 			catch(Throwable t) {
 				duccLogger.warn(methodName, null, t);
-				sb = new StringBuffer();
-				sb.append("no accessible data");
+				//sb = new StringBuffer();
+				sb.append("no accessible data ("+t+")");
 			}
 		}
 		response.getWriter().println(sb);
@@ -2216,11 +2236,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					sb.append(row);
 					counter++;
 				}
+		        if (counter == 0) {
+		            sb.append("no files found (not logged in?)");
+		        }
 			}
 			catch(Throwable t) {
 				duccLogger.warn(methodName, null, t);
-				sb = new StringBuffer();
-				sb.append("no accessible data");
+				//sb = new StringBuffer();
+				sb.append("no accessible data ("+t+")");
 			}
 		}
 		response.getWriter().println(sb);
@@ -2432,7 +2455,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private void handleDuccServletJobInitializationFailData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		String methodName = "handleDuccServletJobSpecificationData";
+		String methodName = "handleDuccServletJobInitializationFailData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		EffectiveUser eu = EffectiveUser.create(request);
 		StringBuffer sb = new StringBuffer();
@@ -2501,7 +2524,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private void handleDuccServletJobRuntimeFailData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		String methodName = "handleDuccServletJobSpecificationData";
+		String methodName = "handleDuccServletJobRuntimeFailData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		EffectiveUser eu = EffectiveUser.create(request);
 		StringBuffer sb = new StringBuffer();
@@ -2604,47 +2627,9 @@ public class DuccHandler extends DuccAbstractHandler {
 	{
 		String methodName = "handleDuccServletReservationSpecificationData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		StringBuffer sb = new StringBuffer();
 		String reservationNo = request.getParameter("id");
-		
 		DuccWorkJob managedReservation = getManagedReservation(reservationNo);
-		if(managedReservation != null) {
-			try {
-				EffectiveUser eu = EffectiveUser.create(request);
-				Properties usProperties = DuccFile.getUserSpecifiedProperties(eu, managedReservation);
-				Properties fsProperties = DuccFile.getFileSpecifiedProperties(eu, managedReservation);
-				Properties properties = DuccFile.getManagedReservationProperties(eu, managedReservation);
-				TreeMap<String,String> map = new TreeMap<String,String>();
-				Enumeration<?> enumeration = properties.keys();
-				while(enumeration.hasMoreElements()) {
-					String key = (String)enumeration.nextElement();
-					map.put(key, key);
-				}
-				Iterator<String> iterator = map.keySet().iterator();
-				int i = 0;
-				int counter = 0;
-				while(iterator.hasNext()) {
-					String key = iterator.next();
-					String value = properties.getProperty(key);
-					if(key.endsWith("classpath")) {
-						value = formatClasspath(value);
-						String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
-						String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
-						value = show+hide;
-						i++;
-					}
-					String provider = getProvider(key, usProperties, fsProperties);
-					putJobSpecEntry(properties, provider, key, value, sb, counter++);
-				}
-			}
-			catch(Throwable t) {
-				duccLogger.warn(methodName, null, t);
-				sb = new StringBuffer();
-				sb.append("no accessible data");
-			}
-		}
-		
-		response.getWriter().println(sb);
+		processSpecificationData(managedReservation, DuccUiConstants.managed_reservation_properties, request, response);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
@@ -2897,8 +2882,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		catch(Exception e) {
 			duccLogger.warn(methodName, null, e);
-			sb = new StringBuffer();
-			sb.append("no accessible data");
+			sb.append("no accessible data ("+e+")");
 		}
 
 		response.getWriter().println(sb);
@@ -4223,7 +4207,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		if(sb.length() == 0) {
 			sb.append("<tr>");
-			sb.append("<td>"+"no accessible data");
+			sb.append("<td>"+"no accessible data (not logged in?)");
 			sb.append("<td>");
 			sb.append("<td>");
 		}
