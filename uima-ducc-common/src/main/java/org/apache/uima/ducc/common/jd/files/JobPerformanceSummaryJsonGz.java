@@ -124,7 +124,8 @@ public class JobPerformanceSummaryJsonGz implements IPersistenceJobPerformanceSu
 			data = gson.fromJson(json, typeOfMap);
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("importData: error importing perf data "+e);      // Should use logger
 		}
 		finally {           
 	        if(reader != null) {
@@ -147,7 +148,8 @@ public class JobPerformanceSummaryJsonGz implements IPersistenceJobPerformanceSu
 				data = gson.fromJson(json, typeOfMap);
 			}
 			catch(Throwable t) {
-				// TODO
+				System.out.println("importData: error importing perf data for "+userid+" "+t);   // Should use logger
+				return null;
 			}
 		}
 		return data;
