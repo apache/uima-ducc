@@ -1393,30 +1393,40 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
  	  }
   }
   
+  private boolean sendSIGTERM(ManagedProcess process) {
+	  return ( process.getDuccProcess().getProcessState().equals(ProcessState.Initializing) ||
+			   process.getDuccProcess().getProcessState().equals(ProcessState.Starting) ||
+			   process.getDuccProcess().getProcessState().equals(ProcessState.Running) );
+  }
+  
   /**
    * This method is called when an agent receives a STOP request. It
    * sends SIGTERM to all child processes and starts a timer. If the 
    * timer pops and child processes are still running, the agent takes
    * itself out via halt()
    */
-  private void stopChildProcesses() {
+  private boolean stopChildProcesses() {
 	  String methodName = "stopNow";
+	  boolean wait = false;
 	  try {
 	      for (ManagedProcess deployedProcess : deployedProcesses) {
             String pid = deployedProcess.getDuccProcess().getPID();
-            if (pid == null || pid.trim().length() == 0 || deployedProcess.isStopping()) {
+            if (pid == null || pid.trim().length() == 0 || !sendSIGTERM(deployedProcess) ) {
             	continue;
             }
             logger.info(methodName, null, "....Stopping Process - DuccId:" + deployedProcess.getDuccProcess().getDuccId()
-	                    + " PID:" + pid+" Sending SIGTERM");
-			deployedProcess.setStopping();
+	                    + " PID:" + pid+" Sending SIGTERM Process State:"+deployedProcess.getDuccProcess().getProcessState().toString());
+			wait = true;
+            deployedProcess.setStopping();
             ExecutorService executor = Executors.newSingleThreadExecutor();
             executor.execute( new ProcessRunner(pid,SIGNAL.SIGTERM));
+	      
 	      }
 	      
 	  } catch( Exception e) {
 		logger.warn(methodName, null, e);  
 	  }
+	  return wait;
   }
   /**
    * Kills a given process
@@ -1783,7 +1793,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     // }
     
     // Dispatch SIGTERM to all child processes
-    stopChildProcesses();
+    boolean wait = stopChildProcesses();
     
     
     /*    
@@ -1834,13 +1844,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       }
     }
 */
-    logger.info("stop", null, "Agent Sent SIGTERM to ALL Child Processes - Number of Deployed Processes:"+deployedProcesses.size());
     
     // Stop publishing inventory. Once the route is down the agent forces last publication
     // sending an empty process map.
     configurationFactory.stopInventoryRoute();
 
-    if ( deployedProcesses.size() > 0 ) {
+    if ( wait && deployedProcesses.size() > 0 ) {
+        logger.info("stop", null, "Agent Sent SIGTERM to ALL Child Processes - Number of Deployed Processes:"+deployedProcesses.size());
     	// wait for awhile 
       synchronized (this) {
     	  long waittime = 60000;
@@ -1862,32 +1872,25 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap,getLastORSequence(), getIdentity());
     inventoryDispatcher.dispatch(duccEvent);
     logger.info("stop", null, "Agent published final inventory");
-    
+   
+    // Self destruct thread in case we loose AMQ broker and AMQ listener gets into retry
+    // mode trying to recover a connection
     Thread t = new Thread( new Runnable() {
     	public void run() {
     		try {
-    		    logger.info("stop", null, "Agent waiting for 10 seconds before terminating itself via System.exit(1) ");
-    			Thread.currentThread().wait(10000);
-    		} catch( InterruptedException e ) {
-    			
+    		    logger.info("stop", null, "Agent waiting for additional 10 seconds to allow for a clean shutdown before terminating itself via System.exit(1) ");
+    			Thread.sleep(10000);
+    		} catch(Exception e ) {
+    		    logger.info("stop", null, e);
     		} finally{
-    		    logger.info("stop", null, "Agent calling System.exit(1) ");
+    		    logger.info("stop", null, "Agent calling System.exit(1) ... ");
     			System.exit(1);
     		}
     	}
     });
     t.start();
     
-    
-    // Delay this thread to make sure that at least one last node inventory publish occurs before Agent goes away. Add extra 30 secs 
-    // to the delay to make sure the publish happens.
-//    synchronized (this) {
-//        long waittime = configurationFactory.getNodeInventoryPublishDelay() +30000;
-//        logger.info("stop", null, "Waiting", waittime, "ms to send final NodeInventory.");
-//        wait(waittime);
-//    }
     super.stop();
-
   }
 
   public Future<?> getDeployedJPFuture(IDuccId duccId) {
