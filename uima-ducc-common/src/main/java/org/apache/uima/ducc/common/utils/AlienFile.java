@@ -23,6 +23,8 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 
 public class AlienFile extends AlienAbstract {
@@ -37,6 +39,8 @@ public class AlienFile extends AlienAbstract {
 	private String file_name;
 	
 	private File devNull = new File("/dev/null");
+
+	private int exitValue;
 	
 	protected void set_command_cat(String value) {
 		command_cat = value;
@@ -69,61 +73,49 @@ public class AlienFile extends AlienAbstract {
 		return command;
 	}
 	
-	private int getByteSize() throws Exception {
-		String methodName = "getByteSize";
+	/*
+	 * Read file contents into a string
+	 * Returns null if file is missing or cannot be read
+	 */
+	private String reader() throws Exception {
+	    String location = "reader";
+		BufferedReader br = null;
+		InputStreamReader isr = null;
+		Process p = null;
+		StringBuilder sb = new StringBuilder();
 		String[] command = getCommand();
 		echo(command);
 		ProcessBuilder pb = new ProcessBuilder( command );
 		pb = pb.redirectError(devNull);
-		Process p = pb.start();
-		InputStream pOut = p.getInputStream();
-		InputStreamReader isr;
-		if(FileHelper.isGzFileType(file_name)) {
-			GZIPInputStream gis = new GZIPInputStream(pOut);
-			isr = new InputStreamReader(gis, encoding);
-		}
-		else {
-			isr = new InputStreamReader(pOut);
-		}
-		BufferedReader br = new BufferedReader(isr);
-		int size = 0;
-        int readChar = 0;
-        while(readChar >= 0) {
-			readChar = br.read();
-	        size++;
-		}
-        int rc = p.waitFor();
-        String text = "rc="+rc+" "+"size="+size;
-        duccLogger.debug(methodName, duccId, text);
-        return size;
-	}
-
-	private String reader(int size) throws Exception {
-		String data = null;
-		BufferedReader br = null;
-		InputStreamReader isr = null;
-		try {
-			String[] command = getCommand();
-			echo(command);
-			ProcessBuilder pb = new ProcessBuilder( command );
-			pb = pb.redirectError(devNull);
-			Process p = pb.start();
+		try{
+			p = pb.start();
 			InputStream pOut = p.getInputStream();
-			if(FileHelper.isGzFileType(file_name)) {
-				GZIPInputStream gis = new GZIPInputStream(pOut);
-				isr = new InputStreamReader(gis, encoding);
+			if (FileHelper.isGzFileType(file_name)) {
+			    GZIPInputStream gis = new GZIPInputStream(pOut);
+			    isr = new InputStreamReader(gis, encoding);
 			}
 			else {
 				isr = new InputStreamReader(pOut);
 			}
-			char[] cbuf = new char[size];
 	        br = new BufferedReader(isr);
-	        br.read(cbuf);
-	        data = new String(cbuf);
-			return data;
+
+	        String line;
+	        while ((line = br.readLine()) != null) {
+	        	sb.append(line);
+	        	sb.append("\n");
+	        }
+	        int rc = p.waitFor();   // 0 => success
+	        return rc==0 ? sb.toString() : null;
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+		    if (p != null) {
+		        int rc = p.waitFor();
+		        if (rc != 0) {
+		            return null;                // cat failed, presumably permission denied
+		        }
+		    }
+		    // Process start failed or some exception while unzipping?
+		    duccLogger.error(location, duccId, e);
 			throw e;
 		}
 		finally {
@@ -133,8 +125,7 @@ public class AlienFile extends AlienAbstract {
 	}
 	
 	public String getString() throws Exception {
-		int size = getByteSize();
-		String data = reader(size);
+		String data = reader();
 		if(data != null) {
 			data = data.trim();
 		}
@@ -179,6 +170,45 @@ public class AlienFile extends AlienAbstract {
 			throw e;
 		}
 		return dis;
+	}
+	
+	/*
+	 * Execute a command and return an array of result lines
+	 * (not used but may be useful e.g. in getting the date of a file)
+	 */
+	public String[] getResult(boolean includeStderr, String... command) {
+		String location = "getLines";
+		ArrayList<String> lines = new ArrayList<String>();
+		try {
+			String[] prefix = { ducc_ling, "-q", "-u", user};
+			ArrayList<String> fullCmd = new ArrayList<String>();
+			fullCmd.addAll(Arrays.asList(prefix));
+			fullCmd.addAll(Arrays.asList(command));
+			ProcessBuilder pb = new ProcessBuilder( fullCmd );
+			if (includeStderr) {
+				pb.redirectErrorStream(true);
+			} else {
+				pb.redirectError(new File("/dev/null"));
+			}
+			Process process = pb.start();
+			InputStream is = process.getInputStream();
+	        InputStreamReader isr = new InputStreamReader(is);
+	        BufferedReader br = new BufferedReader(isr);
+	        String line;
+	        while ((line = br.readLine()) != null) {
+	           lines.add(line);
+	        }
+	        exitValue = process.waitFor();
+		}
+		catch(Exception e) {
+			exitValue = -1;
+			duccLogger.error(location, duccId, e);
+		}
+		return lines.toArray(new String[lines.size()]);
+	}
+	
+	public int getRc() {
+		return exitValue;
 	}
 	
 	public static void main(String[] args) throws Exception {
