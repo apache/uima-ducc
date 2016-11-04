@@ -35,6 +35,7 @@ public class PerformanceSummaryReader extends PerformanceSummaryBase {
 		super(dirname);
 	}
 	
+	@Deprecated
 	public PerformanceMetricsSummaryMap readJsonGz() throws IOException, ClassNotFoundException {
 		PerformanceMetricsSummaryMap map = new PerformanceMetricsSummaryMap();
 		JobPerformanceSummaryData data = jsonGz.importData();
@@ -54,33 +55,26 @@ public class PerformanceSummaryReader extends PerformanceSummaryBase {
 	public PerformanceMetricsSummaryMap readJsonGz(String userId) throws IOException, ClassNotFoundException {
 		PerformanceMetricsSummaryMap map = new PerformanceMetricsSummaryMap();
 		JobPerformanceSummaryData data = null;
-		if(data == null) {
-			try {
-				data = jsonGz.importData(userId);
-			}
-			catch(Exception e) {
-			}
-		}
-		if(data == null) {
-			try {
-				data = jsonGz.importData();
-			}
-			catch(Exception e) {
-			}
-		}
-		if(data != null) {
-			Integer casCount = data.getCasCount();
-			map.putCasCount(casCount);
-			ConcurrentSkipListMap<String, JobPerformanceSummary> gzMap = data.getMap();
-			Set<Entry<String, JobPerformanceSummary>> entries = gzMap.entrySet();
-			for(Entry<String, JobPerformanceSummary> entry : entries) {
-				String key = entry.getKey();
-				IJobPerformanceSummary jps = entry.getValue();
-				PerformanceMetricsSummaryItem value = new PerformanceMetricsSummaryItem(jps.getName(),jps.getUniqueName(),jps.getAnalysisTime(),jps.getNumProcessed(),jps.getAnalysisTimeMin(),jps.getAnalysisTimeMax());
-				map.putItem(key, value);
-			}
-		}
-		return map;
+        try {
+            data = jsonGz.importData(userId);
+        } catch (Exception e) {
+            System.err.println("readJsonGz " + userId + " ignoring exception " + e);   // Should be logged?
+        }
+        if (data == null) {         // Data missing or unreadable
+            return null;
+        }
+        Integer casCount = data.getCasCount();
+        map.putCasCount(casCount);
+        ConcurrentSkipListMap<String, JobPerformanceSummary> gzMap = data.getMap();
+        Set<Entry<String, JobPerformanceSummary>> entries = gzMap.entrySet();
+        for (Entry<String, JobPerformanceSummary> entry : entries) {
+            String key = entry.getKey();
+            IJobPerformanceSummary jps = entry.getValue();
+            PerformanceMetricsSummaryItem value = new PerformanceMetricsSummaryItem(jps.getName(), jps.getUniqueName(),
+                    jps.getAnalysisTime(), jps.getNumProcessed(), jps.getAnalysisTimeMin(), jps.getAnalysisTimeMax());
+            map.putItem(key, value);
+        }
+        return map;
 	}
 	
 	@Deprecated
@@ -98,12 +92,14 @@ public class PerformanceSummaryReader extends PerformanceSummaryBase {
 				map = getSummaryMap();
 			}
 			catch(Exception e) {
-				System.err.println("PerformanceMetricsSummaryMap.readSer() could not read file: "+ filename);
+			    // Probably missing file
+				//System.err.println("PerformanceMetricsSummaryMap.readSer() could not read file: "+ filename);
 			}
 		}
 		return map;
 	}
 	
+	@Deprecated
 	public PerformanceMetricsSummaryMap readSummary() {
 		PerformanceMetricsSummaryMap map = null;
 		try {
@@ -119,18 +115,21 @@ public class PerformanceSummaryReader extends PerformanceSummaryBase {
 		return map;
 	}
 	
+	/*
+	 * Read the json gzipped file 
+	 * If still supporting the legacy blob try to read it
+	 */
 	public PerformanceMetricsSummaryMap readSummary(String userId) {
 		PerformanceMetricsSummaryMap map = null;
 		try {
 			map = readJsonGz(userId);
-			return map;
 		}
 		catch(Exception e) {
-			if(!legacy) {
-				e.printStackTrace();
-			}
+		    System.err.println("readSummary " + userId + " ignoring exception " + e);   // Should be logged?
 		}
-		map = readSer();
+		if (map == null && legacy) {
+		    map = readSer();
+		}
 		return map;
 	}
 }

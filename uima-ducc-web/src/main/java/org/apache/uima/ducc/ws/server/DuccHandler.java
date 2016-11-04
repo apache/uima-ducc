@@ -1740,8 +1740,10 @@ public class DuccHandler extends DuccAbstractHandler {
 				long wiVersion = job.getWiVersion();
 				AlienWorkItemStateReader workItemStateReader = new AlienWorkItemStateReader(eu, component, directory, wiVersion);
 				ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateReader.getMap();
-			    if( (map == null) || (map.size() == 0) ) {
-			    	sb.append("no accessible data (not logged in?)");
+			    if (map == null) {
+			    	sb.append(eu.isLoggedin() ? "(data missing or unreadable)" : "(not visible - try logging in)");
+			    } else if (map.size() == 0) {
+			    	sb.append("(no work-items processed)");
 			    }
 			    else {
 			    	ConcurrentSkipListMap<IWorkItemState,IWorkItemState> sortedMap = new ConcurrentSkipListMap<IWorkItemState,IWorkItemState>();
@@ -1902,8 +1904,10 @@ public class DuccHandler extends DuccAbstractHandler {
 				EffectiveUser eu = EffectiveUser.create(request);
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
 			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(eu.get());
-			    if( (performanceMetricsSummaryMap == null) || (performanceMetricsSummaryMap.size() == 0) ) {
-			    	sb.append("no accessible data (not logged in?)");
+			    if (performanceMetricsSummaryMap == null) { 
+			    	sb.append(eu.isLoggedin() ? "(data missing or unreadable)" : "(not visible - try logging in)");
+			    } else if (performanceMetricsSummaryMap.size() == 0) {
+			        sb.append("(no performance metrics)");
 			    }
 			    else {
 			    	int casCount  = performanceMetricsSummaryMap.casCount();
@@ -2086,7 +2090,7 @@ public class DuccHandler extends DuccAbstractHandler {
                 String path = work.getUserLogsDir() + work.getDuccId().getFriendly() + File.separator + specFile;
                 Properties properties = DuccFile.getProperties(eu, path);
                 if (properties == null) {
-                    sb.append("no accessible data (not logged in?)");
+                    sb.append(eu.isLoggedin() ? "(data missing or unreadable)" : "(not visible - try logging in)");
                 } else {
                     int i = 0;
                     int counter = 0;
@@ -2123,7 +2127,6 @@ public class DuccHandler extends DuccAbstractHandler {
 	{
 		String methodName = "handleDuccServletJobSpecificationData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		StringBuffer sb = new StringBuffer();
 		String jobNo = request.getParameter("id");
 		DuccWorkJob job = getJob(jobNo);
 		processSpecificationData(job, DuccUiConstants.job_specification_properties, request, response);
@@ -2177,7 +2180,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					counter++;
 				}
 				if (counter == 0) {
-				    sb.append("no files found (not logged in?)");
+				    sb.append(eu.isLoggedin() ? "(data missing or unreadable)" : "(not visible - try logging in)");
 				}
 			}
 			catch(Throwable t) {
@@ -2237,12 +2240,11 @@ public class DuccHandler extends DuccAbstractHandler {
 					counter++;
 				}
 		        if (counter == 0) {
-		            sb.append("no files found (not logged in?)");
+		            sb.append(eu.isLoggedin() ? "(no files found)" : "(not visible - try logging in)");
 		        }
 			}
 			catch(Throwable t) {
 				duccLogger.warn(methodName, null, t);
-				//sb = new StringBuffer();
 				sb.append("no accessible data ("+t+")");
 			}
 		}

@@ -45,6 +45,7 @@ public class EffectiveUser {
 	}
 	
 	private String user = null;
+	private boolean loggedin = false;
 	
 	private EffectiveUser(String user) {
 		set(user);
@@ -54,15 +55,21 @@ public class EffectiveUser {
 		String location = "set";
 		if(value != null) {
 			user = value;
+			loggedin = true;
 			logger.debug(location, jobid, "value: "+user);
 		}
 		else {
 			user = System.getProperty("user.name");
+			loggedin = false;
 			logger.debug(location, jobid, "property: "+user);
 		}
 	}
 	
 	public String get() {
 		return user;
+	}
+	
+	public boolean isLoggedin() {
+	    return loggedin;
 	}
 }

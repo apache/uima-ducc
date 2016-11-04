@@ -125,7 +125,7 @@ public class JobPerformanceSummaryJsonGz implements IPersistenceJobPerformanceSu
 		}
 		catch(Exception e) {
 			//e.printStackTrace();
-			System.out.println("importData: error importing perf data "+e);      // Should use logger
+			System.out.println("importData: error importing perf data "+e);      // Should use logger?
 		}
 		finally {           
 	        if(reader != null) {
@@ -136,23 +136,46 @@ public class JobPerformanceSummaryJsonGz implements IPersistenceJobPerformanceSu
 	}
 	
 	public JobPerformanceSummaryData importData(String userid) throws IOException, ClassNotFoundException {
-		JobPerformanceSummaryData data = new JobPerformanceSummaryData();
-		if(userid == null) {
-			data = importData();
-		}
-		else {
-			try {
+	    String json;
+	    JobPerformanceSummaryData data = new JobPerformanceSummaryData();
+		try {
+		    File f = new File(filename);
+		    if (f.canRead()) {
+		        json = readGzipFile(filename);
+		    } else {
 				AlienFile alienFile = new AlienFile(userid, filename);
-				String json = alienFile.getString();
-				Type typeOfMap = new TypeToken<JobPerformanceSummaryData>() { }.getType();
-				data = gson.fromJson(json, typeOfMap);
-			}
-			catch(Throwable t) {
-				System.out.println("importData: error importing perf data for "+userid+" "+t);   // Should use logger
-				return null;
-			}
+				json = alienFile.getString();
+		    }
+		    Type typeOfMap = new TypeToken<JobPerformanceSummaryData>() { }.getType();
+		    data = gson.fromJson(json, typeOfMap);
+		}
+		catch(Throwable t) {
+		    System.out.println("importData: error importing perf data for "+userid+" "+t);   // Should use logger?
+		    return null;
 		}
 		return data;
 	}
 	
+	/*
+	 * Unzip a text file into a string
+	 * (Could be public?  or made part of AlienFile that would skip ducc_ling if file is readable?)
+	 */
+    private String readGzipFile(String filename) throws IOException {
+        BufferedReader br = null;
+        try {
+            // Wrap the file-stream in a GZIP-stream in a reader in a buffered-reader
+            br = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(filename)), encoding));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+                sb.append("\n");
+            }
+            return sb.toString();
+        } finally {
+            if (br != null) {
+                br.close();
+            }
+        }
+    }
 }
