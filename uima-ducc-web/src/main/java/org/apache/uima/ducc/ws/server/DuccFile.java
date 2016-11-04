@@ -57,36 +57,14 @@ public class DuccFile {
 		return properties;
 	}
 	
-	public static Properties getJobProperties(EffectiveUser eu, IDuccWorkJob job) throws Throwable {
-		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-		String name = DuccUiConstants.job_specification_properties;
-		Properties properties = DuccFile.getProperties(eu, directory+name);
-		return properties;
-	}
-	
-	public static Properties getManagedReservationProperties(EffectiveUser eu, IDuccWorkJob job) throws Throwable {
-		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-		// <hack>
-		try {
-			String hack_name = "process.properties";
-			Properties hack_properties = DuccFile.getProperties(eu, directory+hack_name);
-			if(!hack_properties.isEmpty()) {
-				return hack_properties;
-			}
-		}
-		catch(Exception e) {
-		}
-		// </hack>
-		String name = DuccUiConstants.managed_reservation_properties;
-		Properties properties = DuccFile.getProperties(eu, directory+name);
-		return properties;
-	}
-	
 	public static Properties getProperties(EffectiveUser eu, String path) throws Throwable {
 		StringReader sr = null;
 		try {
 			AlienFile alienFile = new AlienFile(eu.get(), path);
 			String data = alienFile.getString();
+			if (data == null) {
+				return null;
+			}
 			sr = new StringReader(data);
 			Properties properties = new Properties();
 			properties.load(sr);
