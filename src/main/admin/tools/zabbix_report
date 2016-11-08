@@ -1,0 +1,288 @@
+
+import socket
+import subprocess
+import sys
+import urllib2
+
+from optparse import OptionParser
+from HTMLParser import HTMLParser
+from _socketmodule import IP_ADD_MEMBERSHIP
+
+def get_host():
+    host = socket.gethostname()
+    return host
+
+def get_ip():
+    ip = socket.gethostbyname(socket.gethostname())
+    return ip
+
+zabbix_dict = {
+    'sender' : '/opt/zabbix/agent/bin/zabbix_sender',
+    'opt_z' : '-z',
+    'val_z' : get_ip(),
+    'opt_s' : '-s',
+    'val_s' : get_host(),
+    'opt_k' : '-k',
+    'val_k' : '?',
+    'opt_o' : '-o',
+    'val_o' : '?',
+    }
+
+ducc_url_parts = { 
+    'protocol' : 'http://',
+    'host' : get_host(),
+    'port' : '42133',
+    'servlet' : '/ducc-servlet/classic-system-daemons-data',
+    }
+
+ducc_counts = { 
+    'head-up' : 0,
+    'head-down' : 0,
+    'agents-up' : 0,
+    'agents-down' : 0,
+    }
+
+ducc_list_down_head = []
+ducc_list_down_agents = []
+
+ducc_rationales = { 
+    'head' : 'no data',
+    'agents' : 'no data',
+    }
+
+ducc_data = ''
+
+# ----------------------------------------------
+
+class ExtendedOptionParser(OptionParser):
+    # override epilog formatter so 
+    # that newlines are not deleted!
+    def format_epilog(self, formatter):
+        return self.epilog
+    
+# ----------------------------------------------
+
+class DuccHtmlParser(HTMLParser):
+    
+    tr_state = False
+    daemon_state = None
+    daemon_name = None  
+    daemon_date = None
+    daemon_ip = None
+    daemon_host = None
+    daemons = {}
+    
+    def get_daemons(self):
+        return self.daemons
+    
+    def handle_starttag(self, tag, attrs):
+        if(tag == 'tr' ):
+            self.tr_state = True
+        
+    def handle_endtag(self, tag):   
+        if(tag == 'tr'):
+            self.tr_state = False
+            self.daemon_state = None
+            self.daemon_name = None
+            self.daemon_date = None
+            self.daemon_ip = None
+            self.daemon_host = None
+        
+    def handle_data(self, data):
+        if(self.tr_state):
+            if(self.daemon_state == None):
+                self.daemon_state = data
+            elif(self.daemon_name == None):
+                self.daemon_name = data
+                if(self.daemon_name == 'Agent'):
+                    pass
+                else:
+                    self.daemons[self.daemon_name] = self.daemon_state
+            elif(self.daemon_date == None):
+                self.daemon_date = data
+            elif(self.daemon_ip == None):
+                self.daemon_ip = data
+            elif(self.daemon_host == None):
+                self.daemon_host = data
+                self.daemon_name = data
+                self.daemons[self.daemon_name] = self.daemon_state
+                
+# ----------------------------------------------
+          
+def syserr(data):
+    print >> sys.stderr, data
+    
+def sysout(data):
+    print >> sys.stdout, data
+
+def get_epilog():
+    epilog = ''
+    return epilog
+
+def setup_ducc_url():
+    global options
+    global ducc_url_parts
+    global ducc_url
+    if(not options.source == None):
+        if(':' in options.source):
+            host, port = options.source.split(':')
+            ducc_url_parts['host'] = host
+            ducc_url_parts['port'] = port
+        else:
+            host = options.source
+            ducc_url_parts['host'] = host
+    ducc_url = ''
+    ducc_url = ducc_url+ducc_url_parts['protocol']
+    ducc_url = ducc_url+ducc_url_parts['host']
+    ducc_url = ducc_url+':'
+    ducc_url = ducc_url+ducc_url_parts['port']
+    ducc_url = ducc_url+ducc_url_parts['servlet']
+    
+def parse_cmdline():
+    global options
+    global ducc_url_parts
+    global zabbix_dict
+    parser = ExtendedOptionParser(epilog=get_epilog())
+    width = 45
+    parser.formatter.help_position = width
+    parser.formatter.max_help_position = width
+    parser.add_option('-e','--echo', action='store_true', dest='echo', default=False, 
+        help='echo but do not execute command(s)')
+    parser.add_option('-s','--source', action='store', dest='source', default=None,
+        help='<host>:<port> of DUCC WebServer, with default host of this host '+ducc_url_parts['host']+' and default port of '+ducc_url_parts['port'])
+    parser.add_option('-x','--executable', action='store', dest='executable', default=None,
+        help='Zabbix sender executable, default = '+zabbix_dict['sender'])
+    parser.add_option('-z','--zabbix-ip', action='store', dest='zabbix_ip', default=None,
+        help='Zabbix IP address, default is IP of the present host = '+zabbix_dict['val_z'])
+    (options, args) = parser.parse_args()
+
+def is_head_daemon(daemon):
+    retVal = False
+    if(daemon == 'Broker'):
+        retVal = True
+    elif(daemon == 'Database'):
+        retVal = True
+    elif(daemon == 'Orchestrator'):
+        retVal = True
+    elif(daemon == 'ProcessManager'):
+        retVal = True
+    elif(daemon == 'ResourceManager'):
+        retVal = True
+    elif(daemon == 'ServiceManager'):
+        retVal = True
+    elif(daemon == 'Webserver'):
+        retVal = True
+    return retVal
+
+def no_data():
+    global ducc_counts
+    ducc_counts['head-up'] = -1
+    ducc_counts['head-down'] = -1
+    ducc_counts['agents-up'] = -1
+    ducc_counts['agents-down'] = -1
+    
+def get_ducc_data():
+    global ducc_url
+    global ducc_data
+    global ducc_list_down_head
+    global ducc_list_down_agents
+    try:
+        opener = urllib2.build_opener()
+        opener.addheaders.append(('Cookie', 'DUCCagents=show'))
+        response = opener.open(ducc_url)
+        data = response.read()
+        parser = DuccHtmlParser()
+        parser.feed(data)
+        daemons = parser.get_daemons()
+        if(daemons == None):
+            no_data()
+        else:
+            for daemon in daemons:
+                status = daemons[daemon]
+                if(status == 'up'):
+                    if(is_head_daemon(daemon)):
+                        ducc_counts['head-up'] = ducc_counts['head-up'] + 1
+                    else:
+                        ducc_counts['agents-up'] = ducc_counts['agents-up'] + 1
+                else:
+                    if(is_head_daemon(daemon)):
+                        ducc_counts['head-down'] = ducc_counts['head-down'] + 1
+                        ducc_list_down_head.append(daemon)
+                    else:
+                        ducc_counts['agents-down'] = ducc_counts['agents-down'] + 1
+                        ducc_list_down_agents.append(daemon)
+        #print 'head up[%i] down[%i]' % (ducc_counts['head-up'], ducc_counts['head-down'])
+        #print 'agent up[%i] down[%i]' % (ducc_counts['agents-up'], ducc_counts['agents-down'])
+    except Exception,e:
+        no_data()
+        syserr(e)
+
+def put_list_down_head(daemon):
+    pass
+
+def put_list_down_agents(daemon):
+    pass
+
+def rationalize():
+    global ducc_counts
+    global ducc_rationales
+    global ducc_list_down_head
+    global ducc_list_down_agents
+    if(ducc_counts['head-down'] == 0):
+        ducc_rationales['head'] = 'ducc-head daemons all up'
+    if(ducc_counts['head-down'] > 0):
+        ducc_rationales['head'] = 'ducc-head daemons down = '+str(ducc_list_down_head)
+    if(ducc_counts['agents-down'] == 0):
+        ducc_rationales['agents'] = 'ducc-agents daemons all up'
+    if(ducc_counts['agents-down'] > 0):
+        ducc_rationales['agents'] = 'ducc-agents daemons down = '+str(ducc_list_down_agents)
+
+def send_report(zabbix_cmd):
+    global options
+    print ''.join(str(item)+' ' for item in zabbix_cmd)
+    if(not options.echo):
+        p = subprocess.Popen(zabbix_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        print 'out: '+out
+
+def reports():
+    global options
+    global zabbix_dict
+    global ducc_counts
+    global ducc_rationales
+    zabbix_common = []
+    sender = zabbix_dict['sender']
+    if(not options.executable == None):
+        sender = options.executable
+    zabbix_common.append(sender)
+    zabbix_common.append(zabbix_dict['opt_z'])
+    zabbix_common.append(zabbix_dict['val_z'])
+    zabbix_common.append(zabbix_dict['opt_s'])
+    zabbix_common.append(zabbix_dict['val_s'])
+    zabbix_common.append(zabbix_dict['opt_k'])
+    #
+    zabbix_cmd = list(zabbix_common)
+    val_k = 'ducc-head'
+    zabbix_cmd.append(val_k)
+    zabbix_cmd.append(zabbix_dict['opt_o'])
+    val_o = '"%i: %s"' % (ducc_counts['head-down'],ducc_rationales['head'])
+    zabbix_cmd.append(val_o)
+    send_report(zabbix_cmd)
+    #
+    zabbix_cmd = list(zabbix_common)
+    val_k = 'ducc-agents'
+    zabbix_cmd.append(val_k)
+    zabbix_cmd.append(zabbix_dict['opt_o'])
+    val_o = '"%i: %s"' % (ducc_counts['agents-down'],ducc_rationales['agents'])
+    zabbix_cmd.append(val_o)
+    send_report(zabbix_cmd)
+    
+def main(argv):
+    parse_cmdline()
+    setup_ducc_url()
+    get_ducc_data()
+    rationalize()
+    reports()
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

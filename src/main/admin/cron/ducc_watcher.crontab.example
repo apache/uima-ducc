@@ -22,4 +22,4 @@
 
 # Once per minute
 
-*/1 * * * * /home/ducc/ducc_runtime/admin/tools --target http://uima-ducc-demo.apache.org:42 --email user1@host1 user2@host2
+*/1 * * * * /home/ducc/ducc_runtime/admin/tools/ducc_watcher --target http://uima-ducc-demo.apache.org:42 --email user1@host1 user2@host2
