@@ -118,6 +118,7 @@ import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
+import org.apache.uima.ducc.ws.utils.HandlersHelper.ServiceAuthorization;
 import org.apache.uima.ducc.ws.utils.LinuxSignals;
 import org.apache.uima.ducc.ws.utils.LinuxSignals.Signal;
 import org.apache.uima.ducc.ws.utils.UrlHelper;
@@ -2752,135 +2753,152 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		try {
-			String name = request.getParameter("name");
-			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
-			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
-			String hint = getLoginRefreshHint(request, response);
-			String enable_or_disable = getEnabledOrDisabled(request, response);;
-			Properties properties;
-			if(payload != null) {
-				properties = payload.meta;
-				String resourceOwnerUserId = properties.getProperty(IServicesRegistry.user).trim();
-				if(!HandlersHelper.isUserAuthorized(request,resourceOwnerUserId)) {
-					if(hint.length() == 0) {
-						HandlersHelper.AuthorizationStatus authorizationStatus = HandlersHelper.getAuthorizationStatus(request, resourceOwnerUserId);
-						switch(authorizationStatus) {
-						case LoggedInOwner:
-						case LoggedInAdministrator:
-							break;
-						case LoggedInNotOwner:
-						case LoggedInNotAdministrator:
-							enable_or_disable = "disabled=\"disabled\"";
-							String userid = DuccWebSessionManager.getInstance().getUserId(request);
-							boolean administrator = DuccWebAdministrators.getInstance().isAdministrator(userid);
-							if(administrator) {
-								hint = "title=\""+DuccConstants.hintPreferencesRoleAdministrator+"\"";
-							}
-							else {
-								hint = "title=\""+DuccConstants.hintNotAuthorized+"\"";
-							}
-							break;
-						case NotLoggedIn:
-							break;
-						default:
-							break;
-						}
-					}
-				}
-				String prefix;
-				TreeMap<String,String> map;
-				Enumeration<?> enumeration;
-				Iterator<String> iterator;
-				int i = 0;
-				int counter = 0;
-				//
-				prefix = "svc.";
-				properties = payload.svc;
-				map = new TreeMap<String,String>();
-				enumeration = properties.keys();
-				while(enumeration.hasMoreElements()) {
-					String key = (String)enumeration.nextElement();
-					map.put(key, key);
-				}
-				iterator = map.keySet().iterator();
-				while(iterator.hasNext()) {
-					String key = iterator.next();
-					String value = properties.getProperty(key);
-					if(key.endsWith("classpath")) {
-						value = formatClasspath(value);
-						String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
-						String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
-						value = show+hide;
-						i++;
-					}
-					putJobSpecEntry(properties, prefix+key, value, sb, counter++);
-				}
-				//
-				prefix = "meta.";
-				properties = payload.meta;
-				map = new TreeMap<String,String>();
-				enumeration = properties.keys();
-				while(enumeration.hasMoreElements()) {
-					String key = (String)enumeration.nextElement();
-					map.put(key, key);
-				}
-				iterator = map.keySet().iterator();
-				while(iterator.hasNext()) {
-					String key = iterator.next();
-					String value = properties.getProperty(key);
-					if(key.endsWith("classpath")) {
-						value = formatClasspath(value);
-						String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
-						String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
-						value = show+hide;
-						i++;
-					}
-					key = key.trim();
-					// autostart
-					if(key.equalsIgnoreCase(IServicesRegistry.autostart)) {
-						if(value != null) {
-							value = value.trim();
-							if(value.equalsIgnoreCase(IServicesRegistry.constant_true)) {
-								StringBuffer replacement = new StringBuffer();
-								replacement.append("<select id=\"autostart\""+enable_or_disable+" "+hint+">");
-								replacement.append("<option value=\"true\"  selected=\"selected\">true</option>");
-								replacement.append("<option value=\"false\"                      >false</option>");
-								replacement.append("</select>");
-								value = replacement.toString();
-							}
-							else if(value.equalsIgnoreCase(IServicesRegistry.constant_false)) {
-								StringBuffer replacement = new StringBuffer();
-								replacement.append("<select id=\"autostart\""+enable_or_disable+" "+hint+">");
-								replacement.append("<option value=\"false\"  selected=\"selected\">false</option>");
-								replacement.append("<option value=\"true\"                        >true</option>");
-								replacement.append("</select>");
-								value = replacement.toString();
+			ServiceAuthorization sa = HandlersHelper.getServiceAuthorization(baseRequest);
+			switch(sa) {
+				case Read:
+				case Write:
+					String name = request.getParameter("name");
+					ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
+					ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
+					String hint = getLoginRefreshHint(request, response);
+					String enable_or_disable = getEnabledOrDisabled(request, response);;
+					Properties properties;
+					if(payload != null) {
+						properties = payload.meta;
+						String resourceOwnerUserId = properties.getProperty(IServicesRegistry.user).trim();
+						if(!HandlersHelper.isUserAuthorized(request,resourceOwnerUserId)) {
+							if(hint.length() == 0) {
+								HandlersHelper.AuthorizationStatus authorizationStatus = HandlersHelper.getAuthorizationStatus(request, resourceOwnerUserId);
+								switch(authorizationStatus) {
+								case LoggedInOwner:
+								case LoggedInAdministrator:
+									break;
+								case LoggedInNotOwner:
+								case LoggedInNotAdministrator:
+									enable_or_disable = "disabled=\"disabled\"";
+									String userid = DuccWebSessionManager.getInstance().getUserId(request);
+									boolean administrator = DuccWebAdministrators.getInstance().isAdministrator(userid);
+									if(administrator) {
+										hint = "title=\""+DuccConstants.hintPreferencesRoleAdministrator+"\"";
+									}
+									else {
+										hint = "title=\""+DuccConstants.hintNotAuthorized+"\"";
+									}
+									break;
+								case NotLoggedIn:
+									break;
+								default:
+									break;
+								}
 							}
 						}
-					}
-					// instances
-					if(key.equalsIgnoreCase(IServicesRegistry.instances)) {
-						if(value != null) {
-							value = value.trim();
-							StringBuffer replacement = new StringBuffer();
-							replacement.append("<span id=\"instances_area\">");
-							replacement.append("<input type=\"text\" size=\"5\" id=\"instances\" value=\""+value+"\""+enable_or_disable+" "+hint+">");
-							replacement.append("</span>");
-							value = replacement.toString();
+						String prefix;
+						TreeMap<String,String> map;
+						Enumeration<?> enumeration;
+						Iterator<String> iterator;
+						int i = 0;
+						int counter = 0;
+						//
+						prefix = "svc.";
+						properties = payload.svc;
+						map = new TreeMap<String,String>();
+						enumeration = properties.keys();
+						while(enumeration.hasMoreElements()) {
+							String key = (String)enumeration.nextElement();
+							map.put(key, key);
+						}
+						iterator = map.keySet().iterator();
+						while(iterator.hasNext()) {
+							String key = iterator.next();
+							String value = properties.getProperty(key);
+							if(key.endsWith("classpath")) {
+								value = formatClasspath(value);
+								String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
+								String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
+								value = show+hide;
+								i++;
+							}
+							putJobSpecEntry(properties, prefix+key, value, sb, counter++);
+						}
+						//
+						prefix = "meta.";
+						properties = payload.meta;
+						map = new TreeMap<String,String>();
+						enumeration = properties.keys();
+						while(enumeration.hasMoreElements()) {
+							String key = (String)enumeration.nextElement();
+							map.put(key, key);
+						}
+						iterator = map.keySet().iterator();
+						while(iterator.hasNext()) {
+							String key = iterator.next();
+							String value = properties.getProperty(key);
+							if(key.endsWith("classpath")) {
+								value = formatClasspath(value);
+								String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
+								String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
+								value = show+hide;
+								i++;
+							}
+							key = key.trim();
+							// autostart
+							if(key.equalsIgnoreCase(IServicesRegistry.autostart)) {
+								if(value != null) {
+									value = value.trim();
+									if(value.equalsIgnoreCase(IServicesRegistry.constant_true)) {
+										StringBuffer replacement = new StringBuffer();
+										replacement.append("<select id=\"autostart\""+enable_or_disable+" "+hint+">");
+										replacement.append("<option value=\"true\"  selected=\"selected\">true</option>");
+										replacement.append("<option value=\"false\"                      >false</option>");
+										replacement.append("</select>");
+										value = replacement.toString();
+									}
+									else if(value.equalsIgnoreCase(IServicesRegistry.constant_false)) {
+										StringBuffer replacement = new StringBuffer();
+										replacement.append("<select id=\"autostart\""+enable_or_disable+" "+hint+">");
+										replacement.append("<option value=\"false\"  selected=\"selected\">false</option>");
+										replacement.append("<option value=\"true\"                        >true</option>");
+										replacement.append("</select>");
+										value = replacement.toString();
+									}
+								}
+							}
+							// instances
+							if(key.equalsIgnoreCase(IServicesRegistry.instances)) {
+								if(value != null) {
+									value = value.trim();
+									StringBuffer replacement = new StringBuffer();
+									replacement.append("<span id=\"instances_area\">");
+									replacement.append("<input type=\"text\" size=\"5\" id=\"instances\" value=\""+value+"\""+enable_or_disable+" "+hint+">");
+									replacement.append("</span>");
+									value = replacement.toString();
+								}
+							}
+							putJobSpecEntry(properties, prefix+key, value, sb, counter++);
 						}
 					}
-					putJobSpecEntry(properties, prefix+key, value, sb, counter++);
-				}
+					else {
+						sb.append("<tr>");
+						sb.append("<td>");
+						sb.append("not found");
+						sb.append("</td>");
+						sb.append("<td>");
+						sb.append("</td>");
+						sb.append("</tr>");
+					}
+					break;
+				case None:
+				default:
+					sb.append("<tr>");
+					sb.append("<td>");
+					sb.append("not authorized");
+					sb.append("</td>");
+					sb.append("<td>");
+					sb.append("</td>");
+					sb.append("</tr>");
+					break;
 			}
-			else {
-				sb.append("<tr>");
-				sb.append("<td>");
-				sb.append("not found");
-				sb.append("</td>");
-				sb.append("<td>");
-				sb.append("</td>");
-				sb.append("</tr>");
-			}
+			
 		}
 		catch(Exception e) {
 			duccLogger.warn(methodName, null, e);
@@ -3916,6 +3934,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		return retVal;
 	}
 	
+	private String getDisabled() {
+		String retVal = "disabled=\"disabled\"";
+		return retVal;
+	}
+	
 	private String getEnabledOrDisabled(HttpServletRequest request,HttpServletResponse response) {
 		String retVal = "";
 		DuccCookies.RefreshMode refreshMode = DuccCookies.getRefreshMode(request);
@@ -3923,10 +3946,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			switch(refreshMode) {
 			default:
 			case Automatic:
-				retVal = "disabled=\"disabled\"";
+				retVal = getDisabled();
 				break;
 			case Manual:
-				retVal = "disabled=\"disabled\"";
+				retVal = getDisabled();
 				break;
 			}
 		}
@@ -3934,7 +3957,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			switch(refreshMode) {
 			default:
 			case Automatic:
-				retVal = "disabled=\"disabled\"";
+				retVal = getDisabled();
 				break;
 			case Manual:
 				break;
@@ -3951,7 +3974,18 @@ public class DuccHandler extends DuccAbstractHandler {
 		String name = request.getParameter("name");
 		StringBuffer sb = new StringBuffer();
 		String hint = getLoginRefreshHint(request, response);
-		String enable_or_disable = getEnabledOrDisabled(request, response);
+		
+		String enable_or_disable = getDisabled();
+		ServiceAuthorization sa = HandlersHelper.getServiceAuthorization(baseRequest);
+		switch(sa) {
+			case Write:
+				enable_or_disable = getEnabledOrDisabled(request, response);
+				break;
+			case Read:
+			case None:
+			default:
+				break;
+		}
 		String button = "<button id=\"update_button\" "+hint+" onclick=\"ducc_update_service('"+name+"')\" style=\"font-size:8pt; background-color:green; color:ffffff;\">Update</button>";
 		if(enable_or_disable.length() > 0) {
 			button = "<button id=\"update_button\" "+enable_or_disable+" "+hint+" style=\"font-size:8pt;\">Update</button>";

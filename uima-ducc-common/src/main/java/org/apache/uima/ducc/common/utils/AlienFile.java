@@ -124,6 +124,9 @@ public class AlienFile extends AlienAbstract {
 		}
 	}
 	
+	/**
+	 * return null if file is unreadable or does not exist
+	 */
 	public String getString() throws Exception {
 		String data = reader();
 		if(data != null) {

@@ -60,7 +60,8 @@ public class Crypto implements ICrypto {
 	private String dirDotDucc = ".ducc";
 
 	private String user;    // Owner of the request - the simulated requester when in test-mode
-	private String dirUserKeys;
+	private String dirSecurity;
+	private String fileDbAccess;
 	private String filePvt;
 	private String filePub;
 	
@@ -128,10 +129,12 @@ public class Crypto implements ICrypto {
       }
     }
 	  
-		dirUserKeys = dirHome+File.separator+dirDotDucc;
-		filePub = dirUserKeys+File.separator+"public.key";
-		filePvt = dirUserKeys+File.separator+"private.key";
+		dirSecurity = dirHome+File.separator+dirDotDucc;
+		fileDbAccess = dirSecurity+File.separator+"db.access";
+		filePub = dirSecurity+File.separator+"public.key";
+		filePvt = dirSecurity+File.separator+"private.key";
 		if (createRequest) {
+			createDbAccess();
 			createKeys();
 			checkKeys();
 		}
@@ -140,6 +143,30 @@ public class Crypto implements ICrypto {
 		}
 		catch(Exception e) {
 			throw new CryptoException(e);
+		}
+	}
+	
+	private boolean isMissingDbAccess() {
+		if ((new File(fileDbAccess)).exists()) {
+			 return false;
+		}
+		else {
+			return true;
+		}
+	}
+	
+	private void createDbAccess() throws CryptoException {
+		synchronized(Crypto.class) {
+			if(isMissingDbAccess()) {
+				mkdir(dirSecurity);
+				try {
+					File file = new File(fileDbAccess);
+					file.createNewFile();
+				}
+				catch(Exception e) {
+					throw new CryptoException(e);
+				}
+			}
 		}
 	}
 	
@@ -156,7 +183,7 @@ public class Crypto implements ICrypto {
 		try {
 			synchronized(Crypto.class) {
 				if(isMissingKeys()) {
-					mkdir(dirUserKeys);
+					mkdir(dirSecurity);
 					KeyPairGenerator kpg = KeyPairGenerator.getInstance(keyType);
 					kpg.initialize(keySize);
 					KeyPair kp = kpg.genKeyPair();
@@ -228,7 +255,7 @@ public class Crypto implements ICrypto {
 		try {
 			File file = new File(dir);
 			file.mkdirs();
-			setPermissions(dirUserKeys, false, true);
+			setPermissions(dirSecurity, false, true);
 		}
 		catch(Exception e) {
 			throw new CryptoException(e);

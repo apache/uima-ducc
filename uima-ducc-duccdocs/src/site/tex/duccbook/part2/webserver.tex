@@ -170,6 +170,24 @@
             scheduled work in the system.
       \end{description}              
 
+
+	\section{Login}
+	
+	Access for monitor and update capability via the Web Server is controlled by login.  
+	Logs, files and other data are accessed by the Linux permissions of the 
+	logged-in user.
+	
+	For the Services Registry in particular, the following attributes give 
+	the Web Server browsing user read or write access:
+	
+	\begin{itemize}
+       \item logged-in Service Owner             
+       \item logged-in Service Administrator
+       \item logged-in DUCC Administrator        
+       \item logged-in user via {\em site-security}-directory/.ducc/db.access file read permission
+       \item 'ducc' user via {\em site-security}-directory/.ducc/db.access file read permission
+    \end{itemize}
+
       % Create well-known link to this spot for HTML version
       \ifpdf
       \else

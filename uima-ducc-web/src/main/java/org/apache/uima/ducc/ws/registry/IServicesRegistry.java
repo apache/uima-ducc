@@ -26,6 +26,7 @@ public class IServicesRegistry {
 	public static final String svc = IStateServices.svc;
 	
 	// meta
+	public static final String administrators = IStateServices.SvcRegProps.administrators.pname();
 	public static final String autostart = IStateServices.SvcMetaProps.autostart.pname();
 	public static final String reference = IStateServices.SvcMetaProps.reference.pname();
 	public static final String enabled = IStateServices.SvcMetaProps.enabled.pname();
