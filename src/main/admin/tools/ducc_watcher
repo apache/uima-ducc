@@ -106,6 +106,9 @@ class DuccHtmlParser(HTMLParser):
 
 name = 'ducc_watcher'
 
+webserver = 'Webserver'
+head_daemons = [ 'Orchestrator',  'ResourceManager', 'Database', 'Broker', 'ProcessManager', 'ServiceManager', webserver ]
+
 flag_info = True
 flag_trace = False
 logger = None
@@ -261,17 +264,19 @@ def validate_target(options):
     global port
     global target
     global ducc_url
+    protocol = 'http://'
+    servlet = '/ducc-servlet/classic-system-daemons-data'
     if(options.target == None):
         error('required "target" not specified')
         exit(1)
     target = options.target
     if(':' not in target):
         target = target+':'+str(port)
-    if(target.startswith('http://')):
-        target = target.replace('http://','',1)
-    ducc_url = 'http://'+target+'/ducc-servlet/classic-system-daemons-data'
+    if(target.startswith(protocol)):
+        target = target.replace(protocol,'',1)
+    ducc_url = protocol+target+servlet
     debug('target: '+ducc_url)
-
+    
 # list of e-mail recipients, if any
 def validate_email_list(options):
     global email_list
@@ -312,6 +317,43 @@ def parse_cmdline():
     # -a
     validate_agents(options)
 
+# determine if named daemon is one of the head node ones
+def is_head(key):
+    global head_daemons
+    retVal = False
+    if(key in head_daemons):
+        retVal = True   
+    return retVal
+
+# get rid of noise. remove if
+# 1. state is unknown
+# 2. if is agent and agents are not wanted
+def filter(state_dict):
+    global flag_agents
+    retVal = {}
+    for key in state_dict:
+        if(state_dict[key] == 'unknown'):
+            pass
+        else:
+            if(is_head(key)):
+                retVal[key] = state_dict[key]
+            elif(flag_agents):
+                retVal[key] = state_dict[key]
+    return retVal
+
+# summarize state of all ducc daemons
+def summarize(state_dict):
+    global head_daemons
+    retVal = 'up'
+    if(len(state_dict) < len(head_daemons)):
+        retVal = 'down'
+    else:
+        for key in state_dict:
+            if(not state_dict[key] == 'up'):
+                retVal = 'down'
+                break;
+    return retVal
+
 # read precious daemons state
 def read_state_previous():
     global state_dict_previous
@@ -322,6 +364,8 @@ def read_state_previous():
             s = f.read()
             state_dict_previous = ast.literal_eval(s)
             debug('state_previous(read): '+str(state_dict_previous))
+            state_dict_previous = filter(state_dict_previous)
+            debug('state_previous(filter): '+str(state_dict_previous))
     except Exception,e:
         error('unable to read state from '+state_file)
         exception(e)
@@ -352,6 +396,7 @@ def fetch_state_current():
     global flag_agents
     global state_dict_current
     global ducc_url
+    global webserver
     state_dict_current = {}
     try:
         import urllib2
@@ -370,9 +415,12 @@ def fetch_state_current():
                 status = daemons[daemon]
                 trace(daemon+':'+' '+status+' ')
                 state_dict_current[daemon] = status
+            debug('state_current(read): '+str(state_dict_current))
+            state_dict_current = filter(state_dict_current)
+            debug('state_current(filter): '+str(state_dict_current))
     except Exception,e:
         # for WS status to down whenever contact fails
-        daemon = 'Webserver'
+        daemon = webserver
         status = 'unreachable'
         state_dict_current[daemon] = status
         error('unable to fetch data from '+ducc_url)
@@ -383,21 +431,23 @@ def fetch_state_current():
 def determine_state_changes():
     global state_dict_current
     global state_dict_previous
-    global state_dict_changes
-    state_dict_changes = {}
+    global state_dict_not_up
+    global state_changes_count
+    state_changes_count = 0
+    state_dict_not_up = {}
     for key in state_dict_current:
         state_current = state_dict_current.get(key, '?')
-        state_previous = state_dict_previous.get(key, '?')
-        if(state_current == state_previous):
+        if(state_current == 'up'):
             pass
         else:
-            info(key+' '+'from'+' '+state_previous+' '+'to'+' '+state_current)
-            if(state_current == 'up'):
+            state_dict_not_up[key] = state_current
+            state_previous = state_dict_previous.get(key, '?')
+            if(state_current == state_previous):
                 pass
             else:
-                state_dict_changes[key] = state_current
-                info(key+' '+state_current)
-    
+                state_changes_count = state_changes_count + 1
+                info(key+' '+'from'+' '+state_previous+' '+'to'+' '+state_current)
+                
 # send email
 def email(text):
     global name
@@ -423,12 +473,71 @@ def email(text):
         exception(e)
     return
 
+
+# check if all head node daemons are reported
+def is_all_head_daemons():
+    global state_dict_current
+    global head_daemons
+    debug('states: '+str(state_dict_current))
+    debug('daemons: '+str(head_daemons))
+    for daemon in head_daemons:
+        if(daemon in state_dict_current):
+            debug(daemon+' reporting')
+        else:
+            info(daemon+' not reporting')
+            retVal = False
+            break
+    retVal = True
+    debug('all head daemons: '+str(retVal))   
+    return retVal
+
+# check if only webserver is reported
+def is_only_webserver():
+    global state_dict_current
+    global webserver
+    retVal = False
+    len_cur = len(state_dict_current)
+    if(len_cur == 1):
+        if(webserver in state_dict_current):
+            debug(webserver+' only reporting')
+            retVal = True
+    debug('webserver only: '+str(retVal))        
+    return retVal
+
+# not reportable when ducc boot is in progress
+def is_reportable():
+    global head_daemons
+    global state_dict_current
+    retVal = False
+    if(is_only_webserver()):
+        retVal = True
+    elif(is_all_head_daemons()):
+        retVal = True
+    return retVal
+
 # e-mail state changes, if any
 def email_state_changes():
-    global state_dict_changes
-    if(len(state_dict_changes) > 0):
-        email(str(state_dict_changes))
-
+    global state_dict_current
+    global state_dict_previous
+    global state_dict_not_up
+    global state_changes_count
+    if(is_reportable()):
+        if(state_changes_count > 0):
+            info('state_changes(count): '+str(state_changes_count))
+            email(str(state_dict_not_up))
+        else:
+            debug('state_changes(count): '+str(state_changes_count))
+            sum_cur = summarize(state_dict_current)
+            sum_prv = summarize(state_dict_previous)
+            if(sum_cur == sum_prv):
+                debug('state_current(summary): '+str(sum_cur))
+                debug('state_previous(summary): '+str(sum_prv))
+            else:
+                info('state_current(summary): '+str(sum_cur))
+                info('state_previous(summary): '+str(sum_prv))
+                if(sum_cur == 'up'):
+                    email('All daemons up')
+    
 # check for newly down DUCC daemons
 def main(argv):
     global logger
@@ -438,9 +547,9 @@ def main(argv):
     parse_cmdline()
     read_state_previous()
     fetch_state_current()
-    determine_state_changes()
-    update_state_previous()
+    determine_state_changes() 
     email_state_changes()
+    update_state_previous()
              
-if __name__ == "__main__":
+if __name__ == '__main__':
     main(sys.argv[1:])
