@@ -350,7 +350,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                   if ( useCgroups ) {
                       try {
                           // remove stale CGroups
-                          cgroupsManager.cleanupOnStartup();
+                          cgroupsManager.cleanup();
                         } catch (Exception e) {
                           logger.error("nodeAgent", null, e);
                     	  useCgroups = false;
@@ -1872,6 +1872,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap,getLastORSequence(), getIdentity());
     inventoryDispatcher.dispatch(duccEvent);
     logger.info("stop", null, "Agent published final inventory");
+
+    // Since SIGTERM may not be enough to take down a process, use cgroups to find
+    // any process still standing and do hard kill 
+    cgroupsManager.cleanup();
    
     // Self destruct thread in case we loose AMQ broker and AMQ listener gets into retry
     // mode trying to recover a connection

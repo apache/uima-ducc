@@ -251,7 +251,7 @@ public class CGroupsManager {
 	 * 
 	 * @throws Exception
 	 */
-	public void cleanupOnStartup() throws Exception {
+	public void cleanup() throws Exception {
 
 		Set<NodeProcessInfo> processes = getProcessesOnNode();
 		// Match any folder under /cgroup/ducc that has syntax
@@ -277,7 +277,7 @@ public class CGroupsManager {
 					String[] pids = readPids(f);
 
 					if ( pids != null && pids.length > 0 ) {
-						agentLogger.info("cleanupOnStartup", null,"Agent found "+pids.length+" cgroup proceses still active after Agent restart. Proceeding to remove stale processes");
+						agentLogger.info("cleanupOnStartup", null,"Agent found "+pids.length+" cgroup proceses still active. Proceeding to remove running processes");
 					}
 
 					int zombieCount=0;
@@ -332,6 +332,8 @@ public class CGroupsManager {
 					} else {
 						agentLogger.info("cleanupOnStartup", null,"CGroup "+cgroupFolder+" Contains Zombie Processing. Not Removing the Container");
 					}
+				} catch (FileNotFoundException e) {
+					// noop. Cgroup may have been removed already
 				} catch (Exception e) {
 					agentLogger.error("cleanupOnStartup", null, e);
 				}
