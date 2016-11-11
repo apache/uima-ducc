@@ -35,6 +35,7 @@ import logging.handlers
 import os
 import smtplib
 import socket
+import string
 import sys
 import time
 import urllib
@@ -263,7 +264,8 @@ def setup_state_file(options):
 def validate_target(options):
     global port
     global target
-    global ducc_url
+    global ducc_url_base
+    global ducc_url_servlet
     protocol = 'http://'
     servlet = '/ducc-servlet/classic-system-daemons-data'
     if(options.target == None):
@@ -274,8 +276,9 @@ def validate_target(options):
         target = target+':'+str(port)
     if(target.startswith(protocol)):
         target = target.replace(protocol,'',1)
-    ducc_url = protocol+target+servlet
-    debug('target: '+ducc_url)
+    ducc_url_base = protocol+target
+    ducc_url_servlet = protocol+target+servlet
+    debug('target: '+ducc_url_base)
     
 # list of e-mail recipients, if any
 def validate_email_list(options):
@@ -395,7 +398,7 @@ def update_state_previous():
 def fetch_state_current():
     global flag_agents
     global state_dict_current
-    global ducc_url
+    global ducc_url_servlet
     global webserver
     state_dict_current = {}
     try:
@@ -403,7 +406,7 @@ def fetch_state_current():
         opener = urllib2.build_opener()
         if(flag_agents):
             opener.addheaders.append(('Cookie', 'DUCCagents=show'))
-        response = opener.open(ducc_url)
+        response = opener.open(ducc_url_servlet)
         data = response.read()
         parser = DuccHtmlParser()
         parser.feed(data)
@@ -423,7 +426,7 @@ def fetch_state_current():
         daemon = webserver
         status = 'unreachable'
         state_dict_current[daemon] = status
-        error('unable to fetch data from '+ducc_url)
+        error('unable to fetch data from '+ducc_url_servlet)
         exception(e)
     debug('state_current: '+str(state_dict_current))
 
@@ -449,31 +452,32 @@ def determine_state_changes():
                 info(key+' '+'from'+' '+state_previous+' '+'to'+' '+state_current)
                 
 # send email
-def email(text):
-    global name
-    global target
-    global ducc_url
-    global mail_host
-    global email_list
-    receivers = email_list
+def email(HOST, SUBJECT, TO, FROM, TEXT):
     try:
-        if(text == None):
-            debug('no message?')
-        else:
-            sender = get_user()+'@'+get_host()
-            message = '['+sender+']'+' '+name+' '+'of'+' '+target+' '+'state change:'+' '+text
-            if(receivers == None):
-                info('nobody to send: '+text)
-            else:
-                smtpObj = smtplib.SMTP(mail_host)
-                smtpObj.sendmail(sender,receivers,message)
-                warn('sent: '+str(receivers)+' '+text)
+        BODY = string.join((
+            "From: %s" % FROM,
+            "To: %s" % TO,
+            "Subject: %s" % SUBJECT ,
+            "",
+            TEXT
+            ), "\r\n")
+        server = smtplib.SMTP(HOST)
+        server.sendmail(FROM, [TO], BODY)
+        server.quit()
+        info('sent: ['+TO+'] '+TEXT)
     except Exception,e:
-        error('not sent: '+str(receivers)+' '+text)
+        error('not sent: ['+TO+'] '+TEXT)
         exception(e)
-    return
 
-
+# send email
+def email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT):
+    if(TO_LIST == None):
+        info('e-mail list empty')
+        error('not sent: ['+TO+'] '+TEXT)
+    else:
+        for TO in TO_LIST:
+            email(HOST, SUBJECT, TO, FROM, TEXT)
+        
 # check if all head node daemons are reported
 def is_all_head_daemons():
     global state_dict_current
@@ -515,20 +519,43 @@ def is_reportable():
         retVal = True
     return retVal
 
+# e-mail message subject
+def get_subject(status):
+    global ducc_url_base
+    subject = 'DUCC'+' '+'status='+status+' '+ducc_url_base
+    return subject
+
+# e-mail message body
+def get_body(text):
+    global name
+    global ducc_url_base
+    sender = get_user()+'@'+get_host()
+    body = '['+sender+']'+' '+name+' '+'reports'+' '+ducc_url_base+' '+'state change:'+' '+text
+    return body
+
 # e-mail state changes, if any
 def email_state_changes():
     global state_dict_current
     global state_dict_previous
     global state_dict_not_up
     global state_changes_count
+    global mail_host
+    global email_list
     if(is_reportable()):
+        sum_prv = summarize(state_dict_previous)
+        sum_cur = summarize(state_dict_current)
+        status = sum_cur
+        subject = get_subject(status)
         if(state_changes_count > 0):
             info('state_changes(count): '+str(state_changes_count))
-            email(str(state_dict_not_up))
+            HOST = mail_host
+            SUBJECT = subject
+            TO_LIST = email_list
+            FROM = get_user()+'@'+get_host()
+            TEXT = get_body(str(state_dict_not_up))
+            email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT)
         else:
             debug('state_changes(count): '+str(state_changes_count))
-            sum_cur = summarize(state_dict_current)
-            sum_prv = summarize(state_dict_previous)
             if(sum_cur == sum_prv):
                 debug('state_current(summary): '+str(sum_cur))
                 debug('state_previous(summary): '+str(sum_prv))
@@ -536,20 +563,29 @@ def email_state_changes():
                 info('state_current(summary): '+str(sum_cur))
                 info('state_previous(summary): '+str(sum_prv))
                 if(sum_cur == 'up'):
-                    email('All daemons up')
+                    HOST = mail_host
+                    SUBJECT = subject
+                    TO_LIST = email_list
+                    FROM = get_user()+'@'+get_host()
+                    TEXT = get_body('All daemons up')
+                    email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT)
     
-# check for newly down DUCC daemons
+# check for DUCC daemon status changes
 def main(argv):
     global logger
-    logger = logging.getLogger('logger')
-    handler = logging.StreamHandler(sys.stdout)
-    logger.addHandler(handler)
-    parse_cmdline()
-    read_state_previous()
-    fetch_state_current()
-    determine_state_changes() 
-    email_state_changes()
-    update_state_previous()
+    try:
+        logger = logging.getLogger('logger')
+        handler = logging.StreamHandler(sys.stdout)
+        logger.addHandler(handler)
+        parse_cmdline()
+        read_state_previous()
+        fetch_state_current()
+        determine_state_changes() 
+        email_state_changes()
+        update_state_previous()
+    except Exception,e:
+        error('exception in main')
+        exception(e)
              
 if __name__ == '__main__':
     main(sys.argv[1:])
