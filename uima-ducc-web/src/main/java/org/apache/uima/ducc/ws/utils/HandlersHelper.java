@@ -213,7 +213,8 @@ public class HandlersHelper {
 		if(reqUser != null) {
 			retVal = DuccWebAdministrators.getInstance().isAdministrator(reqUser);
 			if(retVal) {
-				duccLogger.debug(location, getDuccId(meta), "user="+reqUser+" "+retVal);
+				retVal = false;  // force DUCC administrator not permitted
+				duccLogger.debug(location, getDuccId(meta), "user="+reqUser+" "+retVal+" "+"(forced)");
 			}
 		}
 		return retVal;
