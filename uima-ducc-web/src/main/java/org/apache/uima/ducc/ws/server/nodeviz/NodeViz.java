@@ -377,8 +377,8 @@ public class NodeViz
         {
             if ( h1 == h2 ) return 0;
             if ( h1.equals(h2) ) return 0;       
-            if ( h2.mem == h1.mem ) return h1.name.compareTo(h2.name);
-            return h2.mem - h1.mem;
+            if ( h2.mem_reserve == h1.mem_reserve ) return h1.name.compareTo(h2.name);
+            return h2.mem_reserve - h1.mem_reserve;
         }
     }
 

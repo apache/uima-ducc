@@ -197,7 +197,7 @@ public class Markup
                 out.append("GB on host ");
                 out.append(h.name); 
                 out.append("(");
-                out.append(h.mem); 
+                out.append(h.mem_reserve); 
                 out.append("GB)</title>");
                 break;
             case Reservation:
@@ -220,7 +220,7 @@ public class Markup
                 out.append("GB) on ");
                 out.append(h.name); 
                 out.append("(");
-                out.append(h.mem);
+                out.append(h.mem_reserve);
                 out.append("GB)</title>");
                 break;
         }

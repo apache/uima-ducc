@@ -48,6 +48,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private String ip;
 	private String name;
 	private String memTotal;
+	private String memReserve;
 	private String memFree;
 	private String swapInuse;
 	private String swapFree;
@@ -71,20 +72,21 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	
 	private NodeId nodeid;
 	
-	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
-		init(MachineStatus.Defined, fileDef, ip, name, memTotal, memFree, swapInuse, swapFree, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, heartbeat, pubSize);
+	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memReserve, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
+		init(MachineStatus.Defined, fileDef, ip, name, memTotal, memReserve, memFree, swapInuse, swapFree, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, heartbeat, pubSize);
 	}
 	
-	public MachineInfo(MachineStatus machineStatus, String fileDef, String ip, String name, String memTotal, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
-		init(machineStatus, fileDef, ip, name, memTotal, memFree, swapInuse, swapFree, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, heartbeat, pubSize);
+	public MachineInfo(MachineStatus machineStatus, String fileDef, String ip, String name, String memTotal, String memReserve, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
+		init(machineStatus, fileDef, ip, name, memTotal, memReserve, memFree, swapInuse, swapFree, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, heartbeat, pubSize);
 	}
 	
-	private void init(MachineStatus machineStatus, String fileDef, String ip, String name, String memTotal, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
+	private void init(MachineStatus machineStatus, String fileDef, String ip, String name, String memTotal, String memReserve, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
 		this.machineStatus = machineStatus;
 		this.fileDef = fileDef;
 		this.ip = ip;
 		this.name = name;
 		this.memTotal = memTotal;
+		this.memReserve = memReserve;
 		this.memFree = memFree;
 		this.swapInuse = swapInuse;
 		this.swapFree = swapFree;
@@ -273,6 +275,14 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	
 	public String getMemTotal() {
 		return this.memTotal;
+	}
+	
+	public void setMemReserve(String value) {
+		this.memReserve = value;
+	}
+	
+	public String getMemReserve() {
+		return this.memReserve;
 	}
 	
 	public void setMemFree(String value) {

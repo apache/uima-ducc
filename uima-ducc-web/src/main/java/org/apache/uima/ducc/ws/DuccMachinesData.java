@@ -244,11 +244,12 @@ public class DuccMachinesData {
 			while(iterator.hasNext()) {
 				String nodeName = (String) iterator.next();
 				String memTotal = "";
+				String memReserve = "";
 				String memFree = "";
 				String swapInuse = "";
 				String swapFree = "";
 				double cpu = 0;
-				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, cpu, false, false, null, -1, 0);
+				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memReserve, memFree, swapInuse, swapFree, cpu, false, false, null, -1, 0);
 				putMachine(machineInfo);
 			}
 			updateSortedMachines();
@@ -365,6 +366,8 @@ public class DuccMachinesData {
 		long lvalMemTotal = (long) ((1.0*nodeMemTotal)/(1024*1024)+0.5);
 		msi.memTotal = lvalMemTotal;
 		String memTotal = ""+lvalMemTotal/*+memUnits*/;
+		// mem: reserve
+		String memReserve = memTotal;
 		// mem: free
 		long nodeMemFree = nodeMetrics.getNodeMemory().getMemFree();
 		logger.debug(location, jobid, "node: "+machineName+" "+"memFree: "+nodeMemFree);
@@ -395,7 +398,7 @@ public class DuccMachinesData {
 		double cpu = getCpuLoadAvg(node);
 		boolean cGroupsEnabled = nodeMetrics.getCgroups();
 		boolean cGroupsCpuReportingEnabled = nodeMetrics.getCgroupsCpuReportingEnabled();
-		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, duccEvent.getMillis(), duccEvent.getEventSize());
+		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memReserve, memFree, ""+swapInuse, ""+swapFree, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, duccEvent.getMillis(), duccEvent.getEventSize());
 		
 		NodeId key = nodeId;
 		MachineInfo previous = unsortedMachines.get(key);
@@ -650,9 +653,9 @@ public class DuccMachinesData {
 			IDbMachine dbMachine = entry.getValue();
 			if(mi != null) {
 				int quantum = dbMachine.getQuantum();
-				int total = quantum*dbMachine.getShareOrder();
+				int reserve = quantum*dbMachine.getShareOrder();
 				int free = quantum*dbMachine.getSharesLeft();
-				mi.setMemTotal(""+total);
+				mi.setMemReserve(""+reserve);
 				mi.setMemFree(""+free);
 				dbSortedMachines.put(mi, nodeId);
 			}

@@ -36,18 +36,15 @@ class VisualizedHost
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(VisualizedHost.class.getName());
     private static FragmentSorter sorter = new FragmentSorter();
 
-    // TODO:
-    //   Some goodies - aliens, swap, heartbeat info, pubsize, expired, status
     String name;        // host name
     String ip;          // host ip
-    int mem;            // actual mem as reported by agent
-    int shares;         // q shares available on this host (constant)
-
-    int shares_free;    // shares not used by jobs
-    int mem_reservable; // schedulable (reservable) memory on this hosts
-
+    int mem_total;      // actual mem as reported by agent
+    int mem_reserve;    // schedulable memory on this host, unused + used
+    int mem_free;       // schedulable memory on this host, unused
     int quantum;        // RM scheduling quantum
-
+    int shares_reserve; // shares on this host, unused + used
+    int shares_free;    // shares on this host, unused
+    
     List<JobFragment>  fragments = new ArrayList<JobFragment>();
 
     /**
@@ -60,11 +57,10 @@ class VisualizedHost
         this.ip = n.getNodeIdentity().getIp();            
         
         // mem from OR pub is in KB.  must convert to GB
-        this.mem =  (int) n.getNodeMetrics().getNodeMemory().getMemFree() / ( 1024 * 1024 );
-
-        this.shares = (mem / quantum);
-        this.shares_free = shares;
-        this.mem_reservable = shares * quantum;
+        this.mem_total =  (int) n.getNodeMetrics().getNodeMemory().getMemFree() / ( 1024 * 1024 );
+        this.shares_reserve = (mem_total / quantum);
+        this.shares_free = shares_reserve;
+        this.mem_reserve = shares_reserve * quantum;
     }
 
     /**
@@ -76,21 +72,20 @@ class VisualizedHost
         this.quantum = quantum;
         this.name = NodeViz.strip(info.getName());
         this.ip = info.getIp();
-
-        this.mem = Integer.parseInt(info.getMemFree());
-        this.shares = (mem / quantum);
-        this.mem_reservable = shares * quantum;
-        this.shares_free = shares;        
+        this.mem_total = Integer.parseInt(info.getMemTotal());
+        this.mem_reserve = Integer.parseInt(info.getMemReserve());
+        this.shares_reserve = (mem_reserve / quantum);
+        this.shares_free = shares_reserve;    
     }
 
     int countShares()
     {
-        return shares;
+        return shares_reserve;
     }
 
     int countRam()
     {
-        return mem;
+        return mem_reserve;
     }
 
     void addWork(DuccType type, String user, String duccid, int jobmem, int qshares, String service_endpoint)
@@ -102,12 +97,12 @@ class VisualizedHost
         // 2-3 in real life.  If this should change so it's common to have more than about 10 elements in the list
         // we should switch to a map.
 
-        logger.debug(methodName, null, name, "Set", qshares, "qshares for", name, type, duccid, ": mem", mem, "free qshares", shares_free, "from OR publication.");
+        logger.debug(methodName, null, name, "Set", qshares, "qshares for", name, type, duccid, ": mem_reserve", mem_reserve, "free qshares", shares_free, "from OR publication.");
 
         // if ( type == DuccType.Reservation ) qshares = shares_free;  // Trust the RM and the Force, Luke
 
         if ( shares_free - qshares < 0 ) {
-            logger.warn(methodName, null, name, "SHARES FREE WENT NEGATIVE for", type, duccid, user, "qshares", qshares, "mem", mem, "shares_free", shares_free);
+            logger.warn(methodName, null, name, "SHARES FREE WENT NEGATIVE for", type, duccid, user, "qshares", qshares, "mem_reserve", mem_reserve, "shares_free", shares_free);
             return;
         } else {
             shares_free -= qshares;
@@ -138,14 +133,14 @@ class VisualizedHost
     {
         String methodName = "toSvg  ";  // (extra spaces so logs line up better)
 
-        if ( shares == 0 ) return;
+        if ( shares_reserve == 0 ) return;
         if ( shares_free > 0 ) addWork(DuccType.Undefined, "", "", 0, shares_free, null);
 
-        float size = (float) Math.sqrt(mem);
-        logger.debug(methodName, null, name, "mem =", mem, "size =", size);
+        float size = (float) Math.sqrt(mem_reserve);
+        logger.debug(methodName, null, name, "mem =", mem_reserve, "size =", size);
             
         // here set a div that is TITLE_ADJUSTMENT higher and .2 wider than the actual node
-        m.divStart(name, mem);
+        m.divStart(name, mem_reserve);
         m.svgStart(size + .2f, (size + TITLE_ADJUSTMENT));       // a bit taller than needed to make room for label
         // a bit wider, for horizontal spacing
 
@@ -153,14 +148,14 @@ class VisualizedHost
         m.rect(0f, TITLE_ADJUSTMENT, size, size, "black", "none", .1f, "");
         
         // here draw the node name just above the node box, including the hover
-        m.tooltipStart(name + " (" + mem + "GB)");
+        m.tooltipStart(name + " (" + mem_total + "GB)");
         m.nodeLabel((size/2), TITLE_ADJUSTMENT - .3f, name);
         m.tooltipEnd();
         
         Collections.sort(fragments, sorter);
-        float height_one_share = (float) Math.sqrt(shares * quantum) / shares;
-        float foo = (float) Math.sqrt(mem) / shares;
-        logger.debug(methodName, null, name, "avail", (shares*quantum), "height-one-share", height_one_share, "foo", foo);
+        float height_one_share = (float) Math.sqrt(shares_reserve * quantum) / shares_reserve;
+        float foo = (float) Math.sqrt(mem_reserve) / shares_reserve;
+        logger.debug(methodName, null, name, "avail", (shares_reserve*quantum), "height-one-share", height_one_share, "foo", foo);
         float top = 0f + TITLE_ADJUSTMENT;                   // the top of the box
         logger.debug(methodName, null, name, "Draw", fragments.size(), "rectangles, box size", size, "share height", height_one_share);
 
