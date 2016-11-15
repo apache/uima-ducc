@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.common.utils;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -154,7 +155,17 @@ public class DuccLogger
             if ( ! watchdogStarted ) {
             	// Explicitly set the config file since the search for the default uses 
             	// ClassLoader.getSystemResource() so may find one in the user's classpath
-            	String configFile = System.getProperty("DUCC_HOME") + "/resources/log4j.xml";
+                // UIMA-5183 First check for a node-specific configuration file
+                String configFile = System.getProperty("DUCC_HOME") + "/resources/log4j.xml";
+                String nodeName = System.getProperty("DUCC_NODENAME");
+                if (nodeName != null && !nodeName.isEmpty()) {
+                    nodeName = nodeName.split("\\.",2)[0];  // Drop domain suffiz
+                    File cfgFile = new File(System.getProperty("DUCC_HOME") + "/resources/"+nodeName+"-log4j.xml");
+                    if (cfgFile.exists()) {
+                        configFile = cfgFile.getAbsolutePath();
+                        System.out.println("DuccLogger will use configuration file: " + configFile);
+                    }
+                }
             	String usersValue = System.setProperty("log4j.configuration", "file:" + configFile);
                 DOMConfigurator.configureAndWatch(configFile);
                 if (usersValue == null) {
