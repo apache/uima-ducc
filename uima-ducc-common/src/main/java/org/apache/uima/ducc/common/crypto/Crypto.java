@@ -61,7 +61,7 @@ public class Crypto implements ICrypto {
 	
 	private String dirDotDucc = ".ducc";
 	
-	private String textDbAccess = "The permissions on this file are employed when granting access to data for this user contained in the DUCC database by ducc-mon logged-in users.\n";
+	private String textDbAccess = "The permissions on this file are employed when granting access to this user's data contained in the DUCC database.\n";
 
 	private String user;    // Owner of the request - the simulated requester when in test-mode
 	private String dirSecurity;
