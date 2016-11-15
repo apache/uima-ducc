@@ -20,12 +20,14 @@ package org.apache.uima.ducc.common.crypto;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
@@ -58,6 +60,8 @@ public class Crypto implements ICrypto {
 	private boolean traditional = false;
 	
 	private String dirDotDucc = ".ducc";
+	
+	private String textDbAccess = "The permissions on this file are employed when granting access to data for this user contained in the DUCC database by ducc-mon logged-in users.\n";
 
 	private String user;    // Owner of the request - the simulated requester when in test-mode
 	private String dirSecurity;
@@ -160,8 +164,9 @@ public class Crypto implements ICrypto {
 			if(isMissingDbAccess()) {
 				mkdir(dirSecurity);
 				try {
-					File file = new File(fileDbAccess);
-					file.createNewFile();
+		            BufferedWriter out = new BufferedWriter(new FileWriter(fileDbAccess));
+		            out.write(textDbAccess);
+		            out.close();
 				}
 				catch(Exception e) {
 					throw new CryptoException(e);
