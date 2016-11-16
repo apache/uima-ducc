@@ -1,7 +1,7 @@
 # Cassandra storage config YAML 
 
 #
-# This is prepared for configureation for DUCC via ducc_post_install
+# This is prepared for configuration for DUCC via ducc_post_install
 #
 
 # NOTE:
@@ -126,7 +126,7 @@ commitlog_directory: ../state/database/commitlog
 #              remaining available sstables.  This means you WILL see obsolete
 #              data at CL.ONE!
 # ignore: ignore fatal errors and let requests fail, as in pre-1.2 Cassandra
-disk_failure_policy: stop
+disk_failure_policy: die
 
 # policy for commit disk failures:
 # die: shut down gossip and Thrift and kill the JVM, so the node can be replaced.
