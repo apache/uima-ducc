@@ -213,7 +213,6 @@ public class HandlersHelper {
 		if(reqUser != null) {
 			retVal = DuccWebAdministrators.getInstance().isAdministrator(reqUser);
 			if(retVal) {
-				retVal = false;  // force DUCC administrator not permitted
 				duccLogger.debug(location, getDuccId(meta), "user="+reqUser+" "+retVal+" "+"(forced)");
 			}
 		}
@@ -261,7 +260,7 @@ public class HandlersHelper {
 							home = home+File.separator;
 						}
 						String path = home+".ducc"+File.separator+"db.access";
-						retVal = isFileReadable(svcOwner, path);
+						retVal = isFileReadable(reqUser, path);
 						if(retVal) {
 							duccLogger.debug(location, getDuccId(meta), "user="+reqUser+" "+retVal);
 						}
@@ -330,10 +329,10 @@ public class HandlersHelper {
 					else if(isServiceAdministrator(reqUser, svc)) {
 						retVal = ServiceAuthorization.Write;
 					}
-					// write access for ducc administrator
-					else if(isDuccAdministrator(reqUser, meta)) {
-						retVal = ServiceAuthorization.Write;
-					}
+					// Don't permit write access for ducc administrator
+					//else if(isDuccAdministrator(reqUser, meta)) {
+					//	retVal = ServiceAuthorization.Write;
+					//}
 					// read access only if user can read db.access file
 					else if(isServiceFileAccessForRead(reqUser, meta)) {
 						retVal = ServiceAuthorization.Read;

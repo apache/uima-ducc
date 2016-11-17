@@ -983,28 +983,29 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return sb.toString();
 	}
 	
-	public String formatClasspath(String classpath) {
-		String retVal = classpath;
-		if(classpath != null) {
-			String[] cpList = classpath.split(":");
-			if(cpList != null) {
-				StringBuffer vb = new StringBuffer();
-				vb.append("<br>");
-				vb.append("<div>");
-				StringBuffer sb = new StringBuffer();
-				for(String item : cpList) {
-					if(sb.length() > 0) {
-						sb.append("<br>");
-					}
-					sb.append(item);
-				}
-				vb.append(sb);
-				vb.append("</div>");
-				retVal = vb.toString();
-			}
-		}
-		return retVal;
-	}
+	/*
+	 * Format the value of a possibly long string that may contain a classpath
+	 * Put space-delimited tokens and the elements of a classpath on separate lines,
+	 */ 
+    public String formatValue(String value, boolean formatCp) {
+        String[] tokens = value.split(" +");
+        StringBuffer sb = new StringBuffer();
+        sb.append("<div>");
+        for (String item : tokens) {
+            if (formatCp) {
+                item = item.replace(":", ":<br>");
+                //sb.append(item.replace(":", ":<br>")).append("<br>");
+                formatCp = false;
+            } //else {
+                sb.append(item).append("<br>");
+                if (item.equals("-cp") || item.equals("-classpath")) {
+                    formatCp = true;
+                }
+            //}
+        }
+        sb.append("</div>");
+        return sb.toString();
+    }
 
 	protected String getMonitor(DuccId duccId, MonitorType monitorType) {
 		return getMonitor(duccId, monitorType, false);

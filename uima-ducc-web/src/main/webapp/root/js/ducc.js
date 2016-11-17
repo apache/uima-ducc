@@ -1548,42 +1548,48 @@ function ducc_load_service_history_data() {
     }
 }
 
-function hide_show() {
-    var fname = "hide_show";
+// Show or hide one of the buttons on a specification page
+// Set the initial value from a cookie and define the toggle functions
+
+function hide_show_button(index) {
+    var fname = "hide_show_button";
     try {
-        var classpathdata = ducc_appl("classpathdata");
-        var c_value = ducc_get_cookie(classpathdata);
+        var buttondata = ducc_appl("showhidebutton"+index);
+        var c_value = ducc_get_cookie(buttondata);
         if (c_value == null) {
             c_value = "hide";
         }
         if (c_value == "hide") {
-            $('div.showdata').hide();
-            $('div.hidedata').show();
+            $('div.showdata'+index).hide();
+            $('div.hidedata'+index).show();
         }
         if (c_value == "show") {
-            $('div.showdata').show();
-            $('div.hidedata').hide();
+            $('div.showdata'+index).show();
+            $('div.hidedata'+index).hide();
         }
-        $('#showbutton0').click(function() {
-            $('div.showdata').show();
-            $('div.hidedata').hide();
-            ducc_put_cookie(classpathdata, "show")
+        $('#showbutton'+index).click(function() {
+            $('div.showdata'+index).show();
+            $('div.hidedata'+index).hide();
+            ducc_put_cookie(buttondata, "show")
         });
-        $('#hidebutton0').click(function() {
-            $('div.showdata').hide();
-            $('div.hidedata').show();
-            ducc_put_cookie(classpathdata, "hide")
+        $('#hidebutton'+index).click(function() {
+            $('div.showdata'+index).hide();
+            $('div.hidedata'+index).show();
+            ducc_put_cookie(buttondata, "hide")
         });
-        $('#showbutton1').click(function() {
-            $('div.showdata').show();
-            $('div.hidedata').hide();
-            ducc_put_cookie(classpathdata, "show")
-        });
-        $('#hidebutton1').click(function() {
-            $('div.showdata').hide();
-            $('div.hidedata').show();
-            ducc_put_cookie(classpathdata, "hide")
-        });
+    } catch (err) {
+        ducc_error(fname, err);
+    }
+}
+
+// Define the show/hide functions for the (possibly) 4 buttons on a specification page
+function hide_show() {
+    var fname = "hide_show";
+    try {
+		hide_show_button(0);
+		hide_show_button(1);
+		hide_show_button(2);
+		hide_show_button(3);
     } catch (err) {
         ducc_error(fname, err);
     }

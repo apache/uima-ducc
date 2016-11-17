@@ -26,6 +26,7 @@ under the License.
 	<table class="sortable">
 	<thead>
 	<tr class="ducc-head">
+	<th class="none"              title="the registry variable source">Provider</th>
 	<th class="none"              title="the registry variable name">Key</th>
 	<th class="none"              title="the registry variable value">Value</th>
 	</tr>

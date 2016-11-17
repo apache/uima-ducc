@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -137,7 +136,9 @@ public class DuccHandler extends DuccAbstractHandler {
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 	
-	private final String[] n = {"classpath", "process_executable_args"};
+	// These keys may have large values and be displayed witg Show/Hide buttons.
+	// ducc.js must be updated if more than 4 are needed (services may have 4)
+	private final String[] n = {"classpath", "service_ping_classpath", "process_executable_args", "process_jvm_args", "environment"};
 	private final Set<String> hideableKeys = new HashSet<String>(Arrays.asList(n));
 	
 	private enum DetailsType { Job, Reservation, Service };
@@ -215,8 +216,6 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private String duccReservationSchedulingClasses     = duccContext+"/reservation-scheduling-classes";
 	private String duccReservationInstanceMemoryUnits   = duccContext+"/reservation-memory-units";
-	
-	protected String headProvider = "Provider";
 	
 	protected String providerUser = "user";
 	protected String providerFile = "file";
@@ -2027,10 +2026,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private void putJobSpecEntry(Properties properties, String key, String value, StringBuffer sb, int counter) {
-		putJobSpecEntry(properties, providerUnknown, key, value, sb, counter);
-	}
-	
 	private void putJobSpecEntry(Properties properties, String provider, String key, String value, StringBuffer sb, int counter) {
 		if(value != null) {
 			sb.append(trGet(counter));
@@ -2048,77 +2043,78 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 	}
 	
-	private boolean isProvided(Properties usProperties, Properties fsProperties) {
-		if(usProperties != null) {
-			return true;
-		}
-		if(fsProperties != null) {
-			return true;
-		}
-		return false;	
-	}
-	
-	private String getProvider(String key, Properties usProperties, Properties fsProperties) {
-		if(isProvided(usProperties, fsProperties)) {
-			if(usProperties != null) {
-				if(usProperties.containsKey(key)) {
-					return providerUser;
-				}
-			}
-			if(fsProperties != null) {
-				if(fsProperties.containsKey(key)) {
-					return providerFile;
-				}
-			}
-			return providerSystem;
-		}
-		else {
-			return providerUnknown;
-		}
-	}
-	
-	/*
-	 * Format both job & reservation specification files
+	/**
+	 * Format job & reservation & service specification files
+	 * 
+	 * @param request - servlet request
+	 * @param response - generated response
+	 * @param usProperties - properties specified by the user
+	 * @param properties - meta properties (for services), or user + default properties (for jobs & APs)
+	 * @param buttonHint - for services says how to enable modification of autostart and instances values
+	 * @throws IOException
 	 */
-    private void processSpecificationData(DuccWorkJob work, String specFile, HttpServletRequest request,
-            HttpServletResponse response) throws IOException {
+    private void processSpecificationData(HttpServletRequest request, HttpServletResponse response, 
+            Properties usProperties, Properties properties, String buttonHint) throws IOException {
         String methodName = "ProcessSpecificationData";
         StringBuffer sb = new StringBuffer();
-        if (work != null) {
-            try {
-                EffectiveUser eu = EffectiveUser.create(request);
-                Properties usProperties = DuccFile.getUserSpecifiedProperties(eu, work);
-                String path = work.getUserLogsDir() + work.getDuccId().getFriendly() + File.separator + specFile;
-                Properties properties = DuccFile.getProperties(eu, path);
-                if (properties == null) {
-                    sb.append(eu.isLoggedin() ? "(data missing or unreadable)" : "(not visible - try logging in)");
-                } else {
-                    int i = 0;
-                    int counter = 0;
-                    // Process a sorted list of property names
-                    TreeSet<String> list = new TreeSet<String>(properties.stringPropertyNames());
-                    for (String key : list) {
-                        String value = properties.getProperty(key);
-                        String provider = getProvider(key, usProperties, null);
-                        if (hideableKeys.contains(key)) {
-                            if (key.equals("classpath")) {
-                                value = formatClasspath(value);
-                            }       // Could try to format the cp part of the executable args?
-                            String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"
-                                    + i + "\"/></div>";
-                            String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"
-                                    + i + "\"/>" + " " + value + "</div>";
-                            value = show + hide;
-                            i++;
-                        }
-                        putJobSpecEntry(properties, provider, key, value, sb, counter++);
-                    }
-                }
-            } catch (Throwable t) {
-                duccLogger.warn(methodName, null, t);
-                sb.append("no accessible data (" + t + ")");
+        // Create a sorted list of all properties
+        TreeSet<String> list = new TreeSet<String>(properties.stringPropertyNames());
+        if (buttonHint != null) {
+            list.addAll(usProperties.stringPropertyNames());  // Include the service user values as well as the meta ones
+            // Move autostart to the user properties where it should have been all along
+            if (!usProperties.contains("autostart")) {
+                usProperties.put("autostart", properties.remove("autostart"));
             }
         }
+        int i = 0;
+        int counter = 0;
+        for (String key : list) {
+            // Determine the origin of the property, User vs. default or meta
+            String provider = "User";
+            String value = usProperties.getProperty(key);
+            if (value == null) {
+                value = properties.getProperty(key);
+                provider = "";
+            }
+            // Format certain values that can be long and attach a Hide/Show button if would span many lines
+            if (hideableKeys.contains(key)) {
+                value = formatValue(value, key.endsWith("classpath"));
+                if (value.length() > 500) {
+                    String show = "<div class=\"hidedata" + i + "\"><input type=\"submit\" name=\"showcp" + i
+                            + "\" value=\"Show\" id=\"showbutton" + i + "\"/></div>";
+                    String hide = "<div class=\"showdata" + i + "\"><input type=\"submit\" name=\"hidecp" + i
+                            + "\" value=\"Hide\" id=\"hidebutton" + i + "\"/>" + " " + value + "</div>";
+                    value = show + hide;
+                    i++;
+                }
+            }
+            // Add a button for modifying the autostart value
+            if (key.equalsIgnoreCase(IServicesRegistry.autostart)) {
+                if (value != null) {
+                    value = value.trim();
+                    String eulav = value.equals("true") ? "false" : "true"; // Reverse value
+                    StringBuffer replacement = new StringBuffer();
+                    replacement.append("<select id=\"autostart\"" + buttonHint + ">");
+                    replacement.append("<option value=\"" + value + "\"  selected=\"selected\">" + value + "</option>");
+                    replacement.append("<option value=\"" + eulav + "\"                       >" + eulav + "</option>");
+                    replacement.append("</select>");
+                    value = replacement.toString();
+                }
+            }
+            // Add a button for modifying the instances value
+            if (key.equalsIgnoreCase(IServicesRegistry.instances)) {
+                if (value != null) {
+                    value = value.trim();
+                    StringBuffer replacement = new StringBuffer();
+                    replacement.append("<span id=\"instances_area\">");
+                    replacement.append("<input type=\"text\" size=\"5\" id=\"instances\" value=\"" + value + "\"" + buttonHint + ">");
+                    replacement.append("</span>");
+                    value = replacement.toString();
+                }
+            }
+            putJobSpecEntry(properties, provider, key, value, sb, counter++);
+        }
+
         response.getWriter().println(sb);
         duccLogger.trace(methodName, null, messages.fetch("exit"));
     }
@@ -2129,8 +2125,19 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletJobSpecificationData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		String jobNo = request.getParameter("id");
-		DuccWorkJob job = getJob(jobNo);
-		processSpecificationData(job, DuccUiConstants.job_specification_properties, request, response);
+		DuccWorkJob work = getJob(jobNo);
+		EffectiveUser eu = EffectiveUser.create(request);
+        String path = work.getUserLogsDir() + work.getDuccId().getFriendly() + File.separator
+                + DuccUiConstants.job_specification_properties;
+        Properties usProperties;
+        Properties properties;
+        try {
+            usProperties = DuccFile.getUserSpecifiedProperties(eu, work);
+            properties = DuccFile.getProperties(eu, path);
+        } catch (Throwable e) {
+            throw new IOException(e);
+        }
+		processSpecificationData(request, response, usProperties, properties, null);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
@@ -2631,8 +2638,19 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletReservationSpecificationData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		String reservationNo = request.getParameter("id");
-		DuccWorkJob managedReservation = getManagedReservation(reservationNo);
-		processSpecificationData(managedReservation, DuccUiConstants.managed_reservation_properties, request, response);
+		DuccWorkJob work = getManagedReservation(reservationNo);
+		
+        EffectiveUser eu = EffectiveUser.create(request);
+        String path = work.getUserLogsDir() + work.getDuccId().getFriendly() + File.separator + DuccUiConstants.managed_reservation_properties;
+        Properties usProperties;
+        Properties properties;
+        try {
+            usProperties = DuccFile.getUserSpecifiedProperties(eu, work);
+            properties = DuccFile.getProperties(eu, path);
+        } catch (Throwable e) {
+            throw new IOException(e);
+        }
+		processSpecificationData(request, response, usProperties, properties, null);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
@@ -2792,92 +2810,10 @@ public class DuccHandler extends DuccAbstractHandler {
 								}
 							}
 						}
-						String prefix;
-						TreeMap<String,String> map;
-						Enumeration<?> enumeration;
-						Iterator<String> iterator;
-						int i = 0;
-						int counter = 0;
-						//
-						prefix = "svc.";
-						properties = payload.svc;
-						map = new TreeMap<String,String>();
-						enumeration = properties.keys();
-						while(enumeration.hasMoreElements()) {
-							String key = (String)enumeration.nextElement();
-							map.put(key, key);
-						}
-						iterator = map.keySet().iterator();
-						while(iterator.hasNext()) {
-							String key = iterator.next();
-							String value = properties.getProperty(key);
-							if(key.endsWith("classpath")) {
-								value = formatClasspath(value);
-								String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
-								String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
-								value = show+hide;
-								i++;
-							}
-							putJobSpecEntry(properties, prefix+key, value, sb, counter++);
-						}
-						//
-						prefix = "meta.";
-						properties = payload.meta;
-						map = new TreeMap<String,String>();
-						enumeration = properties.keys();
-						while(enumeration.hasMoreElements()) {
-							String key = (String)enumeration.nextElement();
-							map.put(key, key);
-						}
-						iterator = map.keySet().iterator();
-						while(iterator.hasNext()) {
-							String key = iterator.next();
-							String value = properties.getProperty(key);
-							if(key.endsWith("classpath")) {
-								value = formatClasspath(value);
-								String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
-								String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
-								value = show+hide;
-								i++;
-							}
-							key = key.trim();
-							// autostart
-							if(key.equalsIgnoreCase(IServicesRegistry.autostart)) {
-								if(value != null) {
-									value = value.trim();
-									if(value.equalsIgnoreCase(IServicesRegistry.constant_true)) {
-										StringBuffer replacement = new StringBuffer();
-										replacement.append("<select id=\"autostart\""+enable_or_disable+" "+hint+">");
-										replacement.append("<option value=\"true\"  selected=\"selected\">true</option>");
-										replacement.append("<option value=\"false\"                      >false</option>");
-										replacement.append("</select>");
-										value = replacement.toString();
-									}
-									else if(value.equalsIgnoreCase(IServicesRegistry.constant_false)) {
-										StringBuffer replacement = new StringBuffer();
-										replacement.append("<select id=\"autostart\""+enable_or_disable+" "+hint+">");
-										replacement.append("<option value=\"false\"  selected=\"selected\">false</option>");
-										replacement.append("<option value=\"true\"                        >true</option>");
-										replacement.append("</select>");
-										value = replacement.toString();
-									}
-								}
-							}
-							// instances
-							if(key.equalsIgnoreCase(IServicesRegistry.instances)) {
-								if(value != null) {
-									value = value.trim();
-									StringBuffer replacement = new StringBuffer();
-									replacement.append("<span id=\"instances_area\">");
-									replacement.append("<input type=\"text\" size=\"5\" id=\"instances\" value=\""+value+"\""+enable_or_disable+" "+hint+">");
-									replacement.append("</span>");
-									value = replacement.toString();
-								}
-							}
-							putJobSpecEntry(properties, prefix+key, value, sb, counter++);
-						}
-					}
-					else {
+						hint = enable_or_disable + " " + hint;
+					    processSpecificationData(request, response, payload.svc, payload.meta, hint);
+						
+					} else {
 						sb.append("<tr>");
 						sb.append("<td>");
 						sb.append("not found");
