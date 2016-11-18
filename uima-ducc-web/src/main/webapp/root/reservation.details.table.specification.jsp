@@ -26,9 +26,9 @@ under the License.
 	<table class="sortable">
 	<thead>
 	<tr class="ducc-head">
-	<th class="none"              title="the specification variable source">Provider</th>
-	<th class="none"              title="the specification variable name">Key</th>
-	<th class="none"              title="the specification variable value">Value</th>
+	<th class="none"              title="The specification variable source: user or system">Provider</th>
+	<th class="none"              title="The specification variable name">Key</th>
+	<th class="none"              title="The specification variable value">Value</th>
 	</tr>
 	</thead>
 	<tbody id="specification_data_area">

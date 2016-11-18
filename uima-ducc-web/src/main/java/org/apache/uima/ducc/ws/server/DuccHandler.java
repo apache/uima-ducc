@@ -217,11 +217,6 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccReservationSchedulingClasses     = duccContext+"/reservation-scheduling-classes";
 	private String duccReservationInstanceMemoryUnits   = duccContext+"/reservation-memory-units";
 	
-	protected String providerUser = "user";
-	protected String providerFile = "file";
-	protected String providerSystem = "";
-	protected String providerUnknown = null;
-	
 	private String _window_login_logout = "_window_login_logout";
 	private String _window_file_pager = "_window_file_pager";
 	private String _window_reservation_request = "_window_reservation_request";
@@ -2028,11 +2023,11 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private void putJobSpecEntry(Properties properties, String provider, String key, String value, StringBuffer sb, int counter) {
 		if(value != null) {
-			sb.append(trGet(counter));
-			if(provider != null) {
-				sb.append("<td>");
-				sb.append(provider);
-			}
+            sb.append(trGet(counter));
+            // Sort "user" before the system key "" with:  <td sorttable_customkey="false|true"\>user</td>
+            sb.append("<td sorttable_customkey=\"" + provider.isEmpty() + "\">");
+            sb.append(provider);
+            sb.append("</td>");
 			sb.append("<td>");
 			sb.append(key);
 			sb.append("</td>");
@@ -2069,8 +2064,8 @@ public class DuccHandler extends DuccAbstractHandler {
         int i = 0;
         int counter = 0;
         for (String key : list) {
-            // Determine the origin of the property, User vs. default or meta
-            String provider = "User";
+            // Determine the origin of the property, user vs. default or meta
+            String provider = "user";
             String value = usProperties.getProperty(key);
             if (value == null) {
                 value = properties.getProperty(key);

@@ -26,9 +26,9 @@ under the License.
 	<table class="sortable">
 	<thead>
 	<tr class="ducc-head">
-	<th class="none"              title="the registry variable source">Provider</th>
-	<th class="none"              title="the registry variable name">Key</th>
-	<th class="none"              title="the registry variable value">Value</th>
+	<th class="none"              title="The registry variable source: user or system">Provider</th>
+	<th class="none"              title="The registry variable name">Key</th>
+	<th class="none"              title="The registry variable value">Value</th>
 	</tr>
 	</thead>
 	<tbody id="registry_data_area">
