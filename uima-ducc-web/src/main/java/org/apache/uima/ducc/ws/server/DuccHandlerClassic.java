@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -37,8 +36,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.uima.ducc.cli.ws.json.MachineFacts;
-import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.ConvertSafely;
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeConfiguration;
@@ -1614,6 +1611,175 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}
 	
+	// Individual Machine
+	private void buildRowForIndividualMachine(StringBuffer data, int counter, MachineInfo machineInfo, SizeBytes allocated) {
+		StringBuffer row = new StringBuffer();
+		row.append((trGet(counter)));
+		StringBuffer sb = new StringBuffer();
+		// Status
+		String status = machineInfo.getStatus();
+		if(status == null) {
+			status = "?";
+		}
+		String hover = "title=\""+machineInfo.getMachineStatusReason()+"\"";
+		if(status.equals("down")) {
+			sb.append("<span "+hover+" class=\"health_red\""+">");
+			sb.append(status);
+			sb.append("</span>");
+		}
+		else if(status.equals("up")) {
+			sb.append("<span "+hover+"class=\"health_green\""+">");
+			sb.append(status);
+			sb.append("</span>");
+		}
+		else {
+			sb.append(status);
+		}
+		row.append("<td>");
+		row.append(sb);
+		row.append("</td>");
+		// IP
+		row.append("<td>");
+		row.append(machineInfo.getIp());
+		row.append("</td>");
+		// Name
+		row.append("<td>");
+		row.append(machineInfo.getName());
+		row.append("</td>");
+		// Nodepool
+		row.append("<td>");
+		String nodepool = DuccSchedulerClasses.getInstance().getNodepool(machineInfo.getName());
+		row.append(nodepool);
+		row.append("</td>");
+		// Memory: usable
+		if(status.equals("up")) {
+			sb = new StringBuffer();
+			sb.append("total="+machineInfo.getMemTotal());
+			Integer quantum = machineInfo.getQuantum();
+			if(quantum != null) {
+				sb.append(" ");
+				sb.append("quantum="+quantum);
+			}
+			hover = "title=\""+sb.toString()+"\"";
+			row.append("<td align=\"right\" "+hover+">");
+			row.append(machineInfo.getMemReserve());
+			row.append("</td>");
+		}
+		else if(status.equals("down")) {
+			row.append("<td align=\"right\">");
+			row.append("0");
+			row.append("</td>");
+		}
+		else {
+			row.append("<td align=\"right\">");
+			row.append("</td>");
+		}
+		// Memory: free
+		if(status.equals("up")) {
+			long memFree = ConvertSafely.String2Long(machineInfo.getMemReserve());
+			memFree = memFree - allocated.getGBytes();
+			row.append("<td align=\"right\">");
+			row.append(memFree);
+			row.append("</td>");
+		}
+		else if(status.equals("down")) {
+			row.append("<td align=\"right\">");
+			row.append("0");
+			row.append("</td>");
+		}
+		else {
+			row.append("<td align=\"right\">");
+			row.append("</td>");
+		}
+		// CPU: load average
+		row.append("<td align=\"right\">");
+		if(status.equals("up")) {
+			String cpu = formatter1.format(machineInfo.getCpu());
+			row.append(cpu);
+		}
+		row.append("</td>");
+		// Swap: inuse
+		sb = new StringBuffer();
+		String swapping = machineInfo.getSwapInuse();
+		if(swapping.equals("0")) {
+			sb.append(swapping);
+		}
+		else {
+			sb.append("<span class=\"health_red\">");
+			sb.append(swapping);
+			sb.append("</span>");
+		}
+		row.append("<td align=\"right\">");
+		if(!status.equals("defined")) {
+			row.append(sb);
+		}
+		row.append("</td>");
+		// Swap: free
+		row.append("<td align=\"right\">");
+		if(!status.equals("defined")) {
+			row.append(machineInfo.getSwapFree());
+		}
+		row.append("</td>");
+		// C-Groups
+		boolean isCgroupsEnabled = machineInfo.getCgroupsEnabled();
+		boolean isCgroupsCpuReportingEnabled = machineInfo.getCgroupsCpuReportingEnabled();
+		sb = new StringBuffer();
+		if(status.equals("up")) {
+			if(isCgroupsEnabled) {
+				if(isCgroupsCpuReportingEnabled) {
+					sb.append("<span title=\""+"control groups active"+"\" class=\"health_black\""+">");
+					sb.append("on");
+					sb.append("</span>");
+				}
+				else {
+					sb.append("<span title=\""+"control groups CPU reporting not configured"+"\" class=\"health_red\""+">");
+					sb.append("noCPU%");
+					sb.append("</span>");
+				}
+			}
+			else {
+				sb.append("<span title=\""+"control groups inactive"+"\" class=\"health_red\""+">");
+				sb.append("off");
+				sb.append("</span>");
+			}
+		}
+		String cgroups = sb.toString();
+		row.append("<td align=\"right\">");
+		row.append(""+cgroups);
+		row.append("</td>");
+		// Alien PIDs
+		sb = new StringBuffer();
+		long aliens = machineInfo.getAliens().size();
+		if(aliens == 0) {
+			sb.append(aliens);
+		}
+		else {
+			StringBuffer title = new StringBuffer();
+			title.append("title=");
+			title.append("\"");
+			for(String pid : machineInfo.getAliens()) {
+				title.append(pid+" ");
+			}
+			title.append("\"");
+			sb.append("<span class=\"health_red\" "+title+">");
+			sb.append(aliens);
+			sb.append("</span>");
+		}
+		row.append("<td align=\"right\">");
+		if(!status.equals("defined")) {
+			row.append(sb);
+		}
+		row.append("</td>");
+		// Heartbeat: last
+		row.append("<td align=\"right\">");
+		if(!status.equals("defined")) {
+			row.append(machineInfo.getHeartbeatLast());
+		}
+		row.append("</td>");
+		row.append("</tr>");
+		data.append(row);
+	}	
+	
 	private void handleServletClassicSystemMachines(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1623,52 +1789,46 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		long sumMemTotal = 0;	// Memory(GB):reported by Agent
 		long sumMemFree = 0;	// Memory(GB):free
 		long sumMemReserve = 0;	// Memory(GB):usable
+		long sumMemAllocated = 0;
 		double sumCPU = 0;
 		long sumMachines = 0;
 		long sumSwapInuse = 0;
 		long sumSwapFree = 0;
 		long sumAliens = 0;
 		String hover;
-		ListIterator<MachineFacts> listIterator;
 		StringBuffer row;
 		StringBuffer data = new StringBuffer();
+		StringBuffer individualMachines = new StringBuffer();
 		DuccMachinesData instance = DuccMachinesData.getInstance();
-		MachineFactsList factsList = instance.getMachineFactsList();
-		if(factsList.size() > 0) {
-			// Total
-			listIterator = factsList.listIterator();
-			while(listIterator.hasNext()) {
-				MachineFacts facts = listIterator.next();
-				if(DuccMachinesDataHelper.isUp(facts)) {
+		Map<MachineInfo, NodeId> machines = instance.getMachines();
+		if(!machines.isEmpty()) {
+			Map<String, Long> allocatedMap = Distiller.getMap();
+			for(Entry<MachineInfo, NodeId> entry : machines.entrySet()) {
+				MachineInfo machineInfo = entry.getKey();
+				SizeBytes sb = new SizeBytes(Type.Bytes, 0);
+				if(DuccMachinesDataHelper.isUp(machineInfo)) {
 					try {
-						sumMemTotal += ConvertSafely.String2Long(facts.memTotal);
+						sumMemTotal += ConvertSafely.String2Long(machineInfo.getMemTotal());
 						// Calculate total for Memory(GB):usable
-						sumMemReserve += ConvertSafely.String2Long(facts.memReserve);
-						sumSwapInuse += ConvertSafely.String2Long(facts.swapInuse);
-						sumSwapFree += ConvertSafely.String2Long(facts.swapFree);
-						sumCPU += facts.cpu;
+						sumMemReserve += ConvertSafely.String2Long(machineInfo.getMemReserve());
+						sumSwapInuse += ConvertSafely.String2Long(machineInfo.getSwapInuse());
+						sumSwapFree += ConvertSafely.String2Long(machineInfo.getSwapFree());
+						sumCPU += machineInfo.getCpu();
 						sumMachines += 1;
-						sumAliens += facts.aliens.size();
+						sumAliens += machineInfo.getAlienPidsCount();
+						String machineName = machineInfo.getName();
+						long bytes = allocatedMap.get(machineName);
+						sumMemAllocated += bytes;
+						sb = new SizeBytes(Type.Bytes, bytes);
+						String text = "allocated "+machineName+"="+sb.getGBytes();
+						duccLogger.trace(methodName, jobid, text);
 					}
 					catch(Exception e) {
 						duccLogger.trace(methodName, jobid, e);
 					}
 				}
-			}
-			// Calculate total for Memory(GB):free
-			Map<String, Long> allocatedMap = Distiller.getMap();
-			long sumMemAllocated = 0;
-			for(Entry<String, Long> entry : allocatedMap.entrySet()) {
-				String name = entry.getKey();
-				MachineFacts facts = DuccMachinesDataHelper.getMachineFacts(factsList, name);
-				// Only consider "up" machines
-				if(DuccMachinesDataHelper.isUp(facts)) {
-					long bytes = entry.getValue();
-					sumMemAllocated += bytes;
-					SizeBytes sb = new SizeBytes(Type.Bytes, bytes);
-					String text = "allocated "+facts.name+"="+sb.getGBytes();
-					duccLogger.trace(methodName, jobid, text);
-				}
+				buildRowForIndividualMachine(individualMachines, counter, machineInfo, sb);
+				counter++;
 			}
 			SizeBytes sbAllocated = new SizeBytes(Type.Bytes, sumMemAllocated);
 			sumMemFree = sumMemReserve - sbAllocated.getGBytes();
@@ -1726,185 +1886,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			row.append("");
 			row.append("</td>");
 			row.append("</tr>");
+			//
 			data.append(row);
-			// Individual Machines
-			listIterator = factsList.listIterator();
-			while(listIterator.hasNext()) {
-				MachineFacts facts = listIterator.next();
-				row = new StringBuffer();
-				row.append((trGet(counter)));
-				// Status
-				StringBuffer sb = new StringBuffer();
-				String status = facts.status;
-				if(status == null) {
-					status = "?";
-				}
-				hover = "title=\""+facts.statusReason+"\"";
-				if(status.equals("down")) {
-					sb.append("<span "+hover+" class=\"health_red\""+">");
-					sb.append(status);
-					sb.append("</span>");
-				}
-				else if(status.equals("up")) {
-					sb.append("<span "+hover+"class=\"health_green\""+">");
-					sb.append(status);
-					sb.append("</span>");
-				}
-				else {
-					sb.append(status);
-				}
-				row.append("<td>");
-				row.append(sb);
-				row.append("</td>");
-				// IP
-				row.append("<td>");
-				row.append(facts.ip);
-				row.append("</td>");
-				// Name
-				row.append("<td>");
-				row.append(facts.name);
-				row.append("</td>");
-				// Nodepool
-				row.append("<td>");
-				String nodepool = DuccSchedulerClasses.getInstance().getNodepool(facts.name);
-				row.append(nodepool);
-				row.append("</td>");
-				// Memory: usable
-				if(status.equals("up")) {
-					sb = new StringBuffer();
-					sb.append("total="+facts.memTotal);
-					if(facts.quantum != null) {
-						if(facts.quantum.trim().length() > 0) {
-							sb.append(" ");
-							sb.append("quantum="+facts.quantum.trim());
-						}
-					}
-					hover = "title=\""+sb.toString()+"\"";
-					row.append("<td align=\"right\" "+hover+">");
-					row.append(facts.memReserve);
-					row.append("</td>");
-				}
-				else if(status.equals("down")) {
-					row.append("<td align=\"right\">");
-					row.append("0");
-					row.append("</td>");
-				}
-				else {
-					row.append("<td align=\"right\">");
-					row.append("</td>");
-				}
-				// Memory: free
-				if(status.equals("up")) {
-					long memFree = ConvertSafely.String2Long(facts.memReserve);
-					if(allocatedMap.containsKey(facts.name)) {
-						long bytes = allocatedMap.get(facts.name);
-						SizeBytes allocated = new SizeBytes(Type.Bytes, bytes);
-						memFree = memFree - allocated.getGBytes();
-					}
-					row.append("<td align=\"right\">");
-					row.append(memFree);
-					row.append("</td>");
-				}
-				else if(status.equals("down")) {
-					row.append("<td align=\"right\">");
-					row.append("0");
-					row.append("</td>");
-				}
-				else {
-					row.append("<td align=\"right\">");
-					row.append("</td>");
-				}
-				// CPU: load average
-				row.append("<td align=\"right\">");
-				if(facts.status != null) {
-					if(facts.status.equals("up")) {
-						String cpu = formatter1.format(facts.cpu);
-						row.append(cpu);
-					}
-				}
-				row.append("</td>");
-				// Swap: inuse
-				sb = new StringBuffer();
-				String swapping = facts.swapInuse;
-				if(swapping.equals("0")) {
-					sb.append(swapping);
-				}
-				else {
-					sb.append("<span class=\"health_red\">");
-					sb.append(swapping);
-					sb.append("</span>");
-				}
-				row.append("<td align=\"right\">");
-				if(!status.equals("defined")) {
-					row.append(sb);
-				}
-				row.append("</td>");
-				// Swap: free
-				row.append("<td align=\"right\">");
-				if(!status.equals("defined")) {
-					row.append(facts.swapFree);
-				}
-				row.append("</td>");
-				// C-Groups
-				boolean isCgroupsEnabled = facts.cgroupsEnabled;
-				boolean isCgroupsCpuReportingEnabled = facts.cgroupsCpuReportingEnabled;
-				sb = new StringBuffer();
-				if(status.equals("up")) {
-					if(isCgroupsEnabled) {
-						if(isCgroupsCpuReportingEnabled) {
-							sb.append("<span title=\""+"control groups active"+"\" class=\"health_black\""+">");
-							sb.append("on");
-							sb.append("</span>");
-						}
-						else {
-							sb.append("<span title=\""+"control groups CPU reporting not configured"+"\" class=\"health_red\""+">");
-							sb.append("noCPU%");
-							sb.append("</span>");
-						}
-					}
-					else {
-						sb.append("<span title=\""+"control groups inactive"+"\" class=\"health_red\""+">");
-						sb.append("off");
-						sb.append("</span>");
-					}
-				}
-				String cgroups = sb.toString();
-				row.append("<td align=\"right\">");
-				row.append(""+cgroups);
-				row.append("</td>");
-				// Alien PIDs
-				sb = new StringBuffer();
-				long aliens = facts.aliens.size();
-				if(aliens == 0) {
-					sb.append(aliens);
-				}
-				else {
-					StringBuffer title = new StringBuffer();
-					title.append("title=");
-					title.append("\"");
-					for(String pid : facts.aliens) {
-						title.append(pid+" ");
-					}
-					title.append("\"");
-					sb.append("<span class=\"health_red\" "+title+">");
-					sb.append(aliens);
-					sb.append("</span>");
-				}
-				row.append("<td align=\"right\">");
-				if(!status.equals("defined")) {
-					row.append(sb);
-				}
-				row.append("</td>");
-				// Heartbeat: last
-				row.append("<td align=\"right\">");
-				if(!status.equals("defined")) {
-					row.append(facts.heartbeat);
-				}
-				row.append("</td>");
-				row.append("</tr>");
-				data.append(row);
-				counter++;
-			}
+			data.append(individualMachines);
 		}
 		else {
 			row = new StringBuffer();
@@ -1954,9 +1938,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			row.append("");
 			row.append("</td>");
 			row.append("</tr>");
+			//
 			data.append(row);
 		}
-		
 		duccLogger.debug(methodName, jobid, data);
 		response.getWriter().println(data);
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));

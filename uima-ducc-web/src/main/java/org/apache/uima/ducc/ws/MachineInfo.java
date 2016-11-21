@@ -512,8 +512,8 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		case Up:
 			switch(v2) {
 			default:
-				retVal = 1;
 			case Defined:
+				retVal = 1;
 				break;
 			case Down:
 				retVal = 1;

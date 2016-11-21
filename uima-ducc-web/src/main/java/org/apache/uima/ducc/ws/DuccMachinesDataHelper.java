@@ -47,17 +47,20 @@ public class DuccMachinesDataHelper {
 	}
 	
 	/**
-	 * @param facts = facts of a machine
+	 * @param facts = machineInfo of a machine
 	 * @return true if "up" false otherwise
 	 */
-	public static boolean isUp(MachineFacts facts) {
+	public static boolean isUp(MachineInfo machineInfo) {
 		boolean retVal = false;
-		if(facts != null) {
-			if(facts.status.equals("up")) {
+		if(machineInfo != null) {
+			if(machineInfo.getStatus().equals("up")) {
 				retVal = true;
 			}
 		}
 		return retVal;
 	}
-
+	
+	public static boolean isUp(MachineFacts machineInfo) {
+		return false;
+	}
 }
