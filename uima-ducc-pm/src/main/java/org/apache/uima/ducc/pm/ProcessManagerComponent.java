@@ -312,7 +312,7 @@ implements ProcessManager {
 						sb.append("\n").append(formatProcess(process.getValue()));
 					}
 					sb.append("\n").append(tbl).append("\n");
-					logger.info(methodName, null, sb.toString());
+					logger.debug(methodName, null, sb.toString());
 				} else if ( job.getValue() instanceof DuccWorkReservation ) {
 					continue;  // TBI
 				} else if ( job.getValue() instanceof DuccWorkPop ) {
