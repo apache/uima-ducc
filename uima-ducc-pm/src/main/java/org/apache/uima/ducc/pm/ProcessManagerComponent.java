@@ -142,7 +142,9 @@ implements ProcessManager {
 	public void dispatchStateUpdateToAgents(Map<DuccId, IDuccWork> workMap, long sequence) {
     String methodName="dispatchStateUpdateToAgents";
 	  try {
-	    dumpState(workMap);
+	    if ( logger.isDebug()) {
+		  dumpState(workMap);
+	    }
 	    // Create a job list which the PM will dispatch to agents
 	    List<IDuccJobDeployment> jobDeploymentList = new ArrayList<IDuccJobDeployment>();
 	    List<DuccUserReservation> reservationList = new ArrayList<DuccUserReservation>();
@@ -262,7 +264,7 @@ implements ProcessManager {
 	        }
         }
 	  }
-      logger.info(methodName, null , "---- PM Dispatching DuccJobsStateEvent request to Agent(s) - State Map Size:"+jobDeploymentList.size()+" Reservation List:"+reservationList.size());
+      logger.debug(methodName, null , "---- PM Dispatching DuccJobsStateEvent request to Agent(s) - State Map Size:"+jobDeploymentList.size()+" Reservation List:"+reservationList.size());
       DuccJobsStateEvent ev =  new DuccJobsStateEvent(DuccEvent.EventType.PM_STATE, jobDeploymentList, reservationList);
       ev.setSequence(sequence);
       //  Dispatch state update to agents
