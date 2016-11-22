@@ -968,11 +968,11 @@ public class NodepoolScheduler
 
         for ( ResourceClass rc : rcs ) {
             HashMap<IRmJob, IRmJob> jobs = rc.getAllJobs();
-            logger.info(methodName, null, "Schedule class", rc.getName());
+            logger.debug(methodName, null, "Schedule class", rc.getName());
             rc.clearShares();
 
             if ( jobs.size() == 0 ) {
-                logger.info(methodName, null, "No jobs to schedule in class ", rc.getName());
+                logger.debug(methodName, null, "No jobs to schedule in class ", rc.getName());
             } else {
                 eligible.add(rc);
                 for ( IRmJob j : jobs.values() ) {                    
@@ -1217,10 +1217,10 @@ public class NodepoolScheduler
 
         for ( ResourceClass rc : rcs ) {
             HashMap<IRmJob, IRmJob> jobs = rc.getAllJobs();
-            logger.info(methodName, null, "Schedule class", rc.getName());
+            logger.debug(methodName, null, "Schedule class", rc.getName());
 
             if ( jobs.size() == 0 ) {
-                logger.info(methodName, null, "No jobs to schedule in class ", rc.getName());
+                logger.debug(methodName, null, "No jobs to schedule in class ", rc.getName());
             } else { 
                 eligible.add(rc);
                 for ( IRmJob j : jobs.values() ) {  // just logging for debug for now
@@ -1734,9 +1734,9 @@ public class NodepoolScheduler
         // stop_here_de++;
 
         for ( NodePool np : nodepool.getChildrenDescending() ) {   // recurse down the tree
-            logger.info(methodName, null, "Recurse to", np.getId(), "from", nodepool.getId());
+            logger.debug(methodName, null, "Recurse to", np.getId(), "from", nodepool.getId());
             doEvictions(np);                                       // depth-first traversal
-            logger.info(methodName, null, "Return from", np.getId(), "proceeding with logic for", nodepool.getId());
+            logger.debug(methodName, null, "Return from", np.getId(), "proceeding with logic for", nodepool.getId());
         }
 
         int neededByOrder[] =globalNodepool.makeArray();         // for each order, how many N-shares do I want to add?
@@ -1747,7 +1747,7 @@ public class NodepoolScheduler
             if ( cl.getNodepoolName().equals(nodepool.getId()) && (cl.getAllJobs().size() > 0) ) {
                 HashMap<IRmJob, IRmJob> jobs = cl.getAllJobs();
                 String npn = cl.getNodepoolName();
-                logger.info(methodName, null, String.format("%12s %7s %7s %6s %5s", npn, "Counted", "Current", "Needed", "Order"));
+                logger.info(methodName, null, String.format("%7s %7s %6s %5s  (%s)", "Counted", "Current", "Needed", "Order", npn));
 
                 for ( IRmJob j : jobs.values() ) {
                     int counted = j.countNSharesGiven();      // allotment from the counter
@@ -1767,7 +1767,7 @@ public class NodepoolScheduler
                         // needed = Math.abs(needed); 
                         // needed = Math.max(0, needed);
                         
-                        logger.info(methodName, j.getId(), String.format("%12s %7d %7d %6d %5d", npn, counted, current, needed, order));
+                        logger.info(methodName, j.getId(), String.format("%7d %7d %6d %5d", counted, current, needed, order));
                         neededByOrder[order] += needed;
                         // total_needed += needed;
                     }
@@ -2596,12 +2596,15 @@ public class NodepoolScheduler
         }
 
         if ( jobcount == 0 ) {
-            logger.info(methodName, null, "No jobs to schedule under nodepool", globalNodepool.getId());
+            logger.debug(methodName, null, "No jobs to schedule under nodepool", globalNodepool.getId());
             return;
         }
 
-        logger.info(methodName, null, "Machine occupancy before schedule");
-        globalNodepool.queryMachines();
+        // UIMA-5190 Reduce info logging ... most of these details can be seen in the schedule sent later to the OR
+        if (logger.isDebug()) {
+            logger.info(methodName, null, "Machine occupancy before schedule");
+            globalNodepool.queryMachines();
+        }
 
         this.schedulingUpdate = upd;
 

@@ -896,9 +896,9 @@ class NodePool
     void resetPreemptables()
     {
         String methodName = "resetPreemptables";
-        logger.info(methodName, null, "Resetting preemptables in nodepool", id);
+        logger.debug(methodName, null, "Resetting preemptables in nodepool", id);
 
-        // UIMA-4064 Need to do this recrsively
+        // UIMA-4064 Need to do this recursively
         preemptables.clear();
         for ( NodePool np : children.values() ) {
             np.resetPreemptables();

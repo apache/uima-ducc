@@ -1080,9 +1080,10 @@ public class Scheduler
 				}
             }
 
-            logger.info(methodName, null, "--------------- Scheduler returns ---------------");
-            logger.info(methodName, null, "\n", upd.toString());
-            logger.info(methodName, null, "------------------------------------------------");                
+            // UIMA-5190 Reduce logging
+            logger.debug(methodName, null, "--------------- Scheduler returns ---------------");
+            logger.debug(methodName, null, "\n", upd.toString());
+            logger.debug(methodName, null, "------------------------------------------------");                
             dispatch(upd, jmu);                 // my own job lists get updated by this
 
             return jmu;

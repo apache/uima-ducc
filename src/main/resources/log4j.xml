@@ -148,7 +148,7 @@
   </appender> 
   
    <category name="org.apache.uima.ducc.rm" additivity="false">
-     <priority value="debug"/>
+     <priority value="info"/>
      <appender-ref ref="rmlog" /> 
    </category>
 
