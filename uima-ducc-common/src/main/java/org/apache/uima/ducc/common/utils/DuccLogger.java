@@ -365,13 +365,19 @@ public class DuccLogger
     }
     
     private String defaultId = "N/A";
+    private final String padding = "                ";  // Max padding needed is 19- 3
     
+    // UIMA-5190 Pad the N/A value to match the job #s so headings align correctly
     private String format(DuccId duccId) {
     	String id;
         if ( duccId == null ) {
             id = defaultId;
         } else {
             id = duccId.toString();
+            int increase = id.length() - defaultId.length();
+            if (increase > 0) {
+                defaultId += padding.substring(0, increase);
+            }
         }
         return id;
     }
