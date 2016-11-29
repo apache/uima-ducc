@@ -74,6 +74,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   private Object monitor = new Object();
 
   private DuccLogger logger;
+  private DuccId jobid = null;
 
   public AbstractDuccComponent(String componentName) {
     this(componentName, null);
@@ -183,6 +184,81 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
   }
 
+  private static String sepHost = "://";
+  private static String sepPort = ":";
+  private static String sepBloc = ",";
+  private static String sepDeco = "?";
+  
+  /**
+   * Override ducc.broker.url when ducc.head.failover is specified
+   */
+  private void composeBrokerFailoverUrl(String duccBrokerProtocol, String duccBrokerPort) {
+	  String location = "composeBrokerFailoverUrl";
+	  try {
+		  String key;
+		  String value;
+		  // fetch the failover specification
+		  key = "ducc.head.failover";
+		  value = System.getProperty(key);
+		  logger.debug(location, jobid, key+"="+value);
+		  if(value == null) {
+			  value = "";
+		  }
+		  // normalize stringified list of nodes (remove commas)
+		  value = value.replace(","," ");
+		  value = value.trim();
+		  // never mind if failover not specified
+		  if(value.length() > 0) {
+			  // transform string of nodes to array of nodes
+			  String[] tokens = value.split("\\s+");
+			  int count = tokens.length;
+			  logger.debug(location, jobid, tokens+"="+count);
+			  // no need to failover if not at least 2 nodes!
+			  if(count > 1) {
+				  // build the failover string (for property ducc.broker.url)
+				  StringBuffer sb = new StringBuffer();
+				  // add the prefix
+				  sb.append("failover");
+				  sb.append(":");
+				  sb.append("(");
+				  for(String host : tokens) {
+					  sb.append(duccBrokerProtocol);
+					  sb.append(sepHost);
+					  sb.append(host);
+					  sb.append(sepPort);
+					  sb.append(duccBrokerPort);
+					  sb.append(sepBloc);
+				  }
+				  // remove extra comma
+				  sb.setLength(sb.length()-1);
+				  // add the suffix
+				  sb.append(")");
+				  // add the decoration, if any
+				  key = "ducc.broker.url.decoration";
+				  value = System.getProperty(key);
+				  logger.debug(location, jobid, key+"="+value);
+				  if(value == null) {
+					  value = "";
+				  }
+				  value = value.trim();
+				  if(value.length() > 0) {
+					  sb.append(sepDeco);
+					  sb.append(value);
+				  }
+				  // set property and record to log
+				  key = "ducc.broker.url";
+				  value = sb.toString();
+				  System.setProperty(key, value);
+				  logger.debug(location, jobid, key+"="+value);
+			  }
+		  }
+	  }
+	  catch(Exception e) {
+		  logger.error(location, jobid, e);
+	  }
+	  return;
+  }
+  
   /**
    * ducc.properties provides broker URL in pieces as follows: - ducc.broker.protocol -
    * ducc.broker.hostname - ducc.broker.port - ducc.broker.url.decoration Assemble the above into a
@@ -215,19 +291,20 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
     // broker url decoration (params) is optional
     duccBrokerUrlDecoration = System.getProperty("ducc.broker.url.decoration");
-    if (duccBrokerUrlDecoration != null && duccBrokerUrlDecoration.startsWith("?")) {
+    if (duccBrokerUrlDecoration != null && duccBrokerUrlDecoration.startsWith(sepDeco)) {
       duccBrokerUrlDecoration = duccBrokerUrlDecoration.substring(1,
               duccBrokerUrlDecoration.length());
     }
     StringBuffer burl = new StringBuffer();
-    burl.append(duccBrokerProtocol).append("://").append(duccBrokerHostname).append(":")
+    burl.append(duccBrokerProtocol).append(sepHost).append(duccBrokerHostname).append(sepPort)
             .append(duccBrokerPort);
     if (duccBrokerUrlDecoration != null && duccBrokerUrlDecoration.trim().length() > 0) {
-      burl.append("?").append(duccBrokerUrlDecoration);
+      burl.append(sepDeco).append(duccBrokerUrlDecoration);
     }
     System.setProperty("ducc.broker.url", burl.toString());
     // UIMA-4142 (remove annoying debug statement) 
     // logger.info("composeBrokerUrl", null, "Ducc Composed Broker URL:" + System.getProperty("ducc.broker.url"));
+    composeBrokerFailoverUrl(duccBrokerProtocol, duccBrokerPort);
   }
 
   // Jira 3943 - Adjust endpoints only on those in ducc.properties

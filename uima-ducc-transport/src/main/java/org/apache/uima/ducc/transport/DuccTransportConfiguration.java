@@ -46,17 +46,8 @@ public class DuccTransportConfiguration {
 	  synchronized(ActiveMQComponent.class) {
 	    if ( duccAMQComponent == null ) {
 	      duccAMQComponent = new ActiveMQComponent(context);
-		   int pos = brokerUrl.indexOf("?");
-			String decoration = "";
-			if (pos > -1) {
-				decoration = brokerUrl.substring(pos);
-			}
-
-			brokerUrl = brokerUrl.substring(0, pos);
-			String connectURL = "failover:(" + brokerUrl + ")" + decoration;
-			duccAMQComponent.setBrokerURL(connectURL);
-			logger.info("configureJMSTransport", null, "Broker URL: "+connectURL);
-	      
+			duccAMQComponent.setBrokerURL(brokerUrl);
+			logger.info("configureJMSTransport", null, "Broker URL: "+brokerUrl);
 	      //logger.info("configureJMSTransport", null, "brokerCredentialsFile:"+brokerCredentialsFile);
 	      if ( brokerCredentialsFile != null ) {
 	    	  String path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());

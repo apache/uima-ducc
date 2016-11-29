@@ -90,7 +90,6 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
-import org.linkedin.util.exceptions.InternalException;
 
 public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLifecycleObserver {
   public static DuccLogger logger = DuccLogger.getLogger(NodeAgent.class, COMPONENT_NAME);
@@ -500,10 +499,14 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   public void start(DuccService service) throws Exception {
     super.start(service, null);
+    String methodName = "start";
     String name = nodeIdentity.getName();
     String ip = nodeIdentity.getIp();
     String jmxUrl = getProcessJmxUrl();
     DuccDaemonRuntimeProperties.getInstance().bootAgent(name, ip, jmxUrl);
+    String key = "ducc.broker.url";
+	String value = System.getProperty(key);
+	logger.info(methodName, null, key+"="+value);
   }
 
   public DuccEventDispatcher getEventDispatcherForRemoteProcess() {

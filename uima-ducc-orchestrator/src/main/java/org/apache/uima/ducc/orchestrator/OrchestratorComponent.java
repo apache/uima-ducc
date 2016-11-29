@@ -263,6 +263,9 @@ implements Orchestrator {
 		try {
 			StartType startType = getStartType(args);
 			logger.info(methodName, null, "##### "+startType+" #####");
+			String key = "ducc.broker.url";
+			String value = System.getProperty(key);
+			logger.debug(methodName, null, key+"="+value);
 			boolean saveState = false;
 			TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 			synchronized(workMap) {
