@@ -36,7 +36,8 @@ import Queue
 
 from  stat import *
 from local_hooks import find_other_processes
-
+from ducc_util_out import *
+                
 # Catch the annoying problem when the current directory has been changed, e.g. by installing a new release
 try:
     os.getcwd()
@@ -367,8 +368,11 @@ class DuccUtil(DuccBase):
         ssh_errors = self.ssh_ok(node, line)
         if ( ssh_errors != None ):
             is_operational = False
-#           for m in ssh_errors:
-#                print m
+        else:
+            req = node.split('.')[0]
+            rsp = line.split('.')[0]
+            if(not req == rsp):
+                is_operational = False;
         return is_operational
 
     # like popen, only it spawns via ssh
@@ -496,6 +500,29 @@ class DuccUtil(DuccBase):
             return False
         return True
 
+    # inspect ducc.head.failover
+    def verify_head_failover(self, head):
+        key = "ducc.head.failover"
+        failover = self.ducc_properties.get(key)
+        # check for no failover
+        if(failover == None):
+            print_debug(key+" not specified")
+        else:
+            # insure ducc.head listed in ducc.head.failover
+            if(not head in failover):
+                text = head+" not found in "+key
+                print_error(text)
+                sys.exit(1);
+            # test viability fo failover nodes
+            nodes = failover.replace(',',' ').split()
+            for node in nodes:
+                if(self.ssh_operational(node)):
+                    text = "ssh is operational to "+node
+                    print_debug(text)
+                else:
+                    text = "ssh to specified failover node unsuccessful or otherwise problematic: "+node
+                    print_warn(text)
+    
     # Exit if this is not the head node.  Ignore the domain as uname sometimes drops it.
     # Also check that ssh to this node works
     # Also restrict operations to the userid that installed ducc
@@ -517,6 +544,7 @@ class DuccUtil(DuccBase):
         if dir_stat.st_uid != os.getuid():
             print ">>> ERROR - this script must be run by the userid that installed DUCC"
             sys.exit(1);
+        self.verify_head_failover(head)
 
 
     #
