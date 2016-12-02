@@ -94,9 +94,7 @@ under the License.
     </div>
     
     <div class="log-display-bot">
-        <div style="white-space:pre-wrap;">
-            <div id="log_file_page_area">
-            </div>
+        <div id="log_file_page_area">
         </div>
     </div>
   
@@ -122,7 +120,7 @@ under the License.
                 pre = "";
                 post = "";
                 if(data.startsWith("<pre>")) {
-                        pre = "<pre>";
+                        pre = "<pre style=height:650px;width:99%;white-space:pre-wrap;resize:both;>";
                         data = data.substring(5);
                 }
                 if(data.endsWith("</pre>\n")) {
@@ -157,7 +155,7 @@ under the License.
                 pre = "";
                 post = "";
                 if(data.startsWith("<pre>")) {
-                        pre = "<pre>";
+                        pre = "<pre style=height:650px;width:99%;white-space:pre-wrap;resize:both;>";
                         data = data.substring(5);
                 }
                 if(data.endsWith("</pre>\n")) {
