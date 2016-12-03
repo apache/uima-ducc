@@ -16,6 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
+/*
+ * for Opera, which does not seem to have this js String function?
+ */
+if(!String.startsWith) {
+	String.prototype.startsWith = function startsWith(start) {
+		var index = start.length;
+		var subStr = this.substr(0, index);
+		return subStr === start;
+	};
+}
+
 /*!
  * ducc.js
  */
