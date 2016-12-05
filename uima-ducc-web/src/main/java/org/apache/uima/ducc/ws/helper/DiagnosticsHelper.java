@@ -43,7 +43,7 @@ public class DiagnosticsHelper {
 			try {
 				String path = System.getProperty("DUCC_HOME")
 							+File.separator
-							+"admin"
+							+"bin"
 							+File.separator
 							+"tools"
 							+File.separator
