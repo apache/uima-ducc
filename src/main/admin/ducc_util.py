@@ -209,18 +209,23 @@ class DuccUtil(DuccBase):
         return False
 
     # contact the database and see how useful it seems to be
-    def db_alive(self, retry=10):
+    def db_alive(self, retry=10, verbose=True):
         if ( self.db_bypass == True ):
             return True
-
+        else:
+            return self.db_alive_check(retry,verbose)
+        
+    def db_alive_check(self, retry=10, verbose=True):
         dbnode = self.ducc_properties.get('ducc.database.host')
         if ( dbnode == None ):
-            print 'No database location defined.'
+            if(verbose):
+                print 'No database location defined.'
             return False
 
         pidfile = self.DUCC_HOME + '/state/cassandra.pid'
         if ( not os.path.exists(pidfile) ):
-            print 'Database pid file does not exist.  Checking DB connectivity.'
+            if(verbose):
+                print 'Database pid file does not exist.  Checking DB connectivity.'
 
         # get our log4j config into the path to shut up noisy logging
         os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ':' + self.DUCC_HOME + '/resources'
@@ -228,6 +233,8 @@ class DuccUtil(DuccBase):
         CMD = [self.java(), 'org.apache.uima.ducc.database.DbAlive', dbnode, 'ducc', self.db_password, str(retry)]
 
         CMD = ' '.join(CMD)
+        if(not verbose):
+            CMD = CMD + " >/dev/null 2>&1" 
         rc = os.system(CMD)
         if ( rc == 0 ):
             return True
