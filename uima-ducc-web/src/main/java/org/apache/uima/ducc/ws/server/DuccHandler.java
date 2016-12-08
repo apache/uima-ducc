@@ -2040,6 +2040,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	/**
 	 * Format job & reservation & service specification files
+	 * If no properties provided then the files may be inaccessible or missing
 	 * 
 	 * @param request - servlet request
 	 * @param response - generated response
@@ -2051,6 +2052,12 @@ public class DuccHandler extends DuccAbstractHandler {
     private void processSpecificationData(HttpServletRequest request, HttpServletResponse response, 
             Properties usProperties, Properties properties, String buttonHint) throws IOException {
         String methodName = "ProcessSpecificationData";
+        if (usProperties == null || properties == null) {
+            String msg = isAuthenticated(request, response) ? "(data missing or unreadable)" : "(not visible - try logging in)";
+            response.getWriter().println(msg);
+            duccLogger.warn(methodName, null, request.getParameter("id") + " failed: " + msg);
+            return;
+        }
         StringBuffer sb = new StringBuffer();
         // Create a sorted list of all properties
         TreeSet<String> list = new TreeSet<String>(properties.stringPropertyNames());
@@ -2058,7 +2065,12 @@ public class DuccHandler extends DuccAbstractHandler {
             list.addAll(usProperties.stringPropertyNames());  // Include the service user values as well as the meta ones
             // Move autostart to the user properties where it should have been all along
             if (!usProperties.contains("autostart")) {
-                usProperties.put("autostart", properties.remove("autostart"));
+                Object val = properties.remove("autostart");   // Should never be null ??
+                if (val != null) {
+                    usProperties.put("autostart", val);
+                } else {
+                    duccLogger.warn(methodName, null, "Service "+properties.getProperty("numeric_id")+" has no autostart setting?");
+                }
             }
         }
         int i = 0;
@@ -2111,7 +2123,6 @@ public class DuccHandler extends DuccAbstractHandler {
         }
 
         response.getWriter().println(sb);
-        duccLogger.trace(methodName, null, messages.fetch("exit"));
     }
 	
 	private void handleDuccServletJobSpecificationData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 

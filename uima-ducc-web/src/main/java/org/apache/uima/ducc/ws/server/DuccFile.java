@@ -31,6 +31,9 @@ import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 
 public class DuccFile {
 	
+    /*
+     * Returns null if file is missing or inaccessible
+     */
 	public static Properties getUserSpecifiedProperties(EffectiveUser eu, IDuccWorkJob job) throws Throwable {
 		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String name = DuccUiConstants.user_specified_properties;
