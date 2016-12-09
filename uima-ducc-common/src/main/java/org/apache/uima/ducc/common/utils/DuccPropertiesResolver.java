@@ -163,6 +163,7 @@ public class DuccPropertiesResolver {
     public static final String ducc_ws_login_enabled = "ducc.ws.login.enabled";
     public static final String ducc_ws_bytes_per_page = "ducc.ws.bytes.per.page";
     public static final String ducc_ws_banner_message = "ducc.ws.banner.message";
+    public static final String ducc_ws_user_data_access = "ducc.ws.user.data.access";
     
     public static final String ducc_rm_node_stability = "ducc.rm.node.stability";
     public static final String ducc_agent_node_metrics_publish_rate = "ducc.agent.node.metrics.publish.rate";

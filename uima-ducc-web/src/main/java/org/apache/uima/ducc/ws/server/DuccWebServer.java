@@ -308,6 +308,10 @@ public class DuccWebServer {
         SessionHandler sessionHandler = new SessionHandler();
         handlers.addHandler(sessionHandler);
         handlers.addHandler(duccHandlerUserAuthentication);
+        
+        DuccHandlerHttpRequestFilter httpRequestFilter = new DuccHandlerHttpRequestFilter(this);
+        handlers.addHandler(httpRequestFilter);
+        
         for(Handler handler: localHandlers) {
         	handlers.addHandler(handler);
         }
