@@ -198,9 +198,11 @@ public class DbCreate
     {
     	String methodName = "createSchema";
 
+    	String guest_pw = adminpw;
+    	
         // A 'keyspace' is what we usually think of as a database.
         session.execute("CREATE KEYSPACE IF NOT EXISTS ducc WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};");
-        session.execute("CREATE USER IF NOT EXISTS guest  WITH PASSWORD 'guest' NOSUPERUSER");
+        session.execute("CREATE USER IF NOT EXISTS guest  WITH PASSWORD '"+guest_pw+"' NOSUPERUSER");
         session.execute("GRANT SELECT ON KEYSPACE ducc TO guest");
         session.execute("REVOKE SELECT ON KEYSPACE system FROM guest");
         session.execute("REVOKE SELECT ON KEYSPACE system_auth FROM guest");

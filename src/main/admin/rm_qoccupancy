@@ -122,8 +122,10 @@ class DuccRmQOccupancy(DuccUtil):
         DH = self.DUCC_HOME
         dbn = self.ducc_properties.get('ducc.database.host')
 
+        guest_pw = self.db_password_guest
+
         os.environ['TERM'] = 'dumb'      # insure no colors.  --no-color isn't inhibiting colors in this shell for some reason.
-        CMD = [DH + '/cassandra-server/bin/cqlsh', dbn, '-u', 'guest', '-p', 'guest', '-e', '"select * from ducc.rmnodes; select * from ducc.rmshares;"']
+        CMD = [DH + '/cassandra-server/bin/cqlsh', dbn, '-u', 'guest', '-p', guest_pw, '-e', '"select * from ducc.rmnodes; select * from ducc.rmshares;"']
         CMD = ' '.join(CMD)
 
         lines = []

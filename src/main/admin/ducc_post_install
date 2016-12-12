@@ -156,6 +156,9 @@ class PostInstall():
             self.ducc_private_properties.delete('db_password')
             self.ducc_private_properties.put('db_password', db_pw, ['#Db password, default is randomly generated']);
             
+            self.ducc_private_properties.delete('db_password_guest')
+            self.ducc_private_properties.put('db_password_guest', db_pw, ['#Db password for guest, default is same value as db_password']);
+            
             return True
         else:
             return False

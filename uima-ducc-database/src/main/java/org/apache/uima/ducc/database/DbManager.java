@@ -168,15 +168,7 @@ public class DbManager
     static void dbPassword()
     	throws Exception
     {
-        // If I can not read the superuser password I'll allow login as guest.  If guest has been revokded
-        // that will be discovered later when I actually sign in.
         File f = new File(System.getProperty("DUCC_HOME") + "/resources.private/" + DbCreate.PASSWORD_FILE);
-        if ( ! f.canRead() ) {
-            db_id = "guest";
-            db_pw = "guest";
-            return;
-        }
-            
         // If i can read the file that's supposed to have the super user password I'll do so.  If not, or
         // if there's no password there, tough luck Charlie.
         db_id = "ducc";

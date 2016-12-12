@@ -185,6 +185,10 @@ class DuccUtil(DuccBase):
             print "bypassing database because no password is set."
             self.db_bypass = True
 
+        self.db_password_guest = dbprops.get('db_password_guest')
+        if ( self.db_password_guest == None ):
+            self.db_password_guest = 'guest'
+                
     # does the database process exist?  
     def db_process_alive(self):
         pidfile = self.DUCC_HOME + '/state/cassandra.pid'
