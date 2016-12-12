@@ -49,6 +49,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
   DuccLogger logger;
   Agent agent;
   int gidMax = 500;
+  static String ducc_user = System.getProperty("user.name");
   
   public NodeUsersCollector(Agent agent, DuccLogger logger) {
     this.agent = agent;
@@ -195,7 +196,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
   private boolean processAncestorIsOwnedByDucc(String ppid, Set<RunningProcess> list) {
 	  for( RunningProcess pi : list ) {
 		  if ( pi.getPid().equals(ppid) ) {
-			  if (  pi.getOwner().equalsIgnoreCase("ducc") ) {
+			  if (  pi.getOwner().equalsIgnoreCase(ducc_user) ) {
 				  return true;
 			  } else {
 				  return processAncestorIsOwnedByDucc(pi.getPpid(), list);
@@ -295,10 +296,14 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
             if ( processAncestorIsOwnedByDucc(pid, tempProcessList)) {
             	continue;  // skip as this is not a rogue process
             }
+            // any process owned by user who started the agent process is not rogue
+            if ( ducc_user.equalsIgnoreCase(user)) {
+            	continue;
+            }
         	// Detect and skip all ducc daemons except uima-as service
-          if ( duccDaemon(tokens)) {
-            continue;
-          }
+//          if ( duccDaemon(tokens)) {
+//            continue;
+//          }
           if ( logger == null ) {
             //System.out.print(line);
           } else {
