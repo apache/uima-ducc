@@ -48,22 +48,38 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
   
   DuccLogger logger;
   Agent agent;
+  
+  
+  // gidMax is deprecated. New code should use uidMad. 12/13/2016 
   int gidMax = 500;
+  // the gidMax should have been uidMax. Continue using both for the time being
+  // Processes owned by user id <= max user id are considered "system" and excluded from rogue
+  // process detection.
+  int uidMax = 500;   // default 
+  
+  
   static String ducc_user = System.getProperty("user.name");
   
   public NodeUsersCollector(Agent agent, DuccLogger logger) {
     this.agent = agent;
     this.logger = logger;
     String tmp;
-	// SYSTEM_GID_MAX
-	if ((tmp = System
+    // gidMax and uidMax mean the same thing. The gidMax is deprecated. New code should
+    // use uidMax.
+    if ((tmp = System
 			.getProperty("ducc.agent.node.metrics.sys.gid.max")) != null) {
-		try {
-			gidMax = Integer.valueOf(tmp);
-		} catch (NumberFormatException e) {
-			e.printStackTrace();
+		if ( Utils.isNumber(tmp) ) {
+			uidMax = Integer.valueOf(tmp);  // use uidMax 
 		}
 	}
+	// in case both properties are set ...gid.max and ...uid.max, the latter wins
+    if ((tmp = System
+			.getProperty("ducc.agent.node.metrics.sys.uid.max")) != null) {
+		if ( Utils.isNumber(tmp) ) {
+			uidMax = Integer.valueOf(tmp);
+		}
+	} 
+	
   }
   /**
    * Returns true if a given userId belongs to an exclusion list defined in ducc.properties.
@@ -285,7 +301,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         if ( tokens.length > 0 ) {
         	try {
         		// by convention processes owned by uid < gidMax are system processes thus not rogue
-        		if ( Integer.valueOf(uid) < gidMax ) {
+        		if ( Integer.valueOf(uid) < uidMax ) {
         			continue;    
         		}
         	} catch( NumberFormatException nfe) {
