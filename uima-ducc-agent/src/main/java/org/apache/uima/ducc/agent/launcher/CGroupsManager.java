@@ -504,6 +504,9 @@ public class CGroupsManager {
 		if ( !location.endsWith(System.getProperty("file.separator"))) {
 			location = location + System.getProperty("file.separator");
 		}
+		if ( !legacyCgConfig ) {
+			location += SYSTEM+System.getProperty("file.separator");
+		}
 		return location+id+"cpuacct.usage";
 	}
 	public boolean isCpuReportingEnabled() {
@@ -519,17 +522,6 @@ public class CGroupsManager {
 		if (!containerId.endsWith(System.getProperty("file.separator"))) {
 			containerId = containerId + System.getProperty("file.separator");
 		}
-		/*
-		if (!containerId.startsWith(System.getProperty("file.separator"))) {
-			containerId = System.getProperty("file.separator")+containerId;
-		}
-		String location = getCGroupLocation("cpuacct").trim();
-		if ( !location.endsWith(System.getProperty("file.separator"))) {
-			location += System.getProperty("file.separator");
-		}
-//		String file = getCGroupLocation("cpuacct")+containerId+System.getProperty("file.separator")+"cpuacct.usage";
-		String file = location+"cpuacct.usage";
-		*/
 		String file = composeCpuAccountingFileName(containerId.trim());
 		agentLogger.info("getCpuUsage", null, "CPUACCT.USAGE file:"+file);
 		File f = new File(file);
