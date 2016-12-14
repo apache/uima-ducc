@@ -34,7 +34,7 @@ import org.apache.uima.ducc.common.utils.Utils;
 public class NodeMemInfoCollector implements CallableMemoryCollector {
 	private long fakeMemorySize = -1;
 	private String[] targetFields;
-    private int gidMax = 500;   // default. Used to sum up memory of processes owned by uids < gidMax
+    private int uidMax = 500;   // default. Used to sum up memory of processes owned by uids < uidMax
 	public NodeMemInfoCollector(String[] targetFields) {
 		this.targetFields = targetFields;
 		String tmp;
@@ -47,16 +47,8 @@ public class NodeMemInfoCollector implements CallableMemoryCollector {
 				e.printStackTrace();
 			}
 		}
-		// SYSTEM_GID_MAX
-		if ((tmp = System
-				.getProperty("ducc.agent.node.metrics.sys.gid.max")) != null) {
-			try {
-				gidMax = Integer.valueOf(tmp);
-			} catch (NumberFormatException e) {
-				e.printStackTrace();
-			}
-		}
 
+		uidMax = Utils.getMaxSystemUserId();
 	}
 
 	public NodeMemory call() throws Exception {
@@ -130,7 +122,7 @@ public class NodeMemInfoCollector implements CallableMemoryCollector {
 	          if ( tokens.length > 0 ) {
 	        	  try {
 	        		  int uid = Integer.valueOf(tokens[2]);
-	        		  if ( uid < gidMax ) {
+	        		  if ( uid < uidMax ) {
 	        			  memoryUsed += Long.valueOf(tokens[3]);
 	        		  }
 	        	  } catch( NumberFormatException nfe) {
