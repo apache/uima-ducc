@@ -207,6 +207,7 @@ class MoveDucc(DuccUtil):
         key = 'ducc.head'
         prop = props.get_property(key)
         node = prop.v
+        self.head = node
         message = message = 'node='+node+' '+'checking ducc head node daemons status'
         print_info(message)
         operational = self.ssh_operational(node)
@@ -239,6 +240,23 @@ class MoveDucc(DuccUtil):
             else :
                 print_info(message)
     
+    
+    def vette_nodepool(self):
+    	default = '<None>'
+        node = self.head
+        np_head = str(self.get_nodepool(node,default))
+        node = self.target
+        np_target = str(self.get_nodepool(node,default))
+        if(not np_target == np_head):
+            message = 'node='+self.head+' nodepool='+np_head
+            print_warn(message)
+            message = 'node='+self.target+' nodepool='+np_target
+            print_warn(message)
+            message = 'nodepools do not match'
+            print_warn(message)
+            self.code = 1
+            self.abort()
+            
     # backup file
     def backup_file(self,root,stem):
         timestamp = str(get_timestamp()).replace(' ','@')
@@ -326,6 +344,7 @@ class MoveDucc(DuccUtil):
         self.initialize()
         self.vette_target()
         self.vette_head()
+        self.vette_nodepool()
         self.config_backup()
         self.config_update()
     

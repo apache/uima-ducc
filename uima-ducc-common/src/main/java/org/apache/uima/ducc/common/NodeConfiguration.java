@@ -1332,7 +1332,12 @@ public class NodeConfiguration
             printUser(p);
         }
     }
-
+    
+    public void printNodepool(String nodepool) {
+        String methodName = "printConfiguration";
+        logInfo(methodName, nodepool);
+    }
+    
     static void usage(String msg)
     {
         if ( msg != null ) {
@@ -1342,9 +1347,10 @@ public class NodeConfiguration
         System.out.println("Usage:");
         System.out.println("    NodeConfiguration [-c class-definitions] [-n nodefile] [-u userfile] [-p] <configfile>");
         System.out.println("Where:");
-        System.out.println("    -c <class-definitions> is the class definition file, usually ducc.classes.");
-        System.out.println("    -n <nodefile> is nodefile used with tye system, defaults to ducc.nodes");
+        System.out.println("    -c <class-definitions> is the class definition file, defaults to ducc.classes.");
+        System.out.println("    -n <nodefile> is nodefile used with the system, defaults to ducc.nodes");
         System.out.println("    -u <userfile> is the user registry.");
+        System.out.println("    -m Prints the nodepool for the given node.");
         System.out.println("    -p Prints the parsed configuration, for verification.");
         System.out.println("    -? show this help.");
         System.out.println("");
@@ -1358,9 +1364,10 @@ public class NodeConfiguration
     {
 
         boolean doprint = false;
-        String nodefile = null;
+        String nodefile = "ducc.nodes";
         String userfile = null;
-        String config = null;
+        String config = "ducc.classes";
+        String mapNodeToPool = null;
 
         int i = 0;
 
@@ -1390,6 +1397,11 @@ public class NodeConfiguration
                 continue;
             }
 
+            if ( args[i].equals("-m") ) {
+                mapNodeToPool = args[i+1];
+                i++;
+                continue;
+            }
             
             if ( args[i].equals("-?") ) {
                 usage(null);
@@ -1410,9 +1422,15 @@ public class NodeConfiguration
         int rc = 0;
         try {
             nc.readConfiguration();                        // if it doesn't crash it must have worked
-
+            if(mapNodeToPool != null) {
+        		String nodepool = nc.getNodePoolNameForNode(mapNodeToPool);
+        		if(nodepool == null) {
+        			nodepool = "";
+        		}
+        		nc.printNodepool(nodepool);
+            }
             if ( doprint ) {
-                nc.printConfiguration();
+            	nc.printConfiguration();
             }
         } catch (FileNotFoundException e) {
             System.out.println("Configuration file " + config + " does not exist or cannot be read.");
