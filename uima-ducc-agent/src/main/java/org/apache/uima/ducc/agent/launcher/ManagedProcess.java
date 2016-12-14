@@ -428,15 +428,12 @@ public class ManagedProcess implements Process {
 					// the reason for failure would be provided by the OS (wrong
 					// user id, bad directory,etc)
 					String errors = stdErrReader.getDataFromStream();
-					if (errors.trim().length() > 0) {
+					if (errors != null && errors.trim().length() > 0) {
 						getDuccProcess().setReasonForStoppingProcess(
 								errors.trim());
 
 			                log("ManagedProcess.drainProcessStreams",
 					    "Process Failed - stderr stream:"+getDuccProcess().getReasonForStoppingProcess());
-
-
-
 					} 
 
 					// APs can stop for any reason. There is 
@@ -449,7 +446,7 @@ public class ManagedProcess implements Process {
 						// start due to misconfiguration
 						// the reason for failure would be provided by the OS (wrong
 						// user id, bad directory,etc)
-						if (errors.trim().length() > 0) {
+						if (errors != null && errors.trim().length() > 0) {
                             // JP should not be marked as CROAKED if it terminates 
 							// due to a process error, failed initialization or initialization
 							// timeout. On such errors, a JP sends an event to its agent where
@@ -457,12 +454,15 @@ public class ManagedProcess implements Process {
 							if ( getDuccProcess().getProcessState().equals(ProcessState.Stopping) ) {
 								// the reason was already set while handling JPs Stopping event
 								getDuccProcess().setProcessState(ProcessState.Stopped); // now the JP is dead
-							} else {
+							}
+							/*
+							else {
 								// Process terminated unexpectedly. It stopped on its own due to Ducc framework
 								// error or due to some external event not initiated by an agent
 								getDuccProcess().setReasonForStoppingProcess(
 										ReasonForStoppingProcess.Croaked.toString());
 							}
+							*/
 						} else if ( exitcode - 128 == 9 || exitcode - 128 == 15 ) {
 							// Process terminated unexpectedly. It stopped on its own due to Ducc framework
 							// error or due to some external event not initiated by an agent
