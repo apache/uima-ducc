@@ -1020,17 +1020,16 @@ class DuccUtil(DuccBase):
                 nodes = failover_nodes.split()
                 head_node = self.ducc_properties.get('ducc.head')
                 head_pool = self.get_nodepool(head_node)
-                mismatch = False
                 for node in nodes:
                     node_pool = self.get_nodepool(node,'<None>')
                     if( head_pool != node_pool):
-                        if(not mismatch):
+                        if(rc == 0):
                             message = 'OK: Head failover node '+head_node+' in node pool '+head_pool
                             print message
                         message = 'NOTOK: Head failover node '+node+' in node pool '+node_pool
                         print message
-                        mismatch = True
-                if mismatch:
+                        rc = 1
+                if (rc > 0):
                     message = "NOTOK: Head failover nodepools incorrectly configured."
                 else:
                     message = "OK: Head failover nodepools correctly configured."
