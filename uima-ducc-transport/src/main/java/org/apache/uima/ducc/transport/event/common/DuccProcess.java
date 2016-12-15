@@ -58,6 +58,7 @@ public class DuccProcess implements IDuccProcess {
 	private IDuccProcessWorkItems processWorkItems= null;
 	private long cpuUsage;
 	private String reason;
+	private String extendedReason;
 	private boolean initialized = false;
 	private int exitCode;
 	private CGroup cgroup;
@@ -587,11 +588,17 @@ public class DuccProcess implements IDuccProcess {
   public String getReasonForStoppingProcess() {
     return reason;
   }
-
+  public String getExtendedReasonForStoppingProcess() {
+	    return extendedReason;
+	  }
   public void setReasonForStoppingProcess(String reason) {
     this.reason = reason;
   }
   	
+  public void setExtendedReasonForStoppingProcess(String reason) {
+	    this.extendedReason = reason;
+  }
+	  
 	
 	public boolean isInitialized() {
 		return initialized;

@@ -429,7 +429,7 @@ public class ManagedProcess implements Process {
 					// user id, bad directory,etc)
 					String errors = stdErrReader.getDataFromStream();
 					if (errors != null && errors.trim().length() > 0) {
-						getDuccProcess().setReasonForStoppingProcess(
+						getDuccProcess().setExtendedReasonForStoppingProcess(
 								errors.trim());
 
 			                log("ManagedProcess.drainProcessStreams",
@@ -454,15 +454,13 @@ public class ManagedProcess implements Process {
 							if ( getDuccProcess().getProcessState().equals(ProcessState.Stopping) ) {
 								// the reason was already set while handling JPs Stopping event
 								getDuccProcess().setProcessState(ProcessState.Stopped); // now the JP is dead
-							}
-							/*
-							else {
+							} else {
 								// Process terminated unexpectedly. It stopped on its own due to Ducc framework
 								// error or due to some external event not initiated by an agent
 								getDuccProcess().setReasonForStoppingProcess(
 										ReasonForStoppingProcess.Croaked.toString());
 							}
-							*/
+							
 						} else if ( exitcode - 128 == 9 || exitcode - 128 == 15 ) {
 							// Process terminated unexpectedly. It stopped on its own due to Ducc framework
 							// error or due to some external event not initiated by an agent

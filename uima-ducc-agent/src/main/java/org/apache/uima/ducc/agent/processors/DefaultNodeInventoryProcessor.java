@@ -237,6 +237,7 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 									.equals(ProcessState.Killed)) {
 						sb.append(" Reason:"
 								+ p.getValue().getReasonForStoppingProcess());
+						sb.append(" Extended Reason:"+p.getValue().getExtendedReasonForStoppingProcess());
 					}
 
 					if (!p.getValue().getProcessState()
