@@ -1010,6 +1010,33 @@ class DuccUtil(DuccBase):
         #print 'status: '+str(status)
         return result
 
+    def verify_head_failover_configuration(self):
+        rc = 0
+        failover_nodes = self.ducc_properties.get('ducc.head.failover')
+        message = "OK: Head node failover not configured."
+        if(failover_nodes != None):
+            failover_nodes = failover_nodes.strip()
+            if(len(failover_nodes) >= 0):
+                nodes = failover_nodes.split()
+                head_node = self.ducc_properties.get('ducc.head')
+                head_pool = self.get_nodepool(head_node)
+                mismatch = False
+                for node in nodes:
+                    node_pool = self.get_nodepool(node,'<None>')
+                    if( head_pool != node_pool):
+                        if(not mismatch):
+                            message = 'OK: Head failover node '+head_node+' in node pool '+head_pool
+                            print message
+                        message = 'NOTOK: Head failover node '+node+' in node pool '+node_pool
+                        print message
+                        mismatch = True
+                if mismatch:
+                    message = "NOTOK: Head failover nodepools incorrectly configured."
+                else:
+                    message = "OK: Head failover nodepools correctly configured."
+        print message
+        return (rc == 0)
+        
     def disable_threading(self):
         global use_threading
         use_threading = False

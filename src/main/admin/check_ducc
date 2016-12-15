@@ -334,6 +334,11 @@ class CheckDucc(DuccUtil):
             else:
                 print "NOTOK: Errors in class or node configuration."
 
+            if self.verify_head_failover_configuration():
+                print "OK: Failover configuration checked"
+            else:
+                print "NOTOK: Errors in failover configuration."
+
             return
 
         # checking starts here        
