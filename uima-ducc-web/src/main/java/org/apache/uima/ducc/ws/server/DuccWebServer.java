@@ -67,7 +67,9 @@ public class DuccWebServer {
 		  MaxThreads("500"),
 		  IdleTimeout("30000"),
 		  PortHttp("42133"),
-		  PortHttps("42155");
+		  PortHttps("42155"),
+		  WelcomePage("index.html"),
+		  ;
 		  private String defaultValue;
 		  private ConfigValue(String value) {
 		      defaultValue = value;
@@ -83,6 +85,21 @@ public class DuccWebServer {
 		            desc = "";
 		  
 		         }
+		      }
+		      String text = name()+"="+retVal+" "+desc;
+		      logger.debug(location, jobid, text.trim());
+		      return retVal;
+		  }
+		  public String getString(String property) {
+			  String location = "getString";
+		      String retVal = defaultValue;
+		      String desc = "[default]";
+		      if(property != null) {
+			         property = property.trim();
+			         if(property.length() > 0) {
+			            retVal = property;
+			            desc = "";
+			         }
 		      }
 		      String text = name()+"="+retVal+" "+desc;
 		      logger.debug(location, jobid, text.trim());
@@ -128,6 +145,12 @@ public class DuccWebServer {
 		String property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port_ssl);
         int portHttps = ConfigValue.PortHttps.getInt(property);
         return portHttps;
+	}
+	
+	public String getWelcomePage() {
+		String property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_welcome_page);
+        String welcomePage = ConfigValue.WelcomePage.getString(property);
+        return welcomePage;
 	}
 	
 	public String getRootDir() {
@@ -244,7 +267,6 @@ public class DuccWebServer {
         //
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setDirectoriesListed(true);
-        resourceHandler.setWelcomeFiles(new String[]{ "index.html" });
         rootDir = DuccWebServerHelper.getDuccWebRoot();
         resourceHandler.setResourceBase(rootDir);
         //
@@ -308,6 +330,10 @@ public class DuccWebServer {
         SessionHandler sessionHandler = new SessionHandler();
         handlers.addHandler(sessionHandler);
         handlers.addHandler(duccHandlerUserAuthentication);
+        
+        String welcomePage = getWelcomePage();
+        jspHandler.setWelcomeFiles(new String[]{ welcomePage });
+        resourceHandler.setWelcomeFiles(new String[]{ welcomePage });
         
         DuccHandlerHttpRequestFilter httpRequestFilter = new DuccHandlerHttpRequestFilter(this);
         handlers.addHandler(httpRequestFilter);
