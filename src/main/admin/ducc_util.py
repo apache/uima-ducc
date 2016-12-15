@@ -982,8 +982,6 @@ class DuccUtil(DuccBase):
         return (rc == 0)
 
     def get_nodepool(self, node, default=''):
-        classpath = '/users1/degenaro/svn/apache/ducc/workspace/deploy-bluejws67.real/ducc_runtime/lib/uima-ducc/uima-ducc-common-2.2.0-SNAPSHOT.jar';
-        classpath = self.DUCC_HOME+'/lib/uima-ducc/uima-ducc-common-2.2.0-SNAPSHOT.jar'
         classpath = '"'+self.DUCC_HOME+'/lib/uima-ducc/*'+'"'
         #print classpath
         classfile = self.ducc_properties.get('ducc.rm.class.definitions')
