@@ -220,6 +220,11 @@ public interface IHistoryPersistenceManager
             public Type type()            { return Type.String; }
         },
 
+        extended_reason_agent {
+            public String pname()         { return "extended_reason_agent"; }        
+            public Type type()            { return Type.String; }
+        },
+        
         exit_code {
             public String pname()         { return "exit_code"; }       
             public Type type()            { return Type.Integer; }

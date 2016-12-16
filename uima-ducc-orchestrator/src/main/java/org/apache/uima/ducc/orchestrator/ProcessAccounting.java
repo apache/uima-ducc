@@ -330,6 +330,7 @@ public class ProcessAccounting {
 	private void setResourceStateAndReason(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "setResourceStateAndReason";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
+		StringBuffer message;
 		switch(inventoryProcess.getProcessState()) {
 		case LaunchFailed:
 		case Stopped:
@@ -341,11 +342,28 @@ public class ProcessAccounting {
 			case Allocated:
 				OrUtil.setResourceState(job, process, ResourceState.Deallocated);
 				String reason = inventoryProcess.getReasonForStoppingProcess();
-				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+inventoryProcess.getProcessState()+" => "+messages.fetchLabel("resource state")+process.getResourceState()+" : "+messages.fetchLabel("reason")+reason);
+				String extendedReason = inventoryProcess.getExtendedReasonForStoppingProcess();
+				message = new StringBuffer();
+				message.append(messages.fetchLabel("process state")+inventoryProcess.getProcessState());
+				message.append(" => "+messages.fetchLabel("resource state")+process.getResourceState());
+				message.append(" : "+messages.fetchLabel("reason")+reason);
+				if(extendedReason != null) {
+					message.append(", "+extendedReason);
+				}
+				logger.info(methodName, job.getDuccId(), process.getDuccId(), message.toString());
 				switch(inventoryProcess.getProcessState()) {
 				case Stopped:
 					if(reason != null) {
 						process.setReasonForStoppingProcess(reason);
+						process.setExtendedReasonForStoppingProcess(extendedReason);
+						message = new StringBuffer();
+						message.append(messages.fetchLabel("process state")+inventoryProcess.getProcessState());
+						message.append(" => "+messages.fetchLabel("resource state")+process.getResourceState());
+						message.append(" : "+messages.fetchLabel("reason")+reason);
+						if(extendedReason != null) {
+							message.append(", "+extendedReason);
+						}
+						logger.debug(methodName, job.getDuccId(), process.getDuccId(), message.toString());
 					}
 					process.setProcessDeallocationType(ProcessDeallocationType.AutonomousStop);
 					break;
@@ -353,6 +371,15 @@ public class ProcessAccounting {
 				case Failed:
 					if(reason != null) {
 						process.setReasonForStoppingProcess(reason);
+						process.setExtendedReasonForStoppingProcess(extendedReason);
+						message = new StringBuffer();
+						message.append(messages.fetchLabel("process state")+inventoryProcess.getProcessState());
+						message.append(" => "+messages.fetchLabel("resource state")+process.getResourceState());
+						message.append(" : "+messages.fetchLabel("reason")+reason);
+						if(extendedReason != null) {
+							message.append(", "+extendedReason);
+						}
+						logger.debug(methodName, job.getDuccId(), process.getDuccId(), message.toString());
 					}
 					process.setProcessDeallocationType(ProcessDeallocationType.Failed);
 					break;
@@ -360,12 +387,30 @@ public class ProcessAccounting {
 				case FailedInitialization:
 					if(reason != null) {
 						process.setReasonForStoppingProcess(reason);
+						process.setExtendedReasonForStoppingProcess(extendedReason);
+						message = new StringBuffer();
+						message.append(messages.fetchLabel("process state")+inventoryProcess.getProcessState());
+						message.append(" => "+messages.fetchLabel("resource state")+process.getResourceState());
+						message.append(" : "+messages.fetchLabel("reason")+reason);
+						if(extendedReason != null) {
+							message.append(", "+extendedReason);
+						}
+						logger.debug(methodName, job.getDuccId(), process.getDuccId(), message.toString());
 					}
 					process.setProcessDeallocationType(ProcessDeallocationType.FailedInitialization);
 					break;
 				case InitializationTimeout:
 					if(reason != null) {
 						process.setReasonForStoppingProcess(reason);
+						process.setExtendedReasonForStoppingProcess(extendedReason);
+						message = new StringBuffer();
+						message.append(messages.fetchLabel("process state")+inventoryProcess.getProcessState());
+						message.append(" => "+messages.fetchLabel("resource state")+process.getResourceState());
+						message.append(" : "+messages.fetchLabel("reason")+reason);
+						if(extendedReason != null) {
+							message.append(", "+extendedReason);
+						}
+						logger.debug(methodName, job.getDuccId(), process.getDuccId(), message.toString());
 					}
 					process.setProcessDeallocationType(ProcessDeallocationType.InitializationTimeout);
 					break;
@@ -373,6 +418,15 @@ public class ProcessAccounting {
 				case Killed:
 					if(reason != null) {
 						process.setReasonForStoppingProcess(reason);
+						process.setExtendedReasonForStoppingProcess(extendedReason);
+						message = new StringBuffer();
+						message.append(messages.fetchLabel("process state")+inventoryProcess.getProcessState());
+						message.append(" => "+messages.fetchLabel("resource state")+process.getResourceState());
+						message.append(" : "+messages.fetchLabel("reason")+reason);
+						if(extendedReason != null) {
+							message.append(", "+extendedReason);
+						}
+						logger.debug(methodName, job.getDuccId(), process.getDuccId(), message.toString());
 					}
 					process.setProcessDeallocationType(ProcessDeallocationType.Killed);
 					break;
@@ -436,14 +490,23 @@ public class ProcessAccounting {
 		case Killed:
 			String reasonNew = inventoryProcess.getReasonForStoppingProcess();
 			String reasonOld = process.getReasonForStoppingProcess();
+			String extendedReasonNew = inventoryProcess.getExtendedReasonForStoppingProcess();
 			if(reasonNew != null) {
 				if(reasonOld == null) {
 					process.setReasonForStoppingProcess(reasonNew);
 					logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process reason code")+process.getReasonForStoppingProcess());
+					if(extendedReasonNew != null) {
+						process.setExtendedReasonForStoppingProcess(extendedReasonNew);
+						logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process extended reason code")+process.getExtendedReasonForStoppingProcess());
+					}
 				}
 				else if(!reasonNew.equals(reasonOld)) {
 					process.setReasonForStoppingProcess(reasonNew);
 					logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process reason code")+process.getReasonForStoppingProcess());
+					if(extendedReasonNew != null) {
+						process.setExtendedReasonForStoppingProcess(extendedReasonNew);
+						logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process extended reason code")+process.getExtendedReasonForStoppingProcess());
+					}
 				}
 			}
 			

@@ -554,7 +554,10 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String getReasonAgent(IDuccWorkJob job, IDuccProcess process) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
-			String agentReason = process.getReasonForStoppingProcess();
+			String agentReason = process.getExtendedReasonForStoppingProcess();
+			if(agentReason == null) {
+				agentReason = process.getReasonForStoppingProcess();
+			}
 			if(agentReason != null) {
 				if(agentReason.equalsIgnoreCase(ReasonForStoppingProcess.KilledByDucc.toString())) {
 					agentReason = "<div title=\""+ReasonForStoppingProcess.KilledByDucc.toString()+"\">Discontinued</div>";

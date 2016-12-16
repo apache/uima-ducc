@@ -352,6 +352,7 @@ public class HistoryManagerDb
                         long pid = toInt(idp.getPID());
                         String node = getString(idp.getNodeIdentity().getName());
                         String reason_agent = getString(idp.getReasonForStoppingProcess()); // called "reason" in duccprocess but not in ws
+                        String extended_reason_agent = getString(idp.getExtendedReasonForStoppingProcess()); 
                         String reason_scheduler = getString(idp.getProcessDeallocationType().toString()); // called "processDeallocationType" in duccprocess but not in ws
                         int exit_code = idp.getProcessExitCode();
                         long cpu = idp.getCurrentCPU();
@@ -380,7 +381,7 @@ public class HistoryManagerDb
                             gctime = gcs.getCollectionTime();
                         }
                         h.execute(processDetailsPrepare, node, work_id, share_id, type, user, memory, processStart, processEnd, sclass,
-                                  pid, reason_agent, exit_code, reason_scheduler, cpu, swap, Math.max(0, (processEnd-processStart)), initTime,
+                                  pid, reason_agent, extended_reason_agent, exit_code, reason_scheduler, cpu, swap, Math.max(0, (processEnd-processStart)), initTime,
                                   initialized, investment, major_faults, gccount, gctime);
                     }
 
