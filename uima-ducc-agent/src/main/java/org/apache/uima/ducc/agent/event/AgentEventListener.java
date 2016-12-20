@@ -29,7 +29,6 @@ import org.apache.uima.ducc.agent.ProcessLifecycleController;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
 import org.apache.uima.ducc.transport.event.ProcessPurgeDuccEvent;
@@ -40,7 +39,6 @@ import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
-import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 import org.springframework.beans.factory.annotation.Qualifier;
 
