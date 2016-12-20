@@ -22,14 +22,21 @@
     This chapter provides an overview of the DUCC process logs and how to interpret the
     entries therein.
 
-    Each of the DUCC ``head node'' processes writes a detailed log of its operation to
+    Each of the DUCC ``head node'' processes and agent processes writes a detailed log of its operation to
     the directory \ducchome/logs.  The logs are managed by Apache log4j.  All logs are
-    managed by a single log4j configuration file
+    usually managed by a single log4j configuration file
 \begin{verbatim}
         $DUCC_HOME/resources/log4j.xml
 \end{verbatim}
+    If an agent does not have write access to the \ducchome directory it may be given a
+    node-specific configuration file which can direct the log files to a locally writable
+    directory.  e.g. when starting an agent on node abc123.domain.whatever the DUCC logger will use
+    the following configuration file if it exists
+\begin{verbatim}
+        $DUCC_HOME/resources/abc123-log4j.xml
+\end{verbatim}
 
-    The DUCC logger is configured to check for updates to the log4j.xml
+    The DUCC logger is configured to check for updates to the log4j
     configuration file and automatically update without the need to restart any of
     the DUCC processes.  The update may take up to 60 seconds to take effect.
 

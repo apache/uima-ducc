@@ -24,14 +24,11 @@
 \chapter{Job Logs}
 \label{chap:job-logs}
 
-\begin{sloppypar}
-\paragraph{Overview}The DUCC logs are managed by Apache log4j.  The DUCC log4j configuration file is found in
+The "user logs" are the Job Driver (JD) and Job Process (JP) logs. There is one JP log for each process 
+of a job.  These hold the redirected stdout and stderr messages from user code as well as some DUCC-generated
+messages.  These DUCC messages are managed by Apache log4j using the configuration file 
 \duccruntime/resources/log4j.xml. It is not in the scope of this document to describe log4j or its
 configuration mechanism. Details on log4j can be found at \url{http://logging.apache.org/log4j}.
-\end{sloppypar}
-
-The "user logs" are the Job Driver (JD) and Job Process (JP) logs. There is one log for each process 
-of a job.
 
 \paragraph{Contents of the Log Directory} A number of other useful files are written to the log directory: 
 
