@@ -92,7 +92,7 @@ public class DuccWorkHelper {
 				}
 			} 
 			catch (Exception e) {
-				logger.error(location, duccId, e);
+				logger.error(location, duccId, "Error while communicating with the OR:\n"+e);
 			}
 		}
 		else {
