@@ -20,10 +20,10 @@
    ***************************************************************
    -->
 <head>
-  <title>Apache Distributed UIMA Cluster Computing (DUCC) 2.1.0 Release Notes</title>
+  <title>Apache Distributed UIMA Cluster Computing (DUCC) 2.2.0 Release Notes</title>
 </head>
 <body>
-<h1>Apache UIMA-DUCC (Unstructured Information Management Architecture - Distributed UIMA Cluster Computing ) v.2.1.0 Release Notes</h1>
+<h1>Apache UIMA-DUCC (Unstructured Information Management Architecture - Distributed UIMA Cluster Computing ) v.2.2.0 Release Notes</h1>
 
 <h2>Contents</h2>
 <p>
@@ -44,43 +44,35 @@ provides cluster management services to automate the scale-out of UIMA pipelines
       
 <h2><a name="major.changes">2. Major Changes in this Release</a></h2>
 <p>
-Apache UIMA DUCC 2.1.0 is a major release containing new features and bug fixes. What's new:<br>
+Apache UIMA DUCC 2.2.0 is a major release containing new features and bug fixes. What's new:<br>
 
 <ul>
 
-<li>DUCC framework now runs on Java 7 or Java 8 and supports applications using either JRE.
-    Note that some job and other history data are saved as Java serialized objects and not 
-    portable between Java 7 and Java 8.</li>
-<li>Ubuntu and RHEL 7 support </li>
-<li>cgroup enhancements </li>
-   <ul>
-     <li>uses standard cgroups organization</li>
-     <li>supports cgroup swappiness setting, restricting any swapping if desired</li>   
-   </ul>
-<li>DUCC state and history storage moved from flat files to Cassandra DB, reducing storage size 5x </li>
-<li>Ships with the latest UIMA-AS v2.8.1 </li>
-<li>Ships with recent ActiveMQ v5.13.2 </li>
-<li>DUCC's UIMA-AS services support failover and ssl connectors </li>
+<li>Ships with the latest UIMA-AS v2.9.0 and UIMA SDK 2.0.0</li>
+<li>Ships with recent ActiveMQ v5.14.0 </li>
+<li>DUCC supports static failover and capability to move the head node, comprising 
+    the broker, database, Orchestrator, PM, RM, SM, and WS, and have the agents 
+    seamlessly switch over w/o service disruption.</li>
+<li>Fixed DUCC Orchestrator "warm" restart issues</li>  
+<li>DUCC checks that it runs with the uid of the installer</li>  
+<li>Prevents DUCC from running if the DB doesn't start</li>
+<li>DUCC considers slightly larger machines when reserving a whole machine</li>
+<li>Refactored agent to fetch child process CPU usagefrom cgroups</li>
+<li>Fixed DUCC shutdown sequence preventing agents from stopping</li>
+<li>Fixed Rogue process detector to cleanup orhpan services</li>
+<li>Deprecated ducc.agent.node.metrics.sys.gid.max</li>
+<li>DUCC Job Driver (JD) provides individual work item performance breakdowns</li>
+<li>Restricts DUCC broker use to ducc user only</li>
+<li>On process launch failure, agent supplies the reason for failure for display in ducc mon</li>
+<li>Many DUCC Database improvements </li>
 <li>Many DUCC webpage improvements </li>
-<li>Clear user display of DUCC classes and relation to machines </li>
-<li>Robust handling of dynamic changes to DUCC class and nodepool definitions </li>
-<li>Full support of nodepools with different quantum </li>
-<li>DUCC broker access restricted to user ducc </li>
-<li>Eliminate need for user home directories located on a shared filesystem </li>
-<li>Built-in Job error handler programmable per job </li>
-<li>Migration utility for DUCC updates </li>
-<li>Change to vary-off behavior to facilitate cluster management </li>
-<li>Horizontal stacking of services instance allocations </li>
-<li>java-viaducc improvements including separation of stdout from stderr respoonses </li>
-<li>An alert banner is displayed on ducc-mon pages if daemons are down </li>
-<li>Promoted DUCC from sandbox to the regular Apache project in the SVN </li>
 
 </ul>
 
 <br><br>
 
 For a complete list of issues fixed and up-to-date information on UIMA-DUCC issues, see our issue tracker: 
-<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.1.0-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.1.0-Ducc%22%20</a>
+<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.0-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.0-Ducc%22%20</a>
 </p> 
       
 <h2><a name="migration">3. Migration from a Prior Release</a></h2>

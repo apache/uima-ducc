@@ -205,7 +205,7 @@
 =====================================
 
 ====- Apache Software License 2.0 =============
-   uima v.2.8.1
+   uima v.2.9.0
        uima-core.jar
        uimaj-json.jar
        jackson-core-2.4.2.jar  
@@ -217,7 +217,7 @@
        uima-adapter-soap.jar   
        uima-adapter-vinci.jar  
 
-   uima-as v.2.8.1
+   uima-as v.2.9.0
        uimaj-as-core.jar      
        uimaj-as-activemq.jar  
        uimaj-bootstrap.jar
@@ -243,25 +243,25 @@
        camel-spring-2.16.2.jar
        camel-stream-2.16.2.jar
 
-   activemq v5.13.2
-       activemq-amqp-5.13.2.jar
-       activemq-broker-5.13.2.jar
-       activemq-camel-5.13.2.jar 
-       activemq-client-5.13.2.jar
-       activemq-console-5.13.2.jar
-       activemq-http-5.13.2.jar
-       activemq-jaas-5.13.2.jar
-       activemq-jms-pool-5.13.2.jar
-       activemq-kahadb-store-5.13.2.jar
-       activemq-leveldb-store-5.13.2.jar   
-       activemq-log4j-appender-5.13.2.jar  
-       activemq-mqtt-5.13.2.jar            
-       activemq-partition-5.13.2.jar       
-       activemq-pool-5.13.2.jar            
-       activemq-runtime-config-5.13.2.jar  
-       activemq-shiro-5.13.2.jar           
-       activemq-spring-5.13.2.jar          
-       activemq-stomp-5.13.2.jar
+   activemq v5.14.0
+       activemq-amqp-5.14.0.jar
+       activemq-broker-5.14.0.jar
+       activemq-camel-5.14.0.jar 
+       activemq-client-5.14.0.jar
+       activemq-console-5.14.0.jar
+       activemq-http-5.14.0.jar
+       activemq-jaas-5.14.0.jar
+       activemq-jms-pool-5.14.0.jar
+       activemq-kahadb-store-5.14.0.jar
+       activemq-leveldb-store-5.14.0.jar   
+       activemq-log4j-appender-5.14.0.jar  
+       activemq-mqtt-5.14.0.jar            
+       activemq-partition-5.14.0.jar       
+       activemq-pool-5.14.0.jar            
+       activemq-runtime-config-5.14.0.jar  
+       activemq-shiro-5.14.0.jar           
+       activemq-spring-5.14.0.jar          
+       activemq-stomp-5.14.0.jar
 
    spring framework v.4.1.9.RELEASE
        spring-aop-4.1.9.RELEASE.jar   
