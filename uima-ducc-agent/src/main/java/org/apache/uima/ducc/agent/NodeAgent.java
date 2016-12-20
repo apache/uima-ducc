@@ -326,7 +326,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 	logger.info("nodeAgent",null,"Agent found cgroup base directory in "+cgroupsBaseDir);
                   try {
                 	  String containerId = "test";
-                	  String uid = "ducc";
                 	  // validate cgroups by creating a dummy cgroup. The code checks if cgroup actually got created by
                 	  // verifying existence of test cgroup file. The second step in verification is to check if 
                 	  // CPU control is working. Configured in cgconfig.conf, the CPU control allows for setting 
@@ -1338,7 +1337,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           bufferedReader = new BufferedReader(new InputStreamReader(theStream));
           String line = null;
           while ((line = bufferedReader.readLine()) != null) {
-            //outputBuffer.append(line + "\n");
+        	StringBuffer outputBuffer = new StringBuffer();
+            outputBuffer.append(line + "\n");
           }
         }
         catch (Throwable t)
