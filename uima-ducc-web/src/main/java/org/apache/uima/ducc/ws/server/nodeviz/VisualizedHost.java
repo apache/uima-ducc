@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
@@ -48,27 +47,10 @@ class VisualizedHost
     List<JobFragment>  fragments = new ArrayList<JobFragment>();
 
     /**
-     * Generate host from OR state which contains info about the work on a host.
-     */
-    VisualizedHost(Node n, int quantum)
-    {
-        this.quantum = quantum;
-        this.name = NodeViz.strip(n.getNodeIdentity().getName());
-        this.ip = n.getNodeIdentity().getIp();            
-        
-        // mem from OR pub is in KB.  must convert to GB
-        this.mem_total =  (int) n.getNodeMetrics().getNodeMemory().getMemFree() / ( 1024 * 1024 );
-        this.shares_reserve = (mem_total / quantum);
-        this.shares_free = shares_reserve;
-        this.mem_reserve = shares_reserve * quantum;
-    }
-
-    /**
      * Generate host from agent publications because OR state only has host info for hosts with work on them.
      */
     VisualizedHost(MachineInfo info, int quantum)
     {
-
         this.quantum = quantum;
         this.name = NodeViz.strip(info.getName());
         this.ip = info.getIp();

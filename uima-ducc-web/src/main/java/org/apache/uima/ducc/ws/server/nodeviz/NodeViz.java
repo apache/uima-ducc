@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeConfiguration;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -120,7 +121,7 @@ public class NodeViz
 	{        
         String methodName = "generateVisualization";
         Map<String, VisualizedHost> hosts = new HashMap<String, VisualizedHost>();
-
+        DuccMachinesData machinesData = DuccMachinesData.getInstance();
         IDuccWorkMap jobmap = ev.getWorkMap();
 
         int job_gb = 0;
@@ -128,7 +129,7 @@ public class NodeViz
         int pop_gb = 0;
         int reservation_gb = 0;
 
-        // Must find nost configuration so we can work out the quantum used to schedule each job
+        // Must find host configuration so we can work out the quantum used to schedule each job
         String class_definitions = SystemPropertyResolver
             .getStringProperty(DuccPropertiesResolver
                                .ducc_rm_class_definitions, "scheduler.classes");
@@ -223,17 +224,22 @@ public class NodeViz
                             default:
                             	break;
                         }
-
-                        if ( n != null ) {
+                        NodeIdentity ni = n.getNodeIdentity();
+                    	NodeId nodeId = new NodeId(ni.getName());
+                        MachineInfo mi = machinesData.getMachineInfoForNodeid(nodeId);
+                        if ( mi != null ) {
                             String key = strip(n.getNodeIdentity().getName());
                             VisualizedHost vh = hosts.get(key);
                             if ( vh == null ) {
                                 // System.out.println("Set host from OR with key:" + key + ":");
-                                vh = new VisualizedHost(n, quantum);
+                                vh = new VisualizedHost(mi, quantum);
                                 hosts.put(key, vh);
                             }
-
                             vh.addWork(type, user, duccid, jobmem, qshares, service_endpoint);
+                        }
+                        else {
+                        	String message = nodeId.getShortName()+" not found?";
+                        	logger.debug(methodName, w.getDuccId(), message);
                         }
                     }
                 }
@@ -254,14 +260,23 @@ public class NodeViz
                         } else if ( n.getNodeIdentity() == null ) {
                             logger.debug(methodName, w.getDuccId(),  "NodeIdentity [N/A] mem[N/A");
                         } else {
-                            String key = strip(n.getNodeIdentity().getName());
-                            VisualizedHost vh = hosts.get(key);
-                            if ( vh == null ) {
-                                vh = new VisualizedHost(n, quantum);
-                                hosts.put(key, vh);
-                                //  System.out.println("Set host from OR with key:" + key + ":");
+                        	NodeIdentity ni = n.getNodeIdentity();
+                        	NodeId nodeId = new NodeId(ni.getName());
+                            MachineInfo mi = machinesData.getMachineInfoForNodeid(nodeId);
+                            if ( mi != null ) {
+                                String key = strip(n.getNodeIdentity().getName());
+                                VisualizedHost vh = hosts.get(key);
+                                if ( vh == null ) {
+                                    // System.out.println("Set host from OR with key:" + key + ":");
+                                    vh = new VisualizedHost(mi, quantum);
+                                    hosts.put(key, vh);
+                                }
+                                vh.addWork(type, user, duccid, jobmem, qshares, null);
                             }
-                            vh.addWork(type, user, duccid, jobmem, qshares, null);
+                            else {
+                            	String message = nodeId.getShortName()+" not found?";
+                            	logger.debug(methodName, w.getDuccId(), message);
+                            }
                         }
                     }
                 }

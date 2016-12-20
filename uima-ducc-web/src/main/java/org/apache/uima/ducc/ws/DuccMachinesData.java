@@ -525,6 +525,11 @@ public class DuccMachinesData {
 		return retVal;
 	}
 	
+	public MachineInfo getMachineInfoForNodeid(NodeId nodeId) {
+		MachineInfo retVal = unsortedMachines.get(nodeId);
+		return retVal;
+	}
+	
 	/**
 	 * Create a cached data set employed by the WS 
 	 * to display the System -> Machines page.  The
