@@ -153,9 +153,9 @@ public class SystemPropertyResolver
      * Get the property, trim junk off the end and return it.  If the default is not
      * found, then return the provided default.
      *
-     * @param The name of the property to look for.
-     *
-     * @throws Scheduling if the property does not exist.
+     * @param k    The name of the property to look for.
+     * @param dflt The default value
+     * @return     The property value or the default
      */
     public static String getStringProperty(String k, String dflt)
     {
