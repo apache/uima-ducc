@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+import os
+import socket
+import subprocess
+import sys
+
+from optparse import OptionParser
+
+from ducc_util import DuccUtil
+from ducc_util_out import *
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +
+# + gather_logs
+# +
+# + purpose: create gz of DUCC log files and other debug information
+# + 
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+info_on()
+
+# -----------------------------------------------------------------------
+# Extend OptionParser class
+class ExtendedOptionParser(OptionParser):
+    # override epilog formatter so 
+    # that newlines are not deleted!
+    def format_epilog(self, formatter):
+        return self.epilog
+# -----------------------------------------------------------------------
+
+# epilog for --help
+def get_epilog():
+    epilog = ''
+    epilog = epilog+'\n'
+    epilog = epilog+'Purpose: gather problem determination information comprising DUCC logs and configuration data into a gz file.'
+    epilog = epilog+'\n'
+    epilog = epilog+'\n'
+    return epilog
+    
+class GatherLogs(DuccUtil):
+    
+    # output directory
+    directory = '/tmp'
+    # output base filename
+    filename = 'ducc-problem-determination-info.gz'
+    
+    def get_timestamp(self):
+        return get_timestamp().replace(' ','-')
+    
+    # resolve output file path
+    def resolve_target(self):
+        if(self.directory == None):
+            self.directory = '/tmp'
+        self.directory = self.directory.strip()
+        if(self.directory == ''):
+            self.directory = '/tmp'
+        self.filename = self.filename.replace('.','.'+socket.gethostname()+'.'+self.get_timestamp()+'.')
+        self.target = self.directory+'/'+self.filename
+        self.target = self.target.replace('//','/')
+        if(not os.path.isdir(self.directory)):
+            os.makedirs(self.directory)
+    
+    # parse command line
+    def parse_cmdline(self):
+        parser = ExtendedOptionParser(epilog=get_epilog())
+        width = 45
+        parser.formatter.help_position = width
+        parser.formatter.max_help_position = width
+        parser.add_option('-d','--directory', action='store', dest='directory', default=self.directory, 
+                               help='path to directory for gz file, default='+self.directory)
+        (options, args) = parser.parse_args()
+        self.directory = options.directory
+
+    # create gz file
+    def create_zip(self):
+        cmd = []
+        cmd.append('tar')
+        cmd.append('-C')
+        cmd.append(self.DUCC_HOME)
+        cmd.append('--exclude')
+        cmd.append('state/database')
+        cmd.append('-czf')
+        cmd.append(self.target)
+        cmd.append('apache-uima/apache-activemq/data')
+        cmd.append('logs')
+        cmd.append('cassandra-server/logs')
+        cmd.append('resources')
+        cmd.append('state')
+        cmd.append('README')
+        #print cmd
+        message = 'creating'+' '+self.target
+        print_info(message)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        sizeMB = os.path.getsize(self.target)/(1.0*1024*1024)
+        fmtSizeMB = "%.2f" % sizeMB
+        message = 'size'+' '+str(fmtSizeMB)+' '+'MB'
+        print_info(message)
+        
+    def main(self, argv):
+        self.parse_cmdline()
+        self.resolve_target()
+        self.create_zip()
+            
+if __name__ == '__main__':
+    instance = GatherLogs()
+    instance.main(sys.argv[1:])
