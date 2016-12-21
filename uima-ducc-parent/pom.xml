@@ -922,6 +922,7 @@ ${uimaDUCCNoticeText}
 										<exclude>uima-ducc-user/**</exclude>
 										<exclude>uima-ducc-container/**</exclude>
 										<exclude>**/src/main/webapp/root/opensources/**/*</exclude>
+										<exclude>**/src/main/webapp/etc/**</exclude>
 										<exclude>**/src/main/issuesFixed/**/*</exclude>
 									</excludes>
 								</configuration>
