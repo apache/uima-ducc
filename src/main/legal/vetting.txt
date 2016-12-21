@@ -20,8 +20,8 @@
 This readme includes notes related to DUCC NOTICE and LICENSE files.
 
 15/12/2016 Updated with UIMA-AS 2.9.0 which includes new UIMA SDK 2.9.0 
-           and ActiveMQ 5.14.0
-
+           and ActiveMQ 5.14.0. There were no new images added nor
+           new jars for the webserver.
 
 06/16/2016 Added cassandra and its dependencies. 
 07/23/2015 Added missing xmlbeans attributions to NOTICE file
