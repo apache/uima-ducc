@@ -416,16 +416,6 @@ public class Utils {
 		String tmp;
 		int uidMax=500;
 		
-	    // gidMax and uidMax mean the same thing. The ducc.agent.node.metrics.sys.gid.max is deprecated. New code should
-	    // use ducc.agent.rogue.process.sys.user.max
-	    if ((tmp = System
-				.getProperty("ducc.agent.node.metrics.sys.gid.max")) != null) {
-			if ( isNumber(tmp) ) {
-				uidMax = Integer.valueOf(tmp);  // use uidMax 
-			}
-		}
-	    
-		// in case both properties are set ...gid.max and ...user.max, the latter wins
 	    if ((tmp = System
 				.getProperty("ducc.agent.rogue.process.sys.uid.max")) != null) {
 			if ( isNumber(tmp) ) {
