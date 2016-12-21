@@ -74,6 +74,7 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             System.out.println("Is this nuts or what, no logger!");
         }
 
+        forceCpuUsage();
         
         if ( initComplete ) {
             logger.log(Level.INFO, "Init bypassed in PID:TID " + pid + ":" + tid + ", already completed. ");
@@ -126,7 +127,7 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
                 Runtime.getRuntime().halt(0);
             }
         }
-
+        
         if ( i_itime < 0 ) {
             throw new IllegalArgumentException("Invalid AE_INIT_TIME, must be >= 0");
         }
@@ -339,6 +340,29 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         System.out.println(AE_Identifier + " Destroy exits");
     }
 
+    private void forceCpuUsage() {
+        try{ 
+            if ( System.getenv( "FORCE_CPU_USAGE" ) != null ) {
+                Thread t = null;
+                   t = new Thread(new Runnable() {
+                     public void run() {
+                            System.out.println("Thread " +Thread.currentThread().getName() + " started");
+                        	dolog(" >>>>>>>>>>> Simulating High CPU Load");
+                            double val=10;
+                            for (;;)
+                                {
+                                    Math.atan(Math.sqrt(Math.pow(val, 10)));
+                                }
+                        }
+                    });
+                   t.start();
+                   t.join();
+                   }
+        } catch (InterruptedException e) {
+            // error = true;
+        } 
+
+    }
     @Override
     public void process(CAS cas) throws AnalysisEngineProcessException 
     {
@@ -381,8 +405,27 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             System.exit(1);
         }
 
+        forceCpuUsage();
         try{ 
-            dolog(msgheader + " sleeping " + elapsed + " MS.");
+        /*
+        	if ( System.getenv( "FORCE_CPU_USAGE" ) != null ) {
+                Thread t = null;
+                   t = new Thread(new Runnable() {
+                     public void run() {
+                            System.out.println("Thread " +Thread.currentThread().getName() + " started");
+                        	dolog(" >>>>>>>>>>> Simulating High CPU Load");
+                            double val=10;
+                            for (;;)
+                                {
+                                    Math.atan(Math.sqrt(Math.pow(val, 10)));
+                                }
+                        }
+                    });
+                   t.start();
+                   t.join();
+                   }
+        	*/
+        	dolog(msgheader + " sleeping " + elapsed + " MS.");
             String bloat = System.getenv("PROCESS_BLOAT");
             if ( bloat != null ) {
                 long gb = Long.parseLong(bloat) * 1024 * 1024 * 1024;
@@ -394,6 +437,7 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             randomError(exit_rate, msgheader, true);
 
             Thread.sleep(elapsed);
+            //Thread.sleep(10000000);
             completion = "OK";
             dolog(msgheader + " returns after " + elapsed + " MS completion " + completion);
         } catch (InterruptedException e) {
