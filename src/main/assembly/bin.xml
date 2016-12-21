@@ -386,7 +386,7 @@ under the License.
       <directory></directory>
       <outputDirectory></outputDirectory>
       <includes>
-        <include>issuesFixed/*</include>
+        <include>issuesFixed/**</include>
         <include>README</include>
         <include>RELEASE_NOTES.html</include>
         <!-- Temporarily disable the include below for 1.1.0-Ducc release -->
