@@ -48,22 +48,16 @@ Apache UIMA DUCC 2.2.0 is a major release containing new features and bug fixes.
 
 <ul>
 
-<li>Ships with the latest UIMA-AS v2.9.0 and UIMA SDK 2.0.0</li>
-<li>Ships with recent ActiveMQ v5.14.0 </li>
-<li>DUCC supports static failover and capability to move the head node, comprising 
-    the broker, database, Orchestrator, PM, RM, SM, and WS, and have the agents 
-    seamlessly switch over w/o service disruption.</li>
-<li>Fixed DUCC Orchestrator "warm" restart issues</li>  
-<li>DUCC checks that it runs with the uid of the installer</li>  
-<li>Prevents DUCC from running if the DB doesn't start</li>
-<li>DUCC considers slightly larger machines when reserving a whole machine</li>
-<li>Refactored agent to fetch child process CPU usagefrom cgroups</li>
-<li>Fixed DUCC shutdown sequence preventing agents from stopping</li>
-<li>Fixed Rogue process detector to cleanup orhpan services</li>
-<li>Deprecated ducc.agent.node.metrics.sys.gid.max</li>
-<li>DUCC Job Driver (JD) provides individual work item performance breakdowns</li>
-<li>Restricts DUCC broker use to ducc user only</li>
-<li>On process launch failure, agent supplies the reason for failure for display in ducc mon</li>
+<li>Ships with the latest UIMA-AS v2.9.0 and UIMA SDK 2.9.0</li>
+<li>Ships with ActiveMQ v5.14.0 </li>
+<li>Added support for static failover and capability to move the head node</li>
+<li>Fixed DUCC OR "warm" restart issues</li>  
+<li>Fixed DUCC startup script to fail if the DB doesn't start</li>
+<li>Fixed DUCC shutdown sequence bug which prevented agents from stopping if Broker was shutdown first</li>
+<li>Fixed Rogue process detector to detect and cleanup orphan services</li>
+<li>Deprecated ducc.agent.node.metrics.sys.gid.max and replaced with ducc.agent.rogue.process.sys.uid.max</li>
+<li>Enhanced DUCC Job Driver (JD) to provide individual work item performance breakdowns</li>
+<li>Fixed DUCC to restrict broker use to ducc user only</li>
 <li>Many DUCC Database improvements </li>
 <li>Many DUCC webpage improvements </li>
 
