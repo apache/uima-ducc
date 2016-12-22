@@ -110,16 +110,10 @@ def to_stdout(text):
         sys.stdout.flush()
     except:
         pass
+        
+def close():
     try:
         sys.stdout.close()
-    except:
-        pass
-    try:
-        sys.stderr.flush()
-    except:
-        pass
-    try:
-        sys.stderr.close()
     except:
         pass
     
@@ -316,11 +310,11 @@ def display():
     else:
         text = text0+' '+text1
     output = text
+    info(output)
     if(options.flag_enumerate):
         for key in sorted(options.daemons):
-            text = key+'='+options.daemons[key]
-            output = output+newline+text
-    info(output)
+            output = key+'='+options.daemons[key]
+            info(output)
     
 # report current ducc daemons status
 def main(argv):
@@ -328,6 +322,7 @@ def main(argv):
     fetch_state_current()
     transform()
     display()
+    close()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
