@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.container.jd.classload;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.URLClassLoader;
@@ -144,16 +145,18 @@ public class ProxyJobDriverErrorHandler {
 		String initializationData = getErrorHandlerInitArgs();
 		//
 		classLoader = createClassLoader(userClasspath);
-		Class<?> classAnchor = classLoader.loadClass(className);
-		objectInstance = classAnchor.newInstance();
+		Class<?> clazz = classLoader.loadClass(className);
+		Constructor<?> constructor = clazz.getConstructor();
+		Object[] c_args = new Object[] { };
+		objectInstance = ContextSwitch.construct(classLoader, constructor, c_args);
 		//
 		String methodNameInitialize = "initialize";
-		Method methodInstanceInitialize = classAnchor.getMethod(methodNameInitialize, String.class);
+		Method methodInstanceInitialize = clazz.getMethod(methodNameInitialize, String.class);
 		Object[] plist = new Object[1];
 		plist[0] = initializationData;
 		ContextSwitch.call(classLoader, methodInstanceInitialize, objectInstance, plist);
 		//
-		Method[] classMethods = classAnchor.getMethods();
+		Method[] classMethods = clazz.getMethods();
 		for(Method method : classMethods) {
 			if(method.getName().equals("handle")) {
 				Type[] types = method.getParameterTypes();
