@@ -18,11 +18,23 @@
 */
 package org.apache.uima.ducc.container.common.classloader;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 
 public class ContextSwitch {
 
+    public static Object construct(URLClassLoader urlClassLoader, Constructor<?> constructor, Object[] args) throws Exception {
+        ClassLoader saveThreadCCL = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(urlClassLoader);
+            return constructor.newInstance(args);
+        }
+        finally {
+            Thread.currentThread().setContextClassLoader(saveThreadCCL);
+        }
+    }
+    
 	public static Object call(URLClassLoader urlClassLoader, Method method, Object instance, Object[] args) throws Exception {
 		ClassLoader saveThreadCCL = Thread.currentThread().getContextClassLoader();
 		try {
