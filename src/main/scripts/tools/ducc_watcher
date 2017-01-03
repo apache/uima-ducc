@@ -473,7 +473,6 @@ def email(HOST, SUBJECT, TO, FROM, TEXT):
 def email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT):
     if(TO_LIST == None):
         info('e-mail list empty')
-        error('not sent: ['+TO+'] '+TEXT)
     else:
         for TO in TO_LIST:
             email(HOST, SUBJECT, TO, FROM, TEXT)
