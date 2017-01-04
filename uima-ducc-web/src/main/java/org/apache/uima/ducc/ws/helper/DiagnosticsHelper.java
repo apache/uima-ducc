@@ -45,8 +45,6 @@ public class DiagnosticsHelper {
 							+File.separator
 							+"bin"
 							+File.separator
-							+"tools"
-							+File.separator
 							+"ducc_disk_info"
 							;
 				String[] command = { path };
