@@ -34,6 +34,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
+import org.apache.uima.ducc.common.node.DuplicateDuccDaemonProcessDetector;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.springframework.context.ApplicationContext;
@@ -270,6 +271,19 @@ public class DuccService extends AbstractDuccComponent {
 	public static void main(String[] args) {
 		DuccService duccService = null;
 		try {
+			// run duplicate daemon detector to make sure we dont start
+			// multiple copies of Ducc daemons. It checks of this process
+			// is a duplicate of OR, WS, PM, RM, SM, or Agent. The code
+			// simply exits if another instance is running.
+			DuplicateDuccDaemonProcessDetector daemonDetector =
+					new DuplicateDuccDaemonProcessDetector();
+			String thisProcessDaemonType = System.getProperty(DUCC_DEPLOY_COMPONENTS);
+			if ( daemonDetector.isThisProcessDuplicateDaemon(thisProcessDaemonType) ) {
+				System.out.println("Ducc Daemon process "+thisProcessDaemonType+" is already running - duplicates are not allowed - exiting ...");
+				System.exit(1);
+			}
+
+			
 			if ( Utils.findDuccHome() == null ) {
                 //findDuccHome places it into System.properties
 				System.out.println("Unable to Launch Ducc Service - DUCC_HOME not defined. Add it to your environment or provide it with -DDUCC_HOME=<path>");
