@@ -1019,9 +1019,10 @@ class DuccUtil(DuccBase):
             if(len(failover_nodes) >= 0):
                 nodes = failover_nodes.split()
                 head_node = self.ducc_properties.get('ducc.head')
-                head_pool = self.get_nodepool(head_node)
+                head_pool = self.get_nodepool(head_node,'<None>')
                 for node in nodes:
                     node_pool = self.get_nodepool(node,'<None>')
+                    #print 'head:'+head_pool+' '+'node:'+node_pool
                     if( head_pool != node_pool):
                         if(rc == 0):
                             message = 'OK: Head failover node '+head_node+' in node pool '+head_pool
