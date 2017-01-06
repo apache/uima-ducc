@@ -24,7 +24,7 @@ import sys
 
 from ducc_util  import DuccUtil
 
-class DuccVaryOff(DuccUtil):
+class DuccVaryOn(DuccUtil):
 
     def usage(self, msg):
         if ( msg != None ):
@@ -38,6 +38,8 @@ class DuccVaryOff(DuccUtil):
         print 'Example:'
         print '   vary_on node1 node2 node3'    
     
+        sys.exit(1)
+        
     def main(self, nodes):
 
         if ( len(nodes) == 0 ):
@@ -53,7 +55,7 @@ class DuccVaryOff(DuccUtil):
         return
 
 if __name__ == "__main__":
-    stopper = DuccVaryOff()
-    stopper.main(sys.argv[1:])
+    instance = DuccVaryOn()
+    instance.main(sys.argv[1:])
 
     
