@@ -311,6 +311,25 @@ check_ducc -n nlist1 -n nlist2
 
     See ~\ref{sec:duccling.install} on Ducc\_ling Configuration.
 
+
+\subsection{ducc\_disk\_info}
+\label{subsec:admin.ducc-disk-info}
+    \subsubsection{{\em Description:}}
+
+    The disk info tool is used to obtain information about DUCC disk usage. 
+    
+    \paragraph{Usage:}
+        This command nominally takes no parameters.
+        
+    \paragraph{Options:}
+    \begin{description}
+      	\item -h, --help      Prints the usage text to the console. 
+      	\item -c, --code      Prints the exit code, which is the greater of disk usage percentage and quota usage percentage. 
+      	\item -d, --debug     Prints internal debugging information, intended for DUCC developers or extended problem determination.
+      	\item -n, --nomsg     Suppress display of filesystem and quota percentages used message. 
+    \end{description}       
+
+
 \subsection{ducc\_post\_install}
 \label{subsec:admin.ducc-post-install}
 
