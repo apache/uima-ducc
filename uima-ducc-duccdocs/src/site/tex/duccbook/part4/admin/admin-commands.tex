@@ -906,3 +906,18 @@ db_tool --restore-overwrite /backups/ducc/ducc_db.tar.gz --verbose
 
     \paragraph{Notes:}
     The console shows progress of the db\_tool unless --quiet is specified.   
+
+
+\subsection{ducc\_get\_process\_swap\_usage}
+\label{subsec:admin.ducc-get-process-swap-usage}
+    \subsubsection{{\em Description:}}
+
+    The script is run by an agent to obtain swap space used by a process with a given PID. 
+    
+    \paragraph{Usage:}
+        This script takes one parameter.
+        
+    \paragraph{Options:}
+    \begin{description}
+      	\item PID      PID of a process 
+    \end{description}       
