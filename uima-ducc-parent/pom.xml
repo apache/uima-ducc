@@ -924,6 +924,7 @@ ${uimaDUCCNoticeText}
 										<exclude>**/src/main/webapp/root/opensources/**/*</exclude>
 										<exclude>**/src/main/webapp/etc/**</exclude>
 										<exclude>**/src/main/issuesFixed/**/*</exclude>
+										<exclude>issuesFixed/jira-report.html</exclude>
 									</excludes>
 								</configuration>
 							</execution>
