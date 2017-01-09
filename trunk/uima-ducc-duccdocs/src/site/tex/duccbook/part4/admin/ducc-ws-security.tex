@@ -1,0 +1,261 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+\section{WebServer Authentication}
+\label{sec:WebServer Authentication}
+
+    By default, DUCC is configured such that there is effectively no
+    authentication enforcement by the WebServer. No password entry is permitted
+    on the Login panel and any userid specified is accepted whether it exists or
+    not.
+    
+    To enable your own authentication measures, you should perform the following
+    steps:
+    
+    \begin{enumerate}
+      \item Author an authentication manager Java class implementing interface
+      \begin{verbatim}
+org.apache.uima.ducc.common.authentication.IAuthenticationManager
+      \end{verbatim}
+      \item Create an authentication jar file comprising the
+      authentication manager Java class
+      \item Install your authentication jar file and any dependency jar files
+      into your DUCC's lib folder
+      \item Update your ducc.properties file with authentication class name
+      and jar file name(s) information
+      \item Create a ducc.administrators file
+      \end{enumerate}
+      
+    Note: When a user clicks on the WebServer Login link, the login dialog is
+    shown. On that dialog panel is shown the \mbox{authenticator: {\em
+    version}}, which is supplied by your authentication manager implementation's {\em
+    \mbox{getVersion()}} method. Also shown are boxes for userid and password
+    entry. If your authentication manager implemenation's {\em \mbox{isPasswordChecked()}}
+    method returns true then the password box will accept input, otherwise it will be
+    disabled.
+    
+\subsection{Example Implementation}
+    
+    Shown below is an example implementation which can be used as a template
+    for coding protection by means of interfacing with your site's security
+    measures.
+    
+    In this example, the SiteSecurity Java class is presumed to be existing
+    and available code at your installation.
+    
+    \begin{verbatim}
+package org.apache.uima.ducc.example.authentication.module;
+
+import org.apache.uima.ducc.common.authentication.AuthenticationResult;
+import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
+import org.apache.uima.ducc.common.authentication.IAuthenticationResult;
+import org.apache.uima.ducc.example.authentication.site.SiteSecurity;
+
+public class AuthenticationManager implements IAuthenticationManager {
+
+    private final String version = "example 1.0";
+    
+    @Override
+    public String getVersion() {
+        return version;
+    }
+
+    @Override
+    public boolean isPasswordChecked() {
+        return true;
+    }
+
+    @Override
+    public IAuthenticationResult isAuthenticate(String userid, String domain,
+            String password) {
+        IAuthenticationResult authenticationResult = new AuthenticationResult();
+        authenticationResult.setFailure();
+        try {
+            if(SiteSecurity.isAuthenticUser(userid, domain, password)) {
+                authenticationResult.setSuccess();
+            }
+        }
+        catch(Exception e) {
+            //TODO
+        }
+        return authenticationResult;
+    }
+
+    @Override
+    public IAuthenticationResult isGroupMember(String userid, String domain,
+            Role role) {
+        IAuthenticationResult authenticationResult = new AuthenticationResult();
+        authenticationResult.setFailure();
+        try {
+            if(SiteSecurity.isAuthenticRole(userid, domain, role.toString())) {
+                authenticationResult.setSuccess();
+            }
+        }
+        catch(Exception e) {
+            //TODO
+        }
+        return authenticationResult;
+    }
+
+}
+    \end{verbatim}
+        
+\subsection{IAuthenticationManager}
+       
+    Shown below is the interface which must be implemented by your
+    authentication manager.
+    
+    \begin{verbatim}
+package org.apache.uima.ducc.common.authentication;
+
+public interface IAuthenticationManager {
+    
+    /**
+     * This method is expected to return AuthenticationManager implementation version 
+     * information.  It is nominally displayed by the DUCC webserver on the Login/Logout 
+     * pages.
+     * 
+     * Example return value: Acme Authenticator 1.0
+     * 
+     * @return The version of the AuthenticationManager implementation.
+     */
+    public String getVersion();
+    
+    /**
+     * This method is expected to return password checking information.  
+     * It is nominally employed by the DUCC webserver to enable/disable
+     *  password input area on the Login/Logout pages.
+     * 
+     * @return True if the AuthenticationManager implementation checks passwords; 
+     * false otherwise.
+     */
+    public boolean isPasswordChecked();
+    
+    /**
+     * This method is expected to perform authentication.
+     * It is nominally employed by the DUCC webserver for submitted Login pages.
+     * 
+     * @param userid
+     * @param domain
+     * @param password
+     * @return True if authentic userid+domain+password; false otherwise.
+     */
+    public IAuthenticationResult isAuthenticate(String userid, String domain, String password);
+    
+    /**
+     * This method is expected to perform role validation.
+     * It is nominally employed by the DUCC webserver for submitted Login pages.
+     * 
+     * @param userid
+     * @param domain
+     * @param role
+     * @return True if authentic userid+domain+role; false otherwise.
+     */
+    public IAuthenticationResult isGroupMember(String userid, String domain, Role role);
+    
+    /**
+     * The supported Roles
+     */
+    public enum Role {
+        User,
+        Admin
+    }
+}
+    \end{verbatim}
+
+
+\subsection{IAuthenticationResult}
+    
+    Shown below is the interface which must be returned by the required
+    authentication methods in your authentication manager.
+    
+    \begin{verbatim}
+package org.apache.uima.ducc.common.authentication;
+    
+public interface IAuthenticationResult {
+    public void setSuccess();
+    public void setFailure();
+    public boolean isSuccess();
+    public boolean isFailure();
+    public void setCode(int code);
+    public int getCode();
+    public void setReason(String reason);
+    public String getReason();
+    public void setException(Exception exception);
+    public Exception getException();
+}
+    \end{verbatim}
+    
+\subsection{Example ANT script to build jar}
+    
+    Shown below is an example ANT script to build a ducc-authenticator.jar file.
+    The resulting jar file should be placed user DUCC's lib directory along with
+    any dependency jars, and defined in ducc.properties file.
+    
+    \begin{verbatim}
+<project name="uima-ducc-examples" default="build" basedir=".">
+    
+    <property name="TGT-LIB"                value="${basedir}/lib" />
+    <property name="TGT-DUCC-AUTH-JAR"      value="${TGT-LIB}/ducc-authenticator.jar" />
+    
+    <target name="build" depends="clean, jar" />
+    
+    <target name="clean">
+        <delete file="${TGT-DUCC-AUTH-JAR}" />
+    </target>
+    
+    <target name="jar">
+        <mkdir dir="${TGT-LIB}" />
+        <jar destfile="${TGT-DUCC-AUTH-JAR}" basedir="${basedir}/target/classes/org/apache/uima/ducc/example/authentication/module"/>
+    </target>
+    
+</project>
+    \end{verbatim}
+    
+\subsection{Example ducc.properties entries}
+    
+    Shown here is a snippet of the ducc.properties file defining the class to be
+    used for authentication and the administrator created folder
+    {\em site-security}, which should contain the ducc-authenticator.jar you
+    built plus any jar files upon which it depends.
+    
+    Note: the {\em site-security} directory must be located within DUCC's lib
+    directory.
+    
+    \begin{verbatim}
+# The class that performs authentication (for the WebServer)
+ducc.authentication.implementer = org.apache.uima.ducc.example.authentication.module.AuthenticationManager
+
+# Site specific jars: include all jars in directory site-security
+ducc.local.jars = site-security/*
+    \end{verbatim}
+    
+\subsection{Example ducc.administrators}
+    
+    Example contents of ducc.administrators file located within DUCC's resources
+    directory. Only userids listed here can assume the Administrator role when 
+    performing operations via the WebServer.
+    
+    \begin{verbatim}
+jdoe
+fred
+hal9000
+    \end{verbatim}
+
+
+  

@@ -1,0 +1,138 @@
+#!/usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+# Intended for cooperative scheduling.
+# Dumps important information that a "proxy" RM would need to make the 
+# bridge between an external scheduler and DUCC RM. 
+
+import os
+import sys
+import subprocess
+
+from ducc_util  import DuccUtil
+
+class DuccRmQLoad(DuccUtil):
+
+    def format_array(self, ar):
+        fmt = ''
+        for i in range(0, len(ar)):
+            fmt = fmt + '%4d '
+
+        return (fmt % tuple(ar))
+
+    def format_classes(self, cls):
+    
+        # print the list of classes; each class is a dictionary
+        for cl in cls:
+            print 'Class', cl['name'], 'policy', cl['policy']
+            print '   requested', self.format_array(cl['requested'])
+            print '   awarded  ', self.format_array(cl['awarded'])
+            print ''
+    
+    def format_nodepools(self, nps):
+    
+        # print the list of nodepools; each nodepool is a dictionary
+        for np in nps:
+            print 'Nodepool', np['name']
+            print '   online', np['online'], 'dead', np['dead'], 'offline', np['offline'], 'total-shares', np['total-shares'], 'free-shares', np['free-shares']
+            print '   all     machines:', self.format_array(np['all-machines'])
+            print '   online  machines:', self.format_array(np['online-machines'])
+            print '   free    machines:', self.format_array(np['free-machines'])
+            print '   virtual machines:', self.format_array(np['virtual-machines'])
+            print ''
+    
+    #
+    # The input is structured like this:
+    # A dictionary with these keys:
+    #     quantum
+    #        value is a single integer
+    #     classes
+    #        value is a list of dictionaries describing demand
+    #                with these keys
+    #                    name
+    #                       value is string, the name of the class
+    #                    policy
+    #                       value is the scheduling policy
+    #                    requested
+    #                       value is a list of integers
+    #                    awarded
+    #                       value is a list of integers
+    #     nodepools
+    #        value is a list of dictionaries describing a node pool
+    #                 with these keys
+    #                    name
+    #                       value is the namne of the nodepool
+    #                    online
+    #                       value is an integer
+    #                    dead
+    #                       value is an integer
+    #                    offline
+    #                       value is an integer
+    #                    total-shares
+    #                       value is an integer
+    #                    free-shares
+    #                       value is an integer
+    #                    all-machines
+    #                       value is a list of integers
+    #                    online-machines
+    #                       value is a list of integers
+    #                    free-machines
+    #                       value is a list of integers
+    #                    virtual-machines
+    #                       value is a list of integers
+    # 
+    def format(self, lines):
+        qload = eval(lines)
+    
+        print 'Quantum:', qload['quantum']
+        print ''
+        self.format_classes(qload['classes'])
+        self.format_nodepools(qload['nodepools'])
+    
+    def main(self, argv):
+    
+        if len(argv) > 0:
+            print 'rm_qload queries and formats the current state of the RM scheduling tables. It takes no parameters.'
+            sys.exit(1);
+
+        DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
+        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDUCC_HOME=' + self.DUCC_HOME
+        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
+
+        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccRmAdmin', '--qload']
+        CMD = ' '.join(CMD)
+        lines = ''
+        proc = subprocess.Popen(CMD, bufsize=0, stdout=subprocess.PIPE, shell=True)
+        for line in proc.stdout:
+            lines = lines + line
+
+        if 'not yet initialized' in lines:
+            print lines
+            return
+
+        self.format(lines)
+        
+        return
+
+if __name__ == "__main__":
+    query = DuccRmQLoad()
+    query.main(sys.argv[1:])
+
+    

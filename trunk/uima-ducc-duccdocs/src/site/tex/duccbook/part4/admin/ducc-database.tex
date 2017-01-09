@@ -1,0 +1,98 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+\section{DUCC Database Integration}
+\label{sec:ducc.database}
+
+    As of Version 2.1.0, DUCC uses the \href{https://cassandra.apache.org/}{Apache Cassandra}
+    database instead of the filesystem to manage
+    history and the service registry.  Additionally, the Resource Manager maintains
+    current scheduling and node state in the database.
+
+   \subsection{Overview}
+
+    During first-time installation, the \hyperref[subsec:admin.ducc-post-install]{\em ducc\_post\_install} utility
+    randomly generates a (database) super-user password, which is kept in the protected file {\em DUCC\_HOME/resources.private/ducc.private.properties}.
+    The utility proceeds to configure the database and install the schema.
+
+    If DUCC is being upgraded, generally \hyperref[subsec:admin.ducc-post-intall]{\em ducc\_post\_install} is not used, in 
+    which case, again, \hyperref[subsec:admin.db-create]{\em db\_create} and \hyperref[subsec:admin.db-loader]{\em db\_loader} may be used to
+    convert the older file-based state to the database.
+
+    \subsubsection{Orchestrator use of the Database}
+
+    The Orchestrator persists two types of work:
+    \begin{enumerate}
+      \item All work history.  This includes jobs, reservations, service instances, and 
+        arbitrary processes.  This history is what the webserver uses to display details
+        on previously run jobs.  Prior to the database, this data was saved in the
+        {\em DUCC\_HOME/history directory}.
+      \item Checkpoint.  On every state change, the Orchestrator saves the state of 
+        all running and allocated work in the system.  This is used to recover active allocations
+        when DUCC is started enabling warm-start of the Orchestrator without losing work.
+        Prior to the database, this data was saved in the file {\em DUCC\_HOME/state/orchestrator.ckpt}.
+    \end{enumerate}
+    
+    \subsubsection{Service Manager use of the Database}
+    The service manager uses the database to store the service registry and all state
+    of active services.  Prior to the database, this data was saved in Java properties files
+    in the directory {\em DUCC\_HOME/state/services}.
+
+    When a service is ``unregistered'' it is not physically removed from the database.  Instead,
+    a bit is set indicating the service is no long active.  These registrations may be
+    recovered if needed by querying the database.  Prior to the database, this data was saved
+    in {\em DUCC\_HOME/history/service-registry}.
+
+    \subsubsection{Resource Manager use of the Database}
+    The resource manager saves its entire runtime state in the database.  Prior to the
+    database, this dynamnic state was not saved or directly accessible.
+
+    \subsubsection{Webserver use of the Database}
+    The web server uses the database in read-only mode to fetch work history, service
+    registrations, and node status.  Previously to the database most of this information
+    was fetched from the filesystem.  Node status was inferred using the Agent publications;
+    with the database, the webserver has direct access to the Resource Manager's view of the
+    DUCC nodes, providing a much more accurate picture of the system.
+  
+\subsection{Database Scripting  Utilities}
+    Database support is fully integrated with the DUCC start, stop, and check utilities as
+    well as the post installation scripting.
+
+    In addition two utilities are supplied to enable migration of older installations to
+    enable the database:
+
+    \begin{description}
+      \item[db\_create] The \hyperref[subsec:cli.db.create]{db\_create} utility creates the database schema, disables the
+        default database superuser, installs a read-only guest id, and installs the
+        main DUCC super user ID.  Note that database IDs are in no way related to 
+        operating system IDs.
+      \item[db\_loader] The \hyperref[subsec:cli.db.loader]{db\_loader} utility migrates an existing file-based DUCC
+        system to use the database.  It copies in the job history, Orchestrator checkpoint,
+        and the service registry.
+    \end{description}
+      
+    Use the cross-references above for additional details on the utilities.
+    
+\subsection{Database Configuration}
+    Most database configuration is accomplished by setting appropriate values into 
+    your local \hyperref[subsec:ducc.database.properties]{\em site.ducc.properties}.  See
+    the linked section for details.
+    
+    For existing installations, the {\em db\_create} utility installs the
+    database scheme and updates your {\em site.ducc.properties} with reasonable
+    defaults.

@@ -1,0 +1,590 @@
+#! /usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +
+# + ducc_watcher
+# +
+# + purpose: send e-mail when a DUCC daemon state changes to not up
+# + 
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+import ast
+import datetime
+import getpass
+import json
+import logging
+import logging.handlers
+import os
+import smtplib
+import socket
+import string
+import sys
+import time
+import urllib
+
+from HTMLParser import HTMLParser
+
+from optparse import HelpFormatter
+from optparse import OptionGroup
+from optparse import OptionParser
+
+# ----------------------------------------------
+
+# Extend OptionParser class
+class ExtendedOptionParser(OptionParser):
+    # override epilog formatter so 
+    # that newlines are not deleted!
+    def format_epilog(self, formatter):
+        return self.epilog
+
+# ----------------------------------------------
+
+# parser for the system.daemons WS page
+class DuccHtmlParser(HTMLParser):
+    
+    tr_state = False
+    daemon_state = None
+    daemon_name = None  
+    daemon_date = None
+    daemon_ip = None
+    daemon_host = None
+    daemons = {}
+    
+    def get_daemons(self):
+        return self.daemons
+    
+    def handle_starttag(self, tag, attrs):
+        if(tag == 'tr' ):
+            self.tr_state = True
+        
+    def handle_endtag(self, tag):   
+        if(tag == 'tr'):
+            self.tr_state = False
+            self.daemon_state = None
+            self.daemon_name = None
+            self.daemon_date = None
+            self.daemon_ip = None
+            self.daemon_host = None
+        
+    def handle_data(self, data):
+        if(self.tr_state):
+            if(self.daemon_state == None):
+                self.daemon_state = data
+            elif(self.daemon_name == None):
+                self.daemon_name = data
+                if(self.daemon_name == 'Agent'):
+                    pass
+                else:
+                    self.daemons[self.daemon_name] = self.daemon_state
+            elif(self.daemon_date == None):
+                self.daemon_date = data
+            elif(self.daemon_ip == None):
+                self.daemon_ip = data
+            elif(self.daemon_host == None):
+                self.daemon_host = data
+                self.daemon_name = data
+                self.daemons[self.daemon_name] = self.daemon_state
+
+# ----------------------------------------------
+
+name = 'ducc_watcher'
+
+webserver = 'Webserver'
+head_daemons = [ 'Orchestrator',  'ResourceManager', 'Database', 'Broker', 'ProcessManager', 'ServiceManager', webserver ]
+
+flag_info = True
+flag_trace = False
+logger = None
+
+port = '42133'
+
+path = None
+log_file = None
+state_file = None
+
+flag_agents = False
+
+mail_host = 'localhost'
+email_list = None
+
+# produce a time stamp
+def get_timestamp():
+    tod = time.time()
+    timestamp = datetime.datetime.fromtimestamp(tod).strftime('%Y-%m-%d %H:%M:%S')         
+    return timestamp
+
+# get the host running this script
+def get_host():
+    host = socket.gethostname()
+    return host
+
+# get the user running this script
+def get_user():
+    user = getpass.getuser()
+    return user
+
+# make directories, if not already existing
+def mkdirs(path):
+    debug('mkdirs: path='+path)
+    if(os.path.exists(path)):
+        return
+    try:
+        os.makedirs(path)
+    except Exception,e:
+        exception(e)
+    
+# info message to log
+def info(text):
+    global logger
+    type = 'I'
+    line = get_timestamp()+' '+get_user()+'@'+get_host()+' '+type+' '+text
+    logger.info(line)
+    return line
+
+# trace message to log
+def trace(text):
+    global logger
+    global flag_trace
+    type = 'T'
+    line = get_timestamp()+' '+get_user()+'@'+get_host()+' '+type+' '+text
+    if(flag_trace):
+        logger.debug(line)
+    return line
+
+# debug message to log
+def debug(text):
+    global logger
+    type = 'D'
+    line = get_timestamp()+' '+get_user()+'@'+get_host()+' '+type+' '+text
+    logger.debug(line)
+    return line
+
+# error message to log
+def error(text):
+    global logger
+    type = 'E'
+    line = get_timestamp()+' '+get_user()+'@'+get_host()+' '+type+' '+text
+    logger.error(line)
+    return line
+
+# warn message to log
+def warn(text):
+    global logger
+    type = 'W'
+    line = get_timestamp()+' '+get_user()+'@'+get_host()+' '+type+' '+text
+    logger.warn(line)
+    return line
+
+# exit
+def exit(code):
+    text = 'exit code='+str(code)
+    email(text)
+    error(text)
+    sys.exit(code)
+
+# exception
+def exception(e):
+    line = error(str(e))
+    return line
+    
+# epilog for --help
+def get_epilog():
+    epilog = ''
+    return epilog
+
+# debug is normally not set
+def validate_debug(options):
+    global logger
+    if(options.flag_debug):
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+
+# consider head node daemons only
+# unless --agents is specified
+def validate_agents(options):
+    global flag_agents
+    if(options.flag_agents):
+        flag_agents = True
+    
+# use /tmp/<userid> as log+state directory 
+# unless --path is specified
+def validate_path(options):
+    if(options.path == None):
+        options.path = '/tmp'+'/'+get_user()
+    mkdirs(options.path)
+
+# setup rotating log file handler with
+# 8 versions of 8M bytes with base name
+# ducc_watcher.<target>.log
+def setup_log_file(options):  
+    global name
+    global target
+    global logger
+    log_file = options.path
+    if(not log_file.endswith('/')):
+        log_file = log_file + '/'
+    log_file = log_file + name + '.' + target +'.log'
+    handler = logging.handlers.RotatingFileHandler(
+        log_file, maxBytes=8*1024*1024, backupCount=8)
+    logger.addHandler(handler)
+    debug('log_file: '+log_file)
+
+# ducc_watcher.<target>.state
+def setup_state_file(options): 
+    global name 
+    global target
+    global state_file
+    state_file = options.path
+    if(not state_file.endswith('/')):
+        state_file = state_file + '/'
+    state_file = state_file + name + '.' + target +'.state'
+    debug('state_file: '+state_file)
+
+# must specify --target host:port of WS for fetching
+# of daemons status
+def validate_target(options):
+    global port
+    global target
+    global ducc_url_base
+    global ducc_url_servlet
+    protocol = 'http://'
+    servlet = '/ducc-servlet/classic-system-daemons-data'
+    if(options.target == None):
+        error('required "target" not specified')
+        exit(1)
+    target = options.target
+    if(':' not in target):
+        target = target+':'+str(port)
+    if(target.startswith(protocol)):
+        target = target.replace(protocol,'',1)
+    ducc_url_base = protocol+target
+    ducc_url_servlet = protocol+target+servlet
+    debug('target: '+ducc_url_base)
+    
+# list of e-mail recipients, if any
+def validate_email_list(options):
+    global email_list
+    if(not options.email_list == None):
+        email_list = options.email_list.split()
+    debug('email-list: '+str(email_list))
+
+# parse command line
+def parse_cmdline():
+    global name
+    parser = ExtendedOptionParser(epilog=get_epilog())
+    width = 45
+    parser.formatter.help_position = width
+    parser.formatter.max_help_position = width
+    parser.add_option('-a','--agents', action='store_true', dest='flag_agents', default=False, 
+                               help='include agents')
+    parser.add_option('-d','--debug', action='store_true', dest='flag_debug', default=False, 
+                               help='display debugging messages')
+    parser.add_option('-e','--email-list', action='store', dest='email_list', default=None, 
+                               help='blank separated list of email addresses to receive down + error notifications')
+    parser.add_option('-p','--path', action='store', dest='path', default=None,
+                               help='path to directory where log and state information are written, default is /tmp'+'/'+get_user())
+    parser.add_option('-t','--target', action='store', dest='target', default=None,
+                               help='[REQUIRED] <host> with default port of '+port+' or <host>:<port>')
+
+    (options, args) = parser.parse_args()
+    # -d
+    validate_debug(options)
+    # -t
+    validate_target(options)
+    # -e
+    validate_email_list(options)
+    # -p
+    validate_path(options)
+    # dependencies
+    setup_log_file(options)
+    setup_state_file(options)
+    # -a
+    validate_agents(options)
+
+# determine if named daemon is one of the head node ones
+def is_head(key):
+    global head_daemons
+    retVal = False
+    if(key in head_daemons):
+        retVal = True   
+    return retVal
+
+# get rid of noise. remove if
+# 1. state is unknown
+# 2. if is agent and agents are not wanted
+def filter(state_dict):
+    global flag_agents
+    retVal = {}
+    for key in state_dict:
+        if(state_dict[key] == 'unknown'):
+            pass
+        else:
+            if(is_head(key)):
+                retVal[key] = state_dict[key]
+            elif(flag_agents):
+                retVal[key] = state_dict[key]
+    return retVal
+
+# summarize state of all ducc daemons
+def summarize(state_dict):
+    global head_daemons
+    retVal = 'up'
+    if(len(state_dict) < len(head_daemons)):
+        retVal = 'down'
+    else:
+        for key in state_dict:
+            if(not state_dict[key] == 'up'):
+                retVal = 'down'
+                break;
+    return retVal
+
+# read precious daemons state
+def read_state_previous():
+    global state_dict_previous
+    global state_file
+    state_dict_previous = {}
+    try:
+        with open(state_file, 'r') as f:
+            s = f.read()
+            state_dict_previous = ast.literal_eval(s)
+            debug('state_previous(read): '+str(state_dict_previous))
+            state_dict_previous = filter(state_dict_previous)
+            debug('state_previous(filter): '+str(state_dict_previous))
+    except Exception,e:
+        error('unable to read state from '+state_file)
+        exception(e)
+
+# write previous daemons state
+def write_state_previous():
+    global state_dict_previous
+    global state_file
+    try:
+        with open(state_file, 'w') as f:
+            f.seek(0)
+            f.write(str(state_dict_previous)+'\n')
+            f.truncate()
+            debug('state_previous(write): '+str(state_dict_previous))
+    except Exception,e:
+        error('unable to write state to '+state_file)
+        exception(e)
+
+# current becomes previous daemons state
+def update_state_previous():
+    global state_dict_previous
+    global state_dict_current
+    state_dict_previous = state_dict_current
+    write_state_previous()
+
+# fetch current daemons state
+def fetch_state_current():
+    global flag_agents
+    global state_dict_current
+    global ducc_url_servlet
+    global webserver
+    state_dict_current = {}
+    try:
+        import urllib2
+        opener = urllib2.build_opener()
+        if(flag_agents):
+            opener.addheaders.append(('Cookie', 'DUCCagents=show'))
+        response = opener.open(ducc_url_servlet)
+        data = response.read()
+        parser = DuccHtmlParser()
+        parser.feed(data)
+        daemons = parser.get_daemons()
+        if(daemons == None):
+            debug('daemons is None')
+        else:
+            for daemon in daemons:
+                status = daemons[daemon]
+                trace(daemon+':'+' '+status+' ')
+                state_dict_current[daemon] = status
+            debug('state_current(read): '+str(state_dict_current))
+            state_dict_current = filter(state_dict_current)
+            debug('state_current(filter): '+str(state_dict_current))
+    except Exception,e:
+        # for WS status to down whenever contact fails
+        daemon = webserver
+        status = 'unreachable'
+        state_dict_current[daemon] = status
+        error('unable to fetch data from '+ducc_url_servlet)
+        exception(e)
+    debug('state_current: '+str(state_dict_current))
+
+# determine state changes between previous and current
+def determine_state_changes():
+    global state_dict_current
+    global state_dict_previous
+    global state_dict_not_up
+    global state_changes_count
+    state_changes_count = 0
+    state_dict_not_up = {}
+    for key in state_dict_current:
+        state_current = state_dict_current.get(key, '?')
+        if(state_current == 'up'):
+            pass
+        else:
+            state_dict_not_up[key] = state_current
+            state_previous = state_dict_previous.get(key, '?')
+            if(state_current == state_previous):
+                pass
+            else:
+                state_changes_count = state_changes_count + 1
+                info(key+' '+'from'+' '+state_previous+' '+'to'+' '+state_current)
+                
+# send email
+def email(HOST, SUBJECT, TO, FROM, TEXT):
+    try:
+        BODY = string.join((
+            "From: %s" % FROM,
+            "To: %s" % TO,
+            "Subject: %s" % SUBJECT ,
+            "",
+            TEXT
+            ), "\r\n")
+        server = smtplib.SMTP(HOST)
+        server.sendmail(FROM, [TO], BODY)
+        server.quit()
+        info('sent: ['+TO+'] '+TEXT)
+    except Exception,e:
+        error('not sent: ['+TO+'] '+TEXT)
+        exception(e)
+
+# send email
+def email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT):
+    if(TO_LIST == None):
+        info('e-mail list empty')
+    else:
+        for TO in TO_LIST:
+            email(HOST, SUBJECT, TO, FROM, TEXT)
+        
+# check if all head node daemons are reported
+def is_all_head_daemons():
+    global state_dict_current
+    global head_daemons
+    debug('states: '+str(state_dict_current))
+    debug('daemons: '+str(head_daemons))
+    for daemon in head_daemons:
+        if(daemon in state_dict_current):
+            debug(daemon+' reporting')
+        else:
+            info(daemon+' not reporting')
+            retVal = False
+            break
+    retVal = True
+    debug('all head daemons: '+str(retVal))   
+    return retVal
+
+# check if only webserver is reported
+def is_only_webserver():
+    global state_dict_current
+    global webserver
+    retVal = False
+    len_cur = len(state_dict_current)
+    if(len_cur == 1):
+        if(webserver in state_dict_current):
+            debug(webserver+' only reporting')
+            retVal = True
+    debug('webserver only: '+str(retVal))        
+    return retVal
+
+# not reportable when ducc boot is in progress
+def is_reportable():
+    global head_daemons
+    global state_dict_current
+    retVal = False
+    if(is_only_webserver()):
+        retVal = True
+    elif(is_all_head_daemons()):
+        retVal = True
+    return retVal
+
+# e-mail message subject
+def get_subject(status):
+    global ducc_url_base
+    subject = 'DUCC'+' '+'status='+status+' '+ducc_url_base
+    return subject
+
+# e-mail message body
+def get_body(text):
+    global name
+    global ducc_url_base
+    sender = get_user()+'@'+get_host()
+    body = '['+sender+']'+' '+name+' '+'reports'+' '+ducc_url_base+' '+'state change:'+' '+text
+    return body
+
+# e-mail state changes, if any
+def email_state_changes():
+    global state_dict_current
+    global state_dict_previous
+    global state_dict_not_up
+    global state_changes_count
+    global mail_host
+    global email_list
+    if(is_reportable()):
+        sum_prv = summarize(state_dict_previous)
+        sum_cur = summarize(state_dict_current)
+        status = sum_cur
+        subject = get_subject(status)
+        if(state_changes_count > 0):
+            info('state_changes(count): '+str(state_changes_count))
+            HOST = mail_host
+            SUBJECT = subject
+            TO_LIST = email_list
+            FROM = get_user()+'@'+get_host()
+            TEXT = get_body(str(state_dict_not_up))
+            email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT)
+        else:
+            debug('state_changes(count): '+str(state_changes_count))
+            if(sum_cur == sum_prv):
+                debug('state_current(summary): '+str(sum_cur))
+                debug('state_previous(summary): '+str(sum_prv))
+            else:
+                info('state_current(summary): '+str(sum_cur))
+                info('state_previous(summary): '+str(sum_prv))
+                if(sum_cur == 'up'):
+                    HOST = mail_host
+                    SUBJECT = subject
+                    TO_LIST = email_list
+                    FROM = get_user()+'@'+get_host()
+                    TEXT = get_body('All daemons up')
+                    email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT)
+    
+# check for DUCC daemon status changes
+def main(argv):
+    global logger
+    try:
+        logger = logging.getLogger('logger')
+        handler = logging.StreamHandler(sys.stdout)
+        logger.addHandler(handler)
+        parse_cmdline()
+        read_state_previous()
+        fetch_state_current()
+        determine_state_changes() 
+        email_state_changes()
+        update_state_previous()
+    except Exception,e:
+        error('exception in main')
+        exception(e)
+             
+if __name__ == '__main__':
+    main(sys.argv[1:])

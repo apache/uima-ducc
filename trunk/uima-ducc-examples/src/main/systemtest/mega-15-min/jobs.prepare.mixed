@@ -1,0 +1,65 @@
+# 
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+# 
+#   http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# 
+# control file to create a random-like submission of jobs for batch submission
+# This represents jobs submitted over approximately 36 hours real time
+# Compression of 96 and spread 900 gives a good 15-20 minute test on test system with
+# 136 15-G shares
+
+random.seed                   = 0         # a number, for determinate randoms
+                                          # or TOD, and the seed will use
+                                          # current time of day
+
+
+src.dir                       = jobs.in   # where the jobs are
+dest.dir                      = jobs      # where to put prepared jobs
+
+
+# Scheduling classes are set mix very low and very high weighted jobs with a bunch
+# of medium-weighted jobs to test the scheduler.  This assumes a class config
+# with with weights assigned thus, all fair-share, all at the same priority:
+#
+#   background 10
+#   low        50
+#   normal     100
+#   high       200
+#   urgent     400
+#
+scheduling.classes            = background low normal high urgent  # classes
+scheduling.classes.background = 5                                  # weights for each class
+scheduling.classes.low        = 15
+scheduling.classes.normal     = 75
+scheduling.classes.high       = 15
+scheduling.classes.urgent     = 5
+
+job.services                  = 0 1 2 3 4 5 
+job.services.0                = 25
+job.services.1                = 25
+job.services.2                = 25
+job.services.3                = 25
+job.services.4                = 25
+job.services.5                = 25
+
+job.memory                    = 28 37                              # memorys to assign
+job.memory.28                 = 50
+job.memory.37                 = 50
+
+submission.spread             = 900                                # number of *seconds* to try to spread submission over 
+
+compression                   = 96                                 # comporession for timings
+
