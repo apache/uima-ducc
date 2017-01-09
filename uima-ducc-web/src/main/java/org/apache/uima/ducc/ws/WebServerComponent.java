@@ -217,7 +217,7 @@ implements IWebServer {
 	public void update(RmStateDuccEvent duccEvent) {
 		String methodName = "update";
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
-		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"RmStateDuccEvent");
+		duccLogger.info(methodName, jobid, duccMsg.fetchLabel("received")+"RmStateDuccEvent");
 		DuccDaemonsData.getInstance().put(duccEvent);
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
@@ -226,7 +226,7 @@ implements IWebServer {
 	public void update(SmStateDuccEvent duccEvent) {
 		String methodName = "update";
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
-		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"SmStateDuccEvent");
+		duccLogger.info(methodName, jobid, duccMsg.fetchLabel("received")+"SmStateDuccEvent");
 		DuccDaemonsData.getInstance().put(duccEvent);
 		ServicesRegistry.getInstance().update();
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
@@ -245,7 +245,7 @@ implements IWebServer {
 	public void update(PmStateDuccEvent duccEvent) {
 		String methodName = "update";
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
-		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"PmStateDuccEvent");
+		duccLogger.info(methodName, jobid, duccMsg.fetchLabel("received")+"PmStateDuccEvent");
 		DuccDaemonsData.getInstance().put(duccEvent);
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
@@ -256,7 +256,7 @@ implements IWebServer {
 	public void update(WebServerStateDuccEvent duccEvent) {
 		String methodName = "update";
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
-		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"PmStateDuccEvent");
+		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"WebServerStateDuccEvent (broker is alive)");
 		DuccDaemonsData.getInstance().put(duccEvent);
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}

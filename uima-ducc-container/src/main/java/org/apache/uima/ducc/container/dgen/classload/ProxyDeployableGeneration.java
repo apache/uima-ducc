@@ -111,7 +111,8 @@ public class ProxyDeployableGeneration {
 			show("ccOverrides", ccOverrides);
 			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.dgen.iface.DeployableGeneration");
 			Constructor<?> constructor = clazz.getConstructor();
-			Object instance = constructor.newInstance();
+			Object[] c_args = new Object[] { };
+			Object instance = ContextSwitch.construct(urlClassLoader, constructor, c_args);
 			Class<?>[] parameterTypes = { 
 					String.class,	// directory
 					String.class,	// id
@@ -182,7 +183,8 @@ public class ProxyDeployableGeneration {
 			show("referenceByName", referenceByName);
 			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.dgen.iface.DeployableGeneration");
 			Constructor<?> constructor = clazz.getConstructor();
-			Object instance = constructor.newInstance();
+			Object[] c_args = new Object[] { };
+			Object instance = ContextSwitch.construct(urlClassLoader, constructor, c_args);
 			Class<?>[] parameterTypes = { 
 					String.class,	// directory
 					String.class,	// id

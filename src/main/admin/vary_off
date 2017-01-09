@@ -54,7 +54,7 @@ class DuccVaryOff(DuccUtil):
         return
 
 if __name__ == "__main__":
-    stopper = DuccVaryOff()
-    stopper.main(sys.argv[1:])
+    instance = DuccVaryOff()
+    instance.main(sys.argv[1:])
 
     

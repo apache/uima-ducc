@@ -222,7 +222,8 @@ public class ProxyJobDriverCollectionReader {
 	private void prepare() throws Exception {
 		class_JdUserCollectionReader = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.JdUserCollectionReader");
 		Constructor<?> constructor_JdUserCollectionReader = class_JdUserCollectionReader.getConstructor(String.class,String.class);
-		instance_JdUserCollectionReader = constructor_JdUserCollectionReader.newInstance(new Object[] { crXml, crCfg });
+		instance_JdUserCollectionReader = ContextSwitch.construct(urlClassLoader, constructor_JdUserCollectionReader, 
+		        new Object[] { crXml, crCfg });
 		method_getTotal = class_JdUserCollectionReader.getMethod(name_getTotal, nullClassArray);
 		class_JdUserMetaCas = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.JdUserMetaCas");
 		method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);

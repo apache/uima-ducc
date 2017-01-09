@@ -174,7 +174,8 @@ public class ProcessAccounting {
 					//OK
 				}
 				else {
-					logger.warn(methodName, dw.getDuccId(), inventoryProcess.getDuccId(), "PID"+" "+"old:"+oldValue+" "+"new:"+newValue+" "+"keeping old");
+					logger.warn(methodName, dw.getDuccId(), inventoryProcess.getDuccId(), "PID"+" "+"old:"+oldValue+" "+"new:"+newValue+" "+"replacing old");
+					process.setPID(newValue);
 				}
 			}
 		}

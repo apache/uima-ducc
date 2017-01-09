@@ -59,7 +59,8 @@ public class ProxyUserErrorStringify {
 		try {
 			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.error.iface.Stringify");
 			Constructor<?> constructor = clazz.getConstructor();
-			Object instance = constructor.newInstance();
+			Object[] c_args = new Object[] { };
+			Object instance = ContextSwitch.construct(urlClassLoader, constructor, c_args);
 			Class<?>[] parameterTypes = { 
 				Object.class,	// userException
 				};

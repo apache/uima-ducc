@@ -305,6 +305,47 @@ check_ducc -n nlist1 -n nlist2
            \end{description}               
 
 
+            
+\subsection{build\_duccling}
+\label{subsec:admin.build-duccling}
+
+    See ~\ref{sec:duccling.install} on Ducc\_ling Configuration.
+
+
+\subsection{ducc\_disk\_info}
+\label{subsec:admin.ducc-disk-info}
+    \subsubsection{{\em Description:}}
+
+    The disk info tool is used to obtain information about DUCC disk usage. 
+    
+    \paragraph{Usage:}
+        This command nominally takes no parameters.
+        
+    \paragraph{Options:}
+    \begin{description}
+      	\item -h, --help      Prints the usage text to the console. 
+      	\item -c, --code      Prints the exit code, which is the greater of disk usage percentage and quota usage percentage. 
+      	\item -d, --debug     Prints internal debugging information, intended for DUCC developers or extended problem determination.
+      	\item -n, --nomsg     Suppress display of filesystem and quota percentages used message. 
+    \end{description}       
+
+
+\subsection{ducc\_gather\_logs}
+\label{subsec:admin.ducc-gather-logs}
+    \subsubsection{{\em Description:}}
+
+    Purpose: gather problem determination information comprising DUCC logs and configuration data into a gz file.
+    
+    \paragraph{Usage:}
+        This command nominally takes no parameters.
+        
+    \paragraph{Options:}
+    \begin{description}
+      	\item -h, --help      Prints the usage text to the console. 
+      	\item -d DIRECTORY, --directory DIRECTORY     Path to directory for gz file, default=/tmp.
+    \end{description}       
+    
+
 \subsection{ducc\_post\_install}
 \label{subsec:admin.ducc-post-install}
 
@@ -436,11 +477,6 @@ ducc_update ducc_runtime /home/ducc/ducc_runtime Downloads/uima-ducc-2.1.0-bin.t
       	\item -o, --offline  indicate current DUCC head node is offline, Note: USE THIS OPTION WITH EXTREME CAUTION else risk corrupting database
       	\item -q, --quiet    do not display informational messages
     \end{description}
-
-    \paragraph{Example:}
-\begin{verbatim}
-move\_ducc 
-\end{verbatim}
 
 
 \subsection{rm\_reconfigure}
@@ -870,3 +906,18 @@ db_tool --restore-overwrite /backups/ducc/ducc_db.tar.gz --verbose
 
     \paragraph{Notes:}
     The console shows progress of the db\_tool unless --quiet is specified.   
+
+
+\subsection{ducc\_get\_process\_swap\_usage}
+\label{subsec:admin.ducc-get-process-swap-usage}
+    \subsubsection{{\em Description:}}
+
+    The script is run by an agent to obtain swap space used by a process with a given PID. 
+    
+    \paragraph{Usage:}
+        This script takes one parameter.
+        
+    \paragraph{Options:}
+    \begin{description}
+      	\item PID      PID of a process 
+    \end{description}       

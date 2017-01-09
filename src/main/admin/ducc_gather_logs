@@ -18,6 +18,7 @@
 # under the License.
 # -----------------------------------------------------------------------
 
+import datetime
 import os
 import socket
 import subprocess
@@ -61,10 +62,21 @@ class GatherLogs(DuccUtil):
     # output directory
     directory = '/tmp'
     # output base filename
-    filename = 'ducc-problem-determination-info.gz'
+    filename = 'ducc-problem-determination-info'
+    filetype = 'tar'
     
     def get_timestamp(self):
-        return get_timestamp().replace(' ','-')
+        dt = datetime.datetime.now()
+        year = dt.strftime("%Y")
+        month = dt.strftime("%b")
+        day = dt.strftime("%d")
+        date = year+month+day
+        hour = dt.strftime("%H")
+        minute = dt.strftime("%M")
+        second = dt.strftime("%S")
+        time = hour+minute+second
+        timestamp = date+'.'+time
+        return timestamp
     
     # resolve output file path
     def resolve_target(self):
@@ -73,9 +85,10 @@ class GatherLogs(DuccUtil):
         self.directory = self.directory.strip()
         if(self.directory == ''):
             self.directory = '/tmp'
-        self.filename = self.filename.replace('.','.'+socket.gethostname()+'.'+self.get_timestamp()+'.')
+        self.filename = self.filename+'.'+socket.gethostname()+'.'+self.get_timestamp()
         self.target = self.directory+'/'+self.filename
         self.target = self.target.replace('//','/')
+        self.target = self.target+'.'+self.filetype
         if(not os.path.isdir(self.directory)):
             os.makedirs(self.directory)
     
@@ -90,15 +103,16 @@ class GatherLogs(DuccUtil):
         (options, args) = parser.parse_args()
         self.directory = options.directory
 
-    # create gz file
-    def create_zip(self):
+    # create tar file
+    def create_targz(self):
         cmd = []
         cmd.append('tar')
-        cmd.append('-C')
+        cmd.append('--directory')
         cmd.append(self.DUCC_HOME)
         cmd.append('--exclude')
         cmd.append('state/database')
-        cmd.append('-czf')
+        cmd.append('--create')
+        cmd.append('--file')
         cmd.append(self.target)
         cmd.append('apache-uima/apache-activemq/data')
         cmd.append('logs')
@@ -106,12 +120,20 @@ class GatherLogs(DuccUtil):
         cmd.append('resources')
         cmd.append('state')
         cmd.append('README')
-        #print cmd
-        message = 'creating'+' '+self.target
+        cmdline = ''
+        for item in cmd:
+            cmdline = cmdline+' '+item
+        #print cmdline
+        message = 'creating'+' '+self.target+'.gz'
         print_info(message)
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
-        sizeMB = os.path.getsize(self.target)/(1.0*1024*1024)
+        cmd = []
+        cmd.append('gzip')
+        cmd.append(self.target)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        sizeMB = os.path.getsize(self.target+'.gz')/(1.0*1024*1024)
         fmtSizeMB = "%.2f" % sizeMB
         message = 'size'+' '+str(fmtSizeMB)+' '+'MB'
         print_info(message)
@@ -119,8 +141,8 @@ class GatherLogs(DuccUtil):
     def main(self, argv):
         self.parse_cmdline()
         self.resolve_target()
-        self.create_zip()
-            
+        self.create_targz()
+        
 if __name__ == '__main__':
     instance = GatherLogs()
     instance.main(sys.argv[1:])

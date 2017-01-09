@@ -3716,6 +3716,29 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 	}
 	
+	private String cache_disk_info = "";
+	private long cache_disk_info_TOD = 0;
+	private long cache_disk_info_interval = 15*(60*1000);
+	
+	private void record_disk_info(String disk_info) {
+		String methodName = "record_disk_info";
+		if(disk_info != null) {
+			long now= System.currentTimeMillis();
+			if(disk_info.equals(cache_disk_info)) {
+				long elapsed = now - cache_disk_info_TOD;
+				if(elapsed > cache_disk_info_interval) {
+					cache_disk_info_TOD = now;
+					duccLogger.info(methodName, jobid, disk_info);
+				}
+			}
+			else {
+				cache_disk_info = disk_info;
+				cache_disk_info_TOD = now;
+				duccLogger.info(methodName, jobid, disk_info);
+			}
+		}
+	}
+	
 	private void handleDuccServletAlerts(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -3728,7 +3751,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			switch(daemonName) {
 			case Database:
 				String disk_info = DiagnosticsHelper.get_ducc_disk_info();
-				duccLogger.info(methodName, jobid, disk_info);
+				record_disk_info(disk_info);
 				if(databaseHelper.isDisabled()) {
 					continue daemons;
 				}
