@@ -509,6 +509,17 @@ public class CGroupsManager {
 		}
 		return location+id+"cpuacct.usage";
 	}
+	private String composeMemoryStatFileName(String id) {
+		String location = getCGroupLocation("memory").trim();
+		if ( !location.endsWith(System.getProperty("file.separator"))) {
+			location = location + System.getProperty("file.separator");
+		}
+		if ( !legacyCgConfig ) {
+			location += SYSTEM+System.getProperty("file.separator");
+		}
+		return location+id+"memory.stat";
+	}
+
 	public boolean isCpuReportingEnabled() {
 //		String file = getCGroupLocation("cpuacct")+System.getProperty("file.separator")+"cpuacct.usage";
 	
@@ -551,7 +562,63 @@ public class CGroupsManager {
 			usage = -1;  // cgroups accounting not configured
 		}
 		return usage;
+
 	}
+	public enum CgroupMemoryStat {
+		RSS("rss"),
+		SWAP("swap"),
+		FAULTS("pgpgin");
+		
+		String key;
+		
+		private CgroupMemoryStat(String aKey) {
+			this.key = aKey;
+		}
+		
+		public String getKey() {
+			return this.key;
+		}
+		
+	}
+	public long getUsageForMemoryStat(CgroupMemoryStat stat, String containerId ) throws Exception {
+		long usage = -1;
+
+		if (!containerId.endsWith(System.getProperty("file.separator"))) {
+			containerId = containerId + System.getProperty("file.separator");
+		}
+		String file = composeMemoryStatFileName(containerId.trim());
+		agentLogger.info("getUsageForMemoryStat", null, "MEMORY.STAT file:"+file);
+		File f = new File(file);
+		if ( f.exists() ) {
+			InputStreamReader isr = new InputStreamReader(new FileInputStream(f));
+			BufferedReader br = new BufferedReader(isr);
+			String line;
+			try {
+				while ((line = br.readLine()) != null) {
+					agentLogger.trace("getUsageForMemoryStat", null, "MEMORY.STAT Line:"+line);
+					if ( line.startsWith(stat.getKey())) {
+						usage = Long.parseLong(line.trim().split(" ")[1]);
+						break;
+					}
+				}
+			} catch ( Exception e) {
+				agentLogger.error("getUsageForMemoryStat", null, e);
+			}
+			finally {
+				if (isr != null) {
+					isr.close();
+				}
+				agentLogger.trace("getUsageForMemoryStat", null, "Done Reading memory.stat file:"+file);
+			}
+		} else {
+			agentLogger.info("getUsageForMemoryStat", null, "MEMORY.STAT file:"+file+" Not Found - Process RSS Usage is Unavailable");
+
+			usage = -1;  // cgroups accounting not configured
+		}
+		return usage;
+	}
+
+	
 	/**
 	 * Sets the max memory use for an existing cgroup container.
 	 * 

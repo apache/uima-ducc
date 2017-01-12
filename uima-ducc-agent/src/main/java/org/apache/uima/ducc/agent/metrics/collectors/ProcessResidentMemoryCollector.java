@@ -18,23 +18,30 @@
 */
 package org.apache.uima.ducc.agent.metrics.collectors;
 
-import java.io.RandomAccessFile;
 import java.util.concurrent.Callable;
 
+import org.apache.uima.ducc.agent.launcher.CGroupsManager;
+import org.apache.uima.ducc.agent.launcher.CGroupsManager.CgroupMemoryStat;
 import org.apache.uima.ducc.common.agent.metrics.memory.DuccProcessResidentMemory;
 import org.apache.uima.ducc.common.agent.metrics.memory.ProcessResidentMemory;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 
 
-public class ProcessResidentMemoryCollector extends AbstractMetricCollector
+public class ProcessResidentMemoryCollector 
 		implements Callable<ProcessResidentMemory> {
-	public ProcessResidentMemoryCollector(RandomAccessFile fileHandle,
-			int howMany, int offset) {
-		super(fileHandle, howMany, offset);
+	private String containerId=null;
+	private CGroupsManager cgm=null;
+
+	public ProcessResidentMemoryCollector(DuccLogger logger, CGroupsManager mgr, String jobId) {
+		this.containerId = jobId;
+		this.cgm = mgr;
 	}
 
 	public ProcessResidentMemory call() throws Exception {
-		super.parseMetricFile();
-		return new DuccProcessResidentMemory(super.metricFileContents,
-				super.metricFieldOffsets, super.metricFieldLengths);
+		return new DuccProcessResidentMemory(collect());
+	}
+	private long collect() throws Exception{
+		// use cgroups manager to collect rss usage
+		return cgm.getUsageForMemoryStat(CgroupMemoryStat.RSS,containerId);
 	}
 }

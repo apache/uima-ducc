@@ -18,25 +18,17 @@
 */
 package org.apache.uima.ducc.common.agent.metrics.memory;
 
-import org.apache.uima.ducc.common.node.metrics.ByteBufferParser;
-
-public class DuccProcessResidentMemory extends ByteBufferParser implements
+public class DuccProcessResidentMemory implements
 		ProcessResidentMemory {
 
 	private static final long serialVersionUID = 8563460863767404377L;
-	private static final int TOTAL = 0;
-	private static final int RESIDENT = 1;
-
-	public DuccProcessResidentMemory(byte[] memInfoBuffer,
-			int[] memInfoFieldOffsets, int[] memInfoFiledLengths) {
-		super(memInfoBuffer, memInfoFieldOffsets, memInfoFiledLengths);
+	long rss;
+	
+	public DuccProcessResidentMemory(long rss) {
+		this.rss = rss;
 	}
 
 	public long get() {
-		return super.getFieldAsLong(RESIDENT);
-	}
-	
-	public long getTotal() {
-		return super.getFieldAsLong(TOTAL);
+		return rss;
 	}
 }

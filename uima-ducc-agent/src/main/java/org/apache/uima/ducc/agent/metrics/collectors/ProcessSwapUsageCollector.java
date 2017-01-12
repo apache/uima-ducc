@@ -18,65 +18,34 @@
 */
 package org.apache.uima.ducc.agent.metrics.collectors;
 
-import java.io.RandomAccessFile;
 import java.util.concurrent.Callable;
 
-import org.apache.uima.ducc.common.agent.metrics.swap.DuccProcessMemoryPageLoadUsage;
-import org.apache.uima.ducc.common.agent.metrics.swap.ProcessMemoryPageLoadUsage;
+import org.apache.uima.ducc.agent.launcher.CGroupsManager;
+import org.apache.uima.ducc.agent.launcher.CGroupsManager.CgroupMemoryStat;
+import org.apache.uima.ducc.common.agent.metrics.swap.DuccProcessSwapSpaceUsage;
+import org.apache.uima.ducc.common.agent.metrics.swap.ProcessSwapSpaceUsage;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
 public class ProcessSwapUsageCollector implements
-		Callable<ProcessMemoryPageLoadUsage> {
-	String pid;
-	
-	public ProcessSwapUsageCollector(DuccLogger logger, String pid,
-			RandomAccessFile fileHandle, int howMany, int offset) {
-		this.pid = pid;
+		Callable<ProcessSwapSpaceUsage> {
+	private CGroupsManager cgm=null;
+	private String containerId=null;
+
+	public ProcessSwapUsageCollector(DuccLogger logger, CGroupsManager mgr, String jobId ) {
+		this.containerId = jobId;
+		this.cgm = mgr;
 	}
 
-	public ProcessMemoryPageLoadUsage call() throws Exception {
+	public ProcessSwapSpaceUsage call() throws Exception {
 		try {
-			return new DuccProcessMemoryPageLoadUsage(pid);
+			return new DuccProcessSwapSpaceUsage(collect());
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
 	}
-/*
-	private String execTopShell() throws Exception {
-		List<String> command = new ArrayList<String>();
-		command.add("top");
-		command.add("-b");
-		command.add("-n");
-		command.add("1");
-		command.add("-p");
-		command.add(pid);
-
-		ProcessBuilder builder = new ProcessBuilder(command);
-		Process process = builder.start();
-		InputStream is = process.getInputStream();
-		InputStreamReader isr = new InputStreamReader(is);
-		BufferedReader br = new BufferedReader(isr);
-		String line;
-		int count = 0;
-		String cpu = "";
-		try {
-			while ((line = br.readLine()) != null) {
-				if (count == 7) {
-					String[] values = line.trim().split("\\s+");
-					cpu = values[9];
-					process.destroy();
-					break;
-				}
-				count++;
-			}
-		} finally {
-			if (is != null) {
-				is.close();
-			}
-		}
-		process.waitFor();
-		return cpu;
+	private long collect() throws Exception{
+		// use cgroups manager to collect rss usage
+		return cgm.getUsageForMemoryStat(CgroupMemoryStat.SWAP,containerId);
 	}
-	*/
 }

@@ -18,57 +18,13 @@
 */
 package org.apache.uima.ducc.common.agent.metrics.swap;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
-public class DuccProcessMemoryPageLoadUsage implements
-		ProcessMemoryPageLoadUsage {
-	String pid;
+public class DuccProcessMemoryPageLoadUsage implements ProcessMemoryPageLoadUsage{
+	long faults;
 	
-	public DuccProcessMemoryPageLoadUsage(String pid) {
-		this.pid = pid;
+	public DuccProcessMemoryPageLoadUsage(long faults) {
+		this.faults = faults;
 	}	
-	public long getMajorFaults() throws Exception {
-		return collectProcessMajorFaults();
+	public long getMajorFaults() {
+		return faults;
 	}
-	private long collectProcessMajorFaults() throws Exception {
-		String[] command = new String[] {"/bin/ps","-o","maj_flt",pid};
-
-		ProcessBuilder builder = new ProcessBuilder(command);
-		builder.redirectErrorStream(true);
-		Process process = builder.start();
-		InputStream is = process.getInputStream();
-		if ( is != null ) {
-			InputStreamReader isr = new InputStreamReader(is);
-			BufferedReader br = new BufferedReader(isr);
-			String line;
-			int count = 0;
-			String faults = null;
-			try {
-				while ((line = br.readLine()) != null) {
-					// skip the header line
-					if (count == 1) {
-						faults = line.trim();
-					}
-					count++;
-				}
-			} finally {
-				if (is != null) {
-					is.close();
-				}
-				process.waitFor();
-				process.destroy();
-			}
-			if ( faults != null) {
-				return Long.parseLong(faults.trim());
-			} else {
-				return 0;
-			}
-			
-		}
-		return 0;
-		
-	}
-
 }
