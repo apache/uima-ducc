@@ -53,6 +53,7 @@ import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
 import org.apache.uima.ducc.agent.launcher.CGroupsManager;
 import org.apache.uima.ducc.agent.launcher.Launcher;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess;
+import org.apache.uima.ducc.agent.launcher.ManagedProcess.StopPriority;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeUsersCollector;
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
@@ -1368,16 +1369,21 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	}
   };
   class ProcessRunner implements Runnable {
-	  String pid = "";
-	  SIGNAL signal;
+//	  String pid = "";
+//	  SIGNAL signal;
+	  ManagedProcess deployedProcess;
 	  
-	  public ProcessRunner(final String pid, SIGNAL signal ) {
-		  this.pid = pid;
-		  this.signal = signal;
+	  public ProcessRunner(final ManagedProcess deployedProcess) {//final String pid, SIGNAL signal ) {
+//		  this.pid = pid;
+//		  this.signal = signal;
+		  this.deployedProcess = deployedProcess;
 	  }
 	  public void run() {
 		  String methodName = "ProcesRunner.run";
-            String[] sigTermCmd = {"/bin/kill",signal.get(), pid};
+
+		  stopProcess(deployedProcess.getDuccProcess());
+		  /*
+		  String[] sigTermCmd = {"/bin/kill",signal.get(), pid};
             ProcessBuilder pb = new ProcessBuilder(sigTermCmd);
             try {
             	// launch kill SIGTERM
@@ -1393,6 +1399,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             	e.printStackTrace();
         		logger.warn(methodName, null, e);  
             }
+            */
  	  }
   }
   
@@ -1420,10 +1427,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             logger.info(methodName, null, "....Stopping Process - DuccId:" + deployedProcess.getDuccProcess().getDuccId()
 	                    + " PID:" + pid+" Sending SIGTERM Process State:"+deployedProcess.getDuccProcess().getProcessState().toString());
 			wait = true;
-            deployedProcess.setStopping();
+            deployedProcess.setStopPriority(StopPriority.DONT_WAIT);
+            // Stop each child process in its own thread to parallelize SIGTERM requests
             ExecutorService executor = Executors.newSingleThreadExecutor();
-            executor.execute( new ProcessRunner(pid,SIGNAL.SIGTERM));
-	      
+            executor.execute( new ProcessRunner(deployedProcess) ); //pid,SIGNAL.SIGTERM));
 	      }
 	      
 	  } catch( Exception e) {
@@ -1787,66 +1794,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     }
     stopping = true;
     logger.info("stop", null, "Agent stopping managed processes");
-    // Stop monitor thread watching for Agent pings
-    // if ( nodeMonitor != null ) {
-    // nodeMonitor.shutdown();
-    // }
-    // if ( configurationFactory.getAgentPingDispatcher() != null ) {
-    // configurationFactory.getAgentPingDispatcher().stop();
-    // }
-    
     // Dispatch SIGTERM to all child processes
     boolean wait = stopChildProcesses();
-    
-    
-    /*    
-    synchronized (monitor) {
-      Iterator<ManagedProcess> it = deployedProcesses.iterator();
-      while (it.hasNext()) {
-        ManagedProcess mp = it.next();
-        // mp.kill();
-        stopProcess(mp.getDuccProcess());
-      }
-    }
-    logger.info("stop", null, "Agent dispatched STOP to all managed processes");
-
-    // wait until all JPs stop
-    while (true) {
-      try {
-        // break if no processes in the inventory
-        if (deployedProcesses.size() == 0) {
-          break;
-        }
-        boolean atLeastOneProcessStillRunning = false;
-        synchronized (monitor) {
-          // check state of each process. If there is a process that
-          // is not dead yet
-          // just wait a little while and check the state again.
-          Iterator<ManagedProcess> pit = deployedProcesses.iterator();
-          // find at least one process that is not dead yet
-          while (pit.hasNext()) {
-            ManagedProcess mp = pit.next();
-            // if the process is not dead,
-            if (!mp.getDuccProcess().getProcessState().equals(ProcessState.Stopped)
-                    && !mp.getDuccProcess().getProcessState().equals(ProcessState.Failed)
-                    && !mp.getDuccProcess().getProcessState().equals(ProcessState.Killed)) {
-              atLeastOneProcessStillRunning = true;
-              break;
-            }
-          }
-        }
-        // if there are no running processes just break from the
-        // 'while(true)' loop
-        if (atLeastOneProcessStillRunning == false) {
-          break;
-        }
-        synchronized (this) {
-          wait(100);
-        }
-      } catch (Exception e) {
-      }
-    }
-*/
     
     // Stop publishing inventory. Once the route is down the agent forces last publication
     // sending an empty process map.
