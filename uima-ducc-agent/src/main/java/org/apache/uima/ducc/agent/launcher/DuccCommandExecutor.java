@@ -31,7 +31,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.agent.NodeAgent;
+import org.apache.uima.ducc.agent.launcher.ManagedProcess.StopPriority;
 import org.apache.uima.ducc.common.IDuccUser;
+import org.apache.uima.ducc.common.agent.metrics.swap.DuccProcessSwapSpaceUsage;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -44,6 +46,7 @@ import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
+import org.apache.uima.ducc.transport.event.common.IProcessState;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
@@ -303,101 +306,119 @@ public class DuccCommandExecutor extends CommandExecutor {
 		}
 	}
 
+	private boolean processInRunningOrInitializingState() {
+		return ( ((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
+				.equals(ProcessState.Running) ||
+				((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
+				.equals(ProcessState.Initializing)	
+				); 	
+	}
 	private void stopProcess(ICommandLine cmdLine, String[] cmd)
 			throws Exception {
 		String methodName = "stopProcess";
-
-
-		Future<?> future = ((ManagedProcess) managedProcess).getFuture();
-		if (future == null) {
-		    throw new Exception(
-					"Future Object not Found. Unable to Stop Process with PID:"
-					+ ((ManagedProcess) managedProcess).getPid());
-		}
-		// for stop to work, PID must be provided
-		if (((ManagedProcess) managedProcess).getDuccProcess().getPID() == null
-		    || ((ManagedProcess) managedProcess).getDuccProcess().getPID()
-		    .trim().length() == 0) {
-		    throw new Exception(
-					"Process Stop Command Failed. PID not provided.");
-		}
-		long maxTimeToWaitForProcessToStop = 60000; // default 1 minute
-		if (super.agent.configurationFactory.processStopTimeout != null) {
-		    maxTimeToWaitForProcessToStop = Long
-			.valueOf(super.agent.configurationFactory.processStopTimeout);
-		}
-		try {
-		    // NEW Code
-		    logger.info(methodName,
-				((ManagedProcess) super.managedProcess).getDuccId(),
-				">>>>>>>>>>>>>>> Stopping Process:"
-				+ ((ManagedProcess) managedProcess).getPid());
-		    ICommandLine cmdL;
-		    if (Utils.isWindows()) {
-			cmdL = new NonJavaCommandLine("taskkill");
-			cmdL.addArgument("/PID");
-		    } else {
-			cmdL = new NonJavaCommandLine("/bin/kill");
-			cmdL.addArgument("-15");
-		    }
-		    cmdL.addArgument(((ManagedProcess) managedProcess)
-				     .getDuccProcess().getPID());
-
-		    String[] sigTermCmdLine = getDeployableCommandLine(cmdL,
-								       new HashMap<String, String>());
-		    doExec(new ProcessBuilder(sigTermCmdLine), sigTermCmdLine,
-			   true);
-
-		    try {
-			logger.info(methodName,
-				    ((ManagedProcess) super.managedProcess)
-				    .getDuccId(),
-				    "------------ Agent Starting Killer Timer Task For Process with PID:"
-				    + ((ManagedProcess) managedProcess)
-				    .getDuccProcess().getPID()
-				    + " Process State: "
-				    + ((ManagedProcess) managedProcess)
-				    .getDuccProcess()
-				    .getProcessState());
-			future.get(maxTimeToWaitForProcessToStop,
-				   TimeUnit.MILLISECONDS);
-
-		    } catch(TimeoutException te) {
-			    
-			    logger.info(
-					methodName,
-					((ManagedProcess) super.managedProcess)
-					.getDuccId(),
-					"------------ Agent Timed-out Waiting for Process with PID:"
-					+ ((ManagedProcess) managedProcess)
-					.getDuccProcess().getPID()
-					+ " to Stop. Process State:"
-					+ ((ManagedProcess) managedProcess)
-					.getDuccProcess()
-					.getProcessState()
-					+ " .Process did not stop in allotted time of "
-					+ maxTimeToWaitForProcessToStop
-					+ " millis");
+		
+		if ( processInRunningOrInitializingState() ) {
+			Future<?> future = ((ManagedProcess) managedProcess).getFuture();
+			if (future == null) {
+			    throw new Exception(
+						"Future Object not Found. Unable to Stop Process with PID:"
+						+ ((ManagedProcess) managedProcess).getPid());
+			}
+			// for stop to work, PID must be provided
+			if (((ManagedProcess) managedProcess).getDuccProcess().getPID() == null
+			    || ((ManagedProcess) managedProcess).getDuccProcess().getPID()
+			    .trim().length() == 0) {
+			    throw new Exception(
+						"Process Stop Command Failed. PID not provided.");
+			}
+			try {
+			    // NEW Code
 			    logger.info(methodName,
-					((ManagedProcess) super.managedProcess)
-					.getDuccId(),
-					">>>>>>>>>>>>>>> Killing Process:"
-					+ ((ManagedProcess) managedProcess)
-					.getDuccProcess().getPID()
-					+ " .Process State:"
-					+ ((ManagedProcess) managedProcess)
-					.getDuccProcess()
-					.getProcessState());
-			    doExec(new ProcessBuilder(cmd), cmd, true);
+					((ManagedProcess) super.managedProcess).getDuccId(),
+					">>>>>>>>>>>>>>> Stopping Process:"
+					+ ((ManagedProcess) managedProcess).getPid());
+			    ICommandLine cmdL;
+			    if (Utils.isWindows()) {
+				cmdL = new NonJavaCommandLine("taskkill");
+				cmdL.addArgument("/PID");
+			    } else {
+				cmdL = new NonJavaCommandLine("/bin/kill");
+				cmdL.addArgument("-15");
+			    }
+			    cmdL.addArgument(((ManagedProcess) managedProcess)
+					     .getDuccProcess().getPID());
 
+			    String[] sigTermCmdLine = getDeployableCommandLine(cmdL,
+									       new HashMap<String, String>());
+			    doExec(new ProcessBuilder(sigTermCmdLine), sigTermCmdLine,
+				   true);
+                // if agent receives admin STOP request, all managed processes should
+			    // be stopped without each waiting for 60 secs. The agent
+			    // blasts SIGTERM in parallel to all running child processes
+			    if (!StopPriority.DONT_WAIT.equals(((ManagedProcess) managedProcess).getStopPriority()) ) {
+					long maxTimeToWaitForProcessToStop = 60000; // default 1 minute
+					if (super.agent.configurationFactory.processStopTimeout != null) {
+					    maxTimeToWaitForProcessToStop = Long
+						.valueOf(super.agent.configurationFactory.processStopTimeout);
+					}
+
+				    try {
+					logger.info(methodName,
+						    ((ManagedProcess) super.managedProcess)
+						    .getDuccId(),
+						    "------------ Agent Starting Killer Timer Task For Process with PID:"
+						    + ((ManagedProcess) managedProcess)
+						    .getDuccProcess().getPID()
+						    + " Process State: "
+						    + ((ManagedProcess) managedProcess)
+						    .getDuccProcess()
+						    .getProcessState());
+					future.get(maxTimeToWaitForProcessToStop,
+						   TimeUnit.MILLISECONDS);
+
+				    } catch(TimeoutException te) {
+				    	if ( !((ManagedProcess) managedProcess).
+				    			getDuccProcess().getProcessState().equals(ProcessState.Stopped) ) {
+						    logger.info(
+									methodName,
+									((ManagedProcess) super.managedProcess)
+									.getDuccId(),
+									"------------ Agent Timed-out Waiting for Process with PID:"
+									+ ((ManagedProcess) managedProcess)
+									.getDuccProcess().getPID()
+									+ " to Stop. Process State:"
+									+ ((ManagedProcess) managedProcess)
+									.getDuccProcess()
+									.getProcessState()
+									+ " .Process did not stop in allotted time of "
+									+ maxTimeToWaitForProcessToStop
+									+ " millis");
+							    logger.info(methodName,
+									((ManagedProcess) super.managedProcess)
+									.getDuccId(),
+									">>>>>>>>>>>>>>> Killing Process:"
+									+ ((ManagedProcess) managedProcess)
+									.getDuccProcess().getPID()
+									+ " .Process State:"
+									+ ((ManagedProcess) managedProcess)
+									.getDuccProcess()
+									.getProcessState());
+							    doExec(new ProcessBuilder(cmd), cmd, true);
+				    		
+				    	}
+
+					}
+
+					
+				}
+			} catch (Exception e) { // InterruptedException, ExecutionException
+			    logger.error(methodName,
+					 ((ManagedProcess) super.managedProcess).getDuccId(), e,
+					 new Object[] {});
 			}
 
-		} catch (Exception e) { // InterruptedException, ExecutionException
-		    logger.error(methodName,
-				 ((ManagedProcess) super.managedProcess).getDuccId(), e,
-				 new Object[] {});
+			
 		}
-
 	}
 
 	private void startProcess(ICommandLine cmdLine, String[] cmd,
