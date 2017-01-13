@@ -60,9 +60,11 @@ public class ManagedProcess implements Process {
 	};
 
 	public static enum StopPriority {
-		KILL_9, QUIESCE_AND_STOP
+		NONE,KILL_9, QUIESCE_AND_STOP, DONT_WAIT
 	}
 
+	StopPriority stopPriority = StopPriority.NONE;
+	
 	private volatile boolean destroyed = false;
 	private IDuccProcess duccProcess;
 	// Used to kill a process after it reports its PID.
@@ -161,7 +163,12 @@ public class ManagedProcess implements Process {
 	public void setMetricsProcessor(LinuxProcessMetricsProcessor processor) {
 		metricsProcessor = processor;
 	}
-
+	public void setStopPriority(StopPriority sp ) {
+		stopPriority = sp;
+	}
+	public StopPriority getStopPriority() {
+		return stopPriority;
+	}
 	public LinuxProcessMetricsProcessor getMetricsProcessor() {
 		return metricsProcessor;
 	}
