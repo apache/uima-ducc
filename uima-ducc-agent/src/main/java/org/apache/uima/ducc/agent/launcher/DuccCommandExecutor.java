@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess.StopPriority;
 import org.apache.uima.ducc.common.IDuccUser;
-import org.apache.uima.ducc.common.agent.metrics.swap.DuccProcessSwapSpaceUsage;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -494,7 +493,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 		}
 	}
 
-	private void doExec(ProcessBuilder pb, String[] cmd, boolean isKillCmd)
+	public void doExec(ProcessBuilder pb, String[] cmd, boolean isKillCmd)
 			throws Exception {
 		String methodName = "doExec";
 		int exitCode = 0;
