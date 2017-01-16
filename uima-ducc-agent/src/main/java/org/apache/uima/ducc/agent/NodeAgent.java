@@ -51,6 +51,7 @@ import org.apache.uima.ducc.agent.config.AgentConfiguration;
 import org.apache.uima.ducc.agent.event.AgentEventListener;
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
 import org.apache.uima.ducc.agent.launcher.CGroupsManager;
+import org.apache.uima.ducc.agent.launcher.DuccCommandExecutor;
 import org.apache.uima.ducc.agent.launcher.Launcher;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess.StopPriority;
@@ -309,7 +310,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 // memory and cpu subsystem
                 String cgroupsSubsystems = System.getProperty("ducc.agent.launcher.cgroups.subsystems");
                 if (cgroupsSubsystems == null) {
-                  cgroupsSubsystems = "memory,cpu";
+                  cgroupsSubsystems = "memory,cpu,cpuacct";
                 }
         		long maxTimeToWaitForProcessToStop = 60000; // default 1 minute
         		if (configurationFactory.processStopTimeout != null) {
@@ -1403,7 +1404,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
  	  }
   }
   
-  private boolean sendSIGTERM(ManagedProcess process) {
+  private boolean runnable(ManagedProcess process) {
 	  return ( process.getDuccProcess().getProcessState().equals(ProcessState.Initializing) ||
 			   process.getDuccProcess().getProcessState().equals(ProcessState.Starting) ||
 			   process.getDuccProcess().getProcessState().equals(ProcessState.Running) );
@@ -1421,7 +1422,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	  try {
 	      for (ManagedProcess deployedProcess : deployedProcesses) {
             String pid = deployedProcess.getDuccProcess().getPID();
-            if (pid == null || pid.trim().length() == 0 || !sendSIGTERM(deployedProcess) ) {
+            if (pid == null || pid.trim().length() == 0 || !runnable(deployedProcess) ) {
             	continue;
             }
             logger.info(methodName, null, "....Stopping Process - DuccId:" + deployedProcess.getDuccProcess().getDuccId()
@@ -1438,6 +1439,48 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	  }
 	  return wait;
   }
+      
+      private void killChildProcesses() {
+    	  String methodName = "killChildProcesses";
+    	  
+
+    	  try {
+      	    if ( useCgroups ) {
+    	        logger.info("stop", null, "CgroupsManager.cleanup() before ");
+    	        // Since SIGTERM may not be enough to take down a process, use cgroups to find
+    	        // any process still standing and do hard kill 
+    	        cgroupsManager.cleanup();
+    	        logger.info("stop", null, "CgroupsManager.cleanup() after ");
+    	    } else {
+      	      for (ManagedProcess deployedProcess : deployedProcesses) {
+                  String pid = deployedProcess.getDuccProcess().getPID();
+                  if (pid == null || pid.trim().length() == 0 || !runnable(deployedProcess) ) {
+                  	continue;
+                  }
+                  logger.info(methodName, null, "....Stopping Process - DuccId:" + deployedProcess.getDuccProcess().getDuccId()
+      	                    + " PID:" + pid+" Sending SIGKILL Process State:"+deployedProcess.getDuccProcess().getProcessState().toString());
+      	          ICommandLine cmdLine;
+      	            if (Utils.isWindows()) {
+      	              cmdLine = new NonJavaCommandLine("taskkill");
+      	              cmdLine.addArgument("/PID");
+      	            } else {
+      	              cmdLine = new NonJavaCommandLine("/bin/kill");
+      	              cmdLine.addArgument("-9");
+      	            }
+      	            cmdLine.addArgument(pid);
+
+      	        deployedProcess.setStopping();
+      			deployedProcess.setStopPriority(StopPriority.DONT_WAIT);
+      			
+                  launcher.launchProcess(this, getIdentity(),deployedProcess.getDuccProcess(), cmdLine, this, deployedProcess);
+      	      }
+
+    	    }
+    	  } catch( Exception e) {
+    		logger.warn(methodName, null, e);  
+    	  }
+    	          	  
+      }
   /**
    * Kills a given process
    * 
@@ -1793,13 +1836,23 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       return;
     }
     stopping = true;
+
+    // Send an empty process map as the final inventory 
+    HashMap<DuccId, IDuccProcess> emptyMap = 
+    		new HashMap<DuccId, IDuccProcess>();
+    DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap,getLastORSequence(), getIdentity());
+    inventoryDispatcher.dispatch(duccEvent);
+    logger.info("stop", null, "Agent published final inventory");
+    
+    configurationFactory.stopRoutes();
+    
     logger.info("stop", null, "Agent stopping managed processes");
     // Dispatch SIGTERM to all child processes
     boolean wait = stopChildProcesses();
     
     // Stop publishing inventory. Once the route is down the agent forces last publication
     // sending an empty process map.
-    configurationFactory.stopInventoryRoute();
+    //configurationFactory.stopInventoryRoute();
 
     if ( wait && deployedProcesses.size() > 0 ) {
         logger.info("stop", null, "Agent Sent SIGTERM to ALL Child Processes - Number of Deployed Processes:"+deployedProcesses.size());
@@ -1818,17 +1871,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       }
     }
 
-    // Send an empty process map as the final inventory 
-    HashMap<DuccId, IDuccProcess> emptyMap = 
-    		new HashMap<DuccId, IDuccProcess>();
-    DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap,getLastORSequence(), getIdentity());
-    inventoryDispatcher.dispatch(duccEvent);
-    logger.info("stop", null, "Agent published final inventory");
+    // send kill -9 to any child process still running
+    killChildProcesses();
 
-    // Since SIGTERM may not be enough to take down a process, use cgroups to find
-    // any process still standing and do hard kill 
-    cgroupsManager.cleanup();
-   
     // Self destruct thread in case we loose AMQ broker and AMQ listener gets into retry
     // mode trying to recover a connection
     Thread t = new Thread( new Runnable() {
@@ -1845,7 +1890,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     	}
     });
     t.start();
-    
+    t.join(10000);
+    logger.info("stop", null, "Reaper thread finished - calling super.stop()");
+
     super.stop();
   }
 
