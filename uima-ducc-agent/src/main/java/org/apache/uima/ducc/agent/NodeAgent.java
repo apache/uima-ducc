@@ -51,7 +51,6 @@ import org.apache.uima.ducc.agent.config.AgentConfiguration;
 import org.apache.uima.ducc.agent.event.AgentEventListener;
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
 import org.apache.uima.ducc.agent.launcher.CGroupsManager;
-import org.apache.uima.ducc.agent.launcher.DuccCommandExecutor;
 import org.apache.uima.ducc.agent.launcher.Launcher;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess.StopPriority;
@@ -289,6 +288,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             		}
             	}
             }
+            // scan /proc/mounts for base cgroup dir
             String cgroupsBaseDir = fetchCgroupsBaseDir("/proc/mounts");
             
             if ( cgUtilsPath == null ) {
@@ -300,19 +300,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             	
             } else {
             	logger.info("nodeAgent",null,"Agent found cgroups runtime in "+cgUtilsPath+" cgroups base dir="+cgroupsBaseDir);
-                // get the top level cgroup folder from ducc.properties. If
-                // not defined, use /cgroup/ducc as default
-            	//String cgroupsBaseDir = System.getProperty("ducc.agent.launcher.cgroups.basedir");
-//                if (cgroupsBaseDir == null) {
-//                  cgroupsBaseDir = "/cgroup/ducc";
-//                }
-                // get the cgroup subsystems. If not defined, default to the
-                // memory and cpu subsystem
-                String cgroupsSubsystems = System.getProperty("ducc.agent.launcher.cgroups.subsystems");
-                if (cgroupsSubsystems == null) {
-                  cgroupsSubsystems = "memory,cpu,cpuacct";
-                }
-        		long maxTimeToWaitForProcessToStop = 60000; // default 1 minute
+            	// if cpuacct is configured in cgroups, the subsystems list will be updated
+            	String cgroupsSubsystems = "memory,cpu";
+
+                long maxTimeToWaitForProcessToStop = 60000; // default 1 minute
         		if (configurationFactory.processStopTimeout != null) {
         			maxTimeToWaitForProcessToStop = Long
         					.valueOf(configurationFactory.processStopTimeout);
@@ -1370,37 +1361,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	}
   };
   class ProcessRunner implements Runnable {
-//	  String pid = "";
-//	  SIGNAL signal;
 	  ManagedProcess deployedProcess;
 	  
 	  public ProcessRunner(final ManagedProcess deployedProcess) {//final String pid, SIGNAL signal ) {
-//		  this.pid = pid;
-//		  this.signal = signal;
 		  this.deployedProcess = deployedProcess;
 	  }
 	  public void run() {
-		  String methodName = "ProcesRunner.run";
-
 		  stopProcess(deployedProcess.getDuccProcess());
-		  /*
-		  String[] sigTermCmd = {"/bin/kill",signal.get(), pid};
-            ProcessBuilder pb = new ProcessBuilder(sigTermCmd);
-            try {
-            	// launch kill SIGTERM
-            	final Process process = pb.start();
-                Thread inputStreamConsumerThread = new Thread( new AgentStreamConsumer(process.getInputStream()) );
-                inputStreamConsumerThread.start();
-            	
-                Thread errorStreamConsumerThread = new Thread( new AgentStreamConsumer(process.getErrorStream()) );
-                errorStreamConsumerThread.start();
-                
-                process.waitFor();
-            } catch ( Exception e ) {
-            	e.printStackTrace();
-        		logger.warn(methodName, null, e);  
-            }
-            */
  	  }
   }
   
