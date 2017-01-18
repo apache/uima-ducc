@@ -1355,8 +1355,12 @@ public class ServiceSet
     {
         // UIMA-4587 & UIMA-5244
     	String methodName="needNextStart";
-        if ( isDeregistered() || !enabled() ) {
-            logger.info(methodName, id, "Bypassing instance start because service is unregistered or disabled.");
+    	// Can't do this before we handle the OR publication of "defunct" instances that were running when DUCC was shutdown
+    	// They should not be counted as errors when the SM restarts.
+ /*       if ( isDeregistered() || !enabled() ) {
+            logger.info(methodName, id, "Bypassing instance start because service is unregistered or disabled.");*/
+        if ( isDeregistered() ) {
+            logger.info(methodName, id, "Bypassing instance start because service is unregistered.");
             return false;
         }
 
@@ -2123,8 +2127,11 @@ public class ServiceSet
     	String methodName = "start";
 
         // UIMA-4587 & UIMA-5244
-        if ( isDeregistered() || !enabled()) {
-            logger.info(methodName, id, "Bypass start becuase service is unregistered or disabled.");
+    	// Can't do this yet
+/*        if ( isDeregistered() || !enabled()) {
+            logger.info(methodName, id, "Bypass start because service is unregistered or disabled.");*/
+    	if ( isDeregistered()) {
+    	    logger.info(methodName, id, "Bypass start because service is unregistered.");
             return;
         }
 
