@@ -74,7 +74,6 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             System.out.println("Is this nuts or what, no logger!");
         }
 
-        forceCpuUsage();
         
         if ( initComplete ) {
             logger.log(Level.INFO, "Init bypassed in PID:TID " + pid + ":" + tid + ", already completed. ");
@@ -366,7 +365,10 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
     @Override
     public void process(CAS cas) throws AnalysisEngineProcessException 
     {
-        String data = cas.getSofaDataString();
+
+        forceCpuUsage();
+
+    	String data = cas.getSofaDataString();
 
         //
         // Parms are in a single 4-token string:
