@@ -79,6 +79,12 @@ Additional steps are required to convert existing history and state files for da
 Details are in the INSTALL document and the DuccBook.
 <p>
 </p>
+<h2><a name=""limitations">4. Limitations</a></h2>
+On some systems cgroups swap accounting is not enabled and duccmon will show N/A for swap. To 
+confirm, please check memory.stat file in <cgroups base dir>/ducc/ folder. If swap accounting is 
+enabled there should be "swap" property defined. If it's missing, you need to add a kernel parameter 
+swapaccount=1. Details of how to do this can be found <a href="http://unix.stackexchange.com/questions/147158/how-to-enable-swap-accounting-for-memory-cgroup-in-archlinux">here</a>.
+
 
 </body>
 </html>
