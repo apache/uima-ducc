@@ -136,7 +136,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 	
-	// These keys may have large values and be displayed witg Show/Hide buttons.
+	// These keys may have large values and be displayed with Show/Hide buttons.
 	// ducc.js must be updated if more than 4 are needed (services may have 4)
 	private final String[] n = {"classpath", "service_ping_classpath", "process_executable_args", "process_jvm_args", "environment"};
 	private final Set<String> hideableKeys = new HashSet<String>(Arrays.asList(n));
@@ -144,6 +144,8 @@ public class DuccHandler extends DuccAbstractHandler {
 	private enum DetailsType { Job, Reservation, Service };
 	private enum AllocationType { JD, MR, SPC, SPU, UIMA };
 	private enum LogType { POP, UIMA };
+	
+	private String notAvailable = "N/A";
 	
 	private DuccAuthenticator duccAuthenticator = DuccAuthenticator.getInstance();
 	
@@ -782,15 +784,22 @@ public class DuccHandler extends DuccAbstractHandler {
 				}
 				catch(Exception e) {
 				}
-				double swap = process.getSwapUsageMax();
-				if((swap * faults) > 0) {
-					sb.append("<span class=\"health_red\""+">");
+				if(faults < 0) {
+					sb.append("<span class=\"health_black\""+">");
+					sb.append(notAvailable);
+					sb.append("</span>");
 				}
 				else {
-					sb.append("<span class=\"health_black\""+">");
+					double swap = process.getSwapUsageMax();
+					if((swap * faults) > 0) {
+						sb.append("<span class=\"health_red\""+">");
+					}
+					else {
+						sb.append("<span class=\"health_black\""+">");
+					}
+					sb.append(faults);
+					sb.append("</span>");
 				}
-				sb.append(faults);
-				sb.append("</span>");
 				break;
 			}
 		}
@@ -807,34 +816,47 @@ public class DuccHandler extends DuccAbstractHandler {
 			default:
 				if(!process.isActive()) {
 					double swap = process.getSwapUsageMax();
-					swap = swap/Constants.GB;
-					String displaySwap = formatter.format(swap);
-					if(swap > 0) {
-						sb.append("<span class=\"health_red\""+">");
+					if(swap < 0) {
+						sb.append("<span class=\"health_black\""+">");
+						sb.append(notAvailable);
+						sb.append("</span>");
 					}
 					else {
-						sb.append("<span class=\"health_black\""+">");
+						swap = swap/Constants.GB;
+						String displaySwap = formatter.format(swap);
+						if(swap > 0) {
+							sb.append("<span class=\"health_red\""+">");
+						}
+						else {
+							sb.append("<span class=\"health_black\""+">");
+						}
+						sb.append(displaySwap);
+						sb.append("</span>");
 					}
-					sb.append(displaySwap);
-					sb.append("</span>");
 				}
 				else {
 					double swap = process.getSwapUsage();
-					swap = swap/Constants.GB;
-					String displaySwap = formatter.format(swap);
-					double swapMax = process.getSwapUsageMax();
-					swapMax = swapMax/Constants.GB;
-					String displaySwapMax = formatter.format(swapMax);
-					sb.append("<span title=\"max="+displaySwapMax+"\" align=\"right\" "+">");
-					if(swap > 0) {
-						sb.append("<span class=\"health_red\""+">");
+					if(swap < 0) {
+						sb.append("<span class=\"health_black\""+">");
+						sb.append(notAvailable);
+						sb.append("</span>");
 					}
 					else {
-						sb.append("<span class=\"health_black\""+">");
+						swap = swap/Constants.GB;
+						String displaySwap = formatter.format(swap);
+						double swapMax = process.getSwapUsageMax();
+						swapMax = swapMax/Constants.GB;
+						String displaySwapMax = formatter.format(swapMax);
+						sb.append("<span title=\"max="+displaySwapMax+"\" align=\"right\" "+">");
+						if(swap > 0) {
+							sb.append("<span class=\"health_red\""+">");
+						}
+						else {
+							sb.append("<span class=\"health_black\""+">");
+						}
+						sb.append(displaySwap);
+						sb.append("</span>");
 					}
-					sb.append(displaySwap);
-					sb.append("</span>");
-					sb.append("</span>");
 				}
 				break;
 			}
@@ -956,20 +978,35 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(process != null) {
 			if(process.isComplete()) {
 				double rss = process.getResidentMemoryMax();
-				rss = rss/Constants.GB;
-				String displayRss = formatter.format(rss);
-				sb.append(displayRss);
+				if(rss < 0) {
+					sb.append("<span class=\"health_black\""+">");
+					sb.append(notAvailable);
+					sb.append("</span>");
+				}
+				else {
+					rss = rss/Constants.GB;
+					String displayRss = formatter.format(rss);
+					sb.append(displayRss);
+				}
+				
 			}
 			else {
 				double rss = process.getResidentMemory();
-				rss = rss/Constants.GB;
-				String displayRss = formatter.format(rss);
-				double rssMax = process.getResidentMemoryMax();
-				rssMax = rssMax/Constants.GB;
-				String displayRssMax = formatter.format(rssMax);
-				sb.append("<span title=\"max="+displayRssMax+"\" align=\"right\" "+">");
-				sb.append(displayRss);
-				sb.append("</span>");
+				if(rss < 0) {
+					sb.append("<span class=\"health_black\""+">");
+					sb.append(notAvailable);
+					sb.append("</span>");
+				}
+				else {
+					rss = rss/Constants.GB;
+					String displayRss = formatter.format(rss);
+					double rssMax = process.getResidentMemoryMax();
+					rssMax = rssMax/Constants.GB;
+					String displayRssMax = formatter.format(rssMax);
+					sb.append("<span title=\"max="+displayRssMax+"\" align=\"right\" "+">");
+					sb.append(displayRss);
+					sb.append("</span>");
+				}
 			}
 		}
 		return sb.toString();

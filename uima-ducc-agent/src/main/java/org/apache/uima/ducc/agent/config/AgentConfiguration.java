@@ -23,10 +23,13 @@ import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.camel.CamelContext;
+import org.apache.camel.Component;
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
+import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.dataformat.xstream.XStreamDataFormat;
 import org.apache.camel.impl.DefaultClassResolver;
@@ -471,19 +474,19 @@ public class AgentConfiguration {
       camelContext.addRoutes(metricsRouteBuilder);
   
   }
-  
+  public void stopRoutes() throws Exception {
+	  camelContext.stop();
+	  logger.info("AgentConfigureation.stopRoutes", null,"Camel Context stopped");
+	  
+  }
   @Bean
   @PostConstruct
-//  public NodeMetricsProcessor nodeMetricsProcessor(NodeAgent agent) throws Exception {
   public NodeMetricsProcessor nodeMetricsProcessor() throws Exception {
     if (Utils.isLinux()) {
-//      return new LinuxNodeMetricsProcessor(agent, "/proc/meminfo", "/proc/loadavg");
    	  nodeMetricsProcessor = new LinuxNodeMetricsProcessor();
 	  ((LinuxNodeMetricsProcessor)nodeMetricsProcessor).initMemInfo("/proc/meminfo");
 	  ((LinuxNodeMetricsProcessor)nodeMetricsProcessor).initLoadAvg("/proc/loadavg");
-  	  //agent, "/proc/meminfo", "/proc/loadavg");
     } else {
-//        return new DefaultNodeMetricsProcessor(agent);
     	nodeMetricsProcessor = new DefaultNodeMetricsProcessor();
     }
     return nodeMetricsProcessor;

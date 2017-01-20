@@ -86,7 +86,7 @@ public class ServiceSet
 
     // For a registered service, here is my registered id
     DuccId id;
-    HashMap<Long, DuccId> friendly_ids = new HashMap<Long, DuccId>();
+    // UIMA-5244 HashMap<Long, DuccId> friendly_ids = new HashMap<Long, DuccId>();
     String history_key = IStateServices.SvcMetaProps.work_instances.pname();
     String implementors_key = IStateServices.SvcMetaProps.implementors.pname();
 
@@ -136,6 +136,7 @@ public class ServiceSet
     long last_runnable = 0;
 
     // The number of instances to maintain live.
+    // Pinger or manual start/stop may make the number of live instances differ from the registered number
     int instances = 1;
     int registered_instances;
 
@@ -171,8 +172,9 @@ public class ServiceSet
 
     String[] coOwners = null;
 
-    String archive_key  = "true";
-    String archive_flag = IStateServices.SvcMetaProps.is_archived.columnName();
+    //  Swapped these 2 values  UIMA-5244
+    String archive_key = IStateServices.SvcMetaProps.is_archived.columnName();
+    String archive_flag  = "true";
 
     //
     // Constructor for a registered service
@@ -803,11 +805,13 @@ public class ServiceSet
             return;
         }
 
+        /*   UIMA-5244 Can remove this as friendly_ids is always empty
         String history = meta_props.getStringProperty(history_key, "");
         for ( Long id : friendly_ids.keySet() ) {
             history = history + " " + id.toString();
         }
         meta_props.put(history_key, history);
+        */
         meta_props.put(archive_key, archive_flag);
 
         try {
@@ -1000,6 +1004,14 @@ public class ServiceSet
         inst.update(share_id, host);
     }
 
+    /**
+     * 
+     * @param n     the new value for the register instance count
+     * 
+     * Called when the registration is updated via the CLI
+     * Does NOT update the desired number of running instances as this can be set by the pinger.
+     * Also modifications to the registration should not affect running instances.
+     */
     synchronized void updateRegisteredInstances(int n)
     {
         meta_props.setProperty(IStateServices.SvcMetaProps.instances.pname(), Integer.toString(n));
@@ -1008,7 +1020,11 @@ public class ServiceSet
 
     /**
      * @param n      is the target number of instances we want running
-     * @param update indicates whether tp match registration to the target
+     * 
+     * This param dropped??
+     * @param update indicates whether to match registration to the target
+     * 
+     * Called by doStart & doStop so may be making the running instances differ from the registered number
      */
     synchronized void updateInstances(int n)
     {
@@ -1337,8 +1353,12 @@ public class ServiceSet
      */
     boolean needNextStart(JobState old, JobState current)
     {
-        // UIMA-4587
+        // UIMA-4587 & UIMA-5244
     	String methodName="needNextStart";
+    	// Can't do this before we handle the OR publication of "defunct" instances that were running when DUCC was shutdown
+    	// They should not be counted as errors when the SM restarts.
+ /*       if ( isDeregistered() || !enabled() ) {
+            logger.info(methodName, id, "Bypassing instance start because service is unregistered or disabled.");*/
         if ( isDeregistered() ) {
             logger.info(methodName, id, "Bypassing instance start because service is unregistered.");
             return false;
@@ -2066,13 +2086,12 @@ public class ServiceSet
      * Save the id for possible reuse.
      *
      * It's an error, albeit non-fatal, if the instance is already stashed.
-
-     * Note: this might be fatal for the instance, or the service, but it's not fatal for the SM
-     * so we simply note it in the log but not crash SM
+     * Can happen if an instance dies while  being stopped explicitly
      * UIMA-4258
      */
     synchronized void stash_instance_id(int instid)
     {
+        /* UIMA-5244 No need to warn as is expected.
     	String methodName = "stash_intance_id";
         if ( available_instance_ids.containsKey(instid) ) {
             try {
@@ -2083,6 +2102,7 @@ public class ServiceSet
             }
             return;
         }
+        */
 
         available_instance_ids.put(instid, instid);
     }
@@ -2096,7 +2116,7 @@ public class ServiceSet
      */
     synchronized void conditionally_stash_instance_id(int instid)
     {
-        if ( available_instance_ids.containsKey(instid) ) {
+        if ( available_instance_ids.containsKey(instid) ) {           // Is this necessary? Could simply let the put replace
             return;
         }
         stash_instance_id(instid);        
@@ -2106,12 +2126,14 @@ public class ServiceSet
     {
     	String methodName = "start";
 
-        // UIMA-4587
-        if ( isDeregistered() ) {
-            logger.info(methodName, id, "Bypass start becuase service is unregistered.");
+        // UIMA-4587 & UIMA-5244
+    	// Can't do this yet
+/*        if ( isDeregistered() || !enabled()) {
+            logger.info(methodName, id, "Bypass start because service is unregistered or disabled.");*/
+    	if ( isDeregistered()) {
+    	    logger.info(methodName, id, "Bypass start because service is unregistered.");
             return;
         }
-
 
         if ( countImplementors() >= instances ) {
             return;
@@ -2202,6 +2224,7 @@ public class ServiceSet
 
     synchronized void stopAll()
     {
+        instances = 0;     // Reduce the target count to 0 to ensure no more are started UIMA-5244
         stop(implementors.size());
     }
 

@@ -31,10 +31,13 @@ import org.apache.uima.ducc.agent.metrics.collectors.DuccGarbageStatsCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.ProcessCpuUsageCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.ProcessMajorFaultCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.ProcessResidentMemoryCollector;
+import org.apache.uima.ducc.agent.metrics.collectors.ProcessSwapUsageCollector;
 import org.apache.uima.ducc.common.agent.metrics.cpu.ProcessCpuUsage;
+import org.apache.uima.ducc.common.agent.metrics.memory.DuccProcessResidentMemory;
 import org.apache.uima.ducc.common.agent.metrics.memory.ProcessResidentMemory;
 import org.apache.uima.ducc.common.agent.metrics.swap.DuccProcessSwapSpaceUsage;
 import org.apache.uima.ducc.common.agent.metrics.swap.ProcessMemoryPageLoadUsage;
+import org.apache.uima.ducc.common.agent.metrics.swap.ProcessSwapSpaceUsage;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
@@ -47,16 +50,11 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 		ProcessMetricsProcessor {
 	private RandomAccessFile statmFile;
 
-	// private RandomAccessFile nodeStatFile;
 	private RandomAccessFile processStatFile;
 
-	//private long totalCpuInitUsage = 0;
-	
 	private long previousCPUReadingInMillis = 0;
 	
 	private long previousSnapshotTime = 0;
-
-	//private boolean initializing = true;
 
 	private final ExecutorService pool;
 
@@ -76,17 +74,16 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 	private volatile boolean closed = true;
 
-	//private long clockAtStartOfRun = 0;
 
 	private long percentCPU = 0;
-
+	
+	
 	public LinuxProcessMetricsProcessor(DuccLogger logger,
 			IDuccProcess process, NodeAgent agent, String statmFilePath,
 			String nodeStatFilePath, String processStatFilePath,
 			ManagedProcess managedProcess) throws FileNotFoundException {
 		this.logger = logger;
 		statmFile = new RandomAccessFile(statmFilePath, "r");
-		// nodeStatFile = new RandomAccessFile(nodeStatFilePath, "r");
 		processStatFile = new RandomAccessFile(processStatFilePath, "r");
 		this.managedProcess = managedProcess;
 		this.agent = agent;
@@ -148,335 +145,269 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 		return true;
 	}
 
-	public void process(Exchange e) {
-		if (closed) { // files closed
+	private long getSwapUsage() throws Exception {
+		long swapUsage = -1;
+		if (agent.useCgroups) {
+
+			String containerId = agent.cgroupsManager
+					.getContainerId(managedProcess);
+
+			ProcessSwapUsageCollector processSwapCollector = new ProcessSwapUsageCollector(
+					logger, agent.cgroupsManager, containerId);
+			logger.info("LinuxProcessMetricsProcessor.getSwapUsage", null,
+					"Fetching Swap Usage PID:" + process.getPID());
+			Future<ProcessSwapSpaceUsage> processFaults = pool
+					.submit(processSwapCollector);
+			swapUsage = processFaults.get().getSwapUsage();
+			logger.info("LinuxProcessMetricsProcessor.getSwapUsage", null,
+					" Process Swap Usage:" + swapUsage);
+		}
+		return swapUsage;
+	}
+	
+	private long getFaults() throws Exception {
+		long faults = -1;
+		if (agent.useCgroups) {
+			String containerId = agent.cgroupsManager.getContainerId(managedProcess);
+
+			ProcessMajorFaultCollector processFaultsCollector = 
+					new ProcessMajorFaultCollector(logger, agent.cgroupsManager, containerId);
+	        logger.info("LinuxProcessMetricsProcessor.getFaults",null,"Fetching Page Faults PID:"+process.getPID());
+	        Future<ProcessMemoryPageLoadUsage> processFaults = pool.submit(processFaultsCollector);
+		    faults = processFaults.get().getMajorFaults();
+			logger.info(
+					"LinuxProcessMetricsProcessor.getFaults",null," Process Faults (pgpgin):"+faults);
+		}
+		return faults;
+	}
+	private long getRss() throws Exception {
+		long rss = -1;
+		if (agent.useCgroups) {
+			String containerId = agent.cgroupsManager.getContainerId(managedProcess);
+
+			ProcessResidentMemoryCollector processRSSCollector = 
+					new ProcessResidentMemoryCollector(logger, agent.cgroupsManager, containerId);
+	        logger.info("LinuxProcessMetricsProcessor.getRss",null,"Fetching RSS Usage for PID:"+process.getPID());
+	        Future<ProcessResidentMemory> processRss = pool.submit(processRSSCollector);
+		    rss = processRss.get().get();
+			logger.info(
+					"LinuxProcessMetricsProcessor.getRss",null," Process RSS:"+rss);
+		}
+		return rss;
+	}
+	
+	private long getCpuUsage() throws Exception {
+		long cpuUsage=-1;
+		if (agent.useCgroups) {
+			String containerId = agent.cgroupsManager.getContainerId(managedProcess);
+
+			Future<ProcessCpuUsage> processCpuUsage = null;
+			ProcessCpuUsageCollector processCpuUsageCollector = 
+					new ProcessCpuUsageCollector(logger, agent.cgroupsManager, containerId);
+	        logger.info("LinuxProcessMetricsProcessor.getCpuUsage",null,"Fetching CPU Usage for PID:"+process.getPID());
+			processCpuUsage = pool
+					.submit(processCpuUsageCollector);
+			long cpuUsageInNanos = processCpuUsage.get().getCpuUsage();
+			if ( cpuUsageInNanos >= 0 ) {
+				// cpuUsage comes from cpuacct.usage and is in nanos
+				cpuUsage = Math.round( cpuUsageInNanos / 1000000 );  // normalize into millis
+			} 
+			logger.info(
+					"LinuxProcessMetricsProcessor.getCpuUsage",null,
+					"CPU USAGE:"+cpuUsageInNanos+ " CLOCK RATE:"+agent.cpuClockRate+" Total CPU USAGE:"+cpuUsage);
+		}
+		return cpuUsage;
+	}
+	
+	private long getCpuTime( long totalCpuUsageInMillis) throws Exception {
+		long cp = -1;
+		if (managedProcess.getDuccProcess().getProcessState()
+				.equals(ProcessState.Running) ||
+				managedProcess.getDuccProcess().getProcessState()
+				.equals(ProcessState.Initializing)	
+				) {
+			if (agent.useCgroups && totalCpuUsageInMillis != -1) {
+				
+				long timeRunning = 1;
+				if ( process.getTimeWindowInit() != null ) {
+					timeRunning = process.getTimeWindowInit().getElapsedMillis();
+				}
+				if ( process.getTimeWindowRun() != null ) {
+					timeRunning += process.getTimeWindowRun().getElapsedMillis();
+				}
+				// normalize time in running state into seconds
+				percentCPU = Math.round(100*( (totalCpuUsageInMillis*1.0)/ (timeRunning*1.0)));
+				cp = percentCPU;
+			}
+		} else {
+			cp  = percentCPU;
+		}
+		return cp;
+	}
+
+	private long getCurrentCpu(long totalCpuUsageInMillis ) {
+		long currentCpu=-1;
+		// publish current CPU usage by computing a delta from the last time
+		// CPU data was fetched.
+		if ( totalCpuUsageInMillis > 0 ) {
+			double millisCPU = ( totalCpuUsageInMillis - previousCPUReadingInMillis )*1.0;
+			double millisRun = ( System.currentTimeMillis() - previousSnapshotTime )*1.0;
+			currentCpu = Math.round(100*(millisCPU/millisRun) ) ;
+			previousCPUReadingInMillis = totalCpuUsageInMillis;
+			previousSnapshotTime = System.currentTimeMillis();
+		} else {
+			if (agent.useCgroups && totalCpuUsageInMillis != -1 ) {
+				currentCpu = 0;
+			}
+		}
+		return currentCpu;
+	}
+	
+
+	private void killProcsIfExceedingMemoryThreshold() throws Exception {
+		if ( !agent.useCgroups ) {
 			return;
 		}
+		if (process.getSwapUsage() > 0
+				&& process.getSwapUsage() > managedProcess
+						.getMaxSwapThreshold()) {
+		} else {
+			String containerId = agent.cgroupsManager
+					.getContainerId(managedProcess);
 
+			String[] cgroupPids = agent.cgroupsManager
+			        .getPidsInCgroup(containerId);
+            logger.info("LinuxProcessMetricsProcessor.process",null,"Container ID:"+containerId+" cgroup pids "+cgroupPids.length);
 
-		// if process is stopping or already dead dont collect metrics. The
-		// Camel
-		// route has just been stopped.
-		if (!collectStats(process.getProcessState())) {
-			return;
-		}
-		if (process.getProcessState().equals(ProcessState.Initializing)
-				|| process.getProcessState().equals(ProcessState.Running))
-			try {
+			// Use Memory Guard only if cgroups are disabled and fudge
+			// factor > -1
 
-				// executes script
-				// DUCC_HOME/admin/ducc_get_process_swap_usage.sh which sums up
-				// swap used by
-				// a process
-				long totalSwapUsage = 0;
-				long totalFaults = 0;
-				long totalCpuUsageInMillis = 0;
-				long totalRss = 0;
-				//int currentCpuUsage = 0;
-				Future<ProcessMemoryPageLoadUsage> processMajorFaultUsage = null;
-				Future<ProcessCpuUsage> processCpuUsage = null;
-				String[] cgroupPids = new String[0];
-				try {
-					String swapUsageScript = System
-							.getProperty("ducc.agent.swap.usage.script");
+			if ( fudgeFactor > -1
+				 && managedProcess.getProcessMemoryAssignment()
+							.getMaxMemoryWithFudge() > 0) {
 
-					if (agent.useCgroups) {
-						String containerId = agent.cgroupsManager
-								.getContainerId(managedProcess);
-						cgroupPids = agent.cgroupsManager
-								.getPidsInCgroup(containerId);
-						for (String pid : cgroupPids) {
-							// the swap usage script is defined in
-							// ducc.properties
-							if (swapUsageScript != null) {
-								DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
-										pid, managedProcess.getOwner(),
-										swapUsageScript, logger);
-								totalSwapUsage += processSwapSpaceUsage
-										.getSwapUsage();
-							}
+				long rss = (process.getResidentMemory() / 1024) / 1024; // normalize RSS into MB
 
-							ProcessMajorFaultCollector processMajorFaultUsageCollector = new ProcessMajorFaultCollector(
-									logger, pid);
-							// if process is stopping or already dead dont
-							// collect metrics. The Camel
-							// route has just been stopped.
-							if (!collectStats(process.getProcessState())) {
-								return;
-							}
-
-							processMajorFaultUsage = pool
-									.submit(processMajorFaultUsageCollector);
-							totalFaults += processMajorFaultUsage.get()
-									.getMajorFaults();
-							try {
-								if (!collectStats(process.getProcessState())) {
-									return;
-								}
-								
-							} catch( Exception ee) {
-								logger.warn(
-										"LinuxProcessMetricsProcessor.process",
-										null,ee);
-							} 
-							RandomAccessFile rStatmFile = null;
-							try {
-								rStatmFile = new RandomAccessFile("/proc/"
-										+ pid + "/statm", "r");
-							} catch (FileNotFoundException fnfe) {
-								logger.info(
-										"LinuxProcessMetricsProcessor.process",
-										null,
-										"Statm File:"
-												+ "/proc/"
-												+ pid
-												+ "/statm *Not Found*. Process must have already exited");
-								return;
-							}
-							ProcessResidentMemoryCollector collector = new ProcessResidentMemoryCollector(
-									rStatmFile, 2, 0);
-							// if process is stopping or already dead dont
-							// collect metrics. The Camel
-							// route has just been stopped.
-							if (!collectStats(process.getProcessState())) {
-								return;
-							}
-
-							Future<ProcessResidentMemory> prm = pool
-									.submit(collector);
-
-							totalRss += prm.get().get();
-
-							rStatmFile.close();
-						}
-
-						ProcessCpuUsageCollector processCpuUsageCollector = 
-								new ProcessCpuUsageCollector(logger, agent.cgroupsManager, containerId);
-						processCpuUsage = pool
-								.submit(processCpuUsageCollector);
-						long cpuUsageInNanos = processCpuUsage.get().getCpuUsage();
-						if ( cpuUsageInNanos >= 0 ) {
-							// cpuUsage comes from cpuacct.usage and is in nanos
-							totalCpuUsageInMillis = Math.round( cpuUsageInNanos / 1000000 );  // normalize into millis
-						} else {
-							totalCpuUsageInMillis = -1;
-						}
-						logger.info(
-								"LinuxProcessMetricsProcessor.process",null,
-								"CPU USAGE:"+cpuUsageInNanos+ " CLOCK RATE:"+agent.cpuClockRate+" Total CPU USAGE:"+totalCpuUsageInMillis);
-					} else {
-						if (swapUsageScript != null) {
-							DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
-									process.getPID(),
-									managedProcess.getOwner(), swapUsageScript,        
-									logger);
-							totalSwapUsage = processSwapSpaceUsage
-									.getSwapUsage();
-						}
-
-						ProcessMajorFaultCollector processMajorFaultUsageCollector = new ProcessMajorFaultCollector(
-								logger, process.getPID());
-
-						// if process is stopping or already dead dont collect
-						// metrics. The Camel
-						// route has just been stopped.
-						if (!collectStats(process.getProcessState())) {
-						    return;
-						}
-						processMajorFaultUsage = pool
-								.submit(processMajorFaultUsageCollector);
-						totalFaults = processMajorFaultUsage.get()
-								.getMajorFaults();
-						// Cgroups are not available so percent CPU is not available
-						totalCpuUsageInMillis = -1;   // -1 stands for N/A
-						//currentCpuUsage = -1; // -1 stands for N/A
-
-						ProcessResidentMemoryCollector collector = new ProcessResidentMemoryCollector(
-								statmFile, 2, 0);
-						// if process is stopping or already dead dont collect
-						// metrics. The Camel
-						// route has just been stopped.
-						if (!collectStats(process.getProcessState())) {
-							return;
-						}
-
-						Future<ProcessResidentMemory> prm = pool
-								.submit(collector);
-						totalRss = prm.get().get();
-					}
-
-				} catch (Exception exc) {
-					if (!collectStats(process.getProcessState())) {
-						return;
-					}
-					logger.error("LinuxProcessMetricsProcessor.process", null,
-							exc);
-				}
-
-				// report cpu utilization while the process is running
-				if (managedProcess.getDuccProcess().getProcessState()
-						.equals(ProcessState.Running) ||
-						managedProcess.getDuccProcess().getProcessState()
-						.equals(ProcessState.Initializing)	
-						) {
-					if (agent.useCgroups && totalCpuUsageInMillis != -1) {
-						
-						long timeRunning = 1;
-						if ( process.getTimeWindowInit() != null ) {
-							timeRunning = process.getTimeWindowInit().getElapsedMillis();
-						}
-						if ( process.getTimeWindowRun() != null ) {
-							timeRunning += process.getTimeWindowRun().getElapsedMillis();
-						}
-						// normalize time in running state into seconds
-						percentCPU = Math.round(100*( (totalCpuUsageInMillis*1.0)/ (timeRunning*1.0)));
-						process.setCpuTime( percentCPU );
-					} else {
-						process.setCpuTime(-1);   // -1 stands for N/A
-						percentCPU = -1;
-					}
-				} else {
-					// if process is not dead, report the last known percentCPU
-					process.setCpuTime(percentCPU);
-				}
-				// publish current CPU usage by computing a delta from the last time
-				// CPU data was fetched.
-				if ( totalCpuUsageInMillis > 0 ) {
-					double millisCPU = ( totalCpuUsageInMillis - previousCPUReadingInMillis )*1.0;
-					double millisRun = ( System.currentTimeMillis() - previousSnapshotTime )*1.0;
-					process.setCurrentCPU(Math.round(100*(millisCPU/millisRun) ) );
-					previousCPUReadingInMillis = totalCpuUsageInMillis;
-					previousSnapshotTime = System.currentTimeMillis();
-					
-				} else {
-					if (agent.useCgroups && totalCpuUsageInMillis != -1 ) {
-						process.setCurrentCPU(0);
-					} else {
-						process.setCurrentCPU(-1);  // -1 stands for N/A
-					}
-				}
-				logger.info(
-					"process",
-					null,
-					"----------- PID:" + process.getPID()
-					+ " Total CPU Time (%):" + process.getCpuTime()
-					+ " Delta CPU Time (%):" +process.getCurrentCPU() );
-				// collects process Major faults (swap in memory)
-				process.setMajorFaults(totalFaults);
-				// Current Process Swap Usage in bytes
-				long st = System.currentTimeMillis();
-				long processSwapUsage = totalSwapUsage * 1024;
-				// collects swap usage from /proc/<PID>/smaps file via a script
-				// DUCC_HOME/admin/collect_process_swap_usage.sh
-				process.setSwapUsage(processSwapUsage);
-				logger.info(
+				logger.trace(
 						"process",
 						null,
-						"----------- PID:" + process.getPID()
-								+ " Major Faults:" + totalFaults
-								+ " Process Swap Usage:" + processSwapUsage
-								+ " Max Swap Usage Allowed:"
-								+ managedProcess.getMaxSwapThreshold()
-								+ " Time to Collect Swap Usage:"
-								+ (System.currentTimeMillis() - st));
-				if (processSwapUsage > 0
-						&& processSwapUsage > managedProcess
-								.getMaxSwapThreshold()) {
-				} else {
-					// Use Memory Guard only if cgroups are disabled and fudge
-					// factor > -1
-
-					if (!agent.useCgroups
-							&& fudgeFactor > -1
-							&& managedProcess.getProcessMemoryAssignment()
-									.getMaxMemoryWithFudge() > 0) {
-						// RSS is in terms of pages(blocks) which size is system
-						// dependent. Default 4096 bytes
-						long rss = (totalRss * (blockSize / 1024)) / 1024; // normalize
-																			// RSS
-																			// into
-																			// MB
-						logger.trace(
-								"process",
-								null,
-								"*** Process with PID:"
-										+ managedProcess.getPid()
-										+ " Assigned Memory (MB): "
-										+ managedProcess
-												.getProcessMemoryAssignment()
-										+ " MBs. Current RSS (MB):" + rss);
-						// check if process resident memory exceeds its memory
-						// assignment calculate in the PM
-						if (rss > managedProcess.getProcessMemoryAssignment()
-								.getMaxMemoryWithFudge()) {
-							logger.error(
-									"process",
-									null,
-									"\n\n********************************************************\n\tProcess with PID:"
-											+ managedProcess.getPid()
-											+ " Exceeded its max memory assignment (including a fudge factor) of "
-											+ managedProcess
-													.getProcessMemoryAssignment()
-													.getMaxMemoryWithFudge()
-											+ " MBs. This Process Resident Memory Size: "
-											+ rss
-											+ " MBs .Killing process ...\n********************************************************\n\n");
-							try {
-								managedProcess.kill(); // mark it for death
-								process.setReasonForStoppingProcess(ReasonForStoppingProcess.ExceededShareSize
-										.toString());
-								agent.stopProcess(process);
-
-								if (agent.useCgroups) {
-									for (String pid : cgroupPids) {
-										// skip the main process that was just
-										// killed above. Only kill
-										// its child processes.
-										if (pid.equals(managedProcess
-												.getDuccProcess().getPID())) {
-											continue;
-										}
-										killChildProcess(pid, "-15");
-									}
-								}
-							} catch (Exception ee) {
-								if (!collectStats(process.getProcessState())) {
-									return;
-								}
-								logger.error("process", null, ee);
-							}
-							return;
-						}
-					}
-
-				}
-				// Publish resident memory
-				process.setResidentMemory((totalRss * blockSize));
-				// dont collect GC metrics for POPs. May not be java or may not
-				// be a jmx enabled java process
-				if (!process.getProcessType().equals(ProcessType.Pop)) {
-					ProcessGarbageCollectionStats gcStats = gcStatsCollector
-							.collect();
-					process.setGarbageCollectionStats(gcStats);
-					logger.info(
+						"*** Process with PID:"
+								+ managedProcess.getPid()
+								+ " Assigned Memory (MB): "
+								+ managedProcess
+										.getProcessMemoryAssignment()
+								+ " MBs. Current RSS (MB):" + rss);
+				// check if process resident memory exceeds its memory
+				// assignment calculate in the PM
+				if (rss > managedProcess.getProcessMemoryAssignment()
+						.getMaxMemoryWithFudge()) {
+					logger.error(
 							"process",
 							null,
-							"PID:" + process.getPID()
-									+ " Total GC Collection Count :"
-									+ gcStats.getCollectionCount()
-									+ " Total GC Collection Time :"
-									+ gcStats.getCollectionTime());
-				}
+							"\n\n********************************************************\n\tProcess with PID:"
+									+ managedProcess.getPid()
+									+ " Exceeded its max memory assignment (including a fudge factor) of "
+									+ managedProcess
+											.getProcessMemoryAssignment()
+											.getMaxMemoryWithFudge()
+									+ " MBs. This Process Resident Memory Size: "
+									+ rss
+									+ " MBs .Killing process ...\n********************************************************\n\n");
+					try {
+						managedProcess.kill(); // mark it for death
+						process.setReasonForStoppingProcess(ReasonForStoppingProcess.ExceededShareSize
+								.toString());
+						agent.stopProcess(process);
 
-			} catch (Exception ex) {
-				// if the child process is not running dont log the exception.
-				if (!collectStats(process.getProcessState())) {
+						if (agent.useCgroups) {
+							for (String pid : cgroupPids) {
+								// skip the main process that was just
+								// killed above. Only kill
+								// its child processes.
+								if (pid.equals(managedProcess
+										.getDuccProcess().getPID())) {
+									continue;
+								}
+								killChildProcess(pid, "-15");
+							}
+						}
+					} catch (Exception ee) {
+						if (!collectStats(process.getProcessState())) {
+							return;
+						}
+						logger.error("process", null, ee);
+					}
 					return;
 				}
-				logger.error("process", null, ex);
-				ex.printStackTrace();
 			}
 
+		}
+
+	}
+
+	private ProcessGarbageCollectionStats getGCStats() throws Exception {
+		if (!process.getProcessType().equals(ProcessType.Pop)) {
+			ProcessGarbageCollectionStats gcStats = gcStatsCollector
+					.collect();
+		   return gcStats;
+		}
+		return new ProcessGarbageCollectionStats();
+	}
+	public boolean processIsActive() {
+		return process.getProcessState().equals(ProcessState.Starting)
+               ||
+			   process.getProcessState().equals(ProcessState.Initializing)
+			   || 
+			   process.getProcessState().equals(ProcessState.Running);
+	}
+	public void process(Exchange e) {
+		// if process is stopping or already dead dont collect metrics. The
+		// Camel route has just been stopped.
+		if (closed || !processIsActive()) {
+ 		    logger.info("LinuxProcessMetricsProcessor.process",	null,"Process with PID:"+process.getPID() +" not in Running or Initializing state. Returning");	
+ 		    return;
+		}
+		try {
+			
+			process.setSwapUsage(getSwapUsage());
+			process.setMajorFaults(getFaults());
+
+			long rssInBytes = getRss();
+			process.setResidentMemory(rssInBytes);
+
+			long totalCpuUsageInMillis = getCpuUsage();
+
+			// set CPU time in terms of %
+			process.setCpuTime(getCpuTime(totalCpuUsageInMillis));
+
+			process.setCurrentCPU(getCurrentCpu(totalCpuUsageInMillis));
+
+			ProcessGarbageCollectionStats gcStats = getGCStats();
+			process.setGarbageCollectionStats(gcStats);
+			logger.info(
+					"process",
+					null,
+					"----------- PID:" + process.getPID() + " RSS:" 
+							+ ((rssInBytes > -1) ? (rssInBytes / (1024 * 1024))+ " MB" : "-1")
+							+ " Total CPU Time (%):" + process.getCpuTime()
+							+ " Delta CPU Time (%):" + process.getCurrentCPU()
+							+ " Major Faults:" + process.getMajorFaults()
+							+ " Process Swap Usage:" + process.getSwapUsage()
+							+ " Max Swap Usage Allowed:"
+							+ managedProcess.getMaxSwapThreshold()
+							+ " Total GC Collection Count :"
+							+ gcStats.getCollectionCount()
+							+ " Total GC Collection Time :"
+							+ gcStats.getCollectionTime());
+
+			killProcsIfExceedingMemoryThreshold();
+
+		} catch (Exception exc) {
+			if (!collectStats(process.getProcessState())) {
+				return;
+			}
+			logger.error("LinuxProcessMetricsProcessor.process", null, exc);
+		}
 	}
 
 	private void killChildProcess(final String pid, final String signal) {

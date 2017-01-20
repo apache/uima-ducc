@@ -44,45 +44,7 @@ public class ProcessCpuUsageCollector implements
 	}
 	
 	private long collect() throws Exception{
-			
+		// use cgroups manager to collect cpu usage
 		return cgm.getCpuUsage(containerId);
-	
 	}
-/*
-	private String execTopShell() throws Exception {
-		List<String> command = new ArrayList<String>();
-		command.add("top");
-		command.add("-b");
-		command.add("-n");
-		command.add("1");
-		command.add("-p");
-		command.add(pid);
-
-		ProcessBuilder builder = new ProcessBuilder(command);
-		Process process = builder.start();
-		InputStream is = process.getInputStream();
-		InputStreamReader isr = new InputStreamReader(is);
-		BufferedReader br = new BufferedReader(isr);
-		String line;
-		int count = 0;
-		String cpu = "";
-		try {
-			while ((line = br.readLine()) != null) {
-				if (count == 7) {
-					String[] values = line.trim().split("\\s+");
-					cpu = values[9];
-					process.destroy();
-					break;
-				}
-				count++;
-			}
-		} finally {
-			if (is != null) {
-				is.close();
-			}
-		}
-		process.waitFor();
-		return cpu;
-	}
-	*/
 }

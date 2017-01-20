@@ -20,26 +20,32 @@ package org.apache.uima.ducc.agent.metrics.collectors;
 
 import java.util.concurrent.Callable;
 
+import org.apache.uima.ducc.agent.launcher.CGroupsManager;
+import org.apache.uima.ducc.agent.launcher.CGroupsManager.CgroupMemoryStat;
 import org.apache.uima.ducc.common.agent.metrics.swap.DuccProcessMemoryPageLoadUsage;
 import org.apache.uima.ducc.common.agent.metrics.swap.ProcessMemoryPageLoadUsage;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
 public class ProcessMajorFaultCollector implements
 		Callable<ProcessMemoryPageLoadUsage> {
-	String pid;
+	private CGroupsManager cgm=null;
+	private String containerId=null;
 	
-	public ProcessMajorFaultCollector(DuccLogger logger, String pid ) {
-		this.pid = pid;
+	public ProcessMajorFaultCollector(DuccLogger logger, CGroupsManager mgr, String containerId ) {
+		this.cgm = mgr;
+		this.containerId = containerId;
 	}
 
 	public ProcessMemoryPageLoadUsage call() throws Exception {
 		try {
-			//super.parseMetricFile();
-			return new DuccProcessMemoryPageLoadUsage(pid);
+			return new DuccProcessMemoryPageLoadUsage(collect());
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
 	}
-
+	private long collect() throws Exception{
+		// use cgroups manager to collect rss usage
+		return cgm.getUsageForMemoryStat(CgroupMemoryStat.FAULTS,containerId);
+	}
 }

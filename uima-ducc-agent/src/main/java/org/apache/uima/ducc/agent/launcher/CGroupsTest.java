@@ -95,12 +95,7 @@ public class CGroupsTest {
         if (cgroupsBaseDir == null) {
           cgroupsBaseDir = "/cgroup/ducc";
         }
-        // get the cgroup subsystems. If not defined, default to the
-        // memory and cpu subsystem
-        String cgroupsSubsystems = System.getProperty("ducc.agent.launcher.cgroups.subsystems");
-        if (cgroupsSubsystems == null) {
-          cgroupsSubsystems = "memory,cpu";
-        }
+        String cgroupsSubsystems = "memory,cpu";
 		long maxTimeToWaitForProcessToStop = 60000; // default 1 minute
 
 		cgroupsManager = 

@@ -200,6 +200,9 @@ public class ProcessAccounting {
 		String methodName = "copyInventoryMajorFaults";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		process.setMajorFaults(inventoryProcess.getMajorFaults());
+		DuccId jobid = dw.getDuccId();
+		DuccId processId = process.getDuccId();
+		logger.trace(methodName, jobid, processId, "MajofFaults:"+process.getMajorFaults());
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return;
 	}
@@ -208,6 +211,9 @@ public class ProcessAccounting {
 		String methodName = "copyInventoryRss";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		process.setResidentMemory(inventoryProcess.getResidentMemory());
+		DuccId jobid = dw.getDuccId();
+		DuccId processId = process.getDuccId();
+		logger.trace(methodName, jobid, processId, "Rss:"+process.getResidentMemory());
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return;
 	}
@@ -460,7 +466,6 @@ public class ProcessAccounting {
 	private void copyInventoryProcessState(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyInventoryProcessState";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
-		
 		if(!compare(inventoryProcess.getProcessState().toString(),process.getProcessState().toString())) {
 			switch((JobState)job.getStateObject()) {
 			//case Initializing:
@@ -468,7 +473,6 @@ public class ProcessAccounting {
 			//	break;
 			default:
 				process.advanceProcessState(inventoryProcess.getProcessState());
-				logger.trace(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+process.getProcessState());
 				if ( inventoryProcess.getProcessJmxUrl() != null && process.getProcessJmxUrl() == null) {
 					process.setProcessJmxUrl(inventoryProcess.getProcessJmxUrl());
 				}
@@ -476,6 +480,7 @@ public class ProcessAccounting {
 				break;
 			}
 		}
+		logger.trace(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+process.getProcessState());
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
 	}
 	
