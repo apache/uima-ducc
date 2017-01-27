@@ -222,8 +222,9 @@ class StartDucc(DuccUtil):
 
     def invalid(self, *msg):
         if ( msg[0] != None ):
+            print
             print ' '.join(msg)
-
+            print
         print "For usage run"
         print "    start_ducc -h"
         print 'or'
@@ -246,12 +247,15 @@ class StartDucc(DuccUtil):
         self.pids.load_if_exists(self.pid_file)
         
         try:
-            opts, args = getopt.getopt(argv, 'c:mn:sh?v', ['component=', 'components=', 'help', 'nodelist=', 'cold', 'warm', 'nothreading'])
+            opts, args = getopt.getopt(argv, 'c:mn:sh?v', ['component=', 'help', 'nodelist=', 'cold', 'warm', 'nothreading'])
         except:
             self.invalid('Invalid arguments', ' '.join(argv))
-                       
+
+        if (len(args) > 0):
+            self.invalid('Invalid extra args: ', ' '.join(args))
+                      
         for ( o, a ) in opts:
-            if o in ( '-c', '--components' ): 
+            if o in ( '-c', '--component' ): 
                 if (a.strip() == 'head'):
             		components.append('or')
             		components.append('pm')
@@ -276,7 +280,7 @@ class StartDucc(DuccUtil):
             elif ( o == '-?'):
                 self.usage(None)
             else:
-                self.invalid('bad args: ', ' '.join(argv))
+                self.invalid('bad arg: ', o, 'in:', ' '.join(argv))
 
         if not self.installed():
             print "Head node is not initialized.  Have you run ducc_post_install?"

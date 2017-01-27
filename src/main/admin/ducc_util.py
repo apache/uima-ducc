@@ -771,7 +771,7 @@ class DuccUtil(DuccBase):
             procname = toks[2]
             fullargs = toks[3:]
 
-            if ( not ('java' in procname) ):
+            if ( not ('java' in procname) and not ('JIT' in procname)):
                 continue
 
             cont = False
