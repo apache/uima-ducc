@@ -309,7 +309,9 @@ public class DuccCommandExecutor extends CommandExecutor {
 		return ( ((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
 				.equals(ProcessState.Running) ||
 				((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
-				.equals(ProcessState.Initializing)	
+				.equals(ProcessState.Initializing) ||
+				((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
+				.equals(ProcessState.Starting)
 				); 	
 	}
 	private void stopProcess(ICommandLine cmdLine, String[] cmd)
