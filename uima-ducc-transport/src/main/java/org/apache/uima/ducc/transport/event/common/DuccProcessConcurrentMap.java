@@ -419,32 +419,38 @@ public class DuccProcessConcurrentMap extends ConcurrentHashMap<DuccId,IDuccProc
 	 */
 	public double getSwapUsageGbMax() {
 		double retVal = 0;
-		boolean flagCgroup = false;
-		boolean flagNoCgroup = false;
-		synchronized(this) {
-			Iterator<IDuccProcess> iterator = this.values().iterator();
-			while(iterator.hasNext()) {
-				IDuccProcess process = iterator.next();
-				double value = process.getSwapUsageMax();
-				if(value < 0) {
-					flagNoCgroup = true;
+		double swap = getSwapUsageGb();
+		if(swap < 0) {
+			retVal = swap;
+		}
+		else {
+			boolean flagCgroup = false;
+			boolean flagNoCgroup = false;
+			synchronized(this) {
+				Iterator<IDuccProcess> iterator = this.values().iterator();
+				while(iterator.hasNext()) {
+					IDuccProcess process = iterator.next();
+					double value = process.getSwapUsageMax();
+					if(value < 0) {
+						flagNoCgroup = true;
+					}
+					else {
+						flagCgroup = true;
+						retVal += value/Constants.GB;
+					}
+				}
+			}
+			if(flagCgroup && flagNoCgroup) {
+				if(retVal > 0){
+					retVal = -3;
 				}
 				else {
-					flagCgroup = true;
-					retVal += value/Constants.GB;
+					retVal = -2;
 				}
 			}
-		}
-		if(flagCgroup && flagNoCgroup) {
-			if(retVal > 0){
-				retVal = -3;
+			else if(flagNoCgroup) {
+				retVal = -1;
 			}
-			else {
-				retVal = -2;
-			}
-		}
-		else if(flagNoCgroup) {
-			retVal = -1;
 		}
 		return retVal;
 	}

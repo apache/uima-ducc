@@ -536,16 +536,17 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	public double getSwapUsageGbMax() {
 		double retVal = 0;
 		IDuccProcessMap map = getProcessMap();
+		double jp = 0;
+		double jd = 0;
 		if(map != null) {
-			double swap = map.getSwapUsageGbMax();
-			retVal += swap;
+			jp = map.getSwapUsageGbMax();
 		}
 		DuccWorkPopDriver driver = getDriver();
 		if(driver != null) {
 			map = driver.getProcessMap();
-			double swap = map.getSwapUsageGbMax();
-			retVal += swap;
+			jd = map.getSwapUsageGbMax();
 		}
+		retVal = merge(jp, jd);
 		return retVal;
 	}
 
