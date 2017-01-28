@@ -455,33 +455,81 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		return (getAliveProcessCount() > 0);
 	}
 	
-	public long getPgInCount() {
+	// choose the smallest negative value, else return the sum
+	private long merge(long jd, long jp) {
 		long retVal = 0;
-		IDuccProcessMap map = getProcessMap();
-		if(map != null) {
-			retVal += map.getPgInCount();
+		if((jd < 0) && (jp < 0)) {
+			if(jd < jp) {
+				retVal = jd;
+			}
+			else {
+				retVal = jp;
+			}
 		}
-		DuccWorkPopDriver driver = getDriver();
-		if(driver != null) {
-			map = driver.getProcessMap();
-			retVal += map.getPgInCount();
+		else if(jd < 0) {
+			retVal = jd;
+		}
+		else if(jp < 0) {
+			retVal = jp;
+		}
+		else {
+			retVal = jd+jp;
 		}
 		return retVal;
 	}
 	
-	public double getSwapUsageGb() {
+	// choose the smallest negative value, else return the sum
+	private double merge(double jd, double jp) {
 		double retVal = 0;
+		if((jd < 0) && (jp < 0)) {
+			if(jd < jp) {
+				retVal = jd;
+			}
+			else {
+				retVal = jp;
+			}
+		}
+		else if(jd < 0) {
+			retVal = jd;
+		}
+		else if(jp < 0) {
+			retVal = jp;
+		}
+		else {
+			retVal = jd+jp;
+		}
+		return retVal;
+	}
+	
+	public long getPgInCount() {
+		long jp = 0;
+		long jd = 0;
 		IDuccProcessMap map = getProcessMap();
 		if(map != null) {
-			double swap = map.getSwapUsageGb();
-			retVal += swap;
+			jp = map.getPgInCount();
 		}
 		DuccWorkPopDriver driver = getDriver();
 		if(driver != null) {
 			map = driver.getProcessMap();
-			double swap = map.getSwapUsageGb();
-			retVal += swap;
+			 jd = map.getPgInCount();
 		}
+		long retVal = merge(jd, jp);
+		return retVal;
+	}
+	
+	public double getSwapUsageGb() {
+		double jp = 0;
+		double jd = 0;
+		IDuccProcessMap map = getProcessMap();
+		if(map != null) {
+			jp = map.getSwapUsageGb();
+		}
+		DuccWorkPopDriver driver = getDriver();
+		if(driver != null) {
+			map = driver.getProcessMap();
+			jp = map.getSwapUsageGb();
+		}
+		double retVal = merge(jd, jp);
 		return retVal;
 	}
 	

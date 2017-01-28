@@ -29,6 +29,9 @@ public class PamAuthenticate {
 		System.out.println(result.name()+" "+text);
 	}
 	
+	/*
+	 * See UserAuthentciate.
+	 */
 	protected void launch(String[] args, boolean verbose) {
 		try {
 			if(args == null) {

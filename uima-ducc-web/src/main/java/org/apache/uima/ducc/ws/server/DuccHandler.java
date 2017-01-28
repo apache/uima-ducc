@@ -144,9 +144,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private enum DetailsType { Job, Reservation, Service };
 	private enum AllocationType { JD, MR, SPC, SPU, UIMA };
 	private enum LogType { POP, UIMA };
-	
-	private String notAvailable = "N/A";
-	
+
 	private DuccAuthenticator duccAuthenticator = DuccAuthenticator.getInstance();
 	
 	private String duccVersion						= duccContext+"/version";

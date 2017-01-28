@@ -335,40 +335,116 @@ public class DuccProcessConcurrentMap extends ConcurrentHashMap<DuccId,IDuccProc
 		return list.size();
 	}
 	
+	/*
+	 * return actual count if all non-negative (all have cgroups)
+	 * return -1 if all -1 (none have cgroups)
+	 * return -2 if mixed (some do and some don't have cgroups) but retVal would have been == 0
+	 * return -3 if mixed (some do and some don't have cgroups) but retVal would have been > 0
+	 */
 	public long getPgInCount() {
 		long retVal = 0;
+		boolean flagCgroup = false;
+		boolean flagNoCgroup = false;
 		synchronized(this) {
 			Iterator<IDuccProcess> iterator = this.values().iterator();
 			while(iterator.hasNext()) {
 				IDuccProcess process = iterator.next();
-				retVal += process.getMajorFaults();
+				long value = process.getMajorFaults();
+				if(value < 0) {
+					flagNoCgroup = true;
+				}
+				else {
+					flagCgroup = true;
+					retVal += value;
+				}
 			}
+		}
+		if(flagCgroup && flagNoCgroup) {
+			if(retVal > 0){
+				retVal = -3;
+			}
+			else {
+				retVal = -2;
+			}
+		}
+		else if(flagNoCgroup) {
+			retVal = -1;
 		}
 		return retVal;
 	}
 	
+	/*
+	 * return actual count if all non-negative (all have cgroups)
+	 * return -1 if all -1 (none have cgroups)
+	 * return -2 if mixed (some do and some don't have cgroups) but retVal would have been == 0
+	 * return -3 if mixed (some do and some don't have cgroups) but retVal would have been > 0
+	 */
 	public double getSwapUsageGb() {
 		double retVal = 0;
+		boolean flagCgroup = false;
+		boolean flagNoCgroup = false;
 		synchronized(this) {
 			Iterator<IDuccProcess> iterator = this.values().iterator();
 			while(iterator.hasNext()) {
 				IDuccProcess process = iterator.next();
-				double swap = process.getSwapUsage();
-				retVal += swap/Constants.GB;
+				double value = process.getSwapUsage();
+				if(value < 0) {
+					flagNoCgroup = true;
+				}
+				else {
+					flagCgroup = true;
+					retVal += value/Constants.GB;
+				}
 			}
+		}
+		if(flagCgroup && flagNoCgroup) {
+			if(retVal > 0){
+				retVal = -3;
+			}
+			else {
+				retVal = -2;
+			}
+		}
+		else if(flagNoCgroup) {
+			retVal = -1;
 		}
 		return retVal;
 	}
 	
+	/*
+	 * return actual count if all non-negative (all have cgroups)
+	 * return -1 if all -1 (none have cgroups)
+	 * return -2 if mixed (some do and some don't have cgroups) but retVal would have been == 0
+	 * return -3 if mixed (some do and some don't have cgroups) but retVal would have been > 0
+	 */
 	public double getSwapUsageGbMax() {
 		double retVal = 0;
+		boolean flagCgroup = false;
+		boolean flagNoCgroup = false;
 		synchronized(this) {
 			Iterator<IDuccProcess> iterator = this.values().iterator();
 			while(iterator.hasNext()) {
 				IDuccProcess process = iterator.next();
-				double swap = process.getSwapUsageMax();
-				retVal += swap/Constants.GB;
+				double value = process.getSwapUsageMax();
+				if(value < 0) {
+					flagNoCgroup = true;
+				}
+				else {
+					flagCgroup = true;
+					retVal += value/Constants.GB;
+				}
 			}
+		}
+		if(flagCgroup && flagNoCgroup) {
+			if(retVal > 0){
+				retVal = -3;
+			}
+			else {
+				retVal = -2;
+			}
+		}
+		else if(flagNoCgroup) {
+			retVal = -1;
 		}
 		return retVal;
 	}
