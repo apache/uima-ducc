@@ -1310,6 +1310,7 @@ public class ServiceSet
         }
         // keep services with autostart=true or with active references 
         // running with at least one instance on a rebalance
+        // UIMA-4995 May happen when pinger says both delete 1 and add 1
         if ((this.isAutostart() || (this.countReferences() > 0) ) && instances == 0) {
           instances = 1;
         }
@@ -1451,7 +1452,7 @@ public class ServiceSet
                 //
                 // TODO: Update the ducc_services CLI to allow stop and restart of specific instances without counting failure.
                 if ( stoppedInstance.isStopped() ) {
-                    logger.info(methodName, id, "Instance", inst_id, "is manually stopped.  Not restarting.");
+                    logger.info(methodName, id, "Instance", inst_id, "stopped by SM.  Not restarting.");
                 } else {
                     // An instance stopped and we (SM) didn't ask it to - by definition this is failure no matter how it exits.
                     
@@ -2224,7 +2225,6 @@ public class ServiceSet
 
     synchronized void stopAll()
     {
-        instances = 0;     // Reduce the target count to 0 to ensure no more are started UIMA-5244
         stop(implementors.size());
     }
 
@@ -2235,6 +2235,7 @@ public class ServiceSet
     {
         disable(reason);
         stopAll();
+        // instances = 0;     // Is this needed to ensure no more are started? UIMA-5244
     }
 
     // /**
@@ -2265,7 +2266,7 @@ public class ServiceSet
         public void run()
         {
             String methodName = "LingerTask.run";
-            logger.debug(methodName, id, "Lingering stop completes.");
+            logger.info(methodName, id, "Linger time reached ... stopping all instances.");
             // doesn't matter how its started i think, we have to set this flag off when we stop
             linger = null;
             setReferenced(false);
