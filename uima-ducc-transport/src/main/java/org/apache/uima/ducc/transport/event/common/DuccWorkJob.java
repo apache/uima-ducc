@@ -458,22 +458,16 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	// choose the smallest negative value, else return the sum
 	private long merge(long jd, long jp) {
 		long retVal = 0;
-		if((jd < 0) && (jp < 0)) {
+		if((jd >= 0) && (jp >= 0)) {
+			retVal = jd+jp;
+		}
+		else {
 			if(jd < jp) {
 				retVal = jd;
 			}
 			else {
 				retVal = jp;
 			}
-		}
-		else if(jd < 0) {
-			retVal = jd;
-		}
-		else if(jp < 0) {
-			retVal = jp;
-		}
-		else {
-			retVal = jd+jp;
 		}
 		return retVal;
 	}
@@ -481,22 +475,16 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	// choose the smallest negative value, else return the sum
 	private double merge(double jd, double jp) {
 		double retVal = 0;
-		if((jd < 0) && (jp < 0)) {
+		if((jd >= 0) && (jp >= 0)) {
+			retVal = jd+jp;
+		}
+		else {
 			if(jd < jp) {
 				retVal = jd;
 			}
 			else {
 				retVal = jp;
 			}
-		}
-		else if(jd < 0) {
-			retVal = jd;
-		}
-		else if(jp < 0) {
-			retVal = jp;
-		}
-		else {
-			retVal = jd+jp;
 		}
 		return retVal;
 	}
