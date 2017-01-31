@@ -99,9 +99,17 @@ implements IJobProcessor{
 			if ( message == null ) {
 				message = super.getProcessJmxUrl();
 			}
+			
 			if ( !state.name().equals(currentState.name())) {
-				currentState = state;
-				logger.info("setState", null, "Notifying Agent New State:"+state.name());
+				if ( state.equals(ProcessState.Stopping) && 
+						(currentState.equals(ProcessState.Initializing ) ||
+						 currentState.equals(ProcessState.Undefined ) ||
+						 currentState.equals(ProcessState.Starting ) ) ) {
+					currentState = ProcessState.FailedInitialization;
+				} else {
+					currentState = state;
+				}
+				logger.info("setState", null, "Notifying Agent New State::::"+currentState.name());
 				if ( agent != null ) {
 					agent.notify(currentState, message);
 				}
