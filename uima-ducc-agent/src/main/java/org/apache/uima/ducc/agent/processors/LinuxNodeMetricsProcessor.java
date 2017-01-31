@@ -126,9 +126,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 
 			NodeMemInfoCollector memCollector = new NodeMemInfoCollector(MeminfoTargetFields);
 			Future<NodeMemory> nmiFuture = pool.submit(memCollector);
-//			NodeLoadAverageCollector loadAvgCollector = new NodeLoadAverageCollector(
-//					loadAvgFile, 5, 0);
-			// 
+
 			NodeLoadAverageCollector loadAvgCollector = new NodeLoadAverageCollector();
 
 			Future<NodeLoadAverage> loadFuture = pool.submit(loadAvgCollector);
