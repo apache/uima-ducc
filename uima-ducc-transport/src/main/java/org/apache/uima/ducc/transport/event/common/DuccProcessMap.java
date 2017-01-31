@@ -28,6 +28,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.Constants;
+import org.apache.uima.ducc.transport.event.common.DuccProcess.SpecialValue;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuccProcessMap {
@@ -356,12 +357,17 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 			while(iterator.hasNext()) {
 				IDuccProcess process = iterator.next();
 				long value = process.getMajorFaults();
-				if(value < 0) {
-					flagNoCgroup = true;
+				if(value == SpecialValue.Unknown.getlong()) {
+					// skip it
 				}
 				else {
-					flagCgroup = true;
-					retVal += value;
+					if(value < 0) {
+						flagNoCgroup = true;
+					}
+					else {
+						flagCgroup = true;
+						retVal += value;
+					}
 				}
 			}
 		}
@@ -394,12 +400,17 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 			while(iterator.hasNext()) {
 				IDuccProcess process = iterator.next();
 				double value = process.getSwapUsage();
-				if(value < 0) {
-					flagNoCgroup = true;
+				if(value == SpecialValue.Unknown.getlong()) {
+					// skip it
 				}
 				else {
-					flagCgroup = true;
-					retVal += value/Constants.GB;
+					if(value < 0) {
+						flagNoCgroup = true;
+					}
+					else {
+						flagCgroup = true;
+						retVal += value/Constants.GB;
+					}
 				}
 			}
 		}
@@ -437,12 +448,17 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 				while(iterator.hasNext()) {
 					IDuccProcess process = iterator.next();
 					double value = process.getSwapUsageMax();
-					if(value < 0) {
-						flagNoCgroup = true;
+					if(value == SpecialValue.Unknown.getlong()) {
+						// skip it
 					}
 					else {
-						flagCgroup = true;
-						retVal += value/Constants.GB;
+						if(value < 0) {
+							flagNoCgroup = true;
+						}
+						else {
+							flagCgroup = true;
+							retVal += value/Constants.GB;
+						}
 					}
 				}
 			}

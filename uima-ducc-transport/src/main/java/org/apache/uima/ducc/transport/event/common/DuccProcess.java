@@ -34,6 +34,19 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 
 public class DuccProcess implements IDuccProcess {
 
+	public enum SpecialValue { 
+		Unknown(-100),
+		Unavailable(-1),
+		;
+		long sv = 0;
+		private SpecialValue(long value) {
+			sv = value;
+		}
+		long getlong() {
+			return sv;
+		}
+	}
+	
 	/**
 	 * please increment this sUID when removing or modifying a field
 	 */
@@ -62,9 +75,9 @@ public class DuccProcess implements IDuccProcess {
 	private boolean initialized = false;
 	private int exitCode;
 	private CGroup cgroup;
-	private long majorFaults;
-	private long swapUsage;
-	private long swapUsageMax;
+	private long majorFaults = SpecialValue.Unknown.getlong();
+	private long swapUsage= SpecialValue.Unknown.getlong();
+	private long swapUsageMax= SpecialValue.Unknown.getlong();
 	private long wiMillisInvestment;
 	private long currentCPU;
 	
