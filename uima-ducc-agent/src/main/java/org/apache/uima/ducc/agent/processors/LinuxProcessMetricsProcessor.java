@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.agent.processors;
 
 import java.io.FileNotFoundException;
-import java.io.RandomAccessFile;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -33,9 +32,7 @@ import org.apache.uima.ducc.agent.metrics.collectors.ProcessMajorFaultCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.ProcessResidentMemoryCollector;
 import org.apache.uima.ducc.agent.metrics.collectors.ProcessSwapUsageCollector;
 import org.apache.uima.ducc.common.agent.metrics.cpu.ProcessCpuUsage;
-import org.apache.uima.ducc.common.agent.metrics.memory.DuccProcessResidentMemory;
 import org.apache.uima.ducc.common.agent.metrics.memory.ProcessResidentMemory;
-import org.apache.uima.ducc.common.agent.metrics.swap.DuccProcessSwapSpaceUsage;
 import org.apache.uima.ducc.common.agent.metrics.swap.ProcessMemoryPageLoadUsage;
 import org.apache.uima.ducc.common.agent.metrics.swap.ProcessSwapSpaceUsage;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
@@ -48,9 +45,6 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 		ProcessMetricsProcessor {
-	private RandomAccessFile statmFile;
-
-	private RandomAccessFile processStatFile;
 
 	private long previousCPUReadingInMillis = 0;
 	
@@ -79,12 +73,8 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 	
 	
 	public LinuxProcessMetricsProcessor(DuccLogger logger,
-			IDuccProcess process, NodeAgent agent, String statmFilePath,
-			String nodeStatFilePath, String processStatFilePath,
-			ManagedProcess managedProcess) throws FileNotFoundException {
+			IDuccProcess process, NodeAgent agent, ManagedProcess managedProcess) throws FileNotFoundException {
 		this.logger = logger;
-		statmFile = new RandomAccessFile(statmFilePath, "r");
-		processStatFile = new RandomAccessFile(processStatFilePath, "r");
 		this.managedProcess = managedProcess;
 		this.agent = agent;
 		pool = Executors.newCachedThreadPool();
@@ -123,12 +113,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 	public void close() {
 		closed = true;
 		try {
-			if (statmFile != null && statmFile.getFD().valid()) {
-				statmFile.close();
-			}
-			if (processStatFile != null && processStatFile.getFD().valid()) {
-				processStatFile.close();
-			}
 			this.stop();
 		} catch (Exception e) {
 			e.printStackTrace();
