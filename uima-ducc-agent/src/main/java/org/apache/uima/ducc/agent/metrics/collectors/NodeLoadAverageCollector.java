@@ -15,64 +15,54 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-*/
+ */
 package org.apache.uima.ducc.agent.metrics.collectors;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
 import java.util.concurrent.Callable;
 
 import org.apache.uima.ducc.common.node.metrics.NodeLoadAverage;
 import org.apache.uima.ducc.common.node.metrics.UptimeNodeLoadAverage;
 
+public class NodeLoadAverageCollector implements
+		Callable<NodeLoadAverage> {
 
-public class NodeLoadAverageCollector extends AbstractMetricCollector 
-implements Callable<NodeLoadAverage>{
-  
- public NodeLoadAverageCollector() {
-	super(null,0,0);
-	
- }
-  public NodeLoadAverageCollector(RandomAccessFile metricFile,  int howMany, int offset) {
-    super(metricFile, howMany, offset);
-  }
+	public NodeLoadAverageCollector() {
+	}
 
-  public NodeLoadAverage call() throws Exception {
-    //super.parseMetricFile();
-    
-//	 UptimeNodeLoadAverage uptimeLoadAverage = new UptimeNodeLoadAverage();
-	 return collect();
-	 //return new NodeLoadAverageInfo(super.metricFileContents, super.metricFieldOffsets, super.metricFieldLengths);
-  }
+	public NodeLoadAverage call() throws Exception {
+		return collect();
+	}
+
 	private NodeLoadAverage collect() throws Exception {
-		   InputStream stream = null;
-		   BufferedReader reader = null;
-		   UptimeNodeLoadAverage uptimeLoadAverage = new UptimeNodeLoadAverage(); 
-		   ProcessBuilder pb = 
-				   new ProcessBuilder("uptime");;
-	       pb.redirectErrorStream(true);
-		   Process proc = pb.start();
-		   //  spawn uptime command and scrape the output
-		   stream = proc.getInputStream();
-		   reader = new BufferedReader(new InputStreamReader(stream));
-		   String line;
-		   String regex = "\\s+";
-		   String filter = "load average:";
-		   // read the next line from ps output
-		   while ((line = reader.readLine()) != null) {
-//			   System.out.println("UPTIME:"+line);
-		       int pos=0;   
-			   if ( (pos = line.indexOf(filter)) > -1 ) {
-		          String la =  line.substring(pos+filter.length()).replaceAll(regex,"");
-				  String[] averages = la.split(",");
-				  uptimeLoadAverage.setLoadAvg1(averages[0]);
-				  uptimeLoadAverage.setLoadAvg5(averages[1]);
-				  uptimeLoadAverage.setLoadAvg15(averages[2]);
-			   }
-		   }
-		   proc.waitFor();
-		   return uptimeLoadAverage; 
+		InputStream stream = null;
+		BufferedReader reader = null;
+		UptimeNodeLoadAverage uptimeLoadAverage = new UptimeNodeLoadAverage();
+		ProcessBuilder pb = new ProcessBuilder("uptime");
+		;
+		pb.redirectErrorStream(true);
+		Process proc = pb.start();
+		// spawn uptime command and scrape the output
+		stream = proc.getInputStream();
+		reader = new BufferedReader(new InputStreamReader(stream));
+		String line;
+		String regex = "\\s+";
+		String filter = "load average:";
+		// read the next line from ps output
+		while ((line = reader.readLine()) != null) {
+			int pos = 0;
+			if ((pos = line.indexOf(filter)) > -1) {
+				String la = line.substring(pos + filter.length()).replaceAll(
+						regex, "");
+				String[] averages = la.split(",");
+				uptimeLoadAverage.setLoadAvg1(averages[0]);
+				uptimeLoadAverage.setLoadAvg5(averages[1]);
+				uptimeLoadAverage.setLoadAvg15(averages[2]);
+			}
 		}
+		proc.waitFor();
+		return uptimeLoadAverage;
+	}
 }
