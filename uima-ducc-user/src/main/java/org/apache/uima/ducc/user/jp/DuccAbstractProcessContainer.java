@@ -110,6 +110,8 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
  		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
          try {
      		doDeploy();
+         } catch( Exception e) {
+        	 throw e;
          } finally {
  			Thread.currentThread().setContextClassLoader(savedCL);
  			//	Pin thread to its own CAS serializer instance
