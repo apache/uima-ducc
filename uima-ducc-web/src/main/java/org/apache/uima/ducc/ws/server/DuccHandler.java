@@ -3482,6 +3482,27 @@ public class DuccHandler extends DuccAbstractHandler {
 				heartbeat = "0";
 				heartmax = "0";
 				break;
+			case Broker:
+				boolean brokerAlive = brokerHelper.isAlive();
+				if(brokerAlive) {
+					status = "up";
+				}
+				else {
+					status = "down";
+				}
+				heartbeat = "0";
+				heartmax = "0";
+				break;
+			case Database:
+				if(databaseHelper.isAlive()) {
+					status = "up";
+				}
+				else {
+					status = "down";
+				}
+				heartbeat = "0";
+				heartmax = "0";
+				break;
 			default:
 				status = "unknown";
 				String hb = DuccDaemonsData.getInstance().getHeartbeat(daemonName);
