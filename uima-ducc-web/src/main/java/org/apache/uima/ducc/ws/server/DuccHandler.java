@@ -1610,19 +1610,25 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 	
 	private IDuccWorkJob findJob(String jobno) {
+		String methodName = "findJob";
 		IDuccWorkJob job = null;
-		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
-		if(duccWorkMap.getJobKeySet().size()> 0) {
-			Iterator<DuccId> iterator = null;
-			iterator = duccWorkMap.getJobKeySet().iterator();
-			while(iterator.hasNext()) {
-				DuccId jobId = iterator.next();
-				String fid = ""+jobId.getFriendly();
-				if(jobno.equals(fid)) {
-					job = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
-					break;
+		try {
+			IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
+			if(duccWorkMap.getJobKeySet().size()> 0) {
+				Iterator<DuccId> iterator = null;
+				iterator = duccWorkMap.getJobKeySet().iterator();
+				while(iterator.hasNext()) {
+					DuccId jobId = iterator.next();
+					String fid = ""+jobId.getFriendly();
+					if(jobno.equals(fid)) {
+						job = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
+						break;
+					}
 				}
 			}
+		}
+		catch(Exception e) {
+			duccLogger.trace(methodName, null, "jobno="+jobno, e);
 		}
 		return job;
 	}
