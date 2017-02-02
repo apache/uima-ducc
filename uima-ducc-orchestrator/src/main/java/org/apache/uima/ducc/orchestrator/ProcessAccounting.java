@@ -484,6 +484,24 @@ public class ProcessAccounting {
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
 	}
 	
+	private boolean changed(String s1, String s2) {
+		boolean retVal = false;
+		if((s1 == null) && (s2 == null)) {
+		}
+		else if((s1 == null) && (s2 != null)) {
+			retVal = true;
+		}
+		else if((s1 != null) && (s2 == null)) {
+			retVal = true;
+		}
+		else if(s1.equals(s2)) {
+		}
+		else {
+			retVal = true;
+		}
+		return retVal;
+	}
+	
 	private void copyReasonForStoppingProcess(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyReasonForStoppingProcess";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
@@ -496,26 +514,16 @@ public class ProcessAccounting {
 		case Killed:
 			String reasonNew = inventoryProcess.getReasonForStoppingProcess();
 			String reasonOld = process.getReasonForStoppingProcess();
-			String extendedReasonNew = inventoryProcess.getExtendedReasonForStoppingProcess();
-			if(reasonNew != null) {
-				if(reasonOld == null) {
-					process.setReasonForStoppingProcess(reasonNew);
-					logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process reason code")+process.getReasonForStoppingProcess());
-					if(extendedReasonNew != null) {
-						process.setExtendedReasonForStoppingProcess(extendedReasonNew);
-						logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process extended reason code")+process.getExtendedReasonForStoppingProcess());
-					}
-				}
-				else if(!reasonNew.equals(reasonOld)) {
-					process.setReasonForStoppingProcess(reasonNew);
-					logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process reason code")+process.getReasonForStoppingProcess());
-					if(extendedReasonNew != null) {
-						process.setExtendedReasonForStoppingProcess(extendedReasonNew);
-						logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process extended reason code")+process.getExtendedReasonForStoppingProcess());
-					}
-				}
+			if(changed(reasonOld, reasonNew)) {
+				process.setReasonForStoppingProcess(reasonNew);
+				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process reason code")+reasonOld+"->"+reasonNew);
 			}
-			
+			String extendedReasonNew = inventoryProcess.getExtendedReasonForStoppingProcess();
+			String extendedReasonOld = process.getExtendedReasonForStoppingProcess();
+			if(changed(extendedReasonOld, extendedReasonNew)) {
+				process.setExtendedReasonForStoppingProcess(extendedReasonNew);
+				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process extended reason code")+extendedReasonOld+"->"+extendedReasonNew);
+			}
 			break;
 		default:
 			break;
