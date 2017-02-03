@@ -144,9 +144,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private enum DetailsType { Job, Reservation, Service };
 	private enum AllocationType { JD, MR, SPC, SPU, UIMA };
 	private enum LogType { POP, UIMA };
-	
-	private String notAvailable = "N/A";
-	
+
 	private DuccAuthenticator duccAuthenticator = DuccAuthenticator.getInstance();
 	
 	private String duccVersion						= duccContext+"/version";
@@ -1612,19 +1610,25 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 	
 	private IDuccWorkJob findJob(String jobno) {
+		String methodName = "findJob";
 		IDuccWorkJob job = null;
-		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
-		if(duccWorkMap.getJobKeySet().size()> 0) {
-			Iterator<DuccId> iterator = null;
-			iterator = duccWorkMap.getJobKeySet().iterator();
-			while(iterator.hasNext()) {
-				DuccId jobId = iterator.next();
-				String fid = ""+jobId.getFriendly();
-				if(jobno.equals(fid)) {
-					job = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
-					break;
+		try {
+			IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
+			if(duccWorkMap.getJobKeySet().size()> 0) {
+				Iterator<DuccId> iterator = null;
+				iterator = duccWorkMap.getJobKeySet().iterator();
+				while(iterator.hasNext()) {
+					DuccId jobId = iterator.next();
+					String fid = ""+jobId.getFriendly();
+					if(jobno.equals(fid)) {
+						job = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
+						break;
+					}
 				}
 			}
+		}
+		catch(Exception e) {
+			duccLogger.trace(methodName, null, "jobno="+jobno, e);
 		}
 		return job;
 	}
@@ -3481,6 +3485,27 @@ public class DuccHandler extends DuccAbstractHandler {
 			switch(daemonName) {
 			case Webserver:
 				status = "up";
+				heartbeat = "0";
+				heartmax = "0";
+				break;
+			case Broker:
+				boolean brokerAlive = brokerHelper.isAlive();
+				if(brokerAlive) {
+					status = "up";
+				}
+				else {
+					status = "down";
+				}
+				heartbeat = "0";
+				heartmax = "0";
+				break;
+			case Database:
+				if(databaseHelper.isAlive()) {
+					status = "up";
+				}
+				else {
+					status = "down";
+				}
 				heartbeat = "0";
 				heartmax = "0";
 				break;

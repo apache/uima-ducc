@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -41,18 +41,18 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
- * 
+ *
  * Main program to launch Ducc Component process. Launch configuration is provided
  * in properties file via -Dducc.deploy.configuration=<file.properties>. Entries
  * in this file are used to enrich System properties. Any value in the properties
- * file can be overriden with a -D<key>=<value> where <key> matches a key in 
+ * file can be overriden with a -D<key>=<value> where <key> matches a key in
  * properties file. To launch multiple Ducc components in the same jvm, list them
  * in ducc.deploy.components property. For example,
- * 
+ *
  *  ducc.deploy.components=jm,rm
- *  
+ *
  *  The above will launch Job Manager and Resource Manager in the same jvm.
- *  
+ *
  *
  */
 public class DuccService extends AbstractDuccComponent {
@@ -63,15 +63,15 @@ public class DuccService extends AbstractDuccComponent {
     private static DuccLogger globalLogger = null;
     private ApplicationContext context;
     Map<String,AbstractDuccComponent> duccComponents = null;
-    
+
     private Object investmentInstance;
-    
+
     private String[] args = null;
 	public DuccService() {
 		super("");
-        
-        //	Plugin UncaughtExceptionHandler to handle OOM and any 
-        //  unhandled runtime exceptions 
+
+        //	Plugin UncaughtExceptionHandler to handle OOM and any
+        //  unhandled runtime exceptions
         Thread.currentThread().setUncaughtExceptionHandler(this);
 	}
 
@@ -106,9 +106,9 @@ public class DuccService extends AbstractDuccComponent {
 
 	/**
 	 * Exits process if given configuration class is either null or not set (empty).
-	 *  
+	 *
 	 * @param classToVerify - class name to check
-	 * @param reason - 
+	 * @param reason -
 	 */
 	private void exitIfInvalid( String componentName, String classToVerify, String reason) {
 		if ( classToVerify == null || classToVerify.trim().length() == 0) {
@@ -118,9 +118,9 @@ public class DuccService extends AbstractDuccComponent {
 	}
 	/**
 	 * Extracts component configuration classes from System properties
-	 * 
+	 *
 	 * @return - array of configuration classes
-	 * 
+	 *
 	 * @throws DuccComponentInitializationException - if no components provided for loading
 	 */
 	private Class<?>[] getComponentsToLoad() throws Exception {
@@ -128,7 +128,7 @@ public class DuccService extends AbstractDuccComponent {
 		if ( componentsToLoad == null || componentsToLoad.length == 0 ) {
 			throw new DuccComponentInitializationException("Ducc Component not specified. Provide Ducc Component(s) to Load via -D"+DUCC_DEPLOY_COMPONENTS+" System property");
 		}
-		List<Class<?>> components = new ArrayList<Class<?>>(); 
+		List<Class<?>> components = new ArrayList<Class<?>>();
 		for( String componentToLoad : componentsToLoad ) {
 			String configurationClassName = System.getProperty("ducc."+componentToLoad+".configuration.class");
 			exitIfInvalid(componentToLoad, configurationClassName, "Configuration Class Name");
@@ -139,8 +139,8 @@ public class DuccService extends AbstractDuccComponent {
 		return configClasses;
 	}
 	/**
-	 * Initializes Ducc component(s) based on provided configuration.  
-	 * 
+	 * Initializes Ducc component(s) based on provided configuration.
+	 *
 	 * @throws Exception
 	 */
 	public void boot(String[] args) throws Exception {
@@ -150,16 +150,16 @@ public class DuccService extends AbstractDuccComponent {
         // enable hangup support so you can press ctrl + c to terminate the JVM
         main.enableHangupSupport();
         //	Load ducc properties file and enrich System properties. It supports
-        //  overrides for entries in ducc properties file. Any key in the ducc 
+        //  overrides for entries in ducc properties file. Any key in the ducc
         //	property file can be overriden with -D<key>=<value>
 		loadProperties(DUCC_PROPERTY_FILE);
 
 		System.out.println(System.getProperties());
-		//	Extract component configuration classes available in System properties 
+		//	Extract component configuration classes available in System properties
 		Class<?>[] configClasses = getComponentsToLoad();
 		//	Configure via Spring DI using named Spring's Java Config magic.
-		//	Multiple component configurations can be loaded into a Spring container. 
-		context = 
+		//	Multiple component configurations can be loaded into a Spring container.
+		context =
 			new AnnotationConfigApplicationContext(configClasses);
 		//	Extract all Ducc components from Spring container
 		duccComponents =
@@ -186,7 +186,7 @@ public class DuccService extends AbstractDuccComponent {
   }
 	public AbstractDuccComponent getComponentInstance(String componentKey) {
     //  Extract all Ducc components from Spring container
-    Map<String,AbstractDuccComponent> duccComponents = 
+    Map<String,AbstractDuccComponent> duccComponents =
       context.getBeansOfType(AbstractDuccComponent.class);
     for(Map.Entry<String, AbstractDuccComponent> duccComponent: duccComponents.entrySet()) {
       if ( componentKey.equals(duccComponent.getKey())) {
@@ -198,12 +198,12 @@ public class DuccService extends AbstractDuccComponent {
 	/**
 	 * This method returns an instance of IJobProcessor which would only exist
 	 * in a JP and UIMA-based AP.
-	 * 
+	 *
 	 * @return - IJobProcessor instance
 	 */
 	public IJobProcessor getJobProcessorComponent() {
 	    //  Extract all Ducc components from Spring container
-	    Map<String,AbstractDuccComponent> duccComponents = 
+	    Map<String,AbstractDuccComponent> duccComponents =
 	      context.getBeansOfType(AbstractDuccComponent.class);
 	    // scan for component which implements IJobProcessor interface.
 	    for(Map.Entry<String, AbstractDuccComponent> duccComponent: duccComponents.entrySet()) {
@@ -220,7 +220,7 @@ public class DuccService extends AbstractDuccComponent {
 	 */
 	public AbstractDuccComponent getComponentByInstanceType(Class<?> instanceType) {
 	    //  Extract all Ducc components from Spring container
-	    Map<String,AbstractDuccComponent> duccComponents = 
+	    Map<String,AbstractDuccComponent> duccComponents =
 	      context.getBeansOfType(AbstractDuccComponent.class);
 	    for(Map.Entry<String, AbstractDuccComponent> duccComponent: duccComponents.entrySet()) {
 	        return duccComponent.getValue();
@@ -255,7 +255,7 @@ public class DuccService extends AbstractDuccComponent {
 			duccComponent.start(this, args);
 			//getDuccLogger().info("setProcessor", null, "... Component started: job-process");
 		}
-		
+
 	}
 	public void stop() throws Exception {
 		if ( main.isStarted() ) {
@@ -267,28 +267,26 @@ public class DuccService extends AbstractDuccComponent {
 			getDuccLogger().shutdown();
 		}
 	}
-	
+
 	public static void main(String[] args) {
 		DuccService duccService = null;
 		try {
-			// run duplicate daemon detector to make sure we dont start
-			// multiple copies of Ducc daemons. It checks of this process
-			// is a duplicate of OR, WS, PM, RM, SM, or Agent. The code
-			// simply exits if another instance is running.
-			DuplicateDuccDaemonProcessDetector daemonDetector =
-					new DuplicateDuccDaemonProcessDetector();
-			String thisProcessDaemonType = System.getProperty(DUCC_DEPLOY_COMPONENTS);
-			if ( daemonDetector.isThisProcessDuplicateDaemon(thisProcessDaemonType) ) {
-				System.out.println("Ducc Daemon process "+thisProcessDaemonType+" is already running - duplicates are not allowed - exiting ...");
-				System.exit(1);
-			}
-
-			
 			if ( Utils.findDuccHome() == null ) {
                 //findDuccHome places it into System.properties
 				System.out.println("Unable to Launch Ducc Service - DUCC_HOME not defined. Add it to your environment or provide it with -DDUCC_HOME=<path>");
 				System.exit(-1);
 			}
+
+			// Run duplicate daemon detector to make sure we dont start
+            // multiple copies of Ducc daemons. It checks of this process
+            // is a duplicate of OR, WS, PM, RM, SM, or Agent. The code
+            // simply exits if another instance is running.
+			// (Must first find DUCC_HOME so can read ducc.propeties)
+            String dup = DuplicateDuccDaemonProcessDetector.checkForDuplicate();
+            if (dup != null) {
+                System.out.println("ERROR - DUCC Daemon process already running - " + dup);
+                System.exit(1);
+            }
 
             if ( System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()) == null ) {
                 NodeIdentity ni = new NodeIdentity();
@@ -302,7 +300,7 @@ public class DuccService extends AbstractDuccComponent {
 
 			duccService = new DuccService();
 			duccService.boot(args);
-			
+
 		} catch( DuccComponentInitializationException e) {
 			e.printStackTrace();
 			if ( duccService != null ) {
@@ -314,7 +312,7 @@ public class DuccService extends AbstractDuccComponent {
 			}
 		} catch( Exception e) {
 			e.printStackTrace();
-			
+
 		}
 	}
 
@@ -329,7 +327,7 @@ public class DuccService extends AbstractDuccComponent {
             }
         }
     }
-    
+
 	public String getLogLevel(String clz) {
 		@SuppressWarnings("unchecked")
 		Enumeration<Logger> loggers = LogManager.getCurrentLoggers();
@@ -352,7 +350,7 @@ public class DuccService extends AbstractDuccComponent {
 		this.investmentInstance = instance;
 	}
 	public void registerInvestmentResetCallback(Object o, Method m) throws Exception {
-		Method investmentInstanceMethod = 
+		Method investmentInstanceMethod =
 				investmentInstance.getClass().getDeclaredMethod("setJobComponent", Object.class, Method.class);
 		investmentInstanceMethod.invoke(investmentInstance, o,m);
 	}

@@ -23,13 +23,10 @@ import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.camel.CamelContext;
-import org.apache.camel.Component;
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
-import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.dataformat.xstream.XStreamDataFormat;
 import org.apache.camel.impl.DefaultClassResolver;
@@ -495,8 +492,7 @@ public class AgentConfiguration {
   public ProcessMetricsProcessor processMetricsProcessor(NodeAgent agent, IDuccProcess process,
           ManagedProcess managedProcess) throws Exception {
     if (Utils.isLinux()) {
-      return new LinuxProcessMetricsProcessor(logger, process, agent, "/proc/" + process.getPID()
-              + "/statm", "/proc/stat", "/proc/" + process.getPID() + "/stat", managedProcess);
+      return new LinuxProcessMetricsProcessor(logger, process, agent, managedProcess);
     } else {
       return new DefaultProcessMetricsProcessor(process, agent);
     }

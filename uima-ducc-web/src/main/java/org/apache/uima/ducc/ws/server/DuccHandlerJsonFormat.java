@@ -57,7 +57,6 @@ import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdReservation;
-import org.apache.uima.ducc.transport.Constants;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
@@ -332,42 +331,86 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		// Pgin
 		sb = new StringBuffer();
 		sb.append("<span>");
+		//
 		long faults = 0;
 		try {
 			faults = job.getPgInCount();
 		}
 		catch(Exception e) {
 		}
-		double swapping = job.getSwapUsageGbMax();
-		if((swapping * faults) > 0) {
-			sb.append("<span class=\"health_red\""+">");
+		int ifaults = (int)faults;
+		switch(ifaults) {
+		case -3: // (some do and some don't have cgroups) but retVal would have been > 0
+			sb.append("<span title=\"incomplete\" class=\"health_red\""+">");
+			sb.append(inc);
+			break;
+		case -2: // (some do and some don't have cgroups) but retVal would have been == 0
+			sb.append("<span title=\"incomplete\" class=\"health_black\""+">");
+			sb.append(inc);
+			break;
+		case -1: // (none have cgroups)
+			sb.append("<span title=\"not available\" class=\"health_black\""+">");
+			sb.append(notAvailable);
+			break;
+		default: // (all have cgroups)
+			double swapping = job.getSwapUsageGbMax();
+			if((swapping * faults) > 0) {
+				sb.append("<span class=\"health_red\""+">");
+			}
+			else {
+				sb.append("<span class=\"health_black\""+">");
+			}
+			sb.append(faults);
+			break;
 		}
-		else {
-			sb.append("<span class=\"health_black\""+">");
-		}
-		sb.append(faults);
 		sb.append("</span>");
+		//
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Swap
 		sb = new StringBuffer();
 		sb.append("<span>");
+		//
 		String swapSizeDisplay = "";
 		String swapSizeHover = "";
 		title = "";
-		double swapBytes = 0;
-		swapBytes = DuccHandlerUtils.getSwapSizeBytes(job);
-		swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
-		swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
-		title = "title="+"\""+swapSizeHover+"\"";
-		if(swapBytes > 0) {
-			sb.append("<span "+title+" "+"class=\"health_red\""+">");
+		double swap = 0;
+		if(job.isCompleted()) {
+			swap = job.getSwapUsageGbMax();
 		}
 		else {
-			sb.append("<span "+title+" "+"class=\"health_black\""+">");
+			swap = job.getSwapUsageGb();
 		}
-		sb.append(swapSizeDisplay);
+		int iswap = (int)swap;
+		switch(iswap) {
+		case -3: // (some do and some don't have cgroups) but retVal would have been > 0
+			sb.append("<span title=\"incomplete\" class=\"health_red\""+">");
+			sb.append(inc);
+			break;
+		case -2: // (some do and some don't have cgroups) but retVal would have been == 0
+			sb.append("<span title=\"incomplete\" class=\"health_black\""+">");
+			sb.append(inc);
+			break;
+		case -1: // (none have cgroups)
+			sb.append("<span title=\"not available\" class=\"health_black\""+">");
+			sb.append(notAvailable);
+			break;
+		default: // (all have cgroups)
+			double swapBytes = swap*DuccHandlerUtils.GB;
+			swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
+			swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
+			title = "title="+"\""+swapSizeHover+"\"";
+			if(swapBytes > 0) {
+				sb.append("<span "+title+" "+"class=\"health_red\""+">");
+			}
+			else {
+				sb.append("<span "+title+" "+"class=\"health_black\""+">");
+			}
+			sb.append(swapSizeDisplay);
+			break;
+		}
 		sb.append("</span>");
+		//
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Memory
@@ -878,6 +921,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		// PgIn
 		sb = new StringBuffer();
 		sb.append("<span>");
+		//
 		if(duccwork instanceof DuccWorkJob) {
 			DuccWorkJob job = (DuccWorkJob) duccwork;
 			long faults = 0;
@@ -886,40 +930,83 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			}
 			catch(Exception e) {
 			}
-			double swapping = job.getSwapUsageGbMax();
-			if((swapping * faults) > 0) {
-				sb.append("<span class=\"health_red\""+">");
+			int ifaults = (int)faults;
+			switch(ifaults) {
+			case -3: // (some do and some don't have cgroups) but retVal would have been > 0
+				sb.append("<span title=\"incomplete\" class=\"health_red\""+">");
+				sb.append(inc);
+				break;
+			case -2: // (some do and some don't have cgroups) but retVal would have been == 0
+				sb.append("<span title=\"incomplete\" class=\"health_black\""+">");
+				sb.append(inc);
+				break;
+			case -1: // (none have cgroups)
+				sb.append("<span title=\"not available\" class=\"health_black\""+">");
+				sb.append(notAvailable);
+				break;
+			default: // (all have cgroups)
+				double swapping = job.getSwapUsageGbMax();
+				if((swapping * faults) > 0) {
+					sb.append("<span class=\"health_red\""+">");
+				}
+				else {
+					sb.append("<span class=\"health_black\""+">");
+				}
+				sb.append(faults);
+				break;
 			}
-			else {
-				sb.append("<span class=\"health_black\""+">");
-			}
-			sb.append(faults);
 			sb.append("</span>");
 		}
+		//
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Swap
 		sb = new StringBuffer();
 		sb.append("<span>");
-		String swapSizeDisplay = "";
-		String swapSizeHover = "";
-		title = "";
-		double swapBytes = 0;
+		//
 		if(duccwork instanceof DuccWorkJob) {
 			DuccWorkJob job = (DuccWorkJob) duccwork;
-			swapBytes = DuccHandlerUtils.getSwapSizeBytes(job);
-			swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
-			swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
-			title = "title="+"\""+swapSizeHover+"\"";
+			String swapSizeDisplay = "";
+			String swapSizeHover = "";
+			title = "";
+			double swap = 0;
+			if(job.isCompleted()) {
+				swap = job.getSwapUsageGbMax();
+			}
+			else {
+				swap = job.getSwapUsageGb();
+			}
+			int iswap = (int)swap;
+			switch(iswap) {
+			case -3: // (some do and some don't have cgroups) but retVal would have been > 0
+				sb.append("<span title=\"incomplete\" class=\"health_red\""+">");
+				sb.append(inc);
+				break;
+			case -2: // (some do and some don't have cgroups) but retVal would have been == 0
+				sb.append("<span title=\"incomplete\" class=\"health_black\""+">");
+				sb.append(inc);
+				break;
+			case -1: // (none have cgroups)
+				sb.append("<span title=\"not available\" class=\"health_black\""+">");
+				sb.append(notAvailable);
+				break;
+			default: // (all have cgroups)
+				double swapBytes = swap*DuccHandlerUtils.GB;
+				swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
+				swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
+				title = "title="+"\""+swapSizeHover+"\"";
+				if(swapBytes > 0) {
+					sb.append("<span "+title+" "+"class=\"health_red\""+">");
+				}
+				else {
+					sb.append("<span "+title+" "+"class=\"health_black\""+">");
+				}
+				sb.append(swapSizeDisplay);
+				break;
+			}
+			sb.append("</span>");
 		}
-		if(swapBytes > 0) {
-			sb.append("<span "+title+" "+"class=\"health_red\""+">");
-		}
-		else {
-			sb.append("<span "+title+" "+"class=\"health_black\""+">");
-		}
-		sb.append(swapSizeDisplay);
-		sb.append("</span>");
+		//
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Memory
@@ -1236,42 +1323,80 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Pgin
 				col = new StringBuffer();
 				col.append("<span>");
+				//
 				long faults = 0;
 				try {
 					faults = service.getPgIn();
 				}
 				catch(Exception e) {
 				}
-				double swapping = service.getSwap();
-				swapping = swapping/Constants.GB;
-				if((swapping * faults) > 0) {
-					col.append("<span class=\"health_red\""+">");
+				int ifaults = (int)faults;
+				switch(ifaults) {
+				case -3: // (some do and some don't have cgroups) but retVal would have been > 0
+					col.append("<span title=\"incomplete\" class=\"health_red\""+">");
+					col.append(inc);
+					break;
+				case -2: // (some do and some don't have cgroups) but retVal would have been == 0
+					col.append("<span title=\"incomplete\" class=\"health_black\""+">");
+					col.append(inc);
+					break;
+				case -1: // (none have cgroups)
+					col.append("<span title=\"not available\" class=\"health_black\""+">");
+					col.append(notAvailable);
+					break;
+				default: // (all have cgroups)
+					double swapping = service.getSwap();
+					if((swapping * faults) > 0) {
+						col.append("<span class=\"health_red\""+">");
+					}
+					else {
+						col.append("<span class=\"health_black\""+">");
+					}
+					col.append(faults);
+					break;
 				}
-				else {
-					col.append("<span class=\"health_black\""+">");
-				}
-				col.append(faults);
+				col.append("</span>");
+				//
 				col.append("</span>");
 				row.add(new JsonPrimitive(col.toString()));
 				// Swap
 				col = new StringBuffer();
 				col.append("<span>");
+				//
 				String swapSizeDisplay = "";
 				String swapSizeHover = "";
 				String title = "";
-				double swapBytes = 0;
-				swapBytes = service.getSwap();
-				swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
-				swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
-				title = "title="+"\""+swapSizeHover+"\"";
-				if(swapBytes > 0) {
-					col.append("<span "+title+" "+"class=\"health_red\""+">");
+				double swap = service.getSwap();
+				int iswap = (int)swap;
+				switch(iswap) {
+				case -3: // (some do and some don't have cgroups) but retVal would have been > 0
+					col.append("<span title=\"incomplete\" class=\"health_red\""+">");
+					col.append(inc);
+					break;
+				case -2: // (some do and some don't have cgroups) but retVal would have been == 0
+					col.append("<span title=\"incomplete\" class=\"health_black\""+">");
+					col.append(inc);
+					break;
+				case -1: // (none have cgroups)
+					col.append("<span title=\"not available\" class=\"health_black\""+">");
+					col.append(notAvailable);
+					break;
+				default: // (all have cgroups)
+					double swapBytes = swap;
+					swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
+					swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
+					title = "title="+"\""+swapSizeHover+"\"";
+					if(swapBytes > 0) {
+						col.append("<span "+title+" "+"class=\"health_red\""+">");
+					}
+					else {
+						col.append("<span "+title+" "+"class=\"health_black\""+">");
+					}
+					col.append(swapSizeDisplay);
+					break;
 				}
-				else {
-					col.append("<span "+title+" "+"class=\"health_black\""+">");
-				}
-				col.append(swapSizeDisplay);
 				col.append("</span>");
+				//
 				col.append("</span>");
 				row.add(new JsonPrimitive(col.toString()));
 				// Size

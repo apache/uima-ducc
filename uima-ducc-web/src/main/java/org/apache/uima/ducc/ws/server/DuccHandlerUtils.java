@@ -20,9 +20,6 @@ package org.apache.uima.ducc.ws.server;
 
 import java.text.DecimalFormat;
 
-import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-
-
 public class DuccHandlerUtils {
 
 	public static String warn(String text) {
@@ -75,14 +72,6 @@ public class DuccHandlerUtils {
 	
 	// *****
 	
-	public static double getSwapSizeBytes(IDuccWorkJob job) {
-		double swapBytes = job.getSwapUsageGb()*GB;
-		if(job.isCompleted()) {
-			swapBytes = job.getSwapUsageGbMax()*GB;
-		}
-		return swapBytes;
-	}
-	
 	private static DecimalFormat formatter = new DecimalFormat("###0.0");
 	
 	public static String getSwapSizeDisplay(double swapBytes) {
@@ -90,9 +79,9 @@ public class DuccHandlerUtils {
 		return retVal;
 	}
 	
-	private static double GB = Math.pow(10,9);
-	private static double MB = Math.pow(10,6);
-	private static double KB = Math.pow(10,3);
+	public static double GB = Math.pow(10,9);
+	public static double MB = Math.pow(10,6);
+	public static double KB = Math.pow(10,3);
 
 	public static String getSwapSizeHover(double swapBytes) {
 		String retVal = null;

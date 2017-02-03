@@ -225,10 +225,9 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 							.append(" Resident Memory=")
 							.append(p.getValue().getResidentMemory())
 							.append(" Init Stats List Size:"
-									+ pipelineInitStats).
-							// append(" end init:"+endInit).
-							// append(" start run:"+startRun).
-							append("] ");
+									+ pipelineInitStats)
+							.append(" Reason: "+p.getValue().getReasonForStoppingProcess())		
+							.append("] ");
 					if (p.getValue().getProcessState()
 							.equals(ProcessState.Stopped)
 							|| p.getValue().getProcessState()

@@ -28,6 +28,11 @@ public class UserAuthenticate {
 	
 	private String failure = "failure";
 	
+	/*
+	 * We employ ducc_ling to switch to the target userid.
+	 * As the target userid we invoke authenticate with target userid and pw.
+	 * Only the userid itself or "root" can succeed, hence the use of ducc_ling.
+	 */
 	public String launch(String[] args) {
 		String methodName = "launch";
 		String result = null;

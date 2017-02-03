@@ -90,47 +90,125 @@ public class ServicesHelper {
 		return retVal;
 	}
 	
+	/*
+	 * return actual count if all non-negative (all have cgroups)
+	 * return -1 if all -1 (none have cgroups)
+	 * return -2 if mixed (some do and some don't have cgroups) but retVal would have been == 0
+	 * return -3 if mixed (some do and some don't have cgroups) but retVal would have been > 0
+	 */
 	public long getPgIn(IServiceAdapter serviceAdapter) {
 		long retVal = 0;
+		boolean flagCgroup = false;
+		boolean flagNoCgroup = false;
 		List<DuccWorkJob> servicesList = getServicesList(serviceAdapter);
 		for(DuccWorkJob service : servicesList) {
 			IDuccProcessMap map = service.getProcessMap();
 			for(DuccId key : map.keySet()) {
 				IDuccProcess process = map.get(key);
 				if(process.isActive()) {
-					retVal += process.getMajorFaults();
+					long value = process.getMajorFaults();
+					if(value < 0) {
+						flagNoCgroup = true;
+					}
+					else {
+						flagCgroup = true;
+						retVal += value;
+					}
 				}
 			}
+		}
+		if(flagCgroup && flagNoCgroup) {
+			if(retVal > 0){
+				retVal = -3;
+			}
+			else {
+				retVal = -2;
+			}
+		}
+		else if(flagNoCgroup) {
+			retVal = -1;
 		}
 		return retVal;
 	}
 	
+	/*
+	 * return actual count if all non-negative (all have cgroups)
+	 * return -1 if all -1 (none have cgroups)
+	 * return -2 if mixed (some do and some don't have cgroups) but retVal would have been == 0
+	 * return -3 if mixed (some do and some don't have cgroups) but retVal would have been > 0
+	 */
 	public long getSwap(IServiceAdapter serviceAdapter) {
 		long retVal = 0;
+		boolean flagCgroup = false;
+		boolean flagNoCgroup = false;
 		List<DuccWorkJob> servicesList = getServicesList(serviceAdapter);
 		for(DuccWorkJob service : servicesList) {
 			IDuccProcessMap map = service.getProcessMap();
 			for(DuccId key : map.keySet()) {
 				IDuccProcess process = map.get(key);
 				if(process.isActive()) {
-					retVal += process.getSwapUsage();
+					long value = process.getSwapUsage();
+					if(value < 0) {
+						flagNoCgroup = true;
+					}
+					else {
+						flagCgroup = true;
+						retVal += value;
+					}
 				}
 			}
+		}
+		if(flagCgroup && flagNoCgroup) {
+			if(retVal > 0){
+				retVal = -3;
+			}
+			else {
+				retVal = -2;
+			}
+		}
+		else if(flagNoCgroup) {
+			retVal = -1;
 		}
 		return retVal;
 	}
 	
+	/*
+	 * return actual count if all non-negative (all have cgroups)
+	 * return -1 if all -1 (none have cgroups)
+	 * return -2 if mixed (some do and some don't have cgroups) but retVal would have been == 0
+	 * return -3 if mixed (some do and some don't have cgroups) but retVal would have been > 0
+	 */
 	public long getSwapMax(IServiceAdapter serviceAdapter) {
 		long retVal = 0;
+		boolean flagCgroup = false;
+		boolean flagNoCgroup = false;
 		List<DuccWorkJob> servicesList = getServicesList(serviceAdapter);
 		for(DuccWorkJob service : servicesList) {
 			IDuccProcessMap map = service.getProcessMap();
 			for(DuccId key : map.keySet()) {
 				IDuccProcess process = map.get(key);
 				if(process.isActive()) {
-					retVal += process.getSwapUsageMax();
+					long value = process.getSwapUsageMax();
+					if(value < 0) {
+						flagNoCgroup = true;
+					}
+					else {
+						flagCgroup = true;
+						retVal += value;
+					}
 				}
 			}
+		}
+		if(flagCgroup && flagNoCgroup) {
+			if(retVal > 0){
+				retVal = -3;
+			}
+			else {
+				retVal = -2;
+			}
+		}
+		else if(flagNoCgroup) {
+			retVal = -1;
 		}
 		return retVal;
 	}

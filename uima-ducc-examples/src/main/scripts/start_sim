@@ -92,7 +92,8 @@ class StartSim(DuccUtil):
             CMDPARMS.append('-XX:HeapDumpPath='+ducc_heap_dump_path)
             
         CMDPARMS.append('-Dducc.agent.node.metrics.fake.memory.size=' + str(memory))
-        CMDPARMS.append('-Dducc.agent.virtual')
+        # Put virtual IP on command line for duplicate daemon detector
+        CMDPARMS.append('-Dducc.agent.virtual=' + ip)
         CMDPARMS.append('org.apache.uima.ducc.common.main.DuccService')
         
         print "Start agent with pnode", pnode, "IP", ip, "memory", memory

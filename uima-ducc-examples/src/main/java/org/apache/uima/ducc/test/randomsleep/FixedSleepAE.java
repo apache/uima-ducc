@@ -106,13 +106,18 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         int i_exit   = getIntFromEnv("AE_INIT_EXIT" , false);
         int i_itime  = getIntFromEnv("AE_INIT_TIME" , true );
         int i_irange = getIntFromEnv("AE_INIT_RANGE", true );
-
-        if ( i_error > 0 ) {
-            int toss = nextrand(100);
-            if ( logger != null )
-               logger.log(Level.INFO, "Init errors: probability[" + i_error + "] toss[" + toss + "]");
-            if ( i_error > toss ) {
-                throwAnException("Random Error in Initialization");
+        int i_fail_init_now = getIntFromEnv("AE_FAIL_INIT",false);
+        
+        if ( i_fail_init_now > 0 ) {
+            throwAnException("Simulated Error in Initialization");
+        } else {
+            if ( i_error > 0 ) {
+                int toss = nextrand(100);
+                if ( logger != null )
+                   logger.log(Level.INFO, "Init errors: probability[" + i_error + "] toss[" + toss + "]");
+                if ( i_error > toss ) {
+                    throwAnException("Random Error in Initialization");
+                }
             }
         }
 

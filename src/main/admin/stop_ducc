@@ -184,12 +184,15 @@ class StopDucc(DuccUtil):
         wait_time = 60
 
         try:
-            opts, args = getopt.getopt(argv, 'ac:n:kn:w:qh?v', ['all', 'component=', 'components=', 'help', 'nodelist=', 'kill', 'quiesce', 'nothreading', 'wait'])
+            opts, args = getopt.getopt(argv, 'ac:n:kn:w:qh?v', ['all', 'component=', 'help', 'nodelist=', 'kill', 'quiesce', 'nothreading', 'wait'])
         except:
             self.invalid('Invalid arguments ' + ' '.join(argv))
+
+        if (len(args) > 0):
+            self.invalid('Invalid extra args: ', ' '.join(args))
         
         for ( o, a ) in opts:
-            if o in ('-c', '--component', '--components'):
+            if o in ('-c', '--component' ):
             	if (a.strip() == 'head'):
             		components.append('or')
             		components.append('pm')
@@ -223,8 +226,7 @@ class StopDucc(DuccUtil):
             elif ( o == '-?'):
                self.usage(None)
             else:
-                print 'badarg', a
-                self.invalid('bad arg: ' + a)
+                self.invalid('bad arg: ' + o)
 
         if ( quiesce ):
             if ( all ):
