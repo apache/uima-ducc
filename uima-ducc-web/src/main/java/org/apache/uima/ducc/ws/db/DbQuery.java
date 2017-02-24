@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -29,6 +30,9 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.history.HistoryFactory;
+import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
 
 public class DbQuery {
 
@@ -40,6 +44,8 @@ public class DbQuery {
 	private static boolean enabled = true;
 	
 	private IRmPersistence persistence = null;
+	
+	private IHistoryPersistenceManager history = null;
 	
 	private static String component = IDuccLoggerComponents.abbrv_webServer;
 	
@@ -61,6 +67,7 @@ public class DbQuery {
 			}
 		}
 		persistence = RmPersistenceFactory.getInstance(this.getClass().getName(),component);
+		history = HistoryFactory.getInstance(this.getClass().getName());
 	}
 	
 	public static DbQuery getInstance() {
@@ -71,8 +78,30 @@ public class DbQuery {
 		return enabled;
 	}
 	
+	public Pair<DuccWorkMap, Map<DuccId, DuccId>> getCkpt() {
+		String location = "getCkpt";
+		Pair<DuccWorkMap, Map<DuccId, DuccId>> retVal = new Pair<DuccWorkMap, Map<DuccId, DuccId>>();
+		try {
+			retVal = history.restore();
+		} 
+		catch (Exception e) {
+			logger.debug(location, jobid, e);
+		}
+		return retVal;
+    }
+	
 	public boolean isUp() {
-		return (getMapMachines().size() > 0);
+		boolean status = false;
+		/*
+		if(getMapMachines().size() > 0) {
+			status = true;
+		}
+		else 
+		*/
+			if(getCkpt().first() != null) {
+			status = true;
+		}
+		return status;
 	}
 	
 	public static void dumpMap(Map<String, IDbMachine> dbMachineMap) {
