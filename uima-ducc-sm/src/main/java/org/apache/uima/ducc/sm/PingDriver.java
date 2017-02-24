@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -62,7 +62,7 @@ import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
  *     0|1 long long
  * The first token is 1 if the ping succeeded, 0 otherwise.
  * The second token is the total cumulative work executed by the service.
- * The third token is the current queue depth of the service.       
+ * The third token is the current queue depth of the service.
  */
 
 class PingDriver
@@ -70,10 +70,10 @@ class PingDriver
                SmConstants
 {
     /**
-	 * 
+	 *
 	 */
 
-	private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), COMPONENT_NAME);	
+	private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), COMPONENT_NAME);
 
     String[] jvm_args;
     String endpoint;
@@ -118,17 +118,17 @@ class PingDriver
     boolean shutdown = false;
     PingStopper pingStopper = null;
     Timer timer = null;
-    
+
     ServiceState pingState = ServiceState.Waiting;
     DuccProperties meta_props;
-    
+
     PingDriver(ServiceSet sset)
-    {        
+    {
         this.sset = sset;
         DuccProperties job_props = sset.getJobProperties();
         meta_props = sset.getMetaProperties();
 
-        // establish the default pinger, then see if another pinger is specified and set it.        
+        // establish the default pinger, then see if another pinger is specified and set it.
         this.ping_class        = System.getProperty("ducc.sm.default.monitor.class", "org.apache.uima.ducc.cli.UimaAsPing");
         this.ping_class        = job_props.getStringProperty(UiOption.ServicePingClass.pname(),  this.ping_class);
 
@@ -144,22 +144,22 @@ class PingDriver
             if ( real_class != null ) {
                 this.ping_class = real_class;
             }
-            logger.info("<ctr>", sset.getId(), "Using ping class", this.ping_class); 
+            logger.info("<ctr>", sset.getId(), "Using ping class", this.ping_class);
         }
-        
+
         this.endpoint          = meta_props.getStringProperty("endpoint");
         this.user              = meta_props.getStringProperty("user");
         this.max_instances     = Integer.parseInt(System.getProperty("ducc.sm.max.instances", "10"));
 
         this.ping_arguments    = resolveStringProperty (UiOption.ServicePingArguments.pname() , ping_props, job_props, null);
         String jvm_args_str    = resolveStringProperty (UiOption.ServicePingJvmArgs.pname()   , ping_props, job_props, "");
-        
+
         this.meta_ping_timeout = resolveIntProperty    (UiOption.ServicePingTimeout.pname()   , ping_props, job_props, ServiceManagerComponent.meta_ping_timeout);
         this.do_log            = resolveBooleanProperty(UiOption.ServicePingDoLog.pname()     , ping_props, job_props, false);
         this.classpath         = resolveStringProperty (UiOption.ServicePingClasspath.pname() , ping_props, job_props, System.getProperty("java.class.path"));
-        this.working_directory = resolveStringProperty (UiOption.WorkingDirectory.pname()     , ping_props, job_props, null); // cli always puts this into job props, no default 
+        this.working_directory = resolveStringProperty (UiOption.WorkingDirectory.pname()     , ping_props, job_props, null); // cli always puts this into job props, no default
 
-        this.log_directory     = resolveStringProperty (UiOption.LogDirectory.pname()         , ping_props, job_props, null);     // cli always puts this into job props, no default 
+        this.log_directory     = resolveStringProperty (UiOption.LogDirectory.pname()         , ping_props, job_props, null);     // cli always puts this into job props, no default
         this.failure_window    = resolveIntProperty    (UiOption.InstanceFailureWindow.pname(), ping_props, job_props, ServiceManagerComponent.failure_window);
         this.failure_max       = resolveIntProperty    (UiOption.InstanceFailureLimit.pname( ), ping_props, job_props, ServiceManagerComponent.failure_max);
         environment            = resolveStringProperty (UiOption.Environment.pname( ),          ping_props, job_props, null);
@@ -193,7 +193,7 @@ class PingDriver
                 return null;
 			}
         }
-        return answer;        
+        return answer;
     }
 
     // this resolves the prop in either of the two props files and expands ${} against System props, which include
@@ -203,11 +203,11 @@ class PingDriver
         if ( internal_ping ) {
             // internal ping only gets to adjust the ping tuning parameters
             if ( ! prop.equals("service_ping_arguments") ) return ping_props.getStringProperty(prop, deflt);
-        } 
+        }
 
         prop = prop.trim();
         //
-        // Search order: first,  what is registered to the service, 
+        // Search order: first,  what is registered to the service,
         //               second, what is registered to the site-registered pinger
         //               third,  the passed-in default
         //
@@ -241,7 +241,7 @@ class PingDriver
     //  * Test from main only
     //  */
     // PingDriver(String props)
-    // {        
+    // {
     //     DuccProperties dp = new DuccProperties();
     //     try {
 	// 		dp.load(props);
@@ -291,22 +291,22 @@ class PingDriver
         }
     }
 
-    public void setState(JobState s) 
+    public void setState(JobState s)
     {
         // nothing
     }
-    
+
     public long getServiceStatisticsTimestamp()
     {
         return service_statistics_timestamp;
     }
-        
+
 
     public IServiceStatistics getServiceStatistics()
     {
         return service_statistics;
     }
-        
+
     synchronized int getMetaPingRate()
     {
         return meta_ping_rate;
@@ -358,9 +358,9 @@ class PingDriver
         	}
         }
         // ***** ERROR INJECTION *****
-        
+
         this.service_statistics_timestamp = response.getTimestamp();
-        
+
         this.service_statistics = response.getStatistics();
         if ( service_statistics == null ) {
             logger.error(methodName, sset.getId(), "Service statics are null!");
@@ -405,9 +405,9 @@ class PingDriver
 //            if ( sset.isAutostart() && (ndeletions > 0) ) {
 //                int reg_instances = meta_props.getIntProperty("instances", 1);
 //                if ( instances - ndeletions < reg_instances ) {
-//                    ndeletions = Math.max(0, instances - reg_instances); 
+//                    ndeletions = Math.max(0, instances - reg_instances);
 //                    logger.warn(methodName, sset.getId(), "Service shrink value capped by registered min of", reg_instances, "at", ndeletions);
-//                }            
+//                }
 //            }
 //            int refs = sset.countReferences();
 //            int impls = sset.countImplementors();
@@ -420,7 +420,7 @@ class PingDriver
         //TODO safe against invalid or repeated deletion IDs?
         sset.signalRebalance(additions, deletions, ndeletions, response.isExcessiveFailures());
     }
-    
+
     void expand_wildcards(List<URL> in, String cp_entry)
     	throws MalformedURLException
     {
@@ -449,7 +449,7 @@ class PingDriver
                 MalformedURLException
     {
     	String methodName = "loadInternalMonitor";
-    
+
         if ( classpath == null ) {
             @SuppressWarnings("unchecked")
                 Class<AServicePing> cl = (Class<AServicePing>) Class.forName(ping_class);
@@ -519,7 +519,7 @@ class PingDriver
         Long[] instances = sset.getImplementors();
         props.put("all-instances"       , instances);
         props.put("registered-instances", sset.getNInstancesRegistered());
-        
+
         String[] hosts  = new String[instances.length];
         Long[] shares   = new Long[instances.length];
         for ( int i = 0; i < instances.length; i++ ) {
@@ -564,18 +564,18 @@ class PingDriver
             return;
 		} catch ( MalformedURLException e1) {
             logger.error(methodName, sset.getId(), "Cannot load pinger: Cannot form URLs from classpath entries(", ping_class, ")");
-            return;		
+            return;
 		} catch ( Throwable t ) {
             logger.error(methodName, sset.getId(), "Cannot load pinger for unknown reason:", ping_class, t);
-            return;		
+            return;
         }
 
-        try {            
+        try {
             setCommonInitProperties(initProps);
             pinger.setLogger(logger);
             pinger.init(ping_arguments, endpoint, initProps);
-            
-            while ( ! shutdown ) {                
+
+            while ( ! shutdown ) {
                 setCommonProperties(props);
                 pinger.setSmState(props);
                 Pong pr = new Pong();
@@ -593,13 +593,13 @@ class PingDriver
                     logger.warn(methodName, sset.getId(), "Ping exited because of excess errors: ", errors);
                     break;
                 }
-                
+
                 try {
                     Thread.sleep(meta_ping_rate);
                 } catch (InterruptedException e) {
                     // nothing, if we were shutdown we'll exit anyway, otherwise who cares
-                }                
- 
+                }
+
             }
         } catch ( Throwable t ) {
             logger.warn(methodName, sset.getId(), t);
@@ -609,7 +609,7 @@ class PingDriver
         sset.pingExited(errors, this);
     }
 
-    public void runAsProcess() 
+    public void runAsProcess()
     {
         long tid = Thread.currentThread().getId();
         String methodName = "runAsProcess[" + tid + "]";
@@ -617,22 +617,15 @@ class PingDriver
         String cp = classpath;
         String dh = System.getProperty("DUCC_HOME");
 
-        // We need the sm jar and the cli jar.  The cli jar is the one with the manifest to insure
-        // the common and transport stuff is picked. up.  We have to dig around for the right sm
-        // jar because of versioning on the jar names.
-        cp = cp + ":" + dh + "/lib/uima-ducc-cli.jar";
-
+        // We need the sm & cli & common jars ... whatever version is installed.
+        // Put them at the head of the classpath as the user may have compiled against an old version.
 
         File libdir = new File(dh + "/lib/uima-ducc");
         String[] jars = libdir.list();
         if ( jars != null ) {
             for ( String j : jars ) {
-                if ( j.contains("ducc-sm") ) {
-                    cp = cp + ":" + dh + "/lib/uima-ducc/" + j;
-                    continue;
-                }
-                if ( j.contains("ducc-common") ) {
-                    cp = cp + ":" + dh + "/lib/uima-ducc/" + j;
+                if ( j.startsWith("uima-ducc-sm") ||  j.startsWith("uima-ducc-cli") ||  j.startsWith("uima-ducc-common")) {
+                    cp = dh + "/lib/uima-ducc/" + j + ":" + cp;
                     continue;
                 }
             }
@@ -679,7 +672,7 @@ class PingDriver
             pingState = ServiceState.Stopped;
             return;
         }
-        
+
         // Jira 5002 - check for user-specified JVM
         String javaHome = envMap.get("JAVA_HOME");
         if (javaHome != null) {
@@ -687,7 +680,7 @@ class PingDriver
         } else {
         	arglist.add(System.getProperty("ducc.jvm"));
         }
-        
+
         arglist.add("-DSM_MONITOR=T");
         if ( jvm_args != null ) {
             for ( String s : jvm_args) {
@@ -712,13 +705,13 @@ class PingDriver
             arglist.add("--arguments");
             arglist.add(ping_arguments);
         }
-        
+
         int i = 0;
         for ( String s : arglist) {
             logger.debug(methodName, sset.getId(), "Args[", i++,"]:  ", s);
         }
         ProcessBuilder pb = new ProcessBuilder(arglist);
-        
+
         //
         // Establish our pinger
         //
@@ -728,11 +721,11 @@ class PingDriver
             Map<String, String> env = pb.environment();
             env.clear();
             env.putAll(envMap);
-            
+
             ping_main = pb.start();
             stdout = ping_main.getInputStream();
             stderr = ping_main.getErrorStream();
-            
+
             sin_listener = new StdioListener(1, stdout);
             ser_listener = new StdioListener(2, stderr);
             Thread sol = new Thread(sin_listener);
@@ -744,7 +737,7 @@ class PingDriver
             pingState = ServiceState.Stopped;
             return;
         }
-        
+
         int rc;
         while ( true ) {
             try {
@@ -764,7 +757,7 @@ class PingDriver
                 // nothing
             }
         }
-		
+
 		// pinger.stop();
         sin_listener.stop();
         ser_listener.stop();
@@ -788,7 +781,7 @@ class PingDriver
         extends TimerTask
     {
         PingStopper()
-        {        
+        {
             String methodName = "PingStopper.init";
             logger.debug(methodName, sset.getId(), "Wait for pinger to exit:", 60000);
         }
@@ -860,7 +853,7 @@ class PingDriver
                             // gc will close all the descriptors and handles
                             //ois.close();
                             //oos.close();
-                            //in.close();                            
+                            //in.close();
                             //sock.close();
                             return;
                         }
@@ -878,7 +871,7 @@ class PingDriver
                         errors++;
                         return;
                     }
-                    
+
                     // Try to read the response
                     try {
                         Pong resp = (Pong) ois.readObject();
@@ -908,7 +901,7 @@ class PingDriver
                 logger.error(methodName, sset.getId(), "ExtrnPingDriver: Input garbled:", e);
                 errors++;
 			}
-        }       
+        }
     }
 
     class StdioListener
