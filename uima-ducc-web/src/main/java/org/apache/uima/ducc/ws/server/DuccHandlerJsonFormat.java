@@ -1818,7 +1818,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 
 		Map<String, Map<String, String>> topicAttributes = brokerHelper.getEntityAttributes();
 		
-		if(topics.size() > 0) {
+		if(topicAttributes.size() > 0) {
 			for(Entry<String, Map<String, String>> entry : topicAttributes.entrySet()) {
 				String topic = entry.getKey();
 				String attrValue;
@@ -1860,6 +1860,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				}
 			}
 			data.addAll(topics);
+			data.addAll(queues);
 		}
 		
 		jsonResponse.add("aaData", data);
