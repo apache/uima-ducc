@@ -78,9 +78,10 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
             \item[pm]The Process Manager
             \item[sm]The Service Manager
             \item[ws]The Web Server
-            \item[agent@node]Node Agents
+            \item[agent@node] Node Agents
             \item[broker] ActiveMQ broker
             \item[db] Database
+            \item[head] All of the above, except Node Agents
           \end{description}
 
           \item[--nothreading] If specified, the command does not run in multi-threaded mode
@@ -213,6 +214,7 @@ start_ducc -c rm
               \item[db] The database.
               \item[broker] The ActiveMQ broker (only if the broker is auto-managed).
               \item[agent@node] Node Agent on the specified node.
+              \item[head] All of the above, except Node Agents
               \end{description}
 
           \item[-w, --wait {[time in seconds]}] If given, this signals the time to wait
