@@ -372,18 +372,23 @@ class DuccUtil(DuccBase):
             print 'PID', ducc.pid
 
     def ssh_operational(self, node):
-        is_operational = True
+        is_operational = False
+        req = node.split('.')[0]
         cmd = '/bin/hostname'
-        resp = self.popen('ssh -o BatchMode=yes -o ConnectTimeout=10', node, cmd)
-        line = resp.readline().strip()     
-        ssh_errors = self.ssh_ok(node, line)
-        if ( ssh_errors != None ):
-            is_operational = False
-        else:
-            req = node.split('.')[0]
+        ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=10'+' '+node+" "+cmd
+        resp = self.popen(ssh_cmd)
+        lines = resp.readlines()
+        if(len(lines)== 1):
+            line = lines[0]
+            line = line.strip();
             rsp = line.split('.')[0]
-            if(not req == rsp):
-                is_operational = False;
+            if(req == rsp):
+                is_operational = True;
+        if(not is_operational):
+            print 'ssh not operational - unexpected results'
+            print ssh_cmd
+            for line in lines:
+                print line
         return is_operational
 
     # like popen, only it spawns via ssh
