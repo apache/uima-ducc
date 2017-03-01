@@ -229,7 +229,7 @@ public class HttpWorkerThread implements Runnable {
 								// just awoken, check if the JP is still in Running state
 								if ( duccComponent.isRunning()) {
 									transaction = getWork(postMethod, major, ++minor);
-									if ( transaction.getMetaCas() != null ) {
+									if ( transaction.getMetaCas() != null && transaction.getMetaCas().getUserSpaceCas() != null ) {
 										break;
 									}
 								}
