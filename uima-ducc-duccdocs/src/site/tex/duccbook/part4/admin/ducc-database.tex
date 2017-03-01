@@ -30,7 +30,7 @@
     randomly generates a (database) super-user password, which is kept in the protected file {\em DUCC\_HOME/resources.private/ducc.private.properties}.
     The utility proceeds to configure the database and install the schema.
 
-    If DUCC is being upgraded, generally \hyperref[subsec:admin.ducc-post-intall]{\em ducc\_post\_install} is not used, in 
+    If DUCC is being upgraded, generally \hyperref[subsec:admin.ducc-post-install]{\em ducc\_post\_install} is not used, in 
     which case, again, \hyperref[subsec:admin.db-create]{\em db\_create} and \hyperref[subsec:admin.db-loader]{\em db\_loader} may be used to
     convert the older file-based state to the database.
 
@@ -77,11 +77,11 @@
     enable the database:
 
     \begin{description}
-      \item[db\_create] The \hyperref[subsec:cli.db.create]{db\_create} utility creates the database schema, disables the
+      \item[db\_create] The \hyperref[subsec:admin.db-create]{\em db\_create} utility creates the database schema, disables the
         default database superuser, installs a read-only guest id, and installs the
         main DUCC super user ID.  Note that database IDs are in no way related to 
         operating system IDs.
-      \item[db\_loader] The \hyperref[subsec:cli.db.loader]{db\_loader} utility migrates an existing file-based DUCC
+      \item[db\_loader] The \hyperref[subsec:admin.db-loader]{\em db\_loader} utility migrates an existing file-based DUCC
         system to use the database.  It copies in the job history, Orchestrator checkpoint,
         and the service registry.
     \end{description}
@@ -90,8 +90,7 @@
     
 \subsection{Database Configuration}
     Most database configuration is accomplished by setting appropriate values into 
-    your local \hyperref[subsec:ducc.database.properties]{\em site.ducc.properties}.  See
-    the linked section for details.
+    your local {\em site.ducc.properties}.
     
     For existing installations, the {\em db\_create} utility installs the
     database scheme and updates your {\em site.ducc.properties} with reasonable

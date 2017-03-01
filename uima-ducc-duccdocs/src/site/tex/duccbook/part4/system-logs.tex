@@ -331,8 +331,8 @@ f6n10.bluej.net    16             3            13      255459 208977 [13]
      RM's scheduler and must arrive on a regular basis.  Every arrival
      of an Orchestrator publication is flagged in the log as follows.
      If these aren't observed every
-     \hyperref[itm:props-or.state.publish.rate]{Orchestrator publish
-       interval} something is wrong; most likely the Orchestrator or
+     {\em ducc.orchestrator.state.publish.rate}
+     something is wrong; most likely the Orchestrator or
      the ActiveMQ broker has a problem.
 
 \begin{verbatim}
@@ -396,8 +396,8 @@ RM.RmJob- 7483 Hilaria O 2 T 58626 NTh 28 TI 18626 TR 12469.0 R 2.2456e-03 QR 18
         \item[O 2] this says this is an {\em order 2} job: each process will occupy two quantum shares.
         \item[T 58626] is the smallest number of milliseconds until a new process for this job
           can be made runnable, based on the average initialization time for processes in
-          this job, the Orchestrator publish rate, and the
-          \hyperref[itm:props-rm.prediction.fudge]{\em RM prediction fudge.}
+          this job, the Orchestrator publish rate, and the RM prediction fudge
+          {\em ducc.rm.prediction.fudge}.
         \item[Nth] This is the number of threads currently executing for this job.  It is 
           calculated as the (number of currently allocated processes) * (the number of threads
           per process).
@@ -540,9 +540,9 @@ RM.NodePool- 7483 connectShare  share bluej290-12.461 order 2 machine \
 
     One scheduling goal, however, is to attempt to guarantee every job gets
     at least some minimal number of it's fairly-counted processes.  This minimal number
-    is called the 
-    \hyperref[itm:props-rm.defragmentation.threshold]{defragmentation threshold.} and
-    is configured in ducc.properties.  This threshold is used to rigorously define
+    is called the defragmentation threshold
+    {\em ducc.rm.fragmentation.threshold}
+    and is configured in ducc.properties.  This threshold is used to rigorously define
     ``smallest amount of productive work'' as used in the previous paragraph.
     The defragmentation threshold is used in
     two ways:

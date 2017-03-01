@@ -190,10 +190,14 @@ The columns shown on this page include
         jobs scheduled on each node.  The Unix Process IDS of these processes is displayed
         in a hover.
 
-        {\DUCC} preconfigures many of the standard operating 
-        \hyperref[itm:props-rogue.process]{system process} and 
-        \hyperref[itm:props-rogue.user]{userids}.  This list may be updated by each
-        installation.
+        {\DUCC} preconfigures many of the standard operating system processes and userids for exclusion.
+        These exclusion lists are specified specified by 
+        {\em ducc.agent.rogue.process.exclusion.filter}
+        and 
+        {\em ducc.agent.rogue.process.user.exclusion.filter}
+        respectively in
+        \hyperref[sec:default.ducc.properties]{ducc.properties}
+        and may be updated by each installation.
 
         A common cause of alien PIDs is errant process run in unmanaged reservations.  A
         user may reserve a machine for use as a sandbox.  If the reservation is released

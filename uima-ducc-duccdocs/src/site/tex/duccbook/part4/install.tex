@@ -510,22 +510,15 @@ For more information see
     \end{enumerate}
 
 {\em Note:} if CGroups is not installed on a machine the DUCC Agent will detect this and not 
-  	attempt to use the feature. CGroups can also be disabled for all machines
-   	(see 
-   \ifdefined\DUCCSTANDALONE
-   {\em ducc.agent.launcher.cgroups.enable} in ducc.properties, described in the DuccBook.)
-   \else
-   \hyperref[itm:props-agent.cgroups.enable] {\em ducc.agent.launcher.cgroups.enable}) 
-   \fi
-   	or it can be disabled for individual machines (see 
-   \ifdefined\DUCCSTANDALONE
-   {\em ducc.agent.exclusion.file} in ducc.properties, described in the DuccBook.)
-   \else
-   \hyperref[itm:props-agent.cgroups.exclusion]{\em ducc.agent.exclusion.file}).
-   \fi
-
-
- 
+  	attempt to use the feature. 
+  	CGroups can also be disabled for all machines or for individual machines.
+  	Use 
+  	{\em ducc.agent.launcher.cgroups.enable} 
+  	and 
+  	{\em ducc.agent.exclusion.file}
+  	respectively in
+  	{\em site.ducc.properties}.
+  	
 \section{Full DUCC Verification}
 
 This is identical to initial verification, with the one difference that the job ``1.job'' should be
