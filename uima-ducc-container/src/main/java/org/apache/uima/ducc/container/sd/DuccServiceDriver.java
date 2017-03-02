@@ -74,6 +74,9 @@ public class DuccServiceDriver implements ServiceDriver {
 		if ( transport == null ) {
 			throw new DriverException("start() called before initialize()");
 		}
+		if ( taskAllocator == null ) {
+			throw new DriverException("start() called before setTaskAllocator()");
+		}
 		String retValue = protocolHandler.start();
 		transport.start();
 		
