@@ -19,28 +19,63 @@
 
 package org.apache.uima.ducc.container.sd.task;
 
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.uima.UIMAFramework;
+import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 import org.apache.uima.ducc.container.sd.task.iface.TaskAllocatorCallbackListener;
 import org.apache.uima.ducc.container.sd.task.iface.TaskConsumer;
+import org.apache.uima.ducc.user.common.DuccUimaSerializer;
+import org.apache.uima.resource.metadata.impl.TypeSystemDescription_impl;
+import org.apache.uima.util.CasCreationUtils;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 public class TestTaskAllocatorCallbackListener implements
 		TaskAllocatorCallbackListener {
 	Logger logger = UIMAFramework.getLogger(TestTaskAllocatorCallbackListener.class);
-
+	private static DuccUimaSerializer uimaSerializer = new DuccUimaSerializer();
+	private AtomicLong seqno = new AtomicLong(0);
 	public TestTaskAllocatorCallbackListener() {
 	}
-
+	public String serialize(CAS cas) throws Exception {
+		String serializedCas = uimaSerializer.serializeCasToXmi(cas);
+		return serializedCas;
+	}
 	public String getSerializedCAS(TaskConsumer taskConsumer) {
 		logger.log(Level.INFO,"getSerializedCAS() Called");
-
-		return null;
+		String serializedCas = null;
+		try {
+			CAS cas = null;
+			cas = CasCreationUtils.createCas(new TypeSystemDescription_impl(), null, null);
+			cas.setDocumentLanguage("en");
+			cas.setDocumentText("100 "+seqno.incrementAndGet()+" 1000 0");	
+			
+			serializedCas = serialize(cas);
+			cas.reset();
+			cas.release();
+			
+		} catch( Exception e) {
+			logger.log(Level.WARNING,"Error",e);
+		}
+		
+		return serializedCas;
 	}
 
-	public void onTaskSuccess(TaskConsumer taskConsumer, IPerformanceMetrics metrics) {
+	public synchronized void onTaskSuccess(TaskConsumer taskConsumer, IPerformanceMetrics metrics) {
 		logger.log(Level.INFO,"onTaskSuccess() Called");
+		List<Properties> breakdown = metrics.get();
+		
+		for( Properties p : breakdown ) {
+			Set<Object> set = p.keySet();
+			StringBuffer sb = new StringBuffer();
+			sb.append("AE Name: ").append(p.get("uniqueName")).append("Analysis Time: ").append(p.get("analysisTime"));
+			System.out.println(taskConsumer.toString()+" -- "+sb.toString());
+		}
 	}
 
 	public void onTaskFailure(TaskConsumer taskConsumer, String stringifiedException) {
