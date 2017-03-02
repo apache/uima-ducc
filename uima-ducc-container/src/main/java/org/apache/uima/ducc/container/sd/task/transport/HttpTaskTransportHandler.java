@@ -47,8 +47,9 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 public class HttpTaskTransportHandler implements TaskTransportHandler {
 	Logger logger = UIMAFramework.getLogger(HttpTaskTransportHandler.class);
-
+	// Jetty
 	private Server server = null;
+	// Delegate to handle incoming messages
 	private TaskProtocolHandler taskProtocolHandler = null;
     private volatile boolean running = false;
     // mux is used to synchronize start()
@@ -113,7 +114,7 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 
 		context.addServlet(new ServletHolder(new TaskHandlerServlet(handler)),
 				app);
-		logger.log(Level.INFO, "Jetty URL: http://localhost:"+httpPort+app);
+		logger.log(Level.INFO,"Service Driver URL: "+ context.getServer().getURI().toString()+httpPort+app);//"Jetty URL: http://localhost:"+httpPort+app);
 		return server;
 	}
 
