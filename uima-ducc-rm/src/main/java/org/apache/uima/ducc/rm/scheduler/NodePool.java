@@ -7,9 +7,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -94,7 +94,7 @@ class NodePool
 
     //int neededByOrder[];         // for each order, how many N-shares do I want to add?
 
-    //     int shareExpansion[]; 
+    //     int shareExpansion[];
     Map<Integer, Integer> onlineMachinesByOrder = new HashMap<Integer, Integer>();  // all online machines
 
     // Indexed by available free shares, the specific machines with the indicated free space
@@ -104,8 +104,7 @@ class NodePool
     IRmPersistence persistence = null;
     boolean canReserve = false;       // if we contain a class with policy Reserve, then stuff in this pool is reservable
 
-    // Allowable excess size in GB for unmanaged reservations (ignore negative values)
-    static int reserve_overage = Math.max(0, SystemPropertyResolver.getIntProperty("ducc.rm.reserve_overage", 0));
+    int reserve_overage;              // Allowable excess size in GB for unmanaged reservations
 
     NodePool(NodePool parent, String id, Map<String, String> nodes, EvictionPolicy ep, int depth, int search_order, int share_quantum)
     {
@@ -116,7 +115,7 @@ class NodePool
         if ( nodes == null ) {            // unlikely, but not illegal
             this.subpoolNames = new HashMap<String, String>();
             logger.warn(methodName, null, "Nodepool", id, ": no nodes in node list");
-        } 
+        }
         this.evictionPolicy = ep;
         this.depth = depth;
         this.search_order = search_order;
@@ -129,6 +128,8 @@ class NodePool
         }
 
         persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
+
+        reserve_overage = SystemPropertyResolver.getIntProperty("ducc.rm.reserve_overage", 0);  // Can't be static as may be reconfigured
     }
 
     void addResourceClass(ResourceClass cl)
@@ -303,7 +304,7 @@ class NodePool
     {
         return total_shares;
     }
-    
+
     /**
      * Counts just local, for reservations.
      */
@@ -342,7 +343,7 @@ class NodePool
 
     /**
      * Total Q shares in the nodepool that are not yet given away in the scheduling cycle.
-     */ 
+     */
     int countQShares()
     {
         int count = nSharesByOrder[1];
@@ -354,7 +355,7 @@ class NodePool
 
     /**
      * Total Q shares in the nodepool still available, just me.
-     */ 
+     */
     int countLocalQShares()
     {
         return nSharesByOrder[1];
@@ -424,7 +425,7 @@ class NodePool
         if ( allClasses.containsKey(rc) ) return true;
         for (NodePool np : children.values()) {
             if ( np.isCompatibleNodepool(p, rc) ) return true;
-        }      
+        }
         return false;
     }
 
@@ -442,9 +443,9 @@ class NodePool
     }
 
     /**
-     * Interrogate whether work assigned to the indicated rc could end up here.  
+     * Interrogate whether work assigned to the indicated rc could end up here.
      *
-     * If it's a fair-share allocation, we need to interrogate 'me', my children, and 
+     * If it's a fair-share allocation, we need to interrogate 'me', my children, and
      * my ancestors.
      *
      * If it's something else, it must reside reight here.
@@ -548,13 +549,13 @@ class NodePool
     }
 
     public Machine getMachine(NodeIdentity ni)
-    {       
+    {
         Machine m = machinesByIp.get(ni.getIp());
         if ( m == null ) {
             for ( NodePool np : children.values() ) {
                 m = np.getMachine(ni);
                 if ( m != null ) break;
-            }                
+            }
         }
         return m;
     }
@@ -580,8 +581,8 @@ class NodePool
             if ( m != null ) {
                 machs.putAll(m);
             }
-        }                
-    
+        }
+
         return machs;
     }
 
@@ -594,7 +595,7 @@ class NodePool
             if ( m != null ) {
                 machs.putAll(m);
             }
-        }                
+        }
 
         return machs;
     }
@@ -608,7 +609,7 @@ class NodePool
             if ( m != null ) {
                 machs.putAll(m);
             }
-        }                
+        }
 
         return machs;
     }
@@ -628,7 +629,7 @@ class NodePool
         for ( NodePool np : children.values() ) {
             HashMap<Node, Machine> m = np.getMachinesByOrder(order);
             machs.putAll(m);
-        }                
+        }
 
         return machs;
     }
@@ -648,7 +649,7 @@ class NodePool
 //         for ( NodePool np : children.values() ) {
 //             HashMap<Machine, Machine> m = np.getVirtualMachinesByOrder(order);
 //             machs.putAll(m);
-//         }                
+//         }
 
         return machs;
     }
@@ -694,7 +695,7 @@ class NodePool
         return ans;
     }
 
-    
+
     protected int[] countVMachinesByOrder()
     {
         int[] ans = vMachinesByOrder.clone();
@@ -737,11 +738,11 @@ class NodePool
         j.assignShare(s);
         m.assignShare(s);
         rearrangeVirtual(m, order, j.getSchedulingPolicy());
-        allShares.put(s, s);        
+        allShares.put(s, s);
     }
 
     void rearrangeVirtual(Machine m, int order, Policy policy)
-         
+
     {
         String methodName = "rearrangeVirtual";
         if ( allMachines.containsKey(m.key()) ) {
@@ -767,7 +768,7 @@ class NodePool
             } else {
                 vMachinesByOrder[v_order]--;
             }
-           
+
             Map<Node, Machine> vlist = virtualMachinesByOrder.get(v_order);
             if ( vlist == null ) {
                 // Delivered under UIMA-4275 as that is when I decided to try to avoid NPE here.
@@ -780,7 +781,7 @@ class NodePool
                 return;
             }
             vlist.remove(m.key());
-            
+
             v_order -= order;
             m.setVirtualShareOrder(v_order);
             if (v_order != 0 ) {
@@ -841,7 +842,7 @@ class NodePool
         // UIMA-4142 Must set vMachinesByOrder and virtualMachinesByOrder independently of
         //           machinesByOrder because blacklisting can cause v_order != r_order
         //           during reset.
-        // UIMA-4910 Ignore unusable machines 
+        // UIMA-4910 Ignore unusable machines
         virtualMachinesByOrder.clear();
         for ( Machine m : allMachines.values() ) {
             if ( !isSchedulable(m) ) {
@@ -850,7 +851,7 @@ class NodePool
             m.resetVirtualShareOrder();
             int v_order = m.getVirtualShareOrder();
             int r_order = m.getShareOrder();
-            
+
             Map<Node, Machine> ml = null;
             if ( v_order == r_order ) {
                 nMachinesByOrder[r_order]++;
@@ -943,7 +944,7 @@ class NodePool
     {
         return children;
     }
-    
+
     List<NodePool> getChildrenAscending()
     {
         ArrayList<NodePool> sorted = new ArrayList<NodePool>();
@@ -1023,13 +1024,13 @@ class NodePool
     {
         Node n = m.getNode();
         NodeIdentity nid = n.getNodeIdentity();
-        
+
         Map<RmNodes, Object> props = new HashMap<RmNodes, Object>();
         props.put(RmNodes.Name, nid.getName());
         props.put(RmNodes.Ip, nid.getIp());
         props.put(RmNodes.Nodepool, id);
         props.put(RmNodes.Quantum, share_quantum / ( 1024*1024));
-        
+
         props.put(RmNodes.Memory       , m.getMemory() / (1024*1024));
         props.put(RmNodes.ShareOrder  , m.getShareOrder());
         props.put(RmNodes.Blacklisted  , m.isBlacklisted());
@@ -1039,7 +1040,7 @@ class NodePool
         props.put(RmNodes.SharesLeft   , m.countFreeShares());     // qshares remaining
         props.put(RmNodes.Assignments  , m.countProcesses());      // processes
         props.put(RmNodes.NPAssignments, m.countNpShares());
-        
+
         props.put(RmNodes.Reservable   , canReserve);
 
         StringBuffer buf = new StringBuffer();
@@ -1058,14 +1059,14 @@ class NodePool
             HashMap<Node, Machine> mlist = machinesByOrder.get(oldorder);
             mlist.remove(m.key());
             m.setShareOrder(neworder);                          //    hardware changes.
-            signalDb(m, RmNodes.ShareOrder, neworder);          // Jira 4913 Update DB so ducc-mon can show the current size 
+            signalDb(m, RmNodes.ShareOrder, neworder);          // Jira 4913 Update DB so ducc-mon can show the current size
             mlist = machinesByOrder.get(neworder);
             if ( mlist == null ) {
                 mlist = new HashMap<Node, Machine>();
                 machinesByOrder.put(neworder, mlist);
             }
-            mlist.put(m.key(), m);                     
-        }        
+            mlist.put(m.key(), m);
+        }
     }
 
     /**
@@ -1128,18 +1129,18 @@ class NodePool
         //incrementOnlineByOrder(order);
         machine.setNodepool(this);
 
-        total_shares += order;     
+        total_shares += order;
 
-        // index it by its share order to make it easier to find        
+        // index it by its share order to make it easier to find
         HashMap<Node, Machine> mlist = machinesByOrder.get(order);
         if ( mlist == null ) {
             mlist = new HashMap<Node, Machine>();
             machinesByOrder.put(order, mlist);
         }
-        mlist.put(key, machine);        
+        mlist.put(key, machine);
 
         logger.info(methodName, null, "Nodepool:", id, "Host added:", id, ": ", machine.getId(), "Nodefile:", subpoolNames.get(machine.getId()), // UIMA-4142, add file nodefile
-                    String.format("shares %2d total %4d:", order, total_shares), machine.toString()); 
+                    String.format("shares %2d total %4d:", order, total_shares), machine.toString());
         updated++;
 
         Map<RmNodes, Object> props = initDbProperties(allMachines.get(key));
@@ -1150,16 +1151,16 @@ class NodePool
         } catch (Exception e) {
             logger.warn(methodName, null, "Cannot write machine to DB:", machine.getId(), e);
         }
-        
+
         return machine;
     }
 
     /**
      * Purge all or some of the work on a machine that has died, or been taken offline
-     * 
+     *
      * @param m            node being removed
      * @param removeAll    true if all work is to be purged, otherwise just the preemptable work
-     * 
+     *
      * Ignore unmanaged reservations as they have no ducc-managed work
      * Purge just fair-share/preemptable work if being varyed off, or all work if node has died (UIMA-4752)
      */
@@ -1193,8 +1194,8 @@ class NodePool
                 nPendingByOrder[order]++;
             } else {
                 logger.info(methodName, j.getId(), "Nodepool:", id, eventType, m.getId(), "Not purging NP work - ", j.getDuccType());
-            } 
-            
+            }
+
         }
     }
 
@@ -1202,7 +1203,7 @@ class NodePool
     {
         // note, simpler than varyoff because we really don't care about unusual
         // conditions since there's nobody to tell
-        if ( allMachines.containsKey(m.key()) ) {            
+        if ( allMachines.containsKey(m.key()) ) {
             disable(m, true);    // Remove all work
             unresponsiveMachines.put(m.key(), m);
             signalDb(m, RmNodes.Responsive, false);
@@ -1231,7 +1232,7 @@ class NodePool
                 if ( ret != null ) {
                     return ret;
                 }
-            }            
+            }
         }
         return null;
     }
@@ -1240,7 +1241,7 @@ class NodePool
     {
         // caller must insure node is known to "me"
         Machine m = machinesByName.get(node);
-        if (offlineMachines.containsKey(m.key()) ) {            
+        if (offlineMachines.containsKey(m.key()) ) {
             return "VaryOff: Nodepool " + id + " - Already offline: " + node;
         }
 
@@ -1280,7 +1281,7 @@ class NodePool
         if ( ! offlineMachines.containsKey(key) ) {
             return "VaryOn: Nodepool " + id + " - Already online: " + m.getId();
         }
-        
+
         offlineMachines.remove(key);
         signalDb(m, RmNodes.Online, true);
 
@@ -1292,13 +1293,13 @@ class NodePool
      * in nodeArrives as a new machine.
      */
     String varyon(String node)
-    {        
+    {
         NodePool np = findNodepoolByNodename(node);
         if ( np == null ) {
             return "VaryOff: Nodepool " + id + " - Cannot find machine: " + node;
         }
 
-        return np.doVaryOn(node);         // must pass to the right nodepool, can't do it "here" 
+        return np.doVaryOn(node);         // must pass to the right nodepool, can't do it "here"
     }
 
     boolean isSchedulable(Machine m)
@@ -1360,24 +1361,24 @@ class NodePool
             return j.getShareOrder();
         }
         long mem = (j.getMemory() + reserve_overage) << 20;              // GB -> KB
-        int share_quantum = j.getShareQuantum();                         // share quantum is in KB! 
+        int share_quantum = j.getShareQuantum();                         // share quantum is in KB!
         return (int) ((mem + share_quantum - 1) / share_quantum);        // round UP
     }
-    
+
     /**
      * Adjust counts for something that takes full machines, like a reservation.
      * If "enforce" is set the machine order must match, otherwise we just do best effort to match.
      *
      * This is intended for use by reservations only; as such it does NOT recurse into child nodepools.
      *
-     * We save some trouble for later by remembering which machines we counted - we wouldn't be 
+     * We save some trouble for later by remembering which machines we counted - we wouldn't be
      * counting them if we didn't know FOR SURE at this point that we need them.
      * Sort on least eviction cost to get the cheapest set of preemptables.
      *
      * UIMA-5086 Consider assigning larger machines.  Change request so later code uses just the new size.
      * If no machines assigned yet then search machines up to "reserve_overage" larger than the requested size.
      * If more than one needed they must match the size of the first one found.
-     * 
+     *
      * @returns number of machines given
      *          and updates the table of preemptables
      */
@@ -1389,9 +1390,9 @@ class NodePool
         int share_order = j.getShareOrder();
         int max_share_order;
         int actual_order;
-        
+
         // If the reservation size has not yet been upgraded, include larger ones in the search
-        // Once it has been upgraded and is perhaps waiting for preemptions, don't let it be raised again 
+        // Once it has been upgraded and is perhaps waiting for preemptions, don't let it be raised again
         // as it then might find a free machine more than reserve-overage above the original request.
         if (! j.shareOrderUpgraded() ) {
             actual_order = 0;   // Not yet known
@@ -1425,7 +1426,7 @@ class NodePool
         int given = 0;           // total to give, free or freeable
         Iterator<Machine> iter = machs.iterator();
         ArrayList<Machine> pables = new ArrayList<Machine>();
-        
+
         while ( iter.hasNext() && (given < needed) ) {
             Machine m = iter.next();
             logger.info(methodName, j.getId(), "Examining", m.getId());
@@ -1433,12 +1434,12 @@ class NodePool
               logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is offline or unresponsive or blacklisted");
               continue;
             }
-            
+
             if (actual_order > 0 && m.getShareOrder() != actual_order) {
                 logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is not the same size as the first one found");
                 continue;
             }
-            
+
             if ( preemptables.containsKey(m.key()) ) {         // already counted, don't count twice
                 logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "already counted.");
                 continue;
@@ -1453,7 +1454,7 @@ class NodePool
                 logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is not freeable");
                 continue;
             }
-            
+
             // Found a free or freeable machine
             given++;
 			if (actual_order == 0) {
@@ -1468,7 +1469,7 @@ class NodePool
 				}
 			}
         }
-        
+
         // Remember how many full machines we need to free up when we get to preemption stage.
 
         for ( Machine m : pables ) {
@@ -1501,7 +1502,7 @@ class NodePool
                 } else {
                     nMachinesByOrder[low]--;
                 }
-                
+
                 given++;
                 rem = low - order;
                 if ( rem > 0 ) {
@@ -1569,8 +1570,8 @@ class NodePool
                     // if the share was evicted or purged we don't care.  otherwise, it SHOULD be evictable so we
                     // log its state to try to figure out why it didn't evict
                     if ( ! (s.isEvicted() || s.isPurged() ) ) {
-                        IRmJob j = s.getJob();                    
-                        logger.warn(methodName, j.getId(), "Found non-preemptable share", s.getId(), "fixed:", s.isFixed(), 
+                        IRmJob j = s.getJob();
+                        logger.warn(methodName, j.getId(), "Found non-preemptable share", s.getId(), "fixed:", s.isFixed(),
                                     "j.NShares", j.countNShares(), "j.NSharesGiven", j.countNSharesGiven());
                     }
                 }
@@ -1578,7 +1579,7 @@ class NodePool
             given++;
             iter.remove();
         }
-       
+
         return given;
     }
 
@@ -1588,7 +1589,7 @@ class NodePool
      */
     void  findMachines(IRmJob job, ResourceClass rc)
     {
-        String methodName = "findMachines";        
+        String methodName = "findMachines";
 
         int order = job.getShareOrder();
 
@@ -1603,17 +1604,17 @@ class NodePool
         if ( cnt < needed ) {
             // Get the preemptions started
             logger.info(methodName, job.getId(), "Setup preemptions.  Have", cnt, "free machines, needed", needed);
-            setupPreemptions(needed-cnt, order); 
+            setupPreemptions(needed-cnt, order);
         }
 
         // something awful happened if we throw here.
         if ( ! machinesByOrder.containsKey(order) ) {       // hosed if this happens
             throw new SchedInternalError(job.getId(), "Scheduling counts are wrong - machinesByOrder does not match nMachinesByOrder");
         }
-        
+
         // Since all are the same size and only empty ones are considered, no need to sort
         //machs = sortedForReservation(machinesByOrder.get(order));
-        
+
         for ( Machine mm : machinesByOrder.get(order).values() ) {
             if ( isSchedulable(mm) && mm.isFree() ) {
                 Share s = new Share(mm, job, mm.getShareOrder());
@@ -1650,7 +1651,7 @@ class NodePool
             // Need to recheck if it's preemptable - if the job has had other preemptions then
             // we need to avoid over-preemptiong.
             Share s = shares.get(0);
-            if ( s.isPreemptable() && (s.getShareOrder() == order) ) { 
+            if ( s.isPreemptable() && (s.getShareOrder() == order) ) {
                 return shares;                                   // with success
             }
             return null;                                         // or with failure
@@ -1702,12 +1703,12 @@ class NodePool
                         case SHRINK_BY_MACHINE:
                             // minimize fragmentation
                             loss = j.shrinkByOrderByMachine(neededByOrder[nbo], nbo, force, this); // pass in number of N-shares of given order that we want
-                                                                                                       // returns number of quantum shares it had to relinquish 
+                                                                                                       // returns number of quantum shares it had to relinquish
                             break;
-                        case SHRINK_BY_INVESTMENT: 
+                        case SHRINK_BY_INVESTMENT:
                             // minimize lost work
                             loss = j.shrinkByInvestment(neededByOrder[nbo], nbo, force, this);    // pass in number of N-shares of given order that we want
-                                                                                                       // returns number of quantum shares it had to relinquish 
+                                                                                                       // returns number of quantum shares it had to relinquish
                             break;
                     }
 
@@ -1746,7 +1747,7 @@ class NodePool
             logger.info(methodName, null, "Recurse from", np.getId(), "proceed with logic for", getId(), "force", force);
         }
 
-        // 
+        //
         // Adjust neededByOrder to reflect the number of shares that need to be preempted by subtracting the
         // number of shares that already are free
         //
@@ -1755,7 +1756,7 @@ class NodePool
             //             will reflect any evictions from the depth-first recursion.  Instead, we would subtract only
             //             our own shares.
             //
-            // int needed = Math.max(0, neededByOrder[nbo] - countNSharesByOrder(nbo) - countPendingSharesByOrder(nbo)); 
+            // int needed = Math.max(0, neededByOrder[nbo] - countNSharesByOrder(nbo) - countPendingSharesByOrder(nbo));
             int needed = Math.max(0, neededByOrder[nbo] - countNSharesByOrder(nbo) - nPendingByOrder[nbo]);
             neededByOrder[nbo] = needed;
             neededByOrder[0] += needed;
@@ -1814,7 +1815,7 @@ class NodePool
     }
 
     // For FAIR_SHRE: find shares, caller controls caps, allow vertical stacking.  UIMA-4712
-    int findShares( IRmJob j, boolean honorCaps ) 
+    int findShares( IRmJob j, boolean honorCaps )
     {
         return findShares(j, honorCaps, true);
     }
@@ -1827,7 +1828,7 @@ class NodePool
         int current = j.countNShares();           // currently allocated, plus pending, less those removed by earlier preemption
         int needed = (counted - current);
         int order = j.getShareOrder();
-        int given = 0;        
+        int given = 0;
         boolean expansionStopped = false;         // UIMA-4275
 
         logger.debug(methodName, j.getId(), "counted", counted, "current", current, "needed", needed, "order", order, "given", given);
@@ -1838,11 +1839,11 @@ class NodePool
                     if ( nSharesByOrder[i] == 0 ) {
                         continue;                                            // nothing here to give
                     }
-                    
+
                     Map<Node, Machine> machs = getVirtualMachinesByOrder(i);
                     ArrayList<Machine> ml = new ArrayList<Machine>();
                     ml.addAll(machs.values());
-                    
+
                     for ( Machine m : ml ) {                                // look for space
                         if ( !isSchedulable(m) ) continue;                  // nope
                         if ( (!allowVertical) && (m.hasVerticalConflict(j)) ) continue;  // UIMA-4712
@@ -1862,7 +1863,7 @@ class NodePool
                                 //allShares.put(s, s);
                             }
                         }
-                        
+
                         given += g;
                         needed -= g;
                         if ( needed == 0 ) {
@@ -1902,7 +1903,7 @@ class NodePool
      * Bop through the jobs, and if their current counts exceed their current assignment, find
      * something to give them.
      *
-     * It's possible that a job had evictions as a result of clearing space for a reservation - 
+     * It's possible that a job had evictions as a result of clearing space for a reservation -
      * so we need to check the count of allocated shares, the count of pending removals, and the
      * current share count assignment.
      */
@@ -2005,13 +2006,13 @@ class NodePool
 //            vals[i+1] = counts[i];
 //        }
 //        sb.append(String.format(fmt, vals));
-       
+
         sb.append("--------------------------------------------------------------------------------\n");
-        
+
         for ( NodePool np: children.values () ) {
             sb.append(np.toString());
         }
-        
+
         return sb.toString();
     }
 
@@ -2024,10 +2025,10 @@ class NodePool
         StringBuffer buf = new StringBuffer();
         buf.append(Machine.getHeader());
         buf.append("\n");
-        buf.append(Machine.getDashes());            
-        buf.append("\n"); 
+        buf.append(Machine.getDashes());
+        buf.append("\n");
         Collections.sort(machines, new MachineByOrderSorter());
-        
+
         for ( Machine m : machines) {
             buf.append(m.toString());
             int remaining = m.countFreeShares();
@@ -2097,7 +2098,7 @@ class NodePool
 
     class InvestmentSorter
         implements Comparator<Share>
-    {   
+    {
         public int compare(Share s1, Share s2)
         {
             return (int) (s1.getInvestment() - s2.getInvestment());           // lowest investment
@@ -2108,7 +2109,7 @@ class NodePool
 
     class DescendingShareOrderSorter
         implements Comparator<Share>
-    {   
+    {
         public int compare(Share s1, Share s2)
         {
             return (int) (s2.getShareOrder() - s1.getShareOrder());
@@ -2118,7 +2119,7 @@ class NodePool
 
     class MachineByOrderSorter
         implements Comparator<Machine>
-    {   
+    {
         public int compare(Machine m1, Machine m2)
         {
             return m2.getShareOrder() - m1.getShareOrder();
@@ -2127,7 +2128,7 @@ class NodePool
 
     class MachineByAscendingOrderSorter
         implements Comparator<Machine>
-    {   
+    {
         public int compare(Machine m1, Machine m2)
         {
             return m1.getShareOrder() - m2.getShareOrder();
