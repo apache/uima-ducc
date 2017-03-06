@@ -45,7 +45,6 @@ import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
-import org.apache.uima.ducc.transport.event.common.IProcessState;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
@@ -144,7 +143,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 				// for each process. In virtual mode, where there are multiple
 				// agents per node, we dont
 				// set nor enforce swap limits.
-				if (!agent.virtualAgent) {
+				if (!agent.isVirtual()) {
 					// Calculate how much swap space the process is allowed to
 					// use. The calculation is based on
 					// the percentage of real memory the process is assigned.

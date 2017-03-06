@@ -156,8 +156,16 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   public int shareQuantum;
 
-  public boolean virtualAgent = false;
-
+  private boolean agentVirtual = System.getProperty("ducc.agent.virtual") == null ? false : true;
+  
+  // This flag, when true, forces the agent to be "real"
+  // regardless of the value of ducc.agent.virtual.
+  // In the future, this flag and support for ducc.agent.virtual
+  // should be removed altogether.  
+  // This is to support CGroups for all agents,
+  // which was previously disabled for virtual ones.
+  private boolean agentRealOnly = true;
+  
   public boolean pageSizeFetched = false;
 
   public int pageSize = 4096; // default
@@ -199,6 +207,14 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	  eventListener = listener;
   }
   
+  public boolean isVirtual() {
+	  boolean retVal = agentVirtual;
+	  if(agentRealOnly) {
+		  retVal = false;
+	  }
+	  return retVal;
+  }
+  
   /**
    * C'tor for dependecy injection
    * 
@@ -216,7 +232,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     Utils.findDuccHome();  // add DUCC_HOME to System.properties
     
     // Running a real agent
-    virtualAgent = System.getProperty("ducc.agent.virtual") == null ? false : true;
+    agentVirtual = System.getProperty("ducc.agent.virtual") == null ? false : true;
 
     this.nodeIdentity = nodeIdentity;
     this.launcher = launcher;
@@ -243,7 +259,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     String cgroups;
     String cgUtilsPath=null;
     boolean excludeNodeFromCGroups = false;
-    if (!virtualAgent
+    if (!isVirtual()
             && (cgroups = System.getProperty("ducc.agent.launcher.cgroups.enable")) != null) {
       if (cgroups.equalsIgnoreCase("true")) {
     	logger.info("nodeAgent", null,"ducc.properties [ducc.agent.launcher.cgroups.enable=true]");
