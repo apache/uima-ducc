@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -47,7 +47,7 @@ import org.apache.uima.ducc.transport.event.sm.IServiceReply;
  * DUCC service CLI which internally uses its API to implement itself.  Details on the
  * DUCC service CLI are found in the<a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
  */
-public class DuccServiceApi 
+public class DuccServiceApi
     extends CliBase
 {
 
@@ -92,14 +92,14 @@ public class DuccServiceApi
         UiOption.Register,
         UiOption.Autostart,
         UiOption.Instances,
-    }; 
-   
+    };
+
     UiOption[] unregister_options = {
         UiOption.Help,
         UiOption.Debug,
         UiOption.Unregister,
         UiOption.RoleAdministrator,
-    }; 
+    };
 
 
     /**
@@ -111,7 +111,7 @@ public class DuccServiceApi
         UiOption.Start,
         UiOption.Instances,
         UiOption.RoleAdministrator,
-    }; 
+    };
 
     UiOption[] stop_options = {
         UiOption.Help,
@@ -119,35 +119,35 @@ public class DuccServiceApi
         UiOption.Stop,
         UiOption.Instances,
         UiOption.RoleAdministrator,
-    }; 
+    };
 
     UiOption[] enable_options = {
         UiOption.Help,
         UiOption.Debug,
         UiOption.Enable,
         UiOption.RoleAdministrator,
-    }; 
+    };
 
     UiOption[] disable_options = {
         UiOption.Help,
         UiOption.Debug,
         UiOption.Disable,
         UiOption.RoleAdministrator,
-    }; 
+    };
 
     UiOption[] observe_options = {
         UiOption.Help,
         UiOption.Debug,
         UiOption.Observe,
         UiOption.RoleAdministrator,
-    }; 
+    };
 
     UiOption[] ignore_options = {
         UiOption.Help,
         UiOption.Debug,
         UiOption.Ignore,
         UiOption.RoleAdministrator,
-    }; 
+    };
 
     // This gets generated from the registratoin_options.
     UiOption[] modify_options;
@@ -156,14 +156,14 @@ public class DuccServiceApi
         UiOption.Help,
         UiOption.Debug,
         UiOption.Query,
-    }; 
+    };
 
     // These options are only valid for CUSTOM services
     UiOption[] custom_only_options = {
             UiOption.ProcessExecutable,
             UiOption.ProcessExecutableArgs,
-    }; 
-       
+    };
+
     // These options are only valid for UIMA-AS services
     UiOption[] uimaas_only_options = {
             UiOption.ProcessDD,
@@ -171,8 +171,8 @@ public class DuccServiceApi
             UiOption.ProcessJvmArgs,
             UiOption.ProcessDebug,
             UiOption.Classpath,
-    }; 
-    
+    };
+
     // These options are only valid for services with an explicit pinger
     // Note: Only ServicePingArguments is used for an internal pinger ... others are quietly ignored
     UiOption[] pinger_only_options = {
@@ -188,19 +188,21 @@ public class DuccServiceApi
 
         //
         // generate modify options, same as registration options, only with the verb
-        // Modify insteady of Register, and on extra option, Activate.
+        // Modify insteady of Register, and a few changes.
         // The length here, based on registration options:
         //     minus 1 for ProcessDD
         //     minus 1 for ServiceRequestEndpoint
+        //     minus 1 for log_directory
         //     plus 1 for RoleAdministrator
-        //     ==> -1 length
+        //     ==> -2 length
         //
-        modify_options = new UiOption[registration_options.length - 1];
+        modify_options = new UiOption[registration_options.length - 2];
         int i = 0;
         for ( UiOption o : registration_options ) {
 
             if ( o == UiOption.ProcessDD ) continue;           // disallowed for modify
             if ( o == UiOption.ServiceRequestEndpoint) continue;         // disallowed for modify
+            if ( o == UiOption.LogDirectory) continue;         // disallowed for modify
 
             if ( o == UiOption.Register ) o = UiOption.Modify;
 
@@ -218,7 +220,7 @@ public class DuccServiceApi
         if ( sid == null ) {
             throw new IllegalArgumentException("Missing service id: --id <id or endpoint>");
         }
-        
+
         int id = -1;
         try {
             id = Integer.parseInt(sid);
@@ -283,7 +285,7 @@ public class DuccServiceApi
     {
         String default_linger = DuccPropertiesResolver.get("ducc.sm.default.linger", "5000");
         String linger         = cli_props.getStringProperty(UiOption.ServiceLinger.pname(), default_linger);
-        try {             
+        try {
 			Long.parseLong(linger); // make sure it's a long, don't care about the value
         } catch ( NumberFormatException e ) {
             throw new IllegalArgumentException(UiOption.ServiceLinger.pname() + " is not numeric: " + linger);
@@ -298,7 +300,7 @@ public class DuccServiceApi
 
         String debug_port = cli_props.getProperty(UiOption.ProcessDebug.pname());
         String debug_host = host_address;
-        if ( debug_port == null )       return; 
+        if ( debug_port == null )       return;
 
         if ( debug_port.equals("off") ) {
             switch (verb ) {
@@ -314,8 +316,8 @@ public class DuccServiceApi
         if ( debug_port.contains(":") ) {
             String[] parts = debug_port.split(":");
             if ( parts.length != 2 ) {
-                throw new IllegalArgumentException("Error: " + 
-                                                   UiOption.ProcessDebug.pname() + 
+                throw new IllegalArgumentException("Error: " +
+                                                   UiOption.ProcessDebug.pname() +
                                                    " process_debug must be a single numeric port, or else of the form 'host:port'");
             }
 
@@ -352,8 +354,8 @@ public class DuccServiceApi
         }
     }
 
-    
-    
+
+
     public UiOption[] getModifyOptions()
     {
         return modify_options;
@@ -372,12 +374,12 @@ public class DuccServiceApi
         init (this.getClass().getName(), registration_options, args, null, dp, callback, "sm");
 
         // Note: dp & cli_props are identical ... use only the class variable here for consistency
-        
+
         setLinger();
 
         // Determine service type based on the endpoint (default is UIMA-AS)
         // For each type check for required options; also warn and drop any inappropriate options
-        
+
         String  endpoint = cli_props.getStringProperty(UiOption.ServiceRequestEndpoint.pname(), null);
         if ( endpoint == null || endpoint.startsWith(ServiceType.UimaAs.decode()) ) {
 
@@ -389,7 +391,7 @@ public class DuccServiceApi
             if ( ! cli_props.containsKey(UiOption.ServicePingClass.pname()) ) {
                 discardOptions(pinger_only_options, "pinger-less UIMA-AS");
             }
-            
+
             // Set default classpath if not specified - only used for UIMA-AS services
             String key_cp = UiOption.Classpath.pname();
             if (!cli_props.containsKey(key_cp)) {
@@ -408,32 +410,32 @@ public class DuccServiceApi
                 endpoint = DuccUiUtilities.check_service_dependencies(null, endpoint);
                 cli_props.setProperty(UiOption.ServiceRequestEndpoint.pname(), endpoint);    // SM uses both endpoint definitions !!!
                 if ( !inferred_endpoint.equals(endpoint) ) {
-                    throw new IllegalArgumentException("Specified endpoint does not match endpoint extracted from UIMA DD" 
-                                                     + "\n --service_request_endpoint: " + endpoint 
+                    throw new IllegalArgumentException("Specified endpoint does not match endpoint extracted from UIMA DD"
+                                                     + "\n --service_request_endpoint: " + endpoint
                                                      + "\n                  extracted: " + inferred_endpoint );
                 }
             }
 
             enrichPropertiesForDebug(UiOption.Register);
             check_heap_size(UiOption.ProcessJvmArgs.pname());
-            
+
         } else if (endpoint.startsWith(ServiceType.Custom.decode())) {
 
-            // Custom services must have a pinger, but the process_executable (& args) 
+            // Custom services must have a pinger, but the process_executable (& args)
             // options may be omitted for a ping-only service.
             // When omitted other options such as autostart are irrelevant.
             if ( ! cli_props.containsKey(UiOption.ServicePingClass.pname()) ) {
                 throw new IllegalArgumentException("Option --service_ping_class is required for CUSTOM services");
             }
             discardOptions(uimaas_only_options, ServiceType.Custom.decode());
-            
+
             String key_cp = UiOption.ServicePingClasspath.pname();
             if (!cli_props.containsKey(key_cp)) {
                 cli_props.setProperty(key_cp, System.getProperty("java.class.path"));
             }
-            
+
             check_heap_size(UiOption.ProcessExecutableArgs.pname());
-        
+
         } else {
             throw new IllegalArgumentException("Invalid service endpoint: " + endpoint);
         }
@@ -454,7 +456,7 @@ public class DuccServiceApi
         if (isPreemptableClass) {
             throw new IllegalArgumentException("Invalid pre-emptable scheduling class: " + scheduling_class);
         }
-        
+
         // work out stuff I'm dependent upon
         if ( !check_service_dependencies(endpoint) ) {
             throw new IllegalArgumentException("Invalid service dependencies");
@@ -463,7 +465,7 @@ public class DuccServiceApi
         Trinary autostart = getAutostart();
         String user = (String) cli_props.remove(UiOption.User.pname());
         byte[] auth_block = (byte[]) cli_props.remove(UiOption.Signature.pname());
-        
+
         // A few spurious properties are set as an artifact of parsing the overly-complex command line, and need removal
         cli_props.remove(UiOption.SubmitPid.pname());
         cli_props.remove(UiOption.Register.pname());
@@ -480,7 +482,7 @@ public class DuccServiceApi
 	}
 
     /**
-     * The unregister API is used to unregister a service.  The service manager will stop all instances and 
+     * The unregister API is used to unregister a service.  The service manager will stop all instances and
      * remove the service registration.
      *
      * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
@@ -491,7 +493,7 @@ public class DuccServiceApi
     {
         DuccProperties dp = new SpecificationProperties();
         init(this.getClass().getName(), unregister_options, args, null, dp, callback, "sm");
-        
+
 
         Pair<Integer, String> id = getId(UiOption.Unregister);
         String user = dp.getProperty(UiOption.User.pname());
@@ -500,7 +502,7 @@ public class DuccServiceApi
 
         ServiceUnregisterEvent ev = new ServiceUnregisterEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
         ev.setAdministrative(asAdministrator);
-        
+
         try {
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
         } finally {
@@ -511,7 +513,7 @@ public class DuccServiceApi
 
     /**
      * The start API is used to start one or more instances of a registered service.
-     * 
+     *
      * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
      * @return {@link IServiceReply IServiceReply} object with start reply status.
      */
@@ -519,7 +521,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new SpecificationProperties();
-        init(this.getClass().getName(), start_options, args, null, dp, callback, "sm");        
+        init(this.getClass().getName(), start_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = getId(UiOption.Start);
         String user = dp.getProperty(UiOption.User.pname());
@@ -573,7 +575,7 @@ public class DuccServiceApi
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
         } finally {
             dispatcher.close();
-        }        
+        }
     }
 
     /**
@@ -597,9 +599,9 @@ public class DuccServiceApi
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
         boolean asAdministrator = dp.containsKey(UiOption.RoleAdministrator.pname());
-        dp.remove(UiOption.RoleAdministrator.pname()); 
+        dp.remove(UiOption.RoleAdministrator.pname());
 
-        ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), dp, auth_block, CliVersion.getVersion());        
+        ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), dp, auth_block, CliVersion.getVersion());
         ev.setAdministrative(asAdministrator);
 
         try {
@@ -627,7 +629,7 @@ public class DuccServiceApi
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
 
-        DuccProperties mods = new SpecificationProperties();        
+        DuccProperties mods = new SpecificationProperties();
         ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), mods, auth_block, CliVersion.getVersion());
         int instances = getInstances(-1);
         Trinary autostart = getAutostart();
@@ -640,7 +642,7 @@ public class DuccServiceApi
         String  pingDoLog     = cli_props.getProperty(UiOption.ServicePingDoLog.pname());
 
         // modify: if something is modified, indicate the new value.  if no value, then it's not modified.
-        
+
         if ( instances > 0 ) mods.setProperty("instances", Integer.toString(instances));
         switch ( autostart ) {
             case True:  mods.setProperty("autostart", "true"); break;
@@ -657,7 +659,7 @@ public class DuccServiceApi
         if ( pingJvmArgs   != null ) mods.setProperty("service_ping_jvm_args" , pingJvmArgs);
         if ( pingTimeout   != null ) mods.setProperty("service_ping_timeout"  , pingTimeout);
         if ( pingDoLog     != null ) mods.setProperty("service_ping_dolog"    , pingDoLog);
-        
+
 
         try {
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
@@ -680,9 +682,9 @@ public class DuccServiceApi
 
         Pair<Integer, String> id = null;
         String sid = cli_props.getProperty(UiOption.Query.pname()).trim();
-        if ( sid == null || sid.equals("") ) { 
+        if ( sid == null || sid.equals("") ) {
             id = new Pair<Integer, String>(-1, null);
-        } else {        
+        } else {
             id = getId(UiOption.Query);
         }
 
@@ -716,7 +718,7 @@ public class DuccServiceApi
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
         } finally {
             dispatcher.close();
-        }        
+        }
     }
 
     public IServiceReply ignoreReferences(String[] args)
@@ -737,7 +739,7 @@ public class DuccServiceApi
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
         } finally {
             dispatcher.close();
-        }        
+        }
     }
 
     public IServiceReply enable(String[] args)
@@ -758,10 +760,10 @@ public class DuccServiceApi
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
         } finally {
             dispatcher.close();
-        }        
+        }
     }
 
-    public IServiceReply disable(String[] args)    
+    public IServiceReply disable(String[] args)
         throws Exception
     {
         DuccProperties dp = new SpecificationProperties();
@@ -779,7 +781,7 @@ public class DuccServiceApi
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
         } finally {
             dispatcher.close();
-        }        
+        }
     }
 
     void help()
@@ -937,17 +939,17 @@ public class DuccServiceApi
     {
         // need to scan args for the verb, and insure only one verb
         UiOption[] verbs = {
-            UiOption.Register, 
-            UiOption.Modify, 
-            UiOption.Start, 
-            UiOption.Stop, 
-            UiOption.Query, 
+            UiOption.Register,
+            UiOption.Modify,
+            UiOption.Start,
+            UiOption.Stop,
+            UiOption.Query,
             UiOption.Unregister,
             UiOption.Observe,
             UiOption.Ignore,
             UiOption.Enable,
             UiOption.Disable
-        };        
+        };
         List<UiOption> check = new ArrayList<UiOption>();
         UiOption reply = UiOption.Help;
 
@@ -1007,8 +1009,8 @@ public class DuccServiceApi
      *
      * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
      */
-	public static void main(String[] args) 
-    {        
+	public static void main(String[] args)
+    {
         boolean rc = false;
         try {
             switch ( getVerb(args) ) {
@@ -1051,16 +1053,16 @@ public class DuccServiceApi
             Throwable t = e;
             while ((t = t.getCause()) != null) {
                 System.out.println("  ... " + t);
-            } 
+            }
             for (String arg : args) {
                 if (arg.equals("--debug")) {
                     e.printStackTrace();
                     break;
                 }
             }
-            System.exit(1);            
+            System.exit(1);
         }
         System.exit(rc ? 0 : 1);
 	}
-	
+
 }

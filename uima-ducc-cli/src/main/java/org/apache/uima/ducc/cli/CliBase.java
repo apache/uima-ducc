@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -76,11 +76,12 @@ public abstract class CliBase
     protected IDuccCallback consoleCb = null;
 
     protected MonitorListener monitor_listener = null;
-    
+
     CountDownLatch waiter = null;
 
     protected Properties userSpecifiedProperties;
-    
+    private String log_directory;
+
     /**
      * All extenders must implement execute - this method does whatever processing on the input
      * is needed and passes the CLI request to the internal DUCC processes.
@@ -106,8 +107,8 @@ public abstract class CliBase
         if(log_directory == null) {
             // no log directory was specified - default to user's home + "/ducc/logs"
             log_directory = System.getProperty("user.home") + IDucc.userLogsSubDirectory;
-        } 
-        
+        }
+
         File f;
         if (log_directory.startsWith(File.separator)) {
             f = new File(log_directory);
@@ -185,7 +186,7 @@ public abstract class CliBase
             return false;
         }
     }
-    
+
     /*
      * Check if -Xmx value is >= memory size ... if both are specified
      */
@@ -226,7 +227,7 @@ public abstract class CliBase
             message(text);
         }
     }
-    
+
     void setUser()
         throws Exception
     {
@@ -245,33 +246,33 @@ public abstract class CliBase
             }
         }
     }
-    
+
     /**
      * Standard init for all except the Service calls that are sent to the SM
      */
 
-    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, 
+    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props,
                     IDuccCallback consoleCb) throws Exception {
         this.init (myClassName, opts, args, null, cli_props, consoleCb, "orchestrator");
     }
 
-    protected synchronized void init(String myClassName, UiOption[] opts, Properties props, DuccProperties cli_props, 
+    protected synchronized void init(String myClassName, UiOption[] opts, Properties props, DuccProperties cli_props,
                     IDuccCallback consoleCb) throws Exception {
         this.init (myClassName, opts, null, props, cli_props, consoleCb, "orchestrator");
     }
-    
+
   /**
-   * 
+   *
    * @param myClassName  Name of the class invoking me, for help string
    * @param uiOpts       Array of IUioptions permitted for this command
    * @param args         Arguments from the command line (or null)
    * @param props        Properties passed in from the API (or null)
-   * @param cli_props    (Initially) empty properties file to be filled in 
+   * @param cli_props    (Initially) empty properties file to be filled in
    * @param consoleCb    Console callback object (optional)
    * @param servlet      The name of the http servlet that will serve this request
    * @throws Exception
    */
-    protected synchronized void init(String myClassName, IUiOption[] uiOpts, String[] args, Properties props, 
+    protected synchronized void init(String myClassName, IUiOption[] uiOpts, String[] args, Properties props,
                     DuccProperties cli_props, IDuccCallback consoleCb, String servlet)
         throws Exception
     {
@@ -282,9 +283,9 @@ public abstract class CliBase
     	} else {
     		CliFixups.cleanupProps(props, myClassName);
     	}
-        
+
         if ( init_done ) return;
-        
+
         if ( consoleCb == null ) {
             this.consoleCb =  new DefaultCallback();
         } else {
@@ -305,7 +306,7 @@ public abstract class CliBase
         if ( commandLine.contains(UiOption.Help)) {
         	usage(null);
         }
-        
+
         debug = commandLine.contains(UiOption.Debug);
 
         // Load the specification file, if given on the command line.  Note that registration
@@ -328,62 +329,64 @@ public abstract class CliBase
             defaults.load(fis);
             fis.close();
             CliFixups.cleanupProps(defaults, myClassName);     // May correct or drop deprecated options
-            
-            // If invoked with overriding properties add to or replace the defaults 
+
+            // If invoked with overriding properties add to or replace the defaults
             if (props != null) {
                 defaults.putAll(props);
             }
             commandLine = new CommandLine(args, uiOpts, defaults);
             commandLine.parse();
         }
-        commandLine.verify();  // Insure all the rules specified by the IUiOpts are enforced        
-        
+        commandLine.verify();  // Insure all the rules specified by the IUiOpts are enforced
+
         // Copy options into cli_props
         setOptions(uiOpts);
-        
+
         // Save a copy of the user-specified ones by cloning the underlying properties
         userSpecifiedProperties = (Properties)((Properties)cli_props).clone();
-        
+
         // May need to suppress logging in console listener, or in the DUCC process.
         suppress_console_log = cli_props.containsKey(UiOption.SuppressConsoleLog.pname());
-        
-        // Apply defaults for and fixup the environment if needed
-        //   -- unless default loading is inhibited, as it must be for modify operations
-        //      What this routine does is fill in all the options that weren't specified
-        //      on the command line with their defaults.  For 'modify' we want to bypass
-        //      this because ONLY the options from the command line should be set.
-        if ( load_defaults ) {
-            setDefaults(uiOpts, suppress_console_log);
-        }
-        
+
         // This is not used by DUCC ... allows ducc-mon to display the origin of a job
         cli_props.setProperty(UiOption.SubmitPid.pname(), ManagementFactory.getRuntimeMXBean().getName());
 
         // First set working-directory as the log-directory may be relative to it
         setWorkingDirectory();
-        if ( load_defaults && (getLogDirectory() == null) ) {
-            throw new IllegalArgumentException("Cannot access log directory.");
+
+        // Apply defaults for and fixup the environment if needed
+        //   -- unless default loading is inhibited, as it must be for modify operations
+        //      What this routine does is fill in all the options that weren't specified
+        //      on the command line with their defaults.  For 'modify' we want to bypass
+        //      this because ONLY the options from the command line should be set.
+        //      So modify must not change the log directory.
+        if ( load_defaults ) {
+            log_directory = getLogDirectory();
+            if ( log_directory == null ) {
+                throw new IllegalArgumentException("Cannot access log directory.");
+            }
+            setDefaults(uiOpts, suppress_console_log);
         }
         setUser();
 
         //NodeIdentity ni = new NodeIdentity(); UIMA-3899, use getHostAddress() directly.  jrc
         host_address = InetAddress.getLocalHost().getHostAddress();
-        
+
         initConsoleListener();
 
         // AllInOne doesn't dispatch requests (and local doesn't need a running DUCC!)
         if (!cli_props.containsKey(UiOption.AllInOne.pname())) {
             dispatcher = DispatcherFactory.create(cli_props, servlet);
         }
-        
+
         init_done = true;
     }
 
     /*
      * Save options as properties after resolving any ${..} placeholders
      */
-    void setOptions(IUiOption[] uiOpts) 
-        throws Exception 
+    void setOptions(IUiOption[] uiOpts)
+        throws Exception
     {
         // Find the environment variables that are always propagated
         List<String> envNameList;
@@ -393,7 +396,7 @@ public abstract class CliBase
         } else {
         	envNameList = new ArrayList<String>(0);
         }
-    	
+
     	Map<IUiOption, String> parsed = commandLine.allOptions();
         for (IUiOption opt : parsed.keySet() ) {
         	// If a "flexible" boolean that accepts various true/false values, add it only if true
@@ -421,7 +424,7 @@ public abstract class CliBase
             if (debug) System.out.println("CLI set " + opt.pname() + " = '" + val + "'");
         }
     }
-    
+
     /*
      * Check for missing required options, set defaults, and validate where possible
      * Also fixup the environment for all that use it.
@@ -444,7 +447,7 @@ public abstract class CliBase
                     if (deflt.startsWith("$$")) {     // Lookup default in ducc.properties
                         deflt = DuccPropertiesResolver.get(deflt.substring(2));
                         if (deflt == null) {
-                            throw new IllegalArgumentException("Invalid default (undefined property) for " + uiopt.pname()); 
+                            throw new IllegalArgumentException("Invalid default (undefined property) for " + uiopt.pname());
                         }
                     } else if (deflt.contains("${")) {
                         deflt = resolvePlaceholders(deflt, envNameList);
@@ -465,25 +468,26 @@ public abstract class CliBase
             }
             // If this request accepts the --environment option may need to augment it by
             // renaming LD_LIBRARY_PATH & propagating some user values
+            // Pass in the log directory so DUCC_UMASK may be set.  UIMA-5328
             if (uiopt == UiOption.Environment) {
               String environment = cli_props.getProperty(uiopt.pname());
               String allInOne = cli_props.getProperty(UiOption.AllInOne.pname());
-              environment = DuccUiUtilities.fixupEnvironment(environment, allInOne);
+              environment = DuccUiUtilities.fixupEnvironment(environment, allInOne, log_directory);
               cli_props.setProperty(uiopt.pname(), environment);
             }
         }
     }
-    
+
     /*
      * Resolve any ${..} placeholders against user's system properties and environment
-     * NOTE - this resolves against the caller's sys-props & environment ... the one in DuccUiUtilities 
+     * NOTE - this resolves against the caller's sys-props & environment ... the one in DuccUiUtilities
      *        resolves against the process JVM args to match what is done by Spring in UIMA-AS.
-     * 2.0: Leave unresolved entries as is & warn if not one of the always-propagated ones 
+     * 2.0: Leave unresolved entries as is & warn if not one of the always-propagated ones
      */
     private String resolvePlaceholders(String contents, List<String> envNameList) {
-        //  Placeholders syntax ${<placeholder>} 
+        //  Placeholders syntax ${<placeholder>}
         Pattern pattern = Pattern.compile("\\$\\{(.*?)\\}");  // Stops on first '}'
-        Matcher matcher = pattern.matcher(contents); 
+        Matcher matcher = pattern.matcher(contents);
 
         StringBuffer sb = new StringBuffer();
         while (matcher.find()) {
@@ -506,8 +510,8 @@ public abstract class CliBase
         matcher.appendTail(sb);
         return sb.toString();
     }
-    
-    void saveSpec(String name, DuccProperties props) 
+
+    void saveSpec(String name, DuccProperties props)
         throws Exception
     {
         String directory = props.getProperty("log_directory") + File.separator + friendlyId;
@@ -531,7 +535,7 @@ public abstract class CliBase
             props.store(out, comments);
         }
         out.close();
-        
+
         // Also save just the values the user provided
         fileName = directory + File.separator + DuccUiConstants.user_specified_properties;
         out = new OutputStreamWriter(new FileOutputStream(fileName));
@@ -610,7 +614,7 @@ public abstract class CliBase
     public boolean setProperty(String key, String value)
     {
 
-        if ( ! commandLine.isOptionName(key)) {       
+        if ( ! commandLine.isOptionName(key)) {
             return false;
         }
         cli_props.setProperty(key, value);
@@ -687,13 +691,13 @@ public abstract class CliBase
         if ( console_listener != null ) {
             wait_count++;
         }
-        
-        boolean monitor_attach = 
+
+        boolean monitor_attach =
                 (
-                cli_props.containsKey(UiOption.WaitForCompletion.pname()) || 
-                cli_props.containsKey(UiOption.CancelOnInterrupt.pname())  
+                cli_props.containsKey(UiOption.WaitForCompletion.pname()) ||
+                cli_props.containsKey(UiOption.CancelOnInterrupt.pname())
                 );
-            
+
         if ( monitor_attach ) {
             wait_count++;
         }
@@ -753,7 +757,7 @@ public abstract class CliBase
      */
     protected synchronized void startConsoleListener(boolean start_stdin)
         throws Exception
-    {        
+    {
         if ( console_attach ) {
             console_listener.startStdin(start_stdin);
             Thread t = new Thread(console_listener);

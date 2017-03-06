@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,10 +18,19 @@
 */
 package org.apache.uima.ducc.cli;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +50,7 @@ import org.w3c.dom.NodeList;
 
 
 public class DuccUiUtilities {
-	
+
 	public static String getUser() {
 		String user = System.getProperty("user.name");
 		String runmode = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_runmode);
@@ -56,11 +65,11 @@ public class DuccUiUtilities {
 		return user;
 	}
 
-  public static String fixupEnvironment(String environment, String allInOne) {
-	  
+  public static String fixupEnvironment(String environment, String allInOne, String logDirectory) {
+
     ArrayList<String> envList = QuotedOptions.tokenizeList(environment, false); // Don't strip quotes
     Map<String, String> envMap = QuotedOptions.parseAssignments(envList, +1); // Expand any FOO or FOO* entries
-    
+
     // Rename the user's LD_LIBRARY_PATH as Secure Linuxs will not pass that on
     // But not for --all-in-one local
     if (allInOne == null || !allInOne.equalsIgnoreCase("local")) {
@@ -73,7 +82,7 @@ public class DuccUiUtilities {
         }
       }
     }
-    
+
     // Augment user-specified environment with a few useful ones (only if not already set), e.g. USER HOME
     String envNames = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_environment_propagated);
     if (envNames != null) {
@@ -86,6 +95,33 @@ public class DuccUiUtilities {
         }
       }
     }
+
+    /*
+     * If an explicit DUCC_UMASK not provided include it with the current umask value so
+     * files created by this request inherit the current permissions.
+     * Get the current value by creating a temporary directory in the log directory
+     * and noting what permissions it doesn't have.
+     */
+    if (!envMap.containsKey("DUCC_UMASK")) {
+      File f = new File(logDirectory);
+      Path logDir = f.toPath();
+      try {
+        FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxrwxrwx"));
+        Path dir = Files.createTempDirectory(logDir, "ducc_umask", attr );
+        Set<PosixFilePermission> perms = Files.getFileAttributeView(dir, PosixFileAttributeView.class).readAttributes().permissions();
+        Files.delete(dir);
+        int umask = 777;
+        int[] bitVals = { 400, 200, 100, 40, 20, 10, 4, 2, 1 };  // Enums are in the usual ugo/rwx order
+        for (PosixFilePermission perm : perms) {
+          umask -= bitVals[perm.ordinal()];
+        }
+        envMap.put("DUCC_UMASK", String.valueOf(umask));
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException("fixupEnvironment: failed to create temporary directory in log_directory - " + e);
+      }
+    }
+
     // Must rebuild the string ... note that quotes were preserved so can recreate easily
     StringBuilder sb = new StringBuilder();
     for (String name : envMap.keySet()) {
@@ -93,8 +129,8 @@ public class DuccUiUtilities {
     }
     return sb.toString();
   }
-	
-	/* 
+
+	/*
 	 * Get URL for service handling request. Either "orchestrator" or "sm"
 	 */
 	public static String dispatchUrl(String server) {
@@ -105,11 +141,11 @@ public class DuccUiUtilities {
         }
         return "http://" + host + ":" + port + "/" + server.substring(0, 2);
 	}
-	
+
     /**
      * Extract the endpoint from the deployment descriptor, resolving names and placeholders against
-     * the same environment as that of the JVM that will deploy the service 
-     * 
+     * the same environment as that of the JVM that will deploy the service
+     *
      * @param working_dir
      * @param process_DD
      * @param jvmargs
@@ -166,10 +202,10 @@ public class DuccUiUtilities {
      * @param endpoint This is the endpoint of the caller itself, for resolution ( to make sure it can resolve.).  For
      *                 jobs this must be null.
      * @param dependency_string This is the whitespace-delimited string of service ids "I" am dependent upon.
-     * 
+     *
      * @return (possibly) corrected list of dependencies
      */
-    public static String check_service_dependencies(String endpoint, String dependency_string) 
+    public static String check_service_dependencies(String endpoint, String dependency_string)
     {
         if ( dependency_string == null ) {         // no dependencies to worry about
             return null;
@@ -204,13 +240,13 @@ public class DuccUiUtilities {
                 int ix = broker.indexOf('?');
                 if ( ix > 0) {
                     System.out.println("WARNING: Ignoring URL decorations on service ID " + d);
-                    d = parts[0] + ":" + parts[1] + ":" + broker.substring(0, ix); 
+                    d = parts[0] + ":" + parts[1] + ":" + broker.substring(0, ix);
                 }
             }  else if (!type.equals(ServiceType.Custom.decode())) {
                 throw new IllegalArgumentException(
                         "Ill-formed or unsupported service type in dependency: '" + d + "'");
             }
-            
+
             if (d.equals(endpoint)) {
                 throw new IllegalArgumentException("A service cannot depend on itself: " + d);
             }
@@ -223,9 +259,9 @@ public class DuccUiUtilities {
      * Resolve any ${..} placeholders against a map of JVM arg values
      */
     private static String resolvePlaceholders(String contents, Map<String,String> argMap) {
-        //  Placeholders syntax ${<placeholder>} 
+        //  Placeholders syntax ${<placeholder>}
         Pattern pattern = Pattern.compile("\\$\\{(.*?)\\}");  // Stops on first '}'
-        Matcher matcher = pattern.matcher(contents); 
+        Matcher matcher = pattern.matcher(contents);
 
         StringBuffer sb = new StringBuffer();
         while (matcher.find()) {
@@ -241,5 +277,5 @@ public class DuccUiUtilities {
         matcher.appendTail(sb);
         return sb.toString();
     }
-    
+
 }
