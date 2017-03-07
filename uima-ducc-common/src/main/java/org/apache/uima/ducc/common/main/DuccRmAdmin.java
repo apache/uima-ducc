@@ -54,16 +54,16 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.security.AnyTypePermission;
 
 /**
- * This class provides the API and CLI to the Resource Managager administrative functions.
+ * This class provides the API and CLI to the Resource Manager administrative functions.
  *
  * The functions provided by this class are exposed both to Java programs, and scripting.  
  *
- * When invoked through the <code>main</code> class, the specified funtions emit a string which is
+ * When invoked through the <code>main</code> class, the specified functions emit a string which is
  * easily parsable by scripting.  Specifically, the qoccupancy and qload interfaces return a
  * string that can be converted to List and Dictionary objects in Python via Python's 
  * <code>eval</code> function.
  *
- * When invokded via Java the response is returned in Java objects, as described below.
+ * When invoked via Java the response is returned in Java objects, as described below.
  * The use of this class's Java API is intended for DUCC System programming, and requires
  * the Camel, Spring, ActiveMQ, and Log4j classes in the classpath, as well as the DUCC
  * Transport and Common jars.
@@ -96,7 +96,7 @@ public class DuccRmAdmin
                         
 			// Load ducc properties file and enrich System properties. It supports
 			// overrides for entries in ducc properties file. Any key in the ducc
-			// property file can be overriden with -D<key>=<value>
+			// property file can be overridden with -D<key>=<value>
 			loadProperties(DuccService.DUCC_PROPERTY_FILE);
 
 			// fetch the broker URL from ducc.properties
@@ -232,7 +232,7 @@ public class DuccRmAdmin
 
 	/**
 	 * This causes the RM to "vary off" a set of hosts.  The hosts may continue to broadcast state, and
-     * RM trackes their online/offline status, but it stops scheduling to them.  If there is evictable work
+     * RM tracks their online/offline status, but it stops scheduling to them.  If there is evictable work
      * on the hosts, RM will send eviction orders to the Orchestrator in order to clear them.
      *
      * @param args This is an array of hostnames indicating the hosts to be varied offline.
@@ -254,11 +254,11 @@ public class DuccRmAdmin
 
 	/**
 	 * This causes the RM to "vary on" a set of hosts. If the hosts are broadcasting state,
-     * they are immediately available for scheduling.  This commnd does not start the DUCC agents,
+     * they are immediately available for scheduling.  This command does not start the DUCC agents,
      * it only instructs RM that, if the hosts was previously offline, it should now be used for
      * scheduling if and when the host is responding and sending heartbeats.
      *
-     * @param args This is an array of hostnames indicating the hosts to be varied nline.
+     * @param args This is an array of hostnames indicating the hosts to be varied online.
 	 * 
      * @return A {@link RmAdminVaryReply RmAdminVaryReply} with success or failure status and if failure, the list of
      *         hosts that could not be varied on.
@@ -291,7 +291,7 @@ public class DuccRmAdmin
 	}
 
 	/**
-	 * This queries details on each host the RM is schedling to.
+	 * This queries details on each host the RM is scheduling to.
      *
      * @return A {@link RmAdminQOccupancyReply RmAdminQOccupancyReply} containing data regarding the current
      *         hosts.
@@ -394,7 +394,7 @@ public class DuccRmAdmin
     }
 
     /**
-     * This is provided for use by the CLI, to invoke the varioius RM administrative commands.
+     * This is provided for use by the CLI, to invoke the various RM administrative commands.
      */
 	public static void main(String[] args) 
     {
