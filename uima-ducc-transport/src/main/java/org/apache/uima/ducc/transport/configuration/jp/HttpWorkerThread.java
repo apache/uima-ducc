@@ -274,14 +274,6 @@ public class HttpWorkerThread implements Runnable {
 								transactionMap.remove(key);
 							}
 							
-
-							for( Properties p : metrics ) {
-								StringBuffer sb = new StringBuffer();
-								sb.append("AE Name: ").append(p.get("uniqueName")).append(" Analysis Time: ").append(p.get("analysisTime"));
-								System.out.println("HttpWorkerThread.run() "+" -- "+sb.toString());
-							}
-						
-							
 		                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
 							IPerformanceMetrics metricsWrapper =
 									new PerformanceMetrics();
