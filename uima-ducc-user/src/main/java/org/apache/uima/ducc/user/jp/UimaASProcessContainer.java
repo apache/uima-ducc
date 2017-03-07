@@ -71,7 +71,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
     private String[] deploymentDescriptors = null;
 	private String[] ids = null;
     private String duccHome=null;
-    
+    private String aeName="";
     private volatile boolean threadAffinity=false;
 	boolean enablePerformanceBreakdownReporting = false;
 
@@ -330,10 +330,18 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 				for( AnalysisEnginePerformanceMetrics metrics : perfMetrics ) {
 					Properties p = new Properties();
 					p.setProperty("name", metrics.getName());
-					p.setProperty("uniqueName", metrics.getUniqueName());
+					
+					if ( scaleout > 1 && aeName != null ) {
+						if ( metrics.getUniqueName().startsWith("/"+aeName)) {
+							String st = metrics.getUniqueName().substring(metrics.getUniqueName().indexOf("/",1));
+							p.setProperty("uniqueName", "/"+aeName+st);	
+						}
+					} else {
+						p.setProperty("uniqueName", metrics.getUniqueName());
+					}
 					p.setProperty("analysisTime",String.valueOf(metrics.getAnalysisTime()) );
 					p.setProperty("numProcessed",String.valueOf(metrics.getNumProcessed()) );
-					System.out.println("... Metrics - AE:"+metrics.getName()+" AE Analysis Time:"+metrics.getAnalysisTime());
+				//	System.out.println("... Metrics - AE:"+metrics.getUniqueName()+" AE Analysis Time:"+metrics.getAnalysisTime());
 					metricsList.add(p);
 				}
 				
@@ -349,20 +357,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 				p.setProperty("numProcessed","0" );
 				metricsList.add(p);
 			}
-			/*
-			 * The following code commented for now. Re-enable when uima-as
-			 * performance metric collection is fixed. There is a bug in 
-			 * the uima-as which causes metrics to be invalid.
-
-			for( AnalysisEnginePerformanceMetrics metrics : perfMetrics ) {
-				Properties p = new Properties();
-				p.setProperty("name", metrics.getName());
-				p.setProperty("uniqueName", metrics.getUniqueName());
-				p.setProperty("analysisTime",String.valueOf(metrics.getAnalysisTime()) );
-				p.setProperty("numProcessed",String.valueOf(metrics.getNumProcessed()) );
-				metricsList.add(p);
-			}
-			*/
+			
 			return metricsList;
 		} catch( Throwable e ) {
 			lastError = e;
@@ -408,6 +403,8 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		uimaASClient.initialize(appCtx);
         // blocks until the client initializes
 		waitUntilInitialized();
+		aeName = uimaASClient.getMetaData().getName();
+
 	}
 
 	private void waitUntilInitialized() throws Exception {
@@ -439,7 +436,6 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		containerId = uimaASClient
 					.deploy(aDeploymentDescriptorPath, appCtx);
 		Thread.currentThread().setContextClassLoader(duccCl);
-
 		} catch (Exception e) {
 			// Any problem here should be fatal
 			throw e;
