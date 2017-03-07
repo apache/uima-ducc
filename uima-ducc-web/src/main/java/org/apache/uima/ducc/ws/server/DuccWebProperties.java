@@ -24,13 +24,22 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DuccWebProperties {
+
+	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccWebProperties.class.getName());
+	private static DuccId jobid = null;
 	
 	private static String dir_home = Utils.findDuccHome();
 	private static String dir_resources = "resources";
 	private static String ducc_properties_filename = dir_home+File.separator+dir_resources+File.separator+"ducc.properties";
+	
+	private static long default_ducc_ws_monitored_daemon_down_millis_expiry = 120000;
 	
 	public static Properties get() {
 		Properties currentProperties = new Properties();
@@ -59,5 +68,31 @@ public class DuccWebProperties {
 			}
 		}
 		return value;
+	}
+	
+	public static String getProperty(String key) {
+		return getProperty(key, null);
+	}
+	
+	public static long getPropertyLong(String key, long defaultValue) {
+		String location = "getPropertyLong";
+		long retVal = defaultValue;
+		try {
+			String pval = getProperty(key);
+			if(pval != null) {
+				retVal = Long.parseLong(pval);
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	public static long get_ducc_ws_monitored_daemon_down_millis_expiry() {
+		String key = DuccPropertiesResolver.ducc_ws_monitored_daemon_down_millis_expiry;
+		long dval = default_ducc_ws_monitored_daemon_down_millis_expiry;
+		long retVal = getPropertyLong(key,dval);
+		return retVal;
 	}
 }

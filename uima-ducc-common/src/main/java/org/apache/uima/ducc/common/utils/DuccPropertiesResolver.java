@@ -177,6 +177,7 @@ public class DuccPropertiesResolver {
     public static final String ducc_ws_welcome_page = "ducc.ws.welcome.page";
     public static final String ducc_ws_idle_timeout = "ducc.ws.idle.timeout";
     public static final String ducc_ws_max_threads = "ducc.ws.max.threads";
+    public static final String ducc_ws_monitored_daemon_down_millis_expiry = "ducc.ws.monitored.daemon.down.millis.expiry";
 
     private void initDefaultProperties() {
         defaultProperties.put(ducc_runmode,"Production");

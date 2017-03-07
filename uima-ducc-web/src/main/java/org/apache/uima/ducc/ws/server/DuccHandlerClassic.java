@@ -1503,7 +1503,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				pubSizeLast = ""+duccDaemonsData.getEventSize(daemonName);
 				pubSizeMax = ""+duccDaemonsData.getEventSizeMax(daemonName);
 				heartbeatLast = DuccDaemonsData.getInstance().getHeartbeat(daemonName);
-				long timeout = getMillisMIA(daemonName)/1000;
+				long timeout = DuccWebProperties.get_ducc_ws_monitored_daemon_down_millis_expiry()/1000;
 				if(timeout > 0) {
 					try {
 						long overtime = timeout - Long.parseLong(heartbeatLast);

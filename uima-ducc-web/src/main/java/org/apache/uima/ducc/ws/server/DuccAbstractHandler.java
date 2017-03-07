@@ -36,7 +36,6 @@ import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
-import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -464,73 +463,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		catch(Exception e) {
 		}
 		return maxRecords;
-	}
-	
-	public long getMillisMIA(DaemonName daemonName) {
-		String methodName = "getMillisMIA";
-		long secondsMIA = -1;
-		Properties properties = DuccWebProperties.get();
-		switch(daemonName) {
-		case Orchestrator:
-			String or_rate = properties.getProperty("ducc.orchestrator.state.publish.rate");
-			String or_ratio = "1";
-			try {
-				long rate = Long.parseLong(or_rate.trim());
-				long ratio = Long.parseLong(or_ratio .trim());
-				secondsMIA = 3 * rate * ratio;
-			}
-			catch(Throwable t) {
-				duccLogger.debug(methodName, null, t);
-			}
-			break;
-		case ResourceManager:
-			String rm_rate = properties.getProperty("ducc.orchestrator.state.publish.rate");
-			String rm_ratio = "1";
-			try {
-				String ratio = properties.getProperty("ducc.rm.state.publish.ratio");
-				if(ratio != null) {
-					rm_ratio = ratio;
-				}
-			}
-			catch(Exception e) {
-			}
-			try {
-				long rate = Long.parseLong(rm_rate.trim());
-				long ratio = Long.parseLong(rm_ratio .trim());
-				secondsMIA = 3 * rate * ratio;
-			}
-			catch(Throwable t) {
-				duccLogger.debug(methodName, null, t);
-			}
-			break;
-		case ServiceManager:
-			String sm_rate = properties.getProperty("ducc.orchestrator.state.publish.rate");
-			String sm_ratio = "1";
-			try {
-				long rate = Long.parseLong(sm_rate.trim());
-				long ratio = Long.parseLong(sm_ratio .trim());
-				secondsMIA = 3 * rate * ratio;
-			}
-			catch(Throwable t) {
-				duccLogger.debug(methodName, null, t);
-			}
-			break;
-		case ProcessManager:
-			String pm_rate = properties.getProperty("ducc.pm.state.publish.rate");
-			String pm_ratio = "1";
-			try {
-				long rate = Long.parseLong(pm_rate.trim());
-				long ratio = Long.parseLong(pm_ratio .trim());
-				secondsMIA = 3 * rate * ratio;
-			}
-			catch(Throwable t) {
-				duccLogger.debug(methodName, null, t);
-			}
-			break;
-		default:
-			break;
-		}
-		return secondsMIA;
 	}
 	
 	public String getPropertiesValue(Properties properties, String key, String defaultValue) {

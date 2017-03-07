@@ -3515,7 +3515,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				try {
 					Long.parseLong(hb);
 					heartbeat = hb;
-					long timeout = getMillisMIA(daemonName)/1000;
+					long timeout = DuccWebProperties.get_ducc_ws_monitored_daemon_down_millis_expiry()/1000;
 					if(timeout > 0) {
 						long overtime = timeout - Long.parseLong(hb);
 						if(overtime < 0) {
@@ -3834,7 +3834,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			case ProcessManager:
 			case ResourceManager:
 			case ServiceManager:
-				long timeout = getMillisMIA(daemonName)/1000;
+				long timeout = DuccWebProperties.get_ducc_ws_monitored_daemon_down_millis_expiry()/1000;
 				if(timeout > 0) {
 					try {
 						long heartbeatLast = Long.parseLong(DuccDaemonsData.getInstance().getHeartbeat(daemonName));
