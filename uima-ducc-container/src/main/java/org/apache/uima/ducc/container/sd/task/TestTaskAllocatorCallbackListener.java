@@ -47,13 +47,14 @@ public class TestTaskAllocatorCallbackListener implements
 		return serializedCas;
 	}
 	public String getSerializedCAS(TaskConsumer taskConsumer) {
-		logger.log(Level.INFO,"getSerializedCAS() Called");
+		logger.log(Level.INFO,"getSerializedCAS() Called "+seqno.incrementAndGet()+ " Times");
 		String serializedCas = null;
 		try {
 			CAS cas = null;
 			cas = CasCreationUtils.createCas(new TypeSystemDescription_impl(), null, null);
 			cas.setDocumentLanguage("en");
-			cas.setDocumentText("100 "+seqno.incrementAndGet()+" 1000 0");	
+			cas.setDocumentText("Some Text");	
+//			cas.setDocumentText("100 "+seqno.incrementAndGet()+" 1000 0");	
 			
 			serializedCas = serialize(cas);
 			cas.reset();
@@ -71,9 +72,8 @@ public class TestTaskAllocatorCallbackListener implements
 		List<Properties> breakdown = metrics.get();
 		
 		for( Properties p : breakdown ) {
-			Set<Object> set = p.keySet();
 			StringBuffer sb = new StringBuffer();
-			sb.append("AE Name: ").append(p.get("uniqueName")).append("Analysis Time: ").append(p.get("analysisTime"));
+			sb.append("AE Name: ").append(p.get("uniqueName")).append(" Analysis Time: ").append(p.get("analysisTime"));
 			System.out.println(taskConsumer.toString()+" -- "+sb.toString());
 		}
 	}

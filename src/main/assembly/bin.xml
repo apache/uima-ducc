@@ -507,6 +507,7 @@ under the License.
       <directoryMode>755</directoryMode>        
       <includes>
         <include>1.dd.job</include>
+        <include>1.dd.sync.job</include>
         <include>1.job</include>
         <include>1.inputs</include>
       </includes>
