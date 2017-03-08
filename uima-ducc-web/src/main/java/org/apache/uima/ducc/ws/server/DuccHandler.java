@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -129,35 +129,35 @@ import org.apache.uima.ducc.ws.utils.alien.OsProxy;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandler extends DuccAbstractHandler {
-	
+
 	private static String component = IDuccLoggerComponents.abbrv_webServer;
-	
+
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandler.class.getName());
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
-	
+
 	// These keys may have large values and be displayed with Show/Hide buttons.
 	// ducc.js must be updated if more than 4 are needed (services may have 4)
 	private final String[] n = {"classpath", "service_ping_classpath", "process_executable_args", "process_jvm_args", "environment"};
 	private final Set<String> hideableKeys = new HashSet<String>(Arrays.asList(n));
-	
+
 	private enum DetailsType { Job, Reservation, Service };
 	private enum AllocationType { JD, MR, SPC, SPU, UIMA };
 	private enum LogType { POP, UIMA };
 
 	private DuccAuthenticator duccAuthenticator = DuccAuthenticator.getInstance();
-	
+
 	private String duccVersion						= duccContext+"/version";
 	private String duccHome							= duccContext+"/home";
-	
+
 	private String duccLoginLink					= duccContext+"/login-link";
 	private String duccLogoutLink					= duccContext+"/logout-link";
 	private String duccAuthenticationStatus 		= duccContext+"/authentication-status";
 	private String duccAuthenticatorVersion 		= duccContext+"/authenticator-version";
 	private String duccAuthenticatorPasswordChecked	= duccContext+"/authenticator-password-checked";
-	
+
 	private String duccFileContents 				= duccContext+"/file-contents";
-	
+
 	private String duccJobIdData					= duccContext+"/job-id-data";
 	private String duccJobWorkitemsCountData		= duccContext+"/job-workitems-count-data";
 	private String duccJobProcessesData    			= duccContext+"/job-processes-data";
@@ -167,25 +167,25 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccJobFilesData 				= duccContext+"/job-files-data";
 	private String duccJobInitializationFailData	= duccContext+"/job-initialization-fail-data";
 	private String duccJobRuntimeFailData			= duccContext+"/job-runtime-fail-data";
-	
+
 	private String duccReservationProcessesData    	= duccContext+"/reservation-processes-data";
 	private String duccReservationSpecificationData = duccContext+"/reservation-specification-data";
 	private String duccReservationFilesData 		= duccContext+"/reservation-files-data";
-	
+
 	private String duccServicesRecordsCeiling    	= duccContext+"/services-records-ceiling";
-	
+
 	private String duccServiceDeploymentsData    	= duccContext+"/service-deployments-data";
 	private String duccServiceRegistryData 			= duccContext+"/service-registry-data";
 	private String duccServiceFilesData 			= duccContext+"/service-files-data";
 	private String duccServiceHistoryData 			= duccContext+"/service-history-data";
 	private String duccServiceSummaryData			= duccContext+"/service-summary-data";
-	
+
 	private String duccBrokerSummaryData			= duccContext+"/broker-summary-data";
-	
+
 	private String duccSystemAdminAdminData 		= duccContext+"/system-admin-admin-data";
 	private String duccSystemAdminControlData 		= duccContext+"/system-admin-control-data";
 	private String duccSystemJobsControl			= duccContext+"/jobs-control-request";
-	
+
 	private String duccClusterName 					= duccContext+"/cluster-name";
 	private String duccClusterUtilization 			= duccContext+"/cluster-utilization";
 	private String duccTimeStamp   					= duccContext+"/timestamp";
@@ -200,42 +200,42 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccServiceEnable  				= duccContext+"/service-enable-request";
 	private String duccServiceStart   				= duccContext+"/service-start-request";
 	private String duccServiceStop   				= duccContext+"/service-stop-request";
-	
+
 	private String duccServiceUpdate   				= duccContext+"/service-update-request";
-	
+
 	private String jsonMachinesData 				= duccContext+"/json-machines-data";
 	private String jsonSystemClassesData 			= duccContext+"/json-system-classes-data";
 	private String jsonSystemDaemonsData 			= duccContext+"/json-system-daemons-data";
 
 	//private String duccJobSubmitForm	    		= duccContext+"/job-submit-form";
-	
+
 	private String duccJobSubmitButton    			= duccContext+"/job-get-submit-button";
 	private String duccReservationFormButton  		= duccContext+"/reservation-get-form-button";
 	private String duccReservationSubmitButton  	= duccContext+"/reservation-get-submit-button";
 	private String duccServiceUpdateFormButton  	= duccContext+"/service-update-get-form-button";
-	
+
 	private String duccReservationSchedulingClasses     = duccContext+"/reservation-scheduling-classes";
 	private String duccReservationInstanceMemoryUnits   = duccContext+"/reservation-memory-units";
-	
+
 	private String _window_login_logout = "_window_login_logout";
 	private String _window_file_pager = "_window_file_pager";
 	private String _window_reservation_request = "_window_reservation_request";
 	private String _window_jconsole = "_window_jconsole";
-	
+
 	public DuccHandler(DuccWebServer duccWebServer) {
 		super.init(duccWebServer);
 	}
-	
+
 	public String getUserIdFromRequest(HttpServletRequest request) {
 		String retVal = duccWebSessionManager.getUserId(request);
 		return retVal;
 	}
-	
+
 	/*
 	 * non-authenticated
 	 */
-	
-	private void handleDuccServletLoginLink(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletLoginLink(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletLoginLink";
@@ -262,9 +262,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletLogoutLink(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletLogoutLink(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletLogoutLink";
@@ -283,9 +283,9 @@ public class DuccHandler extends DuccAbstractHandler {
         }
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletVersion(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletVersion(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletVersion";
@@ -295,9 +295,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(version);
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletHome(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletHome(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletHome";
@@ -306,9 +306,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(dir_home);
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletAuthenticationStatus(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletAuthenticationStatus(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletAuthenticationStatus";
@@ -327,9 +327,9 @@ public class DuccHandler extends DuccAbstractHandler {
         }
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletAuthenticatorVersion(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletAuthenticatorVersion(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletAuthenticatorVersion";
@@ -338,9 +338,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(duccAuthenticator.getVersion());
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletduccAuthenticatorPasswordChecked(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletduccAuthenticatorPasswordChecked(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletduccAuthenticatorPasswordChecked";
@@ -354,10 +354,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
+	}
+
 	/*
-	private void handleDuccServletJobSubmitForm(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleDuccServletJobSubmitForm(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobSubmitForm";
@@ -369,7 +369,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	*/
-	
+
 	private String buildLogFileName(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
 		String retVal = "";
 		if(process != null) {
@@ -399,7 +399,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	private String chomp(String leading, String whole) {
 		String retVal = whole;
 		while((retVal.length() > leading.length()) && (retVal.startsWith(leading))) {
@@ -412,9 +412,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		*/
 		return retVal;
 	}
-	
+
 	DecimalFormat sizeFormatter = new DecimalFormat("##0.00");
-	
+
 	private boolean fileExists(String fileName) {
 		String location = "fileExists";
 		boolean retVal = false;
@@ -427,7 +427,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	private String normalizeFileSize(long fileSize) {
 		String location = "getFileSize";
 		String retVal = "0";
@@ -441,7 +441,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	private String getId(IDuccWorkJob job, IDuccProcess process) {
 		StringBuffer sb = new StringBuffer();
 		sb.append(job.getDuccId().getFriendly());
@@ -454,7 +454,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getLog(IDuccWorkJob job, IDuccProcess process, String href) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -465,7 +465,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getPid(IDuccWorkJob job, IDuccProcess process) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -476,7 +476,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getStateScheduler(IDuccWorkJob job, IDuccProcess process) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -484,7 +484,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getRmReason(IDuccWorkJob job) {
 		StringBuffer sb = new StringBuffer();
 		String rmReason = job.getRmReason();
@@ -495,7 +495,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getProcessReason(IDuccProcess process) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -535,7 +535,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getStateAgent(IDuccWorkJob job, IDuccProcess process) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -550,7 +550,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getReasonAgent(IDuccWorkJob job, IDuccProcess process) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -570,7 +570,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getExit(IDuccWorkJob job, IDuccProcess process) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -604,7 +604,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getTimeInit(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		String location = "getTimeInit";
 		StringBuffer sb = new StringBuffer();
@@ -681,13 +681,13 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append(isp0);
 				sb.append(loadme);
 				sb.append(initTime);
-				sb.append(isp1);		
+				sb.append(isp1);
 				break;
 			}
 		}
 		return sb.toString();
 	}
-	
+
 	private String getTimeRun(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		String location = "getTimeRun";
 		StringBuffer sb = new StringBuffer();
@@ -705,12 +705,12 @@ public class DuccHandler extends DuccAbstractHandler {
 			case MR:
 				break;
 			case JD:
-				break;	
+				break;
 			case UIMA:
 				if(!process.isAssignedWork()) {
 					useTimeRun = false;
 				}
-				break;	
+				break;
 			default:
 				break;
 			}
@@ -744,9 +744,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private SynchronizedSimpleDateFormat dateFormat = new SynchronizedSimpleDateFormat("HH:mm:ss");
-	
+
 	private String getTimeGC(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -769,7 +769,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getPgIn(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -803,9 +803,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private DecimalFormat formatter = new DecimalFormat("##0.0");
-	
+
 	private String getSwap(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -861,7 +861,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	// legacy
 	private String getPctCpuV0(IDuccWorkJob job, IDuccProcess process) {
 		String retVal = "";
@@ -917,7 +917,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	private String formatPctCpu(double pctCpu) {
 		String retVal = "";
 		if(pctCpu < 0) {
@@ -928,7 +928,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	private String getPctCpuV1(IDuccWorkJob job, IDuccProcess process) {
 		double pctCPU_overall = process.getCpuTime();
 		double pctCPU_current = process.getCurrentCPU();
@@ -951,7 +951,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String retVal = sb.toString();
 		return retVal;
 	}
-	
+
 	private String getPctCpu(IDuccWorkJob job, IDuccProcess process) {
 		String location = "getPctCpu";
 		String retVal = "";
@@ -970,7 +970,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	private String getRSS(IDuccWorkJob job, IDuccProcess process) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -986,7 +986,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					String displayRss = formatter.format(rss);
 					sb.append(displayRss);
 				}
-				
+
 			}
 			else {
 				double rss = process.getResidentMemory();
@@ -1009,7 +1009,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getJConsole(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
@@ -1028,23 +1028,23 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getFilePagerUrl(EffectiveUser eu, String file_name) {
 		AlienTextFile atf = new AlienTextFile(eu, file_name);
 		int pages = atf.getPageCount();
 		return getFilePagerUrl(file_name, pages);
 	}
-	
+
 	private String getFilePagerUrl(String file_name, int pages) {
 		String encoded_file_name = UrlHelper.encode(file_name);
 		String parms = "?"+"fname="+encoded_file_name+"&"+"pages="+pages;
 		String url=duccFilePager+parms;
 		return url;
 	}
-	
+
 	String pname_idJob = "idJob";
 	String pname_idPro = "idPro";
-	
+
 	private long getLogFileSize(String key, Map<String, FileInfo> fileInfoMap) {
 		long retVal = 0;
 		if(key != null) {
@@ -1057,7 +1057,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	private void buildJobProcessListEntry(EffectiveUser eu, StringBuffer pb, DuccWorkJob job, IDuccProcess process, DetailsType dType, AllocationType sType, int counter, Map<String, FileInfo> fileInfoMap) {
 		StringBuffer rb = new StringBuffer();
 		int COLS = 26;
@@ -1074,11 +1074,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		for(int i=0; i < COLS; i++) {
 			cbList[i] = new StringBuffer();
 		}
-		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+		String logsjobdir = job.getUserLogDir();
 		String logfile = buildLogFileName(job, process, sType);
-		
+
 		String file_name = logsjobdir+logfile;
-		
+
 		String url = getFilePagerUrl(eu, file_name);
 		String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
 		String tr = trGet(counter);
@@ -1224,7 +1224,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String exit = getExit(job,process);
 		cbList[index].append(exit);
 		logAppend(index,"exit",exit);
-		cbList[index].append("</td>");	
+		cbList[index].append("</td>");
 		// Time:init
 		switch(sType) {
 		case MR:
@@ -1235,7 +1235,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			String timeInit = getTimeInit(job,process,sType);
 			cbList[index].append(timeInit);
 			logAppend(index,"timeInit",timeInit);
-			cbList[index].append("</td>");	
+			cbList[index].append("</td>");
 			break;
 		}
 		// Time:run
@@ -1244,7 +1244,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String timeRun = getTimeRun(job,process,sType);
 		cbList[index].append(timeRun);
 		logAppend(index,"timeRun",timeRun);
-		cbList[index].append("</td>");	
+		cbList[index].append("</td>");
 		// Time:GC
 		switch(sType) {
 		case MR:
@@ -1255,7 +1255,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			String timeGC = getTimeGC(job,process,sType);
 			cbList[index].append(timeGC);
 			logAppend(index,"timeGC",timeGC);
-			cbList[index].append("</td>");	
+			cbList[index].append("</td>");
 			break;
 		}
 		// PgIn
@@ -1267,7 +1267,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			String pgin = getPgIn(job,process,sType);
 			cbList[index].append(pgin);
 			logAppend(index,"pgin",pgin);
-			cbList[index].append("</td>");	
+			cbList[index].append("</td>");
 			break;
 		}
 		// Swap
@@ -1288,14 +1288,14 @@ public class DuccHandler extends DuccAbstractHandler {
 		String pctCPU = getPctCpu(job,process);
 		cbList[index].append(pctCPU);
 		logAppend(index,"%cpu",pctCPU);
-		cbList[index].append("</td>");	
+		cbList[index].append("</td>");
 		// rss
 		index++; // jp.17
 		cbList[index].append("<td align=\"right\">");
 		String rss = getRSS(job,process);
 		cbList[index].append(rss);
 		logAppend(index,"rss",rss);
-		cbList[index].append("</td>");	
+		cbList[index].append("</td>");
 		// other
 		switch(sType) {
 		case SPC:
@@ -1418,7 +1418,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			String jConsole = getJConsole(job,process,sType);
 			cbList[index].append(jConsole);
 			logAppend(index,"jConsole",jConsole);
-			cbList[index].append("</td>");	
+			cbList[index].append("</td>");
 			break;
 		}
 		// ResponseBuffer
@@ -1474,8 +1474,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		String location = "";
 		duccLogger.debug(location, jobid, "index:"+index+" "+""+name+"="+"\'"+value+"\'");
 	}
-	
-	private void handleDuccServletJobIdData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletJobIdData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobIdData";
@@ -1486,21 +1486,21 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private void thSep(StringBuffer sb) {
 		sb.append("<th>");
 		sb.append("&nbsp");
 		sb.append("&nbsp");
 		sb.append("</th>");
 	}
-	
-	private void handleDuccServletJobWorkitemsCountData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletJobWorkitemsCountData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobWorkitemsCountData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		
+
 		sb.append("<table>");
 		sb.append("<tr>");
 		// jobid
@@ -1608,7 +1608,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private IDuccWorkJob findJob(String jobno) {
 		String methodName = "findJob";
 		IDuccWorkJob job = null;
@@ -1632,7 +1632,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return job;
 	}
-	
+
 	private Map<String, FileInfo> getFileInfoMap(EffectiveUser eu, String directory) {
 		String location = "";
 		Map<String, FileInfo> map = new TreeMap<String, FileInfo>();
@@ -1644,8 +1644,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return map;
 	}
-	
-	private void handleDuccServletJobProcessesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletJobProcessesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobProcessesData";
@@ -1713,7 +1713,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private DuccWorkJob getJob(String jobNo) {
 		DuccWorkJob job = null;
 		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
@@ -1731,7 +1731,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return job;
 	}
-	
+
 	private DuccWorkJob getManagedReservation(String reservationNo) {
 		DuccWorkJob managedReservation = null;
 		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
@@ -1749,7 +1749,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return managedReservation;
 	}
-	
+
 	private long getAdjustedTime(long time, IDuccWorkJob job) {
 		long adjustedTime = time;
 		if(job.isCompleted()) {
@@ -1763,7 +1763,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return adjustedTime;
 	}
-	private void handleDuccServletJobWorkitemsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleDuccServletJobWorkitemsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobWorkitemsData";
@@ -1839,7 +1839,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						row.append(wis.getWiId());
 						// Status
 						row.append("<td align=\"right\">");
-						
+
 						State state = wis.getState();
 						StringBuffer status = new StringBuffer();
 						switch(state) {
@@ -1925,12 +1925,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		else {
 			sb.append("no accessible data (no job?)");
 		}
-	
+
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletJobPerformanceData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletJobPerformanceData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobPerformanceData";
@@ -1943,7 +1943,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				EffectiveUser eu = EffectiveUser.create(request);
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
 			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(eu.get());
-			    if (performanceMetricsSummaryMap == null) { 
+			    if (performanceMetricsSummaryMap == null) {
 			    	sb.append(eu.isLoggedin() ? "(data missing or unreadable)" : "(not visible - try logging in)");
 			    } else if (performanceMetricsSummaryMap.size() == 0) {
 			        sb.append("(no performance metrics)");
@@ -2060,11 +2060,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		else {
 			sb.append("no accessible data (no job?)");
 		}
-		
+
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private void putJobSpecEntry(Properties properties, String provider, String key, String value, StringBuffer sb, int counter) {
 		if(value != null) {
             sb.append(trGet(counter));
@@ -2081,11 +2081,11 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("</tr>");
 		}
 	}
-	
+
 	/**
 	 * Format job & reservation & service specification files
 	 * If no properties provided then the files may be inaccessible or missing
-	 * 
+	 *
 	 * @param request - servlet request
 	 * @param response - generated response
 	 * @param usProperties - properties specified by the user
@@ -2093,7 +2093,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	 * @param buttonHint - for services says how to enable modification of autostart and instances values
 	 * @throws IOException
 	 */
-    private void processSpecificationData(HttpServletRequest request, HttpServletResponse response, 
+    private void processSpecificationData(HttpServletRequest request, HttpServletResponse response,
             Properties usProperties, Properties properties, String buttonHint) throws IOException {
         String methodName = "ProcessSpecificationData";
         if (usProperties == null || properties == null) {
@@ -2168,8 +2168,8 @@ public class DuccHandler extends DuccAbstractHandler {
 
         response.getWriter().println(sb);
     }
-	
-	private void handleDuccServletJobSpecificationData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletJobSpecificationData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobSpecificationData";
@@ -2177,8 +2177,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String jobNo = request.getParameter("id");
 		DuccWorkJob work = getJob(jobNo);
 		EffectiveUser eu = EffectiveUser.create(request);
-        String path = work.getUserLogsDir() + work.getDuccId().getFriendly() + File.separator
-                + DuccUiConstants.job_specification_properties;
+        String path = work.getUserLogDir() + DuccUiConstants.job_specification_properties;
         Properties usProperties;
         Properties properties;
         try {
@@ -2191,7 +2190,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
-	private void handleDuccServletJobFilesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleDuccServletJobFilesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobFilesData";
@@ -2202,7 +2201,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(job != null) {
 			try {
 				EffectiveUser eu = EffectiveUser.create(request);
-				String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+				String directory = job.getUserLogDir();
 				Map<String, FileInfo> map = OsProxy.getFilesInDirectory(eu, directory);
 				Set<String> keys = map.keySet();
 				int counter = 0;
@@ -2250,8 +2249,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-		
-	private void handleDuccServletReservationFilesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletReservationFilesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletReservationFilesData";
@@ -2262,7 +2261,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(reservation != null) {
 			try {
 				EffectiveUser eu = EffectiveUser.create(request);
-				String directory = reservation.getUserLogsDir()+reservation.getDuccId().getFriendly()+File.separator;
+				String directory = reservation.getUserLogDir();
 				Map<String, FileInfo> map = OsProxy.getFilesInDirectory(eu, directory);
 				Set<String> keys = map.keySet();
 				int counter = 0;
@@ -2309,7 +2308,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private void buildServiceFilesListEntry(Request baseRequest,HttpServletRequest request, StringBuffer sb, DuccWorkJob job, IDuccProcess process, AllocationType type, int counter, Map<String, FileInfo> map) {
 		EffectiveUser eu = EffectiveUser.create(request);
 		if(job != null) {
@@ -2363,14 +2362,14 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 		}
 	}
-	
-	private void handleDuccServletServiceFilesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletServiceFilesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceFilesData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		
+
 		try {
 			String name = request.getParameter("name");
 			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
@@ -2380,7 +2379,7 @@ public class DuccHandler extends DuccAbstractHandler {
 
             // UIMA-4258, use common implementors parser
 			ArrayList<String> implementors = DuccDataHelper.parseImplementorsAsList(properties);
-			
+
 			DuccWorkJob service = null;
 			IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 			if(duccWorkMap.getServiceKeySet().size()> 0) {
@@ -2401,7 +2400,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					if(implementors.contains(fid)) {
 						service = (DuccWorkJob) duccWorkMap.findDuccWork(serviceId);
 						IDuccProcessMap map = service.getProcessMap();
-						String directory = service.getUserLogsDir()+service.getDuccId().getFriendly()+File.separator;
+						String directory = service.getUserLogDir();
 						Map<String, FileInfo> fmap = OsProxy.getFilesInDirectory(eu, directory);
 						for(DuccId key : map.keySet()) {
 							IDuccProcess process = map.get(key);
@@ -2422,18 +2421,18 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("</td>");
 			sb.append("</tr>");
 		}
-		
+
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletServiceHistoryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletServiceHistoryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceHistoryData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		
+
 		try {
 			String name = request.getParameter("name");
 			duccLogger.debug(methodName, null, name);
@@ -2445,10 +2444,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			String numeric_id = properties.getProperty(IServicesRegistry.numeric_id);
 			properties = payload.svc;
 			String log_directory = properties.getProperty(IServicesRegistry.log_directory);
-			
+
 			Map<String, FileInfo> pmap = OsProxy.getFilesInDirectory(eu, log_directory, true);
 			Set<String> keys = pmap.keySet();
-			
+
 			long sequence = 0;
 			TreeMap<FileInfoKey,FileInfo> map = new TreeMap<FileInfoKey,FileInfo>();
 			for(String key : keys) {
@@ -2458,11 +2457,11 @@ public class DuccHandler extends DuccAbstractHandler {
 				map.put(fik, fileInfo);
 			}
 			Set<FileInfoKey> sortkeys = map.descendingKeySet();
-			
+
 			int counter = 0;
 			for(FileInfoKey key : sortkeys) {
 				FileInfo fileInfo = map.get(key);
-			
+
 				StringBuffer row = new StringBuffer();
 				String tr = trGet(counter);
 				row.append(tr);
@@ -2472,7 +2471,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				row.append("</td>");
 				// name
 				row.append("<td>");
-				
+
 				String url = getFilePagerUrl(fileInfo.getName(), fileInfo.getPageCount());
 				String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 				row.append(href);
@@ -2507,12 +2506,12 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("</td>");
 			sb.append("</tr>");
 		}
-		
+
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}			
-	
-	private void handleDuccServletJobInitializationFailData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletJobInitializationFailData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobInitializationFailData";
@@ -2556,7 +2555,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						data.append("<td>");
 						DuccId processId = processIterator.next();
 						IDuccProcess process = processMap.get(processId);
-						String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+						String logsjobdir = job.getUserLogDir();
 						String logfile = buildLogFileName(job, process, AllocationType.UIMA);
 						String link = logfile;
 						String reason = process.getReasonForStoppingProcess();
@@ -2581,7 +2580,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
-	private void handleDuccServletJobRuntimeFailData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleDuccServletJobRuntimeFailData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobRuntimeFailData";
@@ -2606,7 +2605,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						data.append("<td>");
 						DuccId processId = processIterator.next();
 						IDuccProcess process = processMap.get(processId);
-						String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+						String logsjobdir = job.getUserLogDir();
 						String logfile = buildLogFileName(job, process, AllocationType.UIMA);
 						String link = logfile;
 						String reason = process.getReasonForStoppingProcess();
@@ -2630,19 +2629,19 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private void buildServiceProcessListEntry(EffectiveUser eu, StringBuffer sb, DuccWorkJob job, IDuccProcess process, DetailsType dType, AllocationType sType, int counter, Map<String, FileInfo> fileInfoMap) {
 		buildJobProcessListEntry(eu, sb, job, process, dType, sType, counter, fileInfoMap);
 	}
-	
-	private void handleDuccServletReservationProcessesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletReservationProcessesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletReservationProcessesData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		String reservationNo = request.getParameter("id");
-		
+
 		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		DuccWorkJob managedReservation = null;
 		if(duccWorkMap.getServiceKeySet().size()> 0) {
@@ -2659,7 +2658,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		if(managedReservation != null) {
 			EffectiveUser eu = EffectiveUser.create(request);
-			String directory = managedReservation.getUserLogsDir()+managedReservation.getDuccId().getFriendly()+File.separator;
+			String directory = managedReservation.getUserLogDir();
 			Map<String, FileInfo> fileInfoMap = OsProxy.getFilesInDirectory(eu, directory);
 			Iterator<DuccId> iterator = null;
 			int counter = 0;
@@ -2677,21 +2676,21 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("</td>");
 			sb.append("</tr>");
 		}
-		
+
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletReservationSpecificationData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletReservationSpecificationData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletReservationSpecificationData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		String reservationNo = request.getParameter("id");
 		DuccWorkJob work = getManagedReservation(reservationNo);
-		
+
         EffectiveUser eu = EffectiveUser.create(request);
-        String path = work.getUserLogsDir() + work.getDuccId().getFriendly() + File.separator + DuccUiConstants.managed_reservation_properties;
+        String path = work.getUserLogDir() + DuccUiConstants.managed_reservation_properties;
         Properties usProperties;
         Properties properties;
         try {
@@ -2703,8 +2702,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		processSpecificationData(request, response, usProperties, properties, null);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletServicesRecordsCeilingData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletServicesRecordsCeilingData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServicesRecordsCeilingData";
@@ -2737,25 +2736,25 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletServiceDeploymentsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletServiceDeploymentsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceDeploymentsData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		
+
 		try {
 			String name = request.getParameter("name");
 			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
 			Properties properties;
 			properties = payload.meta;
-			
+
             // UIMA-4258, use common implementors parser
-			List<String> implementors_current = DuccDataHelper.parseImplementorsAsList(properties);	
+			List<String> implementors_current = DuccDataHelper.parseImplementorsAsList(properties);
 			List<String> implementors_defunct = DuccDataHelper.parseWorkInstancesAsList(properties);
-			
+
 			IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 			for(int i=0; i<2; i++) {
 				Map<Long,DuccWorkJob> servicesMap = null;
@@ -2767,12 +2766,12 @@ public class DuccHandler extends DuccAbstractHandler {
 					servicesMap = duccWorkMap.getServicesMap(implementors_defunct);
 					break;
 				}
-				
+
 				Map<Long, DuccWorkJob> inverseServicesMap = new TreeMap<Long,DuccWorkJob>();
 				for(Entry<Long, DuccWorkJob> entry : servicesMap.entrySet()) {
 					inverseServicesMap.put(0-entry.getKey(), entry.getValue());
 				}
-				
+
 				int counter = 0;
 				AllocationType type = AllocationType.SPU;
 				String service_type = properties.getProperty(IServicesRegistry.service_type);
@@ -2796,13 +2795,13 @@ public class DuccHandler extends DuccAbstractHandler {
 							buildServiceProcessListEntry(eu, sb, service, process, DetailsType.Service, type, ++counter, fileInfoMap);
 						}
 					}
-				}	
+				}
 			}
 		}
 		catch(Throwable t) {
 			duccLogger.trace(methodName, jobid, t);
 		}
-		
+
 		if(sb.length() == 0) {
 			sb.append("<tr>");
 			sb.append("<td>");
@@ -2813,8 +2812,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletServiceRegistryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletServiceRegistryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceRegistryData";
@@ -2862,7 +2861,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						}
 						hint = enable_or_disable + " " + hint;
 					    processSpecificationData(request, response, payload.svc, payload.meta, hint);
-						
+
 					} else {
 						sb.append("<tr>");
 						sb.append("<td>");
@@ -2884,7 +2883,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					sb.append("</tr>");
 					break;
 			}
-			
+
 		}
 		catch(Exception e) {
 			duccLogger.warn(methodName, null, e);
@@ -2895,16 +2894,16 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
-	private void handleDuccServletServiceSummaryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleDuccServletServiceSummaryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceSummaryData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		
+
 		sb.append("<table>");
 		sb.append("<tr>");
-		
+
 		String id = "?";
 		String name = request.getParameter("name");
 		String instances = "?";
@@ -2912,7 +2911,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		StartState startState = StartState.Unknown;
 		boolean disabled = false;
 		String disableReason = "";
-		
+
 		try {
 			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
@@ -2931,7 +2930,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		catch(Exception e) {
 			duccLogger.error(methodName, jobid, e);
 		}
-		
+
 		// serviceid
 		sb.append("<th title=\"The system assigned id for this service\">");
 		sb.append("Id: ");
@@ -2964,36 +2963,36 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("disabled");
 			sb.append("&nbsp");
 		}
-		
+
 		sb.append("</table>");
-		
+
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletBrokerSummaryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletBrokerSummaryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletBrokerSummaryData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		
+
 		int MB = 1024 * 1024;
-		
+
 		String brokerHost = "?";
 		String brokerPort = "?";
-		
+
 		String brokerVersion = "?";
 		String uptime = "?";
-		
+
 		Long memoryUsed = new Long(0);
 		Long memoryMax = new Long(0);
-		
+
 		int threadsLive = 0;
 		int threadsPeak = 0;
-		
+
 		double systemLoadAverage = 0;
-		
+
 		try {
 			BrokerHelper brokerHelper = BrokerHelper.getInstance();
 			systemLoadAverage = brokerHelper.getSystemLoadAverage();
@@ -3009,22 +3008,22 @@ public class DuccHandler extends DuccAbstractHandler {
 		catch(Exception e) {
 			duccLogger.error(methodName, jobid, e);
 		}
-		
+
 		sb.append("<table>");
-		
+
 		//
-		
+
 		StringBuffer row1 = new StringBuffer();
 		StringBuffer row2 = new StringBuffer();
 		StringBuffer row3 = new StringBuffer();
-		
+
 		row1.append("<tr>");
 		row2.append("<tr>");
 		row3.append("<tr>");
-		
+
 		String thl = "<th align=\"left\"  style=\"font-family: monospace;\">";
 		String thr = "<th align=\"right\" style=\"font-family: monospace;\">";
-		
+
 		// Host
 		row1.append(thl);
 		row1.append("Host: ");
@@ -3037,13 +3036,13 @@ public class DuccHandler extends DuccAbstractHandler {
 		row2.append(thl);
 		row2.append(brokerPort);
 		row2.append("&nbsp");
-		// 
+		//
 		row3.append(thl);
 		row3.append("");
 		row3.append(thl);
 		row3.append("");
 		row3.append("&nbsp");
-		
+
 		// BrokerVersion
 		row1.append(thl);
 		row1.append("BrokerVersion: ");
@@ -3056,13 +3055,13 @@ public class DuccHandler extends DuccAbstractHandler {
 		row2.append(thl);
 		row2.append(uptime);
 		row2.append("&nbsp");
-		// 
+		//
 		row3.append(thl);
 		row3.append("");
 		row3.append(thl);
 		row3.append("");
 		row3.append("&nbsp");
-		
+
 		// MemoryUsed
 		row1.append(thl);
 		row1.append("MemoryUsed(MB): ");
@@ -3075,13 +3074,13 @@ public class DuccHandler extends DuccAbstractHandler {
 		row2.append(thr);
 		row2.append(memoryMax/MB);
 		row2.append("&nbsp");
-		// 
+		//
 		row3.append(thl);
 		row3.append("");
 		row3.append(thl);
 		row3.append("");
 		row3.append("&nbsp");
-				
+
 		// ThreadsLive
 		row1.append(thl);
 		row1.append("ThreadsLive: ");
@@ -3094,13 +3093,13 @@ public class DuccHandler extends DuccAbstractHandler {
 		row2.append(thr);
 		row2.append(threadsPeak);
 		row2.append("&nbsp");
-		// 
+		//
 		row3.append(thl);
 		row3.append("");
 		row3.append(thl);
 		row3.append("");
 		row3.append("&nbsp");
-		
+
 		// System Load Average
 		row1.append(thl);
 		row1.append("SystemLoadAverage: ");
@@ -3113,26 +3112,26 @@ public class DuccHandler extends DuccAbstractHandler {
 		row2.append(thr);
 		row2.append("");
 		row2.append("&nbsp");
-		// 
-		row3.append(thl);
-		row3.append("");
-		row3.append(thl);
-		row3.append("");
-		row3.append("&nbsp");	
-		
 		//
-		
+		row3.append(thl);
+		row3.append("");
+		row3.append(thl);
+		row3.append("");
+		row3.append("&nbsp");
+
+		//
+
 		sb.append(row1);
 		sb.append(row2);
 		sb.append(row3);
-		
+
 		sb.append("</table>");
-		
+
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleServletJsonMachinesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleServletJsonMachinesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleJsonServletMachinesData";
@@ -3179,9 +3178,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		// pass 2
 		iterator = sortedMachines.keySet().iterator();
-		
+
 		sb.append("[");
-		
+
 		sb.append(quote("Total"));
 		sb.append(",");
 		sb.append(quote(""));
@@ -3197,13 +3196,13 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(quote(""+alienPids));
 		sb.append(",");
 		sb.append(quote(""));
-		
+
 		sb.append("]");
-		
+
 		while(iterator.hasNext()) {
 			sb.append(",");
 			sb.append("[");
-			
+
 			MachineInfo machineInfo = iterator.next();
 			sb.append(quote(machineInfo.getStatus()));
 			sb.append(",");
@@ -3232,26 +3231,26 @@ public class DuccHandler extends DuccAbstractHandler {
 					alienPidsDisplay = entry;
 				}
 				else {
-					
+
 					alienPidsDisplay = ""+size;
 				}
 			}
 			sb.append(quote(alienPidsDisplay));
 			sb.append(",");
 			sb.append(quote(machineInfo.getElapsed()));
-			
+
 			sb.append("]");
 		}
-		
+
 		sb.append(" ]");
 		sb.append(" }");
 		duccLogger.debug(methodName, null, sb);
 		response.getWriter().println(sb);
 		response.setContentType("application/json");
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
+	}
 
-	private void handleDuccServletSystemAdminAdminData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleDuccServletSystemAdminAdminData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletSystemAdminAdminData";
@@ -3273,8 +3272,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletSystemAdminControlData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletSystemAdminControlData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletSystemAdminControlData";
@@ -3317,8 +3316,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletSystemJobsControl(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletSystemJobsControl(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletSystemJobsControl";
@@ -3342,11 +3341,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
     /**
      * @Deprecated
      */
-	private void handleServletJsonSystemClassesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleServletJsonSystemClassesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws Exception
 	{
 		String methodName = "handleJsonServletSystemClassesData";
@@ -3354,7 +3353,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		sb.append("{ ");
 		sb.append("\"aaData\": [ ");
-		
+
 		DuccSchedulerClasses schedulerClasses = DuccSchedulerClasses.getInstance();
         Map<String, DuccProperties> clmap = schedulerClasses.getClasses();
 
@@ -3425,7 +3424,7 @@ public class DuccHandler extends DuccAbstractHandler {
                     sb.append(",");
                     sb.append(quote(val));
                 } else {
-                    sb.append(",-,-,-,-"); 
+                    sb.append(",-,-,-,-");
                 }
 
                 // max for reserve in in machines.  For fixed is in processes.  No max on fair-share. So slightly
@@ -3452,7 +3451,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append("]");
 			}
 		}
-		
+
 		sb.append(" ]");
 		sb.append(" }");
 		duccLogger.debug(methodName, null, sb);
@@ -3460,15 +3459,15 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.setContentType("application/json");
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private String buildjSonjConsoleLink(String service) {
 		String location = "buildjConsoleLink";
 		String href = "<a href=\\\""+duccjConsoleLink+"?"+"service="+service+"\\\" onclick=\\\"var newWin = window.open(this.href,'"+_window_jconsole+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\\\">"+service+"</a>";
 		duccLogger.trace(location, null, href);
 		return href;
 	}
-	
-	private void handleServletJsonSystemDaemonsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleServletJsonSystemDaemonsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleJsonServletSystemDaemonsData";
@@ -3526,14 +3525,14 @@ public class DuccHandler extends DuccAbstractHandler {
 						}
 					}
 				}
-				catch(Throwable t) {	
+				catch(Throwable t) {
 				}
 				String hx = DuccDaemonsData.getInstance().getMaxHeartbeat(daemonName);
 				try {
 					Long.parseLong(hx);
 					heartmax = hx;
 				}
-				catch(Throwable t) {	
+				catch(Throwable t) {
 				}
 				break;
 			}
@@ -3688,8 +3687,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.setContentType("application/json");
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletClusterName(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletClusterName(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletClusterName";
@@ -3703,21 +3702,21 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletClusterUtilization(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletClusterUtilization(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletClusterUtilization";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		
+
 		long sumReserve = 0;
-		
+
 		ListIterator<MachineFacts> listIterator;
 		DuccMachinesData instance = DuccMachinesData.getInstance();
 		MachineFactsList factsList = instance.getMachineFactsList();
-		
+
 		listIterator = factsList.listIterator();
 		while(listIterator.hasNext()) {
 			MachineFacts facts = listIterator.next();
@@ -3732,30 +3731,30 @@ public class DuccHandler extends DuccAbstractHandler {
 				}
 			}
 		}
-	
+
 		DecimalFormat percentageFormatter = new DecimalFormat("##0.0");
-		
+
 		String utilization = "0%";
-		
+
 		SizeBytes sbReserve = new SizeBytes(Type.GBytes, sumReserve);
 		long memReserve = sbReserve.getGBytes();
-		
+
 		long sumInuse = DuccData.getInstance().getLive().getMemoryInuse();
-		
+
 		SizeBytes sbInuse = new SizeBytes(Type.Bytes, sumInuse);
 		long memInuse = sbInuse.getGBytes();
-		
+
 		if(memReserve > 0) {
 			double percentage = (((1.0) * memInuse) / ((1.0) * memReserve)) * 100.0;
 			utilization = percentageFormatter.format(percentage)+"%";
 		}
-		
+
 		sb.append(utilization);
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletTimeStamp(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletTimeStamp(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletTimeStamp";
@@ -3764,11 +3763,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer(getTimeStamp(request,jobid,DuccData.getInstance().getPublished()));
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
+	}
+
 	private static BrokerHelper brokerHelper = BrokerHelper.getInstance();
 	private static DatabaseHelper databaseHelper = DatabaseHelper.getInstance();
-	
+
 	private void addDownDaemon(StringBuffer sb, String name) {
 		if(sb.length() == 0) {
 			sb.append("ALERT - critical component(s) unresponsive: "+name);
@@ -3777,11 +3776,11 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append(", "+name);
 		}
 	}
-	
+
 	private String cache_disk_info = "";
 	private long cache_disk_info_TOD = 0;
 	private long cache_disk_info_interval = 15*(60*1000);
-	
+
 	private void record_disk_info(String disk_info) {
 		String methodName = "record_disk_info";
 		if(disk_info != null) {
@@ -3800,8 +3799,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 		}
 	}
-	
-	private void handleDuccServletAlerts(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletAlerts(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletAlerts";
@@ -3860,9 +3859,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletBannerMessage(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletBannerMessage(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletBannerMessage";
@@ -3878,9 +3877,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletReservationSchedulingClasses(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletReservationSchedulingClasses(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws Exception
 	{
 		String methodName = "handleDuccServletReservationSchedulingClasses";
@@ -3902,9 +3901,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("</select>");
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletReservationInstanceMemoryUnits(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletReservationInstanceMemoryUnits(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletReservationInstanceMemoryUnits";
@@ -3915,9 +3914,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("</select>");
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletReservationFormButton(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletReservationFormButton(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletReservationFormButton";
@@ -3936,7 +3935,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private String getLoginRefreshHint(HttpServletRequest request,HttpServletResponse response) {
 		String retVal = "";
 		DuccCookies.RefreshMode refreshMode = DuccCookies.getRefreshMode(request);
@@ -3963,12 +3962,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	private String getDisabled() {
 		String retVal = "disabled=\"disabled\"";
 		return retVal;
 	}
-	
+
 	private String getEnabledOrDisabled(HttpServletRequest request,HttpServletResponse response) {
 		String retVal = "";
 		DuccCookies.RefreshMode refreshMode = DuccCookies.getRefreshMode(request);
@@ -3995,8 +3994,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return retVal;
 	}
-	
-	private void handleDuccServletServiceUpdateFormButton(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletServiceUpdateFormButton(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceUpdateFormButton";
@@ -4004,7 +4003,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String name = request.getParameter("name");
 		StringBuffer sb = new StringBuffer();
 		String hint = getLoginRefreshHint(request, response);
-		
+
 		String enable_or_disable = getDisabled();
 		ServiceAuthorization sa = HandlersHelper.getServiceAuthorization(baseRequest);
 		switch(sa) {
@@ -4024,8 +4023,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletReservationSubmitButton(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletReservationSubmitButton(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletReservationSubmitButton";
@@ -4039,9 +4038,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(button);
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletJobSubmitButton(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletJobSubmitButton(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobSubmitButton";
@@ -4056,8 +4055,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletFileContents(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletFileContents(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletFileContents";
@@ -4122,7 +4121,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				aggregate = aggregate.replace(">", "&gt");
 			}
 			*/
-			
+
 			//if(!aggregate.trim().contains("\n")) {
 			//	if(aggregate.trim().contains(":")) {
 			//		String[] lines = aggregate.trim().split(":");
@@ -4143,9 +4142,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletLogData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletLogData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletLogData";
@@ -4202,9 +4201,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("</html>");
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletJpInitSummary(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletJpInitSummary(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJpInitSummary";
@@ -4212,7 +4211,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String idJob = request.getParameter(pname_idJob);
 		String idPro = request.getParameter(pname_idPro);
 		StringBuffer sb = new StringBuffer();
-		
+
 		sb.append("<b>");
 		sb.append("Id[job]:");
 		sb.append(" ");
@@ -4222,12 +4221,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(" ");
 		sb.append(idPro);
 		sb.append("</b>");
-		
+
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletJpInitData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletJpInitData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJpInitData";
@@ -4235,7 +4234,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String idJob = request.getParameter(pname_idJob);
 		String idPro = request.getParameter(pname_idPro);
 		StringBuffer sb = new StringBuffer();
-		
+
 		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		DuccWorkJob job = null;
 		if(duccWorkMap.getJobKeySet().size()> 0) {
@@ -4277,16 +4276,16 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("<td>");
 			sb.append("<td>");
 		}
-		
+
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
+	}
+
 	private void handleDuccServletjConsoleLink(
 			String target,
 			Request baseRequest,
 			HttpServletRequest request,
-			HttpServletResponse response) 
+			HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String location = "handleDuccServletjConsoleLink";
@@ -4300,7 +4299,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("    <title>JConsole</title>");
 		sb.append("    <vendor>DUCC</vendor>");
 		sb.append("  </information>");
-		sb.append("  <security>");   
+		sb.append("  <security>");
 		sb.append("    <all-permissions/>");
 		sb.append("  </security>");
 		sb.append("  <resources>");
@@ -4315,12 +4314,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		response.setContentType("application/x-java-jnlp-file");
 	}
-	
+
 	/*
 	 * authenticated
 	 */
-	
-	private void handleDuccServletJobSubmit(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletJobSubmit(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobSubmit";
@@ -4332,9 +4331,9 @@ public class DuccHandler extends DuccAbstractHandler {
 			duccLogger.warn(methodName, null, messages.fetch("user not authenticated"));
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletJobCancel(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletJobCancel(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletJobCancel";
@@ -4374,7 +4373,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4 };
 						result = DuccAsUser.duckling(userId, arglistUser);
 						response.getWriter().println(result);
-						break;	
+						break;
 					}
 				}
 			}
@@ -4387,9 +4386,9 @@ public class DuccHandler extends DuccAbstractHandler {
 			duccLogger.error(methodName, null, e);
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletReservationSubmit(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletReservationSubmit(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletReservationSubmit";
@@ -4420,12 +4419,12 @@ public class DuccHandler extends DuccAbstractHandler {
 					arg4 = memory_size;
 				}
 			}
-			
+
 			String arg5a = "--wait_for_completion";
 			String arg5b = "false";
 			String arg6a = "--cancel_on_interrupt";
 			String arg6b = "false";
-			
+
 			String arg7 = "";
 			String arg8 = "";
 			if(description != null) {
@@ -4449,9 +4448,9 @@ public class DuccHandler extends DuccAbstractHandler {
 			duccLogger.warn(methodName, null, messages.fetch("user not authenticated"));
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletReservationCancel(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletReservationCancel(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletReservationCancel";
@@ -4490,7 +4489,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
 						result = DuccAsUser.duckling(userId, arglistUser);
 						response.getWriter().println(result);
-						break;	
+						break;
 					}
 				}
 			}
@@ -4504,9 +4503,9 @@ public class DuccHandler extends DuccAbstractHandler {
 			duccLogger.error(methodName, null, e);
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
+	}
 
-	private void handleDuccServletServiceSubmit(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleDuccServletServiceSubmit(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceSubmit";
@@ -4519,8 +4518,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletServiceCancel(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletServiceCancel(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceCancel";
@@ -4558,7 +4557,7 @@ public class DuccHandler extends DuccAbstractHandler {
 							String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
 							result = DuccAsUser.duckling(userId, arglistUser);
 							response.getWriter().println(result);
-							break;	
+							break;
 						}
 					}
 				}
@@ -4576,8 +4575,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void duccServletServiceCommand(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response, String command, ArrayList<String> parms) 
+
+	private void duccServletServiceCommand(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response, String command, ArrayList<String> parms)
 	{
 		String methodName = "duccServletServiceCommand";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
@@ -4645,8 +4644,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private String duccServletServiceCommand(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response, String command) 
+
+	private String duccServletServiceCommand(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response, String command)
 	{
 		String methodName = "duccServletServiceCommand";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
@@ -4681,7 +4680,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
 						result = DuccAsUser.duckling(userId, arglistUser);
 						response.getWriter().println(result);
-						break;	
+						break;
 					}
 				}
 			}
@@ -4696,17 +4695,17 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 		return result;
 	}
-	
-	private void handleDuccServletServiceEnable(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletServiceEnable(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceEnable";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		
+
 		String result = duccServletServiceCommand(target,baseRequest,request,response,"enable");
-		
+
 		boolean updateCache = true;
-		
+
 		if(updateCache) {
 			if(result != null) {
 				if(result.contains("success")) {
@@ -4717,53 +4716,53 @@ public class DuccHandler extends DuccAbstractHandler {
 				}
 			}
 		}
-		
+
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletServiceStart(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletServiceStart(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceStart";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		
+
 		duccServletServiceCommand(target,baseRequest,request,response,"start");
-		
+
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void handleDuccServletServiceStop(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	private void handleDuccServletServiceStop(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceStop";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		
+
 		duccServletServiceCommand(target,baseRequest,request,response,"stop");
-		
+
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}			
-	
-	private void handleDuccServletServiceUpdate(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccServletServiceUpdate(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
 		String methodName = "handleDuccServletServiceUpdate";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		
+
 		String instances = request.getParameter("instances");
 		String autostart = request.getParameter("autostart");
-		
+
 		ArrayList<String> parms = new ArrayList<String>();
 		parms.add("--instances");
 		parms.add(instances);
 		parms.add("--autostart");
 		parms.add(autostart);
-		
+
 		duccServletServiceCommand(target,baseRequest,request,response,"modify",parms);
-		
+
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}		
-	
-	private void handleDuccRequest(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	}
+
+	private void handleDuccRequest(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws Exception
 	{
 		String methodName = "handleDuccRequest";
@@ -4951,7 +4950,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
 				handleDuccServletServiceEnable(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
-			}			
+			}
 			else if(reqURI.startsWith(duccServiceStart)) {
 				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
 				handleDuccServletServiceStart(target, baseRequest, request, response);
@@ -5020,11 +5019,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	public void handle(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+
+	public void handle(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException {
 		String methodName = "handle";
-		try{ 
+		try{
 			handleDuccRequest(target, baseRequest, request, response);
 		}
 		catch(Throwable t) {
@@ -5037,5 +5036,5 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 		}
 	}
-	
+
 }

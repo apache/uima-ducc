@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -85,13 +85,13 @@ import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 public class StateManager {
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(StateManager.class.getName());
 	private static final DuccId jobid = null;
-	
+
 	private static StateManager stateManager = new StateManager();
-	
+
 	public static StateManager getInstance() {
 		return stateManager;
 	}
-	
+
 	public StateManager() {
 	}
 
@@ -99,9 +99,9 @@ public class StateManager {
 	private Messages messages = orchestratorCommonArea.getSystemMessages();
 	private DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 	private StateJobAccounting stateJobAccounting = StateJobAccounting.getInstance();
-	
+
 	private IHistoryPersistenceManager hpm = orchestratorCommonArea.getHistoryPersistencemanager();
-	
+
 	private boolean jobDriverTerminated(DuccWorkJob duccWorkJob) {
 		String methodName = "jobDriverTerminated";
 		boolean status = true;
@@ -119,7 +119,7 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return status;
 	}
-	
+
 	private boolean jobProcessesTerminated(DuccWorkJob duccWorkJob) {
 		String methodName = "jobProcessesTerminated";
 		boolean status = true;
@@ -137,7 +137,7 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return status;
 	}
-	
+
 	private boolean allProcessesTerminated(DuccWorkJob duccWorkJob) {
 		String methodName = "allProcessesTerminated";
 		boolean status = false;
@@ -167,11 +167,11 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return status;
 	}
-	
+
 	private long SECONDS = 1000;
 	private long MINUTES = 60 * SECONDS;
 	private long AgeTime = 1 * MINUTES;
-	
+
 	private boolean isAgedOut(IDuccWork duccWork) {
 		String methodName = "isAgedOut";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -198,7 +198,7 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return retVal;
 	}
-	
+
 	public boolean isSaved(IDuccWorkJob duccWorkJob) {
 		String methodName = "isSaved";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -223,7 +223,7 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return retVal;
 	}
-	
+
 	public boolean isSaved(IDuccWorkReservation duccWorkReservation) {
 		String methodName = "isSaved";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -238,7 +238,7 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return retVal;
 	}
-	
+
 	private void dumper() {
 		String location = "dumper";
 		try {
@@ -258,7 +258,7 @@ public class StateManager {
 			logger.error(location, jobid, e);
 		}
 	}
-	
+
 	public int prune(DuccWorkMap workMap) {
 		String methodName = "prune";
 		dumper();
@@ -355,17 +355,17 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return changes;
 	}
-	
+
 	private int stateChange(DuccWorkJob duccWorkJob, JobState state) {
 		stateJobAccounting.stateChange(duccWorkJob, state);
 		return 1;
 	}
-	
+
 	private int stateChange(DuccWorkReservation duccWorkReservation, ReservationState state) {
 		duccWorkReservation.stateChange(state);
 		return 1;
 	}
-	
+
 	private void setJdJmxUrl(DuccWorkJob job, String jdJmxUrl) {
 		if(jdJmxUrl != null) {
 			DuccWorkPopDriver driver = job.getDriver();
@@ -380,7 +380,7 @@ public class StateManager {
 			}
 		}
 	}
-	
+
 	private void copyInvestmentReport(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "copyInvestmentReport";
 		try {
@@ -406,7 +406,7 @@ public class StateManager {
 		}
 	}
 	private void copyProcessWorkItemsReport(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
-		String methodName = "copyProcessWorkItemsReport";	
+		String methodName = "copyProcessWorkItemsReport";
 		try {
 			IDuccProcessMap processMap = job.getProcessMap();
 			IDuccProcessWorkItemsReport pwiReport = jdStatusReport.getDuccProcessWorkItemsMap();
@@ -426,7 +426,7 @@ public class StateManager {
 			logger.error(methodName, job.getDuccId(), e);
 		}
 	}
-	
+
 	private void copyDriverWorkItemsReport(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "copyDriverWorkItemsReport";
 		try {
@@ -455,7 +455,7 @@ public class StateManager {
 			logger.error(methodName, job.getDuccId(), e);
 		}
 	}
-	
+
 	private void setCompletionIfNotAlreadySet(DuccWorkJob duccWorkJob, IDriverStatusReport jdStatusReport) {
 		String methodName = "setCompletionIfNotAlreadySet";
 		DuccId jobid = null;
@@ -467,7 +467,7 @@ public class StateManager {
 			logger.error(methodName, jobid, e);
 		}
 	}
-	
+
 	private void setCompletionIfNotAlreadySet(DuccWorkJob duccWorkJob, JobCompletionType jobCompletionType, IRationale rationale) {
 		String methodName = "setCompletionIfNotAlreadySet";
 		DuccId jobid = null;
@@ -479,7 +479,7 @@ public class StateManager {
 			logger.error(methodName, jobid, e);
 		}
 	}
-	
+
 	private void setCompletionIfNotAlreadySet(DuccId jobid, DuccWorkJob duccWorkJob, JobCompletionType reqJobCompletionType, IRationale reqRationale) {
 		String methodName = "setCompletionIfNotAlreadySet";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -494,14 +494,14 @@ public class StateManager {
 				logger.debug(methodName, jobid, "unchanged: "+curJobCompletionType+" to "+reqJobCompletionType);
 				break;
 			}
-			
+
 		}
 		catch(Exception e) {
 			logger.error(methodName, jobid, e);
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private void addJdUrlToJpCommandLine(IDuccWorkJob dwj, IDriverStatusReport jdStatusReport) {
 		String location = "addJdPortToJpCommandLine";
 		DuccId jobid = null;
@@ -522,7 +522,7 @@ public class StateManager {
 			}
 		}
 	}
-	
+
 	private void addDeployableToJpCommandLine(IDuccWorkJob dwj, IDriverStatusReport jdStatusReport) {
 		String location = "addDeployableToJpCommandLine";
 		DuccId jobid = null;
@@ -562,7 +562,7 @@ public class StateManager {
 			}
 		}
 	}
-	
+
 	/**
 	 * JD reconciliation
 	 */
@@ -612,9 +612,9 @@ public class StateManager {
 						break;
 					case NotRunning:
 						break;
-					case Initializing:	
+					case Initializing:
 						switch(duccWorkJob.getJobState()) {
-						case WaitingForDriver: 
+						case WaitingForDriver:
 						    addJdUrlToJpCommandLine(duccWorkJob, jdStatusReport);
 						    addDeployableToJpCommandLine(duccWorkJob, jdStatusReport);
 						    if(!duccWorkJob.isJdURLSpecified()) {
@@ -629,7 +629,7 @@ public class StateManager {
 							}
 							stateJobAccounting.stateChange(duccWorkJob, nextState);
 							break;
-						case Assigned:	
+						case Assigned:
 							stateJobAccounting.stateChange(duccWorkJob, JobState.Initializing);
 							break;
 						case Initializing:
@@ -639,7 +639,7 @@ public class StateManager {
 						}
 						break;
 					case Running:
-					case Idle:	
+					case Idle:
 						if(jdStatusReport.isKillJob()) {
 							rationale = jdStatusReport.getJobCompletionRationale();
 							switch(duccWorkJob.getJobState()) {
@@ -667,7 +667,7 @@ public class StateManager {
 						case WaitingForDriver:
 							stateJobAccounting.stateChange(duccWorkJob, JobState.WaitingForServices);
 							break;
-						case Assigned:	
+						case Assigned:
 						case Initializing:
 							stateJobAccounting.stateChange(duccWorkJob, JobState.Running);
 							break;
@@ -675,7 +675,7 @@ public class StateManager {
 							break;
 						}
 						break;
-					case Completing:	
+					case Completing:
 						if(!duccWorkJob.isFinished()) {
 							stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
 						}
@@ -738,7 +738,7 @@ public class StateManager {
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private boolean isExcessCapacity(DuccWorkJob job) {
 		String methodName = "isExcessCapacity";
 		boolean retVal = false;
@@ -768,7 +768,7 @@ public class StateManager {
 		}
 		return retVal;
 	}
-	
+
 	private boolean isDeallocatable(IDriverStatusReport jdStatusReport) {
 		boolean retVal = false;
 		if(!jdStatusReport.isPending()) {
@@ -776,7 +776,7 @@ public class StateManager {
 		}
 		return retVal;
 	}
-	
+
 	private boolean deallocateIdleProcesses(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "deallocateIdleProcesses";
 		boolean retVal = false;
@@ -820,7 +820,7 @@ public class StateManager {
 		}
 		return retVal;
 	}
-	
+
 	private DuccId getDuccId(IDuccProcessMap processMap, IRemoteLocation remoteLocation) {
 		String methodName = "getDuccId";
 		DuccId duccId = null;
@@ -847,7 +847,7 @@ public class StateManager {
 		}
 		return duccId;
 	}
-	
+
 	private boolean deallocateFailedProcesses(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "deallocateFailedProcesses";
 		boolean retVal = false;
@@ -877,7 +877,7 @@ public class StateManager {
 		}
 		return retVal;
 	}
-	
+
 	private void stopJps(DuccWorkJob job) {
 		String methodName = "stopJps";
 		IDuccProcessMap processMap = job.getProcessMap();
@@ -894,7 +894,7 @@ public class StateManager {
 			}
 		}
 	}
-	
+
 	private boolean delayStopJd(DuccWorkJob job) {
 		String methodName = "delayStopJd";
 		boolean retVal = true;
@@ -915,7 +915,7 @@ public class StateManager {
 		}
 		return retVal;
 	}
-	
+
 	private void stopJd(DuccWorkJob job) {
 		String methodName = "stopJd";
 		if(!delayStopJd(job)) {
@@ -934,9 +934,9 @@ public class StateManager {
 			}
 		}
 	}
-	
+
 	private static AtomicBoolean refusedLogged = new AtomicBoolean(false);
-	
+
 	/**
 	 * RM reconciliation
 	 */
@@ -961,7 +961,7 @@ public class StateManager {
 					else {
 						logger.trace(methodName, duccId, messages.fetchLabel("pending additions")+mapSize);
 					}
-					
+
 				}
 				Map<DuccId, IResource> mapRemovals = rmResourceState.getPendingRemovals();
 				if(mapRemovals != null) {
@@ -1007,17 +1007,15 @@ public class StateManager {
 								duccWorkJob.setCompletionRationale(new Rationale("resource manager refused allocation: "+rmResourceState.getReason()));
 								changes += stateChange(duccWorkJob,JobState.Completed);
 								logger.warn(methodName, duccId, messages.fetchLabel("refused")+rmResourceState.getReason());
-								String userName = duccWorkJob.getStandardInfo().getUser();
-								String userLogDir = duccWorkJob.getUserLogsDir()+duccWorkJob.getDuccId().getFriendly()+File.separator;;
 								String text = rmResourceState.getReason();
-								UserLogging.record(userName, userLogDir, text);
+								UserLogging.record(duccWorkJob, text);
 							}
 							if(duccWorkJob.getProcessMap().size() > 0) {
 								changes += stateChange(duccWorkJob,JobState.Assigned);
 								logger.info(methodName, duccId, messages.fetchLabel("resources count")+duccWorkJob.getProcessMap().size());
 							}
 							break;
-						case Assigned:	
+						case Assigned:
 						case Initializing:
 						case Running:
 							if(duccWorkJob.getProcessMap().size() == 0) {
@@ -1121,10 +1119,8 @@ public class StateManager {
 								duccWorkService.setCompletionRationale(new Rationale("resource manager refused allocation: "+rmResourceState.getReason()));
 								changes += stateChange(duccWorkService,JobState.Completed);
 								logger.warn(methodName, duccId, messages.fetchLabel("refused")+rmResourceState.getReason());
-								String userName = duccWorkService.getStandardInfo().getUser();
-								String userLogDir = duccWorkService.getUserLogsDir()+duccWorkService.getDuccId().getFriendly()+File.separator;;
 								String text = rmResourceState.getReason();
-								UserLogging.record(userName, userLogDir, text);
+								UserLogging.record(duccWorkService, text);
 							}
 							if(duccWorkService.getProcessMap().size() > 0) {
 								changes += stateChange(duccWorkService,JobState.Initializing);
@@ -1136,13 +1132,11 @@ public class StateManager {
 								duccWorkService.setCompletionRationale(new Rationale("resource manager purged allocation: "+rmResourceState.getReason()));
 								changes += stateChange(duccWorkService,JobState.Completed);
 								logger.warn(methodName, duccId, messages.fetchLabel("purged")+rmResourceState.getReason());
-								String userName = duccWorkService.getStandardInfo().getUser();
-								String userLogDir = duccWorkService.getUserLogsDir()+duccWorkService.getDuccId().getFriendly()+File.separator;;
 								String text = rmResourceState.getReason();
-								UserLogging.record(userName, userLogDir, text);
+								UserLogging.record(duccWorkService, text);
 							}
 							break;
-						case Assigned:	
+						case Assigned:
 						case Initializing:
 						case Running:
 							if(duccWorkService.getProcessMap().size() == 0) {
@@ -1155,10 +1149,8 @@ public class StateManager {
 								duccWorkService.setCompletionRationale(new Rationale("resource manager purged allocation: "+rmResourceState.getReason()));
 								changes += stateChange(duccWorkService,JobState.Completed);
 								logger.warn(methodName, duccId, messages.fetchLabel("purged")+rmResourceState.getReason());
-								String userName = duccWorkService.getStandardInfo().getUser();
-								String userLogDir = duccWorkService.getUserLogsDir()+duccWorkService.getDuccId().getFriendly()+File.separator;;
 								String text = rmResourceState.getReason();
-								UserLogging.record(userName, userLogDir, text);
+								UserLogging.record(duccWorkService, text);
 							}
 							break;
 						case Completing:
@@ -1181,10 +1173,10 @@ public class StateManager {
 				OrchestratorCheckpoint.getInstance().saveState();
 			}
 		}
-		ts.ended();	
+		ts.ended();
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private int processPurger(DuccWorkJob job,Map<DuccId, IResource> map) {
 		String methodName = "processPurger";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -1213,7 +1205,7 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return changes;
 	}
-	
+
 	private int processMapResourcesAdd(DuccWorkJob duccWorkJob, int memoryGbPerProcess, Map<DuccId,IResource> resourceMap) {
 		String methodName = "processMapResourcesAdd";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -1261,7 +1253,7 @@ public class StateManager {
 						OrUtil.setResourceState(duccWorkJob, process, ResourceState.Deallocated);
 						process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
 						process.advanceProcessState(ProcessState.Stopped);
-						logger.warn(methodName, duccWorkJob.getDuccId(), 
+						logger.warn(methodName, duccWorkJob.getDuccId(),
 								messages.fetch("resource allocated for completed job")
 								+" "+
 								messages.fetchLabel("process")+duccId.getFriendly()
@@ -1273,7 +1265,7 @@ public class StateManager {
 							OrUtil.setResourceState(duccWorkJob, process, ResourceState.Deallocated);
 							process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
 							process.advanceProcessState(ProcessState.Stopped);
-							logger.warn(methodName, duccWorkJob.getDuccId(), 
+							logger.warn(methodName, duccWorkJob.getDuccId(),
 									messages.fetch("resource allocated for over capacity job")
 									+" "+
 									messages.fetchLabel("process")+duccId.getFriendly()
@@ -1294,7 +1286,7 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return changes;
 	}
-	
+
 	private int processMapResourcesDel(DuccWorkJob duccWorkJob, int memoryGbPerProcess, Map<DuccId,IResource> resourceMap) {
 		String methodName = "processMapResourcesDel";
 		logger.trace(methodName, duccWorkJob.getDuccId(), messages.fetch("enter"));
@@ -1380,7 +1372,7 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return changes;
 	}
-	
+
 	private int reservationMapResourcesDel(DuccWorkReservation duccWorkReservation,int memoryGbPerProcess,Map<DuccId,IResource> resourceMap) {
 		String methodName = "processMapResourcesDel";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -1405,7 +1397,7 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return changes;
 	}
-	
+
 	/**
 	 * SM reconciliation
 	 */
@@ -1424,7 +1416,7 @@ public class StateManager {
 		}
 		return retVal;
 	}
-	
+
 	public void reconcileState(ServiceMap serviceMap) {
 		String methodName = "reconcileState (SM)";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -1464,7 +1456,7 @@ public class StateManager {
                         case Stopping:
 							stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
 							duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
-							String sdm = getServiceDependencyMessages(services);  
+							String sdm = getServiceDependencyMessages(services);
 							IRationale rationale = new Rationale();
 							if(sdm != null) {
 								rationale = new Rationale("service manager reported "+sdm);
@@ -1504,7 +1496,7 @@ public class StateManager {
 				OrchestratorCheckpoint.getInstance().saveState();
 			}
 		}
-		ts.ended();	
+		ts.ended();
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 
@@ -1596,7 +1588,7 @@ public class StateManager {
 		advanceToCompleted(job);
 		// </UIMA-3923>
 	}
-	
+
 	private void inventoryService(IDuccWork duccWork, IDuccProcess inventoryProcess) {
 		//String methodName = "inventoryService";
 		DuccWorkJob service = (DuccWorkJob) duccWork;
@@ -1634,7 +1626,7 @@ public class StateManager {
 		advanceToCompleted(service);
 		// </UIMA-3923>
 	}
-	
+
 	/**
 	 * Node Inventory reconciliation
 	 */
@@ -1709,7 +1701,7 @@ public class StateManager {
 		ts.ended();
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+
 	private void advanceToCompleted(DuccWorkJob job) {
 		switch(job.getJobState()) {
 		case Completing:
@@ -1721,7 +1713,7 @@ public class StateManager {
 			break;
 		}
 	}
-	
+
 	private void advanceToCompleting(DuccWorkJob job) {
 		switch(job.getJobState()) {
 		case Completing:
@@ -1733,7 +1725,7 @@ public class StateManager {
 			}
 		}
 	}
-	
+
 	private void completeManagedReservation(DuccWorkJob service, IRationale rationale) {
 		String location = "completeManagedReservation";
 		DuccId jobid = null;
@@ -1781,7 +1773,7 @@ public class StateManager {
 			completeJob(service, rationale);
 		}
 	}
-	
+
 	private void completeService(DuccWorkJob service, IRationale rationale) {
 		String location = "completeService";
 		DuccId jobid = service.getDuccId();
@@ -1799,7 +1791,7 @@ public class StateManager {
 		}
 		advanceToCompleting(service);
 	}
-	
+
 	private void completeJob(DuccWorkJob job, IRationale rationale) {
 		String location = "completeJob";
 		DuccId jobid = null;
@@ -1831,7 +1823,7 @@ public class StateManager {
 		}
 		advanceToCompleting(job);
 	}
-	
+
 	public void jobTerminate(IDuccWorkJob job, JobCompletionType jobCompletionType, IRationale rationale, ProcessDeallocationType processDeallocationType) {
 		if(!job.isFinished()) {
 			stateJobAccounting.stateChange(job, JobState.Completing);
@@ -1839,5 +1831,5 @@ public class StateManager {
 			OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(job,processDeallocationType);
 		}
 	}
-	
+
 }

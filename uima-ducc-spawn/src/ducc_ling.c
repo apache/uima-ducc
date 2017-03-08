@@ -6,9 +6,9 @@
 // to you under the Apache License, Version 2.0 (the
 // "License"); you may not use this file except in compliance
 // with the License.  You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing,
 // software distributed under the License is distributed on an
 // "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -101,8 +101,8 @@ struct limit_set
     int resource;
 };
 
-struct limit_set limits[] = { 
-    { "DUCC_RLIMIT_CORE"   , RLIMIT_CORE},  
+struct limit_set limits[] = {
+    { "DUCC_RLIMIT_CORE"   , RLIMIT_CORE},
     { "DUCC_RLIMIT_CPU"    , RLIMIT_CPU},
     { "DUCC_RLIMIT_DATA"   , RLIMIT_DATA},
     { "DUCC_RLIMIT_FSIZE"  , RLIMIT_FSIZE},
@@ -118,7 +118,7 @@ struct limit_set limits[] = {
     { "DUCC_RLIMIT_MSGQUEUE"  , RLIMIT_MSGQUEUE},
     { "DUCC_RLIMIT_NICE"      , RLIMIT_NICE},
     { "DUCC_RLIMIT_STACK"     , RLIMIT_STACK},
-    { "DUCC_RLIMIT_RTPRIO"    , RLIMIT_RTPRIO},        
+    { "DUCC_RLIMIT_RTPRIO"    , RLIMIT_RTPRIO},
 #endif
 };
 u_long limits_len = sizeof(limits) / sizeof (struct limit_set);
@@ -169,8 +169,8 @@ int mksubdir(char *path)
 
     // if it exists and is a dir just return
     if ( stat(path, &statbuf) == 0 ) {
-        log_stdout("2210 Directory %s already exists.\n", path);
-        if ( ! ( statbuf.st_mode & S_IFDIR) ) { 
+        //log_stdout("2210 Directory %s already exists.\n", path);
+        if ( ! ( statbuf.st_mode & S_IFDIR) ) {
             log_stderr("2200 Log base %s is not a directory\n", path);
             return 0;
         }
@@ -183,12 +183,12 @@ int mksubdir(char *path)
         if ( errno == EEXIST ) {
             // Terribly, terribly ugly.  Parts of the directory might be made already in the
             // CLI.  It is observed that if NFS is slow, or system dates are a bit off, when this
-            // this code starts to run, the existance check above may fail, but the attempt to 
+            // this code starts to run, the existance check above may fail, but the attempt to
             // make the directory will now fail with "already exists".  So we simply repeat the
             // stat to make sure it's a directory and not a regular file.
             if ( stat(path, &statbuf) == 0 ) {
-                log_stdout("2210 Directory %s already exists.\n", path);
-                if ( ! ( statbuf.st_mode & S_IFDIR) ) { 
+                //log_stdout("2210 Directory %s already exists.\n", path);
+                if ( ! ( statbuf.st_mode & S_IFDIR) ) {
                     log_stderr("2200 Log base %s is not a directory\n", path);
                     return 0;
                 }
@@ -248,7 +248,7 @@ char * mklogfile(const char *filepath)
     int i,j = 0;
     char *tmp;
     char *fullpath = strdup(filepath);
-    
+
     int len = strlen(fullpath);
     int nelems = 0;
     for ( i = 0; i < len; i++ ) {
@@ -257,10 +257,10 @@ char * mklogfile(const char *filepath)
     char *path_components[nelems+1];  // and one for luck since its free :)
 
     i = 0;
-    printf("Dir: %s\n", fullpath);
+    log_stdout("2210 Directory %s\n", fullpath);
     for ( next_tok = strtok(fullpath, "/"); next_tok; next_tok = strtok(NULL, "/") ) {
-        printf("Component %d: %s\n", i, next_tok);
-        path_components[i++] = next_tok;        
+        //printf("Component %d: %s\n", i, next_tok);
+        path_components[i++] = next_tok;
     }
 
     buf[0] = '\0';                    // make it into a "" string
@@ -268,7 +268,7 @@ char * mklogfile(const char *filepath)
         concat(buf, "/");
     }
     for ( j = 0; j < i-1; j++ ) {
-        concat(buf, path_components[j]);        
+        concat(buf, path_components[j]);
         if ( ! mksubdir(buf) ) {
             return NULL;
         }
@@ -296,7 +296,7 @@ void query_limits()
     for ( i = 0; i < limits_len; i++ ) {
         getrlimit(limits[i].resource, &limstruct);
         char *name = limits[i].name+12;
-        log_stdout("4050 Limits: %10s soft[%lld] hard[%lld]\n", name, limstruct.rlim_cur, limstruct.rlim_max);            
+        log_stdout("4050 Limits: %10s soft[%lld] hard[%lld]\n", name, limstruct.rlim_cur, limstruct.rlim_max);
     }
 }
 
@@ -305,7 +305,7 @@ void set_one_limit(char *name, int resource, rlim_t val)
     struct rlimit limstruct;
     char * lim_name = &name[5];
     log_stdout("4010 Setting %s to %lld\n", lim_name, val);   // ( bypass DUCC_ in the name. i heart c. )
-    
+
     getrlimit(resource, &limstruct);
     log_stdout("4020 Before: %s soft[%lld] hard[%lld]\n", lim_name, limstruct.rlim_cur, limstruct.rlim_max);
 
@@ -320,11 +320,11 @@ void set_one_limit(char *name, int resource, rlim_t val)
         perror(buf);
         return;
     }
-    
+
     getrlimit(resource, &limstruct);
-    log_stdout("4040 After: %s soft[%lld] hard[%lld]\n", lim_name, limstruct.rlim_cur, limstruct.rlim_max);    
+    log_stdout("4040 After: %s soft[%lld] hard[%lld]\n", lim_name, limstruct.rlim_cur, limstruct.rlim_max);
 }
- 
+
 void set_limits()
 {
     int i;
@@ -333,13 +333,13 @@ void set_limits()
          char *climit = getenv(limits[i].name);
          if ( climit != NULL ) {
              char *en = 0;
-             rlim_t lim = strtoll(climit, &en, 10);             
+             rlim_t lim = strtoll(climit, &en, 10);
              if (*en) {
                  log_stderr("4000 %s is not numeric; core limit note set: %s\n", limits[i].name, climit);
                  return;
              }
              set_one_limit(limits[i].name, limits[i].resource, lim);
-         } 
+         }
      }
 }
 
@@ -359,7 +359,7 @@ void renice()
     log_stdout("4050 Nice: Using %d\n", niceval);
     int rc = nice(niceval);
     if ( rc < 0 ) {
-       perror("4060 Can't set nice.");     
+       perror("4060 Can't set nice.");
     }
 }
 #else
@@ -396,10 +396,10 @@ void redirect_to_file(char *filepath)
     }
 
     if ( logfile == NULL ) exit(1);                 // mklogdir creates sufficient erro rmessages
-        
+
     //snprintf(buf, STRLEN, "%s/%s-%d.log", logdir, log, getpid());
     //buf[STRLEN] = '\0';
-        
+
     log_stdout("1200 Redirecting stdout and stderr to %s as uid %d euid %d\n", logfile, getuid(), geteuid());
 
     fflush(stdout);
@@ -469,13 +469,13 @@ void redirect_to_socket(char *sockloc)
     // use the IP.
     //
     struct in_addr ip;
-    //struct hostent *hp;    
+    //struct hostent *hp;
     if (!inet_aton(hostname, &ip)) {
         log_stderr("1703 Can't parse IP address %s\n", hostname);
         exit(1);
     }
     log_stdout("1704 addr: %x\n", ip.s_addr);
-    
+
     struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
@@ -596,7 +596,7 @@ void show_ids(char *userid)
  *                          specified dir as workingdir before execing to
  *                          the indicated process.
  *       -a               - "append" option - if specified, the args are appended
- *                          to the **exact** file path specified in -f.  This 
+ *                          to the **exact** file path specified in -f.  This
  *                          provides an efficient way for DUCC to update some logs
  *                          in use space.
  *       -q               - inhibit all informational messages (but not error messages)
@@ -640,10 +640,10 @@ int main(int argc, char **argv, char **envp)
             break;
         case 'v':
             version();
-            exit(0);  
+            exit(0);
             break;
         case 'q':
-            quiet = 1; 
+            quiet = 1;
             break;
         case 'h':
         case '?':
@@ -662,7 +662,7 @@ int main(int argc, char **argv, char **envp)
     if ( userid == NULL ) {
         log_stderr("200 missing userid\n");
         exit(1);
-    } 
+    }
 
 
     if ( getenv("DUCC_CONSOLE_LISTENER") != NULL ) {
@@ -672,10 +672,10 @@ int main(int argc, char **argv, char **envp)
         log_stdout("301 Redirecting console into file %s.\n", filepath);
         redirect = 1;
     }
-        
+
     // do this here before redirection stdout / stderr
     log_stdout("0 %d\n", getpid());                                         // code 0 means we passed tests and are about to dup I/O
-    
+
     //	fetch "ducc" user passwd structure
     pwd = getpwnam("ducc");
 
@@ -700,7 +700,7 @@ int main(int argc, char **argv, char **envp)
     } else {
         switch_ids = 1;
     }
-    
+
     //
     //	fetch given user's passwd structure and try switch identities.
     //
@@ -711,7 +711,7 @@ int main(int argc, char **argv, char **envp)
             log_stderr("820 User \"%s\" does not exist.\n", userid);
             exit(1);
         }
-        
+
         //	dont allow to change uid to root.
         if ( pwd->pw_uid == 0 ) {
             log_stderr("900 setuid to root not allowed. Exiting.\n");
@@ -751,18 +751,18 @@ int main(int argc, char **argv, char **envp)
 
     show_ids(userid);
 
+    set_umask();   // Set umask befor creating logfiles
     if ( redirect && ( filepath != NULL) ) {
         logfile = mklogfile(filepath);
     } else {
         log_stdout("300 Bypassing redirect of log.\n");
-    } 
+    }
 
     if ( append ) {
         return do_append(filepath, argc, argv);
     }
 
     set_limits();         // AFTER the switch, set soft and limits if needed
-    set_umask();         
 
     query_limits();       // Once, for the agent
     renice();
@@ -806,8 +806,8 @@ int main(int argc, char **argv, char **envp)
         }
         log_stdout("1120 Changed to working directory %s\n", workingdir);
     }
-    
-    // 
+
+    //
     // Translate DUCC_LD_LIBRARY_PATH into LD_LIBRARY_PATH, if it exists.
     //
 

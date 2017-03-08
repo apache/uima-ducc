@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -45,24 +45,24 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 public class JobProcessCollection {
-	
+
 	public static final String job_processes_data_json_gz = "job-processes-data.json.gz";
 	public static final String encoding = "UTF-8";
-	
+
 	private String directory = null;
 	private String fileName = null;
-	
+
 	private Gson gson = new Gson();
-	
+
 	public JobProcessCollection(IDuccWorkJob job) {
-		String fileDirectory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+		String fileDirectory = job.getUserLogDir();
 		initialize(fileDirectory);
 	}
-	
+
 	public JobProcessCollection(String fileDirectory) {
 		initialize(fileDirectory);
 	}
-	
+
 	private static long getId(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -72,17 +72,11 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static String getLogDirectory(IDuccWorkJob job, IDuccProcess process) {
-		String retVal = null;
-		try {
-			retVal = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-		}
-		catch(Exception e) {
-		}
-		return retVal;
+		return job.getUserLogDir();
 	}
-	
+
 	private static ArrayList<FileInfo> getLogFileList(IDuccWorkJob job, IDuccProcess process) {
 		ArrayList<FileInfo> retVal = new ArrayList<FileInfo>();
 		try {
@@ -93,7 +87,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static String getHostName(IDuccWorkJob job, IDuccProcess process) {
 		String retVal = null;
 		try {
@@ -103,7 +97,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getHostPid(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -113,7 +107,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static String getSchedulerState(IDuccWorkJob job, IDuccProcess process) {
 		String retVal = null;
 		try {
@@ -123,7 +117,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static String getSchedulerReason(IDuccWorkJob job, IDuccProcess process) {
 		String retVal = null;
 		try {
@@ -133,7 +127,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static String getAgentState(IDuccWorkJob job, IDuccProcess process) {
 		String retVal = null;
 		try {
@@ -143,7 +137,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static String getAgentReason(IDuccWorkJob job, IDuccProcess process) {
 		String retVal = null;
 		try {
@@ -153,7 +147,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getTimeInitStart(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -163,7 +157,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getTimeInitEnd(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -173,7 +167,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getTimeRunStart(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -183,7 +177,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getTimeRunEnd(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -193,7 +187,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getTimeGC(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -203,7 +197,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getPgIn(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -213,7 +207,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getSwap(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -223,7 +217,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getSwapMax(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -233,7 +227,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getRss(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -243,7 +237,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getRssMax(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -253,7 +247,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-		
+
 	private static long getWiTimeAvg(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -264,7 +258,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getWiTimeMax(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -275,7 +269,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getWiTimeMin(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -286,7 +280,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getWiDone(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -297,7 +291,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getWiError(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -308,7 +302,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getWiRetry(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -319,7 +313,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static long getWiPreempt(IDuccWorkJob job, IDuccProcess process) {
 		long retVal = 0;
 		try {
@@ -330,7 +324,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private static String getJConsole(IDuccWorkJob job, IDuccProcess process) {
 		String retVal = null;
 		try {
@@ -340,7 +334,7 @@ public class JobProcessCollection {
 		}
 		return retVal;
 	}
-	
+
 	private void transform(ConcurrentSkipListMap<Long, JobProcessData> map, IDuccWorkJob job, IDuccProcessMap processMap) {
 		if(job != null) {
 			if(processMap != null) {
@@ -381,7 +375,7 @@ public class JobProcessCollection {
 			}
 		}
 	}
-	
+
 	public ConcurrentSkipListMap<Long, JobProcessData> transform(IDuccWorkJob job) {
 		ConcurrentSkipListMap<Long, JobProcessData> map = new ConcurrentSkipListMap<Long, JobProcessData>();
 		if(job != null) {
@@ -395,7 +389,7 @@ public class JobProcessCollection {
 		}
 		return map;
 	}
-	
+
 	public void initialize(String fileDirectory) {
 		if(fileDirectory == null) {
 			throw new NullPointerException();
@@ -403,7 +397,7 @@ public class JobProcessCollection {
 		directory = fileDirectory;
 		fileName = IOHelper.marryDir2File(directory,job_processes_data_json_gz);
 	}
-	
+
 	public String getDirectory() {
 		return directory;
 	}
@@ -411,7 +405,7 @@ public class JobProcessCollection {
 	public String getQualifiedFileName() {
 		return fileName;
 	}
-	
+
 	public void exportData(ConcurrentSkipListMap<Long, JobProcessData> map) throws IOException {
 		if(map == null) {
 			throw new NullPointerException();
@@ -430,13 +424,13 @@ public class JobProcessCollection {
 	        writer = new BufferedWriter(osr);
 	        writer.write(json);
 		}
-		finally {           
+		finally {
 	        if(writer != null) {
 	        	writer.close();
 	        }
 	    }
 	}
-	
+
 	private int getSize() throws IOException {
 		int size = 0;
 		BufferedReader reader = null;
@@ -456,14 +450,14 @@ public class JobProcessCollection {
 		        size++;
 			}
 		}
-		finally {           
+		finally {
 	        if(reader != null) {
 	        	reader.close();
 	        }
 	    }
 		return size-1;
 	}
-	
+
 	public ConcurrentSkipListMap<Long, JobProcessData> importData() throws IOException {
 		ConcurrentSkipListMap<Long, JobProcessData> map = new ConcurrentSkipListMap<Long, JobProcessData>();
 		BufferedReader reader = null;
@@ -486,7 +480,7 @@ public class JobProcessCollection {
 		catch(Exception e) {
 			e.printStackTrace();
 		}
-		finally {           
+		finally {
 	        if(reader != null) {
 	        	reader.close();
 	        }

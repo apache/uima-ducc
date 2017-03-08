@@ -100,7 +100,7 @@ public class DuccUiUtilities {
      * If an explicit DUCC_UMASK not provided include it with the current umask value so
      * files created by this request inherit the current permissions.
      * Get the current value by creating a temporary directory in the log directory
-     * and noting what permissions it doesn't have.
+     * and noting what permissions it doesn't have.  UIMA-5328
      */
     if (!envMap.containsKey("DUCC_UMASK")) {
       File f = new File(logDirectory);
@@ -115,7 +115,7 @@ public class DuccUiUtilities {
         for (PosixFilePermission perm : perms) {
           umask -= bitVals[perm.ordinal()];
         }
-        envMap.put("DUCC_UMASK", String.valueOf(umask));
+        envMap.put("DUCC_UMASK", String.format("%03d", umask));
       } catch (IOException e) {
         e.printStackTrace();
         throw new IllegalArgumentException("fixupEnvironment: failed to create temporary directory in log_directory - " + e);

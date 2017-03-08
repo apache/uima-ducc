@@ -64,11 +64,13 @@ public class FileServiceRegistry implements ServiceRegistry {
 			try (BufferedReader reader = new BufferedReader(new FileReader(instanceFile))) {
 				prevId = reader.readLine();
 			} catch (IOException e) {
+			    System.err.println("ERROR: Failed to read instanceId when updating registry file: " + instanceFile.getAbsolutePath() + " - " + e);
 			}
 		}
 		try (PrintWriter writer = new PrintWriter(instanceFile)) {
 			writer.println(instanceId);
 		} catch (FileNotFoundException e) {
+		    System.err.println("ERROR: Failed to create registry file: " + instanceFile.getAbsolutePath() + " - " + e);
 		}
 
 		return prevId;
@@ -99,6 +101,7 @@ public class FileServiceRegistry implements ServiceRegistry {
             try (BufferedReader reader = new BufferedReader(new FileReader(instanceFile))) {
                 instanceId = reader.readLine();
             } catch (IOException e) {
+                System.err.println("ERROR: Failed to read instanceId from registry file: " + instanceFile.getAbsolutePath() + " - " + e);
             } finally {
                 instanceFile.delete();
             }

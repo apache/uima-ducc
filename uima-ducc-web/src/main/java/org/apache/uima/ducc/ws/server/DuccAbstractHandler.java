@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -66,77 +66,77 @@ import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public abstract class DuccAbstractHandler extends AbstractHandler {
-	
+
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccAbstractHandler.class.getName());
 	private static Messages messages = Messages.getInstance();
-	
+
 	private DuccId jobid = null;
-	
+
 	public static DuccWebAdministrators duccWebAdministrators = DuccWebAdministrators.getInstance();
 	public static DuccWebSessionManager duccWebSessionManager = DuccWebSessionManager.getInstance();
 
 	public final String notAvailable = "N/A";
 	public final String inc = "INC";
-	
+
 	public final String duccUimaInitializationReport		  = "uima-initialization-report.html";
-	
+
 	public final String duccContext = "/ducc-servlet";
-	
+
 	public final String duccLogData			  = duccContext+"/log-data";
 	public final String duccFilePager 		  = "/file.pager.html";
-	
+
 	public final String duccJpInitSummary	  = duccContext+"/uima-initialization-report-summary";
 	public final String duccJpInitData		  = duccContext+"/uima-initialization-report-data";
-	
+
 	public final String duccContextJsonFormat = duccContext+"/json-format";
 	public final String duccContextUser       = duccContext+"/user";
 	public final String duccContextClassic    = duccContext+"/classic";
 	public final String duccContextProxy      = duccContext+"/proxy";
 	public final String duccContextViz        = duccContext+"/viz";
-	
+
 	public final String duccjConsoleLink	  = duccContext+"/jconsole-link.jnlp";
-	
+
 	public final int maximumRecordsJobs = 4096;
 	public final int defaultRecordsJobs = 16;
 	public final int maximumRecordsReservations = 4096;
 	public final int defaultRecordsReservations = 8;
 	public final int maximumRecordsServices = 4096;
 	public final int defaultRecordsServices = 12;
-	
+
 	public String dir_home = Utils.findDuccHome();
 	public String dir_resources = "resources";
 
 	protected boolean terminateEnabled = true;
 	protected boolean buttonsEnabled = true;
-	
+
 	public static final String valueStateTypeAll = "all";
 	public static final String valueStateTypeActive = "active";
 	public static final String valueStateTypeInactive = "inactive";
 	public static final String valueStateTypeDefault = valueStateTypeAll;
-	
+
 	protected String root_dir = null;
 	protected String jconsole_wrapper_signed_jar = null;
 
 	protected DuccWebServer duccWebServer = null;
-	
+
 	public void init(DuccWebServer duccWebServer) {
 		this.duccWebServer = duccWebServer;
 		root_dir = duccWebServer.getRootDir();
 		jconsole_wrapper_signed_jar = root_dir+File.separator+"lib"+File.separator+"webstart"+File.separator+"jconsole-wrapper-signed.jar";
 	}
-	
+
 	public DuccWebServer getDuccWebServer() {
 		return duccWebServer;
 	}
-	
+
 	public enum RequestStateType {
 		Active,
 		Inactive,
 		All
 	}
-	
+
 	public static final RequestStateType requestStateTypeDefault = RequestStateType.All;
-	
+
 	public boolean isIgnorable(Throwable t) {
 		boolean retVal = false;
 		try {
@@ -149,15 +149,15 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	public String quote(String string) {
 		return "\""+string+"\"";
 	}
-	
+
 	public String normalize(DuccId duccId) {
 		return duccId.getFriendly()+"";
 	}
-	
+
 	public String stringNormalize(String value,String defaultValue) {
 		String methodName = "stringNormalize";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
@@ -171,7 +171,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 		return retVal;
 	}
-	
+
 	public String getShortDescription(String description) {
 		String retVal = null;
 		if(description != null) {
@@ -182,9 +182,9 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	private DateFormat format = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss E", Locale.ENGLISH);
-	
+
 	public String getTimeStamp(DateStyle dateStyle, long tod) {
 		String methodName = "";
 		Date date = new Date(tod);
@@ -194,7 +194,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		duccLogger.trace(methodName, null, "ts="+retVal);
 		return retVal;
 	}
-	
+
 	public String getTimeStamp(DateStyle dateStyle, String date) {
 		String location = "getTimeStamp";
 		StringBuffer sb = new StringBuffer();
@@ -224,22 +224,22 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	public String getWebServerHostIP() {
 		Properties properties = DuccDaemonRuntimeProperties.getInstance().get(DuccDaemonRuntimeProperties.DaemonName.Webserver);
 		String retVal = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
 		return retVal;
 	}
-	
+
 	public String getWebServerHostName() {
 		Properties properties = DuccDaemonRuntimeProperties.getInstance().get(DuccDaemonRuntimeProperties.DaemonName.Webserver);
 		String retVal = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeName,"");
 		return retVal;
 	}
-	
+
 	public String useWS(String wsValue, String sofa) {
 		String retVal = sofa;
-		if(wsValue != null) { 
+		if(wsValue != null) {
 			if(sofa != null) {
 				if(wsValue.startsWith(sofa)) {
 					retVal = wsValue;
@@ -248,10 +248,10 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	public String useWS(String v0, String v1, String v2) {
 		String retVal = "";
-		if(v0 != null) { 
+		if(v0 != null) {
 			if(v1 != null) {
 				if(v0.equals(v1)) {
 					retVal = v2;
@@ -260,7 +260,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	public String getDuration(DuccId jobId, String millisV2, String millisV1, Precision precision) {
 		String methodName = "getDuration";
 		String retVal = "";
@@ -281,11 +281,11 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	public String getTimeStamp(HttpServletRequest request, DuccId jobId, String millis) {
 		return getTimeStamp(DuccCookies.getDateStyle(request),getTimeStamp(jobId, millis));
 	}
-	
+
 	private String getTimeStamp(DuccId jobId, String millis) {
 		String methodName = "getTimeStamp";
 		String retVal = "";
@@ -297,7 +297,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	protected boolean isAuthenticated(HttpServletRequest request, HttpServletResponse response) {
 		String methodName = "isAuthenticated";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
@@ -311,7 +311,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 		return authenticated;
 	}
-	
+
 	protected boolean isAdministrator(HttpServletRequest request, HttpServletResponse response) {
 		String methodName = "isAdministrator";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
@@ -332,11 +332,11 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 		return administrator;
 	}
-	
+
 	public boolean isIncludeUser(List<String> users, String user) {
 		boolean retVal = true;
 		if(users != null) {
-			if(user != null) { 
+			if(user != null) {
 				if(!users.isEmpty()) {
 					if(!users.contains(user)) {
 						retVal = false;
@@ -346,7 +346,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	private ArrayList<String> getUsers(String usersString) {
 		ArrayList<String> userRecords = new ArrayList<String>();
 		try {
@@ -366,22 +366,22 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return userRecords;
 	}
-	
+
 	public ArrayList<String> getJobsUsers(HttpServletRequest request) {
 		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieJobsUsers);
 		return getUsers(cookie);
 	}
-	
+
 	public ArrayList<String> getReservationsUsers(HttpServletRequest request) {
 		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieReservationsUsers);
 		return getUsers(cookie);
 	}
-	
+
 	public ArrayList<String> getServicesUsers(HttpServletRequest request) {
 		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieServicesUsers);
 		return getUsers(cookie);
 	}
-	
+
 	public String getProcessMemorySize(DuccId id, SizeBytes size) {
 		String methodName = "getProcessMemorySize";
 		String retVal = "?";
@@ -395,7 +395,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	/*
 	public String getProcessMemorySize(DuccId id, String type, String size, MemoryUnits units) {
 		String methodName = "getProcessMemorySize";
@@ -423,10 +423,10 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		catch(Exception e) {
 			duccLogger.trace(methodName, id, messages.fetchLabel("type")+type+" "+messages.fetchLabel("size")+size, e);
 		}
-		return retVal;	
+		return retVal;
 	}
 	*/
-	
+
 	public RequestStateType getStateTypeParameter(HttpServletRequest request) {
 		RequestStateType requestStateType = requestStateTypeDefault;
 		try {
@@ -448,7 +448,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return requestStateType;
 	}
-	
+
 	public int getReservationsMaxRecordsParameter(HttpServletRequest request) {
 		int maxRecords = defaultRecordsReservations;
 		try {
@@ -464,7 +464,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return maxRecords;
 	}
-	
+
 	public String getPropertiesValue(Properties properties, String key, String defaultValue) {
 		String retVal = defaultValue;
 		if(properties != null) {
@@ -475,7 +475,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	public int getJobsMax(HttpServletRequest request) {
 		int maxRecords = defaultRecordsJobs;
 		try {
@@ -523,7 +523,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return maxRecords;
 	}
-	
+
 	public String getValue(Properties properties, String key, String defaultValue) {
 		String retVal = defaultValue;
 		if(properties != null) {
@@ -533,7 +533,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal.trim();
 	}
-	
+
 	public String getDeployments(ServicesRegistry servicesRegistry, Properties propertiesMeta) {
 		String deployments = "0";
 		if(propertiesMeta != null) {
@@ -545,7 +545,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return deployments;
 	}
-	
+
 	public ArrayList<String> getSwappingMachines(IDuccWorkJob job) {
 		ArrayList<String> retVal = new ArrayList<String>();
 		DuccMachinesData.getInstance();
@@ -606,7 +606,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	public String getDuration(HttpServletRequest request, IDuccWork dw, Precision precision) {
 		String methodName = "getDuration";
 		String retVal = "";
@@ -624,7 +624,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	public String getDuration(HttpServletRequest request, IDuccWork dw, long now, Precision precision) {
 		String methodName = "getDuration";
 		String retVal = "";
@@ -642,7 +642,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	public String getProjection(HttpServletRequest request, IDuccWorkJob job, Precision precision) {
 		String methodName = "getProjection";
 		String retVal = "";
@@ -697,7 +697,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-		
+
 	public double getAvgMillisPerWorkItem(HttpServletRequest request, IDuccWorkJob job) {
 		double avgMillis = 0;
 		IDuccSchedulingInfo schedulingInfo = job.getSchedulingInfo();
@@ -707,7 +707,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return avgMillis;
 	}
-	
+
 	public String decorateDuration(HttpServletRequest request, IDuccWorkJob job, String duration, Precision precision) {
 		String location = "decorateDuration";
 		String retVal = duration;
@@ -745,7 +745,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	public String decorateDuration(HttpServletRequest request, IDuccWorkReservation reservation, String duration) {
 		String retVal = duration;
 		String cVal = getCompletion(request,reservation);
@@ -757,12 +757,12 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-	
+
 	public String getDisabledWithHover(HttpServletRequest request, IDuccWork duccWork) {
 		String resourceOwnerUserId = duccWork.getStandardInfo().getUser();
 		return getDisabledWithHover(request, resourceOwnerUserId);
 	}
-	
+
 	public String getDisabledWithHover(HttpServletRequest request, String resourceOwnerUserId) {
 		String disabled = "disabled=\"disabled\"";
 		String hover = "";
@@ -788,7 +788,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return disabled+hover;
 	}
-	
+
 	public String buildjConsoleLink(String service) {
 		String location = "buildjConsoleLink";
 		String retVal = service;
@@ -801,11 +801,11 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		duccLogger.trace(location, null, retVal);
 		return retVal;
 	}
-	
+
 	public String buildErrorLink(IDuccWorkJob job) {
 		return(buildErrorLink(job,null));
 	}
-	
+
 	public String buildErrorLink(IDuccWorkJob job, String name) {
 		String retVal = job.getSchedulingInfo().getWorkItemsError();
 		if(!retVal.equals("0")) {
@@ -813,14 +813,14 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			if(name == null) {
 				name = errorCount;
 			}
-			String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+			String logsjobdir = job.getUserLogDir();
 			String logfile = "jd.err.log";
 			String href = "<a href=\""+duccFilePager+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+name+"</a>";
 			retVal = href;
 		}
 		return retVal;
 	}
-	
+
 	public String buildInitializeFailuresLink(IDuccWorkJob job) {
 		StringBuffer sb = new StringBuffer();
 		IDuccProcessMap processMap = job.getProcessMap();
@@ -854,7 +854,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		String retVal = sb.toString();
 		return retVal;
 	}
-	
+
 	public String trGet(int counter) {
 		if((counter % 2) > 0) {
 			return "<tr class=\"ducc-row-odd\">";
@@ -863,7 +863,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			return "<tr class=\"ducc-row-even\">";
 		}
 	}
-	
+
 	public String evaluateServices(IDuccWorkJob job, ServicesRegistry servicesRegistry) {
 		StringBuffer sb = new StringBuffer();
 		String[] serviceDependencies = job.getServiceDependencies();
@@ -917,11 +917,11 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	/*
 	 * Format the value of a possibly long string that may contain a classpath
 	 * Put space-delimited tokens and the elements of a classpath on separate lines,
-	 */ 
+	 */
     public String formatValue(String value, boolean formatCp) {
         String[] tokens = value.split(" +");
         StringBuffer sb = new StringBuffer();
@@ -945,7 +945,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	protected String getMonitor(DuccId duccId, MonitorType monitorType) {
 		return getMonitor(duccId, monitorType, false);
 	}
-	
+
 	protected String getMonitor(DuccId duccId, MonitorType monitorType, boolean multi) {
 		StringBuffer sb = new StringBuffer();
 		DuccWebMonitor duccWebMonitor = DuccWebMonitor.getInstance();
@@ -983,7 +983,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 					}
 				}
 				catch(Exception e) {
-					
+
 				}
 			}
 			if(expiry > expiryWarnTime) {
@@ -1003,7 +1003,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return sb.toString();
 	}
-	
+
 	protected StringBuffer getReason(IDuccWorkJob job, MonitorType monitorType) {
 		StringBuffer sb = new StringBuffer();
 		try {
@@ -1077,7 +1077,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return sb;
 	}
-	
+
 	protected NodeConfiguration getNodeConfiguration() {
 		String methodName = "getNodeConfiguration";
 		NodeConfiguration nc = null;
@@ -1093,7 +1093,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return nc;
 	}
-	
+
 	protected int getQuantum(NodeConfiguration nc, String class_name) {
 		String methodName = "getQuantum";
 		int quantum = SystemPropertyResolver.getIntProperty("ducc.rm.share.quantum", 0);
@@ -1105,5 +1105,5 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return quantum;
 	}
-	
+
 }

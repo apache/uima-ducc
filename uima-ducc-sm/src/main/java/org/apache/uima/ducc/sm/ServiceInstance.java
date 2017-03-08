@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -31,10 +32,11 @@ import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 
 /**
-* Represent a single instance.  
+* Represent a single instance.
 *
 * This is a simple class, mostly just a container for the state machine.
 */
@@ -42,7 +44,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 class ServiceInstance
 	implements SmConstants
 {
-	private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), COMPONENT_NAME);	
+	private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), COMPONENT_NAME);
 
     long   numeric_id;                             // unique numeric ducc-assigned id
     long   share_id;                               // RM's share ID for this instance
@@ -146,7 +148,7 @@ class ServiceInstance
             case Completed:
                 return false;
             default:
-                return !isStopped();                
+                return !isStopped();
         }
     }
 
@@ -208,9 +210,9 @@ class ServiceInstance
 
         // Simple use of ducc_ling, just submit as the user.  The specification will have the working directory
         // and classpath needed for the service, handled by the Orchestrator and Job Driver.
-        String[] args = genArgs(svc_props);    
-        
-        for ( int i = 0; i < args.length; i++ ) { 
+        String[] args = genArgs(svc_props);
+
+        for ( int i = 0; i < args.length; i++ ) {
             if ( i > 0 && (args[i-1].equals("-cp") ) ) {
                 // The classpaths can be just awful filling the logs with junk.  It will end up in the agent log
                 // anyway so let's inhibit it here.
@@ -223,10 +225,24 @@ class ServiceInstance
         ProcessBuilder pb = new ProcessBuilder(args);
         StdioListener sin_listener = null;
         StdioListener ser_listener = null;
-    
+
         Map<String, String> env = pb.environment();
         env.put(IDuccUser.EnvironmentVariable.DUCC_HOME.value(), System.getProperty(IDuccUser.EnvironmentVariable.DUCC_HOME.value()));
         env.put(IDuccUser.EnvironmentVariable.DUCC_ID_SERVICE.value(), Integer.toString(instance_id));  // UIMA-4258
+
+        // Extract the DUCC_UMASK setting and put it ducc_ling's environment UIMA-5328
+        // Could use QuotedOprtions to build a map but since we want just one ...
+        //        ArrayList<String> envVarList = QuotedOptions.tokenizeList(environment, true);
+        final String umaskKey = "DUCC_UMASK";
+        String envValue = svc_props.getProperty(IStateServices.SvcRegProps.environment.pname());
+        if (envValue != null) {
+            List<String> envList = Arrays.asList(envValue.split("\\s+"));   // No need to strip quotes ... !?
+            Map<String, String> envMap = QuotedOptions.parseAssignments(envList, 0);
+            String umask = envMap.get(umaskKey);
+            if (umask != null) {
+                env.put(umaskKey, umask);
+            }
+        }
 
 		try {
 			Process p = pb.start();
@@ -344,8 +360,8 @@ class ServiceInstance
             "--id",
             Long.toString(numeric_id),
         };
-        
-        for ( int i = 0; i < args.length; i++ ) { 
+
+        for ( int i = 0; i < args.length; i++ ) {
             if ( i > 0 && (args[i-1].equals("-cp") ) ) {
                 // The classpaths can be just awful filling the logs with junk.  It will end up in the agent log
                 // anyway so let's inhibit it here.
@@ -354,7 +370,7 @@ class ServiceInstance
                 logger.debug(methodName, sset.getId(), "Instance", numeric_id, "Args[", i, "]:", args[i]);
             }
         }
-        
+
         ProcessBuilder pb = new ProcessBuilder(args);
         Map<String, String> env = pb.environment();
         env.put(IDuccUser.EnvironmentVariable.DUCC_HOME.value(), System.getProperty(IDuccUser.EnvironmentVariable.DUCC_HOME.value()));
@@ -365,7 +381,7 @@ class ServiceInstance
         int rc = 0;
         try {
             Process p = pb.start();
-   
+
             rc = p.waitFor();
             logger.info(methodName, sset.getId(), "DuccServiceCancel returns with rc", rc);
         } catch (Throwable t) {
@@ -438,7 +454,7 @@ class ServiceInstance
                     // if anything goes wrong this guy is toast.
                     logger.error(methodName, sset.getId(), e);
                     return;
-				} 
+				}
             }
 
         }

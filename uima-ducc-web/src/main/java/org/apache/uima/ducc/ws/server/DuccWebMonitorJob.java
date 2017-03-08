@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -44,40 +44,40 @@ import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 
 public class DuccWebMonitorJob {
-	
+
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccWebMonitorJob.class.getName());
 	private static DuccId jobid = null;
-	
+
 	private ConcurrentHashMap<DuccId,MonitorInfo> mMap = new ConcurrentHashMap<DuccId,MonitorInfo>();
 	private ConcurrentHashMap<DuccId,TrackingInfo> tMap = new ConcurrentHashMap<DuccId,TrackingInfo>();
 	private ConcurrentHashMap<DuccId,Long> cMap = new ConcurrentHashMap<DuccId,Long>();
-	
+
 	private long millisPerMinute = 60*1000;
 	private long timeoutMillis;
-	
+
 	protected DuccWebMonitorJob(long timeoutMillis) {
 		this.timeoutMillis = timeoutMillis;
 	}
-	
+
 	protected void monitor(OrchestratorStateDuccEvent duccEvent) {
 		String location = "monitor";
 		duccLogger.trace(location, jobid, "enter");
-		
+
 		IDuccWorkMap dwm = duccEvent.getWorkMap();
 		int size = dwm.getJobKeySet().size();
 		duccLogger.debug(location, jobid, "jobs: "+size);
-		
+
 		Iterator<DuccId> iterator;
 		ArrayList<DuccId> gone = new ArrayList<DuccId>();
-		
+
 		iterator = mMap.keySet().iterator();
 		while( iterator.hasNext() ) {
 			DuccId duccId = iterator.next();
 			gone.add(duccId);
 		}
-		
+
 		long expiryMillis = System.currentTimeMillis()+timeoutMillis+1;
-		
+
 		iterator = dwm.getJobKeySet().iterator();
 		while( iterator.hasNext() ) {
 			DuccId duccId = iterator.next();
@@ -108,19 +108,19 @@ public class DuccWebMonitorJob {
 			monitorInfo.error = ""+si.getIntWorkItemsError();
 			monitorInfo.retry = si.getWorkItemsRetry();
 			monitorInfo.procs = ""+dwj.getProcessMap().getAliveProcessCount();
-			
+
 			Map<DuccId, IDuccProcess> map = dwj.getProcessMap().getMap();
-			
+
 			monitorInfo.remotePids = DuccWebUtil.getRemotePids(duccId, map);
-			
+
 			if(si.getIntWorkItemsError() > 0) {
-				String logsjobdir = dwj.getUserLogsDir()+dwj.getDuccId().getFriendly()+File.separator;
+				String logsjobdir = dwj.getUserLogDir();
 				String logfile = "jd.err.log";
 				ArrayList<String> errorLogs = new ArrayList<String>();
 				errorLogs.add(logsjobdir+logfile);
 				monitorInfo.errorLogs = errorLogs;
 			}
-			
+
 			ArrayList<String> stateSequence = monitorInfo.stateSequence;
 			JobState jobState = dwj.getJobState();
 			if(jobState != null) {
@@ -130,7 +130,7 @@ public class DuccWebMonitorJob {
 					stateSequence.add(state);
 				}
 			}
-			
+
 			IRationale rationale = dwj.getCompletionRationale();
 			if(rationale != null) {
 				if(rationale.isSpecified()) {
@@ -141,7 +141,7 @@ public class DuccWebMonitorJob {
 				}
 			}
 		}
-		
+
 		iterator = gone.iterator();
 		while( iterator.hasNext() ) {
 			DuccId duccId = iterator.next();
@@ -149,10 +149,10 @@ public class DuccWebMonitorJob {
 			tMap.remove(duccId);
 			duccLogger.info(location, duccId, "monitor stop");
 		}
-		
+
 		duccLogger.trace(location, jobid, "exit");
 	}
-	
+
 	protected DuccId getKey(String jobId) {
 		DuccId retVal = null;
 		Enumeration<DuccId> keys = mMap.keys();
@@ -166,19 +166,19 @@ public class DuccWebMonitorJob {
 		}
 		return retVal;
 	}
-	
+
 	public MonitorInfo renew(String jobId, AtomicInteger updateCounter) {
 		String location = "renew";
 		duccLogger.trace(location, jobid, "enter");
-		
+
 		MonitorInfo monitorInfo = new MonitorInfo();
-		
+
 		int countAtArrival = updateCounter.get();
 		int countAtPresent = countAtArrival;
 		int sleepSecondsMax = 3*60;
-		
+
 		DuccId duccId = getKey(jobId);
-		
+
 		if(duccId == null) {
 			int sleepSeconds = 0;
 			duccLogger.info(location, duccId, "Waiting for update...");
@@ -202,7 +202,7 @@ public class DuccWebMonitorJob {
 			duccLogger.info(location, duccId, "Waiting complete.");
 			duccId = getKey(jobId);
 		}
-		
+
 		if(duccId != null) {
 			monitorInfo = mMap.get(duccId);
 			if(tMap.containsKey(duccId)) {
@@ -222,12 +222,12 @@ public class DuccWebMonitorJob {
 				duccLogger.error(location, jobid, e);
 			}
 		}
-		
+
 		duccLogger.trace(location, jobid, "exit");
-		
+
 		return monitorInfo;
 	}
-	
+
 	protected Long getExpiry(DuccId duccId) {
 		String location = "getExpiry";
 		duccLogger.trace(location, duccId, "enter");
@@ -243,15 +243,15 @@ public class DuccWebMonitorJob {
 		duccLogger.trace(location, duccId, "exit");
 		return retVal;
 	}
-	
+
 	public ConcurrentHashMap<DuccId,Long> getExpiryMap() {
 		String location = "getExpiryMap";
 		duccLogger.trace(location, jobid, "enter");
-		
+
 		ConcurrentHashMap<DuccId,Long> eMap = new ConcurrentHashMap<DuccId,Long>();
-		
+
 		long nowMillis = System.currentTimeMillis();
-		
+
 		Enumeration<DuccId> keys = tMap.keys();
 		while(keys.hasMoreElements()) {
 			long minutesLeft = 0;
@@ -263,16 +263,16 @@ public class DuccWebMonitorJob {
 			}
 			eMap.put(duccId, minutesLeft);
 		}
-		
+
 		duccLogger.trace(location, jobid, "exit");
-		
+
 		return eMap;
 	}
 
 	protected boolean isCanceled(DuccId duccId) {
 		return cMap.containsKey(duccId);
 	}
-	
+
 	private boolean isCancelable(DuccId duccId) {
 		String location = "isCancelable";
 		duccLogger.trace(location, duccId, "enter");
@@ -311,9 +311,9 @@ public class DuccWebMonitorJob {
 	protected void cancel(DuccId duccId, String userId) {
 		String location = "cancel";
 		duccLogger.trace(location, jobid, "enter");
-		
+
 		duccLogger.info(location, duccId, userId);
-		
+
 		String java = "/bin/java";
 		String jhome = System.getProperty("java.home");
 		String cp = System.getProperty("java.class.path");
@@ -323,17 +323,17 @@ public class DuccWebMonitorJob {
 		String arg3 = "--"+SpecificationProperties.key_reason;
 		String reason = CancelReason.MonitorPingOverdue.getText();
    		String arg4 = "\""+reason+"\"";
-		
+
 		String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4 };
 		String result = DuccAsUser.duckling(userId, arglistUser);
 		duccLogger.warn(location, duccId, result);
-		
+
 		cMap.put(duccId, new Long(System.currentTimeMillis()));
 		tMap.remove(duccId);
 
 		duccLogger.trace(location, jobid, "exit");
 	}
-	
+
 	protected void canceler(long nowMillis) {
 		String location = "canceler";
 		duccLogger.trace(location, jobid, "enter");
@@ -352,8 +352,8 @@ public class DuccWebMonitorJob {
 				}
 			}
 		}
-		
+
 		duccLogger.trace(location, jobid, "exit");
 	}
-	
+
 }

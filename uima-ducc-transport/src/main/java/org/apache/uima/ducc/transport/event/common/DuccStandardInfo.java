@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,15 +18,16 @@
 */
 package org.apache.uima.ducc.transport.event.common;
 
+import java.io.File;
 import java.util.Arrays;
 
 /**
  * Information (mostly) descriptive about the work.
  */
 public class DuccStandardInfo implements IDuccStandardInfo {
-	
+
 	/**
-	 * please increment this sUID when removing or modifying a field 
+	 * please increment this sUID when removing or modifying a field
 	 */
 	private static final long serialVersionUID = 1L;
 	private String user = null;
@@ -40,77 +41,78 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 	private String workingDirectory = null;
 	private String[] notifications = null;
 	private long processInitializationTimeMax = 0;
-	
+    private String umask = null;;
+
 	public String getUser() {
 		return user;
 	}
 
-	
+
 	public void setUser(String user) {
 		this.user = user;
 	}
 
-	
+
 	public String getSubmitter() {
 		return submitter;
 	}
 
-	
+
 	public void setSubmitter(String submitter) {
 		this.submitter = submitter;
 	}
 
-	
+
 	public String getCancelUser() {
 		return cancelUser;
 	}
 
-	
+
 	public void setCancelUser(String user) {
 		this.cancelUser = user;
 	}
-	
-	
+
+
 	public String getDescription() {
 		return description;
 	}
 
-	
+
 	public void setDescription(String description) {
 		this.description = description;
 	}
 
-	
+
 	public String getDateOfSubmission() {
 		return dateOfSubmission;
 	}
 
-	
+
 	public void setDateOfSubmission(String dateOfSubmission) {
 		this.dateOfSubmission = dateOfSubmission;
 	}
 
-	
+
 	public String getDateOfCompletion() {
 		return dateOfCompletion;
 	}
 
-	
+
 	public void setDateOfCompletion(String dateOfCompletion) {
 		this.dateOfCompletion = dateOfCompletion;
 	}
 
-	
+
 	public String getDateOfShutdownProcesses() {
 		return dateOfShutdownProcesses;
 	}
 
-	
+
 	public void setDateOfShutdownProcesses(String dateOfShutdownProcesses) {
 		this.dateOfShutdownProcesses = dateOfShutdownProcesses;
 	}
-	
-	
+
+
 	public long getDateOfSubmissionMillis(long otherwise) {
 		long millis = otherwise;
 		try {
@@ -120,17 +122,17 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 		return millis;
 	}
 
-	
+
 	public long getDateOfSubmissionMillis() {
 		return getDateOfSubmissionMillis(0);
 	}
-	
-	
+
+
 	public void setDateOfSubmissionMillis(long dateOfSubmission) {
 		this.dateOfSubmission = ""+dateOfSubmission;
 	}
 
-	
+
 	public long getDateOfCompletionMillis(long otherwise) {
 		long millis = otherwise;
 		try {
@@ -140,17 +142,17 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 		return millis;
 	}
 
-	
+
 	public long getDateOfCompletionMillis() {
 		return getDateOfCompletionMillis(0);
 	}
-	
-	
+
+
 	public void setDateOfCompletionMillis(long dateOfCompletion) {
 		this.dateOfCompletion = ""+dateOfCompletion;
 	}
 
-	
+
 	public long getDateOfShutdownProcessesMillis(long otherwise) {
 		long millis = otherwise;
 		try {
@@ -160,47 +162,59 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 		return millis;
 	}
 
-	
+
 	public long getDateOfShutdownProcessesMillis() {
 		return getDateOfShutdownProcessesMillis(0);
 	}
-	
-	
+
+
 	public void setDateOfShutdownProcessesMillis(long dateOfShutdownProcesses) {
 		this.dateOfShutdownProcesses = ""+dateOfShutdownProcesses;
 	}
-	
-	
+
+
 	public String getLogDirectory() {
 		return logDirectory;
 	}
 
-	
+
 	public void setLogDirectory(String logDirectory) {
-		this.logDirectory = logDirectory;
+	    if (logDirectory.endsWith(File.separator)) {
+	        this.logDirectory = logDirectory;
+	    } else {
+	        this.logDirectory = logDirectory + File.separator;
+	    }
 	}
 
-	
+    public String getUmask() {
+        return umask ;
+    }
+
+
+    public void setUmask(String umask) {
+        this.umask = umask;
+    }
+
 	public String getWorkingDirectory() {
 		return workingDirectory;
 	}
 
-	
+
 	public void setWorkingDirectory(String workingDirectory) {
 		this.workingDirectory = workingDirectory;
 	}
-	
-	
+
+
 	public String[] getNotifications() {
 		return notifications;
 	}
 
-	
+
 	public void setNotifications(String[] notifications) {
 		this.notifications = notifications;
 	}
-	
-	
+
+
 	public long getProcessInitializationTimeMax() {
 		return processInitializationTimeMax;
 	}
@@ -210,7 +224,7 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 		processInitializationTimeMax = value;
 	}
 
-	
+
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -235,7 +249,7 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 		return result;
 	}
 
-	
+
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -283,10 +297,10 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 			return false;
 		return true;
 	}
-	
+
 	// **********
-	
-//	
+
+//
 //	public int hashCode() {
 //		final int prime = 31;
 //		int result = 1;
@@ -300,7 +314,7 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 //		result = prime * result + super.hashCode();
 //		return result;
 //	}
-//	
+//
 //	public boolean equals(Object obj) {
 //		boolean retVal = false;
 //		if(this == obj) {
@@ -308,21 +322,21 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 //		}
 //		else if(getClass() == obj.getClass()) {
 //			DuccStandardInfo that = (DuccStandardInfo)obj;
-//			if(		Util.compare(this.getDateOfCompletion(),that.getDateOfCompletion()) 
-//				&&	Util.compare(this.getDescription(),that.getDescription()) 
-//				&&	Util.compare(this.getNotifications(),that.getNotifications()) 
+//			if(		Util.compare(this.getDateOfCompletion(),that.getDateOfCompletion())
+//				&&	Util.compare(this.getDescription(),that.getDescription())
+//				&&	Util.compare(this.getNotifications(),that.getNotifications())
 //			//	These don't change:
-//			//	&&	Util.compare(this.getUser(),that.getUser()) 
-//			//	&&	Util.compare(this.getDateOfSubmission(),that.getDateOfSubmission()) 
-//			//	&&	Util.compare(this.getOutputDirectory(),that.getOutputDirectory()) 
+//			//	&&	Util.compare(this.getUser(),that.getUser())
+//			//	&&	Util.compare(this.getDateOfSubmission(),that.getDateOfSubmission())
+//			//	&&	Util.compare(this.getOutputDirectory(),that.getOutputDirectory())
 ////				&&	super.equals(obj)
-//				) 
+//				)
 //			{
 //				retVal = true;
 //			}
 //		}
 //		return retVal;
 //	}
-	
-	
+
+
 }

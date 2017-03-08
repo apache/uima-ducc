@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -29,29 +29,29 @@ import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
 public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	/**
-	 * please increment this sUID when removing or modifying a field 
+	 * please increment this sUID when removing or modifying a field
 	 */
 	private static final long serialVersionUID = 1L;
 
 	private boolean jdURLSpecified = false;
 	private boolean jdDdSpecified = false;
-	
+
 	private DuccWorkPopDriver driver = null;
 	private String jobBroker = null;
 	private String jobQueue = null;
-	
+
 	private long defaultInitFailureLimit = 1;
-	
+
 	private AtomicLong processInitFailureCap = new AtomicLong(0);
 	private AtomicLong processInitFailureLimit = new AtomicLong(defaultInitFailureLimit);
-	
+
 	private long defaultFailureLimit = 2;
-	
+
 	private AtomicLong processFailureLimit = new AtomicLong(defaultFailureLimit);
-	
+
 	private AtomicLong debugPortDriver = new AtomicLong(-1);
 	private AtomicLong debugPortProcess = new AtomicLong(-1);
-	
+
 	private IRationale completionRationale = null;
 
 	private long wiVersion = 1;
@@ -60,94 +60,101 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	private long wiMillisAvg = 0;
 	private long wiMillisOperatingLeast = 0;
 	private long wiMillisCompletedMost = 0;
-	
+
 	private long completingTOD = 0;
-	
+
 	private long wiTotal;
 	private long wiDone;
 	private long wiError;
-	
+
+    private String userLogDir = null;
+
 	public DuccWorkJob() {
 		init(null);
 	}
-	
+
 	public DuccWorkJob(DuccId duccId) {
 		init(duccId);
 	}
-	
+
 	private void init(DuccId duccId) {
 		setDuccType(DuccType.Job);
 		setDuccId(duccId);
 		setStateObject(IDuccState.JobState.Undefined);
 		setCompletionTypeObject(IDuccCompletionType.JobCompletionType.Undefined);
 	}
-	
-	
-	public String getUserLogsDir() {
-		String retVal = getLogDirectory();
-		if(!retVal.endsWith(File.separator)) {
-			retVal += File.separator;
-		}
-		return retVal;
-	}
-	
-	
+
+    public String getUserLogDir() {
+        if (userLogDir == null) {
+            // Create the log directory for the work, including the DiccId
+            String parentDir;
+            IDuccStandardInfo standardInfo = getStandardInfo();
+            if (standardInfo != null && standardInfo.getLogDirectory() != null && !standardInfo.getLogDirectory().isEmpty()) {
+                parentDir = standardInfo.getLogDirectory();   // Ends with a file separator
+            } else {
+                parentDir = System.getProperty("user.home") + File.separator;
+            }
+            userLogDir = parentDir + String.valueOf(getDuccId().getFriendly()) + File.separator;
+        }
+        return userLogDir;
+    }
+
 	public DuccWorkPopDriver getDriver() {
 		return driver;
 	}
-	
-	
+
+
 	public void setDriver(DuccWorkPopDriver driver) {
 		this.driver = driver;
 	}
 
-	
+
 	public String getjobBroker() {
 		return jobBroker;
 	}
 
-	
+
 	public void setJobBroker(String broker) {
 		this.jobBroker = broker;
 	}
 
-	
+
 	public String getjobQueue() {
 		return this.jobQueue;
 	}
 
-	
+
 	public void setJobQueue(String queue) {
 		this.jobQueue = queue;
 	}
 
-	
+
 	public JobState getJobState() {
 		return (JobState)getStateObject();
 	}
 
-	
+
 	public void setJobState(JobState jobState) {
 		setStateObject(jobState);
 	}
 
-	
+
 	public void setCompletion(JobCompletionType completionType, IRationale completionRationale) {
 		setCompletionType(completionType);
 		setCompletionRationale(completionRationale);
 	}
-	
-	
+
+
 	public JobCompletionType getCompletionType() {
 		return (JobCompletionType)getCompletionTypeObject();
 	}
 
-	
+
 	public void setCompletionType(JobCompletionType completionType) {
 		setCompletionTypeObject(completionType);
 	}
-	
-	
+
+
 	public IRationale getCompletionRationale() {
 		IRationale retVal = null;
 		try {
@@ -163,12 +170,12 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return retVal;
 	}
-	
-	
+
+
 	public void setCompletionRationale(IRationale completionRationale) {
 		this.completionRationale = completionRationale;
 	}
-	
+
 	public boolean isActive() {
 		boolean retVal = false;
 		switch(getJobState()) {
@@ -178,12 +185,12 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		case Assigned:
 		case Initializing:
 		case Running:
-			retVal = true;	
+			retVal = true;
 			break;
 		}
 		return retVal;
 	}
-	
+
 	public boolean isSchedulable() {
 		boolean retVal = false;
 		switch(getJobState()) {
@@ -191,7 +198,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		case Assigned:
 		case Initializing:
 		case Running:
-			retVal = true;	
+			retVal = true;
 			break;
 		case Completing:
 			if(hasAliveProcess()) {
@@ -204,89 +211,89 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return retVal;
 	}
-	
-	
+
+
 	public boolean isInitialized() {
 		boolean retVal = false;
 		switch(getJobState()) {
 		case Running:
 		case Completing:
 		case Completed:
-			retVal = true;	
+			retVal = true;
 			break;
 		}
 		return retVal;
 	}
-	
+
 	public boolean isRunnable() {
 		boolean retVal = false;
 		switch(getJobState()) {
 		case Running:
-			retVal = true;	
+			retVal = true;
 			break;
 		}
 		return retVal;
 	}
-	
+
 	public boolean isCompleting() {
 		boolean retVal = false;
 		switch(getJobState()) {
 		case Completing:
-			retVal = true;	
+			retVal = true;
 			break;
 		}
 		return retVal;
 	}
-	
+
 	public boolean isCompleted() {
 		boolean retVal = false;
 		switch(getJobState()) {
 		case Completed:
-			retVal = true;	
+			retVal = true;
 			break;
 		}
 		return retVal;
 	}
-	
+
 	public boolean isFinished() {
 		boolean retVal = false;
 		switch(getJobState()) {
 		case Completing:
 		case Completed:
-			retVal = true;	
+			retVal = true;
 			break;
 		}
 		return retVal;
 	}
-	
-	
+
+
 	public boolean isOperational() {
 		boolean retVal = true;
 		switch(getJobState()) {
 		case Completed:
-			retVal = false;	
+			retVal = false;
 			break;
 		}
 		return retVal;
 	}
-	
+
 	public boolean isProcessReady() {
 		IDuccProcessMap processMap = (IDuccProcessMap) getProcessMap().deepCopy();
 		return processMap.getReadyProcessCount() > 0;
 	}
-	
+
 	/*
 	public int getFailedProcessCount() {
 		IDuccProcessMap processMap = (IDuccProcessMap) getProcessMap().deepCopy();
 		return processMap.getFailedProcessCount();
 	}
 	*/
-	
+
 	public int getFailedUnexpectedProcessCount() {
 		IDuccProcessMap processMap = (IDuccProcessMap) getProcessMap().deepCopy();
 		return processMap.getFailedUnexpectedProcessCount();
 	}
-	
+
 	public String getLogDirectory() {
 		String retVal = System.getProperty("user.home");
 		IDuccStandardInfo standardInfo = getStandardInfo();
@@ -303,9 +310,9 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return retVal;
 	}
-	
+
 	// **********
-	
+
 	public long getWorkItemCapacity() {
 		long capacity = 0;
 		try {
@@ -317,9 +324,9 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return capacity;
 	}
-	
+
 	// **********
-	
+
 	public IDuccProcess getProcess(String dpid) {
 		IDuccProcess idp = null;
 		try {
@@ -337,9 +344,9 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return idp;
 	}
-	
+
 	// **********
-	
+
 	public long getProcessInitFailureCap() {
 		long retVal = 0;
 		try {
@@ -349,17 +356,17 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return retVal;
 	}
-	
-	
+
+
 	public void setProcessInitFailureCap(long value) {
 		processInitFailureCap.set(value);
 	}
-	
+
 	public long getProcessInitFailureCount() {
 		long retVal = getProcessMap().getFailedInitializationCount();
 		return retVal;
 	}
-	
+
 	public long getProcessInitFailureLimit() {
 		long retVal = defaultInitFailureLimit;
 		try {
@@ -369,19 +376,19 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return retVal;
 	}
-	
+
 	public void setProcessInitFailureLimit(long limit) {
 		processInitFailureLimit.set(limit);
 		return;
 	}
-	
+
 	// **********
-	
+
 	public long getProcessFailureCount() {
 		long retVal = getProcessMap().getFailedNotInitializationCount();
 		return retVal;
 	}
-	
+
 	public long getProcessFailureLimit() {
 		long retVal = defaultFailureLimit;
 		try {
@@ -391,13 +398,13 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return retVal;
 	}
-	
+
 	public void setProcessFailureLimit(long limit) {
 		processFailureLimit.set(limit);
 		return;
 	}
 
-	
+
 	public long getDebugPortDriver() {
 		long retVal = -1;
 		try {
@@ -425,7 +432,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	public void setDebugPortProcess(long port) {
 		debugPortProcess.set(port);
 	}
-	
+
 	public long getNoPidProcessCount() {
 		long retVal = 0;
 		IDuccProcessMap processMap = this.getProcessMap();
@@ -435,11 +442,11 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return retVal;
 	}
-	
+
 	public boolean hasNoPidProcess() {
 		return (getNoPidProcessCount() > 0);
 	}
-	
+
 	public long getAliveProcessCount() {
 		long retVal = 0;
 		IDuccProcessMap processMap = this.getProcessMap();
@@ -450,11 +457,11 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		return retVal;
 	}
 
-	
+
 	public boolean hasAliveProcess() {
 		return (getAliveProcessCount() > 0);
 	}
-	
+
 	// choose the smallest negative value, else return the sum
 	private long merge(long jd, long jp) {
 		long retVal = 0;
@@ -471,7 +478,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return retVal;
 	}
-	
+
 	// choose the smallest negative value, else return the sum
 	private double merge(double jd, double jp) {
 		double retVal = 0;
@@ -488,7 +495,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return retVal;
 	}
-	
+
 	public long getPgInCount() {
 		long jp = 0;
 		long jd = 0;
@@ -504,7 +511,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		long retVal = merge(jd, jp);
 		return retVal;
 	}
-	
+
 	public double getSwapUsageGb() {
 		double jp = 0;
 		double jd = 0;
@@ -520,7 +527,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		double retVal = merge(jd, jp);
 		return retVal;
 	}
-	
+
 	public double getSwapUsageGbMax() {
 		double retVal = 0;
 		IDuccProcessMap map = getProcessMap();
@@ -548,7 +555,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return retVal;
 	}
-	
+
 	@Override
 	public long getWiMillisMin() {
 		return wiMillisMin;
@@ -600,8 +607,8 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	}
 
 	// **********
-	
-	
+
+
 	public int hashCode() {
 		//return super.hashCode();
 		final int prime = 31;
@@ -611,7 +618,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		return result;
 
 	}
-	
+
 	public boolean equals(Object obj) {
 		if(getClass() == obj.getClass()) {
 			DuccWorkJob that = (DuccWorkJob)obj;
@@ -691,6 +698,6 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		wiError = value;
 	}
 
-	
+
 
 }

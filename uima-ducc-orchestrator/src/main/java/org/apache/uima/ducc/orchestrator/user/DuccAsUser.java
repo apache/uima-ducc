@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -35,47 +35,51 @@ public class DuccAsUser {
 
 	private static DuccLogger duccLogger = DuccLoggerComponents.getOrLogger(DuccAsUser.class.getName());
 	private static Messages messages = Messages.getInstance();
-	
+
 	public static String magicString = "1001 Command launching...";
-	
+
 	public static String identity = "orchestrator";
-	
+
 	private static File devNull = new File("/dev/null");
-	
-	public static String duckling(String user, String file, String text) {
-		
+
+	public static String duckling(String user, String umask, String file, String text) {
+
 		String methodName = "duckling";
-		
+
 		StringBuffer retVal = new StringBuffer();
-		
-		String c_launcher_path = 
+
+		String c_launcher_path =
 			Utils.resolvePlaceholderIfExists(
 					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
-		
+
 		duccLogger.trace(methodName, null, messages.fetchLabel("the duckling launcher")+c_launcher_path);
-		
+
 		ArrayList<String> cmd = new ArrayList<String>();
-		
+
 		cmd.add(c_launcher_path);
-		
+
 		cmd.add("-u");
 		cmd.add(user);
 		cmd.add("-a");
 		cmd.add("-f");
 		cmd.add(file);
 		cmd.add(text);
-		
+
 		StringBuffer sbDebug = new StringBuffer();
 
 		duccLogger.trace(methodName, null, "plist: "+sbDebug.toString().trim());
 		duccLogger.trace(methodName, null, "cmd: "+cmd);
-		
+
 		ProcessBuilder pb = new ProcessBuilder(cmd);
-		
+
 		Map<String, String> env = pb.environment();
-		
-		env.put(IDuccUser.EnvironmentVariable.DUCC_ID_JOB.value(), identity);
-		
+
+		env.clear();
+		if (umask != null) {
+		    env.put("DUCC_UMASK",  umask);
+		}
+		//env.put(IDuccUser.EnvironmentVariable.DUCC_ID_JOB.value(), identity);
+
 		try {
 			pb = pb.redirectError(devNull);
 			Process process = pb.start();
@@ -102,7 +106,7 @@ public class DuccAsUser {
 		catch(Exception e) {
 			duccLogger.warn(methodName, null, e);
 		}
-		
+
 		return retVal.toString();
 	}
 }

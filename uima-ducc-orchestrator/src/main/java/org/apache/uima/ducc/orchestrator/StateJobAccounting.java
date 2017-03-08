@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,31 +18,28 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
-import java.io.File;
-
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
-import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.user.UserLogging;
-import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
+import org.apache.uima.ducc.transport.event.common.IRationale;
 
 
 public class StateJobAccounting {
 
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(StateJobAccounting.class.getName());
-	
+
 	private static StateJobAccounting instance = new StateJobAccounting();
-	
+
 	public static StateJobAccounting getInstance() {
 		return instance;
 	}
-	
+
 	private boolean advance(IDuccWorkJob job) {
 		String methodName = "advance";
 		boolean retVal = false;
@@ -81,7 +78,7 @@ public class StateJobAccounting {
 		}
 		return retVal;
 	}
-	
+
 	public boolean stateChange(IDuccWorkJob job, JobState state) {
 		String methodName = "stateChange";
 		boolean retVal = false;
@@ -104,7 +101,7 @@ public class StateJobAccounting {
 			break;
 		case Assigned:
 			retVal = stateChangeFromAssigned(prev, next);
-			break;	
+			break;
 		case Initializing:
 			retVal = stateChangeFromInitializing(prev, next);
 			break;
@@ -122,7 +119,7 @@ public class StateJobAccounting {
 			break;
 		case WaitingForResources:
 			retVal = stateChangeFromWaitingForResources(prev, next);
-			break;	
+			break;
 		case WaitingForServices:
 			retVal = stateChangeFromWaitingForServices(prev, next);
 			break;
@@ -152,14 +149,14 @@ public class StateJobAccounting {
 		else {
 			try {
 				throw new RuntimeException();
-			} 
+			}
 			catch(Exception e) {
 				logger.error(methodName, job.getDuccId(),"current["+prev+"] requested["+next+"]"+" ignored", e);
 			}
 		}
 		return retVal;
 	}
-	
+
 	private boolean stateChangeFromCompleting(JobState prev, JobState next) {
 		boolean retVal = false;
 		switch(next) {
@@ -176,7 +173,7 @@ public class StateJobAccounting {
 		}
 		return retVal;
 	}
-	
+
 	private boolean stateChangeFromCompleted(JobState prev, JobState next) {
 		boolean retVal = false;
 		switch(next) {
@@ -193,7 +190,7 @@ public class StateJobAccounting {
 		}
 		return retVal;
 	}
-	
+
 	private boolean stateChangeFromAssigned(JobState prev, JobState next) {
 		boolean retVal = false;
 		switch(next) {
@@ -210,7 +207,7 @@ public class StateJobAccounting {
 		}
 		return retVal;
 	}
-	
+
 	private boolean stateChangeFromInitializing(JobState prev, JobState next) {
 		boolean retVal = false;
 		switch(next) {
@@ -227,7 +224,7 @@ public class StateJobAccounting {
 		}
 		return retVal;
 	}
-	
+
 	private boolean stateChangeFromReceived(JobState prev, JobState next) {
 		boolean retVal = false;
 		switch(next) {
@@ -244,7 +241,7 @@ public class StateJobAccounting {
 		}
 		return retVal;
 	}
-	
+
 	private boolean stateChangeFromRunning(JobState prev, JobState next) {
 		boolean retVal = false;
 		switch(next) {
@@ -261,7 +258,7 @@ public class StateJobAccounting {
 		}
 		return retVal;
 	}
-	
+
 	private boolean stateChangeFromUndefined(JobState prev, JobState next) {
 		boolean retVal = false;
 		switch(next) {
@@ -278,7 +275,7 @@ public class StateJobAccounting {
 		}
 		return retVal;
 	}
-	
+
 	private boolean stateChangeFromWaitingForDriver(JobState prev, JobState next) {
 		boolean retVal = false;
 		switch(next) {
@@ -295,7 +292,7 @@ public class StateJobAccounting {
 		}
 		return retVal;
 	}
-	
+
 	private boolean stateChangeFromWaitingForResources(JobState prev, JobState next) {
 		boolean retVal = false;
 		switch(next) {
@@ -312,7 +309,7 @@ public class StateJobAccounting {
 		}
 		return retVal;
 	}
-	
+
 	private boolean stateChangeFromWaitingForServices(JobState prev, JobState next) {
 		boolean retVal = false;
 		switch(next) {
@@ -350,50 +347,42 @@ public class StateJobAccounting {
 		}
 		return retVal;
 	}
-	
+
 	private void recordUserState(IDuccWorkJob job) {
 		String methodName = "recordUserState";
-		DuccId jobid = null;
 		String text = "";
 		try {
-			jobid = job.getDuccId();
-			String userName = job.getStandardInfo().getUser();
-			String userLogDir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 			JobState jobState = job.getJobState();
 			if(jobState != null) {
 				text = jobState.toString();
-				UserLogging.record(userName, userLogDir, text);
+				UserLogging.record(job, text);
 				logger.debug(methodName, job.getDuccId(), text);
 			}
 		}
 		catch(Exception e) {
-			logger.error(methodName, jobid, e);
+			logger.error(methodName, job.getDuccId(), e);
 		}
 	}
-	
+
 	private void recordUserCompletion(IDuccWorkJob job) {
 		String methodName = "recordUserCompletion";
-		DuccId jobid = null;
 		String text = "";
 		try {
-			jobid = job.getDuccId();
-			String userName = job.getStandardInfo().getUser();
-			String userLogDir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 			JobCompletionType jobCompletionType = job.getCompletionType();
 			if(jobCompletionType != null) {
 				text = "completion type: "+jobCompletionType.toString();
-				UserLogging.record(userName, userLogDir, text);
+				UserLogging.record(job, text);
 				logger.debug(methodName, job.getDuccId(), text);
 			}
 			IRationale rationale = job.getCompletionRationale();
 			if(rationale != null) {
 				text = "rationale: "+rationale.toString();
-				UserLogging.record(userName, userLogDir, text);
+                UserLogging.record(job, text);
 				logger.debug(methodName, job.getDuccId(), text);
 			}
 		}
 		catch(Exception e) {
-			logger.error(methodName, jobid, e);
+			logger.error(methodName, job.getDuccId(), e);
 		}
 	}
 

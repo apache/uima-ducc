@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -59,6 +59,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccCommand;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
+import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaAggregate;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaAggregateComponent;
@@ -71,14 +72,14 @@ public class JobFactory implements IJobFactory {
 	private static JobFactory jobFactory = new JobFactory();
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(JobFactory.class.getName());
 	private DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
-	
+
 	public static IJobFactory getInstance() {
 		return jobFactory;
 	}
 
 	private JobFactory() {
 	}
-	
+
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
 	private JdScheduler jdScheduler = orchestratorCommonArea.getJdScheduler();
@@ -101,11 +102,15 @@ public class JobFactory implements IJobFactory {
 			}
 			aCommandLine.addEnvironment(envMap);
 			retVal = envMap.size();
+			IDuccStandardInfo stdInfo = job.getStandardInfo();
+			if (stdInfo != null) {
+			    stdInfo.setUmask(envMap.get("DUCC_UMASK"));   // UIMA-5328 Preserve the umask value for any log files
+			}
 		}
 		logger.trace(methodName, job.getDuccId(), "exit");
 		return retVal;
 	}
-	
+
 	private ArrayList<String> toArrayList(String overrides) {
 		String methodName = "toArrayList";
 		logger.trace(methodName, null, "enter");
@@ -131,12 +136,12 @@ public class JobFactory implements IJobFactory {
 			}
 		}
 	}
-	
+
 	private void dump(DuccWorkJob job, IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor) {
 		String methodName = "dump";
 		logger.info(methodName, job.getDuccId(), "uimaDeploymentDescriptor      "+uimaDeploymentDescriptor);
 	}
-	
+
 	private void logSweeper(String logDir, DuccId jobId) {
 		String methodName = "logSweeper";
 		if(logDir != null) {
@@ -165,7 +170,7 @@ public class JobFactory implements IJobFactory {
 			logger.warn(methodName, jobId, "logDir is null");
 		}
 	}
-	
+
 	private boolean isJpUima(DuccType duccType, ServiceDeploymentType serviceDeploymentType) {
 		boolean retVal = true;
 		switch(duccType) {
@@ -175,8 +180,8 @@ public class JobFactory implements IJobFactory {
 			switch(serviceDeploymentType) {
 			case uima:
 				break;
-			case custom:	
-			case other:	
+			case custom:
+			case other:
 			default:
 				retVal = false;
 				break;
@@ -192,7 +197,7 @@ public class JobFactory implements IJobFactory {
 		}
 		return retVal;
 	}
-	
+
 	private void setDebugPorts(JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
 		String location = "setDebugPorts";
 		DuccId jobid = job.getDuccId();
@@ -219,14 +224,14 @@ public class JobFactory implements IJobFactory {
 			}
 		}
 	}
-	
+
 	private String getPrependUserCP(DuccId jobid, JobRequestProperties jobSpec) {
 		String envKey = IDuccUser.EnvironmentVariable.DUCC_USER_CP_PREPEND.value();
 		String prependDefault = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"user"+File.separator+"*";
 		String retVal = JobFactoryHelper.getEnvVal(jobid, jobSpec, envKey, prependDefault);
 		return retVal;
 	}
-	
+
 	/**
 	 * @param prependCP - DUCC classes needed to run JD/JP
 	 * @param cp - user classes needed to run JD/JP
@@ -242,7 +247,7 @@ public class JobFactory implements IJobFactory {
 		}
 		return sb.toString();
 	}
-	
+
 	private JavaCommandLine buildJobDriverCommandLine(JobRequestProperties jobRequestProperties,  DuccId jobid) {
 		JavaCommandLine jcl = null;
 		// java command
@@ -273,7 +278,7 @@ public class JobFactory implements IJobFactory {
 		}
 		// Add job JVM opts
 		String opt;
-		// add JobId	
+		// add JobId
 		opt = FlagsHelper.Name.JobId.dname()+"="+jobid.getFriendly();
 		jcl.addOption(opt);
 		// add CrXML
@@ -294,14 +299,14 @@ public class JobFactory implements IJobFactory {
 		userCP = addUimaDucc(prependUserCP, userCP);
 		opt = FlagsHelper.Name.UserClasspath.dname()+"="+userCP;
 		jcl.addOption(opt);
-		// add WorkItemTimeout	
+		// add WorkItemTimeout
 		String wiTimeout = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_per_item_time_max);
 		if(wiTimeout == null) {
 			DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
 			wiTimeout = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_default_process_per_item_time_max);
 		}
 		addDashD(jcl, FlagsHelper.Name.WorkItemTimeout, wiTimeout);
-		// add JpDdDirectory	
+		// add JpDdDirectory
 		addDashD(jcl, FlagsHelper.Name.JobDirectory, jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
 		// add Jp aggregate construction  from pieces-parts (Jp DD should be null)
 		String keyFCRS = "ducc.flow-controller.specifier";
@@ -341,7 +346,7 @@ public class JobFactory implements IJobFactory {
 		jcl.setLogDirectory(jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
 		return jcl;
 	}
-	
+
 	private void addDashD(JavaCommandLine jcl, String flagName, String flagValue) {
 		String location = "addDashD";
 		logger.info(location, null, flagName+"="+flagValue);
@@ -360,7 +365,7 @@ public class JobFactory implements IJobFactory {
 			}
 		}
 	}
-	
+
 	private void addDashD(JavaCommandLine jcl, Name name, String flagValue) {
 		String flagName = null;
 		if(name != null) {
@@ -368,7 +373,7 @@ public class JobFactory implements IJobFactory {
 		}
 		addDashD(jcl, flagName, flagValue);
 	}
-	
+
 	private void createDriver(JobRequestProperties jobRequestProperties,  DuccWorkJob job) throws ResourceUnavailableForJobDriverException {
 		String methodName = "createDriver";
 		// broker & queue
@@ -406,7 +411,7 @@ public class JobFactory implements IJobFactory {
 		//
 		job.setDriver(driver);
 	}
-	
+
 	private void checkSchedulingLimits(DuccWorkJob job, DuccSchedulingInfo schedulingInfo) {
 		String methodName = "check_max_job_pipelines";
 		long ducc_limit = 0;
@@ -414,9 +419,9 @@ public class JobFactory implements IJobFactory {
 		// Check the old name first in case it is in site.ducc.properties ... new name is in ducc.default.properties
 		p_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_threads_limit);
 		if(p_limit == null) {
-		  p_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_job_max_pipelines_count);			
+		  p_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_job_max_pipelines_count);
 		}
-		if (p_limit != null && !p_limit.equals("unlimited")) { 
+		if (p_limit != null && !p_limit.equals("unlimited")) {
 		  try {
 		    ducc_limit = Long.parseLong(p_limit);
 		  }
@@ -440,7 +445,7 @@ public class JobFactory implements IJobFactory {
 			schedulingInfo.setLongProcessesMax(processes_limit);
 		}
 	}
-		
+
 	public DuccWorkJob createJob(JobRequestProperties jobRequestProperties) throws ResourceUnavailableForJobDriverException {
 		DuccWorkJob job = new DuccWorkJob();
 		job.setDuccType(DuccType.Job);
@@ -449,14 +454,14 @@ public class JobFactory implements IJobFactory {
 		setDebugPorts(jobRequestProperties, job);
 		return create(jobRequestProperties, job);
 	}
-	
+
 	public DuccWorkJob createService(JobRequestProperties jobRequestProperties) {
 		DuccWorkJob job = new DuccWorkJob();
 		job.setDuccType(DuccType.Service);
 		job.setDuccId(duccIdFactory.next());
 		return create(jobRequestProperties, job);
 	}
-	
+
 	private DuccWorkJob create(JobRequestProperties jobRequestProperties, DuccWorkJob job) {
 		String methodName = "create";
 		jobRequestProperties.normalize();
@@ -481,6 +486,7 @@ public class JobFactory implements IJobFactory {
         	serviceId = jobRequestProperties.getProperty(ServiceRequestProperties.key_service_id);
         }
         job.setServiceId(serviceId);
+
 		// sweep out leftover logging trash
 		logSweeper(jobRequestProperties.getProperty(JobRequestProperties.key_log_directory), job.getDuccId());
 		// log
@@ -526,11 +532,11 @@ public class JobFactory implements IJobFactory {
 		schedulingInfo.setThreadsPerProcess(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_pipeline_count));
 		schedulingInfo.setMemorySizeRequested(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_memory_size));
 		schedulingInfo.setMemoryUnits(MemoryUnits.GB);
-		
-		if (job.getDuccType() == DuccType.Job){ 
+
+		if (job.getDuccType() == DuccType.Job){
 		    checkSchedulingLimits(job, schedulingInfo);
 		}
-		
+
 		// process_initialization_time_max (in minutes)
 		String pi_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_initialization_time_max);
 		if(pi_time == null) {
@@ -625,12 +631,12 @@ public class JobFactory implements IJobFactory {
 			else {
 				addDashD(pipelineCommandLine, FlagsHelper.Name.JpType, "uima");
 			}
-			
+
 			String process_thread_count = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_pipeline_count);
 			if(process_thread_count != null) {
 				addDashD(pipelineCommandLine, FlagsHelper.Name.JpThreadCount, process_thread_count);
 			}
-			
+
 			String processEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 			int envCountProcess = addEnvironment(job, "process", pipelineCommandLine, processEnvironmentVariables);
 			logger.info(methodName, job.getDuccId(), "process env vars: "+envCountProcess);
@@ -685,16 +691,16 @@ public class JobFactory implements IJobFactory {
         // Set the service dependency, if there is one.
         //
         String depstr = jobRequestProperties.getProperty(JobSpecificationProperties.key_service_dependency);
-        if ( depstr == null ) {            
+        if ( depstr == null ) {
             logger.debug(methodName, job.getDuccId(), "No service dependencies");
         } else {
             logger.debug(methodName, job.getDuccId(), "Adding service dependency", depstr);
-            String[] deps = depstr.split("\\s+");      
+            String[] deps = depstr.split("\\s+");
             job.setServiceDependencies(deps);
         }
         // Service Endpoint
         String ep = jobRequestProperties.getProperty(ServiceRequestProperties.key_service_request_endpoint);
-        if ( ep == null ) {                     
+        if ( ep == null ) {
             logger.debug(methodName, job.getDuccId(), "No service endpoint");
         } else {
             logger.debug(methodName, job.getDuccId(), "Adding service endpoint", ep);
@@ -710,7 +716,7 @@ public class JobFactory implements IJobFactory {
 		//TODO be sure to clean-up fpath upon job completion!
 		return job;
 	}
-	
+
 	/*
 	 * Get minimal subset of the DUCC classpath for job driver & job processes
 	 * Cache the values unless asked to reload when testing

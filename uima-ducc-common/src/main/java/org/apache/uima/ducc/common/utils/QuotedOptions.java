@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -27,12 +27,12 @@ import java.util.regex.Pattern;
 
 public class QuotedOptions {
     /**
-     * Create an array of parameters from a whitespace-delimited list (e.g. JVM args or environment assignments.) 
+     * Create an array of parameters from a whitespace-delimited list (e.g. JVM args or environment assignments.)
      * Values containing whitespace must be single- or double-quoted:
-     *  TERM=xterm DISPLAY=:1.0 LD_LIBRARY_PATH="/my/path/with blanks/" EMPTY= -Dxyz="a b c" -Dabc='x y z' 
+     *  TERM=xterm DISPLAY=:1.0 LD_LIBRARY_PATH="/my/path/with blanks/" EMPTY= -Dxyz="a b c" -Dabc='x y z'
      * Quotes may be stripped or preserved.
      * Values containing both types of quotes are NOT supported.
-     * 
+     *
      * @param options
      *          - string of blank-delimited options
      * @param stripQuotes
@@ -40,26 +40,26 @@ public class QuotedOptions {
      * @return - array of options
      */
     public static ArrayList<String> tokenizeList(String options, boolean stripQuotes) {
-        
+
       ArrayList<String> tokens = new ArrayList<String>();
       if (options == null) {
         return tokens;
       }
-      
+
       // Pattern matches a non-quoted region or a double-quoted region or a single-quoted region
       // 1st part matches one or more non-whitespace characters but not " or '
       // 2nd part matches a "quoted" region containing any character except "
       // 3rd part matches a 'quoted' region containing any character except '
       // See: http://stackoverflow.com/questions/3366281/tokenizing-a-string-but-ignoring-delimiters-within-quotes
-        
+
       String noSpaceRegex = "[^\\s\"']+";
       String doubleQuoteRegex = "\"([^\"]*)\"";
       String singleQuoteRegex = "'([^']*)'";
-      final String regex = noSpaceRegex + "|" + doubleQuoteRegex + "|" + singleQuoteRegex;     
+      final String regex = noSpaceRegex + "|" + doubleQuoteRegex + "|" + singleQuoteRegex;
       Pattern patn = Pattern.compile(regex);
       Matcher matcher = patn.matcher(options);
       StringBuilder sb = new StringBuilder();
-      
+
       // If stripping quotes extract the capturing group (without the quotes)
       // When preserving quotes extract the full region
       // Combine the pieces of a token until the match ends with whitespace
@@ -89,24 +89,24 @@ public class QuotedOptions {
       return tokens;
     }
 
-    /*
-     * Create a map from an array of variable assignments produced by tokenizeList. 
-     * Quotes may have been stripped by tokenizeList. 
-     * The value is optional but the key is NOT, 
+    /**
+     * Create a map from an array of variable assignments produced by tokenizeList.
+     * Quotes may have been stripped by tokenizeList.
+     * The value is optional but the key is NOT,
      * e.g. accept foo=abc & foo= & foo but reject =foo & =
-     * Environment entries that specify just a name can be expanded to get the value 
+     * Environment entries that specify just a name can be expanded to get the value
      * from the current environment, e.g. foo can be replaced by foo=${foo}
      * If the name ends in '*' then the expansion applies to entries with that prefix.
-     * 
+     *
      * @param assignments - list of environment or JVM arg assignments
      * @param type : <0 if tokens are JVM args -- process only the -Dprop=value entries
      *               =0 if tokens are simple assignments (environment variables or descriptor overrides)
      *               >0 if tokens are environment settings that may need expansion
-     *  
+     *
      * @return - map of key/value pairs or null if syntax is illegal
      */
-    
-    public static Map<String, String> parseAssignments(List<String> assignments, int type) 
+
+    public static Map<String, String> parseAssignments(List<String> assignments, int type)
         throws IllegalArgumentException {
 
       HashMap<String, String> map = new HashMap<String, String>();
@@ -163,19 +163,19 @@ public class QuotedOptions {
       return value;
     }
 
-      
+
       // ====================================================================================================
-    
+
     /*
-     * Test the quote handling and optional stripping 
+     * Test the quote handling and optional stripping
      */
     public static void main(String[] args) {
       String[] lists = { "SINGLE_QUOTED='single quoted'\tDOUBLE_QUOTED=\"double quoted\"     SINGLE_QUOTE=\"'\" \r DOUBLE_QUOTE='\"'",
                          "",
                          "            ",
                          null };
-      
-      for (String list : lists) { 
+
+      for (String list : lists) {
         System.out.println("List: " + list);
         ArrayList<String> tokens = tokenizeList(list, false);
         System.out.println("\n  quotes preserved on " + tokens.size());
