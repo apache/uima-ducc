@@ -19,7 +19,10 @@
 package org.apache.uima.ducc.transport.configuration.jp;
 import java.io.InvalidClassException;
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
+import java.util.Properties;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.http.ConnectionReuseStrategy;
@@ -51,8 +54,12 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
+import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
+import org.apache.uima.ducc.container.net.impl.TransactionId;
 
 public class DuccHttpClient {
 	DuccLogger logger = new DuccLogger(DuccHttpClient.class);
@@ -314,6 +321,63 @@ public class DuccHttpClient {
 				throw new RuntimeException("Shouldn't happen ");
 			}
 		} 
+	}
+	public static void main(String[] args) {
+		try {
+			HttpPost postMethod = new HttpPost(args[0]);
+			DuccHttpClient client = new DuccHttpClient();
+		//	client.setScaleout(10);
+			client.setTimeout(30000);
+			client.initialize(args[0]);
+			int minor = 0;
+			IMetaCasTransaction transaction = new MetaCasTransaction();
+			AtomicInteger seq = new AtomicInteger(0);
+			TransactionId tid = new TransactionId(seq.incrementAndGet(), minor);
+			transaction.setTransactionId(tid);
+			// According to HTTP spec, GET may not contain Body in 
+			// HTTP request. HttpClient actually enforces this. So
+			// do a POST instead of a GET.
+			transaction.setType(Type.Get);  // Tell JD you want a Work Item
+			String command = Type.Get.name();
+	    	System.out.println("HttpWorkerThread.run() "+ "Thread Id:"+Thread.currentThread().getId()+" Requesting next WI from JD");;
+			// send a request to JD and wait for a reply
+	    	transaction = client.execute(transaction, postMethod);
+	        // The JD may not provide a Work Item to process.
+	    	if ( transaction.getMetaCas()!= null) {
+	    		System.out.println("run Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaCas().getSystemKey());
+				System.out.println("CAS:"+transaction.getMetaCas().getUserSpaceCas());
+	    		// Confirm receipt of the CAS. 
+				transaction.setType(Type.Ack);
+				command = Type.Ack.name();
+				tid = new TransactionId(seq.incrementAndGet(), minor++);
+				transaction.setTransactionId(tid);
+				System.out.println("run  Thread:"+Thread.currentThread().getId()+" Sending ACK request - WI:"+transaction.getMetaCas().getSystemKey());
+				transaction = client.execute(transaction, postMethod); 
+				if ( transaction.getMetaCas() == null) {
+					// this can be the case when a JD receives ACK late 
+					System.out.println("run Thread:"+Thread.currentThread().getId()+" ACK reply recv'd, however there is no MetaCas. The JD Cancelled the transaction");
+				} else {
+					System.out.println("run Thread:"+Thread.currentThread().getId()+" ACK reply recv'd");
+				}
+
+	        }
+			transaction.setType(Type.End);
+			command = Type.End.name();
+			tid = new TransactionId(seq.incrementAndGet(), minor++);
+			transaction.setTransactionId(tid);
+			IPerformanceMetrics metricsWrapper =
+					new PerformanceMetrics();
+			
+			metricsWrapper.set(Arrays.asList(new Properties()));
+			transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
+			
+			System.out.println("run  Thread:"+Thread.currentThread().getId()+" Sending END request - WI:"+transaction.getMetaCas().getSystemKey());
+			transaction = client.execute(transaction, postMethod); 
+
+			
+		} catch( Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 }
