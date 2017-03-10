@@ -44,7 +44,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "2.1.0"
+#define VERSION "2.2.1"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -77,6 +77,7 @@
  * 2014-07-16 1.1.2 Send group switching msgs to log_stdout so they get covered by -q option. jrc
  * 2015-04-30 2.0.0 Fix hole and update version for DUCC 2.0. jrc
  * 2015-11-19 2.1.0 Create 2 streams if console port ends with "?splitstreams".  Add timestamp to log. bll
+ * 2017-03-08 2.2.1 Set umask before creating logs so permissions of log directories are set correctly. bll
  */
 
 /**
