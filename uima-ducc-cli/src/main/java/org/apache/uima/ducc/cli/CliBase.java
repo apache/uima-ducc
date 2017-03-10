@@ -35,7 +35,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.uima.ducc.common.IDucc;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -80,7 +79,6 @@ public abstract class CliBase
     CountDownLatch waiter = null;
 
     protected Properties userSpecifiedProperties;
-    private String log_directory;
 
     /**
      * All extenders must implement execute - this method does whatever processing on the input
@@ -97,75 +95,47 @@ public abstract class CliBase
     }
 
     /*
-     * Get log directory or employ default log directory if not specified
+     * Make the log directory absolute if necessary and check that it is usable.
+     * If not provided it will have been given a default value.
      * UIMA-4617 Make it relative to the run-time working directory, not HOME
      */
-    String getLogDirectory()
-    {
-
+    String getLogDirectory(String working_directory) throws IOException {
         String log_directory = cli_props.getProperty(UiOption.LogDirectory.pname());
-        if(log_directory == null) {
-            // no log directory was specified - default to user's home + "/ducc/logs"
-            log_directory = System.getProperty("user.home") + IDucc.userLogsSubDirectory;
-        }
-
         File f;
         if (log_directory.startsWith(File.separator)) {
             f = new File(log_directory);
         } else {
-            // Make the log directory relative to the run-time working directory
-            // NOTE: the working-directory is ALWAYS present when the logging-directory is specified
-            String working_directory = cli_props.getProperty(UiOption.WorkingDirectory.pname());
-            f = new File(working_directory, log_directory);
-            try {
-                log_directory = f.getCanonicalPath();
-            } catch (IOException e) {
-                throw new IllegalArgumentException("getLogDirectory: Cannot get full name of log directory " + log_directory);
-            }
+            f = new File(working_directory, log_directory);   // Relative to working directory
+            log_directory = f.getCanonicalPath();
+            cli_props.setProperty(UiOption.LogDirectory.pname(), log_directory);
         }
-
-        cli_props.setProperty(UiOption.LogDirectory.pname(), log_directory);
 
         /*
          * make sure the logdir is actually legal.
          * JD may also be creating it so to reduce any race or NFS delay blindly create and then test
          */
         f.mkdirs();
-        if ( ! f.exists() ) {
-            throw new IllegalArgumentException("getLogDirectory: Cannot create log directory " + log_directory);
-        }
-
-        if ( ! f.isDirectory() ) {
-            throw new IllegalArgumentException("Specified log_directory is not a directory: " + log_directory);
-        }
-
-        if ( ! f.canWrite() ) {
-            throw new IllegalArgumentException("Log directory exists but cannot be written: " + f);
-        }
-
-        if ( ! f.canExecute() ) {
-            throw new IllegalArgumentException("Log directory exists but cannot be accessed (must be writable and executable): " + f);
+        if ( ! f.isDirectory() || ! f.canWrite()) {
+            throw new IllegalArgumentException("Specified log_directory is not a writable directory: " + log_directory);
         }
 
         return log_directory;
     }
 
     /*
-     * If the workong directory has been defined (or defaulted) make sure it is absolute
+     * Ensure the working directory exists and is absolute
      */
-    void setWorkingDirectory() throws IOException
-    {
+    String getWorkingDirectory() throws IOException {
         String working_directory = cli_props.getProperty(UiOption.WorkingDirectory.pname());
-        if (working_directory == null) {
-            return;     // Not valid for this request
-        }
         File f = new File(working_directory);
         if ( ! f.exists() ) {
             throw new IllegalArgumentException("Working directory " + working_directory + " does not exist.");
         }
         if ( ! f.isAbsolute() ) {
-            cli_props.setProperty(UiOption.WorkingDirectory.pname(), f.getCanonicalPath());
+          working_directory = f.getCanonicalPath();
+          cli_props.setProperty(UiOption.WorkingDirectory.pname(), working_directory);
         }
+        return working_directory;
     }
 
     /*
@@ -351,9 +321,6 @@ public abstract class CliBase
         // This is not used by DUCC ... allows ducc-mon to display the origin of a job
         cli_props.setProperty(UiOption.SubmitPid.pname(), ManagementFactory.getRuntimeMXBean().getName());
 
-        // First set working-directory as the log-directory may be relative to it
-        setWorkingDirectory();
-
         // Apply defaults for and fixup the environment if needed
         //   -- unless default loading is inhibited, as it must be for modify operations
         //      What this routine does is fill in all the options that weren't specified
@@ -361,10 +328,6 @@ public abstract class CliBase
         //      this because ONLY the options from the command line should be set.
         //      So modify must not change the log directory.
         if ( load_defaults ) {
-            log_directory = getLogDirectory();
-            if ( log_directory == null ) {
-                throw new IllegalArgumentException("Cannot access log directory.");
-            }
             setDefaults(uiOpts, suppress_console_log);
         }
         setUser();
@@ -429,7 +392,8 @@ public abstract class CliBase
      * Check for missing required options, set defaults, and validate where possible
      * Also fixup the environment for all that use it.
      */
-    void setDefaults(IUiOption[] uiOpts, boolean suppress_console) throws Exception {
+    void setDefaults(IUiOption[] uiOpts, boolean suppress_console) throws IOException {
+        String logDir = null, workingDir = null;
         ArrayList<String> envNameList = new ArrayList<String>(0);   // Why this when are resolving against use caller's environment?
         for (IUiOption uiopt : uiOpts) {
             if (!cli_props.containsKey(uiopt.pname())) {
@@ -466,13 +430,18 @@ public abstract class CliBase
                     }
                 }
             }
-            // If this request accepts the --environment option may need to augment it by
-            // renaming LD_LIBRARY_PATH & propagating some user values
-            // Pass in the log directory so DUCC_UMASK may be set.  UIMA-5328
-            if (uiopt == UiOption.Environment) {
+            // NOTE: These 3 options must be in this order so each depends on the previous
+            if (uiopt == UiOption.WorkingDirectory) {
+              workingDir = getWorkingDirectory();
+            } else if (uiopt == UiOption.LogDirectory) {
+              logDir = getLogDirectory(workingDir);
+            } else if (uiopt == UiOption.Environment) {
+              // If this request accepts the --environment option may need to augment it by
+              // renaming LD_LIBRARY_PATH & propagating some user values
+              // Pass in the log directory so DUCC_UMASK may be set.  UIMA-5328
               String environment = cli_props.getProperty(uiopt.pname());
               String allInOne = cli_props.getProperty(UiOption.AllInOne.pname());
-              environment = DuccUiUtilities.fixupEnvironment(environment, allInOne, log_directory);
+              environment = DuccUiUtilities.fixupEnvironment(environment, allInOne, logDir);
               cli_props.setProperty(uiopt.pname(), environment);
             }
         }

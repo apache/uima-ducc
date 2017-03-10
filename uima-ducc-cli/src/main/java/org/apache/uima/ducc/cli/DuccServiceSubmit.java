@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -33,23 +33,23 @@ import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
  * formal service registration.
  */
 
-public class DuccServiceSubmit 
+public class DuccServiceSubmit
     extends CliBase
 {
-    
+
     //private String jvmarg_string = null;
     //private Properties jvmargs = null;
     ServiceRequestProperties requestProperties = new ServiceRequestProperties();
-    
+
     UiOption[] opts = {
         UiOption.Help,
-        UiOption.Debug, 
+        UiOption.Debug,
         UiOption.Description,
         UiOption.Administrators,      // ( not used directly here, but is allowed in registration )
 
         UiOption.SchedulingClass,
-        UiOption.LogDirectory,
-        UiOption.WorkingDirectory,
+        UiOption.WorkingDirectory,   // Must precede LogDirecory
+        UiOption.LogDirectory,       // Must precede Environment
         UiOption.Jvm,
         UiOption.ProcessJvmArgs,
         UiOption.Classpath,
@@ -69,7 +69,7 @@ public class DuccServiceSubmit
         UiOption.ServiceLinger,
 
         UiOption.ServicePingArguments,
-        UiOption.ServiceId, 
+        UiOption.ServiceId,
         UiOption.ServicePingClass,
         UiOption.ServicePingClasspath,
         UiOption.ServicePingJvmArgs,
@@ -80,9 +80,9 @@ public class DuccServiceSubmit
         UiOption.InstanceFailureLimit,
         UiOption.InstanceInitFailureLimit,
     };
-   
+
     /**
-     * @param args Array of string arguments as described in the 
+     * @param args Array of string arguments as described in the
      *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_SUBMIT">DUCC CLI reference.</a>
      */
     public DuccServiceSubmit(String[] args)
@@ -90,9 +90,9 @@ public class DuccServiceSubmit
     {
         init(this.getClass().getName(), opts, args, requestProperties, null);
     }
-    
+
     /**
-     * @param args List of string arguments as described in the 
+     * @param args List of string arguments as described in the
      *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_SUBMIT">DUCC CLI reference.</a>
      */
     public DuccServiceSubmit(ArrayList<String> args)
@@ -110,14 +110,14 @@ public class DuccServiceSubmit
     {
         init (this.getClass().getName(), opts, props, requestProperties, null);
     }
-    
+
     protected void enrich_parameters_for_debug(Properties props)
         throws Exception
     {
-        try {        
+        try {
             int debug_port = -1;
             String debug_host = null;
-            
+
             // we allow both jd and jp to debug, but the ports have to differ
             String do_debug = UiOption.ProcessDebug.pname();
             if ( props.containsKey(do_debug) ) {
@@ -148,7 +148,7 @@ public class DuccServiceSubmit
                     jvmargs += " " + debug_jvmargs;
                 }
                 props.put(UiOption.ProcessJvmArgs.pname(), jvmargs);
-                
+
                 // For debugging, if the JP is being debugged, insure these are conservative
                 props.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");
                 props.setProperty(UiOption.ProcessFailuresLimit.pname(), "1");
@@ -158,24 +158,24 @@ public class DuccServiceSubmit
             throw new IllegalArgumentException("Invalid debug port (not numeric)");
         }
     }
-    
+
     /**
      * Execute collects the service parameters, does basic error and correctness checking, and sends
      * the job properties to the DUCC orchestrator for execution.
      *
      * @return True if the orchestrator accepts the service; false otherwise.
      */
-    public boolean execute() 
-        throws Exception 
+    public boolean execute()
+        throws Exception
     {
         //
         // Need to check if the mutually exclusive UIMA-AS DD and the Custom executable are specified
         //
         String uimaDD = cli_props.getStringProperty(UiOption.ProcessDD.pname(), null);
         String customCmd = cli_props.getStringProperty(UiOption.ProcessExecutable.pname(), null);
-        
+
         String endpoint = requestProperties.getProperty(UiOption.ServiceRequestEndpoint.pname());
-        
+
         boolean isUimaAs = true;
 
         if (endpoint == null || endpoint.startsWith(ServiceType.UimaAs.decode())) {
@@ -187,13 +187,13 @@ public class DuccServiceSubmit
             if (customCmd != null) {
                 message("WARN: --process_executable is ignored for UIMA-AS services");
             }
-            
+
             // This should have already been done when registered, but perhaps not in old services.
             String key_cp = UiOption.Classpath.pname();
             if (!cli_props.containsKey(key_cp)) {
                 cli_props.setProperty(key_cp, System.getProperty("java.class.path"));
             }
-            
+
             //
             // Always extract the endpoint from the DD since when it is explicitly specified it must match.
             //
@@ -231,10 +231,10 @@ public class DuccServiceSubmit
             return false;
         }
 
-        if ( ! check_service_dependencies(endpoint) ) {            
+        if ( ! check_service_dependencies(endpoint) ) {
             return false;
         }
-        
+
         if ( debug ) {
             requestProperties.dump();
         }
@@ -247,7 +247,7 @@ public class DuccServiceSubmit
 
         SubmitServiceDuccEvent      ev    = new SubmitServiceDuccEvent(requestProperties, CliVersion.getVersion());
         SubmitServiceReplyDuccEvent reply = null;
-        
+
         try {
             reply = (SubmitServiceReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(ev);
         } catch (Exception e) {
@@ -268,7 +268,7 @@ public class DuccServiceSubmit
 
         return rc;
     }
-        
+
     /**
      * Main method, as used by the executable jar or direct java invocation.
      * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_SUBMIT">DUCC CLI reference.</a>
@@ -276,7 +276,7 @@ public class DuccServiceSubmit
     public static void main(String[] args) {
         try {
             // Instantiate the object with args similar to the CLI, or a pre-built properties file
-            DuccServiceSubmit ds = new DuccServiceSubmit(args);            
+            DuccServiceSubmit ds = new DuccServiceSubmit(args);
 
             // Run the API.  If process_attach_console was specified in the args, a console listener is
             // started but this call does NOT block on it.
@@ -284,7 +284,7 @@ public class DuccServiceSubmit
 
             // If the return is 'true' then as best the API can tell, the submit worked
             if ( rc ) {
-                
+
                 // Fetch the Ducc ID
                 System.out.println("Service instance " + ds.getDuccId() + " submitted");
                 System.exit(0);
@@ -298,5 +298,5 @@ public class DuccServiceSubmit
         }
 
     }
-    
+
 }

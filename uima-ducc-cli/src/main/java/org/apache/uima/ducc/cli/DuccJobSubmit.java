@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -33,32 +33,32 @@ import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
  * Submit a DUCC job
  */
 
-public class DuccJobSubmit 
-    extends CliBase 
-{    
-    private JobRequestProperties jobRequestProperties = new JobRequestProperties();        
-    
+public class DuccJobSubmit
+    extends CliBase
+{
+    private JobRequestProperties jobRequestProperties = new JobRequestProperties();
+
     public static UiOption[] opts = new UiOption[] {
         UiOption.Help,
-        UiOption.Debug, 
+        UiOption.Debug,
         UiOption.Timestamp,
-        
+
         UiOption.AllInOne,
 
         UiOption.AttachConsole,
         UiOption.ProcessDebug,
         UiOption.DriverDebug,
-        
+
         UiOption.Description,
         UiOption.SchedulingClass,
 
-        UiOption.LogDirectory,
-        UiOption.WorkingDirectory,
+        UiOption.WorkingDirectory,   // Must precede LogDirecory
+        UiOption.LogDirectory,       // Must precede Environment
         UiOption.Jvm,
-        
+
         UiOption.Classpath,
         UiOption.Environment,
-       
+
         UiOption.DriverJvmArgs,
         UiOption.DriverDescriptorCR,
         UiOption.DriverDescriptorCROverrides,
@@ -74,7 +74,7 @@ public class DuccJobSubmit
         UiOption.ProcessDescriptorAEOverrides,
         UiOption.ProcessDescriptorCC,
         UiOption.ProcessDescriptorCCOverrides,
-        
+
         UiOption.ProcessDeploymentsMax,
         UiOption.ProcessInitializationFailuresCap,
         UiOption.ProcessFailuresLimit,
@@ -90,9 +90,9 @@ public class DuccJobSubmit
     };
 
     private AllInOneLauncher allInOneLauncher = null;
-    
+
     /**
-     * @param args Array of string arguments as described in the 
+     * @param args Array of string arguments as described in the
      *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
      */
     public DuccJobSubmit(String[] args)
@@ -102,7 +102,7 @@ public class DuccJobSubmit
     }
 
     /**
-     * @param args List of string arguments as described in the 
+     * @param args List of string arguments as described in the
      *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
      */
     public DuccJobSubmit(ArrayList<String> args)
@@ -124,9 +124,9 @@ public class DuccJobSubmit
 
     /**
      * This form of the constructor allows the API user to capture
-     * messages, rather than directing them to stdout. 
+     * messages, rather than directing them to stdout.
      *
-     * @param args List of string arguments as described in the 
+     * @param args List of string arguments as described in the
      *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
      * @param consoleCb If provided, messages are directed to it instead of
      *        stdout.
@@ -139,9 +139,9 @@ public class DuccJobSubmit
 
     /**
      * This form of the constructor allows the API user to capture
-     * messages, rather than directing them to stdout. 
+     * messages, rather than directing them to stdout.
      *
-     * @param args Array of string arguments as described in the 
+     * @param args Array of string arguments as described in the
      *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
      * @param consoleCb If provided, messages are directed to it instead of
      *        stdout.
@@ -158,9 +158,9 @@ public class DuccJobSubmit
 
     /**
      * This form of the constructor allows the API user to capture
-     * messages, rather than directing them to stdout. 
+     * messages, rather than directing them to stdout.
      *
-     * @param props Properties file containing string arguments as described in the 
+     * @param props Properties file containing string arguments as described in the
      *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
      * @param consoleCb If provided, messages are directed to it instead of
      *        stdout.
@@ -174,7 +174,7 @@ public class DuccJobSubmit
             allInOneLauncher = new AllInOneLauncher(userSpecifiedProperties, consoleCb);  // Pass the already fixed-up user properties
         }
     }
-    
+
     /*
      * If preemptable change to a non-preemptable scheduling class.
      * If none provided use the default fixed class
@@ -204,7 +204,7 @@ public class DuccJobSubmit
               base.message(text);
          }
     }
-    
+
     private void check_descriptor_options() {
 		boolean isDDjob = jobRequestProperties.containsKey(UiOption.ProcessDD.pname());
 		boolean isPPjob = jobRequestProperties.containsKey(UiOption.ProcessDescriptorCM.pname())
@@ -217,7 +217,7 @@ public class DuccJobSubmit
 			throw new IllegalArgumentException("Missing --process_descriptor_xx option .. DD or at least one of AE, CC, CM required");
 		}
     }
-    
+
     private void set_debug_parms(Properties props, String key, int port)
     {
         String debug_jvmargs = "-Xdebug -Xrunjdwp:transport=dt_socket,address=" + host_address + ":" + port;
@@ -229,11 +229,11 @@ public class DuccJobSubmit
         }
         props.put(key, jvmargs);
     }
-    
+
     protected void enrich_parameters_for_debug(Properties props)
         throws Exception
     {
-        try {        
+        try {
             int jp_debug_port = -1;
             int jd_debug_port = -2;       // a trick, must be different from jp_debug_port; see below
 
@@ -245,12 +245,12 @@ public class DuccJobSubmit
                     throw new IllegalArgumentException("Missing port for " + do_debug);
                 }
                 jp_debug_port = Integer.parseInt(jp_port_s);
-                
+
                 set_debug_parms(props, UiOption.ProcessJvmArgs.pname(), jp_debug_port);
                 // For debugging, if the JP is being debugged, we have to force max processes to 1 & no restarts
                 props.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");
                 props.setProperty(UiOption.ProcessFailuresLimit.pname(), "1");
-                
+
                 // Alter scheduling class?
                 transform_scheduling_class(this, props);
             }
@@ -264,7 +264,7 @@ public class DuccJobSubmit
                 jd_debug_port = Integer.parseInt(jd_port_s);
                 set_debug_parms(props, UiOption.DriverJvmArgs.pname(), jd_debug_port);
             }
-            
+
             if ( jp_debug_port == jd_debug_port ) {
                 throw new IllegalArgumentException("Process and Driver debug ports must differ.");
             }
@@ -274,8 +274,8 @@ public class DuccJobSubmit
 
     }
 
-    //**********        
-    
+    //**********
+
     /**
      * Execute collects the job parameters, does basic error and correctness checking, and sends
      * the job properties to the DUCC orchestrator for execution.
@@ -322,7 +322,7 @@ public class DuccJobSubmit
 
         // Warn if Xmx value is too large and may cause swapping
         check_heap_size(UiOption.ProcessJvmArgs.pname());
-        
+
         SubmitJobDuccEvent      submitJobDuccEvent      = new SubmitJobDuccEvent(jobRequestProperties, CliVersion.getVersion());
         SubmitJobReplyDuccEvent submitJobReplyDuccEvent = null;
         try {
@@ -347,7 +347,7 @@ public class DuccJobSubmit
 
         return rc;
     }
-    
+
     /**
      * Return appropriate rc when job has completed.
      * @return The exit code from the job.
@@ -365,7 +365,7 @@ public class DuccJobSubmit
         }
         return super.getDuccId();
     }
-    
+
     private boolean isAllInOne() {
         return jobRequestProperties.containsKey(UiOption.AllInOne.pname());
     }
@@ -380,7 +380,7 @@ public class DuccJobSubmit
             DuccJobSubmit ds = new DuccJobSubmit(args, null);
             boolean rc = ds.execute();
             // If the return is 'true' then as best the API can tell, the submit worked
-            if ( rc ) {                
+            if ( rc ) {
                 System.out.println("Job " + ds.getDuccId() + " submitted");
                 int exit_code = ds.getReturnCode();       // after waiting if requested
                 System.exit(exit_code);
@@ -394,7 +394,7 @@ public class DuccJobSubmit
             Throwable t = e;
             while ((t = t.getCause()) != null) {
                 System.out.println("  ... " + t);
-            } 
+            }
             for (String arg : args) {
                 if (arg.equals("--debug")) {
                     e.printStackTrace();

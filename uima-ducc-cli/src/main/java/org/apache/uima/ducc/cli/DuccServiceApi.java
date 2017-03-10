@@ -60,8 +60,8 @@ public class DuccServiceApi
         UiOption.Description,
         UiOption.Administrators,
         UiOption.SchedulingClass,
-        UiOption.LogDirectory,
-        UiOption.WorkingDirectory,
+        UiOption.WorkingDirectory,   // Must precede LogDirecory
+        UiOption.LogDirectory,       // Must precede Environment
         UiOption.Jvm,
         UiOption.ProcessJvmArgs,
         UiOption.Classpath,
@@ -209,7 +209,7 @@ public class DuccServiceApi
             modify_options[i++] = o;
         }
         modify_options[i++] = UiOption.RoleAdministrator;
-        // modify_options[i++] = UiOption.Activate;
+        // modify_options[i++] = UiOption.Activate;   // Dropped by UIMA-4064
     }
 
     private Pair<Integer, String> getId(UiOption opt)
