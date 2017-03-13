@@ -57,6 +57,16 @@
     </layout> 
   </appender>
   
+  <appender name="system-events-log" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
+    <param name="append" value="true"/>
+    <param name="file" value="${DUCC_HOME}/logs/system-events.log"/>
+    <param name="maxBackupIndex" value="5" />
+    <param name="maxFileSize" value="10MB" />
+    <layout class="org.apache.log4j.PatternLayout"> 
+      <param name="ConversionPattern" value="%d{DATE} %5p %X{DAEMON} %X{USER} %X{TYPE} %m%n"/> 
+    </layout> 
+  </appender> 
+  
   <appender name="rmlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
     <param name="file" value="${DUCC_HOME}/logs/rm.log"/>
@@ -146,6 +156,11 @@
       <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - T[%X{TID}] %X{METHOD} %m%n"/> 
     </layout> 
   </appender> 
+  
+   <category name="org.apache.uima.ducc.system.events.log" additivity="false">
+     <priority value="info"/>
+     <appender-ref ref="system-events-log" /> 
+   </category>
   
    <category name="org.apache.uima.ducc.rm" additivity="false">
      <priority value="info"/>
