@@ -26,6 +26,7 @@ import java.util.Properties;
 
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
@@ -37,6 +38,7 @@ import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorConstants.StartType;
@@ -47,11 +49,13 @@ import org.apache.uima.ducc.orchestrator.factory.JobFactory;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdScheduler;
 import org.apache.uima.ducc.orchestrator.maintenance.MaintenanceThread;
 import org.apache.uima.ducc.orchestrator.maintenance.NodeAccounting;
+import org.apache.uima.ducc.orchestrator.system.events.log.SystemEventsLogger;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.DuccWorkRequestEvent;
+import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
@@ -112,6 +116,11 @@ implements Orchestrator {
 	
 	public OrchestratorComponent(CamelContext context) {
 		super("Orchestrator", context);
+	}
+	
+	public void onDuccAdminKillEvent(DuccAdminEvent event) throws Exception {
+		SystemEventsLogger.warn(IDuccLoggerComponents.abbrv_orchestrator, EventType.SHUTDOWN.name(), "");
+		super.onDuccAdminKillEvent(event);
 	}
 	
 	private void force(IDuccWorkJob job, IRationale rationale){
@@ -323,6 +332,7 @@ implements Orchestrator {
 		}
 		super.start(service, args);
 		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.Orchestrator,getProcessJmxUrl());
+		SystemEventsLogger.warn(IDuccLoggerComponents.abbrv_orchestrator, EventType.BOOT.name(), "");
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 	

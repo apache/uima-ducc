@@ -20,8 +20,11 @@ package org.apache.uima.ducc.orchestrator;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
+import org.apache.uima.ducc.orchestrator.system.events.log.SystemEventsLogger;
 import org.apache.uima.ducc.orchestrator.user.UserLogging;
+import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
@@ -136,6 +139,7 @@ public class StateJobAccounting {
 			case Completed:
 				recordUserState(job);
 				recordUserCompletion(job);
+				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_orchestrator, state.name(), job);
 				break;
 			default:
 				recordUserState(job);

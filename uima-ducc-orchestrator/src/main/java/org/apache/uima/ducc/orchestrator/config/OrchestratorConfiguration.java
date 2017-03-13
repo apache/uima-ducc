@@ -30,12 +30,14 @@ import org.apache.uima.ducc.common.config.DuccBlastGuardPredicate;
 import org.apache.uima.ducc.common.exception.DuccRuntimeException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.Orchestrator;
 import org.apache.uima.ducc.orchestrator.OrchestratorComponent;
 import org.apache.uima.ducc.orchestrator.OrchestratorState;
 import org.apache.uima.ducc.orchestrator.event.OrchestratorEventListener;
+import org.apache.uima.ducc.orchestrator.system.events.log.SystemEventsLogger;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelJobReplyDuccEvent;
@@ -181,36 +183,42 @@ public class OrchestratorConfiguration {
 				SubmitJobReplyDuccEvent replyJobEvent = new SubmitJobReplyDuccEvent();
 				replyJobEvent.setProperties(submitJobEvent.getProperties());
 				exchange.getIn().setBody(replyJobEvent);
+				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_orchestrator, submitJobEvent, replyJobEvent);
 			}
 			if(obj instanceof CancelJobDuccEvent) {
 				CancelJobDuccEvent cancelJobEvent = exchange.getIn().getBody(CancelJobDuccEvent.class);
 				CancelJobReplyDuccEvent replyJobEvent = new CancelJobReplyDuccEvent();
 				replyJobEvent.setProperties(cancelJobEvent.getProperties());
 				exchange.getIn().setBody(replyJobEvent);
+				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_orchestrator, cancelJobEvent, replyJobEvent);
 			}
 			if(obj instanceof SubmitReservationDuccEvent) {
 				SubmitReservationDuccEvent submitReservationEvent = exchange.getIn().getBody(SubmitReservationDuccEvent.class);
 				SubmitReservationReplyDuccEvent replyReservationEvent = new SubmitReservationReplyDuccEvent();
 				replyReservationEvent.setProperties(submitReservationEvent.getProperties());
 				exchange.getIn().setBody(replyReservationEvent);
+				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_orchestrator, submitReservationEvent, replyReservationEvent);
 			}
 			if(obj instanceof CancelReservationDuccEvent) {
 				CancelReservationDuccEvent cancelReservationEvent = exchange.getIn().getBody(CancelReservationDuccEvent.class);
 				CancelReservationReplyDuccEvent replyReservationEvent = new CancelReservationReplyDuccEvent();
 				replyReservationEvent.setProperties(cancelReservationEvent.getProperties());
 				exchange.getIn().setBody(replyReservationEvent);
+				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_orchestrator, cancelReservationEvent, replyReservationEvent);
 			}
 			if(obj instanceof SubmitServiceDuccEvent) {
 				SubmitServiceDuccEvent submitServiceEvent = exchange.getIn().getBody(SubmitServiceDuccEvent.class);
 				SubmitServiceReplyDuccEvent replyServiceEvent = new SubmitServiceReplyDuccEvent();
 				replyServiceEvent.setProperties(submitServiceEvent.getProperties());
 				exchange.getIn().setBody(replyServiceEvent);
+				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_orchestrator, submitServiceEvent, replyServiceEvent);
 			}
 			if(obj instanceof CancelServiceDuccEvent) {
 				CancelServiceDuccEvent cancelServiceEvent = exchange.getIn().getBody(CancelServiceDuccEvent.class);
 				CancelServiceReplyDuccEvent replyServiceEvent = new CancelServiceReplyDuccEvent();
 				replyServiceEvent.setProperties(cancelServiceEvent.getProperties());
 				exchange.getIn().setBody(replyServiceEvent);
+				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_orchestrator, cancelServiceEvent, replyServiceEvent);
 			}
 		}
 	}
