@@ -21,7 +21,6 @@ package org.apache.uima.ducc.container.sd.task;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.UIMAFramework;
