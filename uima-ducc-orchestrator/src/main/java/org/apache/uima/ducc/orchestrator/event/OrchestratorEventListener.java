@@ -21,6 +21,7 @@ package org.apache.uima.ducc.orchestrator.event;
 import java.util.Properties;
 
 import org.apache.camel.Body;
+import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -34,6 +35,8 @@ import org.apache.uima.ducc.transport.event.DuccWorkRequestEvent;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
+import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
+import org.apache.uima.ducc.transport.event.ServiceRequestEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
@@ -181,6 +184,25 @@ public class OrchestratorEventListener implements DuccEventDelegateListener {
 		try {
 			NodeInventoryEventLogger.receiver(duccEvent);
 			orchestrator.reconcileNodeInventory(duccEvent);
+		}
+		catch(Throwable t) {
+			logger.error(methodName, null, t);
+		}
+		logger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
+	private SmChannel smChannel = null;
+	
+	public void initSmChannel(CamelContext context, String endpoint) {
+		smChannel = new SmChannel(context, endpoint);
+	}
+	
+	public void onServiceRequestEvent(@Body ServiceRequestEvent request) throws Exception {
+		String methodName = "onServiceRequestEvent";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		try {
+			ServiceReplyEvent reply = smChannel.exchange(request);
+			request.setReply(reply);
 		}
 		catch(Throwable t) {
 			logger.error(methodName, null, t);

@@ -20,7 +20,7 @@ package org.apache.uima.ducc.transport.event;
 
 @SuppressWarnings("serial")
 public class ServiceStartEvent 
-    extends AServiceRequest
+    extends ServiceRequestEvent
 {
     private int friendly;
     private String epname;

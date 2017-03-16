@@ -22,7 +22,7 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 
 @SuppressWarnings("serial")
 public class ServiceModifyEvent 
-    extends AServiceRequest
+    extends ServiceRequestEvent
 {
     private long friendly;      // the "friendly" part of a DuccId
     private String epname;

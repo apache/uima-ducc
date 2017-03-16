@@ -24,21 +24,22 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.RuntimeExchangeException;
-import org.apache.camel.dataformat.xstream.XStreamDataFormat;
-import org.apache.camel.impl.DefaultClassResolver;
 import org.apache.uima.ducc.common.exception.DuccRuntimeException;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-
 public class DuccEventDispatcher {
+	
+  private static DuccLogger logger = new DuccLogger(DuccEventDispatcher.class);
+  private static DuccId jobid = null;
+  
   private ProducerTemplate pt;
 
   private String targetEndpoint;
 
-  CamelContext context;
+  protected CamelContext context;
 
   public DuccEventDispatcher(CamelContext context) {
     this.pt = context.createProducerTemplate();
@@ -49,30 +50,7 @@ public class DuccEventDispatcher {
     this.context = context;
     this.targetEndpoint = targetEndpoint;
   }
-
-  private String marshallDuccEvent(DuccEvent duccEvent) throws Exception {
-    XStreamDataFormat xStreamDataFormat = new XStreamDataFormat();
-    XStream xStream = xStreamDataFormat.getXStream(new DefaultClassResolver());
-    return xStream.toXML(duccEvent);
-  }
-
-  private DuccEvent unmarshallDuccEvent(Object targetToUnmarshall) throws Exception {
-    XStream xStream = new XStream(new DomDriver());
-    String claz = targetToUnmarshall.getClass().getName();
-    if (targetToUnmarshall instanceof byte[]) {
-      Object reply = xStream.fromXML(new String((byte[]) targetToUnmarshall));
-      if (reply instanceof DuccEvent) {
-        return (DuccEvent) reply;
-      } else {
-        claz = (reply == null) ? "NULL" : reply.getClass().getName();
-      }
-    }
-    throw new Exception(
-            "Unexpected Reply type received from Ducc Component. Expected DuccEvent, instead received:"
-                    + claz);
-
-  }
-
+  
   public void dispatch(int serviceSocketPort, DuccEvent duccEvent) throws Exception {
     //  by default Mina doesnt include exchange.The transferExchange=true forces inclusion of the Exchange in 
     //  a message
@@ -90,23 +68,16 @@ public class DuccEventDispatcher {
   }
 
   public void dispatch(String endpoint, DuccEvent duccEvent, String nodeList) throws Exception {
-    try {
-//      XStreamDataFormat xStreamDataFormat = new XStreamDataFormat();
-//      XStream xStream = xStreamDataFormat.getXStream(new DefaultClassResolver());
-
-//      String marshalledEvent = xStream.toXML(duccEvent);
-      
+	  String location = "dispatch";
+	  try {
       if (nodeList != null) {
         // No reply is expected
-//        pt.sendBodyAndHeader(endpoint, marshalledEvent, DuccExchange.TARGET_NODES_HEADER_NAME,
-        pt.sendBodyAndHeader(endpoint, duccEvent, DuccExchange.TARGET_NODES_HEADER_NAME,
-                nodeList);
+        pt.sendBodyAndHeader(endpoint, duccEvent, DuccExchange.TARGET_NODES_HEADER_NAME, nodeList);
       } else {
-//        pt.asyncRequestBody(endpoint, marshalledEvent);
         pt.asyncRequestBody(endpoint, duccEvent);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+    	logger.error(location, jobid, e);
     }
   }
 
@@ -134,7 +105,7 @@ public class DuccEventDispatcher {
   public DuccEvent dispatchAndWaitForDuccReply(DuccEvent duccEvent) throws Exception {
     int maxRetryCount = 20;
     int i = 0;
-    Object reply = null;
+    Object response = null;
     RuntimeExchangeException ree = null;
 
     // retry up to 20 times. This is an attempt to handle an error thrown
@@ -143,7 +114,7 @@ public class DuccEventDispatcher {
     // After 10secs Camel times out and throws an Exception.
     for (; i < maxRetryCount; i++) {
       try {
-        reply = pt.sendBody(targetEndpoint, ExchangePattern.InOut, marshallDuccEvent(duccEvent));
+        response = pt.sendBody(targetEndpoint, ExchangePattern.InOut, duccEvent);
         ree = null; // all is well - got a reply
         break; // done here
 
@@ -163,7 +134,8 @@ public class DuccEventDispatcher {
               "ActiveMQ failed to create temp reply queue. After 20 attempts to deliver request to the OR, Ducc JMS Dispatcher is giving up.",
               ree);
     }
-    return unmarshallDuccEvent(reply);
+    DuccEvent reply = (DuccEvent) response;
+    return reply;
   }
 
   public void stop() throws Exception {

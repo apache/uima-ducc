@@ -18,34 +18,13 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-
-@SuppressWarnings("serial")
-public class ServiceEnableEvent 
-    extends ServiceRequestEvent
+public class ServiceRequestEvent 
+extends AServiceRequest
 {
-    private long friendly;
-    private String epname;
+	private static final long serialVersionUID = 1L;
 
-	public ServiceEnableEvent(String user, long friendly, String epname, byte[] auth_block, int cli_version)
-    {
-		super(EventType.SERVICE_STOP, user, auth_block, cli_version);
-        this.friendly = friendly;
-        this.epname = epname;
+	public ServiceRequestEvent(EventType eventType, String user, byte[] auth_block, int cli_version) {
+		super(eventType, user, auth_block, cli_version);
 	}
 
-	public long getFriendly() {
-		return friendly;
-	}
-
-    public String getEndpoint()
-    {
-        return epname;
-    }
-
-	@Override
-	public String toString() {
-		return "ServiceEnableEvent [friendly=" + friendly + ", user=" + user 
-				+ "]";
-	}
-	
 }

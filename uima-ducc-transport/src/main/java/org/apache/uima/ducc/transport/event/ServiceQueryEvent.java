@@ -20,7 +20,7 @@ package org.apache.uima.ducc.transport.event;
 
 @SuppressWarnings("serial")
 public class ServiceQueryEvent 
-    extends AServiceRequest
+    extends ServiceRequestEvent
 {    
     long friendly;
     String epname;

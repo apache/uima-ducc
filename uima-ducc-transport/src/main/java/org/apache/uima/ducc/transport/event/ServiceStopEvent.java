@@ -21,7 +21,7 @@ package org.apache.uima.ducc.transport.event;
 
 @SuppressWarnings("serial")
 public class ServiceStopEvent 
-    extends AServiceRequest
+    extends ServiceRequestEvent
 {
     private long friendly;
     private String epname;

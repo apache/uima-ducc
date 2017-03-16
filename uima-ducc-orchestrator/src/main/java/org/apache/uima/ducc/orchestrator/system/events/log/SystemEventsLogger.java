@@ -12,6 +12,8 @@ import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceReplyDuccEvent;
+import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
+import org.apache.uima.ducc.transport.event.ServiceRequestEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
@@ -199,6 +201,19 @@ public class SystemEventsLogger {
 		//String reason = service.isCompleted() ? service.getCompletionType().name() : "";
 		String reason = "";
 		Object[] event = { "id:"+id,reason };
+		duccLogger.event_info(daemon, user, type, event);
+	}
+	
+	/*
+	 * log a services request
+	 */
+	public static void info(String daemon, ServiceRequestEvent request, ServiceReplyEvent response) {
+		String user = request.getUser();
+		String type = request.getEventType().name();
+		long id = response.getId();
+		boolean rc = response.getReturnCode();
+		String message = response.getMessage();
+		Object[] event = { "id:"+id, "rc:"+rc, message};
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	

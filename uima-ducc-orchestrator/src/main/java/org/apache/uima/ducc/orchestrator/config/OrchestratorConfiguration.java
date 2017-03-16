@@ -50,6 +50,8 @@ import org.apache.uima.ducc.transport.event.DuccWorkRequestEvent;
 import org.apache.uima.ducc.transport.event.JdReplyEvent;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
+import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
+import org.apache.uima.ducc.transport.event.ServiceRequestEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
@@ -220,6 +222,17 @@ public class OrchestratorConfiguration {
 				exchange.getIn().setBody(replyServiceEvent);
 				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_orchestrator, cancelServiceEvent, replyServiceEvent);
 			}
+			// Single point of Entry (SPOE) for Services Manager (SM)
+			// - field HTTP request from CLI/API
+			// - forward to SM via AMQ queue
+			// - receive reply via AMQ
+			// - send HTTP response back to CLI/API
+			if(obj instanceof ServiceRequestEvent) {
+				ServiceRequestEvent serviceRequest = exchange.getIn().getBody(ServiceRequestEvent.class);
+				ServiceReplyEvent serviceReply = serviceRequest.getReply();
+				exchange.getIn().setBody(serviceReply);
+				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_servicesManager, serviceRequest, serviceReply);
+			}
 		}
 	}
 	
@@ -298,6 +311,8 @@ public class OrchestratorConfiguration {
         //	Instantiate JobManagerEventListener delegate listener. This listener will receive
         //	incoming messages. 
         OrchestratorEventListener delegateListener = this.orchestratorDelegateListener(orchestrator);
+        // direct communication exchange OR-SM
+        delegateListener.initSmChannel(common.camelContext(), common.smApiEndpoint);
 		//	Inject a dispatcher into the listener in case it needs to send
 		//  a message to another component
 		delegateListener.setDuccEventDispatcher(orchestratorTransport.duccEventDispatcher(common.pmRequestEndpoint, orchestrator.getContext()));

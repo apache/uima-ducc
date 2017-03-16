@@ -123,6 +123,10 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.sm.state.update.endpoint'] }")
 	public String smStateUpdateEndpoint;
 	
+	//	fetch the name of an endpoint where the Service Manager should receive API requests
+	@Value("#{ systemProperties['ducc.sm.api.endpoint'] }")
+	public String smApiEndpoint;
+	
 	//	fetch the rate at which the SM should post its state
 	@Value("#{ systemProperties['ducc.sm.state.publish.rate'] }")
 	public String smStatePublishRate;

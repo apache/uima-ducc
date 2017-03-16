@@ -20,7 +20,7 @@ package org.apache.uima.ducc.transport.event;
 
 @SuppressWarnings("serial")
 public class ServiceUnregisterEvent 
-    extends AServiceRequest
+    extends ServiceRequestEvent
 {
 
     private long friendly;

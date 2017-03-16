@@ -18,15 +18,15 @@
 */
 package org.apache.uima.ducc.sm.config;
 
-import org.apache.camel.CamelContext;
+import javax.jms.Destination;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.jetty9.JettyHttpComponent9;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
-import org.apache.uima.ducc.common.exception.DuccRuntimeException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.sm.ServiceManagerComponent;
 import org.apache.uima.ducc.sm.event.ServiceManagerEventListener;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
@@ -53,7 +53,7 @@ public class ServiceManagerConfiguration
 	@Autowired DuccTransportConfiguration serviceManagerTransport;
 
     private DuccLogger logger = DuccLogger.getLogger(this.getClass(), "SM");
-
+    private static DuccId jobid = null;
 
 	/**
 	 * Instantiate {@link ServiceManagerEventListener} which will handle incoming messages.
@@ -95,7 +95,6 @@ public class ServiceManagerConfiguration
 	 * @param delegate - {@link ServiceManagerEventListener} instance
 	 * @return - initialized {@link RouteBuilder} instance
 	 */
-	/*
 	  
 	public synchronized RouteBuilder routeBuilderForApi(final String endpoint, final ServiceManagerEventListener delegate) 
 	{
@@ -106,28 +105,6 @@ public class ServiceManagerConfiguration
                     .process(new TransportProcessor())
                     .bean(delegate)
                     .process(new SmReplyProcessor())   // inject reply object
-                    ;
-            }
-        };
-    }
-*/
-    private RouteBuilder routeBuilderForJetty(final CamelContext context, final ServiceManagerEventListener delegate) throws Exception {
-    
-        return new RouteBuilder() {
-            public void configure() {
-            
-                JettyHttpComponent9 jettyComponent = new JettyHttpComponent9();
-                String port = System.getProperty("ducc.sm.http.port");
-                //ExchangeMonitor xmError = new ExchangeMonitor(LifeStatus.Error, ExchangeType.Receive);
-			
-                context.addComponent("jetty", jettyComponent);
-                onException(Throwable.class).maximumRedeliveries(0).handled(false).process(new ErrorProcessor());
-            
-                from("jetty://http://0.0.0.0:" + port + "/sm")
-                    .unmarshal().xstream()
-                    .bean(delegate)
-                    .process(new SmReplyProcessor())     // inject reply object
-                    .process(new JettyReplyProcessor())  // translate to http response
                     ;
             }
         };
@@ -152,25 +129,6 @@ public class ServiceManagerConfiguration
 		}
 	}
 
-    private class JettyReplyProcessor
-        implements Processor 
-    {
-        public void process(Exchange exchange) throws Exception 
-        {
-            exchange.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-            exchange.getOut().setHeader("content-type", "text/xml");
-            Object o = exchange.getIn().getBody();
-            if ( o != null ) {
-                String body = XStreamUtils.marshall(o);
-                exchange.getOut().setBody(body);
-                exchange.getOut().setHeader("content-length", body.length());
-            } else {
-                logger.warn("RouteBuilder.configure", null, new DuccRuntimeException("No reply object was provided."));
-                exchange.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
-            } 
-        }
-    }
-
     public class ErrorProcessor implements Processor {
         
         public void process(Exchange exchange) throws Exception {
@@ -194,9 +152,12 @@ public class ServiceManagerConfiguration
 	public class TransportProcessor implements Processor {
 
 		public void process(Exchange exchange) throws Exception {
-//			System.out.println("... SM transport received Event. Body Type:"+exchange.getIn().getBody().getClass().getName());
-//			Destination replyTo = exchange.getIn().getHeader("JMSReplyTo", Destination.class); 
-//			System.out.println("... transport - value of replyTo:" + replyTo);
+			String location = "process";
+			String text = "... SM transport received Event. Body Type:"+exchange.getIn().getBody().getClass().getName();
+			logger.debug(location, jobid, text);
+			Destination replyTo = exchange.getIn().getHeader("JMSReplyTo", Destination.class); 
+			text = "... transport - value of replyTo:" + replyTo;
+			logger.debug(location, jobid, text);
 		}
 		
 	}
@@ -269,10 +230,8 @@ public class ServiceManagerConfiguration
                                      common.smStateUpdateEndpoint);
         // OR state messages - incoming
 		sm.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.orchestratorStateUpdateEndpoint, delegateListener));
-
-        // API requests - incoming
-		//sm.getContext().addRoutes(this.routeBuilderForApi(common.smRequestEndpoint, delegateListener));
-		sm.getContext().addRoutes(this.routeBuilderForJetty(sm.getContext(), delegateListener));
+		// API requests - incoming (via OR)
+		sm.getContext().addRoutes(this.routeBuilderForApi(common.smApiEndpoint, delegateListener));
 
         // TODO Not used - timer to send state. We now send whenever we get an OR heartbeat.
 		//sm.getContext().addRoutes(this.routeBuilderForSMStatePost(sm, common.smStateUpdateEndpoint, Integer.parseInt(common.smStatePublishRate)));

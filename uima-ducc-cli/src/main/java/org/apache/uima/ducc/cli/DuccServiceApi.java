@@ -51,6 +51,8 @@ public class DuccServiceApi
     extends CliBase
 {
 
+	private static String target_daemon = "orchestrator";
+	
     String endpoint = null;
     IDuccCallback callback = null;
 
@@ -371,7 +373,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new SpecificationProperties();
-        init (this.getClass().getName(), registration_options, args, null, dp, callback, "sm");
+        init (this.getClass().getName(), registration_options, args, null, dp, callback, target_daemon);
 
         // Note: dp & cli_props are identical ... use only the class variable here for consistency
 
@@ -492,7 +494,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new SpecificationProperties();
-        init(this.getClass().getName(), unregister_options, args, null, dp, callback, "sm");
+        init(this.getClass().getName(), unregister_options, args, null, dp, callback, target_daemon);
 
 
         Pair<Integer, String> id = getId(UiOption.Unregister);
@@ -521,7 +523,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new SpecificationProperties();
-        init(this.getClass().getName(), start_options, args, null, dp, callback, "sm");
+        init(this.getClass().getName(), start_options, args, null, dp, callback, target_daemon);
 
         Pair<Integer, String> id = getId(UiOption.Start);
         String user = dp.getProperty(UiOption.User.pname());
@@ -555,7 +557,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new SpecificationProperties();
-        init(this.getClass().getName(), stop_options, args, null, dp, callback, "sm");
+        init(this.getClass().getName(), stop_options, args, null, dp, callback, target_daemon);
 
         Pair<Integer, String> id = getId(UiOption.Stop);
         String user = dp.getProperty(UiOption.User.pname());
@@ -591,7 +593,7 @@ public class DuccServiceApi
         DuccProperties dp = new SpecificationProperties();
 
         inhibitDefaults();
-        init (this.getClass().getName(), modify_options, args, null, dp, callback, "sm");
+        init (this.getClass().getName(), modify_options, args, null, dp, callback, target_daemon);
 
         enrichPropertiesForDebug(UiOption.Modify);
 
@@ -623,7 +625,7 @@ public class DuccServiceApi
     {
         DuccProperties dp = new SpecificationProperties();
 
-        init (this.getClass().getName(), modify_options, args, null, dp, callback, "sm");
+        init (this.getClass().getName(), modify_options, args, null, dp, callback, target_daemon);
 
         Pair<Integer, String> id = getId(UiOption.Modify);
         String user = dp.getProperty(UiOption.User.pname());
@@ -678,7 +680,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new SpecificationProperties();
-        init(this.getClass().getName(), query_options, args, null, dp, callback, "sm");
+        init(this.getClass().getName(), query_options, args, null, dp, callback, target_daemon);
 
         Pair<Integer, String> id = null;
         String sid = cli_props.getProperty(UiOption.Query.pname()).trim();
@@ -704,7 +706,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new SpecificationProperties();
-        init(this.getClass().getName(), observe_options, args, null, dp, callback, "sm");
+        init(this.getClass().getName(), observe_options, args, null, dp, callback, target_daemon);
 
         Pair<Integer, String> id = getId(UiOption.Observe);
         String user = dp.getProperty(UiOption.User.pname());
@@ -725,7 +727,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new SpecificationProperties();
-        init(this.getClass().getName(), ignore_options, args, null, dp, callback, "sm");
+        init(this.getClass().getName(), ignore_options, args, null, dp, callback, target_daemon);
 
         Pair<Integer, String> id = getId(UiOption.Ignore);
         String user = dp.getProperty(UiOption.User.pname());
@@ -746,7 +748,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new SpecificationProperties();
-        init(this.getClass().getName(), enable_options, args, null, dp, callback, "sm");
+        init(this.getClass().getName(), enable_options, args, null, dp, callback, target_daemon);
 
         Pair<Integer, String> id = getId(UiOption.Enable);
         String user = dp.getProperty(UiOption.User.pname());
@@ -767,7 +769,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new SpecificationProperties();
-        init(this.getClass().getName(), disable_options, args, null, dp, callback, "sm");
+        init(this.getClass().getName(), disable_options, args, null, dp, callback, target_daemon);
 
         Pair<Integer, String> id = getId(UiOption.Disable);
         String user = dp.getProperty(UiOption.User.pname());

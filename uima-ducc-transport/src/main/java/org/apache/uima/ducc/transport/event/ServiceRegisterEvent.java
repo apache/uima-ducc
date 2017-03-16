@@ -23,7 +23,7 @@ import org.apache.uima.ducc.transport.event.sm.IService.Trinary;
 
 @SuppressWarnings("serial")
 public class ServiceRegisterEvent 
-    extends AServiceRequest
+    extends ServiceRequestEvent
 {
     
     private int ninstances;
