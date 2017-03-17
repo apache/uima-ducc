@@ -19,7 +19,6 @@
 
 package org.apache.uima.ducc.ws.server;
 
-import java.io.File;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Properties;

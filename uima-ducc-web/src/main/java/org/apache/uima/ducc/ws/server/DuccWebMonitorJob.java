@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.ws.server;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
