@@ -25,7 +25,20 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public interface IWebMonitor {
 	
-	public enum MonitorType { Job, ManagedReservation, UnmanagedReservation };
+	public static String job = "job";
+	public static String reservation = "reservation";
+	public enum MonitorType { 
+		Job(job), 
+		ManagedReservation(reservation), 
+		UnmanagedReservation (reservation);
+		private String text = null;
+		MonitorType(String text) {
+			this.text = text;
+		}
+		public String getText() {
+			return text;
+		}
+	};
 	
 	public void register(String host, String port);
 	public boolean isAutoCancelEnabled();

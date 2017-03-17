@@ -947,6 +947,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	}
 
 	protected String getMonitor(DuccId duccId, MonitorType monitorType, boolean multi) {
+		String location = "getMonitor";
 		StringBuffer sb = new StringBuffer();
 		DuccWebMonitor duccWebMonitor = DuccWebMonitor.getInstance();
 		Long expiry = duccWebMonitor.getExpiry(monitorType, duccId);
@@ -962,15 +963,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			if(multi) {
 				sb.append(" ");
 			}
-			String t2 = " left until auto-cancel, unless renewed";
-			String t1;
-			if(expiry == 0) {
-				t1 = "less than 1 minute";
-			}
-			else {
-				t1 = expiry+"+ minutes";
-			}
-			String text = t1+t2;
 			long expiryWarnTime = 3;
 			Properties properties = DuccWebProperties.get();
 			String key = "ducc.ws.job.automatic.cancel.minutes";
@@ -983,15 +975,23 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 					}
 				}
 				catch(Exception e) {
-
+					duccLogger.debug(location, duccId, e);
 				}
 			}
+			String base = "submitter's client monitor contact ";
 			if(expiry > expiryWarnTime) {
-				sb.append("<span class=\"health_green\" title=\""+text+"\">");
+				String hover = base+"established";
+				sb.append("<span class=\"health_green\" title=\""+hover+"\">");
 				sb.append("MonitorActive");
 			}
 			else {
-				sb.append("<span class=\"health_red\" title=\""+text+"\">");
+				String type = monitorType.getText();
+				String minutes = "less than 1 minute";
+				if(expiry > 1) {
+					minutes = expiry+" minutes";
+				}
+				String hover = base+"lost, "+type+" will be canceled in "+minutes;
+				sb.append("<span class=\"health_red\" title=\""+hover+"\">");
 				sb.append("MonitorWarning");
 			}
 			sb.append("</span>");
