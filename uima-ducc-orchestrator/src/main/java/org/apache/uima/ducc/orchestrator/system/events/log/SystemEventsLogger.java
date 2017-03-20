@@ -29,6 +29,7 @@ import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
+import org.apache.uima.ducc.transport.event.common.IRationale;
 
 public class SystemEventsLogger {
 
@@ -115,7 +116,12 @@ public class SystemEventsLogger {
 		String type = state;
 		String id = job.getId();
 		String reason = job.isCompleted() ? job.getCompletionType().name() : "";
-		Object[] event = { "id:"+id,reason };
+		String rationale = "";
+		IRationale completionRationale = job.getCompletionRationale();
+		if(completionRationale != null) {
+			rationale = completionRationale.getText();
+		}
+		Object[] event = { "id:"+id,reason,rationale };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -157,7 +163,12 @@ public class SystemEventsLogger {
 		String type = state;
 		String id = reservation.getId();
 		String reason = reservation.isCompleted() ? reservation.getCompletionType().name() : "";
-		Object[] event = { "id:"+id,reason };
+		String rationale = "";
+		IRationale completionRationale = reservation.getCompletionRationale();
+		if(completionRationale != null) {
+			rationale = completionRationale.getText();
+		}
+		Object[] event = { "id:"+id,reason,rationale };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -198,9 +209,14 @@ public class SystemEventsLogger {
 		String user = service.getStandardInfo().getUser();
 		String type = state;
 		String id = service.getId();
-		//String reason = service.isCompleted() ? service.getCompletionType().name() : "";
 		String reason = "";
-		Object[] event = { "id:"+id,reason };
+		//String reason = service.isCompleted() ? service.getCompletionType().name() : "";
+		String rationale = "";
+		//IRationale completionRationale = service.getCompletionRationale();
+		//if(completionRationale != null) {
+		//	rationale = completionRationale.getText();
+		//}
+		Object[] event = { "id:"+id,reason,rationale };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
