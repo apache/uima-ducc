@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -56,13 +56,13 @@ import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 
 
 public class ServiceHandler
-    implements SmConstants, 
+    implements SmConstants,
                Runnable
 {
     /**
-	 * 
+	 *
 	 */
-	private DuccLogger logger = DuccLogger.getLogger(ServiceHandler.class.getName(), COMPONENT_NAME);	
+	private DuccLogger logger = DuccLogger.getLogger(ServiceHandler.class.getName(), COMPONENT_NAME);
     private IServiceManager serviceManager;
 
     private ServiceStateHandler serviceStateHandler = new ServiceStateHandler();
@@ -72,10 +72,10 @@ public class ServiceHandler
 
     private Map<DuccId, IDuccWork> newJobs = new HashMap<DuccId, IDuccWork>();
     private Map<DuccId, IDuccWork> newServices = new HashMap<DuccId, IDuccWork>();
-    
+
     private Map<DuccId, IDuccWork> deletedJobs = new HashMap<DuccId, IDuccWork>();
     private Map<DuccId, IDuccWork> deletedServices = new HashMap<DuccId, IDuccWork>();
-    
+
     private Map<DuccId, IDuccWork> modifiedJobs = new HashMap<DuccId, IDuccWork>();
     private Map<DuccId, IDuccWork> modifiedServices = new HashMap<DuccId, IDuccWork>();
 
@@ -86,7 +86,7 @@ public class ServiceHandler
 
     public ServiceHandler(IServiceManager serviceManager)
     {
-        this.serviceManager = serviceManager;        
+        this.serviceManager = serviceManager;
         Runtime.getRuntime().addShutdownHook(new ServiceShutdown());
 
         DuccServiceApi dsi = new DuccServiceApi(null);           // instantiate this to access the modify options
@@ -166,25 +166,25 @@ public class ServiceHandler
         synchronized(stateUpdateLock) {
                 deletedJobsMap.putAll(deletedJobs);
                 deletedJobs.clear();
-                        
+
                 modifiedJobsMap.putAll(modifiedJobs);
                 modifiedJobs.clear();
-                       
+
                 deletedServicesMap.putAll(deletedServices);
                 deletedServices.clear();
-                        
+
                 modifiedServicesMap.putAll(modifiedServices);
                 modifiedServices.clear();
-            
+
                 newServicesMap.putAll(newServices);
                 newServices.clear();
-                        
+
                 newJobsMap.putAll(newJobs);
                 newJobs.clear();
         }
 
         // We could potentially have several updates where a service or arrives, is modified, and then deleted, while
-        // we are busy.  Need to handle them in the right order.  
+        // we are busy.  Need to handle them in the right order.
         //
         // Jobs are dependent on services but not the other way around - I think we need to handle services first,
         // to avoid the case where something is dependent on something that will exist soon but doesn't currently.
@@ -206,19 +206,19 @@ public class ServiceHandler
 
     void signalUpdates( // This is the incoming or map, with work split into categories.
                                      // The incoming maps are volatile - must save contents before returning.
-                                    HashMap<DuccId, IDuccWork> newJobs, 
-                                    HashMap<DuccId, IDuccWork> newServices,                               
+                                    HashMap<DuccId, IDuccWork> newJobs,
+                                    HashMap<DuccId, IDuccWork> newServices,
                                     HashMap<DuccId, IDuccWork> deletedJobs,
-                                    HashMap<DuccId, IDuccWork> deletedServices,                                    
+                                    HashMap<DuccId, IDuccWork> deletedServices,
                                     HashMap<DuccId, IDuccWork> modifiedJobs,
                                     HashMap<DuccId, IDuccWork> modifiedServices
                                     )
     {
 
         synchronized(stateUpdateLock) {
-            this.newJobs.putAll(newJobs);            
-            this.newServices.putAll(newServices);            
-            this.deletedJobs.putAll(deletedJobs);            
+            this.newJobs.putAll(newJobs);
+            this.newServices.putAll(newServices);
+            this.deletedJobs.putAll(deletedJobs);
             this.deletedServices.putAll(deletedServices);
             this.modifiedJobs.putAll(modifiedJobs);
             this.modifiedServices.putAll(modifiedServices);
@@ -226,7 +226,7 @@ public class ServiceHandler
         synchronized(this) {
             notify();
         }
-    } 
+    }
 
     void runCommands()
     {
@@ -237,7 +237,7 @@ public class ServiceHandler
             pendingRequests.clear();
         }
         logger.info(methodName, null, "Running", tmp.size(), "API Tasks.");
-        
+
         synchronized(this) {
             for ( ApiHandler apih : tmp ) {
                 apih.run();
@@ -266,7 +266,7 @@ public class ServiceHandler
         boolean fatal = false;
         Map<String, ServiceSet> jobServices = new HashMap<String, ServiceSet>();
         for ( String dep : deps ) {
-            
+
             // put it into the global map of known services if needed and up the ref count
             ServiceSet sset = serviceStateHandler.getServiceByUrl(dep);
             if ( sset == null ) {
@@ -291,7 +291,7 @@ public class ServiceHandler
         }
 
         if ( fatal ) {
-            jobServices.clear();            
+            jobServices.clear();
         } else {
             for ( ServiceSet sset : jobServices.values() ) {
                 // If service is unregistered and then rerigistered while the job is running it may have lost
@@ -313,20 +313,20 @@ public class ServiceHandler
      * @param dep  This is the thing we send to OR telling it about the state of 'id'
      */
     protected void resolveState(DuccId id, ServiceDependency dep)
-    {        
+    {
         Map<Long, ServiceSet> services = serviceStateHandler.getServicesForJob(id);
         if ( services == null ) {
             dep.setState(ServiceState.NotAvailable);       // says that nothing i need is available
             return;
         }
 
-        ServiceState state = ServiceState.Available;              
+        ServiceState state = ServiceState.Available;
         //
         // Start with the most permissive state and reduce it as we walk the list
         // Running > Initializing > Waiting > NotAvailable
         //
         // This sets the state to the min(all dependent service states)
-        //        
+        //
         for ( ServiceSet sset : services.values() ) {
             if ( sset.getState().ordinality() < state.ordinality() ) state = sset.getState();
              dep.setIndividualState(sset.getKey(), sset.getState());
@@ -361,27 +361,27 @@ public class ServiceHandler
 
         //
         // Bop through all the things job 'id' is dependent upon, and update their refcounts. If
-        // the refs go to 0 we stop the pinger and sometimes the independent service itself. 
+        // the refs go to 0 we stop the pinger and sometimes the independent service itself.
         //
         for ( Long depid : deps.keySet() ) {
             logger.debug(methodName, id, "Looking up service", depid);
-            
+
             ServiceSet sset = deps.get(depid);
             if ( sset == null ) {
                 logger.error(methodName, id, "Internal error: Null service for " + depid);      // sanity check, should never happen
                 continue;
             }
-            
+
             sset.dereference(id);                                    // also maybe stops the pinger
 
         }
 
         // last, indicate that job 'id' has nothing it's dependent upon any more
-        serviceStateHandler.removeServicesForJob(id);            
+        serviceStateHandler.removeServicesForJob(id);
     }
- 
+
     protected void handleNewJobs(Map<DuccId, IDuccWork> work)
-    { 
+    {
         String methodName = "handleNewJobs";
 
         // Map of updates to send to OR
@@ -426,13 +426,13 @@ public class ServiceHandler
 
         //
         // Only look at active jobs.  The others will be going away soon and we use
-        // that time as a grace period to keep the management machinery running in 
+        // that time as a grace period to keep the management machinery running in
         // case more work comes in in the next few minutes.
         //
         // Everything is already in the service map so we just update the state.
         //
         for ( DuccId id : work.keySet() ) {
-            
+
             DuccWorkJob j = (DuccWorkJob) work.get(id);
             String[] deps = j.getServiceDependencies();
             if ( deps == null ) {   // no deps, just mark it running and move on
@@ -448,7 +448,7 @@ public class ServiceHandler
             } else  if ( j.isActive() ) {
                 resolveDependencies(j, s);
                 resolveState(id, s);
-            } 
+            }
         }
 
     }
@@ -459,7 +459,7 @@ public class ServiceHandler
 
         for ( DuccId id : work.keySet() ) {
             DuccWorkJob w = (DuccWorkJob) work.get(id);
-            
+
             String[] deps = w.getServiceDependencies();
             if ( deps == null ) {   // no deps, just mark it running and move on
                 logger.info(methodName, id, "No service dependencies, no updates made.");
@@ -486,7 +486,7 @@ public class ServiceHandler
 
             //
             // On restart we sometimes get stale stuff that we just ignore.
-            //  
+            //
             if ( !w.isActive() ) {
                 logger.info(methodName, id, "Bypassing inactive service, state=", w.getStateObject());
                 continue;
@@ -510,12 +510,12 @@ public class ServiceHandler
                 s.addMessage(endpoint, "No registered service for " + endpoint);
                 s.setState(ServiceState.NotAvailable);
                 continue;
-            } 
+            }
 
             //
             // No deps.  Put it in the map and move on.
             //
-            if ( deps == null ) {                
+            if ( deps == null ) {
                 logger.info(methodName, id, "Added service to map, no service dependencies. ");
                 s.setState(ServiceState.Available);                        // good to go in the OR (the state of things i'm dependent upon)
                 sset.signalUpdate(w);
@@ -524,7 +524,7 @@ public class ServiceHandler
 
             resolveDependencies(w, s);                                     // check what I depend on and maybe kick 'em
             resolveState(id, s);                                           // get cumulative state based on my deps
-            
+
             sset.signalUpdate(w);                       // kick my own instance
             logger.info(methodName, id, "Added to map, with service dependencies,", s.getState());
         }
@@ -539,14 +539,14 @@ public class ServiceHandler
     protected void handleModifiedServices(Map<DuccId, IDuccWork> work)
     {
         String methodName = "handleModifiedServices";
-        
+
         //
         // This is a specific service process, but not necessarily the whole service.
         //
         for ( DuccId id : work.keySet() ) {
             DuccWorkJob w = (DuccWorkJob) work.get(id);
             String url = w.getServiceEndpoint();
-            
+
             IDuccProcessMap pm = w.getProcessMap();
             String node = "<unknown>";
             Long share_id = -1L;
@@ -559,9 +559,9 @@ public class ServiceHandler
                     NodeIdentity ni = pm.get(pid).getNodeIdentity();
                     node = ni.getName();
                     share_id = pid.getFriendly();
-                }               
-            }         
-            
+                }
+            }
+
             if (url == null ) {              // probably impossible but lets not chance NPE
                 logger.warn(methodName, id, "Missing service endpoint/url, ignoring.");
                 continue;
@@ -572,13 +572,13 @@ public class ServiceHandler
                 sset = serviceStateHandler.getUnregisteredServiceByUrl(url);
                 if ( sset == null ) {
                     // leftover junk publication maybe? can't tell
-                    logger.info(methodName, id, "Update for active service instance", id.toString(), 
+                    logger.info(methodName, id, "Update for active service instance", id.toString(),
                                 "but have no registration for it. Job state:", w.getJobState());
                     continue;
                 }
                 logger.info(methodName, id, "Update for unregistered service, continuing shutdown of service. Job State:", w.getJobState());
             }
-            
+
             if ( !sset.containsImplementor(id) ) {
                 if ( !sset.canDeleteInstance(w) ) {
                     // the instance isn't dead, this is a possible problem
@@ -586,7 +586,7 @@ public class ServiceHandler
                 }
                 continue;      // we don't care any more, he's gone
             }
-        
+
             if ( share_id != -1 ) {
                 sset.updateInstance(id.getFriendly(), share_id, node);
             }
@@ -619,11 +619,11 @@ public class ServiceHandler
                 logger.warn(methodName, id, "Missing service endpoint, ignoring.");
                 continue;
             }
-            
-            // 
+
+            //
             // Dereference and maybe stop the services I'm dependent upon
             //
-            if ( w.getServiceDependencies() == null ) { 
+            if ( w.getServiceDependencies() == null ) {
                 logger.info(methodName, id, "No service dependencies to update on removal.");
             } else {
                 stopDependentServices(id);        // update references, remove implicit services if any
@@ -643,7 +643,7 @@ public class ServiceHandler
      */
     void updateServiceQuery(IServiceDescription sd, ServiceSet sset)
     {
-        // 
+        //
         // The thing may not be running yet / at-all.  Pull out the deps from the registration and
         // query them individually.
         //
@@ -688,7 +688,7 @@ public class ServiceHandler
                 reply.addService(sd);
                 reply.setReturnCode(true);
             }
-        } 
+        }
 
         return reply;
     }
@@ -722,7 +722,7 @@ public class ServiceHandler
     synchronized ServiceReplyEvent start(ServiceStartEvent ev)
     {
         // String methodName = "start";
-        
+
         long   id  = ev.getFriendly();
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
@@ -746,40 +746,40 @@ public class ServiceHandler
 
         if ( sset.isDebug() ) {
             if ( sset.countImplementors() > 0 ) {
-                return ServiceManagerComponent.makeResponse(true, 
-                                             "Already has instances[" + running + "] and service has process_debug set - no additional instances started", 
-                                             sset.getKey(), 
+                return ServiceManagerComponent.makeResponse(true,
+                                             "Already has instances[" + running + "] and service has process_debug set - no additional instances started",
+                                             sset.getKey(),
                                              sset.getId().getFriendly());
             }
         }
 
         int registered = sset.getNInstancesRegistered();
         int wanted     = 0;
-        
+
         if ( instances == -1 ) {
             wanted = Math.max(0, registered - running);
         } else {
             wanted = instances;
         }
-        
+
         if ( wanted == 0 ) {
-            return ServiceManagerComponent.makeResponse(true, 
-                                         "Already has instances[" + running + "] - no additional instances started", 
-                                         sset.getKey(), 
+            return ServiceManagerComponent.makeResponse(true,
+                                         "Already has instances[" + running + "] - no additional instances started",
+                                         sset.getKey(),
                                          sset.getId().getFriendly());
         }
-        
+
         pendingRequests.add(new ApiHandler(ev, this));
 
         if ( sset.isDebug() && (wanted > 1) ) {
-            return ServiceManagerComponent.makeResponse(true, 
+            return ServiceManagerComponent.makeResponse(true,
                                          "Instances adjusted to [1] because process_debug is set",
-                                         sset.getKey(), 
+                                         sset.getKey(),
                                          sset.getId().getFriendly());
         } else {
-            return ServiceManagerComponent.makeResponse(true, 
-                                         "New instances[" + wanted + "]", 
-                                         sset.getKey(), 
+            return ServiceManagerComponent.makeResponse(true,
+                                         "New instances[" + wanted + "]",
+                                         sset.getKey(),
                                          sset.getId().getFriendly());
         }
     }
@@ -809,7 +809,7 @@ public class ServiceHandler
                 logger.warn(methodName, sset.getId(), "Not starting additional instances because process_debug is set.");
                 return;
             }
-            
+
             if ( instances > 1 ) {
                 logger.warn(methodName, sset.getId(), "Adjusting instances to [1] because process_debug is set.");
                 instances = 1;
@@ -883,7 +883,7 @@ public class ServiceHandler
 
         int running    = sset.countImplementors();
         int tolose;
-        
+
         // CLI/API prevents instances < -1
         if ( instances == -1 ) {                             // figure out n to lose
             sset.disableAndStop("Disabled by stop from id " + event.getUser());
@@ -974,7 +974,7 @@ public class ServiceHandler
         if ( sset.countImplementors() == 0 ) {
             return ServiceManagerComponent.makeResponse(false, "Cannot ignore references, service is not running.", sset.getKey(), sset.getId().getFriendly());
         }
-        
+
         sset.ignoreReferences();
         return ServiceManagerComponent.makeResponse(true, "References now being ignored.", sset.getKey(), sset.getId().getFriendly());
     }
@@ -995,7 +995,7 @@ public class ServiceHandler
         if ( sset.isAutostart() ) {
             return ServiceManagerComponent.makeResponse(false, "Must set autostart off before enabling reference-starts.", sset.getKey(), sset.getId().getFriendly());
         }
-        
+
         if ( sset.countImplementors() == 0 ) {
             return ServiceManagerComponent.makeResponse(false, "Cannot observe references, service is not running.", sset.getKey(), sset.getId().getFriendly());
         }
@@ -1023,7 +1023,7 @@ public class ServiceHandler
         } catch (Throwable t) {
             // throws because endpoint is not parsable
             error = t.getMessage();
-            return ServiceManagerComponent.makeResponse(false, error, url, id.getFriendly());            
+            return ServiceManagerComponent.makeResponse(false, error, url, id.getFriendly());
         }
 
         try {
@@ -1031,10 +1031,10 @@ public class ServiceHandler
             // in the db and doesn't need to be inserted
             sset.storeProperties(isRecovered);
         } catch ( Exception e ) {
-            error = ("Internal error; unable to store service descriptor. " + url); 
+            error = ("Internal error; unable to store service descriptor. " + url);
             logger.error(methodName, id, e);
         }
-        
+
 
         // must check for cycles or we can deadlock
         if ( ! must_deregister ) {
@@ -1067,7 +1067,7 @@ public class ServiceHandler
         if ( ! authorized("modify", sset, ev) ) {
             return ServiceManagerComponent.makeResponse(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
-        
+
         pendingRequests.add(new ApiHandler(ev, this));
         return ServiceManagerComponent.makeResponse(true, "Modify accepted:", sset.getKey(), sset.getId().getFriendly());
     }
@@ -1085,7 +1085,7 @@ public class ServiceHandler
         //       in the CLI are actually used.  Eventually we will cover them all.
         switch ( option ) {
             case Instances:
-                intval = Integer.parseInt(value);                
+                intval = Integer.parseInt(value);
                 sset.updateRegisteredInstances(intval);
                 break;
 
@@ -1099,7 +1099,7 @@ public class ServiceHandler
                 sset.parseAdministrators(value);
                 break;
 
-            // For the moment, these all update the registration but don't change internal 
+            // For the moment, these all update the registration but don't change internal
             // operation.
             case Description:
             case LogDirectory:
@@ -1108,7 +1108,7 @@ public class ServiceHandler
             case Classpath:
             case SchedulingClass:
             case Environment:
-            case ProcessMemorySize:           
+            case ProcessMemorySize:
             case ProcessExecutable:
             case ProcessExecutableArgs:
             case ServiceDependency:
@@ -1129,7 +1129,7 @@ public class ServiceHandler
 
             case ProcessDebug:
                 // Note this guy updates the props differently based on the value
-                sset.updateDebug(value);      // value may be numeric, or "off" 
+                sset.updateDebug(value);      // value may be numeric, or "off"
                 break;
 
             case ServicePingArguments:
@@ -1167,7 +1167,7 @@ public class ServiceHandler
         restart_pinger = false;
         restart_service = false;
         boolean updateMeta = false;
-        Set<String> keys = mods.stringPropertyNames();        
+        Set<String> keys = mods.stringPropertyNames();
 
         for (String kk : keys ) {
             UiOption k = optionMap.get(kk);
@@ -1176,7 +1176,7 @@ public class ServiceHandler
             	logger.debug(methodName, sset.getId(), "Bypass property", kk);
             	continue;
             }
-            
+
             switch ( k ) {
                 case Help:
                 case Debug:
@@ -1198,7 +1198,7 @@ public class ServiceHandler
 
             logger.info(methodName, sset.getId(), "Modify", kk, "to", v, "restart_service[" + restart_service + "]", "restart_pinger[" + restart_pinger + "]");
         }
-        
+
         sset.resetRuntimeErrors();
         try {
             sset.updateSvcProperties();
@@ -1235,7 +1235,7 @@ public class ServiceHandler
         if ( ! authorized("unregister", sset, ev) ) {
             return ServiceManagerComponent.makeResponse(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
-        
+
         serviceStateHandler.unregister(sset);
         sset.deregister();          // just sets a flag so we know how to handle it when it starts to die
         pendingRequests.add(new ApiHandler(ev, this));
@@ -1309,7 +1309,7 @@ public class ServiceHandler
      *             insert m into S
      * if graph has edges then
      *     return error (graph has at least one cycle)
-     * else 
+     * else
      *     return L (a topologically sorted order)
      */
 //     class CycleChecker
@@ -1346,7 +1346,7 @@ public class ServiceHandler
 //             List<ServiceSet> nodes = new ArrayList<ServiceSet>();
 //             nodes.addAll(visited.values());
 //             buildGraph(nodes);
-            
+
 //             List<ServiceSet>        sorted = new ArrayList<ServiceSet>();          // topo-sorted list of nodes
 //             List<ServiceSet>        current = new ArrayList<ServiceSet>();         // nodes with no incoming edges
 
@@ -1384,9 +1384,9 @@ public class ServiceHandler
 //         {
 //             return cycles.toString();
 //         }
-        
+
 //         //
-//         // Traveerse the graph and make sure all the nodes are "clean" 
+//         // Traveerse the graph and make sure all the nodes are "clean"
 //         //
 //         void clearEdges(ServiceSet node, Map<String, ServiceSet> visited)
 //         {
@@ -1397,7 +1397,7 @@ public class ServiceHandler
 //             visited.put(node.getKey(), node);
 //             String[] deps = node.getIndependentServices();
 //             if ( deps == null ) return;
-            
+
 //             for ( String dep : deps ) {
 //                 ServiceSet sset = serviceStateHandler.getServiceByName(dep);
 //                 if ( sset != null ) {
@@ -1405,10 +1405,10 @@ public class ServiceHandler
 //                 }
 //             }
 //         }
-            
+
 //         void buildGraph(List<ServiceSet> nodes)
-//         {            
-//             for ( ServiceSet node : nodes ) {           
+//         {
+//             for ( ServiceSet node : nodes ) {
 //                 String[] deps = node.getIndependentServices();           // never null if we get this far
 //                 if ( deps != null ) {
 //                     for ( String d : deps ) {
@@ -1429,7 +1429,7 @@ public class ServiceHandler
     class ServiceShutdown
         extends Thread
     {
-        ServiceShutdown() 
+        ServiceShutdown()
         {
         	System.out.println("Setting shutdown hook");
         }
@@ -1440,7 +1440,7 @@ public class ServiceHandler
             List<ServiceSet> allServices = serviceStateHandler.getServices();
             for (ServiceSet sset : allServices) {
                 sset.stopMonitor();
-            }            
+            }
             try {
                 stateHandler.shutdown();
             } catch ( Exception e ) {
@@ -1565,12 +1565,12 @@ public class ServiceHandler
          {
              return unregisteredServicesById.get(id);
          }
-         
+
          synchronized ServiceSet getUnregisteredServiceByUrl(String url)
          {
              return unregisteredServicesByUrl.get(url);
          }
-         
+
 
 //         synchronized void putServiceByName(String n, ServiceSet s)
 //         {
@@ -1618,10 +1618,10 @@ public class ServiceHandler
 //         }
 
          synchronized Map<Long, ServiceSet> getServicesForJob(DuccId id)
-         {             
+         {
              return servicesByJob.get(id);
          }
-         
+
          synchronized void putServiceForJob(DuccId id, ServiceSet s)
          {
              Map<Long, ServiceSet> services = servicesByJob.get(id);
@@ -1637,7 +1637,7 @@ public class ServiceHandler
              servicesByJob.remove(id);
          }
 
-//         synchronized void recordNewServices(Map<String, ServiceSet> services) 
+//         synchronized void recordNewServices(Map<String, ServiceSet> services)
 //         {
 //             servicesByName.putAll(services);
 //         }
@@ -1648,6 +1648,6 @@ public class ServiceHandler
     // tester for the topo sorter
     public static void main(String[] args)
     {
- 
+
    }
 }

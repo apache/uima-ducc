@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -80,19 +80,19 @@ import org.apache.uima.ducc.transport.event.sm.ServiceMap;
  * Start() establishes the class in its own thread and fires up the Handler thread.  From then on it
  * is a conduit between the Handler and messages to/from the outside world.
  */
-public class ServiceManagerComponent 
-    extends AbstractDuccComponent 
+public class ServiceManagerComponent
+    extends AbstractDuccComponent
     implements IServiceManager,
                SmConstants,
                Runnable
 {
-	
+
 	/**
-	 * 
+	 *
 	 */
-	private static DuccLogger logger = DuccLogger.getLogger(ServiceManagerComponent.class.getName(), COMPONENT_NAME);	
+	private static DuccLogger logger = DuccLogger.getLogger(ServiceManagerComponent.class.getName(), COMPONENT_NAME);
 	private static DuccId jobid = null;
-	
+
 	private DuccWorkMap localMap = null;
 
     private DuccEventDispatcher eventDispatcher;
@@ -101,11 +101,11 @@ public class ServiceManagerComponent
     private ServiceHandler handler = null;
     private IStateServices stateHandler = null;
 
-    //HashMap<String, BaseUimaAsService> services = new HashMap<String, BaseUimaAsService>();	
+    //HashMap<String, BaseUimaAsService> services = new HashMap<String, BaseUimaAsService>();
 
     static int meta_ping_rate = 60000;       // interval in ms to ping the service
     static int meta_ping_stability = 5;           // number of missed pings before we mark the service down
-    static int meta_ping_timeout = 500;      // timeout on ping 
+    static int meta_ping_timeout = 500;      // timeout on ping
     static String default_ping_class;
 
     static int init_failure_max = 1;       // total
@@ -118,7 +118,7 @@ public class ServiceManagerComponent
     private DuccProperties sm_props = null;
     private String service_seqno = IStateServices.sequenceKey;
     private DuccIdFactory idFactory = new DuccIdFactory();
-    
+
     private boolean signature_required = true;
     private boolean initialized = false;
     private boolean testmode = false;
@@ -134,7 +134,7 @@ public class ServiceManagerComponent
     //    2.0.0 - Update for new release.
     private String version = "2.1.0";
 
-	public ServiceManagerComponent(CamelContext context) 
+	public ServiceManagerComponent(CamelContext context)
     {
 		super("ServiceManager", context);
         this.localMap = new DuccWorkMap();
@@ -170,25 +170,25 @@ public class ServiceManagerComponent
             try {
                 // these gets will throw if the requisite objects aren't found
                 friendly = metaprops.getIntProperty("numeric_id");
-                uuid = metaprops.getStringProperty("uuid");                        
+                uuid = metaprops.getStringProperty("uuid");
             } catch (MissingPropertyException e1) {
                 // Ugly, but shouldn't have to be fatal
                 logger.error(methodName, null, "Cannot restore DuccId for service", l, "Friendly id:", friendly, "uuid:", uuid);
                 continue;
             }
-            
+
             System.out.println("Meta id " + metaprops.get("meta_dbid"));
             System.out.println("Svc id " + metaprops.get("svc_dbid"));
             DuccId id = new DuccId(friendly);
             id.setUUID(UUID.fromString(uuid));
             logger.debug(methodName, id, "Unique:", id.getUnique());
-            
+
             try {
                 handler.register(id, svcprops, metaprops, true);
             } catch (IllegalStateException e ) {                 // happens on duplicate service
                 logger.error(methodName, id, e.getMessage());  // message has all I need.
             }
-            
+
         }
 
         // try {
@@ -199,22 +199,22 @@ public class ServiceManagerComponent
 
         //     Map<Long, Properties> sprops = h.getPropertiesForType(DbVertex.Service);
         //     Map<Long, Properties> mprops = h.getPropertiesForType(DbVertex.ServiceMeta);
-            
+
         //     for ( Long k : sprops.keySet() ) {
         //         DuccProperties svcprops  = (DuccProperties) sprops.get(k);
         //         DuccProperties metaprops = (DuccProperties) mprops.get(k);
-                
+
         //         String uuid = metaprops.getProperty("uuid");
-                
+
         //         DuccId id = new DuccId(k);
         //         id.setUUID(UUID.fromString(uuid));
         //         logger.debug(methodName, id, "Unique:", id.getUnique());
-                
+
         //         try {
         //             handler.register(id, svcprops, metaprops, true);
         //         } catch (IllegalStateException e ) {                 // happens on duplicate service
         //             logger.error(methodName, id, e);  // message has all I need.
-        //         }                
+        //         }
         //     }
 
 		// } catch (Throwable e) {
@@ -241,14 +241,14 @@ public class ServiceManagerComponent
             } finally {
                 fos.close();
             }
-        } 
+        }
 
         long dbSeqNo = ServiceManagerHelper.getLargestServiceSeqNo();
         if(dbSeqNo > seq) {
         	logger.warn(methodName, jobid, "file:"+seq+" "+"db:"+dbSeqNo);
         	seq = (int) dbSeqNo;
         }
-        
+
         idFactory = new DuccIdFactory(seq);
 
         synchronized(this) {
@@ -275,7 +275,7 @@ public class ServiceManagerComponent
             logger.info(methodName, null, "No ducc administrators found.");
             return;
         }
-        
+
         Properties props = null;
 		try {
 			FileInputStream fis = new FileInputStream(adminfile);
@@ -285,7 +285,7 @@ public class ServiceManagerComponent
             logger.warn(methodName, null, "Cannot read administroators file:", e.toString());
             return;
 		}
-        
+
         for ( Object k : props.keySet() ) {
             String adm = ((String) k).trim();
             administrators.put(adm, adm);
@@ -294,7 +294,7 @@ public class ServiceManagerComponent
     }
 
 	@Override
-	public void start(DuccService service, String[] args) throws Exception 
+	public void start(DuccService service, String[] args) throws Exception
     {
 		String methodName = "start";
 		super.start(service, args);
@@ -353,12 +353,12 @@ public class ServiceManagerComponent
         logger.info(methodName, null, "------------------------------------------------------------------------------------");
 
         readAdministrators();
-        
+
         stateHandler = StateServicesFactory.getInstance(this.getClass().getName(), COMPONENT_NAME);
 
         // // String dbname = System.getProperty("ducc.db.name");
         // String dburl  = System.getProperty("ducc.state.database.url"); // "remote:localhost:2424/DuccState"
-        
+
 		// try {
         //     // verify, and possibly set up the schema if it's the first time
 		// 	databaseHandler = new DbManager(dburl);
@@ -366,7 +366,7 @@ public class ServiceManagerComponent
 		// } catch (Throwable e) {
         //     logger.fatal(methodName, null, "Cannot create database at", dburl, ":", e);
         //     Runtime.getRuntime().halt(1);
-		// } 
+		// }
 
         // if ( databaseHandler == null ) {
         //     logger.error(methodName, null, "Cannot open database at", dburl);
@@ -374,7 +374,7 @@ public class ServiceManagerComponent
         //     logger.info(methodName, null, "Opened database at", dburl);
         // }
         handler.setStateHandler(stateHandler);
-        
+
         // Here is a good place to do any pre-start stuff
 
         // Start the main processing loop
@@ -413,7 +413,7 @@ public class ServiceManagerComponent
      * At boot only ... pass in the set of all known active services to each service so it can update
      * internal state with current published state.
      */
-    public synchronized void bootHandler(IDuccWorkMap work) 
+    public synchronized void bootHandler(IDuccWorkMap work)
     {
         Map<DuccId, DuccWorkJob> services = new HashMap<DuccId, DuccWorkJob>();
         for ( Object o : work.values() ) {
@@ -426,21 +426,21 @@ public class ServiceManagerComponent
         handler.bootImplementors(services);
     }
 
-    void diffCommon(IDuccWork l, IDuccWork r, HashMap<DuccId, IDuccWork> modifiedJobs, HashMap<DuccId, IDuccWork> modifiedServices) 
+    void diffCommon(IDuccWork l, IDuccWork r, HashMap<DuccId, IDuccWork> modifiedJobs, HashMap<DuccId, IDuccWork> modifiedServices)
     {
     	String methodName = "diffCommon";
         if ( l.getDuccType() == DuccType.Reservation ) return;
-        
+
         if ( l.getDuccType() == DuccType.Pop ) {
             logger.trace(methodName, l.getDuccId(), "BOTH: GOT A POP:", l.getDuccId());
         }
-        
+
         if ( l.getStateObject() != r.getStateObject() ) {
             String serviceType = "/ Job";
             switch ( l.getDuccType() ) {
                 case Service:
                 case Pop:
-                    switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
+                    switch ( ((IDuccWorkService)l).getServiceDeploymentType() )
                         {
                         case uima:
                         case custom:
@@ -448,25 +448,26 @@ public class ServiceManagerComponent
                             break;
                         case other:
                             serviceType = "/ ManagedReservation";
+                        default:
                             break;
                         }
                     break;
                 default:
-                    break;                    
+                    break;
             }
             logger.trace(methodName, l.getDuccId(), "Reconciling", l.getDuccType(), serviceType, "incoming state = ", l.getStateObject(), " my state = ", r.getStateObject());
         }
-        
+
         // Update our own state by replacing the old (right) object with the new (left)
         switch(l.getDuccType()) {
             case Job:
                 modifiedJobs.put(l.getDuccId(), l);
                 localMap.addDuccWork(l);
                 break;
-  
+
             case Service:
                 localMap.addDuccWork(l);
-                switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
+                switch ( ((IDuccWorkService)l).getServiceDeploymentType() )
                     {
                     case uima:
                     case custom:
@@ -474,16 +475,17 @@ public class ServiceManagerComponent
                         break;
                     case other:
                         modifiedJobs.put(l.getDuccId(), l);
+                    default:
                         break;
                     }
                 break;
-                
+
             default:
                 break;
         }
     }
 
-	
+
     /**
      * Split the incoming work into new, deleted, and needs update.  This runs under the
      * incoming camel thread so don't do anything timeconsuming here.
@@ -492,11 +494,11 @@ public class ServiceManagerComponent
      *
      * Runs on the incoming thread, do not do anything blocking or timecomsuming here.
      */
-    public synchronized void processIncoming(IDuccWorkMap workMap) 
+    public synchronized void processIncoming(IDuccWorkMap workMap)
     {
 		String methodName = "processIncoming";
 
-        
+
         HashMap<DuccId, IDuccWork> newJobs = new HashMap<DuccId, IDuccWork>();
         HashMap<DuccId, IDuccWork> newServices = new HashMap<DuccId, IDuccWork>();
 
@@ -515,11 +517,11 @@ public class ServiceManagerComponent
 
 
         // try {
-        //     ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("/home/challngr/for/jerry/working/incomingWorkMap.obj"));    
+        //     ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("/home/challngr/for/jerry/working/incomingWorkMap.obj"));
         //     oos.writeObject(workMap);
         //     oos.close();
 
-        //     oos = new ObjectOutputStream(new FileOutputStream("/home/challngr/for/jerry/working/existingWorkMap.obj"));    
+        //     oos = new ObjectOutputStream(new FileOutputStream("/home/challngr/for/jerry/working/existingWorkMap.obj"));
         //     oos.writeObject(localMap);
         //     oos.close();
         // } catch ( Throwable t ) {
@@ -527,7 +529,7 @@ public class ServiceManagerComponent
         // }
 
 		@SuppressWarnings("unchecked")
-		DuccMapDifference<DuccId, IDuccWork> diffmap = DuccCollectionUtils.difference(workMap, localMap);        
+		DuccMapDifference<DuccId, IDuccWork> diffmap = DuccCollectionUtils.difference(workMap, localMap);
 
         for ( Object o : workMap.values() ) {
         	IDuccWork w = (IDuccWork) o;
@@ -563,7 +565,7 @@ public class ServiceManagerComponent
                   // An arbitrary process is **almost** the same as a service in terms of how most of DUCC
                   // handles it.  To me (SM), however, it is just like any other job so it goes into
                   // the job map.
-                  switch ( ((IDuccWorkService)w).getServiceDeploymentType() ) 
+                  switch ( ((IDuccWorkService)w).getServiceDeploymentType() )
                   {
                       case uima:
                       case custom:
@@ -571,6 +573,7 @@ public class ServiceManagerComponent
                           break;
                       case other:
                           newJobs.put(w.getDuccId(), w);
+                      default:
                           break;
                   }
 
@@ -600,7 +603,7 @@ public class ServiceManagerComponent
 
               case Service:
                   localMap.removeDuccWork(w.getDuccId());
-                  switch ( ((IDuccWorkService)w).getServiceDeploymentType() ) 
+                  switch ( ((IDuccWorkService)w).getServiceDeploymentType() )
                   {
                       case uima:
                       case custom:
@@ -608,6 +611,7 @@ public class ServiceManagerComponent
                           break;
                       case other:
                           deletedJobs.put(w.getDuccId(), w);
+                      default:
                           break;
                   }
                   break;
@@ -631,30 +635,30 @@ public class ServiceManagerComponent
         for( DuccMapValueDifference<IDuccWork> jd: diffmap ) {
             IDuccWork r = jd.getRight();
             IDuccWork l = jd.getLeft();
-            
+
         	logger.trace(methodName, r.getDuccId(), "Doing diffs on middle A:", r.getDuccId(), l.getDuccId());
-            
+
             diffCommon(l, r, modifiedJobs, modifiedServices);
         }
-        
-        // 
+
+        //
         // Common stuff - in both maps the the state diff identifies as haveing no state differences.
         //
         work = diffmap.getCommon();
         for( DuccId k : work.keySet()) {
             IDuccWork r = (IDuccWork) localMap.get(k);
             IDuccWork l = (IDuccWork) workMap.get(k);
-            
+
          	logger.trace(methodName, r.getDuccId(), "Doing diffs on middle B:", r.getDuccId(), l.getDuccId());
-            
+
             diffCommon(l, r, modifiedJobs, modifiedServices);
         }
-        
+
         handler.signalUpdates(
-                              newJobs, 
-                              newServices,                               
+                              newJobs,
+                              newServices,
                               deletedJobs,
-                              deletedServices,                                    
+                              deletedServices,
                               modifiedJobs,
                               modifiedServices
                               );
@@ -699,7 +703,7 @@ public class ServiceManagerComponent
             } catch (InterruptedException e) {
             	logger.info(methodName, null, "SM wait interrupted, executing out-of-band epoch.");
             }
-            
+
             try {
                 if ( first_update ) {
                     bootHandler(incomingMap);
@@ -709,7 +713,7 @@ public class ServiceManagerComponent
             } catch (Throwable e1) {
             	logger.fatal(methodName, null, e1);
             }
-            
+
         }
     }
 
@@ -753,7 +757,7 @@ public class ServiceManagerComponent
     private boolean validate_user(String action, AServiceRequest req)
     {
     	String methodName = "validate_user";
-        
+
         // First check that request is from a compatible cli
         if (req.getCliVersion() != CliVersion.getVersion()) {
             String reason = "Incompatible CLI request using version " + req.getCliVersion()
@@ -762,8 +766,8 @@ public class ServiceManagerComponent
             req.setReply(makeResponse(false, reason, action, -1));
             return false;
         }
-        
-        String user = req.getUser();                
+
+        String user = req.getUser();
         byte[] auth_block= req.getAuth();
         boolean validated = false;
 
@@ -800,7 +804,7 @@ public class ServiceManagerComponent
         String endpoint = ev.getEndpoint();
         int instances = ev.getNinstances();
         Trinary autostart = ev.getAutostart();
-        String user = ev.getUser();        
+        String user = ev.getUser();
         long regdate = System.currentTimeMillis();
         String regdate_readable = (new Date(regdate)).toString();
 
@@ -816,11 +820,11 @@ public class ServiceManagerComponent
             return;
         }
         logger.debug(methodName, id, "Unique:", id.getUnique());
-                    
+
         String logdir = props.getProperty(UiOption.LogDirectory.pname());
         if ( !logdir.endsWith("/") ) {
             logdir = logdir + "/";
-        } 
+        }
         logdir = logdir + "S-" + id.toString();
         props.put(UiOption.LogDirectory.pname(), logdir);
 
@@ -833,7 +837,7 @@ public class ServiceManagerComponent
         meta.setProperty(SvcMetaProps.registration_date_millis.pname(), Long.toString(regdate));
         meta.setProperty(SvcMetaProps.registration_date.pname(), regdate_readable);
 
-        if ( autostart == Trinary.True ) {            
+        if ( autostart == Trinary.True ) {
             meta.setProperty(SvcMetaProps.autostart.pname(), "true");
         } else {
             meta.setProperty(SvcMetaProps.autostart.pname(), "false");
@@ -860,7 +864,7 @@ public class ServiceManagerComponent
 
         logger.info(methodName, null, "De-registering service", id);
         ServiceReplyEvent reply = handler.unregister(ev);
-        ev.setReply(reply);       
+        ev.setReply(reply);
     }
 
     public synchronized void start(ServiceStartEvent ev)
@@ -994,7 +998,7 @@ public class ServiceManagerComponent
             File mfh = new File(history_dir + id + ".meta");
 			try {
 				FileOutputStream fos = new FileOutputStream(mfh);
-				meta_props.store(fos, "Archived meta descriptor");            
+				meta_props.store(fos, "Archived meta descriptor");
 				fos.close();
 			} catch (Exception e) {
 				logger.warn(methodName, null, id + ": Unable to save history to \"" + mfh.toString(), ": ", e.toString() + "\"");
@@ -1009,7 +1013,7 @@ public class ServiceManagerComponent
              File pfh = new File(history_dir + id + ".svc");
              try {
 				FileOutputStream fos = new FileOutputStream(pfh);
-				 job_props.store(fos, "Archived svc properties.");            
+				 job_props.store(fos, "Archived svc properties.");
 				 fos.close();
 			} catch (Exception e) {
                  logger.warn(methodName, null, id + ":Unable to save history to \"" + pfh.toString(), ": ", e.toString() + "\"");
