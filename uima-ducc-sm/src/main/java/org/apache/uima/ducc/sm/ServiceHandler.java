@@ -263,30 +263,17 @@ public class ServiceHandler
         String[] deps = w.getServiceDependencies();
 
         // New services, if any are discovered
+        // Put them into the global map of known services if needed and up the ref count
         boolean fatal = false;
         Map<String, ServiceSet> jobServices = new HashMap<String, ServiceSet>();
         for ( String dep : deps ) {
-
-            // put it into the global map of known services if needed and up the ref count
             ServiceSet sset = serviceStateHandler.getServiceByUrl(dep);
             if ( sset == null ) {
-
-                // Not good.  Lets see if it's a terminating service so we can at least tell the poor guy.
-                sset = serviceStateHandler.getUnregisteredServiceByUrl(dep);
-                if ( sset == null ) {
-                    // Still null, never h'oid of de guy
-                    s.addMessage(dep, "Service is unknown.");
-                    s.setState(ServiceState.NotAvailable);
-                } else {
-                    // The service is deregistered but not yet purged, may as well tell him. It can
-                    // take a while for these guys to go away.
-                    s.addMessage(dep, "Service has been deregistered and is terminating.");
-                    s.setState(ServiceState.NotAvailable);
-                }
+                s.addMessage(dep, "Service is unknown.");
+                s.setState(ServiceState.NotAvailable);
                 fatal = true;
                 continue;
             }
-
             jobServices.put(dep, sset);
         }
 
@@ -568,15 +555,10 @@ public class ServiceHandler
             }
 
             ServiceSet sset = serviceStateHandler.getServiceByImplementor(id.getFriendly());
-            if ( sset == null ) {
-                sset = serviceStateHandler.getUnregisteredServiceByUrl(url);
-                if ( sset == null ) {
-                    // leftover junk publication maybe? can't tell
-                    logger.info(methodName, id, "Update for active service instance", id.toString(),
-                                "but have no registration for it. Job state:", w.getJobState());
-                    continue;
-                }
-                logger.info(methodName, id, "Update for unregistered service, continuing shutdown of service. Job State:", w.getJobState());
+            if (sset == null) {
+                // leftover junk publication maybe? can't tell
+                logger.info(methodName, id, "Update for active service instance", id.toString(), "but have no registration for it. Job state:", w.getJobState());
+                continue;
             }
 
             if ( !sset.containsImplementor(id) ) {
@@ -1219,26 +1201,25 @@ public class ServiceHandler
 
     synchronized ServiceReplyEvent unregister(ServiceUnregisterEvent ev)
     {
-        //String methodName = "unregister";
+        String methodName = "unregister";
         long id = ev.getFriendly();
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
+            logger.info(methodName, null, "Unknown service", id, url);
             return ServiceManagerComponent.makeResponse(false, "Unknown service",  url, id);
         }
-
-        id = sset.getId().getFriendly();           // must insure the ev has the numeric id because we work entirely with that from now ow
-        url = sset.getKey();         // also insure url is there for messages
-        ev.setEndpoint(url);
-        ev.setFriendly(id);
 
         if ( ! authorized("unregister", sset, ev) ) {
             return ServiceManagerComponent.makeResponse(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
 
+        // Ensure that the event has the id as the name will be removed from the name->id map
+        ev.setFriendly(sset.getId().getFriendly());
         serviceStateHandler.unregister(sset);
-        sset.deregister();          // just sets a flag so we know how to handle it when it starts to die
         pendingRequests.add(new ApiHandler(ev, this));
+        logger.info(methodName, null, "Unregistering service", id, url);
+
         return ServiceManagerComponent.makeResponse(true, "Shutting down implementors", sset.getKey(), sset.getId().getFriendly());
     }
 
@@ -1249,14 +1230,15 @@ public class ServiceHandler
     {
     	String methodName = "doUnregister";
         long friendly = ev.getFriendly();
-        String url = ev.getEndpoint();
 
-        ServiceSet sset = serviceStateHandler.getUnregisteredService(friendly);
-        if ( sset == null ) {
-            logger.error(methodName, null, "Service", friendly, "(" + url + ") is not a known, unregistereed service. No action taken.");
+        // Can only get by id when unregistering as the name has been removed from the name=>id map
+        ServiceSet sset = serviceStateHandler.getServiceById(friendly);
+        if ( sset == null ) {  // Should never happen
+            logger.error(methodName, null, "Service", friendly, "is not a known, service. No action taken.");
             return;
         }
 
+        String url = sset.getKey();
         sset.disableAndStop("Disabled by unregister from id " + ev.getUser());
         if ( sset.isPingOnly() ) {
             logger.info(methodName, sset.getId(), "Unregister ping-only setvice:", friendly, url);
@@ -1287,12 +1269,7 @@ public class ServiceHandler
 
     void removeService(ServiceSet sset)
     {
-       String methodName = "deleteService";
-       if ( serviceStateHandler.hasService(sset.getId()) ) {
-           logger.error(methodName, sset.getId(), "Attempt to delete service while it is still registered: refused.");
-       } else {
-           serviceStateHandler.removeService(sset);
-       }
+        serviceStateHandler.removeService(sset);
     }
 
     /**
@@ -1453,53 +1430,30 @@ public class ServiceHandler
      class ServiceStateHandler
      {
 
-//         // Map of active service descriptors by endpoint.  For UIMA services, key is the endpoint.
-         private Map<String,  ServiceSet>  registeredServicesByUrl         = new HashMap<String,  ServiceSet>();
+         // Map of active service descriptors by endpoint.  For UIMA services, key is the endpoint.
+         // Map from name->id and from id->service so can quickly unregister by removing from the 1st map UIMA-5372
+         private Map<String,  Long>        registeredServiceIdsByUrl       = new HashMap<String,  Long>();
          private Map<Long,    ServiceSet>  registeredServicesById          = new HashMap<Long,    ServiceSet>();
-         private Map<Long,    ServiceSet>  unregisteredServicesById        = new HashMap<Long,    ServiceSet>();
-         private Map<String,  ServiceSet>  unregisteredServicesByUrl       = new HashMap<String,  ServiceSet>();
 
+         // Map from instance-id -> service (each instance has a unique ID)
          private Map<Long,    ServiceSet>  servicesByImplementor           = new HashMap<Long, ServiceSet>();
-
-         //         private Map<Long,    ServiceSet>  servicesByFriendly = new HashMap<Long,    ServiceSet>();
 
 //         // For each job, the collection of services it is dependent upon
 //         // DUccId is a Job Id (or id for serice that has dependencies)
          private Map<DuccId, Map<Long, ServiceSet>>  servicesByJob = new HashMap<DuccId, Map<Long, ServiceSet>>();
 
-//         ServiceStateHandler()
-//         {
-//         }
-
-//         /**
-//          * Return a copy of the keys so we can fetch the services in an orderly manner.
-//          */
-//         synchronized ArrayList<String> getServiceNames()
-//         {
-//             ArrayList<String> answer = new ArrayList<String>();
-//             for ( String k : servicesByName.keySet() ) {
-//                 answer.add(k);
-//             }
-//             return answer;
-//         }
-
+         /*
+          * Simply remove the name from the name->id map so the name can be re-used quickly.
+          * The now-orphaned id will be used for the remainder of the shutdown steps. UIMA-5372
+          */
          synchronized void unregister(ServiceSet sset)
          {
         	 String methodName = "ServiceStateHandler.unregister";
              String key = sset.getKey();
-             long   fid = sset.getId().getFriendly();
-             logger.info(methodName, sset.getId(), "Removing", key, fid);
-             registeredServicesByUrl.remove(key);
-             registeredServicesById.remove(fid);
-
-             unregisteredServicesById.put(fid, sset);
-             unregisteredServicesByUrl.put(key, sset);
+             logger.info(methodName, sset.getId(), "Removing", key, "from name->id map");
+             registeredServiceIdsByUrl.remove(key);
+             sset.deregister();          // just sets a flag so we know how to handle it when it starts to die
          }
-
-//          synchronized ServiceSet getUnregisteredService(String url)
-//          {
-//              return unRegisteredServicesByUrl.get(url);
-//          }
 
          synchronized boolean hasService(DuccId id)
          {
@@ -1515,20 +1469,30 @@ public class ServiceHandler
 
              logger.info(methodName, sset.getId(), "adding", ep, id);
 
-             registeredServicesByUrl.put(ep, sset);
+             registeredServiceIdsByUrl.put(ep, id);
              registeredServicesById.put(id, sset);
          }
 
+         // Must map url->id then id->service
          synchronized ServiceSet getServiceByUrl(String n)
          {
-             return registeredServicesByUrl.get(n);
+             Long id = registeredServiceIdsByUrl.get(n);
+             return id == null ? null : registeredServicesById.get(id);
          }
 
+         synchronized ServiceSet getServiceById(long id)
+         {
+             return registeredServicesById.get(id);
+         }
+
+         // Note: must exclude services being unregistered
          synchronized List<ServiceSet> getServices()
          {
              ArrayList<ServiceSet> answer = new ArrayList<ServiceSet>();
-             for ( ServiceSet sset : registeredServicesByUrl.values() ) {
-                 answer.add(sset);
+             for ( ServiceSet sset : registeredServicesById.values() ) {
+                 if (!sset.isDeregistered()) {
+                     answer.add(sset);
+                 }
              }
              return answer;
          }
@@ -1538,9 +1502,9 @@ public class ServiceHandler
              servicesByImplementor.put(inst.getId(), sset);
          }
 
-         synchronized ServiceSet getServiceByImplementor(long id)
+         synchronized ServiceSet getServiceByImplementor(long instId)
          {
-             return servicesByImplementor.get(id);
+             return servicesByImplementor.get(instId);
          }
 
          synchronized void removeImplementorFor(ServiceSet sset, ServiceInstance inst)
@@ -1548,46 +1512,16 @@ public class ServiceHandler
              servicesByImplementor.remove(inst.getId());
          }
 
-//         synchronized ServiceSet getServiceByFriendly(long id)
-//         {
-//             return servicesByFriendly.get( id );
-//         }
-
-         // API passes in a friendly (maybe) and an endpiont (maybe) but only one of these
-         // Here we look up the service by whatever was passed in.
+         // API passes in either an id or an endpoint but not both.
          synchronized ServiceSet  getServiceForApi(long id, String n)
          {
-             if ( n == null ) return registeredServicesById.get(id);
-             return registeredServicesByUrl.get(n);
+             return id == -1 ? getServiceByUrl(n) : getServiceById(id);
          }
-
-         synchronized ServiceSet getUnregisteredService(long id)
-         {
-             return unregisteredServicesById.get(id);
-         }
-
-         synchronized ServiceSet getUnregisteredServiceByUrl(String url)
-         {
-             return unregisteredServicesByUrl.get(url);
-         }
-
-
-//         synchronized void putServiceByName(String n, ServiceSet s)
-//         {
-//             servicesByName.put(n, s);
-//             DuccId id = s.getId();
-//             if ( id != null ) {
-//                 servicesByFriendly.put(id.getFriendly(), s);
-//             }
-//         }
-
 
          synchronized void removeService(ServiceSet sset)
          {
-             String key = sset.getKey();
              long id = sset.getId().getFriendly();
-             unregisteredServicesById.remove(id);
-             unregisteredServicesByUrl.remove(key);
+             registeredServicesById.remove(id);   // The name has already been removed
 
              // The registeredServices need to have been removed during unregister which is the only way
              // to get rid of a service.

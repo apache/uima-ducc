@@ -846,7 +846,7 @@ public class ServiceManagerComponent
         ServiceReplyEvent reply = handler.register(id, props, meta, false);
         ev.setReply(reply);
 
-        // Draw attentipn in the log on registration failures
+        // Draw attention in the log on registration failures
         if ( reply.getReturnCode() ) {
             logger.info(methodName, id, ev.toString());
         } else {
@@ -856,13 +856,9 @@ public class ServiceManagerComponent
 
     public synchronized void unregister(ServiceUnregisterEvent ev)
     {
-        String methodName = "unregister";
-        long id = ev.getFriendly();
-
         if ( ! validate_user("Unregister", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Unregister", ev) ) return;
 
-        logger.info(methodName, null, "De-registering service", id);
         ServiceReplyEvent reply = handler.unregister(ev);
         ev.setReply(reply);
     }
