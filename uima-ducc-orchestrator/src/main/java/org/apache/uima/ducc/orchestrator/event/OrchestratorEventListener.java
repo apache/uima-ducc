@@ -28,6 +28,7 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.orchestrator.Orchestrator;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
@@ -36,7 +37,6 @@ import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
-import org.apache.uima.ducc.transport.event.ServiceRequestEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
@@ -197,7 +197,7 @@ public class OrchestratorEventListener implements DuccEventDelegateListener {
 		smChannel = new SmChannel(context, endpoint);
 	}
 	
-	public void onServiceRequestEvent(@Body ServiceRequestEvent request) throws Exception {
+	public void onServiceRequestEvent(@Body AServiceRequest request) throws Exception {
 		String methodName = "onServiceRequestEvent";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		try {

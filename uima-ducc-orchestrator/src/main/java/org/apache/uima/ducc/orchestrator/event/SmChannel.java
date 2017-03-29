@@ -20,9 +20,9 @@ package org.apache.uima.ducc.orchestrator.event;
 
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
-import org.apache.uima.ducc.transport.event.ServiceRequestEvent;
 
 /*
  * Class for OR <--> SM communication to support SM's CLI/API via single point of entry.
@@ -36,7 +36,7 @@ public class SmChannel extends DuccEventDispatcher {
 	/*
 	 * forward the CLI/API request to SM and get the reply
 	 */
-	public ServiceReplyEvent exchange(ServiceRequestEvent request) throws Exception {
+	public ServiceReplyEvent exchange(AServiceRequest request) throws Exception {
 		DuccEvent duccEvent = dispatchAndWaitForDuccReply(request);
 		ServiceReplyEvent reply = (ServiceReplyEvent) duccEvent;
 		return reply;

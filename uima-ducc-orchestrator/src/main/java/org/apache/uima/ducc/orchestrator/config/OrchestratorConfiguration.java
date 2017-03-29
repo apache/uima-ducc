@@ -39,6 +39,7 @@ import org.apache.uima.ducc.orchestrator.OrchestratorState;
 import org.apache.uima.ducc.orchestrator.event.OrchestratorEventListener;
 import org.apache.uima.ducc.orchestrator.system.events.log.SystemEventsLogger;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
+import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelJobReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
@@ -51,7 +52,6 @@ import org.apache.uima.ducc.transport.event.JdReplyEvent;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
-import org.apache.uima.ducc.transport.event.ServiceRequestEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
@@ -227,8 +227,8 @@ public class OrchestratorConfiguration {
 			// - forward to SM via AMQ queue
 			// - receive reply via AMQ
 			// - send HTTP response back to CLI/API
-			if(obj instanceof ServiceRequestEvent) {
-				ServiceRequestEvent serviceRequest = exchange.getIn().getBody(ServiceRequestEvent.class);
+			if(obj instanceof AServiceRequest) {
+				AServiceRequest serviceRequest = exchange.getIn().getBody(AServiceRequest.class);
 				ServiceReplyEvent serviceReply = serviceRequest.getReply();
 				exchange.getIn().setBody(serviceReply);
 				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_servicesManager, serviceRequest, serviceReply);

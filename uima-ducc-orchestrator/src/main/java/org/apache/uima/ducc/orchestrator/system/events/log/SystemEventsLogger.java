@@ -6,6 +6,7 @@ package org.apache.uima.ducc.orchestrator.system.events.log;
  */
 import java.util.Properties;
 
+import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelJobReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
@@ -13,7 +14,6 @@ import org.apache.uima.ducc.transport.event.CancelReservationReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
-import org.apache.uima.ducc.transport.event.ServiceRequestEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
@@ -223,7 +223,7 @@ public class SystemEventsLogger {
 	/*
 	 * log a services request
 	 */
-	public static void info(String daemon, ServiceRequestEvent request, ServiceReplyEvent response) {
+	public static void info(String daemon, AServiceRequest request, ServiceReplyEvent response) {
 		String user = request.getUser();
 		String type = request.getEventType().name();
 		long id = response.getId();
