@@ -133,7 +133,8 @@ public class OrchestratorConfiguration {
             context.addComponent("jetty", jettyComponent);
             onException(Throwable.class).maximumRedeliveries(0).handled(false).process(new ErrorProcessor());
             
-            from("jetty://http://0.0.0.0:"+common.duccORHttpPort+"/or")
+            // accept any URL, for example { /or, /sm }
+            from("jetty://http://0.0.0.0:"+common.duccORHttpPort+"?matchOnUriPrefix=true")
             .unmarshal().xstream()
             
             .bean(delegate)
