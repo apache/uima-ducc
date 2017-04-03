@@ -230,6 +230,7 @@ public class OrchestratorConfiguration {
 			// - send HTTP response back to CLI/API
 			if(obj instanceof AServiceRequest) {
 				AServiceRequest serviceRequest = exchange.getIn().getBody(AServiceRequest.class);
+				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_servicesManager, serviceRequest);
 				ServiceReplyEvent serviceReply = serviceRequest.getReply();
 				exchange.getIn().setBody(serviceReply);
 				SystemEventsLogger.info(IDuccLoggerComponents.abbrv_servicesManager, serviceRequest, serviceReply);

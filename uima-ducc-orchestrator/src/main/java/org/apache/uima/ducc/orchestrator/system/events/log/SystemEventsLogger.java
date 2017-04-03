@@ -6,6 +6,8 @@ package org.apache.uima.ducc.orchestrator.system.events.log;
  */
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
+import org.apache.uima.ducc.common.admin.event.RmAdminReply;
 import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelJobReplyDuccEvent;
@@ -221,7 +223,18 @@ public class SystemEventsLogger {
 	}
 	
 	/*
-	 * log a services request
+	 * log a service manager request
+	 */
+	public static void info(String daemon, AServiceRequest request) {
+		String user = request.getUser();
+		String type = request.getEventType().name();
+		String message = "request";
+		Object[] event = { message };
+		duccLogger.event_info(daemon, user, type, event);
+	}
+	
+	/*
+	 * log a service manager response
 	 */
 	public static void info(String daemon, AServiceRequest request, ServiceReplyEvent response) {
 		String user = request.getUser();
@@ -229,8 +242,40 @@ public class SystemEventsLogger {
 		long id = response.getId();
 		boolean rc = response.getReturnCode();
 		String message = response.getMessage();
-		Object[] event = { "id:"+id, "rc:"+rc, message};
+		Object[] event = { "id:"+id, "rc:"+rc, message };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
+	/*
+	 * log a resource manager request
+	 */
+	public static void info(String daemon, DuccAdminEvent request) {
+		String user = request.getUser();
+		String type = request.getClass().getSimpleName();
+		String message = "request";
+		Object[] event = { message };
+		duccLogger.event_info(daemon, user, type, event);
+	}
+	
+	/*
+	 * log a resource manager response
+	 */
+	public static void info(String daemon, DuccAdminEvent request, RmAdminReply response) {
+		String user = request.getUser();
+		String type = request.getClass().getSimpleName();
+		String message = normalize(response.getMessage());
+		Object[] event = { "response: "+message };
+		duccLogger.event_info(daemon, user, type, event);
+	}
+	
+	/*
+	 * normalize message
+	 */
+	private static String normalize(String message) {
+		String text = "";
+		if(message != null) {
+			text = message.trim();
+		}
+		return text;
+	}
 }

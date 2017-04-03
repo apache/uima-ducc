@@ -67,6 +67,9 @@ import com.thoughtworks.xstream.security.AnyTypePermission;
  * The use of this class's Java API is intended for DUCC System programming, and requires
  * the Camel, Spring, ActiveMQ, and Log4j classes in the classpath, as well as the DUCC
  * Transport and Common jars.
+ * 
+ * Requests that are destined for the RM are routed through the OR for recording in the
+ * system-events.log using ducc.rm.via.or.admin.endpoint specified in default.ducc.properties.
  */ 
 public class DuccRmAdmin 
     extends AbstractDuccComponent 
@@ -87,7 +90,7 @@ public class DuccRmAdmin
      * @param context This is the Camel context to use.  Usually it is sufficient to simply provide
      *                <code>new DefaultCamelContext()</code>.
      * @param epname  This is the RM JMS endpoint as configured in ducc.properties.  Usually it is
-     *                sufficient to provide <code>ducc.rm.admin.endpoint</code>.
+     *                sufficient to provide <code>ducc.rm.via.or.admin.endpoint</code>.
      */
 	public DuccRmAdmin(CamelContext context, String epname)
     {
@@ -107,7 +110,7 @@ public class DuccRmAdmin
 				// the admin events will be sent by the DuccServiceReaper
 				targetEndpoint = System.getProperty(epname);
                 if ( targetEndpoint == null ) {
-                    throw new IllegalArgumentException("Cannot find endpoint for RM admin.  Is 'ducc.rm.admin.endpoint' configured n ducc.properties?");
+                    throw new IllegalArgumentException("Cannot find endpoint for RM admin.  Is 'ducc.rm.via.or.admin.endpoint' configured n ducc.properties?");
                 }
 
 				// System.out.println("+++ Activating JMS Component for Endpoint:" + targetEndpoint + " Broker:" + brokerUrl);
@@ -190,7 +193,7 @@ public class DuccRmAdmin
 
 	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
      */
-    private RmAdminReply dispatchAndWaitForReply(DuccAdminEvent duccEvent) 
+    public RmAdminReply dispatchAndWaitForReply(DuccAdminEvent duccEvent) 
         throws Exception 
     {
         int maxRetryCount = 20;
@@ -400,7 +403,7 @@ public class DuccRmAdmin
     {
 		int rc = 0;
 		try {
-			DuccRmAdmin admin = new DuccRmAdmin(new DefaultCamelContext(), "ducc.rm.admin.endpoint");
+			DuccRmAdmin admin = new DuccRmAdmin(new DefaultCamelContext(), "ducc.rm.via.or.admin.endpoint");
             rc = admin.run(args);
 		} catch (Throwable e) {
 			e.printStackTrace();

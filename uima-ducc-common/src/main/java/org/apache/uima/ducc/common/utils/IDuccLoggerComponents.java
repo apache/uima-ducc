@@ -25,6 +25,7 @@ public interface IDuccLoggerComponents {
 	public final String abbrv_orchestrator = "OR";
 	//public final String abbrv_transport = "TR";
 	public final String abbrv_servicesManager = "SM";
+	public final String abbrv_resourceManager = "RM";
 	public final String abbrv_webServer = "WS";
 	
 	public final String abbrv_user = "Us";

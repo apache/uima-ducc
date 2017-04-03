@@ -25,14 +25,20 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
+import org.apache.uima.ducc.common.admin.event.RmAdminReply;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.crypto.CryptoException;
 import org.apache.uima.ducc.common.internationalization.Messages;
+import org.apache.uima.ducc.common.main.DuccRmAdmin;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -54,8 +60,8 @@ import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
-import org.apache.uima.ducc.transport.event.DuccWorkRequestEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
+import org.apache.uima.ducc.transport.event.DuccWorkRequestEvent;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
@@ -331,6 +337,17 @@ implements Orchestrator {
 			logger.error(methodName, null, t);
 		}
 		super.start(service, args);
+		
+		/*
+		 * Route requests destined for RM though OR for recording in system-events.log.
+		 */
+		String adminEndpoint = System.getProperty("ducc.rm.via.or.admin.endpoint");
+        if ( adminEndpoint == null ) {
+            logger.warn(methodName, null, "No admin endpoint configured.  Not starting admin channel.");
+        } else {
+            startRmAdminChannel(adminEndpoint, this);
+        }
+		
 		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.Orchestrator,getProcessJmxUrl());
 		SystemEventsLogger.warn(IDuccLoggerComponents.abbrv_orchestrator, EventType.BOOT.name(), "");
 		logger.trace(methodName, null, messages.fetch("exit"));
@@ -1051,4 +1068,86 @@ implements Orchestrator {
 		logger.trace(methodName, dwid, messages.fetch("exit"));
 		return;
 	}
+	
+	//==================================================
+	
+	/**
+	 * See ResourceManagerComponent.  This code is a replication of that code for 
+	 * the purpose of routing requests CLI/API -> OR -> RM to support a single point
+	 * of entry and to record request/responses in the system-events.log.
+	 */
+	
+	private String RMAdminRoute = "RMAdminRoute";
+	
+    /**
+     * Creates Camel Router for Ducc RM admin events.
+     * 
+     * @param endpoint
+     *          - ducc admin endpoint
+     * @param delegate
+     *          - who to call when admin event arrives
+     * @throws Exception
+     */
+    private void startRmAdminChannel(final String endpoint, final AbstractDuccComponent delegate)
+        throws Exception 
+    {
+    	String methodName = "startRmAdminChannel";
+        getContext().addRoutes(new RouteBuilder() {
+                public void configure() {
+                	String methodName = "startRmAdminChannel.configure";
+                	if (logger != null) {
+                        logger.info(methodName, null, "Admin Channel Configure on endpoint:" + endpoint);
+                    }
+                    onException(Exception.class).handled(true).process(new ErrorProcessor());
+                    
+                    from(endpoint).routeId(RMAdminRoute).unmarshal().xstream()
+                         .process(new RmAdminEventProcessor(delegate));
+                }
+            });
+
+        getContext().startRoute(RMAdminRoute);
+        if (logger != null) {
+            logger.info(methodName, null, "Admin Channel Activated on endpoint:" + endpoint);
+        }
+    }
+
+    class RmAdminEventProcessor implements Processor 
+    {
+        final AbstractDuccComponent delegate;
+
+        private DuccRmAdmin admin = new DuccRmAdmin(new DefaultCamelContext(), "ducc.rm.admin.endpoint");
+        
+        public RmAdminEventProcessor(final AbstractDuccComponent delegate) 
+        {
+            this.delegate = delegate;
+        }
+
+        public void process(final Exchange exchange) 
+            throws Exception 
+        {            
+            String location = "RmAdminEventProcessor.process";
+            Object body = exchange.getIn().getBody();
+            logger.info(location, jobid, "Received Admin Message of Type:",  body.getClass().getName());
+            RmAdminReply reply = null;
+            if ( body instanceof DuccAdminEvent ) {
+                DuccAdminEvent dae = (DuccAdminEvent) body;
+                try {
+                	logger.debug(location, jobid, "dispatch");
+                	SystemEventsLogger.info(IDuccLoggerComponents.abbrv_resourceManager, dae);
+                	reply = admin.dispatchAndWaitForReply(dae);
+                	logger.debug(location, jobid, "dispatch completed");
+                	SystemEventsLogger.info(IDuccLoggerComponents.abbrv_resourceManager, dae, reply);
+                }
+                catch(Exception e) {
+                	logger.error(location, jobid, e);
+                }
+            } 
+            else {
+                logger.info(location, jobid, "Invalid RM event:", body.getClass().getName());
+                reply = new RmAdminReply();
+                reply.setMessage("Unrecognized RM event.");
+            }
+            exchange.getIn().setBody(reply);
+        }
+    }
 }
