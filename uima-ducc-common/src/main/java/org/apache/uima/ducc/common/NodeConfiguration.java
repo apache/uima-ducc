@@ -1351,6 +1351,7 @@ public class NodeConfiguration
         System.out.println("    -n <nodefile> is nodefile used with the system, defaults to ducc.nodes");
         System.out.println("    -u <userfile> is the user registry.");
         System.out.println("    -m Prints the nodepool for the given node.");
+        System.out.println("    -f Prints the nodepool file for the given node.");
         System.out.println("    -p Prints the parsed configuration, for verification.");
         System.out.println("    -? show this help.");
         System.out.println("");
@@ -1369,6 +1370,8 @@ public class NodeConfiguration
         String config = "ducc.classes";
         String mapNodeToPool = null;
 
+        String node = null;
+        
         int i = 0;
 
         // (simplistic, expects to be called from a script that does rigorous argument checking
@@ -1403,6 +1406,12 @@ public class NodeConfiguration
                 continue;
             }
             
+            if ( args[i].equals("-f") ) {
+                node = args[i+1];
+                i++;
+                continue;
+            }
+            
             if ( args[i].equals("-?") ) {
                 usage(null);
             }
@@ -1427,7 +1436,13 @@ public class NodeConfiguration
         		if(nodepool == null) {
         			nodepool = "";
         		}
-        		nc.printNodepool(nodepool);
+        		if(node != null) {
+        			String filename = nc.allNodes.get(node);
+        			System.out.println(filename);
+        		}
+        		else {
+        			nc.printNodepool(nodepool);
+        		}
             }
             if ( doprint ) {
             	nc.printConfiguration();

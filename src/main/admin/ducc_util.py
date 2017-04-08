@@ -1015,6 +1015,37 @@ class DuccUtil(DuccBase):
         #print 'status: '+str(status)
         return result
 
+    def get_nodepool_file(self, node, default=''):
+        classpath = '"'+self.DUCC_HOME+'/lib/uima-ducc/*'+'"'
+        #print classpath
+        classfile = self.ducc_properties.get('ducc.rm.class.definitions')
+        #print 'classfile: '+classfile
+        cmd = ''
+        cmd = cmd+self.jvm
+        cmd = cmd + ' '
+        cmd = cmd+'-cp '+classpath
+        cmd = cmd + ' '
+        cmd = cmd+'-DDUCC_HOME='+self.DUCC_HOME
+        cmd = cmd + ' '
+        cmd = cmd+'org.apache.uima.ducc.common.NodeConfiguration'
+        cmd = cmd + ' '
+        cmd = cmd+'-c'+' '+classfile
+        cmd = cmd + ' '
+        cmd = cmd+'-m'+' '+node
+        cmd = cmd + ' '
+        cmd = cmd+'-f'+' '+node
+        cmd = ''.join(cmd)
+        #print 'cmd: '+cmd
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        (out, err) = p.communicate()
+        status = p.wait()
+        result = out.strip()
+        if(result == ''):
+            result = default
+        #print 'result: '+result
+        #print 'status: '+str(status)
+        return result
+    
     def verify_head_failover_configuration(self):
         rc = 0
         failover_nodes = self.ducc_properties.get('ducc.head.failover')

@@ -28,7 +28,12 @@ from ducc_util_out import *
 
 from optparse import OptionParser
 from shutil import copy2
-import new
+
+from tempfile import mkstemp
+from shutil import move
+from os import remove
+
+common_timestamp = get_timestamp()
 
 # -----------------------------------------------------------------------
 # Extend OptionParser class
@@ -58,7 +63,8 @@ def get_epilog():
     epilog = epilog+'To the extent possible, the cluster will be checked to see if '
     epilog = epilog+'it is safe to edit the site.ducc.properties file, and if so '
     epilog = epilog+'then a backup of the original file is made then the '
-    epilog = epilog+'requisite changes are made to realize the head node move.'
+    epilog = epilog+'requisite changes are made to realize the head node move. '
+    epilog = epilog+'Likewise, the appropriate ducc.nodes file is backed-up and updated as necessary.'
     epilog = epilog+'\n'
     return epilog
     
@@ -240,14 +246,25 @@ class MoveDucc(DuccUtil):
             else :
                 print_info(message)
     
-    
+    # assure node pool compatibility
     def vette_nodepool(self):
-    	default = '<None>'
+    	default = '--default--'
         node = self.head
         np_head = str(self.get_nodepool(node,default))
+        message = 'nodepool[head]='+np_head
+        print_debug(message)
         node = self.target
         np_target = str(self.get_nodepool(node,default))
-        if(not np_target == np_head):
+        message = 'nodepool[target]='+np_target
+        print_debug(message)
+        if((not np_head == default) and (np_target == default)):
+            message = 'node='+self.head+' nodepool='+np_head
+            print_info(message)
+            message = 'node='+self.target+' nodepool='+np_target
+            print_info(message)
+            message = 'nodepool swap'
+            print_debug(message)
+        elif(not np_head == np_target):
             message = 'node='+self.head+' nodepool='+np_head
             print_warn(message)
             message = 'node='+self.target+' nodepool='+np_target
@@ -259,7 +276,8 @@ class MoveDucc(DuccUtil):
             
     # backup file
     def backup_file(self,root,stem):
-        timestamp = str(get_timestamp()).replace(' ','@')
+    	global common_timestamp
+        timestamp = str(common_timestamp).replace(' ','@')
         back = stem+'.'+timestamp
         message = 'creating backup file='+back
         print_info(message)
@@ -283,7 +301,8 @@ class MoveDucc(DuccUtil):
     
     # update properties
     def update_site_ducc_properties(self):
-        comment = [ '# moved '+get_timestamp() ]
+    	global common_timestamp
+        comment = [ '# moved '+common_timestamp ]
         file = self.site_path
         props = self.site_props
         changes = 0
@@ -333,9 +352,46 @@ class MoveDucc(DuccUtil):
             code = 1
             self.abort()
     
+    # edit nodefile
+    def edit_nodefile(self,source_file_path,before,after):
+    	fh, target_file_path = mkstemp()
+    	with open(target_file_path, 'w') as target_file:
+    		with open(source_file_path, 'r') as source_file:
+    			for line in source_file:
+    				text = line.strip()
+    				if(text == before):
+    					target_file.write(after+'\n')
+    					print_info(before+' -> '+after)
+    				else:
+    					target_file.write(line)
+    	remove(source_file_path)
+    	move(target_file_path, source_file_path)
+    	
+    # update nodefile
+    def update_nodefile(self):
+    	default = ''
+        np_head = str(self.get_nodepool_file(self.head,default))
+        np_target = str(self.get_nodepool_file(self.target,default))
+        message = 'file[head]='+np_head
+        print_debug(message)
+        if(not np_head == 'null'):
+        	np_head_file = np_head.rsplit('/',1)[1]
+        	self.backup_file(self.site_root,np_head_file)
+        	message = 'updating '+np_head_file
+        	print_info(message)
+        	self.edit_nodefile(np_head,self.head,self.target)
+        message = 'file[target]='+np_target
+        print_debug(message)
+        #if(not np_target == 'null'):
+        #	np_target_file = np_target.rsplit('/',1)[1]
+        #	self.backup_file(self.site_root,np_target_file)
+        #message = 'nodepool updated'
+        #print_info(message)
+        
     # perform move and notify of success
     def config_update(self):
         self.update_site_ducc_properties()
+        self.update_nodefile()
         message = 'move completed'
         print_info(message)
         
