@@ -47,8 +47,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.uima.ducc.cli.DuccUiConstants;
-import org.apache.uima.ducc.cli.ws.json.MachineFacts;
-import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.CancelReasons.CancelReason;
 import org.apache.uima.ducc.common.ConvertSafely;
 import org.apache.uima.ducc.common.NodeConfiguration;
@@ -101,6 +99,8 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 import org.apache.uima.ducc.ws.authentication.DuccAuthenticator;
+import org.apache.uima.ducc.ws.cli.json.MachineFacts;
+import org.apache.uima.ducc.ws.cli.json.MachineFactsList;
 import org.apache.uima.ducc.ws.helper.BrokerHelper;
 import org.apache.uima.ducc.ws.helper.DatabaseHelper;
 import org.apache.uima.ducc.ws.helper.DiagnosticsHelper;

@@ -17,7 +17,7 @@
  * under the License.
 */
 
-package org.apache.uima.ducc.cli.ws;
+package org.apache.uima.ducc.ws.cli;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -26,9 +26,9 @@ import java.net.URLConnection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.uima.ducc.cli.ws.json.NodePidList;
-import org.apache.uima.ducc.cli.ws.json.ReservationFacts;
-import org.apache.uima.ducc.cli.ws.json.ReservationFactsList;
+import org.apache.uima.ducc.ws.cli.json.NodePidList;
+import org.apache.uima.ducc.ws.cli.json.ReservationFacts;
+import org.apache.uima.ducc.ws.cli.json.ReservationFactsList;
 
 import com.google.gson.Gson;
 

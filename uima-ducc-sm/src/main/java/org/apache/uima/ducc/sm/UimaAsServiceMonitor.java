@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.cli;
+package org.apache.uima.ducc.sm;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -33,6 +33,7 @@ import javax.management.remote.JMXServiceURL;
 
 import org.apache.activemq.broker.jmx.BrokerViewMBean;
 import org.apache.activemq.broker.jmx.QueueViewMBean;
+import org.apache.uima.ducc.cli.ServiceStatistics;
 import org.apache.uima.ducc.common.IServiceStatistics;
 
 public class UimaAsServiceMonitor

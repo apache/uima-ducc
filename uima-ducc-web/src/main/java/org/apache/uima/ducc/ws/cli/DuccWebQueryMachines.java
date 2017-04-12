@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.cli.ws;
+package org.apache.uima.ducc.ws.cli;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -25,8 +25,8 @@ import java.net.URLConnection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.uima.ducc.cli.ws.json.MachineFacts;
-import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
+import org.apache.uima.ducc.ws.cli.json.MachineFacts;
+import org.apache.uima.ducc.ws.cli.json.MachineFactsList;
 
 import com.google.gson.Gson;
 

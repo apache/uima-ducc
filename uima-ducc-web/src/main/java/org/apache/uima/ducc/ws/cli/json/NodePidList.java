@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.cli.ws.json;
+package org.apache.uima.ducc.ws.cli.json;
 
 import java.io.Serializable;
 import java.util.List;

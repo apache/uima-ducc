@@ -16,12 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.cli.ws.json;
+package org.apache.uima.ducc.ws.cli.json;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class ReservationFactsList extends ArrayList<ReservationFacts> implements Serializable {
+public class MachineFactsList extends ArrayList<MachineFacts> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 }

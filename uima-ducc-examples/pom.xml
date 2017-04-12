@@ -61,6 +61,11 @@
 			<artifactId>uima-ducc-cli</artifactId>
 		</dependency>
 
+        <dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-sm</artifactId>
+		</dependency>
+
   </dependencies>
      
 

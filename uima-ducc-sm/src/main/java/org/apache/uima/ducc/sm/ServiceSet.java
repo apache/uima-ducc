@@ -38,8 +38,6 @@ import javax.naming.ServiceUnavailableException;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
-import org.apache.uima.ducc.cli.UimaAsPing;
-import org.apache.uima.ducc.cli.UimaAsServiceMonitor;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;

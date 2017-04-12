@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.cli.test;
+package org.apache.uima.ducc.ws.test;
 
 import static org.junit.Assert.*;
 
@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.uima.ducc.cli.ws.json.MachineFacts;
-import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
+import org.apache.uima.ducc.ws.cli.json.MachineFacts;
+import org.apache.uima.ducc.ws.cli.json.MachineFactsList;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

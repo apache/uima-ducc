@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.cli;
+package org.apache.uima.ducc.sm;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -43,6 +43,8 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQTextMessage;
 import org.apache.uima.aae.message.AsynchAEMessage;
 import org.apache.uima.aae.message.UIMAMessage;
+import org.apache.uima.ducc.cli.AServicePing;
+import org.apache.uima.ducc.cli.ServiceStatistics;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 

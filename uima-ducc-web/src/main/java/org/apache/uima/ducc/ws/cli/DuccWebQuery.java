@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.cli.ws;
+package org.apache.uima.ducc.ws.cli;
 
 import java.net.InetAddress;
 

@@ -16,39 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.rm.scheduler;
+package org.apache.uima.ducc.ws.cli.json;
 
-public class WorkItem
-{
-    private int id;
-    //private int cputime;
-    private int walltime;
+import java.io.Serializable;
+import java.util.ArrayList;
 
-    public WorkItem(int id, int walltime)
-    {
-        // not checking these because they come from generated code that we assume is correct
-        this.id = id;
-        this.walltime = walltime;
-    }
+public class ReservationFactsList extends ArrayList<ReservationFacts> implements Serializable {
 
-    int getId()
-    {
-        return id;
-    }
-
-    String getStringId()
-    {
-        // convenience, for logging
-        return Integer.toString(id);
-    }
-
-    int getWalltime()
-    {
-    	return walltime;
-    }
-    
-    public String toString()
-    {
-        return "Qid " + id + " " + walltime;
-    }
+	private static final long serialVersionUID = 1L;
 }

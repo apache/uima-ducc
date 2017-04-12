@@ -18,8 +18,8 @@
 */
 package org.apache.uima.ducc.ws;
 
-import org.apache.uima.ducc.cli.ws.json.MachineFacts;
-import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
+import org.apache.uima.ducc.ws.cli.json.MachineFacts;
+import org.apache.uima.ducc.ws.cli.json.MachineFactsList;
 
 public class DuccMachinesDataHelper {
 	
