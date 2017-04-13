@@ -532,8 +532,6 @@ public class ServiceHandler
         //
         for ( DuccId id : work.keySet() ) {
             DuccWorkJob w = (DuccWorkJob) work.get(id);
-            String url = w.getServiceEndpoint();
-
             IDuccProcessMap pm = w.getProcessMap();
             String node = "<unknown>";
             Long share_id = -1L;
@@ -549,16 +547,25 @@ public class ServiceHandler
                 }
             }
 
-            if (url == null ) {              // probably impossible but lets not chance NPE
-                logger.warn(methodName, id, "Missing service endpoint/url, ignoring.");
+            // Use the service id in case the url has been removed while unregistering
+            String ssid = w.getServiceId();
+            if (ssid == null ) {              // probably impossible but lets not chance NPE
+                logger.warn(methodName, id, "Missing service id, ignoring.");
                 continue;
             }
 
             ServiceSet sset = serviceStateHandler.getServiceByImplementor(id.getFriendly());
             if (sset == null) {
-                // leftover junk publication maybe? can't tell
-                logger.info(methodName, id, "Update for active service instance", id.toString(), "but have no registration for it. Job state:", w.getJobState());
-                continue;
+                // If already removed try via the service id (the url may have been removed while unregistering)
+                long sid = Long.valueOf(ssid);
+                sset = serviceStateHandler.getServiceById(sid);
+                if ( sset == null ) {
+                    // leftover junk publication maybe? can't tell
+                    logger.info(methodName, id, "Active service instance update for", w.getServiceId(),
+                                "but have no registration for it. Job state:", w.getJobState());
+                    continue;
+                }
+                logger.info(methodName, id, "Update for possibly unregistered service. Job State:", w.getJobState());
             }
 
             if ( !sset.containsImplementor(id) ) {
@@ -1515,7 +1522,7 @@ public class ServiceHandler
          // API passes in either an id or an endpoint but not both.
          synchronized ServiceSet  getServiceForApi(long id, String n)
          {
-             return id == -1 ? getServiceByUrl(n) : getServiceById(id);
+             return n == null ? getServiceById(id) : getServiceByUrl(n);
          }
 
          synchronized void removeService(ServiceSet sset)
