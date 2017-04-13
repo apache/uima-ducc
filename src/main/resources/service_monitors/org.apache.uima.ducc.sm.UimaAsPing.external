@@ -17,8 +17,6 @@
 # under the License.
 # -----------------------------------------------------------------------
 
-# Note: this was the name of default UIMA-AS pinger up thru DUCC 2.2.0 so is left here for backwards compatibility.
-
 service_ping_class     = org.apache.uima.ducc.sm.UimaAsPing
 service_ping_arguments = meta-timeout=${ducc.sm.meta.ping.timeout},broker-jmx-port=1099,enable-log=true
 #service_ping_jvmargs  = any jvm args you need for standalone execution
