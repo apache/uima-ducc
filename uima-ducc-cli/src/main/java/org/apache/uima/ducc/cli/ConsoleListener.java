@@ -7,9 +7,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -46,25 +46,25 @@ class ConsoleListener
     private boolean      start_stdin = false;
     private int          nextIdNum = 2;     // id# for JD ... JPs get 3,4,...  0&1 reserved for an AP
     private volatile PrintWriter shared_logout = null;    // Shared by ids 0 & 1 (stdout & stderr)
-    
+
     private IDuccCallback consoleCb;
     // private int          callers;   // number of remote processes we expect to listen for
 
     boolean debug = false;
     private boolean suppress_log;
-    
+
     ConsoleListener(CliBase submit, IDuccCallback consoleCb)
         throws Exception
     {
         this.submit = submit;
         this.sock = new ServerSocket(0);
         this.consoleCb = consoleCb;
-        
+
         NodeIdentity ni = new NodeIdentity();
-        String host_address = ni.getIp();  
+        String host_address = ni.getIp();
         int console_listener_port = sock.getLocalPort();
         this.console_host_address = host_address + ":" + console_listener_port;
-          
+
 
         debug = submit.debug; //isDebug();
         suppress_log = submit.suppress_console_log;
@@ -128,7 +128,8 @@ class ConsoleListener
         if ( debug ) System.out.println("Listening on " + console_host_address);
 
         while ( true ) {
-            try {                    
+            // Create I/O threads for each remote process connection ... may be JD & many JPs or an AP's stdout & stderr
+            try {
                 Socket s = sock.accept();
                 StdioReader sr = new StdioReader(s);
                 StdioWriter sw = new StdioWriter(s);
@@ -139,19 +140,20 @@ class ConsoleListener
                 }
 
                 Thread t = new Thread(sr, "STDOUT");
-                t.start();                
+                t.start();
 
                 if ( start_stdin ) {
                     // generally started only for AP (ducclet)
                     Thread tt = new Thread(sw, "STDIN");
-                    tt.start();             
-                }   
+                    tt.start();
+                    start_stdin = false;  // UIMA-5396 Only the first connection should read console input
+                }
             } catch (Throwable t) {
                 if ( ! in_shutdown ) shutdown();
                 if ( debug ) System.out.println("console listener returns");
                 submit.consoleExits();
                 return;
-            } 
+            }
         }
     }
 
@@ -243,7 +245,7 @@ class ConsoleListener
                 }
             }
         }
-        
+
         /**
          * We received a buffer of bytes that needs to be put into a string and printed.  We want
          * to split along \n boundaries so we can insert the host name at the start of every line.
@@ -292,7 +294,7 @@ class ConsoleListener
         }
 
         public void run()
-        {            
+        {
             byte[] buf = new byte[4096];
             try {
                 is = sock.getInputStream();
@@ -301,7 +303,7 @@ class ConsoleListener
                 e.printStackTrace();
                 return;
             }
-            
+
             try {
                 int count = 0;
                 while ( (count = is.read(buf)) > 0 ) {
@@ -374,10 +376,10 @@ class ConsoleListener
                     int cnt = System.in.available();
                     if ( cnt > 0 ) {
                         while ( cnt > 0) {
-                            int min = Math.min(cnt, buf.length);
-                            System.in.read(buf, 0, min);
-                            out.write(buf, 0, min);
-                            cnt -= min;
+                            int nread = Math.min(cnt, buf.length);  // Max to read
+                            nread = System.in.read(buf, 0, nread);  // Number actually read
+                            out.write(buf, 0, nread);
+                            cnt -= nread;
                         }
                     } else {
                         synchronized(this) {
