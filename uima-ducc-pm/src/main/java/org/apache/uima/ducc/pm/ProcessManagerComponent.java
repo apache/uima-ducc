@@ -24,16 +24,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.camel.CamelContext;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.pm.helper.DuccWorkHelper;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent;
+import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.DuccJobDeployment;
@@ -74,6 +78,8 @@ implements ProcessManager {
   private int shareQuantum;
   private int fudgeFactor = 5; // default 5%
   
+  String stateChangeEndpoint;
+  
 	public ProcessManagerComponent(CamelContext context, DuccEventDispatcher eventDispatcher) {
 		super("ProcessManager",context);
 		this.eventDispatcher = eventDispatcher;
@@ -91,12 +97,40 @@ implements ProcessManager {
 						   jobHeaderArray[7],jobHeaderArray[8]+"\n");
 		dwHelper = new DuccWorkHelper();
 	}
+	
+    /**
+     * Tell Orchestrator about state change for recording into system-events.log
+     */
+    private void stateChange(EventType eventType) {
+    	String methodName = "stateChange";
+        try {
+    		Daemon daemon = Daemon.ProcessManager;
+    		NodeIdentity nodeIdentity = new NodeIdentity();
+        	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
+            eventDispatcher.dispatch(stateChangeEndpoint, ev, "");
+            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+        }
+    	catch(Exception e) {
+    		logger.error(methodName, null, e);
+    	}
+    }
+
 	public void start(DuccService service) throws Exception {
 		super.start(service, null);
 		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.ProcessManager,getProcessJmxUrl());
 		logger.info("start", null, "--PM started - jmx URL:"+super.getProcessJmxUrl());
-		
+        stateChange(EventType.BOOT);
 	}	
+	
+	public void stop() throws Exception {
+        stateChange(EventType.SHUTDOWN);
+        super.stop();
+	}
+	
+	public void setstateChangeEndpoint(String stateChangeEndpoint) {
+		this.stateChangeEndpoint = stateChangeEndpoint;
+	}
+	
 	public DuccLogger getLogger() {
 	    return logger;
 	  }

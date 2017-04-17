@@ -319,7 +319,8 @@ public class OrchestratorConfiguration {
 		//  a message to another component
 		delegateListener.setDuccEventDispatcher(orchestratorTransport.duccEventDispatcher(common.pmRequestEndpoint, orchestrator.getContext()));
 //		orchestrator.getContext().addRoutes(this.routeBuilderForReplyEndpoint(common.orchestratorRequestEndpoint, delegateListener));
-    orchestrator.getContext().addRoutes(this.routeBuilder(orchestrator.getContext(), delegateListener));
+		orchestrator.getContext().addRoutes(this.routeBuilder(orchestrator.getContext(), delegateListener));
+    	orchestrator.getContext().addRoutes(this.routeBuilderForEndpoint(common.daemonsStateChangeEndpoint, delegateListener));	
 		orchestrator.getContext().addRoutes(this.routeBuilderForEndpoint(common.rmStateUpdateEndpoint, delegateListener));
 		orchestrator.getContext().addRoutes(this.routeBuilderForEndpoint(common.smStateUpdateEndpoint, delegateListener));
 		orchestrator.getContext().addRoutes(this.routeBuilderForEndpoint(common.jdStateUpdateEndpoint,delegateListener));

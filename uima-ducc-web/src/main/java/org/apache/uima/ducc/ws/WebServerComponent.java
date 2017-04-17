@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.IDuccEnv;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
@@ -34,7 +35,11 @@ import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
+import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
@@ -69,6 +74,9 @@ implements IWebServer {
 	public static AtomicLong updateIntervalCount = new AtomicLong(0);
 	public static long updateIntervalLimit = 12;
 	
+	private DuccEventDispatcher eventDispatcher;
+	private String stateChangeEndpoint;
+
 	public WebServerComponent(CamelContext context, CommonConfiguration common) {
 		super("WebServer",context);
 		String methodName = "WebServerComponent";
@@ -91,10 +99,42 @@ implements IWebServer {
 		init();
 	}
 	
+    /**
+     * Tell Orchestrator about state change for recording into system-events.log
+     */
+    private void stateChange(EventType eventType) {
+    	String methodName = "stateChange";
+        try {
+    		Daemon daemon = Daemon.WebServer;
+    		NodeIdentity nodeIdentity = new NodeIdentity();
+        	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
+            eventDispatcher.dispatch(stateChangeEndpoint, ev, "");
+            duccLogger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+        }
+    	catch(Exception e) {
+    		duccLogger.error(methodName, null, e);
+    	}
+    }
+
 	public void start(DuccService service, String[] args) throws Exception {
 		super.start(service, args);
 		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.Webserver,getProcessJmxUrl());
+        stateChange(EventType.BOOT);
 	}
+	
+	public void stop() throws Exception {
+		stateChange(EventType.SHUTDOWN);
+		super.stop();
+	}
+	
+	public void setDuccEventDispatcher(DuccEventDispatcher eventDispatcher) {
+		this.eventDispatcher = eventDispatcher;
+	}
+	
+	public void setstateChangeEndpoint(String stateChangeEndpoint) {
+		this.stateChangeEndpoint = stateChangeEndpoint;
+	}
+	
 	public DuccLogger getLogger() {
 	    return duccLogger;
 	  }

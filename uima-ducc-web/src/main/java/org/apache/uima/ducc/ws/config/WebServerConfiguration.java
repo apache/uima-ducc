@@ -35,6 +35,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
+import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.ws.DuccBoot;
 import org.apache.uima.ducc.ws.WebServerComponent;
 import org.apache.uima.ducc.ws.event.WebServerEventListener;
@@ -153,12 +154,15 @@ public class WebServerConfiguration {
 				}
 			}
 			ws = new WebServerComponent(common.camelContext(), common);
+			ws.setstateChangeEndpoint(common.daemonsStateChangeEndpoint);
 			DuccBoot.boot(common);
 			//	Instantiate delegate listener to receive incoming messages. 
 			WebServerEventListener delegateListener = this.webServerDelegateListener(ws);
 			//	Inject a dispatcher into the listener in case it needs to send
 			//  a message to another component
-			delegateListener.setDuccEventDispatcher(webServerTransport.duccEventDispatcher(common.orchestratorStateUpdateEndpoint, ws.getContext()));
+			DuccEventDispatcher eventDispatcher = webServerTransport.duccEventDispatcher(common.orchestratorStateUpdateEndpoint, ws.getContext());
+			ws.setDuccEventDispatcher(eventDispatcher);
+			delegateListener.setDuccEventDispatcher(eventDispatcher);
 			//	Inject Camel Router that will delegate messages to WebServer delegate listener
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.orchestratorStateUpdateEndpoint, delegateListener));
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.nodeMetricsEndpoint, delegateListener));

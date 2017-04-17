@@ -20,13 +20,32 @@ package org.apache.uima.ducc.common.utils;
 
 public interface IDuccLoggerComponents {
 
-	public final String abbrv_jobDriver = "JD";
-	public final String abbrv_db = "DB";
-	public final String abbrv_orchestrator = "OR";
-	//public final String abbrv_transport = "TR";
-	public final String abbrv_servicesManager = "SM";
-	public final String abbrv_resourceManager = "RM";
-	public final String abbrv_webServer = "WS";
+	public enum Daemon { 
+		Agent("AG"), 
+		Broker("BR"), 
+		Database("DB"),
+		JobDriver("JD"),
+		Orchestrator("OR"), 
+		ProcessManager("PM"), 
+		ResourceManager("RM"), 
+		ServicesManager("SM"),
+		WebServer("WS");
+		private String abbrev = null;
+		private Daemon(String abbrev) {
+			setAbbrev(abbrev);
+		}
+		private void setAbbrev(String value) {
+			abbrev = value;
+		}
+		public String getAbbrev() {
+			return abbrev;
+		}
+	};
 	
-	public final String abbrv_user = "Us";
+	public final String abbrv_jobDriver = Daemon.JobDriver.getAbbrev();
+	public final String abbrv_db = Daemon.Database.getAbbrev();
+	public final String abbrv_orchestrator = Daemon.Orchestrator.getAbbrev();
+	public final String abbrv_servicesManager = Daemon.ServicesManager.getAbbrev();
+	public final String abbrv_resourceManager = Daemon.ResourceManager.getAbbrev();
+	public final String abbrv_webServer = Daemon.WebServer.getAbbrev();
 }

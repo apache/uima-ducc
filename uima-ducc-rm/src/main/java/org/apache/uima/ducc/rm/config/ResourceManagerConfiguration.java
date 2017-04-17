@@ -93,7 +93,7 @@ import org.springframework.context.annotation.Import;
                 // rm.init();
 
                 rm.setTransportConfiguration(resourceManagerTransport.duccEventDispatcher(common.rmStateUpdateEndpoint, rm.getContext()), 
-                                             common.rmStateUpdateEndpoint);
+                                             common.rmStateUpdateEndpoint, common.daemonsStateChangeEndpoint);
         
                 //  Instantiate Resource Manager delegate listener. This listener will receive
                 //  incoming messages. 

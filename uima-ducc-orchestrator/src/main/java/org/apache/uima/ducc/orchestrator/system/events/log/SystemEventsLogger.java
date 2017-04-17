@@ -15,6 +15,7 @@ import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceReplyDuccEvent;
+import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
 import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
@@ -277,5 +278,16 @@ public class SystemEventsLogger {
 			text = message.trim();
 		}
 		return text;
+	}
+	
+	/*
+	 * log a daemon event
+	 */
+	public static void info(DaemonDuccEvent dde) {
+		String daemon = dde.getDaemon().getAbbrev();
+		String user = System.getProperty("user.name");
+		String type = dde.getEventType().name();
+		Object[] event = { "node: "+dde.getNodeIdentity().getName(), "tod: "+dde.getTod() };
+		duccLogger.event_info(daemon, user, type, event);
 	}
 }

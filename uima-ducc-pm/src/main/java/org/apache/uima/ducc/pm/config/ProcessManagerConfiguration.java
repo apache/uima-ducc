@@ -207,6 +207,7 @@ public class ProcessManagerConfiguration {
 		DuccEventDispatcher eventDispatcher = processManagerTransport.duccEventDispatcher(common.agentRequestEndpoint, camelContext);
 		logger.info("processManager()",null, "PM publishes state update to Agents on endpoint:"+common.agentRequestEndpoint);
 		ProcessManagerComponent pm = new ProcessManagerComponent(camelContext, eventDispatcher);
+		pm.setstateChangeEndpoint(common.daemonsStateChangeEndpoint);
         //	Instantiate delegate listener to receive incoming messages. 
         ProcessManagerEventListener delegateListener = this.processManagerDelegateListener(pm);
         //	Inject a dispatcher into the listener in case it needs to send

@@ -27,11 +27,13 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.orchestrator.Orchestrator;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
+import org.apache.uima.ducc.orchestrator.system.events.log.SystemEventsLogger;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
+import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
 import org.apache.uima.ducc.transport.event.DuccWorkRequestEvent;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
@@ -203,6 +205,19 @@ public class OrchestratorEventListener implements DuccEventDelegateListener {
 		try {
 			ServiceReplyEvent reply = smChannel.exchange(request);
 			request.setReply(reply);
+		}
+		catch(Throwable t) {
+			logger.error(methodName, null, t);
+		}
+		logger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
+	public void onDaemonDuccEvent(@Body DaemonDuccEvent daemonDuccEvent) throws Exception {
+		String methodName = "onDaemonDuccEvent";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		try {
+			logger.info(methodName, null, daemonDuccEvent.getDaemon().getAbbrev(), daemonDuccEvent.getNodeIdentity().getName());
+			SystemEventsLogger.info(daemonDuccEvent);
 		}
 		catch(Throwable t) {
 			logger.error(methodName, null, t);

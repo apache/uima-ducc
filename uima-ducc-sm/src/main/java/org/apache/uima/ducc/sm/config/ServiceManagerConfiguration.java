@@ -227,7 +227,7 @@ public class ServiceManagerConfiguration
 
         // Set context so SM can send state when it wants to (not on timer)
         sm.setTransportConfiguration(serviceManagerTransport.duccEventDispatcher(common.smStateUpdateEndpoint, sm.getContext()), 
-                                     common.smStateUpdateEndpoint);
+                                     common.smStateUpdateEndpoint, common.daemonsStateChangeEndpoint);
         // OR state messages - incoming
 		sm.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.orchestratorStateUpdateEndpoint, delegateListener));
 		// API requests - incoming (via OR)

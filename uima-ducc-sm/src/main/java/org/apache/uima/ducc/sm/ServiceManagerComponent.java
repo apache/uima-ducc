@@ -30,6 +30,7 @@ import java.util.UUID;
 
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
@@ -43,6 +44,7 @@ import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapDifference;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapValueDifference;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.MissingPropertyException;
@@ -52,6 +54,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.AServiceRequest;
+import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
 import org.apache.uima.ducc.transport.event.ServiceDisableEvent;
 import org.apache.uima.ducc.transport.event.ServiceEnableEvent;
 import org.apache.uima.ducc.transport.event.ServiceIgnoreEvent;
@@ -64,6 +67,7 @@ import org.apache.uima.ducc.transport.event.ServiceStartEvent;
 import org.apache.uima.ducc.transport.event.ServiceStopEvent;
 import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
+import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
@@ -96,6 +100,7 @@ public class ServiceManagerComponent
 
     private DuccEventDispatcher eventDispatcher;
     private String stateEndpoint;
+    private String stateChangeEndpoint;
 
     private ServiceHandler handler = null;
     private IStateServices stateHandler = null;
@@ -292,6 +297,23 @@ public class ServiceManagerComponent
         }
     }
 
+    /**
+     * Tell Orchestrator about state change for recording into system-events.log
+     */
+    private void stateChange(EventType eventType) {
+    	String methodName = "stateChange";
+        try {
+    		Daemon daemon = Daemon.ServicesManager;
+    		NodeIdentity nodeIdentity = new NodeIdentity();
+        	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
+            eventDispatcher.dispatch(stateChangeEndpoint, ev, "");
+            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+        }
+    	catch(Exception e) {
+    		logger.error(methodName, null, e);
+    	}
+    }
+    
 	@Override
 	public void start(DuccService service, String[] args) throws Exception
     {
@@ -386,8 +408,14 @@ public class ServiceManagerComponent
         handlerThread.setName("ServiceHandler");
         handlerThread.setDaemon(true);
         handlerThread.start();
+        stateChange(EventType.BOOT);
 	}
 
+	public void stop() throws Exception {
+		stateChange(EventType.SHUTDOWN);
+		super.stop();
+	}
+	
     public void run()
     {
         String methodName = "run";
@@ -682,10 +710,11 @@ public class ServiceManagerComponent
         }
     }
 
-    public void setTransportConfiguration(DuccEventDispatcher eventDispatcher, String endpoint)
+    public void setTransportConfiguration(DuccEventDispatcher eventDispatcher, String stateEndpoint, String stateChangeEndpoint)
     {
         this.eventDispatcher = eventDispatcher;
-        this.stateEndpoint = endpoint;
+        this.stateEndpoint = stateEndpoint;
+        this.stateChangeEndpoint = stateChangeEndpoint;
     }
 
     int epochCounter = 0;

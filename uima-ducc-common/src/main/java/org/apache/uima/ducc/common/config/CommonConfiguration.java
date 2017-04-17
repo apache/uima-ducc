@@ -90,6 +90,10 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.rm.class.definitions'] }")
     public String classDefinitionFile;
 	
+	//	fetch the name of an endpoint where the Orchestrator should receive daemon state change notifications
+	@Value("#{ systemProperties['ducc.daemons.state.change.endpoint'] }")
+	public String daemonsStateChangeEndpoint;
+	
 	//	fetch the name of an endpoint where the Orchestrator should post state updates
 	@Value("#{ systemProperties['ducc.orchestrator.state.update.endpoint'] }")
 	public String orchestratorStateUpdateEndpoint;

@@ -25,6 +25,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoad;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancy;
@@ -38,12 +39,15 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.rm.scheduler.ISchedulerMain;
 import org.apache.uima.ducc.rm.scheduler.JobManagerUpdate;
 import org.apache.uima.ducc.rm.scheduler.SchedConstants;
 import org.apache.uima.ducc.rm.scheduler.Scheduler;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
+import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 
@@ -73,6 +77,7 @@ public class ResourceManagerComponent
     long lastSchedule = 0;
     DuccEventDispatcher eventDispatcher;
     String stateEndpoint;
+    String stateChangeEndpoint;
 
     NodeStability stabilityManager = null;
 
@@ -197,14 +202,31 @@ public class ResourceManagerComponent
             exchange.getIn().setBody(reply);
         }
     }
-
+	
+    /**
+     * Tell Orchestrator about state change for recording into system-events.log
+     */
+    private void stateChange(EventType eventType) {
+    	String methodName = "stateChange";
+        try {
+    		Daemon daemon = Daemon.ResourceManager;
+    		NodeIdentity nodeIdentity = new NodeIdentity();
+        	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
+            eventDispatcher.dispatch(stateChangeEndpoint, ev, "");
+            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+        }
+    	catch(Exception e) {
+    		logger.error(methodName, null, e);
+    	}
+    }
+    
     public void start(DuccService service, String[] args)
         throws Exception
     {
     	String methodName = "start";
         converter = new JobManagerConverter(scheduler, stabilityManager);
 
-	super.start(service, args);
+        super.start(service, args);
         DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.ResourceManager, super.getProcessJmxUrl());
 
         initStability         = SystemPropertyResolver.getIntProperty("ducc.rm.init.stability", DEFAULT_INIT_STABILITY_COUNT);
@@ -232,7 +254,7 @@ public class ResourceManagerComponent
         rmThread.start();
 
         schedulerReady = true;
-       
+        stateChange(EventType.BOOT);
     }
 
     public RmStateDuccEvent getState() throws Exception 
@@ -263,14 +285,16 @@ public class ResourceManagerComponent
     {
     	String methodName = "stop";
         logger.info(methodName, null, "Stopping RM database connection");
+        stateChange(EventType.SHUTDOWN);
         scheduler.stop();
         super.stop();
     }
 
-    public void setTransportConfiguration(DuccEventDispatcher eventDispatcher, String endpoint)
+    public void setTransportConfiguration(DuccEventDispatcher eventDispatcher, String stateEndpoint, String stateChangeEndpoint)
     {
         this.eventDispatcher = eventDispatcher;
-        this.stateEndpoint = endpoint;
+        this.stateEndpoint = stateEndpoint;
+        this.stateChangeEndpoint = stateChangeEndpoint;
     }
 
     public void run()
