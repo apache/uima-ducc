@@ -775,7 +775,7 @@ SM.ServiceManagerComponent - N/A boot  ... Starting Component:  serviceManager
       Service ping rate       :  15000
       Service ping timeout    :  15000
       Service ping stability  :  10
-      Default ping class      :  org.apache.uima.ducc.cli.UimaAsPing
+      Default ping class      :  org.apache.uima.ducc.sm.UimaAsPing
   
       Init Failure Max        :  1
       Instance Failure Max    :  3
@@ -939,8 +939,8 @@ SM.ServiceSet - 427 setState  State update \
 \begin{verbatim}
 INFO SM.ServiceSet - 430 startPingThread  Starting service monitor.
 INFO SM.PingDriver - 430 find RegisteredPinger  \
-     Loading site-registered service monitor from org.apache.uima.ducc.cli.UimaAsPing
-INFO SM.PingDriver - 430 <ctr>  Using ping class org.apache.uima.ducc.cli.UimaAsPing
+     Loading site-registered service monitor from org.apache.uima.ducc.sm.UimaAsPing
+INFO SM.PingDriver - 430 <ctr>  Using ping class org.apache.uima.ducc.sm.UimaAsPing
 \end{verbatim}
 
     If the pingers do not declare loggers, their {\em stdout} and {\em stderr} are

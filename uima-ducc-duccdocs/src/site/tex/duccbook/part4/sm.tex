@@ -56,8 +56,8 @@
     As an example, the default UIMA-AS pinger is supplied in the global registery
     under the two names:
 \begin{verbatim}
-    org.apache.uima.ducc.cli.UimaAsPing
-    org.apache.uima.ducc.cli.UimaAsPing.external
+    org.apache.uima.ducc.sm.UimaAsPing
+    org.apache.uima.ducc.sm.UimaAsPing.external
 \end{verbatim}
 
     Note that users may override any of the properties in globally-registered
@@ -68,3 +68,8 @@
     By default external pingers are launched with the same JRE as used by the DUCC daemons but if the
     registration contains a entry for the JAVA\_HOME environment variable, that JRE will be used instead.
 
+    For backwards compatibility the default UIMA-AS pinger is also registered under its old name:
+\begin{verbatim}
+    org.apache.uima.ducc.cli.UimaAsPing
+    org.apache.uima.ducc.cli.UimaAsPing.external
+\end{verbatim}
