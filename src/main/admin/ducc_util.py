@@ -863,6 +863,7 @@ class DuccUtil(DuccBase):
         #
         response = []
         jvm = self.ducc_properties.get('ducc.jvm')
+        jvm = jvm.replace('//', '/')
         check_java = True
         if ( jvm == None ):
             response.append('WARNING: No jvm configured.  Default is used.')

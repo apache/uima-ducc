@@ -77,6 +77,11 @@ class DuccPropManager:
             upd.c.append('# INSERT by merger ' + time.strftime('%c'))
             file3_props.put_property(upd)
 
+		# automagically fix // in path to java
+        prop = file3_props.get_property('ducc.jvm')
+        prop.v = prop.v.replace('//', '/')
+        file3_props.put_property(prop)
+		
         file3_props.write(file3)
 
     def delta(self, left, right, delta):

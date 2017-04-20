@@ -108,6 +108,7 @@ class Properties:
         return response
 
     def mkitem(self, line):
+        line = line.strip()    # clear leading and trailing whitespace
         #
         # First deal with line comments so we can preserve them on write
         #
@@ -115,27 +116,12 @@ class Properties:
             self.comments.append(line)
             return False
 
-        if ( line.startswith('//') ):
+        if ( line.startswith('!') ):
             self.comments.append(line)
             return False
 
         if ( line == '' ):
             return False
-
-        #
-        # Now strip off embedded comments, these are lost, but they're not valid
-        # for java props anyway.
-        #
-        ndx = line.find('#')   # remove comments - like the java DuccProperties
-        if ( ndx >= 0 ):
-            line = line[0:ndx]     # strip the comment
-        ndx = line.find('//')   # remove comments - like the java DuccProperties
-        if ( ndx >= 0 ):
-            line = line[0:ndx]     # strip the comment
-        line = line.strip()    # clear leading and trailing whitespace
-        
-        if ( line == '' ):
-            return 
 
         mobj = re.search('[ =:]+', line)
         if ( mobj ):            

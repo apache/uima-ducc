@@ -248,6 +248,9 @@ class PostInstall():
             if ( reply != '' ):       
                 self.path_to_java = reply
 
+        # automagically fix // in path to java
+        self.path_to_java = self.path_to_java.replace('//', '/')
+
         self.update_property('ducc.jvm', self.path_to_java, '# The full path to java')
         print 'Initialized property "ducc.jvm" to', self.path_to_java
 
