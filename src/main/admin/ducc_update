@@ -360,7 +360,7 @@ if (rc != 0):
     exit(9)
 rc = os.system('./build_duccling')
 if (rc != 0):
-    print "ERROR - failed to rebuild ducc_ling"
+    print "ERROR - failed to rebuild or install ducc_ling"
     exit(9)
 
 print "\n", " --- Installation completed!"

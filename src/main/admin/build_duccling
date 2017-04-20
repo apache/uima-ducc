@@ -82,10 +82,14 @@ def main():
         print 'Cannot run "make" in ../duccling/src.  Insure you have a C compiler on this system.'
         sys.exit(1)
     os.chdir(here)
-
-    shutil.copyfile("../duccling/src/ducc_ling",  arch + '/ducc_ling')
-    os.chmod(arch + '/ducc_ling', 0755)
-
+    
+    try:
+    	shutil.copyfile("../duccling/src/ducc_ling",  arch + '/ducc_ling')
+    	os.chmod(arch + '/ducc_ling', 0755)
+    except Exception:
+		print 'Cannot install '+arch+'/ducc_ling'
+		sys.exit(1)
+		
     CMD = ' '.join([arch + '/ducc_ling', '-v'])
     rc = os.system(CMD)
     if ( rc != 0 ):
