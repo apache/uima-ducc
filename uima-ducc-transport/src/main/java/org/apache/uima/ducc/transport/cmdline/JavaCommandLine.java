@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -23,7 +23,7 @@ import java.util.List;
 
 public class JavaCommandLine extends ACommandLine {
 	/**
-     * Assign the generated ID so will (hopefully) match the one assigned when serialized 
+     * Assign the generated ID so will (hopefully) match the one assigned when serialized
      */
     private static final long serialVersionUID = 7377333447388157462L;
     private String className;
@@ -33,7 +33,7 @@ public class JavaCommandLine extends ACommandLine {
 	public JavaCommandLine(String executable) {
 		super(executable);
 	}
-	
+
 	/*
 	 * Make a shallow copy of everything except the options as they are modified by DuccCommandExecutor
 	 */
@@ -48,7 +48,7 @@ public class JavaCommandLine extends ACommandLine {
 	  jcl.options = new ArrayList<String>(getOptions());
 	  return jcl;
 	}
-	
+
     public void addOption(String option ) {
         if (!options.contains(option)) {
             options.add(option);
@@ -67,11 +67,6 @@ public class JavaCommandLine extends ACommandLine {
       result = concatAllArrays(options.toArray(os), new String[] { "-classpath", classpath, className },
               args.toArray(arguments));
 		}
-		// Replace the reserved DUCC variable with the architecture of this node (ppc64 or amd64 or ...)
-		String osArch = System.getProperty("os.arch");
-		for (int i = 0; i < result.length; ++i) {
-		  result[i] = result[i].replace("${DUCC_OS_ARCH}",  osArch);
-		}
 		return result;
 	}
 
@@ -82,7 +77,7 @@ public class JavaCommandLine extends ACommandLine {
 		}
 		return retVal;
 	}
-	
+
 	/**
 	 * @return the className
 	 */

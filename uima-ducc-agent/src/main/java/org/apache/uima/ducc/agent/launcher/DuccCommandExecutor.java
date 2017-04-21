@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -311,12 +311,12 @@ public class DuccCommandExecutor extends CommandExecutor {
 				.equals(ProcessState.Initializing) ||
 				((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
 				.equals(ProcessState.Starting)
-				); 	
+				);
 	}
 	private void stopProcess(ICommandLine cmdLine, String[] cmd)
 			throws Exception {
 		String methodName = "stopProcess";
-		
+
 		if ( processInRunningOrInitializingState() ) {
 			Future<?> future = ((ManagedProcess) managedProcess).getFuture();
 			if (future == null) {
@@ -404,12 +404,12 @@ public class DuccCommandExecutor extends CommandExecutor {
 									.getDuccProcess()
 									.getProcessState());
 							    doExec(new ProcessBuilder(cmd), cmd, true);
-				    		
+
 				    	}
 
 					}
 
-					
+
 				}
 			} catch (Exception e) { // InterruptedException, ExecutionException
 			    logger.error(methodName,
@@ -417,7 +417,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					 new Object[] {});
 			}
 
-			
+
 		}
 	}
 
@@ -479,7 +479,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 	/**
 	 * Checks if a given process is AP. The code checks if process type is POP
 	 * and it is *not* JD
-	 * 
+	 *
 	 * @param process
 	 *            - process instance
 	 * @return - true if AP, false otherwise
@@ -500,7 +500,6 @@ public class DuccCommandExecutor extends CommandExecutor {
 		int exitCode = 0;
 		boolean failed = false;
 		try {
-
 			StringBuilder sb = new StringBuilder(
 					(isKillCommand(cmdLine) ? "--->Killing Process "
 							: "---> Launching Process:")
@@ -512,12 +511,13 @@ public class DuccCommandExecutor extends CommandExecutor {
 						.append("]")
 						.append(Utils.resolvePlaceholderIfExists(cmdPart,
 								System.getProperties()));
+				// Not sure why place-holders are replaced just for this msg?
 			}
 			logger.info(methodName,
 					((ManagedProcess) super.managedProcess).getDuccId(),
 					sb.toString());
 
-			
+
 			java.lang.Process process = pb.start();
 			// Drain process streams
 			postExecStep(process, logger, isKillCmd);
@@ -538,7 +538,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					// before destroying the container the code checks if there
 					// are processes still running in it. This could be true if
 					// user code launched child processes. If there are child
-					// processes still running, the code kills each one at a 
+					// processes still running, the code kills each one at a
 					// time and at the end the container is removed.
 					agent.cgroupsManager.destroyContainer(containerId, userId, NodeAgent.SIGKILL);
 					logger.info(methodName, null,
@@ -567,7 +567,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			((ManagedProcess) super.managedProcess).getDuccProcess()
 					.setProcessState(ProcessState.LaunchFailed);
 
-			((ManagedProcess) super.managedProcess).getDuccProcess().setProcessExitCode(-1);  // overwrite process exit code if stderr has a msg 
+			((ManagedProcess) super.managedProcess).getDuccProcess().setProcessExitCode(-1);  // overwrite process exit code if stderr has a msg
 
 		        StringWriter stackTraceBuffer = new StringWriter();
 			ex.printStackTrace(new PrintWriter(stackTraceBuffer));
@@ -575,10 +575,10 @@ public class DuccCommandExecutor extends CommandExecutor {
 			((ManagedProcess) managedProcess).getDuccProcess()
 					    .setReasonForStoppingProcess(stackTraceBuffer.toString());
                         failed = true;
-			logger.info(methodName, 
+			logger.info(methodName,
                                     ((ManagedProcess) super.managedProcess).getDuccId(),
                                     "Failed to launch Process - Reason:"+stackTraceBuffer.toString());
-			
+
 			throw ex;
 		} finally {
 		    if ( !failed ) {
@@ -586,7 +586,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			((ManagedProcess) managedProcess).getDuccProcess()
 					.setProcessExitCode(exitCode);
 
-		    } 
+		    }
 
 			// Per team discussion on Aug 31 2011, the process is stopped by an
 			// agent when initialization
@@ -606,7 +606,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 
 				((ManagedProcess) managedProcess).getDuccProcess()
 						.setProcessState(ProcessState.Stopped);
-			    } 
+			    }
 
 
 				if (((ManagedProcess) super.managedProcess).doKill()) { // killed
@@ -681,7 +681,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 							new String[] { cmdLine.getExecutable() },
 							cmdLine.getCommandLine());
 				}
-				
+
 			} else {
 				String processType = "-UIMA-";
 				// If Java then may run many JPs from the same cmdLine so make a local copy that we can modify
@@ -725,7 +725,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 							isDucc20ServiceProcess = true;
 						}
 					}
-					
+
 					// Add main class and component type to the command line
 					if (isDucc20JpProcess) {
 						if (!isDucc20ServiceProcess) {
@@ -776,7 +776,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					// UIMA-4935 Following moved from CommandExecutor to avoid duplications in the shared cmdLine
 					cmdLine.addOption("-Dducc.deploy.JpUniqueId="
 					        + ((ManagedProcess) managedProcess).getDuccId().getUnique());
-					
+
           if (System.getProperties().containsKey("ducc.agent.managed.process.state.update.endpoint.type")) {
             String type = System.getProperty("ducc.agent.managed.process.state.update.endpoint.type");
             if (type != null && type.equalsIgnoreCase("socket")) {
@@ -787,10 +787,10 @@ public class DuccCommandExecutor extends CommandExecutor {
 					// NOTE - These are redundant since the information is also
 					// in the environment for both Java and non-Java processes
 					cmdLine.addOption("-Dducc.process.log.dir="	+ processLogDir);
-					cmdLine.addOption("-Dducc.process.log.basename=" + processLogFile); 
+					cmdLine.addOption("-Dducc.process.log.basename=" + processLogFile);
 					cmdLine.addOption("-Dducc.job.id=" + ((ManagedProcess) super.managedProcess).getWorkDuccId());
 				}
-				
+
 				if (useDuccSpawn()) {
 					cmd = Utils.concatAllArrays(duccling,
 							new String[] { executable },
@@ -807,7 +807,17 @@ public class DuccCommandExecutor extends CommandExecutor {
 				processEnv.put(IDuccUser.EnvironmentVariable.DUCC_LOG_PREFIX.value(), processLogDir
 						+ processLogFile);
 			}
+
+			// Replace the reserved DUCC variable with the architecture of this node (ppc64 or amd64 or ...)
+			// (could have been done in getCommandLine if that did return the full cmd line!)
+			String osArch = System.getProperty("os.arch");
+            for (int i = 0; i < cmd.length; ++i) {
+                if (cmd[i].contains("${DUCC_OS_ARCH}")) {
+                    cmd[i] = cmd[i].replace("${DUCC_OS_ARCH}", osArch);
+                }
+            }
 			return cmd;
+
 		} catch (Exception ex) {
 			((ManagedProcess) super.managedProcess).getDuccProcess()
 					.setProcessState(ProcessState.Failed);
