@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -95,10 +95,12 @@ import org.apache.uima.ducc.transport.event.common.TimeWindow;
 public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLifecycleObserver {
   public static DuccLogger logger = DuccLogger.getLogger(NodeAgent.class, COMPONENT_NAME);
 
-  public static final String ProcessStateUpdatePort = "ducc.agent.process.state.update.port";
+  //  Replaced by duplicate in org.apache.uima.ducc.transport.agent.ProcessStateUpdate
+  //public static final String ProcessStateUpdatePort = "ducc.agent.process.state.update.port";
+
   public static int SIGKILL=9;
   public static int SIGTERM=15;
-  
+
   //for LinuxNodeMetrics logging
   public static AtomicLong logCounter = new AtomicLong();
   public static String cgroupFailureReason;
@@ -127,7 +129,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   private DuccEventDispatcher commonProcessDispatcher;
 
   private DuccEventDispatcher inventoryDispatcher;
-  
+
   private Object monitor = new Object();
 
   boolean duccLingExists = false;
@@ -143,7 +145,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   private volatile boolean stopping = false;
 
   private Object stopLock = new Object();
-  
+
   private RogueProcessReaper rogueProcessReaper = new RogueProcessReaper(logger, 5, 10);
 
   public volatile boolean useCgroups = false;
@@ -157,25 +159,25 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   public int shareQuantum;
 
   private boolean agentVirtual = System.getProperty("ducc.agent.virtual") == null ? false : true;
-  
+
   // This flag, when true, forces the agent to be "real"
   // regardless of the value of ducc.agent.virtual.
   // In the future, this flag and support for ducc.agent.virtual
-  // should be removed altogether.  
+  // should be removed altogether.
   // This is to support CGroups for all agents,
   // which was previously disabled for virtual ones.
   private boolean agentRealOnly = true;
-  
+
   public boolean pageSizeFetched = false;
 
   public int pageSize = 4096; // default
 
   public int cpuClockRate = 100;
-  
+
   public int numProcessors=0;
-  
+
   private AgentEventListener eventListener;
-  
+
   //  indicates whether or not this agent received at least one publication
   //  from the PM. This flag is used to determine if the agent should use
   //  rogue process detector. The detector will be used if this flag is true.
@@ -206,7 +208,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   public void setAgentEventListener(AgentEventListener listener) {
 	  eventListener = listener;
   }
-  
+
   public boolean isVirtual() {
 	  boolean retVal = agentVirtual;
 	  if(agentRealOnly) {
@@ -214,10 +216,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	  }
 	  return retVal;
   }
-  
+
   /**
    * C'tor for dependecy injection
-   * 
+   *
    * @param nodeIdentity
    *          - this Agent's identity
    * @param launcher
@@ -230,7 +232,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     super(COMPONENT_NAME, context);
 
     Utils.findDuccHome();  // add DUCC_HOME to System.properties
-    
+
     // Running a real agent
     agentVirtual = System.getProperty("ducc.agent.virtual") == null ? false : true;
 
@@ -239,13 +241,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     this.configurationFactory = factory;
     this.commonProcessDispatcher = factory.getCommonProcessDispatcher(context);
     this.inventoryDispatcher = factory.getORDispatcher(context);
-    
+
     // fetch Page Size from the OS and cache it
     pageSize = getOSPageSize();
-    
-    
+
+
     numProcessors = getNodeProcessors();
-    
+
     logger.info("NodeAgent", null, "OS Page Size:" + pageSize);
 
     cpuClockRate = getOSClockRate();
@@ -308,14 +310,14 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             }
             // scan /proc/mounts for base cgroup dir
             String cgroupsBaseDir = fetchCgroupsBaseDir("/proc/mounts");
-            
+
             if ( cgUtilsPath == null ) {
             	useCgroups = false;
                 logger.info("nodeAgent", null, "------- CGroups Disabled - Unable to Find Cgroups Utils Directory. Add/Modify ducc.agent.launcher.cgroups.utils.dir property in ducc.properties");
             } else if ( cgroupsBaseDir == null || cgroupsBaseDir.trim().length() == 0) {
             	useCgroups = false;
                 logger.info("nodeAgent", null, "------- CGroups Disabled - Unable to Find Cgroups Root Directory in /proc/mounts");
-            	
+
             } else {
             	logger.info("nodeAgent",null,"Agent found cgroups runtime in "+cgUtilsPath+" cgroups base dir="+cgroupsBaseDir);
             	// if cpuacct is configured in cgroups, the subsystems list will be updated
@@ -338,8 +340,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                   try {
                 	  String containerId = "test";
                 	  // validate cgroups by creating a dummy cgroup. The code checks if cgroup actually got created by
-                	  // verifying existence of test cgroup file. The second step in verification is to check if 
-                	  // CPU control is working. Configured in cgconfig.conf, the CPU control allows for setting 
+                	  // verifying existence of test cgroup file. The second step in verification is to check if
+                	  // CPU control is working. Configured in cgconfig.conf, the CPU control allows for setting
                 	  // cpu.shares. The code will attempt to set the shares and subsequently tries to read the
                 	  // value from cpu.shares file to make sure the values match. Any exception in the above steps
                 	  // will cause cgroups to be disabled.
@@ -347,7 +349,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 	  cgroupsManager.validator(cgroupsBaseDir, containerId, System.getProperty("user.name"),false)
                 	              .cgcreate()
                 	              .cgset(100);   // write cpu.shares=100 and validate
-                	  
+
                 	  // cleanup dummy cgroup
                 	  cgroupsManager.destroyContainer(containerId, System.getProperty("user.name"), SIGKILL);
                 	  useCgroups = true;
@@ -383,7 +385,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       logger.info("nodeAgent", null, "------- CGroups Not Enabled on this Machine");
       cgroupFailureReason = "------- CGroups Not Enabled on this Machine - check ducc.properties: ducc.agent.launcher.cgroups.enable ";
     }
-    
+
     // begin publishing node metrics
     factory.startNodeMetrics(this);
 
@@ -407,7 +409,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
     }
   }
-  
+
   private String fetchCgroupsBaseDir(String mounts) {
 	  String cbaseDir=null;
 	  BufferedReader br = null;
@@ -415,11 +417,11 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 		  FileInputStream fis = new FileInputStream(mounts);
 			//Construct BufferedReader from InputStreamReader
 		  br = new BufferedReader(new InputStreamReader(fis));
-		 
+
 		String line = null;
 		while ((line = br.readLine()) != null) {
 			System.out.println(line);
-			if ( line.trim().startsWith("cgroup") ) { 
+			if ( line.trim().startsWith("cgroup") ) {
 				String[] cgroupsInfo = line.split(" ");
 				if ( cgroupsInfo[1].trim().equals("/cgroup") ) {
 					cbaseDir = cgroupsInfo[1].trim();
@@ -428,10 +430,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 					// return the mount point minus the memory part
 					cbaseDir = cgroupsInfo[1].substring(0, cgroupsInfo[1].indexOf("/memory") );
 					break;
-				} 
+				}
 			}
 		}  // while
-		 
+
 	  } catch( Exception e) {
 	        logger.info("nodeAgent", null,
 	                "------- Agent failed while checking for existence of ducc_ling", e);
@@ -570,7 +572,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       if (commandLine != null) {
           if (commandLine.getExecutable() != null && commandLine.getExecutable().length() > 0) return false;
           if (commandLine.getCommandLine() != null && commandLine.getCommandLine().length > 0) return false;
-      } 
+      }
       return true;
   }
 
@@ -580,7 +582,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   /**
    * Stops any process that is in agent's inventory but not in provided job list sent by the PM.
-   * 
+   *
    * @param lifecycleController
    *          - instance implementing stopProcess() method
    * @param jobDeploymentList
@@ -659,7 +661,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   /**
    * Reconciles agent inventory with job processes sent by PM
-   * 
+   *
    * @param lifecycleController
    *          - instance implementing stopProcess and startProcess
    * @param process
@@ -779,7 +781,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	  long overLimit = 0;
 	 for (ManagedProcess deployedProcess : deployedProcesses) {
 	   if ( deployedProcess.getDuccProcess().getDuccId().equals(process.getDuccId()) ) {
-	   	  overLimit = deployedProcess.getMaxSwapThreshold() - process.getSwapUsage(); 
+	   	  overLimit = deployedProcess.getMaxSwapThreshold() - process.getSwapUsage();
 	   }
 	 }
 	 if ( overLimit < 0 ) {
@@ -799,9 +801,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       inventorySemaphore.acquire();
       // find the fattest process in terms of absolute use of swap over the process limit
       for (Entry<DuccId, IDuccProcess> processEntry : getInventoryRef().entrySet()) {
-        if (isProcessRunning(processEntry.getValue()) 
+        if (isProcessRunning(processEntry.getValue())
         		&& isOverSwapLimit(processEntry.getValue())
-                && (biggestProcess == null  
+                && (biggestProcess == null
                 || getSwapOverLimit(biggestProcess) < getSwapOverLimit(processEntry.getValue()))) {
           biggestProcess = processEntry.getValue();
         }
@@ -838,12 +840,12 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	}
   /**
    * Called when Agent receives request to start a process.
-   * 
+   *
    * @param process
    *          - IDuccProcess instance with identity (DuccId)
    * @param commandLine
    *          - fully defined command line that will be used to exec the process.
-   * 
+   *
    */
   public void startProcess(IDuccProcess process, ICommandLine commandLine, IDuccStandardInfo info,
           DuccId workDuccId, ProcessMemoryAssignment processMemoryAssignment) {
@@ -895,10 +897,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   /**
    * Called when Agent receives request to stop a process.
-   * 
+   *
    * @param process
    *          - IDuccProcess instance with identity (DuccId)
-   * 
+   *
    */
   public void stopProcess(IDuccProcess process) {
     String methodName = "stopProcess";
@@ -944,7 +946,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
    * Checks if process with a given PID has already registered memory collector Camel route. This
    * route periodically fetches resident memory of a process with a given PID. Each process
    * collector route is identified by process PID.
-   * 
+   *
    * @param pid
    *          - process PID also id of its route
    * @return - true if memory collector route has already been created. False, otherwise
@@ -961,7 +963,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   /**
    * Remove given process from Agent's inventory
-   * 
+   *
    * @param process
    *          - process to purge from inventory
    * @throws Exception
@@ -1017,7 +1019,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   /**
    * Called when UIMA AS service wrapper sends an update when a process status changes.
-   * 
+   *
    * @param duccEvent
    *          - Ducc event object
    *
@@ -1045,10 +1047,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           ITimeWindow tw = processEntry.getValue().getTimeWindowInit();
           if (tw.getEnd() == null ) {
         	if ( !duccEvent.getState().equals(ProcessState.Initializing)) {
-        		// Mark the time the process ended initialization. It also 
+        		// Mark the time the process ended initialization. It also
         		// covers a case when the process terminates while initializing
           	    tw.setEnd(TimeStamp.getCurrentMillis());
-            
+
             	if ( duccEvent.getState().equals(ProcessState.Running)) {
         		    ITimeWindow twr = new TimeWindow();
         		    String millis;
@@ -1109,7 +1111,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     + processEntry.getValue().getDuccId()
                     + " Was Previously Tagged for Kill While It Was Starting");
             undeployProcess(processEntry.getValue());
-          } else if ( deployedProcess != null && deployedProcess.doKill() && 
+          } else if ( deployedProcess != null && deployedProcess.doKill() &&
         		  deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopped) ) {
         	  deployedProcess.getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
           } else if ( deployedProcess != null && ( deployedProcess.doKill()
@@ -1132,7 +1134,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                   && (duccEvent.getState().equals(ProcessState.Initializing) || duccEvent
                           .getState().equals(ProcessState.Running))) {
             if ( duccEvent.getState().equals(ProcessState.Running) ) {
-               if ( processEntry.getValue().getUimaPipelineComponents() != null && 
+               if ( processEntry.getValue().getUimaPipelineComponents() != null &&
             		processEntry.getValue().getUimaPipelineComponents().size() > 0 ) {
             	   processEntry.getValue().getUimaPipelineComponents().clear();
             	   if ( duccEvent.getUimaPipeline() != null ) {
@@ -1154,7 +1156,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
             StringBuffer sb = new StringBuffer();
             if ( duccEvent.getState().equals(ProcessState.Running) ) {
-               if ( processEntry.getValue().getUimaPipelineComponents() != null && 
+               if ( processEntry.getValue().getUimaPipelineComponents() != null &&
             		processEntry.getValue().getUimaPipelineComponents().size() > 0 ) {
             	   processEntry.getValue().getUimaPipelineComponents().clear();
             	   if ( duccEvent.getUimaPipeline() != null ) {
@@ -1169,7 +1171,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     methodName,
                     null,
                     sb.toString());
-            
+
             logger.info(
                     methodName,
                     null,
@@ -1187,7 +1189,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             	}
 
 //            super.getContext().stopRoute(duccEvent.getPid());
-            
+
             // remove route from context, otherwise the routes accumulate over time causing memory leak
             super.getContext().removeRoute(duccEvent.getPid());
             StringBuffer sb = new StringBuffer();
@@ -1195,7 +1197,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     methodName,
                     null,
                     "Removed Camel Route from Context for PID:"+duccEvent.getPid());
-            
+
             for ( Route route : super.getContext().getRoutes() ) {
             	sb.append("Camel Context - RouteId:"+route.getId()+"\n");
             }
@@ -1203,8 +1205,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     methodName,
                     null,
                     sb.toString());
-            
-            
+
+
             if ( deployedProcess.getMetricsProcessor() != null ) {
             	deployedProcess.getMetricsProcessor().close();  // close open fds (stat and statm files)
             }
@@ -1239,20 +1241,20 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             //deployedProcess.setStopping();
 
             // Mark process for death. Doesnt actually kill the process
-            
+
             deployedProcess.kill();
             logger.info(methodName, null, ">>>> Agent Handling Process InitializationTimeout. PID:"
                     + duccEvent.getPid() + " Killing Process");
-          
+
             undeployProcess(processEntry.getValue());
-            
-          } 
-          else if (duccEvent.getState().equals(ProcessState.Stopping)) { 
+
+          }
+          else if (duccEvent.getState().equals(ProcessState.Stopping)) {
         	  if ( duccEvent.getMessage() != null && duccEvent.getMessage().equals(ReasonForStoppingProcess.ExceededErrorThreshold.toString())) {
                   processEntry.getValue().
             	    setReasonForStoppingProcess(ReasonForStoppingProcess.ExceededErrorThreshold.toString());
         	  }
-              if ( !deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopped) && 
+              if ( !deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopped) &&
             	   !deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopping) )  {
             	  deployedProcess.getDuccProcess().setProcessState(ProcessState.Stopping);
                   deployedProcess.setStopping();
@@ -1281,7 +1283,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   /**
    * Deploys process using supplied command line
-   * 
+   *
    * @param process
    *          - Process with identity (DuccId)
    * @param commandLine
@@ -1335,9 +1337,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   class AgentStreamConsumer implements Runnable {
 	  private InputStream theStream;
-	  
+
 	  AgentStreamConsumer(InputStream is) {
-		theStream = is;  
+		theStream = is;
 	  }
   	public void run() {
   	  String methodName = "AgentStreamConsumer.run";
@@ -1354,7 +1356,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
         }
         catch (Throwable t)
         {
-    		logger.warn(methodName, null, t);  
+    		logger.warn(methodName, null, t);
           t.printStackTrace();
         }
         finally
@@ -1365,11 +1367,11 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           } catch( Exception e) {}
         }
 	}
-}	  
+}
   enum SIGNAL {
 	SIGTERM("-15"),
     SIGKILL("-9");
-    
+
 	String signal="";
 	SIGNAL(String kind) {
 		  signal = kind;
@@ -1380,7 +1382,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   };
   class ProcessRunner implements Runnable {
 	  ManagedProcess deployedProcess;
-	  
+
 	  public ProcessRunner(final ManagedProcess deployedProcess) {//final String pid, SIGNAL signal ) {
 		  this.deployedProcess = deployedProcess;
 	  }
@@ -1388,16 +1390,16 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 		  stopProcess(deployedProcess.getDuccProcess());
  	  }
   }
-  
+
   private boolean runnable(ManagedProcess process) {
 	  return ( process.getDuccProcess().getProcessState().equals(ProcessState.Initializing) ||
 			   process.getDuccProcess().getProcessState().equals(ProcessState.Starting) ||
 			   process.getDuccProcess().getProcessState().equals(ProcessState.Running) );
   }
-  
+
   /**
    * This method is called when an agent receives a STOP request. It
-   * sends SIGTERM to all child processes and starts a timer. If the 
+   * sends SIGTERM to all child processes and starts a timer. If the
    * timer pops and child processes are still running, the agent takes
    * itself out via halt()
    */
@@ -1418,22 +1420,22 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             ExecutorService executor = Executors.newSingleThreadExecutor();
             executor.execute( new ProcessRunner(deployedProcess) ); //pid,SIGNAL.SIGTERM));
 	      }
-	      
+
 	  } catch( Exception e) {
-		logger.warn(methodName, null, e);  
+		logger.warn(methodName, null, e);
 	  }
 	  return wait;
   }
-      
+
       private void killChildProcesses() {
     	  String methodName = "killChildProcesses";
-    	  
+
 
     	  try {
       	    if ( useCgroups ) {
     	        logger.info("stop", null, "CgroupsManager.cleanup() before ");
     	        // Since SIGTERM may not be enough to take down a process, use cgroups to find
-    	        // any process still standing and do hard kill 
+    	        // any process still standing and do hard kill
     	        cgroupsManager.cleanup();
     	        logger.info("stop", null, "CgroupsManager.cleanup() after ");
     	    } else {
@@ -1456,19 +1458,19 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
       	        deployedProcess.setStopping();
       			deployedProcess.setStopPriority(StopPriority.DONT_WAIT);
-      			
+
                   launcher.launchProcess(this, getIdentity(),deployedProcess.getDuccProcess(), cmdLine, this, deployedProcess);
       	      }
 
     	    }
     	  } catch( Exception e) {
-    		logger.warn(methodName, null, e);  
+    		logger.warn(methodName, null, e);
     	  }
-    	          	  
+
       }
   /**
    * Kills a given process
-   * 
+   *
    * @param process
    *          - process to kill
    */
@@ -1585,7 +1587,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                   methodName,
                   null,
                   "Removed Camel Route from Context for PID:"+process.getPID());
-          
+
           for ( Route route : super.getContext().getRoutes() ) {
           	sb.append("Camel Context - RouteId:"+route.getId()+"\n");
           }
@@ -1711,7 +1713,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           NodeUsersCollector.ProcessInfo cpi) throws Exception {
 
     synchronized (monitor) {
-    	// if cgroups are enabled, check if a given PID (cpi) exists in any of 
+    	// if cgroups are enabled, check if a given PID (cpi) exists in any of
     	// the containers. If so, the process is not rogue.
     	if ( useCgroups ) {
     		if ( cgroupsManager.isPidInCGroup(String.valueOf(cpi.getPid())) ) {
@@ -1750,8 +1752,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       if (foundDeployedProcessWithNoPID) {
         return false;
       } else if ( cpi.getPPid() == 1 ) {   // Any process owned by init is rogue
-    	  // interrupt agent's thread blocking in waitFor() awaiting process termination. 
-    	  // This process is a zombie and there is no need to waste the thread. 
+    	  // interrupt agent's thread blocking in waitFor() awaiting process termination.
+    	  // This process is a zombie and there is no need to waste the thread.
     	  interruptThreadInWaitFor(String.valueOf(cpi.getPid()));
     	  return true;
       }  else {
@@ -1791,7 +1793,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   /**
    * Process resident memory collector routes. Collects resident memory at fixed interval from the
    * OS.
-   * 
+   *
    */
   public class ProcessMemoryUsageRoute extends RouteBuilder {
     private NodeAgent agent;
@@ -1823,27 +1825,27 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	        return;
         }
 		stopping = true;
-		
-	    // Send an empty process map as the final inventory 
-	    HashMap<DuccId, IDuccProcess> emptyMap = 
+
+	    // Send an empty process map as the final inventory
+	    HashMap<DuccId, IDuccProcess> emptyMap =
 	    		new HashMap<DuccId, IDuccProcess>();
 	    DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap,getLastORSequence(), getIdentity());
 	    inventoryDispatcher.dispatch(duccEvent);
 	    logger.info("stop", null, "Agent published final inventory");
-	    
+
 	    configurationFactory.stopRoutes();
-	    
+
 	    logger.info("stop", null, "Agent stopping managed processes");
 	    // Dispatch SIGTERM to all child processes
 	    boolean wait = stopChildProcesses();
-	    
+
 	    // Stop publishing inventory. Once the route is down the agent forces last publication
 	    // sending an empty process map.
 	    //configurationFactory.stopInventoryRoute();
 
 	    if ( wait && deployedProcesses.size() > 0 ) {
 	        logger.info("stop", null, "Agent Sent SIGTERM to ALL Child Processes - Number of Deployed Processes:"+deployedProcesses.size());
-	    	// wait for awhile 
+	    	// wait for awhile
 	      synchronized (this) {
 	    	  long waittime = 60000;
 	    	  if (configurationFactory.processStopTimeout != null ) {
@@ -1881,7 +1883,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	    super.stop();
 	    logger.info("stop", null, "Reaper thread finished - calling super.stop()");
 	  }
-*/	
+*/
 	    stopLock.wait(2000);
 	    super.stop();
 	    logger.info("stop", null, "Reaper thread finished - calling super.stop()");
@@ -1900,7 +1902,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   /**
    * Copies reservations sent by the PM. It copies reservations associated with this node.
-   * 
+   *
    * @param reserves
    *          - list of ALL reservations
    * @throws Exception
@@ -2143,7 +2145,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   }
 
   public DuccLogger getLogger() {
-    return logger; 
+    return logger;
   }
 
   public void handleAdminEvent(DuccAdminEvent event) throws Exception {

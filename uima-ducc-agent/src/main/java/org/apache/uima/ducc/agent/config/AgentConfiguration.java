@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -53,6 +53,7 @@ import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.agent.NodeMetricsConfiguration;
+import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,14 +84,14 @@ public class AgentConfiguration {
   private CamelContext camelContext;
 
   private RouteBuilder metricsRouteBuilder;
-  
+
   private RouteBuilder inventoryRouteBuilder;
 
   /* Deprecated
   @Value("#{ systemProperties['ducc.agent.launcher.thread.pool.size'] }")
   String launcherThreadPoolSize;
    */
-  
+
   @Value("#{ systemProperties['ducc.agent.launcher.process.stop.timeout'] }")
   public String processStopTimeout;
 
@@ -117,7 +118,7 @@ public class AgentConfiguration {
   @Value("#{ systemProperties['ducc.agent.launcher.cgroups.retry.delay.factor'] }")
   public String retryDelayFactor;
 
-  
+
   @Autowired
   DuccTransportConfiguration agentTransport;
 
@@ -129,10 +130,10 @@ public class AgentConfiguration {
 
   /**
    * Creates {@code AgentEventListener} that will handle incoming messages.
-   * 
+   *
    * @param agent
    *          - {@code NodeAgent} instance to initialize the listener
-   * 
+   *
    * @return {@code AgentEventListener} instance
    */
   public AgentEventListener agentDelegateListener(NodeAgent agent) {
@@ -141,13 +142,13 @@ public class AgentConfiguration {
 
   /**
    * Creates Camel Router to generate Node Metrics at regular intervals.
-   * 
+   *
    * @param targetEndpointToReceiveNodeMetricsUpdate
    *          - where to post NodeMetrics
    * @param nodeMetricsPublishRate
    *          - how to publish NodeMetrics
    * @return - {@code RouteBuilder} instance
-   * 
+   *
    * @throws Exception
    */
   private RouteBuilder routeBuilderForNodeMetricsPost(final NodeAgent agent,
@@ -173,13 +174,13 @@ public class AgentConfiguration {
 
   /**
    * Creates Camel Router to generate Node Metrics at regular intervals.
-   * 
+   *
    * @param targetEndpointToReceiveNodeMetricsUpdate
    *          - where to post NodeMetrics
    * @param nodeMetricsPublishRate
    *          - how to publish NodeMetrics
    * @return - {@code RouteBuilder} instance
-   * 
+   *
    * @throws Exception
    */
   private RouteBuilder routeBuilderForNodeInventoryPost(final NodeAgent agent,
@@ -193,7 +194,7 @@ public class AgentConfiguration {
         final Predicate blastGuard = new DuccBlastGuardPredicate(agent.getLogger());
         onException(Exception.class).maximumRedeliveries(0).handled(true)
                 .process(new ErrorProcessor());
-        
+
         from("timer:nodeInventoryTimer?fixedRate=true&period=" + nodeInventoryPublishRate)
                 .routeId("NodeInventoryPostRoute")
                 // This route uses a filter to prevent sudden bursts of messages which
@@ -214,10 +215,10 @@ public class AgentConfiguration {
 
   /**
    * Creates Camel Router to handle incoming messages
-   * 
+   *
    * @param delegate
    *          - {@code AgentEventListener} to delegate messages to
-   * 
+   *
    * @return {@code RouteBuilder} instance
    */
   public synchronized RouteBuilder routeBuilderForIncomingRequests(final NodeAgent agent,
@@ -236,10 +237,10 @@ public class AgentConfiguration {
 
   /**
    * Creates Camel Router to handle incoming messages
-   * 
+   *
    * @param delegate
    *          - {@code AgentEventListener} to delegate messages to
-   * 
+   *
    * @return {@code RouteBuilder} instance
    */
   public synchronized RouteBuilder routeBuilderForManagedProcessStateUpdate(final NodeAgent agent,
@@ -423,7 +424,7 @@ public class AgentConfiguration {
       AgentEventListener delegateListener = agentDelegateListener(agent);
 
       agent.setAgentEventListener(delegateListener);
-      
+
       if (common.managedProcessStateUpdateEndpointType != null
               && common.managedProcessStateUpdateEndpointType.equalsIgnoreCase("socket")) {
         String agentSocketParams = "";
@@ -434,24 +435,24 @@ public class AgentConfiguration {
         common.managedProcessStateUpdateEndpoint = "mina:tcp://localhost:" + agentPort
                 + agentSocketParams;
         // Remember the agent port since we need to tell JPs where to send their state updates
-        System.setProperty(NodeAgent.ProcessStateUpdatePort, String.valueOf(agentPort));
+        System.setProperty(ProcessStateUpdate.ProcessStateUpdatePort, String.valueOf(agentPort));
       }
       camelContext
               .addRoutes(this.routeBuilderForManagedProcessStateUpdate(agent, delegateListener));
       camelContext.addRoutes(this.routeBuilderForIncomingRequests(agent, delegateListener));
-      
-      inventoryRouteBuilder = 
+
+      inventoryRouteBuilder =
     		  (this.routeBuilderForNodeInventoryPost(agent,
     	              common.nodeInventoryEndpoint, Integer.parseInt(common.nodeInventoryPublishRate)));
-      
+
       camelContext.addRoutes(inventoryRouteBuilder);
 /*
       metricsRouteBuilder = this.routeBuilderForNodeMetricsPost(agent, common.nodeMetricsEndpoint,
               Integer.parseInt(common.nodeMetricsPublishRate));
       camelContext.addRoutes(metricsRouteBuilder);
-*/      
-      
-      
+*/
+
+
       logger.info("nodeAgent", null, "------- Agent Initialized - Identity Name:"
               + agent.getIdentity().getName() + " IP:" + agent.getIdentity().getIp()
               + " JP State Update Endpoint:" + common.managedProcessStateUpdateEndpoint);
@@ -464,17 +465,17 @@ public class AgentConfiguration {
   }
 
   public void startNodeMetrics(NodeAgent agent) throws Exception {
-	  
+
   	  nodeMetricsProcessor.setAgent(agent);
 	  metricsRouteBuilder = this.routeBuilderForNodeMetricsPost(agent, common.nodeMetricsEndpoint,
               Integer.parseInt(common.nodeMetricsPublishRate));
       camelContext.addRoutes(metricsRouteBuilder);
-  
+
   }
   public void stopRoutes() throws Exception {
 	  camelContext.stop();
 	  logger.info("AgentConfigureation.stopRoutes", null,"Camel Context stopped");
-	  
+
   }
   @Bean
   @PostConstruct
@@ -506,7 +507,7 @@ public class AgentConfiguration {
   public void stopInventoryRoute() {
 	    stopRoute(inventoryRouteBuilder.getRouteCollection(),">>>> Agent Stopped Publishing Inventory");
   }
-  
+
   public void stopMetricsRoute() {
     stopRoute(metricsRouteBuilder.getRouteCollection(),">>>> Agent Stopped Publishing Metrics");
 //    try {
@@ -528,7 +529,7 @@ public class AgentConfiguration {
 	      for (RouteDefinition rd : rsd.getRoutes()) {
 	        camelContext.stopRoute(rd.getId());
 	        camelContext.removeRoute(rd.getId());
-	        logger.info(methodName, null, logMsg); 
+	        logger.info(methodName, null, logMsg);
 	      }
 
 	    } catch (Exception e) {

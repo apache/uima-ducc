@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -56,10 +56,10 @@ public class ServiceConfiguration {
 	RouteBuilder routeBuilder;
 	/**
 	 * Creates Camel Router to handle incoming messages
-	 * 
+	 *
 	 * @param delegate
 	 *            - {@code AgentEventListener} to delegate messages to
-	 * 
+	 *
 	 * @return {@code RouteBuilder} instance
 	 */
 	public synchronized RouteBuilder routeBuilderForIncomingRequests(
@@ -96,7 +96,7 @@ public class ServiceConfiguration {
 		}
 	}
 
-	
+
 	private void checkPrereqs() {
 /*
 		boolean uimaAsJob = false;
@@ -177,7 +177,7 @@ public class ServiceConfiguration {
 			// custom processor class can be provided in the command line.
 			// Its not required. If not present, this code will assign one
 			// based on jobType
-			if ( System.getProperty(FlagsHelper.Name.JpProcessorClass.pname() ) == null  ) { 
+			if ( System.getProperty(FlagsHelper.Name.JpProcessorClass.pname() ) == null  ) {
 				String containerClass = "org.apache.uima.ducc.user.service.UimaASServiceContainer";
 				// Save the container class. This will be referenced from the
 				// DuccJobService.initialize()
@@ -200,9 +200,11 @@ public class ServiceConfiguration {
 			if (common.managedProcessStateUpdateEndpointType != null
 					&& common.managedProcessStateUpdateEndpointType
 							.equalsIgnoreCase("socket")) {
-				common.managedProcessStateUpdateEndpoint = AGENT_ENDPOINT
-						+ System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort)
-						+ agentSocketParams;
+			  String updatePort = System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort);
+			  if (updatePort == null) {
+			    updatePort = System.getenv(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value());
+			  }
+				common.managedProcessStateUpdateEndpoint = AGENT_ENDPOINT + updatePort + agentSocketParams;
 			}
 			// set up a socket endpoint where the UIMA AS service will receive
 			// events sent from its agent
@@ -232,8 +234,8 @@ public class ServiceConfiguration {
 					+ common.managedProcessStateUpdateEndpoint + " ##");
 			System.out
 					.println("#######################################################");
-			
-			
+
+
 			duccComponent = new ServiceComponent("UimaProcess",
 					camelContext, this);
 

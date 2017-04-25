@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -28,7 +28,7 @@ public class ProcessStateUpdate implements Serializable {
 	  public static final String ProcessStateUpdatePort = "ducc.agent.process.state.update.port";
 
 	/**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   ProcessState state;
@@ -38,7 +38,7 @@ public class ProcessStateUpdate implements Serializable {
 	String processJmxUrl;
 	String message;
 	List<IUimaPipelineAEComponent> uimaPipeline;
-	
+
 	public ProcessStateUpdate(ProcessState state, String pid, String duccProcessId) {
 		this(state,pid,duccProcessId,null,null);
 	}
@@ -97,5 +97,5 @@ public class ProcessStateUpdate implements Serializable {
   public void setSocketEndpoint(String socketEndpoint ) {
     this.socketEndpoint = socketEndpoint;
   }
-	
+
 }

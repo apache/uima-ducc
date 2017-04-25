@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -35,6 +35,7 @@ import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
+import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,25 +52,25 @@ public class UimaAsServiceConfiguration {
 	DuccTransportConfiguration transport;
 	@Autowired
 	CommonConfiguration common;
-	
+
 	RouteBuilder routeBuilder;
 	CamelContext camelContext;
-	
+
 	@Value("#{ systemProperties['ducc.uima-as.swap.usage.script'] }")
 	String swapUsageCollectorScript;
-	
+
 	/**
-	 * Creates Camel Router to handle incoming messages 
-	 * 
+	 * Creates Camel Router to handle incoming messages
+	 *
 	 * @param delegate - {@code AgentEventListener} to delegate messages to
-	 * 
+	 *
 	 * @return {@code RouteBuilder} instance
 	 */
-	public synchronized RouteBuilder routeBuilderForIncomingRequests(final String thisNodeIP, 
+	public synchronized RouteBuilder routeBuilderForIncomingRequests(final String thisNodeIP,
 			final ProcessEventListener delegate) {
 		return new RouteBuilder() {
 		  //	Custom filter to select messages that are targeted for this process
-			//  Checks the PID in a message to determine if this process is 
+			//  Checks the PID in a message to determine if this process is
 			//  the target.
 			Predicate filter = new DuccProcessFilter(thisNodeIP);
 			public void configure() throws Exception {
@@ -77,12 +78,12 @@ public class UimaAsServiceConfiguration {
          onException(Exception.class).handled(true).process(new ErrorProcessor()).end();
 
 			  from(common.managedServiceEndpoint)
-			 
+
 				.choice().when(filter)
 						.bean(delegate)
 				.end()
 				.setId(common.managedServiceEndpoint);
-	
+
 			}
 		};
 	}
@@ -115,9 +116,9 @@ public class UimaAsServiceConfiguration {
 		try {
 			//	Assume IP address provided from environment. In production this
 			//  will be the actual node IP. In testing, the IP can be virtual
-			//  when running multiple agents on the same node. The agent is 
+			//  when running multiple agents on the same node. The agent is
 			//  responsible for providing the IP in this process environment.
-			String thisNodeIP = 
+			String thisNodeIP =
 			(System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()) == null) ? InetAddress.getLocalHost().getHostAddress() : System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value());
 	    camelContext = common.camelContext();
 	    int serviceSocketPort = 0;
@@ -126,34 +127,37 @@ public class UimaAsServiceConfiguration {
 	    if ( common.managedServiceEndpointParams != null ) {
 	      jpSocketParams = "?"+common.managedServiceEndpointParams;
 	    }
-	    
+
 	    if ( common.managedProcessStateUpdateEndpointParams != null ) {
 	      agentSocketParams = "?"+common.managedProcessStateUpdateEndpointParams;
       }
       // set up agent socket endpoint where this UIMA AS service will send state updates
 	    if ( common.managedProcessStateUpdateEndpointType != null && common.managedProcessStateUpdateEndpointType.equalsIgnoreCase("socket") ) {
-	      common.managedProcessStateUpdateEndpoint = 
-	              "mina:tcp://localhost:"+System.getProperty(NodeAgent.ProcessStateUpdatePort)+agentSocketParams;
+	      String updatePort = System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort);
+	      if (updatePort == null) {
+	        updatePort = System.getenv(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value());
+	      }
+	      common.managedProcessStateUpdateEndpoint = "mina:tcp://localhost:" + updatePort + agentSocketParams;
 	    }
 	    // set up a socket endpoint where the UIMA AS service will receive events sent from its agent
 	    if ( common.managedServiceEndpointType != null && common.managedServiceEndpointType.equalsIgnoreCase("socket")) {
         serviceSocketPort = Utils.findFreePort();
         // service is on the same node as the agent
-        common.managedServiceEndpoint = 
+        common.managedServiceEndpoint =
                 "mina:tcp://localhost:"+serviceSocketPort+jpSocketParams;
 	    }
-	    
-	    //	optionally configures Camel Context for JMS. Checks the 'agentRequestEndpoint' to 
-			//  to determine type of transport. If the the endpoint starts with "activemq:", a 
+
+	    //	optionally configures Camel Context for JMS. Checks the 'agentRequestEndpoint' to
+			//  to determine type of transport. If the the endpoint starts with "activemq:", a
 			//  special ActiveMQ component will be activated to enable JMS transport
-			
+
 	    DuccEventDispatcher eventDispatcher =
 				transport.duccEventDispatcher(common.managedProcessStateUpdateEndpoint, camelContext);
-			
-	    
-			ManagedUimaService service = 
+
+
+			ManagedUimaService service =
 	        	new ManagedUimaService(common.saxonJarPath,
-	        			common.dd2SpringXslPath, 
+	        			common.dd2SpringXslPath,
 	        			serviceAdapter(eventDispatcher,common.managedServiceEndpoint), camelContext);
 	    service.setConfigFactory(this);
 	    service.setAgentStateUpdateEndpoint(common.managedProcessStateUpdateEndpoint);
@@ -162,14 +166,14 @@ public class UimaAsServiceConfiguration {
 	     System.out.println("## Agent Service State Update Endpoint:"+common.managedProcessStateUpdateEndpoint+" ##");
 	     System.out.println("#######################################################");
 
-	    
+
 			ProcessEventListener delegateListener = processDelegateListener(service);
 			delegateListener.setDuccEventDispatcher(eventDispatcher);
 			routeBuilder = this.routeBuilderForIncomingRequests(thisNodeIP, delegateListener);
 			camelContext.addRoutes(routeBuilder);
-		
+
 			return service;
-			
+
 		} catch( Exception e) {
 			e.printStackTrace();
 			throw e;
@@ -187,7 +191,7 @@ public class UimaAsServiceConfiguration {
 	}
 	private class DuccProcessFilter implements Predicate {
 		String thisNodeIP;
-		public DuccProcessFilter(final String thisNodeIP) { 
+		public DuccProcessFilter(final String thisNodeIP) {
 			this.thisNodeIP = thisNodeIP;
 		}
 		public synchronized boolean matches(Exchange exchange) {

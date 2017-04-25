@@ -38,6 +38,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
 import org.apache.uima.ducc.transport.cmdline.ACommandLine;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
@@ -780,8 +781,8 @@ public class DuccCommandExecutor extends CommandExecutor {
           if (System.getProperties().containsKey("ducc.agent.managed.process.state.update.endpoint.type")) {
             String type = System.getProperty("ducc.agent.managed.process.state.update.endpoint.type");
             if (type != null && type.equalsIgnoreCase("socket")) {
-              cmdLine.addOption("-D" + NodeAgent.ProcessStateUpdatePort + "="
-                      + System.getProperty(NodeAgent.ProcessStateUpdatePort));
+              cmdLine.addOption("-D" + ProcessStateUpdate.ProcessStateUpdatePort + "="
+                      + System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort));
             }
           }
 					// NOTE - These are redundant since the information is also
@@ -801,11 +802,13 @@ public class DuccCommandExecutor extends CommandExecutor {
 				}
 				// add JobId and the log prefix to the env so additional
 				// similarly-named log files can be created
+				// Also put the state update port in the environment for custom services
 				processEnv.put(IDuccUser.EnvironmentVariable.DUCC_ID_JOB.value(), String
 						.valueOf(((ManagedProcess) super.managedProcess)
 								.getWorkDuccId().getFriendly()));
 				processEnv.put(IDuccUser.EnvironmentVariable.DUCC_LOG_PREFIX.value(), processLogDir
 						+ processLogFile);
+				processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort));
 			}
 
 			// Replace the reserved DUCC variable with the architecture of this node (ppc64 or amd64 or ...)
