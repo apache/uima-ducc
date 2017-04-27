@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 
@@ -55,13 +56,16 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
  */
 public class CGroupsManager {
 	private DuccLogger agentLogger = null;
-	private static final String SYSTEM = "ducc";
+	private static DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
+	private static final String SYSTEM = dpr.getProperty(DuccPropertiesResolver.ducc_uid);
 	// the following three properties are only used for the new cgconfig
 	private static final String CGDuccMemoryPath = "/memory/"+SYSTEM+"/";
 	private static final String CGDuccCpuPath = "/cpu/"+SYSTEM+"/";
 	private static final String CGProcsFile = "/cgroup.procs";
 	// legacy means that the cgonfig points to <cgroup location>/ducc
 	private boolean legacyCgConfig = false;
+	
+	
 	
 	enum CGroupCommand {
    	 CGSET("cgset"),
@@ -601,6 +605,9 @@ public class CGroupsManager {
 			containerId = managedProcess.getWorkDuccId().getFriendly()+"."+managedProcess.getDuccProcess().getCGroup().getId();
 		}
 		return containerId;
+    }
+    public String getDuccUid() {
+    	return SYSTEM;
     }
 
 	/**

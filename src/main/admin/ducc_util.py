@@ -134,7 +134,8 @@ class DuccUtil(DuccBase):
         self.ssh_enabled       = self.ducc_properties.get('ducc.ssh')
         self.duccling          = self.ducc_properties.get('ducc.agent.launcher.ducc_spawn_path')
 
-        # self.broker_url     = self.ducc_properties.get('ducc.broker.url')
+        self.ducc_uid           = self.ducc_properties.get('ducc.uid')
+        # self.broker_url      = self.ducc_properties.get('ducc.broker.url')
         self.broker_protocol   = self.ducc_properties.get('ducc.broker.protocol')
         self.broker_host       = self.ducc_properties.get('ducc.broker.hostname')
         self.broker_port       = self.ducc_properties.get('ducc.broker.port')
@@ -451,7 +452,7 @@ class DuccUtil(DuccBase):
 
     def check_clock_skew(self, localdate):
         user = os.environ['LOGNAME']
-        bypass = (user != 'ducc')
+        bypass = (user != self.ducc_uid)
         
         if bypass:
             tag = 'NOTE'
@@ -593,8 +594,8 @@ class DuccUtil(DuccBase):
         dl_mode = dl_stat.st_mode
 
         if ( (dl_mode & S_ISUID) != S_ISUID):
-            if ( os.environ['LOGNAME'] == 'ducc' ):
-                print 'ducc_ling module', dl, ': setuid bit is not set. Processes will run as user ducc'
+            if ( os.environ['LOGNAME'] == self.ducc_uid ):
+                print 'ducc_ling module', dl, ': setuid bit is not set. Processes will run as user '+self.ducc_uid
             elevated = False
             file_safe = True
             dir_safe  = True
@@ -632,15 +633,15 @@ class DuccUtil(DuccBase):
                  dir_safe = True
 
             try:
-                grpinfo = grp.getgrnam('ducc')
+                grpinfo = grp.getgrnam(self.ducc_uid)
                 duccgid = grpinfo.gr_gid
 
                 if ( (dl_stat.st_uid != 0) or (dl_stat.st_gid != duccgid) ):
-                    print 'ducc_ling module', dl, ': Invalid ownership. Should be root.ducc'
+                    print 'ducc_ling module', dl, ': Invalid ownership. Should be root.'+self.ducc_uid
                 else:
                     own_safe = True
             except:
-                print 'ducc_ling group "ducc" cannot be found.'
+                print 'ducc_ling group "'+self.ducc_uid+'" cannot be found.'
 
         safe = file_safe and dir_safe and own_safe
 
@@ -688,7 +689,7 @@ class DuccUtil(DuccBase):
 
         user = os.environ['LOGNAME']
         
-        if ( user == 'ducc' ):
+        if ( user == self.ducc_uid ):
             if ( elevated ):
                 return safe
         else:
@@ -810,7 +811,7 @@ class DuccUtil(DuccBase):
         return (ok, answer)
 
     #
-    # Given the name of a file containing ducc nodes, a ducc user (usually 'ducc' unless you're running
+    # Given the name of a file containing ducc nodes, a ducc user (usually the 'ducc' user unless you're running
     #   as yourself for test), find all ducc processes owned by this user and print them to the console.
     #
     def find_ducc(self, nodefile, user):

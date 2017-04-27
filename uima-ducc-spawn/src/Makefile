@@ -20,8 +20,13 @@
 
 CFLAGS = -g
 
+all: prep compile
 
-all: ducc_ling
+compile: ducc_ling
+
+prep:
+	uid=`whoami` ; \
+	echo "#define UID \"$$uid\"" > ducc_ling.h
 
 clean: 
 	@- if [ -f ducc_ling ] ; then rm ducc_ling ; fi

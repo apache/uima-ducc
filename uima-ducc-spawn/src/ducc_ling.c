@@ -44,6 +44,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#include "ducc_ling.h"
+
 #define VERSION "2.2.1"
 
 /**
@@ -665,6 +667,7 @@ int main(int argc, char **argv, char **envp)
         exit(1);
     }
 
+	log_stdout("201 DUCC user is %s.\n", UID);
 
     if ( getenv("DUCC_CONSOLE_LISTENER") != NULL ) {
         log_stdout("302 Redirecting console into socket %s.\n", getenv("DUCC_CONSOLE_LISTENER"));
@@ -677,8 +680,8 @@ int main(int argc, char **argv, char **envp)
     // do this here before redirection stdout / stderr
     log_stdout("0 %d\n", getpid());                                         // code 0 means we passed tests and are about to dup I/O
 
-    //	fetch "ducc" user passwd structure
-    pwd = getpwnam("ducc");
+    //	fetch UID user passwd structure
+    pwd = getpwnam(UID);
 
     if ( pwd == NULL ) {
         pwd = getpwuid(getuid());
@@ -686,15 +689,15 @@ int main(int argc, char **argv, char **envp)
         // Seems theres a bug in getpwuid and nobody seems to have a good answer.  On mac we don't
         // care anyway so we ignore it (because mac is supported for test only).
         if ( pwd == NULL ) {
-            log_stdout("600 No \"ducc\" user found and I can't find my own name.  Running as id %d", getuid());
+            log_stdout("600 No \"%s\" user found and I can't find my own name.  Running as id %d", UID, getuid());
         } else {
-            log_stdout("600 No \"ducc\" user found, running instead as %s.\n", pwd->pw_name);
+            log_stdout("600 No \"%s\" user found, running instead as %s.\n", UID, pwd->pw_name);
         }
 #else
-        log_stdout("600 No \"ducc\" user found, running instead as %s.\n", pwd->pw_name);
+        log_stdout("600 No \"%s\" user found, running instead as %s.\n", UID, pwd->pw_name);
 #endif
     } else if ( pwd->pw_uid != getuid() ) {
-        log_stdout("700 Caller is not ducc (%d), not switching ids ... \n", pwd->pw_uid);
+        log_stdout("700 Caller is not %s (%d), not switching ids ... \n", UID, pwd->pw_uid);
         pwd = getpwuid(getuid());
         log_stdout("800 Running instead as %s.\n", pwd->pw_name);
         //exit(0);

@@ -125,13 +125,13 @@ public class CGroupsTest {
 				if ( cgroupsManager.cgroupExists(cgroupsManager.getDuccCGroupBaseDir() + "/" + containerId) ) {
 					System.out.println("Thread::"+Thread.currentThread().getId()+" Success creating cgroup with id:"+containerId);
 				
-				cgroupsManager.setContainerSwappiness(containerId, "ducc", true, 10);
+				cgroupsManager.setContainerSwappiness(containerId, cgroupsManager.getDuccUid(), true, 10);
 				} else {
 					System.out.println("Failed to validate existance of cgroup with id:"+containerId);
 					System.exit(-1);
 				}
 			}
-			cgroupsManager.destroyContainer(containerId, "ducc", NodeAgent.SIGTERM);
+			cgroupsManager.destroyContainer(containerId, cgroupsManager.getDuccUid(), NodeAgent.SIGTERM);
 			System.out.println("Cgroup "+containerId+" Removed");
 		} catch( Exception e ) {
 			e.printStackTrace();

@@ -313,6 +313,11 @@ class PostInstall():
         print 'Merging', base_props, 'with', site_props, 'into', run_props
         os.system(CMD)
             
+    def setup_ducc_uid(self):  
+        self.ducc_uid = os.environ['LOGNAME']
+        self.update_property('ducc.uid', self.ducc_uid, "# ducc.uid is the user that runs the main DUCC daemons");
+        print "Ducc uid is configured as", self.ducc_uid, '\n'           
+            
     def setup_ducc_head(self):
 
         if ( self.ducc_head == None ):
@@ -402,6 +407,7 @@ class PostInstall():
             print '--------------------------------------------------------------------------------'
             sys.exit(1)
 
+        self.ducc_uid = None
         self.ducc_head = None
         self.keystore_pw = None
         self.database_pw = None
@@ -445,6 +451,7 @@ class PostInstall():
         if ( (py_version[0] != 2) or (py_version[1] < 4) ):
             self.fail("\nPython must be installed at level 2.4 or higher.")
 
+        self.setup_ducc_uid()
         self.setup_ducc_head()
         self.check_nodes()
 

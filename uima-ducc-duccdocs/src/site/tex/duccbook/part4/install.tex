@@ -34,6 +34,11 @@ roughly as follows:
     \item Enable CGroup containers. This step requires root authority on every DUCC machine.
 \end{itemize}
 
+Nominally user {\em ducc} runs the DUCC software.  However another user, for example 
+{\em duccster}, could be chosen.  In this document references to user {\em ducc} will mean 
+to the user that you have chosen, be it {\em ducc} or {\em duccster} or some other.
+The chosen user is the OS user installing DUCC.
+
 When upgrading from an existing installation the {\em ducc\_update} script may be used
 to replace the system files while leaving the site-specific configuration files in place. 
 For more information see
@@ -172,8 +177,8 @@ If building from source, Maven places the documentation in
 
 \section{Single System Installation and Verification}
 
-Although any user ID can be used to run a single-system DUCC, creating a ``ducc'' userid is recommended
-to enable the later use of cgroups as well as running processes with the credentials of the submitting user.
+Any user ID can be used to run a single-system DUCC, but ``ducc'' userid is recommended.
+This user will employ cgroups as well as launching and running processes with the credentials of the submitting user.
 
 If multiple nodes are going to be added later, the ducc runtime tree should be installed
 on a shared filesystem so that it can be mounted on the additional nodes.
@@ -479,14 +484,14 @@ For more information see
       net_cls = /cgroup/net_cls;
       blkio = /cgroup/blkio;
    }
-   # Define cgroup ducc and setup permissions
-   group ducc {
+   # Define cgroup for the userid you have opted to install and run DUCC, normally 'ducc' but in this example 'duccster', and setup permissions
+   group duccster {
     perm {
         task {
-           uid = ducc;
+           uid = duccster;
         }
         admin {
-           uid = ducc;
+           uid = duccster;
         }
     }
     memory {}
@@ -500,7 +505,7 @@ For more information see
          
        \item Verify cgconfig service is running by the existence of directory: 
 \begin{verbatim}
-   /cgroups/ducc
+   /cgroups/duccster
 \end{verbatim}
 
        \item Configure the cgconfig service to start on reboot:
