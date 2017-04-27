@@ -133,10 +133,7 @@ public class UimaAsServiceConfiguration {
       }
       // set up agent socket endpoint where this UIMA AS service will send state updates
 	    if ( common.managedProcessStateUpdateEndpointType != null && common.managedProcessStateUpdateEndpointType.equalsIgnoreCase("socket") ) {
-	      String updatePort = System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort);
-	      if (updatePort == null) {
-	        updatePort = System.getenv(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value());
-	      }
+	      String updatePort = System.getenv(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value());
 	      common.managedProcessStateUpdateEndpoint = "mina:tcp://localhost:" + updatePort + agentSocketParams;
 	    }
 	    // set up a socket endpoint where the UIMA AS service will receive events sent from its agent

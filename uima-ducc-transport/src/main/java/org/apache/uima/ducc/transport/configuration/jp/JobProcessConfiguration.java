@@ -202,10 +202,7 @@ public class JobProcessConfiguration {
 			if (common.managedProcessStateUpdateEndpointType != null
 					&& common.managedProcessStateUpdateEndpointType
 							.equalsIgnoreCase("socket")) {
-			  String updatePort = System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort);
-			  if (updatePort == null) {
-			    updatePort = System.getenv(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value());
-			  }
+			  String updatePort = System.getenv(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value());
 				common.managedProcessStateUpdateEndpoint = AGENT_ENDPOINT	+ updatePort + agentSocketParams;
 			}
 			// set up a socket endpoint where the UIMA AS service will receive

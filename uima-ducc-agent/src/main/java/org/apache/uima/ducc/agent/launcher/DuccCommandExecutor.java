@@ -778,13 +778,6 @@ public class DuccCommandExecutor extends CommandExecutor {
 					cmdLine.addOption("-Dducc.deploy.JpUniqueId="
 					        + ((ManagedProcess) managedProcess).getDuccId().getUnique());
 
-          if (System.getProperties().containsKey("ducc.agent.managed.process.state.update.endpoint.type")) {
-            String type = System.getProperty("ducc.agent.managed.process.state.update.endpoint.type");
-            if (type != null && type.equalsIgnoreCase("socket")) {
-              cmdLine.addOption("-D" + ProcessStateUpdate.ProcessStateUpdatePort + "="
-                      + System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort));
-            }
-          }
 					// NOTE - These are redundant since the information is also
 					// in the environment for both Java and non-Java processes
 					cmdLine.addOption("-Dducc.process.log.dir="	+ processLogDir);
@@ -802,7 +795,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 				}
 				// add JobId and the log prefix to the env so additional
 				// similarly-named log files can be created
-				// Also put the state update port in the environment for custom services
+				// Also put the state update port in the environment for all processes ... instead of just some as a system property
 				processEnv.put(IDuccUser.EnvironmentVariable.DUCC_ID_JOB.value(), String
 						.valueOf(((ManagedProcess) super.managedProcess)
 								.getWorkDuccId().getFriendly()));
