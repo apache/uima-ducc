@@ -139,12 +139,21 @@ public class DuccServiceDriver implements ServiceDriver {
 
 	}
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		String port = "8888";
+		String application = "/test";
+		if (args.length > 0) {
+		  if (args.length != 2) {
+		    System.out.println("Tws arguments required: port application (defaults: 8888 /test");
+		    return;
+		  }
+		  port = args[0];
+		  application = args[1];
+		}
 		try {
 			Properties properties = new Properties();
-			properties.put(ServiceDriver.Port, "8888");
+			properties.put(ServiceDriver.Port, port);
+			properties.put(ServiceDriver.Application, application);
 			properties.put(ServiceDriver.MaxThreads, "100");
-			properties.put(ServiceDriver.Application, "/test");
 			
 			TaskAllocatorCallbackListener taskAllocator =
 					new TestTaskAllocatorCallbackListener();
