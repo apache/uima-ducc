@@ -96,12 +96,13 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 
     private int configureAndGetScaleout(String[] args ) throws Exception {
 	    analysisEngineDescriptor = ArgsParser.getArg("-aed", args);
-		scaleout = Integer.valueOf(ArgsParser.getArg("-t", args));
-		String jobType = System.getProperty("ducc.deploy.JpType"); 
-		if ( "uima".equals(jobType)) {
-		  System.out.println("UIMA Version:"+UimaVersion.getFullVersionString());
-		} 
-        return scaleout;		  
+	    String threadCount = ArgsParser.getArg("-t", args);  // Will be null if ducc.deploy.JpThreadCount is undefined
+	    scaleout = threadCount==null ? 1 : Integer.valueOf(threadCount);   // Default to 1
+	    String jobType = System.getProperty("ducc.deploy.JpType"); 
+	    if ( "uima".equals(jobType)) {
+	      System.out.println("UIMA Version:"+UimaVersion.getFullVersionString());
+	    } 
+	    return scaleout;		  
 	}
 	public byte[] getLastSerializedError() throws Exception {
 

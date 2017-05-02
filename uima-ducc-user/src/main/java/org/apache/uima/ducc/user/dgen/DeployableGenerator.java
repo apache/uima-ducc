@@ -43,6 +43,8 @@ import org.w3c.dom.NodeList;
 public class DeployableGenerator {
 	
 	private String userLogDir = null;
+  private Document doc;
+  private String registryURL;
 	
 	public DeployableGenerator(String userLogDir) {
 		setUserLogDir(userLogDir);
@@ -126,35 +128,93 @@ public class DeployableGenerator {
 		return file.getAbsolutePath();
 	}
 	
+	/*
+	 * This method is used by the JD to convert a deployment descriptor's inputQueue element
+	 * to make it suitable for the JP's internal broker.
+	 * It is also used by the JP code since when running as a "pull" service it will be given an unconverted DD 
+	 */
 	private String generateDd(IDuccGeneratorUimaReferenceByName configuration, String jobId) throws Exception {
-		//  parse DD into DOM 
-		Document doc = parse(configuration.getReferenceByName());
-		//  locate the <inputQueue node within the xml
+		//  Create DOM from the DD ... file or class-like name
+		String location = configuration.getReferenceByName();
+    org.apache.uima.util.XMLInputSource xmlin = UimaUtils.getXMLInputSource(location);  // Reads from FS or classpath
+    DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    doc = db.parse(xmlin.getInputStream());
+		
+    // Create converted descriptor if input is not a file or if endpoint or broker wrong
+    boolean createDescriptor = ! location.endsWith(".xml");
+    
+		//  locate the <inputQueue node within the xml ... should be only one
 		NodeList nodes = doc.getElementsByTagName("inputQueue");
-		//  should only be one such node
-		if ( nodes.getLength() > 0 ) {
-			Element element = (Element) nodes.item(0);
-			// replace queue name
-			element.setAttribute("endpoint", configuration.getEndpoint());
-			// replace broker URL
-			element.setAttribute("brokerURL", configuration.getBrokerURL());
-		} else {
-			throw new Exception("Invalid DD-"+configuration.getReferenceByName()+". Missing required element <inputQueue ...");
-		}
-		//
-		//	write the adjusted deployment descriptor to the user log dir where dd2spring will
-		//  pick it up from
-		//
-		return writeDDFile(xml2String(doc), jobId);
+		Element element;
+    if (nodes.getLength() > 0) {
+      element = (Element) nodes.item(0);
+      // Check if the attributes are correct
+      String expected = configuration.getEndpoint();
+      if ( ! element.getAttribute("endpoint").equals(expected)) {
+        element.setAttribute("endpoint", expected);
+        createDescriptor = true;
+      }
+      expected = configuration.getBrokerURL();
+      if ( ! element.getAttribute("brokerURL").equals(expected)) {
+        element.setAttribute("brokerURL", expected);
+        createDescriptor = true;
+      }
+      // May specify the registry via an unsupported attribute
+      registryURL = element.getAttribute("registryURL");  // Defaults to an empty string
+      element.removeAttribute("registryURL");
+    } else {
+      throw new Exception("Invalid DD-" + configuration.getReferenceByName()
+              + ". Missing required element <inputQueue ...");
+    }
+    
+    //	Return the original descriptor or the converted one if necessary
+		return createDescriptor ? writeDDFile(xml2String(doc), jobId) : location;
+	}
+
+  /* 
+   *  Deduce the scaleout for a deployment descriptor.
+   *  If a top-level non-AS deployment check for a scaleout setting.
+   *  Otherwise use the caspool size, with a default of 1
+   */
+	public int getScaleout() {
+	  if (doc == null) {  // Not a DD ?
+	    return 1;
+	  }
+
+    String soValue = "";
+    NodeList nodes = doc.getElementsByTagName("analysisEngine");
+    if (nodes.getLength() > 0) {
+      Element aeElement = (Element) nodes.item(0);
+      String async = aeElement.getAttribute("async");
+      // If async is omitted the default is false if there are no delegates
+      if (async.isEmpty()) {
+        if (aeElement.getElementsByTagName("delegates").getLength() == 0) {
+          async = "false";
+        } 
+      }
+      // If async is false a scaleout setting can override the caspool size
+      if (async.equals("false")) {
+        nodes = aeElement.getElementsByTagName("scaleout");
+        if (nodes.getLength() > 0) {
+          Element soElement = (Element) nodes.item(0);
+          soValue = soElement.getAttribute("numberOfInstances");
+        }
+      }
+    }
+    
+    if (soValue.isEmpty()) {
+      nodes = doc.getElementsByTagName("casPool");
+      if (nodes.getLength() > 0) {
+        Element cpElement = (Element) nodes.item(0);
+        soValue = cpElement.getAttribute("numberOfCASes");
+      }
+    }
+    
+    return soValue.isEmpty() ? 1 : Integer.parseInt(soValue);
 	}
 	
-	private Document parse(String location ) throws Exception {
-		//  Resolve the descriptor either by name or by location
-		org.apache.uima.util.XMLInputSource xmlin = 
-				UimaUtils.getXMLInputSource(location); // this guy does all the magic
-		//  Parse the descriptor into DOM
-		DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		return db.parse(xmlin.getInputStream());
+	public String getRegistryUrl() {
+	  return registryURL;
 	}
 	
 	private String xml2String(Document xmlDoc) throws Exception {

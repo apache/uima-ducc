@@ -33,9 +33,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.aae.UimaASApplicationEvent.EventTrigger;
 import org.apache.uima.aae.UimaAsVersion;
@@ -54,12 +51,8 @@ import org.apache.uima.ducc.user.dgen.DuccUimaReferenceByName;
 import org.apache.uima.ducc.user.dgen.IDuccGeneratorUimaDeployableConfiguration;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
 public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
-	private String endpointName, brokerName;
 	private String saxonURL = null;
 	private String xslTransform = null;
 	private static BaseUIMAAsynchronousEngine_impl uimaASClient = null;
@@ -445,6 +438,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		}
 		return containerId;
 	}
+	
 	/**
 	 * Extract descriptors from arg list. Also extract xsl processor and saxon url.
 	 * Parse the DD to fetch scaleout property.
@@ -466,7 +460,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		}
 		saxonURL = ArgsParser.getArg("-saxonURL", args);
 		xslTransform = ArgsParser.getArg("-xslt", args);
-		//endpointName = ArgsParser.getArg("-q", args);
+		String threadCount = ArgsParser.getArg("-t", args);  // Will be null if ducc.deploy.JpThreadCount is undefined
 
 		if (nbrOfArgs < 1
 				|| (deploymentDescriptors.length == 0 || saxonURL.equals("") || xslTransform
@@ -474,64 +468,53 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			printUsageMessage();
 			return null; // Done here
 		}
-		deploymentDescriptors[0] = parseDD(deploymentDescriptors[0]);
+		deploymentDescriptors[0] = parseDD(deploymentDescriptors[0], threadCount);
 		return deploymentDescriptors;
 	}
-    /**
-     * Parses given Deployment Descriptor to extract scaleout
-     * and to check if it has placeholders for the queue & broker
-     *
-     * @param ddPath - path to the DD
-     * @returns original or converted DD
-     * @throws Exception
-     */
-	public String parseDD(String ddPath) throws Exception {
+	
+  /**
+   * Parses given Deployment Descriptor to extract scaleout and to check if it has placeholders for
+   * the queue & broker. Generates a converted one if necessary, e.g. for "pull services.
+   * The scaleout is used for "pull" services and should become the default for DD jobs.
+   * 
+   * @param ddPath - path to the DD
+   * @param threadCount - pipeline scaleout value null if undefined)
+   * @return original or converted DD
+   * @throws Exception
+   */
+	public String parseDD(String ddPath, String threadCount) throws Exception {
 	  // The queue & broker attributes must reference these system properties
 	  final String reqdBrokerName = "${" + brokerPropertyName + "}";
 	  final String reqdQueueName = "${" + queuePropertyName + "}";
 	  
-		SAXParserFactory parserFactor = SAXParserFactory.newInstance();
-		SAXParser parser = parserFactor.newSAXParser();
-		SAXHandler handler = new SAXHandler();
-		parser.parse(new File(ddPath), handler);
-
-    // Check if a DD job that has already been converted to have the correct queue & broker
-		if (brokerName.equals(reqdBrokerName) && endpointName.equals(reqdQueueName)) {
-		  return ddPath;
-		}
 		// For "custom" pull-services must convert the DD so it can be deployed locally
+		// For JPs this should return the same file, already converted by the JD
     String logDir = new File(System.getenv("DUCC_PROCESS_LOG_PREFIX")).getParent();
     DeployableGenerator deployableGenerator = new DeployableGenerator(logDir);
     IDuccGeneratorUimaDeployableConfiguration configuration =
             new DuccUimaReferenceByName(null, null, 0, reqdBrokerName, reqdQueueName, null, ddPath);
-    String newDD = deployableGenerator.generate(configuration, System.getenv("DUCC_JOBID"));
-    UIMAFramework.getLogger(CLASS_NAME).log(Level.INFO, "Generated " + newDD + " from " + ddPath);
-    return newDD;
+    String ddNew = deployableGenerator.generate(configuration, System.getenv("DUCC_JOBID"));
+    if (ddNew != ddPath) {
+      UIMAFramework.getLogger(CLASS_NAME).log(Level.INFO, "Generated " + ddNew + " from " + ddPath);
+    }
+    
+    //String registryUrl = deployableGenerator.getRegistryUrl();
+    
+    // If pipeline count is defaulted get the scaleout from the DD
+    int ddScaleout = deployableGenerator.getScaleout();
+    if (threadCount == null) {
+      scaleout = ddScaleout;
+      UIMAFramework.getLogger(CLASS_NAME).log(Level.INFO, "DD specifies a scaleout of " + scaleout);
+    } else {
+      scaleout = Integer.parseInt(threadCount);
+      if (ddScaleout != scaleout) {
+        UIMAFramework.getLogger(CLASS_NAME).log(Level.WARNING, "Scaleout specified as " + scaleout + " but the DD is configured for " + ddScaleout);
+      }
+    }
+    
+    
+    return ddNew;
 	}
-
-	// This class extracts the endpoint & broker from the DD provided
-	class SAXHandler extends DefaultHandler {
-
-		@Override
-		// Triggered when the start of tag is found.
-		public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-			if (qName.equals("inputQueue")) {
-				endpointName = attributes.getValue("endpoint");
-				brokerName = attributes.getValue("brokerURL");
-			} else if (qName.equals("scaleout")) {
-			  // Not used?
-				scaleout = Integer.parseInt(attributes.getValue("numberOfInstances"));
-			}
-
-		}
-
-		@Override
-		public void endElement(String uri, String localName, String qName)
-				throws SAXException {
-		}
-
-	}
-
 
 	protected void finalize() {
 		System.err.println(this + " finalized");

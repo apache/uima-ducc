@@ -208,17 +208,9 @@ implements IJobProcessor{
                 throw new RuntimeException("Missing Deployment Descriptor - the JP Requires argument. Add DD for UIMA-AS job or AE descriptor for UIMA jobs");
 			}
 
-			int scaleout = 1;
+			// If the JP thread count is defaulted the DD or pieces-parts job will deduce it.
 			String jpThreadCount = System.getProperty(FlagsHelper.Name.JpThreadCount.pname());
-        	if ( jpThreadCount == null ) {
-        		jpThreadCount = "1";
-        	} 
-        	try {
-    			scaleout = Integer.parseInt(jpThreadCount);
-        	} catch(NumberFormatException e) {
-                throw new RuntimeException("Invalid value for "+FlagsHelper.Name.JpThreadCount.pname()+" - it should be an integer but it is "+jpThreadCount);
-        	}
-
+			
 			// this class implements resetInvestment method
 			Method m = this.getClass().getDeclaredMethod("resetInvestment", String.class);
 			// register this class and its method to handle investment reset
@@ -245,33 +237,28 @@ implements IJobProcessor{
 				String jobType = System.getProperty(FlagsHelper.Name.JpType.pname()); 
 
             	
-
+				// Set the initialize args for the appropriate container 
+				// Include the specified pipeline count ... if not defined the container will determine it
 				String[] jpArgs;
-                // check if this is DD job
-				if ( "uima-as".equals(jobType)) {
-					uimaASJob = true;
-                	// dd - deployment descriptor. Will use UIMA-AS
-					jpArgs = new String[] { "-dd",args[0],"-saxonURL",saxonJarPath,
-    						"-xslt",dd2SpringXslPath};
-                } else if ( "uima".equals(jobType)) {
-                	// this is pieces-parts job
-//                	String scaleout = System.getProperty(FlagsHelper.Name.JpThreadCount.pname());
-//                	if ( scaleout == null ) {
-//                		scaleout = "1";
-//                	}
-                	// aed - analysis engine descriptor. Will use UIMA core only
-                	jpArgs = new String[] { "-aed",args[0], "-t", jpThreadCount};
-                } else if ( "user".equals(jobType)) {
-                	jpArgs = args;  
-                } else {
-                	throw new RuntimeException("Unsupported JP deployment mode. Check a value provided for -D"+FlagsHelper.Name.JpType.pname()+". Supported modes: [uima-as|uima|user]");
-                }
+        if ("uima-as".equals(jobType)) {
+          uimaASJob = true;            // dd - deployment descriptor. Will use UIMA-AS
+          jpArgs = new String[] { "-dd", args[0], "-saxonURL", saxonJarPath, "-xslt", dd2SpringXslPath, "-t", jpThreadCount };
+        } else if ("uima".equals(jobType)) {
+          // aed - analysis engine descriptor. Will use UIMA core only
+          jpArgs = new String[] { "-aed", args[0], "-t", jpThreadCount };
+        } else if ("user".equals(jobType)) {
+          jpArgs = args;
+        } else {
+          throw new RuntimeException(
+                  "Unsupported JP deployment mode. Check a value provided for -D"
+                          + FlagsHelper.Name.JpType.pname()
+                          + ". Supported modes: [uima-as|uima|user]");
+        }
 				Properties props = new Properties();
 				// Using java reflection, initialize instance of IProcessContainer
 				Method initMethod = processorInstance.getClass().getSuperclass().
 						getDeclaredMethod("initialize", Properties.class, String[].class);
-//				int scaleout = (Integer)initMethod.invoke(processorInstance, props, jpArgs);
-				initMethod.invoke(processorInstance, props, jpArgs);
+				int scaleout = (Integer)initMethod.invoke(processorInstance, props, jpArgs);
 				
 				getLogger().info("start", null,"Ducc JP JobType="+jobType);
 				httpClient = new DuccHttpClient();
