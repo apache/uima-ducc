@@ -294,7 +294,12 @@ check_ducc -n nlist1 -n nlist2
 
             \item[-k, --kill] \hfill \\
               Use this to forcibly kill a component using kill -9. This should only be used if {\em stop\_ducc}
-              or {\em check\_ducc -i} does not work.  
+              or {\em check\_ducc -i} does not work.  Note that the database will be issued kill -3, unless
+              the --db-9 option is specified (see below).
+
+    		\item[--db-9] \hfill \\
+              Use this to forcibly kill the database using kill -9. This should be used in conjunction with the
+              --kill option (see above).
 
             \item[--nothreading] If specified, the command does not run in multi-threaded mode
               even if it is supported on the local platform.

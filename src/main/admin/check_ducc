@@ -96,19 +96,25 @@ class CheckDucc(DuccUtil):
                 component  = proc[0]
                 pid        = proc[1]
                 found_user = proc[2]
+
+                signal = self.kill_signal
                 
                 if ( component == 'orchestrator' ):
                     component = 'or'
+                    
+                if ( component == 'database' ):
+                	if ( self.kill_db9 == False ) :
+                		signal = '-QUIT'
 
                 process_id = found_user + ' ' + component + '@' + node + ' PID ' + pid 
-                if ( self.kill_signal != None ) :
+                if ( signal != None ) :
                     if ( self.user != found_user ):
                         messages.append((spacer, "Not killing someone else's process.", process_id))
                     elif ( component == 'unknown-java' ):
                         messages.append((spacer, 'Not killing non-ducc process', process_id))
                     else:
-                        messages.append((spacer, 'Killing (' +  self.kill_signal + ')', process_id))
-                        self.kill_process(node, proc, self.kill_signal)
+                        messages.append((spacer, 'Killing (' +  signal + ')', process_id))
+                        self.kill_process(node, proc, signal)
                         self.pids.delete(pid)
                         process_changes = True
 
@@ -176,7 +182,11 @@ class CheckDucc(DuccUtil):
         print ""
         print "    -k --kill"
         print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
-        print "       uses kill -KILL (-9) and only kills processes owned by the invoking user."
+        print "       uses kill -KILL (-9) for all daemons, except database which uses -QUIT (3),"
+        print "       and only kills processes owned by the invoking user."
+        print ""
+        print "    --db-9"
+        print "       Use signal -KILL (-9) to kill database, rather than the default -QUIT (-3)"
         print "" 
         print "    -i --int"
         print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
@@ -206,13 +216,14 @@ class CheckDucc(DuccUtil):
     def main(self, argv):
 
         try:
-            opts, args = getopt.getopt(argv, 'cikn:opqx:h?v', ['configuration', 'nodelist=', 'int', 'quit', 'kill', 'pids', 'verbose', 'nothreading', ])
+            opts, args = getopt.getopt(argv, 'cikn:opqx:h?v', ['configuration', 'nodelist=', 'int', 'quit', 'kill', 'db-9', 'pids', 'verbose', 'nothreading', ])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
     
         nodefiles = []
         self.user = os.environ['LOGNAME']
         self.kill_signal = None
+        self.kill_db9 = False
         redo_pids = False
         process_changes = False
         do_validate = False
@@ -240,6 +251,8 @@ class CheckDucc(DuccUtil):
                     print 'Conflicting kill signals: -KILL and', self.kill_signal
                     return
                 self.kill_signal = '-KILL'
+            elif o in ('--db-9'):
+                self.kill_db9 = True
             elif o in ( '--nothreading' ):
                 self.disable_threading()
             elif o in ('-p', '--pids'):
