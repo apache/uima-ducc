@@ -35,6 +35,9 @@ from os import remove
 
 common_timestamp = get_timestamp()
 
+from ducc_logger import DuccLogger
+logger = DuccLogger()
+
 # -----------------------------------------------------------------------
 # Extend OptionParser class
 class ExtendedOptionParser(OptionParser):
@@ -81,22 +84,22 @@ class MoveDucc(DuccUtil):
     # exit
     def exit(self):
         text = 'exit code='+str(self.code)
-        print_error(text)
+        logger.error(text)
         sys.exit(self.code)
     
     # abort
     def abort(self):
         message = 'move not performed'
-        print_error(message)
+        logger.error(message)
         self.exit()
     
     # display by way of debug site.ducc.properties
     def dump_properties(self,name,props):
-        print_debug(name+':')
+        logger.debug(name+':')
         keys = props.get_keys()
         for key in keys:
             value = props.get(key)
-            print_debug(key+'='+value)
+            logger.debug(key+'='+value)
     
     # initialize
     def initialize(self):
@@ -138,7 +141,7 @@ class MoveDucc(DuccUtil):
         value = props.get(key)
         if(value == None):
             message = key+' not found in '+stem
-            print_warn(message)
+            logger.warn(message)
             self.code = 1
             self.abort()
         return value
@@ -151,14 +154,14 @@ class MoveDucc(DuccUtil):
         value = self.get_required_prop(props,stem,key)
         if(value == self.target):
             message = 'target '+self.target+' is already ducc.head'
-            print_warn(message)
+            logger.warn(message)
             self.code = 1
             self.abort()
         key = 'ducc.head.failover' 
         value = self.get_required_prop(props,stem,key)
         if(not self.target in value):
             message = 'target '+self.target+' not found in ducc.head.failover='+str(value)
-            print_warn(message)
+            logger.warn(message)
             self.code = 1
             self.abort()
         
@@ -168,18 +171,18 @@ class MoveDucc(DuccUtil):
             if(t[2] == user):
                 if(t[0] == daemon):
                     message = 'node='+node+' pid='+t[1]+' user='+t[2]+' '+daemon+'=up'
-                    print_warn(message)
+                    logger.warn(message)
                     self.code = 1
                     
     # assure broker is down
     def vette_broker(self):
         if(self.is_amq_active()):
             message = 'ActiveMQ listening at ' +self.broker_protocol + "://" + self.broker_host + ':' + self.broker_port
-            print_warn(message)
+            logger.warn(message)
             self.code = 1
         else:
             message = 'ActiveMQ down'
-            print_debug(message)
+            logger.debug(message)
     
     # assure database is down
     def vette_db(self):
@@ -187,16 +190,16 @@ class MoveDucc(DuccUtil):
         verbose = False
         if(self.db_alive(retry,verbose)):
             message = 'database alive'
-            print_warn(message)
+            logger.warn(message)
             code = 1
         else:
             message = 'database down'
-            print_debug(message)
+            logger.debug(message)
     
     # head node is not reachable
     def abort_unreachable(self):
         hint = 'hint: use flag "-o or --offline"'
-        print_info(hint)
+        logger.info(hint)
         self.code = 1
         self.abort()
     
@@ -204,7 +207,7 @@ class MoveDucc(DuccUtil):
     def is_offline_honored(self):
         if(self.offline):
             message = '--offline request not honored'
-            print_warn(message)
+            logger.warn(message)
             
     # assure head node daemons are down or 
     # require --offline flag when head node is unreachable
@@ -215,14 +218,14 @@ class MoveDucc(DuccUtil):
         node = prop.v
         self.head = node
         message = message = 'node='+node+' '+'checking ducc head node daemons status'
-        print_info(message)
+        logger.info(message)
         operational = self.ssh_operational(node)
         if(operational):
             self.is_offline_honored();
             hint = 'hint: run "stop_ducc -c head" or "check_ducc -k"'
             user = os.environ['LOGNAME']
             (bool, tuples) = self.find_ducc_process(node)
-            print_debug('ducc processes:'+str(tuples))
+            logger.debug('ducc processes:'+str(tuples))
             self.vette_daemon(node, user, tuples, 'broker')
             self.vette_daemon(node, user, tuples, 'database')
             self.vette_daemon(node, user, tuples, 'orchestrator')
@@ -233,18 +236,18 @@ class MoveDucc(DuccUtil):
             self.vette_broker()
             self.vette_db()
             if(self.code > 0):
-                print_info(hint)
+                logger.info(hint)
                 self.abort()
             else:
                 message = 'node='+node+' '+'ducc head node daemons are down'
-                print_info(message)
+                logger.info(message)
         else:
             message = 'node='+node+' '+'not reachable'
             if(not self.offline):
-                print_warn(message)
+                logger.warn(message)
                 self.abort_unreachable()
             else :
-                print_info(message)
+                logger.info(message)
     
     # assure node pool compatibility
     def vette_nodepool(self):
@@ -252,25 +255,25 @@ class MoveDucc(DuccUtil):
         node = self.head
         np_head = str(self.get_nodepool(node,default))
         message = 'nodepool[head]='+np_head
-        print_debug(message)
+        logger.debug(message)
         node = self.target
         np_target = str(self.get_nodepool(node,default))
         message = 'nodepool[target]='+np_target
-        print_debug(message)
+        logger.debug(message)
         if((not np_head == default) and (np_target == default)):
             message = 'node='+self.head+' nodepool='+np_head
-            print_info(message)
+            logger.info(message)
             message = 'node='+self.target+' nodepool='+np_target
-            print_info(message)
+            logger.info(message)
             message = 'nodepool swap'
-            print_debug(message)
+            logger.debug(message)
         elif(not np_head == np_target):
             message = 'node='+self.head+' nodepool='+np_head
-            print_warn(message)
+            logger.warn(message)
             message = 'node='+self.target+' nodepool='+np_target
-            print_warn(message)
+            logger.warn(message)
             message = 'nodepools do not match'
-            print_warn(message)
+            logger.warn(message)
             self.code = 1
             self.abort()
             
@@ -280,7 +283,7 @@ class MoveDucc(DuccUtil):
         timestamp = str(common_timestamp).replace(' ','@')
         back = stem+'.'+timestamp
         message = 'creating backup file='+back
-        print_info(message)
+        logger.info(message)
         f_src = root+stem
         f_tgt = root+back
         copy2(f_src,f_tgt)
@@ -292,12 +295,12 @@ class MoveDucc(DuccUtil):
     # debug property changed
     def tell_change(self,key,old,new):
         message = key+'='+old+'->'+new
-        print_debug(message)
+        logger.debug(message)
     
     # warn property not changed
     def tell_no_change(self,key,old):
         message = key+'='+old+'->'+'no change'
-        print_warn(message)
+        logger.warn(message)
     
     # update properties
     def update_site_ducc_properties(self):
@@ -345,10 +348,10 @@ class MoveDucc(DuccUtil):
         if(self.orig_head == self.orig_database):
             props.write(file)
             message = self.site_stem+' '+'updates='+str(changes)
-            print_info(message)
+            logger.info(message)
         else:
             message = 'head:'+self.orig_head+' does not match '+'database:'+self.orig_database
-            print_error(message)
+            logger.error(message)
             code = 1
             self.abort()
     
@@ -361,7 +364,7 @@ class MoveDucc(DuccUtil):
     				text = line.strip()
     				if(text == before):
     					target_file.write(after+'\n')
-    					print_info(before+' -> '+after)
+    					logger.info(before+' -> '+after)
     				else:
     					target_file.write(line)
     	remove(source_file_path)
@@ -373,27 +376,27 @@ class MoveDucc(DuccUtil):
         np_head = str(self.get_nodepool_file(self.head,default))
         np_target = str(self.get_nodepool_file(self.target,default))
         message = 'file[head]='+np_head
-        print_debug(message)
+        logger.debug(message)
         if(not np_head == 'null'):
         	np_head_file = np_head.rsplit('/',1)[1]
         	self.backup_file(self.site_root,np_head_file)
         	message = 'updating '+np_head_file
-        	print_info(message)
+        	logger.info(message)
         	self.edit_nodefile(np_head,self.head,self.target)
         message = 'file[target]='+np_target
-        print_debug(message)
+        logger.debug(message)
         #if(not np_target == 'null'):
         #	np_target_file = np_target.rsplit('/',1)[1]
         #	self.backup_file(self.site_root,np_target_file)
         #message = 'nodepool updated'
-        #print_info(message)
+        #logger.info(message)
         
     # perform move and notify of success
     def config_update(self):
         self.update_site_ducc_properties()
         self.update_nodefile()
         message = 'move completed'
-        print_info(message)
+        logger.info(message)
         
     def main(self, argv):
         self.parse_cmdline()

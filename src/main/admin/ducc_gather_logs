@@ -27,7 +27,9 @@ import sys
 from optparse import OptionParser
 
 from ducc_util import DuccUtil
-from ducc_util_out import *
+
+from ducc_logger import DuccLogger
+logger = DuccLogger()
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # +
@@ -36,8 +38,6 @@ from ducc_util_out import *
 # + purpose: create gz of DUCC log files and other debug information
 # + 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-info_on()
 
 # -----------------------------------------------------------------------
 # Extend OptionParser class
@@ -125,7 +125,7 @@ class GatherLogs(DuccUtil):
             cmdline = cmdline+' '+item
         #print cmdline
         message = 'creating'+' '+self.target+'.gz'
-        print_info(message)
+        logger.info(message)
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         cmd = []
@@ -136,7 +136,7 @@ class GatherLogs(DuccUtil):
         sizeMB = os.path.getsize(self.target+'.gz')/(1.0*1024*1024)
         fmtSizeMB = "%.2f" % sizeMB
         message = 'size'+' '+str(fmtSizeMB)+' '+'MB'
-        print_info(message)
+        logger.info(message)
         
     def main(self, argv):
         self.parse_cmdline()

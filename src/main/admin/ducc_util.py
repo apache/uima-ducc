@@ -36,8 +36,7 @@ import Queue
 
 from  stat import *
 from local_hooks import find_other_processes
-from ducc_util_out import *
-                
+
 # Catch the annoying problem when the current directory has been changed, e.g. by installing a new release
 try:
     os.getcwd()
@@ -56,6 +55,9 @@ DUCC_HOME = me[:ndx]          # split from 0 to ndx
 sys.path.append(DUCC_HOME + '/bin')
 from ducc_base import DuccBase
 from properties import Properties
+
+from ducc_logger import DuccLogger
+logger = DuccLogger()   
 
 import db_util as dbu
 
@@ -523,22 +525,22 @@ class DuccUtil(DuccBase):
         failover = self.ducc_properties.get(key)
         # check for no failover
         if(failover == None):
-            print_debug(key+" not specified")
+            logger.debug(key+" not specified")
         else:
             # insure ducc.head listed in ducc.head.failover
             if(not head in failover):
                 text = head+" not found in "+key
-                print_error(text)
+                logger.error(text)
                 sys.exit(1);
             # test viability fo failover nodes
             nodes = failover.replace(',',' ').split()
             for node in nodes:
                 if(self.ssh_operational(node)):
                     text = "ssh is operational to "+node
-                    print_debug(text)
+                    logger.debug(text)
                 else:
                     text = "ssh to specified failover node unsuccessful or otherwise problematic: "+node
-                    print_warn(text)
+                    logger.warn(text)
     
     # Exit if this is not the head node.  Ignore the domain as uname sometimes drops it.
     # Also check that ssh to this node works
