@@ -435,6 +435,13 @@ class PostInstall():
         self.site_properties_name = resources + '/site.ducc.properties'
         self.ducc_properties = resources + '/ducc.properties'
 
+        if(os.path.exists(self.ducc_properties)):
+            text0 = '\nDUCC is already installed!'
+            text1 = '\nTo re-run ducc_post install be sure DUCC is stopped using "stop_ducc --all"'
+            text2 = "\nand back-up any DUCC configuration files that will be re-used,"
+            text3 = '\nthen re-install DUCC.'
+            self.fail(text0+text1+text2+text3)
+
         self.mkbackup(self.site_properties_name)
         self.mkbackup(self.ducc_properties)
 
