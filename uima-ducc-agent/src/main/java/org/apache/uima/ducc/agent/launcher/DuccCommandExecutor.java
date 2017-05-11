@@ -310,7 +310,9 @@ public class DuccCommandExecutor extends CommandExecutor {
 				((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
 				.equals(ProcessState.Initializing) ||
 				((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
-				.equals(ProcessState.Starting)
+				.equals(ProcessState.Starting) ||
+				((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
+				.equals(ProcessState.Started)
 				);
 	}
 	private void stopProcess(ICommandLine cmdLine, String[] cmd)
@@ -800,7 +802,11 @@ public class DuccCommandExecutor extends CommandExecutor {
 								.getWorkDuccId().getFriendly()));
 				processEnv.put(IDuccUser.EnvironmentVariable.DUCC_LOG_PREFIX.value(), processLogDir
 						+ processLogFile);
-				processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort));
+				if (isAP((ManagedProcess)super.managedProcess)) {
+					processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty("AGENT_AP_STATE_UPDATE_PORT"));
+				} else {
+					processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort));
+				}
 			}
 
 			// Replace the reserved DUCC variable with the architecture of this node (ppc64 or amd64 or ...)
