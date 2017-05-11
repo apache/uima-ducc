@@ -274,8 +274,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 						cgroupCmd[0] = agent.cgroupsManager
 								.getCGroupsUtilsDir() + "/cgexec";
 						cgroupCmd[1] = "-g";
-						cgroupCmd[2] = agent.cgroupsManager.getSubsystems()
-								+ ":ducc/" + containerId;
+						cgroupCmd[2] = agent.cgroupsManager.getSubsystems() + containerId;  // UIMA-5405 subsystems includes the "ducc" id
 						int inx = 3;
 						for (String cmdPart : cmd) {
 							cgroupCmd[inx++] = cmdPart;

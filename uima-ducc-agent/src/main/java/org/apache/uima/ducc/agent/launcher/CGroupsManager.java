@@ -1173,8 +1173,9 @@ public class CGroupsManager {
 		return cgroupBaseDir;
 	}
 
+	// UIMA-5405 Include the installed "ducc" id
 	public String getSubsystems() {
-		return cgroupSubsystems;
+		return cgroupSubsystems + ":" + SYSTEM + "/";
 	}
 
 	public boolean cgroupExists(String cgroup) throws Exception {
