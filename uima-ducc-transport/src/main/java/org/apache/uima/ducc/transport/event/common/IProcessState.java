@@ -24,7 +24,8 @@ public interface IProcessState extends Serializable {
 
 	public enum ProcessState {
 		LaunchFailed,           // Set when process fails to launch ex. ClassNotFound etc
-		Starting,               // Process Manager sent request to start the Process
+		Starting,               // Process Manager launched the Process
+		Started,                // Process PID is available
 		Initializing,			// Process Agent is initializing process
 		Running,				// Process Agent is available for processing work items
 		Stopping,               // Process is shutting down

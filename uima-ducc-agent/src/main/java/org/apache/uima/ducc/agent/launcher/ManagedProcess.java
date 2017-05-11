@@ -413,7 +413,7 @@ public class ManagedProcess implements Process {
 					pstate = ProcessState.Killed;
 				}
 			} else {
-				if ( !isAP && !isstopping ) {
+				if ( !isstopping ) {
 					// check if process exited while in Initializing state  
 					if ( ProcessState.Initializing.equals(pstate) || ProcessState.Starting.equals(pstate)) {
 						getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.FailedInitialization.toString());

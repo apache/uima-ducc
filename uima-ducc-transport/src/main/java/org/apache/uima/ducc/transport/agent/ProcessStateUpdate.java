@@ -39,6 +39,9 @@ public class ProcessStateUpdate implements Serializable {
 	String message;
 	List<IUimaPipelineAEComponent> uimaPipeline;
 
+	public ProcessStateUpdate(ProcessState state, String duccProcessId) {
+		this(state,null,duccProcessId,null,null);
+	}
 	public ProcessStateUpdate(ProcessState state, String pid, String duccProcessId) {
 		this(state,pid,duccProcessId,null,null);
 	}

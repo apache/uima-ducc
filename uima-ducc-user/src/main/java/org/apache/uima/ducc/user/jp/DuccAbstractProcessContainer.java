@@ -19,7 +19,10 @@
 package org.apache.uima.ducc.user.jp;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +55,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 
 	protected final boolean debug = System.getProperty("ducc.debug") != null;
 
+   
 	/**
 	 * This method is called to fetch a WorkItem ID from a given CAS which
 	 * is required to support investment reset. 
@@ -89,7 +93,8 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 
     public int initialize(Properties p, String[] arg) throws Exception {
     	System.out.println("DuccAbstractProcessContainer.initialize() >>>>>>>>> Initializing User Container");
-		// save current context cl and inject System classloader as
+
+    	// save current context cl and inject System classloader as
 		// a context cl before calling user code. This is done in 
 		// user code needs to load resources 
 		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
@@ -165,4 +170,50 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 		oos.close();
 		return baos.toByteArray();
 	}
+    private Socket connectWithAgent() throws Exception {
+    	InetAddress host = null;
+        int statusUpdatePort = -1;
+    	
+    	host = InetAddress.getLocalHost();
+    	String port = System.getenv("DUCC_STATE_UPDATE_PORT");
+    	if ( port == null ) {
+    	} else {
+    		try {
+       		   statusUpdatePort = Integer.valueOf(port);
+   		    } catch( NumberFormatException nfe) {
+    		}
+    	}
+    	System.out.println("Service Connecting Socket to Host:"+host.getHostName()+" Port:"+statusUpdatePort);
+    	String localhost=null;
+    	//establish socket connection to an agent where this process will report its state
+        return new Socket(localhost, statusUpdatePort);
+
+    }
+    protected void sendStateUpdate(String state) throws Exception {
+    	DataOutputStream out = null;
+    	Socket socket=null;
+    	try {
+
+    		StringBuilder sb =
+            		new StringBuilder();
+            
+            sb.append("DUCC_PROCESS_UNIQUEID=").append(System.getenv("DUCC_PROCESS_UNIQUEID")).append(",");
+            sb.append("DUCC_PROCESS_STATE=").append(state);
+            socket = connectWithAgent();
+            out = new DataOutputStream(socket.getOutputStream());
+            out.writeUTF(sb.toString());
+            out.flush();
+            System.out.println("Sent new State:"+state);
+    	} catch( Exception e) {
+    		throw e;
+    	} finally {
+    		if ( out != null ) {
+        		out.close();
+    		}
+    		if ( socket != null ) {
+    			socket.close();
+    		}
+    	}
+      
+    }
 }

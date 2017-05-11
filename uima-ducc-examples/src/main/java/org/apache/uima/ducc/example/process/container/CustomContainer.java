@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.user.jp.DuccAbstractProcessContainer;
 /**
  * An example of Ducc custom process container that can be used
@@ -33,6 +34,11 @@ public class CustomContainer extends DuccAbstractProcessContainer {
 
 	public int doInitialize(Properties p, String[] args) throws Exception {
 		System.out.println("... Initializing Custom Process Container");
+		super.sendStateUpdate(ProcessState.Initializing.name());
+		synchronized( this ) {
+			wait(10000); //simulate 10sec initialization time
+		}
+		super.sendStateUpdate(ProcessState.Running.name());
 		return 2;    // scaleout
 	}
 	/**

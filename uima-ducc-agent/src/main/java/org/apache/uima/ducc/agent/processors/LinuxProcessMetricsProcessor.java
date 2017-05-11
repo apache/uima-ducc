@@ -340,6 +340,8 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 	public boolean processIsActive() {
 		return process.getProcessState().equals(ProcessState.Starting)
                ||
+               process.getProcessState().equals(ProcessState.Started)
+               ||
 			   process.getProcessState().equals(ProcessState.Initializing)
 			   || 
 			   process.getProcessState().equals(ProcessState.Running);

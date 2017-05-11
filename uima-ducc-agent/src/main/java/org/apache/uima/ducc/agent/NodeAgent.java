@@ -879,7 +879,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     return invProcess.getProcessState().equals(ProcessState.Initializing)
             || invProcess.getProcessState().equals(ProcessState.Running)
             || invProcess.getProcessState().equals(ProcessState.Stopping)
-            || invProcess.getProcessState().equals(ProcessState.Starting);
+            || invProcess.getProcessState().equals(ProcessState.Starting)
+            || invProcess.getProcessState().equals(ProcessState.Started);
   }
 
   public void doStopProcess(IDuccProcess process) {
@@ -1008,6 +1009,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       case InitializationTimeout:
         return false;
       case Starting:
+      case Started:
       case Initializing:
       case Running:
         return true;
@@ -1045,7 +1047,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             processEntry.getValue().setProcessJmxUrl(duccEvent.getProcessJmxUrl());
           }
           ITimeWindow tw = processEntry.getValue().getTimeWindowInit();
-          if (tw.getEnd() == null ) {
+          if (tw != null && tw.getEnd() == null ) {
         	if ( !duccEvent.getState().equals(ProcessState.Initializing)) {
         		// Mark the time the process ended initialization. It also
         		// covers a case when the process terminates while initializing
@@ -1082,18 +1084,18 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           // from it. It's stopping.
           if (processEntry.getValue().isDeallocated()) {
             // stop collecting process stats from /proc/<pid>/statm
-            if (duccEvent.getPid() != null) {
+            if (processEntry.getValue().getPID() != null) {
             	try {
-                    super.getContext().stopRoute(duccEvent.getPid());
+                    super.getContext().stopRoute(processEntry.getValue().getPID());
             	} catch( Exception e) {
-            		logger.error(methodName, null, "Unable to stop Camel route for PID:"+duccEvent.getPid());
+            		logger.error(methodName, null, "Unable to stop Camel route for PID:"+processEntry.getValue().getPID());
             	}
             }
             return;
           }
 
           logger.info(methodName, null, ">>>> Agent Handling Process Update - Ducc Id: "
-                  + processEntry.getValue().getDuccId() + " PID:" + duccEvent.getPid() + " Status:"
+                  + processEntry.getValue().getDuccId() + " PID:" + processEntry.getValue().getPID() + " Status:"
                   + duccEvent.getState() + " Deallocated:"
                   + processEntry.getValue().isDeallocated());
           if (deployedProcess != null && deployedProcess.getSocketEndpoint() == null
@@ -1394,6 +1396,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   private boolean runnable(ManagedProcess process) {
 	  return ( process.getDuccProcess().getProcessState().equals(ProcessState.Initializing) ||
 			   process.getDuccProcess().getProcessState().equals(ProcessState.Starting) ||
+			   process.getDuccProcess().getProcessState().equals(ProcessState.Started) ||
 			   process.getDuccProcess().getProcessState().equals(ProcessState.Running) );
   }
 

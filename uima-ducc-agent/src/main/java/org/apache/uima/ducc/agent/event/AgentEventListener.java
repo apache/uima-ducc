@@ -29,6 +29,7 @@ import org.apache.uima.ducc.agent.ProcessLifecycleController;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
 import org.apache.uima.ducc.transport.event.ProcessPurgeDuccEvent;
@@ -39,6 +40,7 @@ import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
+import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -210,6 +212,39 @@ public class AgentEventListener implements DuccEventDelegateListener {
 		logger.info(">>> onProcessStateUpdate", null,"... Agent Received ProcessStateUpdateDuccEvent - Process State:"+duccEvent.getState()+" Process ID:"+duccEvent.getDuccProcessId());
 //		agent.updateProcessStatus(duccEvent.getDuccProcessId(), duccEvent.getPid(), duccEvent.getState());
 		agent.updateProcessStatus(duccEvent);
+	}
+	public void onProcessStateUpdate(@Body String serviceUpdate) throws Exception {
+		logger.info(">>> onProcessStateUpdate", null,"Recv'd Process Update from Custom Service");
+		String[] stateUpdateProperties = serviceUpdate.split(",");
+		
+		String duccProcessId = null;
+		String duccProcessState = null;
+		ProcessState state = null;
+		for( String prop : stateUpdateProperties ) {
+			String[] nv = prop.split("=");
+			if ( nv[0].equals("DUCC_PROCESS_UNIQUEID")) {
+				duccProcessId = nv[1];
+			} else if ( nv[0].equals("DUCC_PROCESS_STATE")) {
+				duccProcessState = nv[1];
+				try {
+					// validates value. Fails with IllegalArgumentException if
+					// a value does not match a defined enum
+					state = ProcessState.valueOf(nv[1]);
+				} catch( IllegalArgumentException e) {
+					// invalid state
+				}
+			} 
+		}
+		if ( state == null ) {
+			logger.info(">>> onProcessStateUpdate", null,"... Agent Received Invalid State Update event - Unsupported Process State:"+duccProcessState+" Process ID:"+duccProcessId);
+		} else if ( duccProcessId == null ) {
+			logger.info(">>> onProcessStateUpdate", null,"... Agent Received Invalid State Update event - Process State:"+duccProcessState+" Missing Process ID");
+		} else {
+			ProcessStateUpdate update = new ProcessStateUpdate(state, duccProcessId);
+			ProcessStateUpdateDuccEvent duccEvent = new ProcessStateUpdateDuccEvent(update);
+			logger.info(">>> onProcessStateUpdate", null,"... Agent Received ProcessStateUpdateDuccEvent - Process State:"+duccEvent.getState()+" Process ID:"+duccEvent.getDuccProcessId());
+			agent.updateProcessStatus(duccEvent);
+		}
 	}
 	public void onProcessPurgeEvent(@Body ProcessPurgeDuccEvent duccEvent) throws Exception {
 		logger.info(">>> onProcessPurgeEvent", null,"... Agent Received ProcessPurgeDuccEvent -"+" Process ID:"+duccEvent.getProcess().getPID());

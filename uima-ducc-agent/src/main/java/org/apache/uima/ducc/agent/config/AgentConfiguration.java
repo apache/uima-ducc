@@ -18,6 +18,9 @@
  */
 package org.apache.uima.ducc.agent.config;
 
+import java.io.DataInputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -87,6 +90,9 @@ public class AgentConfiguration {
 
   private RouteBuilder inventoryRouteBuilder;
 
+  private ServerSocket serviceStateUpdateServer = null;
+  
+  private Thread serverThread = null;
   /* Deprecated
   @Value("#{ systemProperties['ducc.agent.launcher.thread.pool.size'] }")
   String launcherThreadPoolSize;
@@ -257,26 +263,11 @@ public class AgentConfiguration {
                 .process(new ErrorProcessor()).stop();
 
         from(common.managedProcessStateUpdateEndpoint).routeId("ManageProcessStateUpdateRoute")
-        // .process(new StateUpdateDebugProcessor(logger))
-                .choice().when(filter).bean(delegate).end();
+        .choice().when(filter).bean(delegate).end();
       }
     };
   }
-
-  // private RouteBuilder routeBuilderForNodePing(final NodeAgent agent, final String
-  // targetEndpoint) throws Exception {
-  // return new RouteBuilder() {
-  // PingProcessor pingProcessor = new PingProcessor(agent);
-  // public void configure() {
-  // System.out.println("Agent Listening on Ping Endpoint:"+targetEndpoint);
-  // onException(Exception.class).handled(true).process(new ErrorProcessor());
-  // from(targetEndpoint)
-  // .routeId("NodePingRoute")
-  // .process( pingProcessor);
-  // }
-  // };
-  // }
-
+  
   public class DebugProcessor implements Processor {
 
     public void process(Exchange exchange) throws Exception {
@@ -328,7 +319,7 @@ public class AgentConfiguration {
         sb.append(entry.getKey()).append("=").append(entry.getValue()).append("\n");
       }
       logger.info("StateUpdateDebugProcessor.process", null, "Headers:\n\t" + sb.toString());
-
+      logger.info("StateUpdateDebugProcessor.process", null, "Body:"+exchange.getIn().getBody());
     }
   }
 
@@ -409,13 +400,49 @@ public class AgentConfiguration {
   public int getNodeInventoryPublishDelay() {
 	  return Integer.parseInt(common.nodeInventoryPublishRate);
   }
+  /**
+   * Starts state update server to handle AP service state update.
+   * 
+   * @param State update handler
+   * @throws Exception
+   */
+  private void startAPServiceStateUpdateSocketServer(final AgentEventListener l) throws Exception {
+	int port = Utils.findFreePort();
+	
+  	serviceStateUpdateServer = new ServerSocket(port);
+  	// Publish State Update Port for AP's. This port will be added to the AP
+  	// environment before a launch
+  	System.setProperty("AGENT_AP_STATE_UPDATE_PORT",String.valueOf(port));
+  	// spin a server thread which will handle AP state update messages
+  	serverThread = new Thread( new Runnable() {
+  		public void run() {
+  			while(true) {
+  		  		try {
+  		  			Socket client = serviceStateUpdateServer.accept();
+  		  			// AP connected, get its status report. Handling of the status
+  		  			// will be done in a dedicated thread to allow concurrent processing.
+  		  			// When handling of the state update is done, the socket will be closed
+  		  			ServiceUpdateWorkerThread worker = new ServiceUpdateWorkerThread(client, l);
+  		  			worker.start();
+  		  		} catch( Exception e) {
+  		  			logger.error("startSocketServer", null, e);
+  		  		} finally {
+  		  		}
+  		  		
+  		  	}	
+  		}
+  	});
+  	serverThread.start();
+  	logger.info("startSocketServer", null, "Started AP Service State Update Server on Port"+port);
+  }
   @Bean
   public NodeAgent nodeAgent() throws Exception {
     try {
+    	
+    	
       camelContext = common.camelContext();
       camelContext.disableJMX();
 
-//      NodeAgent agent = new NodeAgent(nodeIdentity(), launcher(), camelContext, this);
       agent = new NodeAgent(nodeIdentity(), launcher(), camelContext, this);
       // optionally configures Camel Context for JMS. Checks the 'agentRequestEndpoint' to
       // to determine type of transport. If the the endpoint starts with "activemq:", a
@@ -424,6 +451,13 @@ public class AgentConfiguration {
       AgentEventListener delegateListener = agentDelegateListener(agent);
 
       agent.setAgentEventListener(delegateListener);
+
+      // Create server to receive status update from APs. The JPs report their status
+      // via a Camel Mina-based route. The APs report to a different port handled
+      // by the code below. The APs pass in status as String whereas the JPs pass in
+      // status as DuccEvent. The Camel Mina-based route cannot serve both. Mina route
+      // must be configured differently to accept String in a body. 
+  	  startAPServiceStateUpdateSocketServer(delegateListener);
 
       if (common.managedProcessStateUpdateEndpointType != null
               && common.managedProcessStateUpdateEndpointType.equalsIgnoreCase("socket")) {
@@ -446,12 +480,6 @@ public class AgentConfiguration {
     	              common.nodeInventoryEndpoint, Integer.parseInt(common.nodeInventoryPublishRate)));
 
       camelContext.addRoutes(inventoryRouteBuilder);
-/*
-      metricsRouteBuilder = this.routeBuilderForNodeMetricsPost(agent, common.nodeMetricsEndpoint,
-              Integer.parseInt(common.nodeMetricsPublishRate));
-      camelContext.addRoutes(metricsRouteBuilder);
-*/
-
 
       logger.info("nodeAgent", null, "------- Agent Initialized - Identity Name:"
               + agent.getIdentity().getName() + " IP:" + agent.getIdentity().getIp()
@@ -473,6 +501,7 @@ public class AgentConfiguration {
 
   }
   public void stopRoutes() throws Exception {
+	  serviceStateUpdateServer.close();
 	  camelContext.stop();
 	  logger.info("AgentConfigureation.stopRoutes", null,"Camel Context stopped");
 
@@ -567,7 +596,32 @@ public class AgentConfiguration {
       return result;
     }
   }
-  // public DuccEventDispatcher getAgentPingDispatcher() {
-  // return agentPingDispatcher;
-  // }
+  
+  class ServiceUpdateWorkerThread extends Thread {
+	  private Socket socket;
+	  private AgentEventListener updateHandler;
+	  ServiceUpdateWorkerThread(Socket socket, AgentEventListener l) {
+		  this.socket = socket;
+		  updateHandler = l;
+	  }
+	  
+	  public void run() {
+		  try {
+			  logger.info("nodeAgent.ServiceUpdateWorkerThread.run()", null,">>>>> Agent Reading from Service Socket");
+			  DataInputStream dis = new DataInputStream(socket.getInputStream());
+			  String state = dis.readUTF();
+			  updateHandler.onProcessStateUpdate(state);
+			  logger.info("nodeAgent.ServiceUpdateWorkerThread.run()", null,">>>>> Agent Received State Update:"+state);
+		  } catch( Exception e) {
+			  logger.error("nodeAgent.ServiceUpdateWorkerThread.run()", null,e);
+		  } finally {
+			  try {
+				  socket.close();
+			  } catch(Exception e) {
+				  logger.error("nodeAgent.ServiceUpdateWorkerThread.run()", null,e);
+			  }
+		  }
+	  }
+  }
+
 }
