@@ -143,7 +143,7 @@ public class DuccServiceDriver implements ServiceDriver {
 		String application = "/test";
 		if (args.length > 0) {
 		  if (args.length != 2) {
-		    System.out.println("Tws arguments required: port application (defaults: 8888 /test");
+		    System.out.println("Two arguments required: port application (defaults: 8888 /test");
 		    return;
 		  }
 		  port = args[0];

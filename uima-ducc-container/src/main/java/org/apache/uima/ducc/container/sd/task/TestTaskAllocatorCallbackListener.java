@@ -55,12 +55,13 @@ public class TestTaskAllocatorCallbackListener implements
 	        inf = new BufferedReader(new FileReader(taskFile));
 	    }
 	}
-	public String serialize(CAS cas) throws Exception {
+	private String serialize(CAS cas) throws Exception {
 		String serializedCas = uimaSerializer.serializeCasToXmi(cas);
 		return serializedCas;
 	}
 	public String getSerializedCAS(TaskConsumer taskConsumer) {
-		logger.log(Level.INFO,"getSerializedCAS() Called "+seqno.incrementAndGet()+ " Times");
+		logger.log(Level.INFO,"getSerializedCAS() Call "+seqno.incrementAndGet()
+		        + " - from "+taskConsumer.getType()+":"+taskConsumer.getHostName()+"-"+taskConsumer.getPid()+"-"+taskConsumer.getThreadId() );
 		String serializedCas = null;
 		try {
 			CAS cas = null;
@@ -93,14 +94,15 @@ public class TestTaskAllocatorCallbackListener implements
 	}
 
 	public synchronized void onTaskSuccess(TaskConsumer taskConsumer, IPerformanceMetrics metrics) {
-		logger.log(Level.INFO,"onTaskSuccess() Called");
+		logger.log(Level.INFO,"onTaskSuccess() Starting");
 		List<Properties> breakdown = metrics.get();
 
 		for( Properties p : breakdown ) {
 			StringBuffer sb = new StringBuffer();
 			sb.append("AE Name: ").append(p.get("uniqueName")).append(" Analysis Time: ").append(p.get("analysisTime"));
-			System.out.println(taskConsumer.toString()+" -- "+sb.toString());
+			System.out.println("\tmetrics: "+taskConsumer.toString()+" -- "+sb.toString());
 		}
+		logger.log(Level.INFO,"onTaskSuccess() Completed");
 	}
 
 	public void onTaskFailure(TaskConsumer taskConsumer, String stringifiedException) {
