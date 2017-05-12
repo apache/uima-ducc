@@ -47,8 +47,8 @@ public class FlagsHelper {
 		JpCmDescriptor,
 		JpCmOverrides,
 		JpDd,
-		JpDdBrokerEndpoint("${queue.name}"),
-		JpDdBrokerURL("${broker.name}"),
+		JpDdBrokerEndpoint("${ducc.queue.name}"),   // NOTE - must match the names in UimaAsProcessContainer
+		JpDdBrokerURL("${ducc.broker.name}"),
 		JpDdDescription,
 		JpDdName,
 		JpThreadCount,

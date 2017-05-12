@@ -70,8 +70,12 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 	private String aeName="";
 	private volatile boolean threadAffinity=false;
 	boolean enablePerformanceBreakdownReporting = false;
-	private static final String brokerPropertyName = "broker.name";
-	private static final String queuePropertyName = "queue.name";
+	
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	// WARNING - these names are also in FlagsHelper but that is in common so can't be used here 
+	// Since they are put in the system properties their names should be "reserved"
+	private static final String brokerPropertyName = "ducc.broker.name";
+	private static final String queuePropertyName  = "ducc.queue.name";
 	
 	public boolean useThreadAffinity() {
 	  return threadAffinity;
