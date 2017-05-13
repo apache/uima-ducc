@@ -208,7 +208,10 @@ public class DuccHttpClient {
 		return nn;
 	}
 	private String getProcessName() {
-		String pn = System.getenv(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS.value());
+	  String pn = System.getProperty("UimaRequestServiceType");
+	  if (pn == null) {
+	    pn = System.getenv(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS.value());
+	  }
 		return pn;
 	}
     private void addCommonHeaders( IMetaCasTransaction transaction ) {
