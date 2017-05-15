@@ -649,7 +649,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			Map<String, String> processEnv) throws Exception {
 		// String methodName = "getDeployableCommandLine";
 		String[] cmd = new String[0];
-
+		boolean uimaBasedAP = false;
 		try {
 			// lock using Agent single permit semaphore. The
 			// Utils.concatAllArrays()
@@ -705,8 +705,13 @@ public class DuccCommandExecutor extends CommandExecutor {
 								processType = "-JD-";
 								((ManagedProcess) super.managedProcess)
 										.setIsJD(); // mark this process as JD
-								break;
+								//break;
+							} else if (option.startsWith("-Dducc.deploy.JpType=uima")) {
+								// this is an AP with JP-based "nature". Meaning its using
+								// a JP process configuration and its pull based model.
+								uimaBasedAP = true;
 							}
+							
 						}
 					}
 					break;
@@ -802,7 +807,13 @@ public class DuccCommandExecutor extends CommandExecutor {
 								.getWorkDuccId().getFriendly()));
 				processEnv.put(IDuccUser.EnvironmentVariable.DUCC_LOG_PREFIX.value(), processLogDir
 						+ processLogFile);
-				if (isAP((ManagedProcess)super.managedProcess)) {
+				// Currently agent has two ports where it listens for process state updates. One is
+				// for JPs and the other is for APs. The APs use a simplified state update protocol
+				// which is String based. The JPs actually serialize a more complex state Object.
+				// There is a way to deploy an AP with a JP "nature". Meaning an AP whose internal
+				// components looks just like a JP. Such AP must report its state to the same
+				// agent port as a JP. Only non-uima based APs will report to the other port.
+				if (isAP((ManagedProcess)super.managedProcess) && !uimaBasedAP ) {
 					processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty("AGENT_AP_STATE_UPDATE_PORT"));
 				} else {
 					processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort));
