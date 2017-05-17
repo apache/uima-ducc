@@ -36,6 +36,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.camel.CamelContext;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.container.FlagsHelper;
@@ -217,6 +218,11 @@ implements IJobProcessor{
 			service.registerInvestmentResetCallback(this, m);
 
 			String processJmxUrl = super.getProcessJmxUrl();
+			logger.info("start", null, "-Dducc.deploy.JpUniqueId=" +
+			System.getProperty(IDuccUser.DashD.DUCC_ID_PROCESS_UNIQUE.value()) +
+			" Environment Var:DUCC_PROCESS_UNIQUEID=" + 
+			System.getProperty(IDuccUser.EnvironmentVariable.DUCC_PROCESS_UNIQUEID.value()));			
+			
 			// tell the agent that this process is initializing
 			agent.notify(ProcessState.Initializing, processJmxUrl);
 			

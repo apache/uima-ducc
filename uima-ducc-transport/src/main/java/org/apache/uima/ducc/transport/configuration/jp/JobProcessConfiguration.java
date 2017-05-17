@@ -225,11 +225,16 @@ public class JobProcessConfiguration {
 					.duccEventDispatcher(
 							common.managedProcessStateUpdateEndpoint,
 							camelContext);
-
+			String processId = 
+					System.getProperty(IDuccUser.DashD.DUCC_ID_PROCESS_UNIQUE.value());
+			if ( processId == null) {
+				processId = 
+						System.getenv(IDuccUser.EnvironmentVariable.DUCC_PROCESS_UNIQUEID.value());
+			}
 			// Create Agent proxy which will be used to notify Agent
 			// of state changes.
 			agent = new AgentSession(eventDispatcher,
-					System.getProperty(IDuccUser.DashD.DUCC_ID_PROCESS_UNIQUE.value()),
+					processId,
 					common.managedServiceEndpoint);
 
 			System.out

@@ -21,6 +21,7 @@ package org.apache.uima.ducc.agent.config;
 import java.io.DataInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -424,8 +425,10 @@ public class AgentConfiguration {
   		  			// When handling of the state update is done, the socket will be closed
   		  			ServiceUpdateWorkerThread worker = new ServiceUpdateWorkerThread(client, l);
   		  			worker.start();
+  		  		} catch( SocketException e) {
+  		  			// ignore, clients can come and go
   		  		} catch( Exception e) {
-  		  			logger.error("startSocketServer", null, e);
+  		  			logger.error("startAPServiceStateUpdateSocketServer", null, e);
   		  		} finally {
   		  		}
   		  		

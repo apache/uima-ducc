@@ -690,6 +690,13 @@ public class DuccCommandExecutor extends CommandExecutor {
 				if (cmdLine instanceof JavaCommandLine) {
 				  cmdLine = ((JavaCommandLine)cmdLine).copy();
 				}
+				
+				logger.info("getDeployableCommandLine",
+                        ((ManagedProcess) super.managedProcess).getDuccId(),
+                        "Deploying Process Type:"+
+                        ((ManagedProcess) super.managedProcess)
+						.getDuccProcess().getProcessType().name());
+				
 				switch (((ManagedProcess) super.managedProcess)
 						.getDuccProcess().getProcessType()) {
 				case Pop:
@@ -698,6 +705,12 @@ public class DuccCommandExecutor extends CommandExecutor {
 					processType = "-POP-";
 					if (cmdLine instanceof JavaCommandLine) {
 						for (String option : cmdLine.getOptions()) {
+
+							logger.info("getDeployableCommandLine",
+			                        ((ManagedProcess) super.managedProcess).getDuccId(),
+			                        "POP CmdLine Option:"+
+			                       option);
+
 							// Both services and JD have processType=POP.
 							// However, only the JD
 							// will have -Dducc.deploy.components option set.
@@ -731,6 +744,12 @@ public class DuccCommandExecutor extends CommandExecutor {
 						if (option.indexOf("ducc.deploy.components=service") > -1) {
 							isDucc20ServiceProcess = true;
 						}
+						//break;
+					    if (option.startsWith("-Dducc.deploy.JpType=uima")) {
+						   // this is an AP with JP-based "nature". Meaning its using
+						   // a JP process configuration and its pull based model.
+						   uimaBasedAP = true;
+					    }
 					}
 
 					// Add main class and component type to the command line
@@ -807,6 +826,15 @@ public class DuccCommandExecutor extends CommandExecutor {
 								.getWorkDuccId().getFriendly()));
 				processEnv.put(IDuccUser.EnvironmentVariable.DUCC_LOG_PREFIX.value(), processLogDir
 						+ processLogFile);
+				
+				for(String part : cmd ) {
+					if (part.startsWith("-Dducc.deploy.JpType=uima")) {
+					   // this is an AP with JP-based "nature". Meaning its using
+					   // a JP process configuration and its pull based model.
+					   uimaBasedAP = true;
+					   break;
+					}
+				}
 				// Currently agent has two ports where it listens for process state updates. One is
 				// for JPs and the other is for APs. The APs use a simplified state update protocol
 				// which is String based. The JPs actually serialize a more complex state Object.
@@ -814,8 +842,24 @@ public class DuccCommandExecutor extends CommandExecutor {
 				// components looks just like a JP. Such AP must report its state to the same
 				// agent port as a JP. Only non-uima based APs will report to the other port.
 				if (isAP((ManagedProcess)super.managedProcess) && !uimaBasedAP ) {
+					logger.info("getDeployableCommandLine",
+	                        ((ManagedProcess) super.managedProcess).getDuccId(),
+	                        "Deploying Process Type:"+
+	                        ((ManagedProcess) super.managedProcess)
+							.getDuccProcess().getProcessType().name() +
+							" This process will report state update to AP specific socket listener running on port:" +
+							System.getProperty("AGENT_AP_STATE_UPDATE_PORT")
+							);
 					processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty("AGENT_AP_STATE_UPDATE_PORT"));
 				} else {
+					logger.info("getDeployableCommandLine",
+	                        ((ManagedProcess) super.managedProcess).getDuccId(),
+	                        "Deploying Process Type:"+
+	                        ((ManagedProcess) super.managedProcess)
+							.getDuccProcess().getProcessType().name() +
+							" This process will report state update to Camel-Mina listener running on port:" +
+							System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort)
+							);
 					processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort));
 				}
 			}

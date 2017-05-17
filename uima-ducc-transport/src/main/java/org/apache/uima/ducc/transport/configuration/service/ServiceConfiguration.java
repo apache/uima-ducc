@@ -221,8 +221,14 @@ public class ServiceConfiguration {
 
 			// Create Agent proxy which will be used to notify Agent
 			// of state changes.
+			String processId = 
+					System.getProperty(IDuccUser.DashD.DUCC_ID_PROCESS_UNIQUE.value());
+			if ( processId == null) {
+				processId = 
+						System.getenv(IDuccUser.EnvironmentVariable.DUCC_PROCESS_UNIQUEID.value());
+			}
 			agent = new AgentSession(eventDispatcher,
-					System.getProperty(IDuccUser.DashD.DUCC_ID_PROCESS_UNIQUE.value()),
+					processId,
 					common.managedServiceEndpoint);
 
 			System.out
