@@ -427,27 +427,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			Map<String, String> processEnv) throws Exception {
 		String methodName = "startProcess";
 
-		String millis;
-		millis = TimeStamp.getCurrentMillis();
-
 		ProcessBuilder pb = new ProcessBuilder(cmd);
-
-		if (((ManagedProcess) super.managedProcess).getDuccProcess()
-				.getProcessType().equals(ProcessType.Pop)
-				|| ((ManagedProcess) super.managedProcess).getDuccProcess()
-						.getProcessType().equals(ProcessType.Service)) {
-			ITimeWindow twi = new TimeWindow();
-			((ManagedProcess) managedProcess).getDuccProcess()
-					.setTimeWindowInit(twi);
-			twi.setStart(millis);
-			twi.setEnd(millis);
-
-			ITimeWindow twr = new TimeWindow();
-			((ManagedProcess) managedProcess).getDuccProcess()
-					.setTimeWindowRun(twr);
-			twr.setStart(millis);
-
-		}
 
 		Map<String, String> env = pb.environment();
 		// Dont enherit agent's environment
@@ -850,6 +830,18 @@ public class DuccCommandExecutor extends CommandExecutor {
 							" This process will report state update to AP specific socket listener running on port:" +
 							System.getProperty("AGENT_AP_STATE_UPDATE_PORT")
 							);
+					
+					ITimeWindow twi = new TimeWindow();
+					((ManagedProcess) managedProcess).getDuccProcess()
+								.setTimeWindowInit(twi);
+					String millis = TimeStamp.getCurrentMillis();
+					twi.setStart(millis);
+					twi.setEnd(millis);
+
+					ITimeWindow twr = new TimeWindow();
+					((ManagedProcess) managedProcess).getDuccProcess()
+								.setTimeWindowRun(twr);
+					twr.setStart(millis);
 					processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty("AGENT_AP_STATE_UPDATE_PORT"));
 				} else {
 					logger.info("getDeployableCommandLine",
