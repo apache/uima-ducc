@@ -80,6 +80,7 @@
  * 2015-04-30 2.0.0 Fix hole and update version for DUCC 2.0. jrc
  * 2015-11-19 2.1.0 Create 2 streams if console port ends with "?splitstreams".  Add timestamp to log. bll
  * 2017-03-08 2.2.1 Set umask before creating logs so permissions of log directories are set correctly. bll
+ * 2017-04-27 2.2.1 DUCC should allow the "ducc" user to be other than exactly "ducc"
  */
 
 /**
@@ -616,6 +617,8 @@ int main(int argc, char **argv, char **envp)
     char *workingdir = NULL;
     char *logfile = NULL;
     struct passwd *pwd= NULL;
+    uid_t uid_ducc = -1;
+    uid_t uid_user = -1;
     int switch_ids = 0;
     int redirect = 0;
     char buf[BUFLEN];
@@ -668,6 +671,7 @@ int main(int argc, char **argv, char **envp)
     }
 
 	log_stdout("201 DUCC user is %s.\n", UID);
+	//log_stdout("202 target user is %s.\n", userid);
 
     if ( getenv("DUCC_CONSOLE_LISTENER") != NULL ) {
         log_stdout("302 Redirecting console into socket %s.\n", getenv("DUCC_CONSOLE_LISTENER"));
@@ -680,9 +684,20 @@ int main(int argc, char **argv, char **envp)
     // do this here before redirection stdout / stderr
     log_stdout("0 %d\n", getpid());                                         // code 0 means we passed tests and are about to dup I/O
 
-    //	fetch UID user passwd structure
+	// get target user number
+	pwd = getpwnam(userid);
+	if(pwd != NULL) {
+		uid_user = pwd->pw_uid;
+		//log_stdout("570 USER is %s (%d).\n", pwd->pw_name, uid_user);
+	}
+	
+    // get DUCC user number
     pwd = getpwnam(UID);
-
+	if(pwd != NULL) {
+		uid_ducc = pwd->pw_uid;
+		//log_stdout("580 DUCC is %s (%d).\n", pwd->pw_name, uid_ducc);
+	}
+	
     if ( pwd == NULL ) {
         pwd = getpwuid(getuid());
 #ifdef __APPLE__
@@ -702,7 +717,14 @@ int main(int argc, char **argv, char **envp)
         log_stdout("800 Running instead as %s.\n", pwd->pw_name);
         //exit(0);
     } else {
-        switch_ids = 1;
+    	// switch not needed if user is the DUCC user
+    	if(uid_ducc != uid_user) {
+    		switch_ids = 1;
+    		//log_stdout("830 Switch from %d to %d.\n", uid_ducc, uid_user);
+		}
+		else {
+			//log_stdout("840 Running as %s already.\n", pwd->pw_name);
+		}
     }
 
     //
