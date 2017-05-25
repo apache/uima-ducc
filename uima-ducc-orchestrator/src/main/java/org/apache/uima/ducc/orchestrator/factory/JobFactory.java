@@ -627,9 +627,44 @@ public class JobFactory implements IJobFactory {
 			// add JpType
 			if(process_DD != null) {
 				addDashD(pipelineCommandLine, FlagsHelper.Name.JpType, "uima-as");
+				// <flags for JP to build DD>
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpDd, process_DD);
+				// common
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JobDirectory, jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
+				String keyFCRS = "ducc.flow-controller.specifier";
+				String valueFCRS = DuccPropertiesResolver.getInstance().getFileProperty(keyFCRS);
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpFlowController, valueFCRS);
+				String name = "DUCC.Job";
+				String description = "DUCC.Generated";
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpDdName, name);
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpDdDescription, description);
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpThreadCount, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_pipeline_count));
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpDdBrokerURL,  FlagsHelper.Name.JpDdBrokerURL.getDefaultValue());
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpDdBrokerEndpoint, FlagsHelper.Name.JpDdBrokerEndpoint.getDefaultValue());
+				// </flags for JP to build DD>
 			}
 			else {
 				addDashD(pipelineCommandLine, FlagsHelper.Name.JpType, "uima");
+				// <flags for JP to build Aggregate>
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpAeDescriptor, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_AE));
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpAeOverrides, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_AE_overrides));
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpCcDescriptor, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_CC));
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpCcOverrides, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_CC_overrides));
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpCmDescriptor, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_CM));
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpCmOverrides, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_CM_overrides));
+				// common
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JobDirectory, jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
+				String keyFCRS = "ducc.flow-controller.specifier";
+				String valueFCRS = DuccPropertiesResolver.getInstance().getFileProperty(keyFCRS);
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpFlowController, valueFCRS);
+				String name = "DUCC.Job";
+				String description = "DUCC.Generated";
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpDdName, name);
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpDdDescription, description);
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpThreadCount, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_pipeline_count));
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpDdBrokerURL,  FlagsHelper.Name.JpDdBrokerURL.getDefaultValue());
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpDdBrokerEndpoint, FlagsHelper.Name.JpDdBrokerEndpoint.getDefaultValue());
+				// </flags for JP to build Aggregate>
 			}
 
 			String process_thread_count = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_pipeline_count);

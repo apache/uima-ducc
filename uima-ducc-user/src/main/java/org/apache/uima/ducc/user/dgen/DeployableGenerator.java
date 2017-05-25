@@ -25,6 +25,7 @@ import java.io.FileWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -35,7 +36,6 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.uima.analysis_engine.AnalysisEngineDescription;
 import org.apache.uima.ducc.user.common.UimaUtils;
-import org.apache.uima.ducc.user.common.Utils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -84,7 +84,7 @@ public class DeployableGenerator {
 		    aggregateConfiguration.getFlowController(),
 		    aggregateConfiguration.getThreadCount(), 
 		    userLogDir,
-		    jobId+"-uima-ae-descriptor-"+Utils.getPID()+".xml",
+		    jobId+"-"+"uima-ae-descriptor"+".xml",
 			overrides, 
 			descriptorPaths.toArray(new String[descriptorPaths.size()])
 			);
@@ -241,11 +241,15 @@ public class DeployableGenerator {
 		BufferedWriter out = null;
 		try {
 			//	using PID of the ducc component process in the DD file name
-			File file = new File(dir, jobId+"-uima-as-dd-"+Utils.getPID()+".xml");
-			out = new BufferedWriter(new FileWriter(file));
+			UUID uuid = UUID.randomUUID();
+			File file1 = new File(dir, uuid.toString());
+			File file2 = new File(dir, jobId+"-uima-as-dd"+".xml");
+			out = new BufferedWriter(new FileWriter(file1));
 			out.write(content);
 			out.flush();
-			return file.getAbsolutePath();
+			file1.renameTo(file2);
+			//file1.delete();
+			return file2.getAbsolutePath();
 		} catch( Exception e) {
 			throw e;
 		} finally {

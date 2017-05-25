@@ -114,6 +114,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 	}
 
 	public int doInitialize(Properties props, String[] args) throws Exception {
+			buildDeployable();
 			return configureAndGetScaleout(args);
 	}
 	public void doDeploy() throws Exception {

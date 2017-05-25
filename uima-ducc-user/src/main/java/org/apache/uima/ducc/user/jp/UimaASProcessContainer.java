@@ -111,6 +111,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		// generate Spring context file once
 		synchronized( UimaASProcessContainer.class) {
 			if ( !initialized ) {
+				buildDeployable();
 				generateDescriptorsAndGetScaleout(args);
 				initialized = true;
 			}

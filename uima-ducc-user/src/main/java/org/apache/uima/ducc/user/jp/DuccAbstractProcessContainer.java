@@ -23,9 +23,11 @@ import java.io.DataOutputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.uima.UIMAFramework;
@@ -33,6 +35,7 @@ import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.CasHelper;
 import org.apache.uima.ducc.user.common.DuccUimaSerializer;
+import org.apache.uima.ducc.user.dgen.iface.DeployableGeneration;
 import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 import org.apache.uima.resource.metadata.FsIndexDescription;
 import org.apache.uima.resource.metadata.TypePriorities;
@@ -216,4 +219,103 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     	}
       
     }
+	  private boolean dump = false;
+	  
+	  private void dumpSystemProperties() {
+		  if(dump) {
+			  System.out.println("===== <System Properties> =====");
+			  Properties props = System.getProperties();
+			  for(Entry<Object, Object> entry : props.entrySet()) {
+				  String key = (String) entry.getKey();
+				  String value = (String) entry.getValue();
+				  System.out.println(key+"="+value);
+			  }
+			  System.out.println("===== </System Properties> =====");
+		  }
+	  }
+	  
+	  private String getPropertyString(String key) {
+		  String value = System.getProperty(key);
+		  //System.out.println(key+"="+value);
+		  return value;
+	  }
+	  
+	  private List<String> getPropertyListString(String key) {
+		  List<String> value = new ArrayList<String>();
+		  //System.out.println(key+"[size]="+value.size());
+		  return value;
+	  }
+	  
+	  private Integer getPropertyInteger(String key) {
+		  String sval = getPropertyString(key);
+		  Integer value = new Integer(sval);
+		  return value;
+	  }
+	  
+	  protected int buildDeployable() {
+		  int retVal = 0;
+		  try {
+			  dumpSystemProperties();
+			  String directory = getPropertyString("ducc.deploy.JobDirectory"); 
+			  String id = getPropertyString("ducc.job.id");
+			  String dgenName = getPropertyString("ducc.deploy.JpDdName");			  
+			  String dgenDescription = getPropertyString("ducc.deploy.JpDdDescription"); 
+			  Integer dgenThreadCount = getPropertyInteger("ducc.deploy.JpThreadCount");
+			  String dgenBrokerURL = getPropertyString("ducc.deploy.JpDdBrokerURL"); 
+			  String dgenEndpoint = getPropertyString("ducc.deploy.JpDdBrokerEndpoint");		  
+			  String dgenFlowController = getPropertyString("ducc.deploy.JpFlowController");
+			  String jpType = getPropertyString("ducc.deploy.JpType");
+			  if(jpType == null) {
+				  jpType = "uima";
+			  }
+			  if(jpType.equalsIgnoreCase("uima-as")) {
+				  String dgenReferenceByName = getPropertyString("ducc.deploy.JpDd");
+				  DeployableGeneration dg = new DeployableGeneration();
+				  String name = dg.generate(
+						  directory, 
+						  id, 
+						  dgenName, 
+						  dgenDescription, 
+						  dgenThreadCount, 
+						  dgenBrokerURL, 
+						  dgenEndpoint, 
+						  dgenFlowController, 
+						  dgenReferenceByName
+						  );
+				  System.out.println("type=jpType"+" "+"name="+name);
+			  }
+			  else {
+				  String cmDescriptor = getPropertyString("ducc.deploy.JpCmDescriptor"); 
+				  List<String> cmOverrides = getPropertyListString("ducc.deploy.JpCmOverrides");
+				  String aeDescriptor = getPropertyString("ducc.deploy.JpAeDescriptor"); 
+				  List<String> aeOverrides = getPropertyListString("ducc.deploy.JpAeOverrides"); 
+				  String ccDescriptor = getPropertyString("ducc.deploy.JpCcDescriptor"); 
+				  List<String> ccOverrides = getPropertyListString("ducc.deploy.JpCcOverrides"); 
+				  DeployableGeneration dg = new DeployableGeneration();
+				  String name = dg.generate(
+						  directory, 
+						  id, 
+						  dgenName, 
+						  dgenDescription, 
+						  dgenThreadCount, 
+						  dgenBrokerURL, 
+						  dgenEndpoint, 
+						  dgenFlowController, 
+						  cmDescriptor, 
+						  cmOverrides, 
+						  aeDescriptor, 
+						  aeOverrides, 
+						  ccDescriptor, 
+						  ccOverrides
+						  );
+				  System.out.println("type=jpType"+" "+"name="+name);
+			  }
+		  }
+		  catch(Exception e) {
+			  e.printStackTrace();
+			  retVal = -1;
+		  }
+		  return retVal;
+	  }
+	  
 }
