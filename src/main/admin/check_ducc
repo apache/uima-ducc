@@ -103,8 +103,9 @@ class CheckDucc(DuccUtil):
                     component = 'or'
                     
                 if ( component == 'database' ):
-                	if ( self.kill_db9 == False ) :
-                		signal = '-QUIT'
+                	if ( signal != None ):
+                		if ( self.kill_db9 == False ):
+                			signal = '-QUIT'
 
                 process_id = found_user + ' ' + component + '@' + node + ' PID ' + pid 
                 if ( signal != None ) :
