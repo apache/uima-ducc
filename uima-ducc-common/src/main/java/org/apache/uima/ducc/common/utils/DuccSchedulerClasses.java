@@ -94,7 +94,7 @@ public class DuccSchedulerClasses {
 
     DuccProperties properties = readConfiguration().getClass(class_name);
     if (properties == null) {
-      throw new IllegalArgumentException("Invalid scheduling_class: " + class_name);
+      throw new IllegalArgumentException("Unknown scheduling_class: " + class_name);
     }
     String policy = getProperty(properties, "policy");
     if (policy.equals(FAIR_SHARE)) {

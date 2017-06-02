@@ -452,6 +452,8 @@ public class DuccServiceApi
             } else {
                 cli_props.setProperty(UiOption.SchedulingClass.pname(), duccSchedulerClasses.getDebugClassDefaultName());
             }
+        } catch (IllegalArgumentException e) {
+          throw e;    // Unknown scheduling class
         } catch (Exception e) {
             throw new IllegalConfigurationException("Error in DUCC configuration files - see administrator", e);
         }
