@@ -23,7 +23,6 @@ import java.io.DataOutputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +34,7 @@ import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.CasHelper;
 import org.apache.uima.ducc.user.common.DuccUimaSerializer;
+import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.ducc.user.dgen.iface.DeployableGeneration;
 import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 import org.apache.uima.resource.metadata.FsIndexDescription;
@@ -241,9 +241,8 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 	  }
 	  
 	  private List<String> getPropertyListString(String key) {
-		  List<String> value = new ArrayList<String>();
-		  //System.out.println(key+"[size]="+value.size());
-		  return value;
+	    String input = System.getProperty(key);
+	    return QuotedOptions.tokenizeList(input, true);
 	  }
 	  
 	  private Integer getPropertyInteger(String key) {
@@ -282,7 +281,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 						  dgenFlowController, 
 						  dgenReferenceByName
 						  );
-				  System.out.println("type=jpType"+" "+"name="+name);
+				  System.out.println("type="+jpType+" name="+name);
 			  }
 			  else {
 				  String cmDescriptor = getPropertyString("ducc.deploy.JpCmDescriptor"); 
@@ -308,7 +307,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 						  ccDescriptor, 
 						  ccOverrides
 						  );
-				  System.out.println("type=jpType"+" "+"name="+name);
+				  System.out.println("type="+jpType+" name="+name);
 			  }
 		  }
 		  catch(Exception e) {

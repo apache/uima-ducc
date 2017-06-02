@@ -111,8 +111,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		// generate Spring context file once
 		synchronized( UimaASProcessContainer.class) {
 			if ( !initialized ) {
-				buildDeployable();
-				generateDescriptorsAndGetScaleout(args);
+				generateDescriptorsAndGetScaleout(args);   // Also converts the DD if necessary
 				initialized = true;
 			}
 			return scaleout;
@@ -446,7 +445,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 	
 	/**
 	 * Extract descriptors from arg list. Also extract xsl processor and saxon url.
-	 * Parse the DD to fetch scaleout property.
+	 * Parse the DD to fetch scaleout property & convert the DD if necessary.
 	 *
 	 * @param args - java argument list
 	 * @return - an array of DDs

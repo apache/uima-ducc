@@ -101,10 +101,9 @@ public class DgenManager {
 			}
 			else {
 				String specification = referenceByName.trim();
-				logger.info(location, null, "dd specified: "+specification);
-				String value = proxy.generate(jobDirectory, jobId, dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenBrokerEndpoint, flowController, specification);
-				setDeployable(value);
-				logger.info(location, null, "dd generated: "+value);
+				// UIMA-5428 No longer convert the DD in the JD ... it will be done in the JP while extracting the scaleout
+				setDeployable(specification);
+				logger.info(location, null, "dd specified: "+specification+" (will be modified by the JP)");
 			}
 		}
 		catch(ProxyDeployableGenerationException e) {
