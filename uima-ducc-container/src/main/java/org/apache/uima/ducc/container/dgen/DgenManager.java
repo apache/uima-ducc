@@ -20,7 +20,6 @@ package org.apache.uima.ducc.container.dgen;
 
 import java.util.List;
 
-import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.common.logger.IComponent;
@@ -28,6 +27,7 @@ import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGeneration;
 import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGenerationException;
+import org.apache.uima.ducc.user.common.QuotedOptions;
 
 public class DgenManager {
 

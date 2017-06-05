@@ -28,7 +28,7 @@ import org.apache.uima.UIMAFramework;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.CollectionException;
 import org.apache.uima.collection.CollectionReader;
-import org.apache.uima.ducc.common.utils.QuotedOptions;
+import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.resource.ResourceConfigurationException;
 import org.apache.uima.resource.ResourceCreationSpecifier;

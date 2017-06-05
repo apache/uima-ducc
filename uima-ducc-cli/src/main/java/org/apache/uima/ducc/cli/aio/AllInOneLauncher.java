@@ -38,8 +38,8 @@ import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
-import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
+import org.apache.uima.ducc.user.common.QuotedOptions;
 
 public class AllInOneLauncher extends CliBase {
     

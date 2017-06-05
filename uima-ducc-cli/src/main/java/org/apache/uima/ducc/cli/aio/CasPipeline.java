@@ -35,7 +35,7 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.cli.aio.AllInOne.MsgHandler;
 import org.apache.uima.ducc.common.uima.UimaHelper;
-import org.apache.uima.ducc.common.utils.QuotedOptions;
+import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.resource.ResourceSpecifier;
 import org.apache.uima.resource.metadata.FsIndexDescription;

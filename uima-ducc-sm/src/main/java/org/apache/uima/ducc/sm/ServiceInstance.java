@@ -32,8 +32,8 @@ import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
-import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+import org.apache.uima.ducc.user.common.QuotedOptions;
 
 /**
 * Represent a single instance.

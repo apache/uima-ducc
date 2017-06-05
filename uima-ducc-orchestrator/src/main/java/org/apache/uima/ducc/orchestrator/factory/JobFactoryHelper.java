@@ -26,10 +26,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
+import org.apache.uima.ducc.user.common.QuotedOptions;
 
 public class JobFactoryHelper {
 	

@@ -197,28 +197,22 @@ class Ducc(DuccUtil):
                     jvm_opts.append("-Dducc.rm.override.dram=" + rmoverride)
                 if ( self.rm_jvm_args != None ):
                     jvm_opts.append(self.rm_jvm_args)
-                self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
                 
             if ( c == 'ws' ):
                 here = os.getcwd()
                 os.chdir(self.DUCC_HOME + '/webserver')
                 if ( self.ws_jvm_args != None ):
                     jvm_opts.append(self.ws_jvm_args)
-                self.add_to_classpath(ducc_home + '/apache-uima/apache-activemq/lib/optional/*')
-#                self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/jsp/*')
-                self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
 
             if ( c == 'orchestrator' ):
                 if ( or_parms != None ):
                     args = '-' + or_parms
                 if ( self.or_jvm_args != None ):
                     jvm_opts.append(self.or_jvm_args)
-                self.add_to_classpath(ducc_home + '/apache-uima/apache-activemq/lib/optional/*')
-#                self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')       
-                self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
+                self.add_to_classpath(ducc_home + '/lib/uima-ducc/user/*')
 
             if ( c == 'pm' ):
                 if ( self.pm_jvm_args != None ):
@@ -227,10 +221,8 @@ class Ducc(DuccUtil):
             if ( c == 'sm' ):
                 if ( self.sm_jvm_args != None ):
                     jvm_opts.append(self.sm_jvm_args)
-                self.add_to_classpath(ducc_home + '/apache-uima/apache-activemq/lib/optional/*')
-#                self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')       
-                self.prepend_classpath(ducc_home + '/lib/cassandra/*')       
+                self.add_to_classpath(ducc_home + '/lib/uima-ducc/user/*')
 
         if (component != 'agent'):
             service = 'org.apache.uima.ducc.common.main.DuccService'

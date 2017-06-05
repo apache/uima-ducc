@@ -98,8 +98,7 @@ public class JdUserCollectionReader {
 			// stripping quotes
 			// Then create a map from all of them
 			ArrayList<String> toks = QuotedOptions.tokenizeList(crCfg, true);
-			Map<String, String> map = QuotedOptions.parseAssignments(toks,
-					false);
+			Map<String, String> map = QuotedOptions.parseAssignments(toks, 0);
 			for (Entry<String, String> ent : map.entrySet()) {
 				String name = ent.getKey();
 				String value = ent.getValue();

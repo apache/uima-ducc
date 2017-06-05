@@ -45,10 +45,10 @@ import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
+import org.apache.uima.ducc.user.common.QuotedOptions;
 
 
 /**
