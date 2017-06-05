@@ -248,6 +248,7 @@ public class JobDriverStateExchanger extends Thread {
 				}
 				logger.debug(location, jobid, sb.toString());
 				switch(state) {
+				case Started:	        
 				case Starting:    
 				case Initializing:
 				case Running:
