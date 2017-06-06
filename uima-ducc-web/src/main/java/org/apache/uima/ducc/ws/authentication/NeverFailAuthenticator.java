@@ -19,10 +19,9 @@
 package org.apache.uima.ducc.ws.authentication;
 
 import org.apache.uima.ducc.common.authentication.AuthenticationResult;
-import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
 import org.apache.uima.ducc.common.authentication.IAuthenticationResult;
 
-public class NeverFailAuthenticator implements IAuthenticationManager {
+public class NeverFailAuthenticator extends AbstractAuthenticator {
 
 	private String version = "Never Fail 1.0";
 	

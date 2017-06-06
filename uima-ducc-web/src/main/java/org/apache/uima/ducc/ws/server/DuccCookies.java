@@ -25,10 +25,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DuccCookies {
 	
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccCookies.class.getName());
+	private static DuccId jobid = null;
 	private static Messages messages = Messages.getInstance();
 
 	public static final String cookieUri = "/";
@@ -70,12 +72,16 @@ public class DuccCookies {
 	private static final String filter_users_style = "filter_users_style";
 	private static final String role = "role";
 	
+	private static final String uid = "uid";
+	
 	public static final String cookieStyleTable = duccCookiePrefix+table_style;
 	public static final String cookieStyleDate = duccCookiePrefix+date_style;
 	public static final String cookieStyleDescription = duccCookiePrefix+description_style;
 	public static final String cookieStyleDisplay = duccCookiePrefix+display_style;
 	public static final String cookieStyleFilterUsers = duccCookiePrefix+filter_users_style;
 	public static final String cookieRole = duccCookiePrefix+role;
+	
+	public static final String cookieUid = duccCookiePrefix+uid;
 	
 	public static final String valueStyleDateLong = "long";
 	public static final String valueStyleDateMedium = "medium";
@@ -265,5 +271,18 @@ public class DuccCookies {
 		catch(Exception e) {
 		}
 		return role;
+	}
+	
+	public static String getUid(HttpServletRequest request) {
+		String location = "getUid";
+		String uid = null;
+		try {
+			String cookie = getCookie(null,request,cookieUid);
+			uid = cookie;
+			duccLogger.debug(location, jobid, cookieUid+":"+uid);
+		}
+		catch(Exception e) {
+		}
+		return uid;
 	}
 }

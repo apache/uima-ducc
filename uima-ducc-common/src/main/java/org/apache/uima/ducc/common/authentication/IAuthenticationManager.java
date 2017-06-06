@@ -31,6 +31,15 @@ public interface IAuthenticationManager {
 	public String getVersion();
 	
 	/**
+	 * This method is expected to return AuthenticationManager implementation notes, if any.
+	 * 
+	 * Example return value: "User your intranet login id and password."
+	 * 
+	 * @return The implementation notes.
+	 */
+	public String getNotes(String userid);
+	
+	/**
 	 * This method is expected to return password checking information.  
 	 * It is nominally employed by the DUCC webserver to enable/disable password input area on the Login/Logout pages.
 	 * 

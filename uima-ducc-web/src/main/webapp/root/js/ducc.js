@@ -40,6 +40,8 @@ var ms_timeout = 25000;
 
 var cluetips_disabled = true;
 
+var login_prompt = 0;
+
 $(window).resize(function() {
     try {
         var table_style = ducc_preferences_get("table_style");
@@ -315,6 +317,37 @@ function ducc_authenticator_version() {
     }
 }
 
+var wip_authenticator_notes = false;
+
+function ducc_authenticator_notes() {
+    var fname = "ducc_authenticator_notes";
+    var data = null;
+    if(wip_authenticator_notes) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_authenticator_notes = true;
+    try {
+        var servlet = "/ducc-servlet/authenticator-notes";
+        var tomsecs = ms_timeout;
+        $.ajax({
+            url: servlet,
+            timeout: tomsecs
+        }).done(function(data) {
+            wip_authenticator_notes = false;
+            $("#authenticator_notes_area").html(data);
+            data = null;
+            ducc_console_success(fname);
+        }).fail(function(jqXHR, textStatus) {
+            wip_authenticator_notes = false;
+            ducc_console_fail(fname, textStatus);
+        });
+    } catch (err) {
+        wip_authenticator_notes = false;
+        ducc_error(fname, err);
+    }
+}
+
 var wip_link_login = false;
 
 function ducc_link_login() {
@@ -333,6 +366,13 @@ function ducc_link_login() {
             timeout: tomsecs
         }).done(function(data) {
             wip_link_login = false;
+            index = data.indexOf("disallow logins");
+            if(index > 0) {
+            	login_prompt = -1;
+            }
+            else {
+            	login_prompt = 1;
+            }
             $("#login_link_area").html(data);
             data = null;
             ducc_console_success(fname);
@@ -498,6 +538,59 @@ function ducc_init_common() {
     }
 }
 
+function ducc_update_uid() {
+	var fname = "ducc_update_uid";
+	try {
+		var uid = ducc_appl("uid");
+		var d_value = document.getElementById('userid').value
+		//alert("d_value:"+d_value)
+		if (d_value != null) {
+			if (d_value != "") {
+				ducc_put_cookie(uid, d_value);
+			}
+		}
+    } catch (err) {
+        ducc_error(fname, err);
+    }
+}
+
+function ducc_init_uid() {
+	var fname = "ducc_init_uid";
+	try {
+    	var uid = ducc_appl("uid");
+        var c_value = ducc_get_cookie(uid);
+        //alert("c_value:"+c_value)
+        if (c_value != null) {
+        	if (c_value != "") {
+        		document.getElementById('userid').value = c_value
+        	}
+    	}
+    } catch (err) {
+        ducc_error(fname, err);
+    }
+}
+
+function ducc_prompt_uid() {
+    var fname = "ducc_prompt_uid";
+    try {
+    	if(login_prompt > 0) {
+    		var uid = ducc_appl("uid");
+            var c_value = ducc_get_cookie(uid);
+            if (c_value == null) {
+            	var p_value = prompt("Please enter your userid", "");
+            	if(p_value != null) {
+            		if(p_value != "") {
+            			//alert("p_value:"+p_value)
+            			ducc_put_cookie(uid, p_value);
+            		}
+            	}
+        	}
+    	}
+    } catch (err) {
+        ducc_error(fname, err);
+    }
+}
+
 var ms_load_common = +new Date() - ms_reload_min;
 
 function ducc_load_common() {
@@ -508,7 +601,9 @@ function ducc_load_common() {
     }
     ms_load_common = ms_now;
     try {
+    	ducc_prompt_uid();
         ducc_authenticator_version()
+        ducc_authenticator_notes()
         ducc_timestamp();
         ducc_authentication();
         ducc_utilization();
@@ -2638,6 +2733,7 @@ function ducc_init(type) {
             ducc_load_system_broker_data();
         }
         if (type == "authentication-login") {
+        	ducc_init_uid();
             ducc_init_common();
             ducc_load_common();
             ducc_password_checked();
@@ -3613,6 +3709,7 @@ function ducc_submit_login() {
     try {
         var url = document.forms[1].action;
         var userid = document.forms[1].userid.value
+        ducc_update_uid()
         var password = document.forms[1].password.value
         $.jGrowl(" Pending login...");
         $.ajax({

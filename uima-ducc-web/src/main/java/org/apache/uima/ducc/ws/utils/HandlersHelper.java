@@ -275,7 +275,7 @@ public class HandlersHelper {
 	 * Composite security home as specified in ducc.properties, 
 	 * else user's home directory
 	 */
-	private static String getSecurityHome(String user) {
+	public static String getSecurityHome(String user) {
 		// Check if in test mode with simulated users
 		String runmode = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_runmode);
 		boolean testMode = runmode != null && runmode.equals("Test");

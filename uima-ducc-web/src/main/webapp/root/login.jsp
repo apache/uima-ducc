@@ -105,13 +105,13 @@ under the License.
         <tr>
         <td align="right">userid
         <td align="right">
-        <td align="left" ><input type="text" name="userid" />
+        <td align="left" ><input id="userid" type="text" name="userid" />
         <tr>
         <td align="right">password
         <td align="right">
         <td align="left" >
           <span id="password_checked_area">
-            <input type="password" name="password" disabled=disabled/>
+            <input id="password" type="password" name="password" disabled=disabled/>
           </span>
         <tr>
         <td align="right">
@@ -122,7 +122,25 @@ under the License.
         <td align="left" ><input id="login" type="button" onclick="ducc_submit_login()" value="Login" />
         <td align="left" ><input id="cancel" type="button" onclick="ducc_cancel_login()" value="Cancel" />
         </table>
+        <tr>
+        <td align="right">&nbsp
+        <td align="right">
+        <td align="left">
+        <tr>
+        <td align="right">&nbsp
+        <td align="right">
+        <td align="left">
+        <tr>
+        <td align="left" colspan="3">
+	        <table>
+	        <tr>
+	        <td width="15%">
+	        <td width="70%"><span class="authenticator" id="authenticator_notes_area"></span>
+	        <td width="15%">
+	        </table>
         </table>
+        <br>
+        <br>
    	  </div>
     </div>
     </form>

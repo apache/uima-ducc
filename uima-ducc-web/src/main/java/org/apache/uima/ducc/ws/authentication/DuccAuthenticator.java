@@ -25,7 +25,7 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
-public class DuccAuthenticator implements IAuthenticationManager {
+public class DuccAuthenticator extends AbstractAuthenticator {
 	
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccAuthenticator.class.getName());
 	private static DuccId jobid = null;
@@ -81,6 +81,20 @@ public class DuccAuthenticator implements IAuthenticationManager {
 		return retVal;
 	}
 
+	@Override
+	public String getNotes(String userid) {
+		String methodName = "getNotes";
+		String retVal = null;
+		try {
+			retVal = iAuthenticationManager.getNotes(userid);
+			duccLogger.debug(methodName, jobid, retVal);
+		}
+		catch(Throwable t) {
+			duccLogger.error(methodName, jobid, t);
+		}
+		return retVal;
+	}
+	
 	@Override
 	public boolean isPasswordChecked() {
 		String methodName = "isPasswordChecked";

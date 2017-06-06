@@ -558,10 +558,12 @@ org.apache.uima.ducc.ws.authentication.LinuxAuthenticationManager
     To have the webserver employ the beta Linux-based authentication plug-in,
     the DUCC administrator should perform the following as user ducc:
 \begin{verbatim}    
-1. edit ducc.properties
+1. edit site.ducc.properties
 2. locate: ducc.ws.login.enabled = false
 3. modify: ducc.ws.login.enabled = true
-4. save
+4. add:
+   ducc.authentication.implementer=org.apache.uima.ducc.ws.authentication.LinuxAuthenticationManager
+5. save
 \end{verbatim}
 
     Note: The beta Linux-based authentication plug-in has limited testing.
@@ -569,6 +571,36 @@ org.apache.uima.ducc.ws.authentication.LinuxAuthenticationManager
 \begin{verbatim}
 Red Hat Enterprise Linux Workstation release 6.4 (Santiago)
 \end{verbatim}    
+    
+    A beta version of a File-based authentication plug-in is shipped with DUCC.
+    It can be found in the source tree:
+\begin{verbatim}
+org.apache.uima.ducc.ws.authentication.SecureFileAuthenticator.java
+\end{verbatim}
+
+    The File-based authentication plug-in will attempt to validate webserver
+    login requests by checking againist a file that only the user can view,
+    either in the security directory specified in ducc.properties, else in 
+    the user home directory.  
+    The user who wishes to login provides a userid and password to the webserver
+    via https, which in-turn are checked against the file-based password for a 
+    success/failure reply.
+    
+    Each time a login is attempted by the user, a new password is generated
+    in the secure file.  Thus, each login password is single use.
+    
+    To have the webserver employ the beta File-based authentication plug-in,
+    the DUCC administrator should perform the following as user ducc:
+\begin{verbatim}    
+1. edit site.ducc.properties
+2. locate: ducc.ws.login.enabled = false
+3. modify: ducc.ws.login.enabled = true
+4. add:
+   ducc.authentication.implementer=org.apache.uima.ducc.ws.authentication.SecureFileAuthenticator
+5. save
+\end{verbatim}
+
+    Note: The beta File-based authentication plug-in has limited testing.
     
     Alternatively, you can provide your own authentication plug-in.  To do so:
 \begin{verbatim}    

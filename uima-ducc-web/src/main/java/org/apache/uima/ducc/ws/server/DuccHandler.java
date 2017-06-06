@@ -150,6 +150,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccLogoutLink					= duccContext+"/logout-link";
 	private String duccAuthenticationStatus 		= duccContext+"/authentication-status";
 	private String duccAuthenticatorVersion 		= duccContext+"/authenticator-version";
+	private String duccAuthenticatorNotes	 		= duccContext+"/authenticator-notes";
 	private String duccAuthenticatorPasswordChecked	= duccContext+"/authenticator-password-checked";
 
 	private String duccFileContents 				= duccContext+"/file-contents";
@@ -336,6 +337,22 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
+	private void handleDuccServletAuthenticatorNotes(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletAuthenticatorNotes";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		String uid = DuccCookies.getUid(request);
+		String notes = duccAuthenticator.getNotes(uid);
+		if(notes != null) {
+			sb.append(notes);
+		}
+		duccLogger.debug(methodName, jobid, "uid:"+uid+" "+"notes:"+notes);
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
 	private void handleDuccServletduccAuthenticatorPasswordChecked(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
@@ -4780,6 +4797,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			else if(reqURI.startsWith(duccAuthenticatorVersion)) {
 				handleDuccServletAuthenticatorVersion(target, baseRequest, request, response);
 				//DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccAuthenticatorNotes)) {
+				handleDuccServletAuthenticatorNotes(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccAuthenticatorPasswordChecked)) {
 				handleDuccServletduccAuthenticatorPasswordChecked(target, baseRequest, request, response);

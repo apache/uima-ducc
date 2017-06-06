@@ -44,7 +44,12 @@ public class AuthenticationManager implements IAuthenticationManager {
 	public String getVersion() {
 		return version;
 	}
-
+	
+	@Override
+	public String getNotes(String userid) {
+		return null;
+	}
+	
 	@Override
 	public boolean isPasswordChecked() {
 		return true;

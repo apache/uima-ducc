@@ -36,6 +36,13 @@ public class AuthenticationManager implements IAuthenticationManager {
 	}
 	
 	/**
+	 * Indicate no notes
+	 */
+	public String getNotes(String userid) {
+		return null;
+	}
+	
+	/**
 	 * Indicate that password is not checked: false
 	 */
 	public boolean isPasswordChecked() {
