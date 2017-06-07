@@ -90,12 +90,14 @@ public class ToLog {
 	 * Write an "info"  String message into ErrorHandler.log file
 	 */
 	public static void info(Class<?> clazz, String text) {
-		if(clazz != null) {
-			if(text != null) {
-				Logger logger = getLogger(clazz);
-				if(logger != null) {
-					logger.info(text);
-					close(logger);
+		synchronized(ToLog.class) {
+			if(clazz != null) {
+				if(text != null) {
+					Logger logger = getLogger(clazz);
+					if(logger != null) {
+						logger.info(text);
+						close(logger);
+					}
 				}
 			}
 		}
@@ -105,14 +107,16 @@ public class ToLog {
 	 * Write a "debug" String message into ErrorHandler.log file
 	 */
 	public static void debug(Class<?> clazz, String text) {
-		if(clazz != null) {
-			if(text != null) {
-				Logger logger = getLogger(clazz);
-				if(logger != null) {
-					logger.log(Level.FINE, text);
-					close(logger);
+		synchronized(ToLog.class) {
+			if(clazz != null) {
+				if(text != null) {
+					Logger logger = getLogger(clazz);
+					if(logger != null) {
+						logger.log(Level.FINE, text);
+						close(logger);
+					}
 				}
-			}
+			}			
 		}
 	}
 	
@@ -120,12 +124,14 @@ public class ToLog {
 	 * Write a "warning" String message into ErrorHandler.log file
 	 */
 	public static void warning(Class<?> clazz, String text) {
-		if(clazz != null) {
-			if(text != null) {
-				Logger logger = getLogger(clazz);
-				if(logger != null) {
-					logger.log(Level.WARNING, text);
-					close(logger);
+		synchronized(ToLog.class) {
+			if(clazz != null) {
+				if(text != null) {
+					Logger logger = getLogger(clazz);
+					if(logger != null) {
+						logger.log(Level.WARNING, text);
+						close(logger);
+					}
 				}
 			}
 		}
@@ -135,12 +141,14 @@ public class ToLog {
 	 * Write a Throwable message into ErrorHandler.log file
 	 */
 	public static void warning(Class<?> clazz, Throwable t) {
-		if(clazz != null) {
-			if(t != null) {
-				Logger logger = getLogger(clazz);
-				if(logger != null) {
-					logger.log(Level.WARNING, t.getMessage(), t);
-					close(logger);
+		synchronized(ToLog.class) {
+			if(clazz != null) {
+				if(t != null) {
+					Logger logger = getLogger(clazz);
+					if(logger != null) {
+						logger.log(Level.WARNING, t.getMessage(), t);
+						close(logger);
+					}
 				}
 			}
 		}

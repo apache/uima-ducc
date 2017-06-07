@@ -62,6 +62,18 @@ public class ErrorHandler implements IErrorHandler {
 		setInitializationData(initializationData);
 	}
 	
+	private void wiError(ErrorHandlerDirective jdUserDirective) {
+		int count = jobErrorCount.incrementAndGet();
+		Integer max_job_errors = ehp.getInteger(Key.max_job_errors);
+		// kill job if max errors limit is surpassed
+		if(count > max_job_errors) {
+			jdUserDirective.setKillJob();
+		}
+		StringBuffer sb = new StringBuffer();
+		sb.append("work item error count:"+count);
+		ToLog.info(ErrorHandler.class, sb.toString());
+	}
+	
 	@Override
 	public IErrorHandlerDirective handle(String serializedCAS, Object object) {
 		// Do not actually initialize until the first handle situation
@@ -98,11 +110,11 @@ public class ErrorHandler implements IErrorHandler {
 							ToLog.info(ErrorHandler.class,text);
 						}
 						else {
-							jobErrorCount.incrementAndGet();
+							wiError(jdUserDirective);
 						}
 					}
 					else {
-						jobErrorCount.incrementAndGet();
+						wiError(jdUserDirective);
 					}
 				}
 				// User code exception
@@ -110,20 +122,17 @@ public class ErrorHandler implements IErrorHandler {
 					Object byteArray = object;
 					userThrowable = Transformer.deserialize(byteArray);
 					userThrowable.getClass();
-					jobErrorCount.incrementAndGet();
+					wiError(jdUserDirective);
 				}
 			}
 			else {
-				jobErrorCount.incrementAndGet();
-			}
-			Integer max_job_errors = ehp.getInteger(Key.max_job_errors);
-			// kill job if max errors limit is surpassed
-			if(jobErrorCount.get() > max_job_errors) {
-				jdUserDirective.setKillJob();
+				wiError(jdUserDirective);
 			}
 		}
 		catch(Exception e) {
+			wiError(jdUserDirective);
 			e.printStackTrace();
+			ToLog.warning(ErrorHandler.class,e);
 		}
 		// record results in ErrorHandler.log
 		StringBuffer sb = new StringBuffer();
