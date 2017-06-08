@@ -125,6 +125,9 @@ flag_agents = False
 mail_host = 'localhost'
 email_list = None
 
+list_errors = []
+list_warns = []
+
 # produce a time stamp
 def get_timestamp():
     tod = time.time()
@@ -180,17 +183,21 @@ def debug(text):
 # error message to log
 def error(text):
     global logger
+    global list_errors
     type = 'E'
     line = get_timestamp()+' '+get_user()+'@'+get_host()+' '+type+' '+text
     logger.error(line)
+    list_errors.append(line)
     return line
 
 # warn message to log
 def warn(text):
     global logger
+    global list_warns
     type = 'W'
     line = get_timestamp()+' '+get_user()+'@'+get_host()+' '+type+' '+text
     logger.warn(line)
+    list_warns.append(line)
     return line
 
 # exit
@@ -373,26 +380,19 @@ def read_state_previous():
         error('unable to read state from '+state_file)
         exception(e)
 
-# write previous daemons state
-def write_state_previous():
-    global state_dict_previous
+# current becomes previous daemons state
+def write_state_current():
+    global state_dict_current
     global state_file
     try:
         with open(state_file, 'w') as f:
             f.seek(0)
-            f.write(str(state_dict_previous)+'\n')
+            f.write(str(state_dict_current)+'\n')
             f.truncate()
-            debug('state_previous(write): '+str(state_dict_previous))
+            debug('state_previous(write): '+str(state_dict_current))
     except Exception,e:
         error('unable to write state to '+state_file)
         exception(e)
-
-# current becomes previous daemons state
-def update_state_previous():
-    global state_dict_previous
-    global state_dict_current
-    state_dict_previous = state_dict_current
-    write_state_previous()
 
 # fetch current daemons state
 def fetch_state_current():
@@ -450,7 +450,20 @@ def determine_state_changes():
             else:
                 state_changes_count = state_changes_count + 1
                 info(key+' '+'from'+' '+state_previous+' '+'to'+' '+state_current)
-                
+
+def build_text(TEXT):
+    global list_errors
+    global list_warns
+    LINES = ''
+    if(len(list_errors) > 0):
+        for item in list_errors:
+            LINES = LINES+item+'\n'
+    if(len(list_warns) > 0):
+        for item in list_warns:
+            LINES = LINES+item+'\n'
+    LINES = LINES+TEXT
+    return LINES
+
 # send email
 def email(HOST, SUBJECT, TO, FROM, TEXT):
     try:
@@ -541,6 +554,7 @@ def email_state_changes():
     global mail_host
     global email_list
     if(is_reportable()):
+        TIME = get_timestamp()
         sum_prv = summarize(state_dict_previous)
         sum_cur = summarize(state_dict_current)
         status = sum_cur
@@ -551,7 +565,8 @@ def email_state_changes():
             SUBJECT = subject
             TO_LIST = email_list
             FROM = get_user()+'@'+get_host()
-            TEXT = get_body(str(state_dict_not_up))
+            TEXT = TIME+' '+get_body(str(state_dict_not_up))
+            TEXT = build_text(TEXT)
             email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT)
         else:
             debug('state_changes(count): '+str(state_changes_count))
@@ -566,7 +581,8 @@ def email_state_changes():
                     SUBJECT = subject
                     TO_LIST = email_list
                     FROM = get_user()+'@'+get_host()
-                    TEXT = get_body('All daemons up')
+                    TEXT = TIME+' '+get_body('All daemons up')
+                    TEXT = build_text(TEXT)
                     email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT)
     
 # check for DUCC daemon status changes
@@ -580,8 +596,8 @@ def main(argv):
         read_state_previous()
         fetch_state_current()
         determine_state_changes() 
+        write_state_current()
         email_state_changes()
-        update_state_previous()
     except Exception,e:
         error('exception in main')
         exception(e)
