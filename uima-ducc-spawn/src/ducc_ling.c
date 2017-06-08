@@ -44,7 +44,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#include "ducc_ling.h"
+#include "ducc_ling.h"         /* Created by the makefile to define the UID value */
 
 #define VERSION "2.2.1"
 
@@ -80,7 +80,7 @@
  * 2015-04-30 2.0.0 Fix hole and update version for DUCC 2.0. jrc
  * 2015-11-19 2.1.0 Create 2 streams if console port ends with "?splitstreams".  Add timestamp to log. bll
  * 2017-03-08 2.2.1 Set umask before creating logs so permissions of log directories are set correctly. bll
- * 2017-04-27 2.2.1 DUCC should allow the "ducc" user to be other than exactly "ducc"
+ * 2017-04-27 2.2.1 DUCC should allow the "ducc" user to be other than exactly "ducc".  lrd bll
  */
 
 /**
@@ -619,17 +619,27 @@ int main(int argc, char **argv, char **envp)
     struct passwd *pwd= NULL;
     uid_t uid_ducc = -1;
     uid_t uid_user = -1;
+    uid_t uid_caller = -1;
     int switch_ids = 0;
     int redirect = 0;
     char buf[BUFLEN];
     int append = 0;
+    struct stat statbuf;
 
-    // dont allow root to exec a process
-    if ( getuid() == 0 ) {
+    // don't allow root to exec a process
+    uid_caller = getuid();
+    if ( uid_caller == 0 ) {
         log_stderr("400 Can't run ducc_ling as root\n");
     	exit(1);
     }
 
+    // Check if ducc_ling is able to switch ids
+    if ( stat(argv[0], &statbuf) == 0 ) {
+        if ( statbuf.st_mode & S_ISUID ) {
+            switch_ids = 1;
+        }
+    }
+	
     while ( (opt = getopt(argc, argv, "af:w:u:vqh?") ) != -1) {
         switch (opt) {
         case 'a':
@@ -670,9 +680,6 @@ int main(int argc, char **argv, char **envp)
         exit(1);
     }
 
-	log_stdout("201 DUCC user is %s.\n", UID);
-	//log_stdout("202 target user is %s.\n", userid);
-
     if ( getenv("DUCC_CONSOLE_LISTENER") != NULL ) {
         log_stdout("302 Redirecting console into socket %s.\n", getenv("DUCC_CONSOLE_LISTENER"));
         redirect = 1;
@@ -686,59 +693,53 @@ int main(int argc, char **argv, char **envp)
 
 	// get target user number
 	pwd = getpwnam(userid);
-	if(pwd != NULL) {
+	if (pwd != NULL) {
 		uid_user = pwd->pw_uid;
 		//log_stdout("570 USER is %s (%d).\n", pwd->pw_name, uid_user);
 	}
 	
     // get DUCC user number
     pwd = getpwnam(UID);
-	if(pwd != NULL) {
+	if (pwd != NULL) {
 		uid_ducc = pwd->pw_uid;
 		//log_stdout("580 DUCC is %s (%d).\n", pwd->pw_name, uid_ducc);
 	}
-	
-    if ( pwd == NULL ) {
-        pwd = getpwuid(getuid());
-#ifdef __APPLE__
-        // Seems theres a bug in getpwuid and nobody seems to have a good answer.  On mac we don't
-        // care anyway so we ignore it (because mac is supported for test only).
-        if ( pwd == NULL ) {
-            log_stdout("600 No \"%s\" user found and I can't find my own name.  Running as id %d", UID, getuid());
+
+	if (switch_ids == 0 && uid_user != uid_caller) {
+	    log_stdout("700 ducc_ling is not setuid, not switching to %s\n", userid);
+	}
+
+    // Don't switch if the caller is not DUCC (or the DUCC userid doesn't exist - impossible?)
+    // or if the target user is the same as the caller
+    if (switch_ids == 1) {
+        if ( uid_ducc != uid_caller ) {
+            log_stdout("700 Caller is not %s (%d), not switching ids ... \n", UID, uid_ducc);
+            pwd = getpwuid(uid_caller);
+            log_stdout("800 Running instead as %s.\n", pwd->pw_name);
+            switch_ids = 0;
         } else {
-            log_stdout("600 No \"%s\" user found, running instead as %s.\n", UID, pwd->pw_name);
+            if (uid_caller == uid_user) {
+                switch_ids = 0;
+            }
         }
-#else
-        log_stdout("600 No \"%s\" user found, running instead as %s.\n", UID, pwd->pw_name);
-#endif
-    } else if ( pwd->pw_uid != getuid() ) {
-        log_stdout("700 Caller is not %s (%d), not switching ids ... \n", UID, pwd->pw_uid);
-        pwd = getpwuid(getuid());
-        log_stdout("800 Running instead as %s.\n", pwd->pw_name);
-        //exit(0);
-    } else {
-    	// switch not needed if user is the DUCC user
-    	if(uid_ducc != uid_user) {
-    		switch_ids = 1;
-    		//log_stdout("830 Switch from %d to %d.\n", uid_ducc, uid_user);
-		}
-		else {
-			//log_stdout("840 Running as %s already.\n", pwd->pw_name);
-		}
     }
 
     //
-    //	fetch given user's passwd structure and try switch identities.
+    //	fetch target user's passwd structure and try switch identities
+    //  assert:
+    //    - ducc_ling is setuid 
+    //    - caller is the "ducc-user" ... the one that compiled ducc_ling
+    //    - target user exists and is different
     //
     if ( switch_ids ) {
-        pwd = getpwnam(userid);
 
+        pwd = getpwnam(userid);
         if ( pwd == NULL ) {
             log_stderr("820 User \"%s\" does not exist.\n", userid);
             exit(1);
         }
 
-        //	dont allow to change uid to root.
+        // don't allow to change uid to root.
         if ( pwd->pw_uid == 0 ) {
             log_stderr("900 setuid to root not allowed. Exiting.\n");
             exit(1);
