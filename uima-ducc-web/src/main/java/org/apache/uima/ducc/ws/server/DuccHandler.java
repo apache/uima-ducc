@@ -3828,9 +3828,6 @@ public class DuccHandler extends DuccAbstractHandler {
 					addDownDaemon(sb, daemonName.name());
 					additionalInfo = DiagnosticsHelper.get_ducc_disk_info();
 				}
-				else {
-					DiagnosticsHelper.reset_ducc_disk_info();
-				}
 				break;
 			case Broker:
 				if(!brokerHelper.isAlive()) {

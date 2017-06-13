@@ -22,64 +22,85 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
-public class DiagnosticsHelper {
+public class DiagnosticsHelper extends Thread {
 	
 	private static DuccLogger duccLogger = DuccLogger.getLogger(DiagnosticsHelper .class.getName(), null);
-	private static DuccId duccId = null;
-	
-	private static String disk_info = null;
+	private static DuccId jobid = null;
 	
 	private static File devNull = new File("/dev/null");
 	
-	private static void refresh_ducc_disk_info() {
-		String location = "refresh_ducc_disk_info";
-		if(disk_info == null) {
-			disk_info = "";
-			StringBuffer sb = new StringBuffer();
-			try {
-				String path = System.getProperty("DUCC_HOME")
-							+File.separator
-							+"admin"
-							+File.separator
-							+"ducc_disk_info"
-							;
-				String[] command = { path };
-				ProcessBuilder pb = new ProcessBuilder( command );
-				pb = pb.redirectError(devNull);
-				Process process = pb.start();
-				InputStream is = process.getInputStream();
-		        InputStreamReader isr = new InputStreamReader(is);
-		        BufferedReader br = new BufferedReader(isr);
-		        String line;
-		        while ((line = br.readLine()) != null) {
-		           sb.append(line);
-		           sb.append("\n");
-		        }
-		        disk_info = sb.toString();
-		        duccLogger.debug(location, duccId, disk_info);
-		        int exitValue = process.waitFor();
-		        duccLogger.debug(location, duccId, exitValue);
-			}
-			catch(Exception e) {
-				duccLogger.error(location, duccId, e);
-			}
-		}
+	private static AtomicReference<DiagnosticsHelper> instance = new AtomicReference<DiagnosticsHelper>();
+	private static AtomicReference<String> disk_info = new AtomicReference<String>();
+	
+	private static long interval = 1000*60*60; // 60 minutes between disk info calculations
+	
+	static {
+		DiagnosticsHelper expect = null;
+		DiagnosticsHelper update = new DiagnosticsHelper();
+		instance.compareAndSet(expect,update);
+		instance.get().run();
 	}
 	
-	public static void reset_ducc_disk_info() {
-		synchronized(DiagnosticsHelper.class) {
-			disk_info = null;
+	private static void refresh_ducc_disk_info() {
+		String location = "refresh_ducc_disk_info";
+		StringBuffer sb = new StringBuffer();
+		duccLogger.debug(location, jobid, "time start");
+		try {
+			String path = System.getProperty("DUCC_HOME")
+						+File.separator
+						+"admin"
+						+File.separator
+						+"ducc_disk_info"
+						;
+			String[] command = { path };
+			ProcessBuilder pb = new ProcessBuilder( command );
+			pb = pb.redirectError(devNull);
+			Process process = pb.start();
+			InputStream is = process.getInputStream();
+		       InputStreamReader isr = new InputStreamReader(is);
+		       BufferedReader br = new BufferedReader(isr);
+		       String line;
+		       while ((line = br.readLine()) != null) {
+		          sb.append(line);
+		          sb.append("\n");
+		       }
+		       disk_info.set(sb.toString());
+		       duccLogger.info(location, jobid, disk_info);
+		       int exitValue = process.waitFor();
+		       duccLogger.debug(location, jobid, "rc="+exitValue);
 		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		duccLogger.debug(location, jobid, "time end");
 	}
 	
 	public static String get_ducc_disk_info() {
-		synchronized(DiagnosticsHelper.class) {
-			refresh_ducc_disk_info();
-			return disk_info;
+		return disk_info.get();
+	}
+	
+	public static boolean isNotKilled() {
+		return true;
+	}
+	
+	@Override 
+	public void run() {
+		String location = "run";
+		while (isNotKilled()) {
+			try {
+				refresh_ducc_disk_info();
+				duccLogger.debug(location, jobid, "sleep "+interval+" begin");
+				Thread.sleep(interval);
+				duccLogger.debug(location, jobid, "sleep "+interval+" end");
+			}
+			catch(Exception e) {
+				duccLogger.error(location, jobid, e);
+			}
 		}
 	}
 }
