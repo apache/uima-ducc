@@ -128,6 +128,8 @@ email_list = None
 list_errors = []
 list_warns = []
 
+url_timeout = 30
+
 # produce a time stamp
 def get_timestamp():
     tod = time.time()
@@ -400,13 +402,14 @@ def fetch_state_current():
     global state_dict_current
     global ducc_url_servlet
     global webserver
+    global url_timeout
     state_dict_current = {}
     try:
         import urllib2
         opener = urllib2.build_opener()
         if(flag_agents):
             opener.addheaders.append(('Cookie', 'DUCCagents=show'))
-        response = opener.open(ducc_url_servlet)
+        response = opener.open(ducc_url_servlet, timeout=url_timeout)
         data = response.read()
         parser = DuccHtmlParser()
         parser.feed(data)
