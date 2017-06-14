@@ -40,10 +40,17 @@ public class DiagnosticsHelper extends Thread {
 	private static long interval = 1000*60*60; // 60 minutes between disk info calculations
 	
 	static {
+		String location = "initializer";
 		DiagnosticsHelper expect = null;
 		DiagnosticsHelper update = new DiagnosticsHelper();
-		instance.compareAndSet(expect,update);
-		instance.get().run();
+		boolean result = instance.compareAndSet(expect,update);
+		if(result) {
+			instance.get().start();
+			duccLogger.info(location, jobid, "thread started");
+		}
+		else {
+			duccLogger.info(location, jobid, "thread running");
+		}
 	}
 	
 	private static void refresh_ducc_disk_info() {
