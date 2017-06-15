@@ -850,7 +850,7 @@ int main(int argc, char **argv, char **envp)
         }
     }
     if ( pathstr == NULL ) {
-        log_stdout("3001 Did not find DUCC_LD_LIBRARY_PATH, not setting LD_LIBRARY_PATH.\n");
+	    //log_stdout("3001 Did not find DUCC_LD_LIBRARY_PATH, not setting LD_LIBRARY_PATH.\n");
     } else {
         //
         // We modify the variable in place.
