@@ -146,11 +146,7 @@ public class TestClassLoading extends TestBase {
 			//
 			String directory = working.getAbsolutePath();
 			String id = "12345";
-			String dgenName = "name";
-			String dgenDescription = "description";
 			Integer dgenThreadCount = new Integer(1);
-			String dgenBrokerURL = "brokerURL";
-			String dgenEndpoint = "endpoint";
 			String dgenFlowController = "flowController";
 			String cmDescriptor = null;
 			List<String> cmOverrides = null;
@@ -162,11 +158,7 @@ public class TestClassLoading extends TestBase {
 			String dgen = proxy.generate(
 					directory, 
 					id, 
-					dgenName, 
-					dgenDescription,
 					dgenThreadCount,
-					dgenBrokerURL, 
-					dgenEndpoint, 
 					dgenFlowController,
 					cmDescriptor, 
 					cmOverrides, 

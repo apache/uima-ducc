@@ -23,9 +23,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -36,6 +38,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.uima.analysis_engine.AnalysisEngineDescription;
 import org.apache.uima.ducc.user.common.UimaUtils;
+import org.apache.uima.ducc.user.jp.UimaASProcessContainer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -45,7 +48,7 @@ public class DeployableGenerator {
 	private String userLogDir = null;
   private Document doc;
   private String registryURL;
-	
+  
 	public DeployableGenerator(String userLogDir) {
 		setUserLogDir(userLogDir);
 	}
@@ -54,22 +57,7 @@ public class DeployableGenerator {
 		userLogDir = value;
 	}
 	
-	public String generate(IDuccGeneratorUimaDeployableConfiguration configuration, String jobId) throws Exception {
-		String retVal = null;
-		if(configuration != null) {
-			if(configuration instanceof IDuccGeneratorUimaReferenceByName) {
-				IDuccGeneratorUimaReferenceByName referrenceByNameConfiguration = (IDuccGeneratorUimaReferenceByName) configuration;
-				retVal = generateDd(referrenceByNameConfiguration, jobId);
-			}
-			else if(configuration instanceof IDuccGeneratorUimaAggregate) {
-				IDuccGeneratorUimaAggregate aggregateConfiguration = (IDuccGeneratorUimaAggregate) configuration;
-				retVal = generateAe(aggregateConfiguration, jobId);
-			}
-		}
-		return retVal;
-	}
-	
-	private String generateAe(IDuccGeneratorUimaAggregate aggregateConfiguration, String jobId) throws Exception {
+	public String generateAe(IDuccGeneratorUimaAggregate aggregateConfiguration, String jobId, boolean createUniqueFilename) throws Exception {
 		List<String> descriptorPaths = new ArrayList<String>();
 		List<List<String>> overrides = new ArrayList<List<String>>();
 		for( IDuccGeneratorUimaAggregateComponent component: aggregateConfiguration.getComponents()) {
@@ -77,25 +65,17 @@ public class DeployableGenerator {
 			overrides.add(component.getOverrides());
 		}
 		String aed = createAED(
-		    aggregateConfiguration.getName(), 
-		    aggregateConfiguration.getDescription(), 
-		    aggregateConfiguration.getBrokerURL(), 
-		    aggregateConfiguration.getEndpoint(),	
 		    aggregateConfiguration.getFlowController(),
 		    aggregateConfiguration.getThreadCount(), 
 		    userLogDir,
-		    jobId+"-"+"uima-ae-descriptor"+".xml",
-			overrides, 
-			descriptorPaths.toArray(new String[descriptorPaths.size()])
+		    createUniqueFilename ? null : jobId+"-"+"uima-ae-descriptor"+".xml",
+		    overrides, 
+		    descriptorPaths.toArray(new String[descriptorPaths.size()])
 			);
 		return aed;
 	}
 
 	private static String createAED (
-			String name, 
-			String description, 
-			String brokerURL, 
-			String endpoint,
 			String flowController,
 			int scaleup, 
 			String directory, 
@@ -104,18 +84,25 @@ public class DeployableGenerator {
 			String... aeDescriptors) throws Exception {
 		
 		AnalysisEngineDescription aed = UimaUtils.createAggregateDescription(flowController, (scaleup > 1), overrides, aeDescriptors);
-		aed.getMetaData().setName(name);
-		File file = null;
+		aed.getMetaData().setName("DUCC.job");
 		File dir = new File(directory);
 		if (!dir.exists()) {
 			dir.mkdir();
 		}
 		FileOutputStream fos = null;
 		try {
-			file = new File(dir, fname);//+"-uima-ae-descriptor-"+Utils.getPID()+".xml");
+		  File file = File.createTempFile("uima-ae-", ".xml", dir);
 			fos = new FileOutputStream(file);
 			aed.toXML(fos);
-			
+			if (fname == null) {     // Use the unique name
+			  deleteOnExitCheck(file);
+			  return file.getAbsolutePath();
+			}
+			// Use the atomic Files.move method (reportedly better than File:renameTo)
+			Path source = file.toPath();
+			Path target = source.resolveSibling(fname);
+			Files.move(source,  target, StandardCopyOption.ATOMIC_MOVE);
+			return target.toString();
 		} 
 		catch(Exception e) {
 			throw e;
@@ -125,7 +112,6 @@ public class DeployableGenerator {
 				fos.close();
 			}
 		}
-		return file.getAbsolutePath();
 	}
 	
 	/*
@@ -133,7 +119,7 @@ public class DeployableGenerator {
 	 * to make it suitable for the JP's internal broker.
 	 * It is also used by the JP code since when running as a "pull" service it will be given an unconverted DD 
 	 */
-	private String generateDd(IDuccGeneratorUimaReferenceByName configuration, String jobId) throws Exception {
+	public String generateDd(IDuccGeneratorUimaReferenceByName configuration, String jobId, Boolean createUniqueFilename) throws Exception {
 		//  Create DOM from the DD ... file or class-like name
 		String location = configuration.getReferenceByName();
     org.apache.uima.util.XMLInputSource xmlin = UimaUtils.getXMLInputSource(location);  // Reads from FS or classpath
@@ -149,12 +135,12 @@ public class DeployableGenerator {
     if (nodes.getLength() > 0) {
       element = (Element) nodes.item(0);
       // Check if the attributes are correct
-      String expected = configuration.getEndpoint();
+      String expected = "${" + UimaASProcessContainer.queuePropertyName + "}";
       if ( ! element.getAttribute("endpoint").equals(expected)) {
         element.setAttribute("endpoint", expected);
         createDescriptor = true;
       }
-      expected = configuration.getBrokerURL();
+      expected = "${" + UimaASProcessContainer.brokerPropertyName + "}";
       if ( ! element.getAttribute("brokerURL").equals(expected)) {
         element.setAttribute("brokerURL", expected);
         createDescriptor = true;
@@ -168,7 +154,7 @@ public class DeployableGenerator {
     }
     
     //	Return the original descriptor or the converted one if necessary
-		return createDescriptor ? writeDDFile(xml2String(doc), jobId) : location;
+		return createDescriptor ? writeDDFile(xml2String(doc), jobId, createUniqueFilename) : location;
 	}
 
   /* 
@@ -232,24 +218,26 @@ public class DeployableGenerator {
 		return serializedDD.toString();
 	}
 	
-	private String writeDDFile(String content, String jobId) throws Exception {
+	private String writeDDFile(String content, String jobId, boolean createUniqueFilename) throws Exception {
 		File dir = new File(userLogDir);
 		if ( !dir.exists()) {
 			dir.mkdir();
 		}
 		//	compose the file name from a basename (from ducc.properties), constant (-uima-as.dd-) and PID
+		// Create as a temp file then rename atomically (unless the JP wants a unique temporary file)
 		BufferedWriter out = null;
 		try {
-			//	using PID of the ducc component process in the DD file name
-			UUID uuid = UUID.randomUUID();
-			File file1 = new File(dir, uuid.toString());
-			File file2 = new File(dir, jobId+"-uima-as-dd"+".xml");
-			out = new BufferedWriter(new FileWriter(file1));
+			File file = File.createTempFile("uima-as-dd-", ".xml", dir);
+			out = new BufferedWriter(new FileWriter(file));
 			out.write(content);
-			out.flush();
-			file1.renameTo(file2);
-			//file1.delete();
-			return file2.getAbsolutePath();
+			if (createUniqueFilename) {
+			  deleteOnExitCheck(file);
+			  return file.getAbsolutePath();
+			}
+			Path source = file.toPath();
+			Path target = source.resolveSibling(jobId+"-uima-as-dd.xml");
+			Files.move(source,  target, StandardCopyOption.ATOMIC_MOVE);
+			return target.toString();
 		} catch( Exception e) {
 			throw e;
 		} finally {
@@ -257,5 +245,13 @@ public class DeployableGenerator {
 				out.close();
 			}
 		}
+	}
+	
+	// Don't delete descriptors if this environment variable is set
+	// (Can't put the key in IDuccUser as that is in the common project)
+	private static void deleteOnExitCheck(File f) {
+    if (System.getenv("DUCC_KEEP_TEMPORARY_DESCRIPTORS") == null) {
+      f.deleteOnExit();
+    }
 	}
 }

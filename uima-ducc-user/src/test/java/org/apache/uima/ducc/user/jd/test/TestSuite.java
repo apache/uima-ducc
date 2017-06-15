@@ -39,7 +39,7 @@ import org.apache.uima.ducc.user.dgen.DeployableGenerator;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregate;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregateComponent;
 import org.apache.uima.ducc.user.dgen.IDuccGeneratorUimaAggregateComponent;
-import org.apache.uima.ducc.user.dgen.IDuccGeneratorUimaDeployableConfiguration;
+import org.apache.uima.ducc.user.dgen.IDuccGeneratorUimaAggregate;
 import org.apache.uima.ducc.user.dgen.iface.DeployableGeneration;
 import org.apache.uima.ducc.user.jd.JdUserCollectionReader;
 import org.apache.uima.ducc.user.jd.JdUserMetaCas;
@@ -371,12 +371,8 @@ public class TestSuite {
 		}
 	}
 	
-	private IDuccGeneratorUimaDeployableConfiguration getIDuccUimaDeployableConfiguration() {
-		String aeName = "name";
-		String aeDescription = "description";
+	private IDuccGeneratorUimaAggregate getIDuccUimaDeployableConfiguration() {
 		int aeThreadCount = 1;
-		String aeBrokerURL = "brokerURL";
-		String aeEndpoint = "endpoint";
 		String aeFlowController = "flowController";
 		ArrayList<IDuccGeneratorUimaAggregateComponent> aeComponents = new ArrayList<IDuccGeneratorUimaAggregateComponent>();
 		URL url = this.getClass().getResource("/CR100.xml");
@@ -385,7 +381,7 @@ public class TestSuite {
 		List<String> aeOverrides = null;
 		DuccUimaAggregateComponent aeComponent = new DuccUimaAggregateComponent(aeDescriptor, aeOverrides);
 		aeComponents.add(aeComponent);
-		IDuccGeneratorUimaDeployableConfiguration configuration = new DuccUimaAggregate(aeName, aeDescription, aeThreadCount, aeBrokerURL, aeEndpoint, aeFlowController, aeComponents);
+		IDuccGeneratorUimaAggregate configuration = new DuccUimaAggregate(aeThreadCount, aeFlowController, aeComponents);
 		return configuration;
 	}
 	
@@ -416,9 +412,9 @@ public class TestSuite {
 			delete(working);
 			working.mkdir();
 			DeployableGenerator aeGenerator = new DeployableGenerator(working.getAbsolutePath());
-			IDuccGeneratorUimaDeployableConfiguration configuration = getIDuccUimaDeployableConfiguration();
+			IDuccGeneratorUimaAggregate configuration = getIDuccUimaDeployableConfiguration();
 			String jobId = "12345";
-			String ae = aeGenerator.generate(configuration, jobId);
+			String ae = aeGenerator.generateAe(configuration, jobId, false);
 			debug(ae);
 			//show(ae);
 			delete(working);
@@ -445,11 +441,8 @@ public class TestSuite {
 			
 			String directory = working.getAbsolutePath();
 			String id = "99999";
-			String aeName = "aeName";
-			String aeDescription = "aeDescription";
+			Boolean aeCreateUniqueFilename = false;
 			Integer aeThreadCount = new Integer(11);
-			String aeBrokerURL = "aeBrokerURL";
-			String aeBrokerEndpoint = "aeBrokerEndpoint";
 			String aeFlowController = "aeFlowController";
 			String cmDescriptor = null;
 			List<String> cmOverrides = null;
@@ -460,18 +453,16 @@ public class TestSuite {
 			
 			String ae = dg.generate(
 					directory, 
-					id, aeName, 
-					aeDescription, 
+					id, 
 					aeThreadCount, 
-					aeBrokerURL, 
-					aeBrokerEndpoint, 
 					aeFlowController,
 					cmDescriptor, 
 					cmOverrides, 
 					aeDescriptor, 
 					aeOverrides, 
 					ccDescriptor, 
-					ccOverrides);
+					ccOverrides,
+					aeCreateUniqueFilename);
 			
 			debug(ae);
 			//show(ae);

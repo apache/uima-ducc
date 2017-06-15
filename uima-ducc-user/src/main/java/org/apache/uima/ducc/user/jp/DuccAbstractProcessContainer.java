@@ -251,37 +251,21 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 		  return value;
 	  }
 	  
-	  protected int buildDeployable() {
-		  int retVal = 0;
+	  // Build just an AE from parts and return the filename
+	  // (DD's are converted in UimaAsProcessContainer.parseDD)
+	  protected String buildDeployable() {
 		  try {
 			  dumpSystemProperties();
 			  String directory = getPropertyString("ducc.deploy.JobDirectory"); 
 			  String id = getPropertyString("ducc.job.id");
-			  String dgenName = getPropertyString("ducc.deploy.JpDdName");			  
-			  String dgenDescription = getPropertyString("ducc.deploy.JpDdDescription"); 
 			  Integer dgenThreadCount = getPropertyInteger("ducc.deploy.JpThreadCount");
-			  String dgenBrokerURL = getPropertyString("ducc.deploy.JpDdBrokerURL"); 
-			  String dgenEndpoint = getPropertyString("ducc.deploy.JpDdBrokerEndpoint");		  
 			  String dgenFlowController = getPropertyString("ducc.deploy.JpFlowController");
 			  String jpType = getPropertyString("ducc.deploy.JpType");
 			  if(jpType == null) {
 				  jpType = "uima";
 			  }
 			  if(jpType.equalsIgnoreCase("uima-as")) {
-				  String dgenReferenceByName = getPropertyString("ducc.deploy.JpDd");
-				  DeployableGeneration dg = new DeployableGeneration();
-				  String name = dg.generate(
-						  directory, 
-						  id, 
-						  dgenName, 
-						  dgenDescription, 
-						  dgenThreadCount, 
-						  dgenBrokerURL, 
-						  dgenEndpoint, 
-						  dgenFlowController, 
-						  dgenReferenceByName
-						  );
-				  System.out.println("type="+jpType+" name="+name);
+				  System.out.println("ERROR - should not be called for type="+jpType);
 			  }
 			  else {
 				  String cmDescriptor = getPropertyString("ducc.deploy.JpCmDescriptor"); 
@@ -294,27 +278,23 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 				  String name = dg.generate(
 						  directory, 
 						  id, 
-						  dgenName, 
-						  dgenDescription, 
 						  dgenThreadCount, 
-						  dgenBrokerURL, 
-						  dgenEndpoint, 
 						  dgenFlowController, 
 						  cmDescriptor, 
 						  cmOverrides, 
 						  aeDescriptor, 
 						  aeOverrides, 
 						  ccDescriptor, 
-						  ccOverrides
+						  ccOverrides,
+						  true                       // create unique temporary file
 						  );
-				  System.out.println("type="+jpType+" name="+name);
+				  return name;
 			  }
 		  }
 		  catch(Exception e) {
 			  e.printStackTrace();
-			  retVal = -1;
 		  }
-		  return retVal;
+		  return null;
 	  }
 	  
 }

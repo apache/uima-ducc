@@ -79,11 +79,7 @@ public class ProxyDeployableGeneration {
 	public String generate(
 			String directory, 
 			String id,
-			String dgenName,
-			String dgenDescription,
 			Integer dgenThreadCount,
-			String dgenBrokerURL,
-			String dgenEndpoint,
 			String dgenFlowController,
 			String cmDescriptor,
 			List<String> cmOverrides, 
@@ -97,11 +93,7 @@ public class ProxyDeployableGeneration {
 		try {
 			show("directory", directory);
 			show("id", id);
-			show("dgenName", dgenName);
-			show("dgenDescription", dgenDescription);
 			show("dgenThreadCount", dgenThreadCount);
-			show("dgenBrokerURL", dgenBrokerURL);
-			show("dgenEndpoint", dgenEndpoint);
 			show("degnFlowController", dgenFlowController);
 			show("cmDescriptor", cmDescriptor);
 			show("cmOverrides", cmOverrides);
@@ -116,11 +108,7 @@ public class ProxyDeployableGeneration {
 			Class<?>[] parameterTypes = { 
 					String.class,	// directory
 					String.class,	// id
-					String.class,	// dgenName
-					String.class,	// dgenDescription
 					Integer.class,	// dgenThreadCount
-					String.class,	// dgenBrokerURL
-					String.class,	// dgenEndpoint
 					String.class,	// dgenFlowController
 					String.class,	// cmDescriptor
 					List.class,		// cmOverrides
@@ -128,23 +116,22 @@ public class ProxyDeployableGeneration {
 					List.class,		// aeOverrides
 					String.class,	// ccDescriptor
 					List.class,		// ccOverrides
+					Boolean.class, // createUniqueFilename
 			};
 			Method method = clazz.getMethod("generate", parameterTypes);
+			Boolean createUniqueFilename = false;	// Use the standard name when created by the JD
 			Object[] args = { 
 					directory, 
 					id, 
-					dgenName, 
-					dgenDescription, 
 					dgenThreadCount, 
-					dgenBrokerURL, 
-					dgenEndpoint,
 					dgenFlowController,
 					cmDescriptor,
 					cmOverrides,
 					aeDescriptor,
 					aeOverrides,
 					ccDescriptor,
-					ccOverrides
+					ccOverrides,
+					createUniqueFilename
 					};
 			String dgen = (String) ContextSwitch.call(urlClassLoader, method, instance, args);
 			show("generated deployment descriptor", dgen);
@@ -161,52 +148,35 @@ public class ProxyDeployableGeneration {
 	public String generate(
 			String directory, 
 			String id,
-			String dgenName,
-			String dgenDescription,
 			Integer dgenThreadCount,
-			String dgenBrokerURL,
-			String dgenEndpoint,
-			String dgenFlowController,
-			String referenceByName
+			String ddName
 			) throws ProxyException
 	{
 		String retVal = null;
 		try {
 			show("directory", directory);
 			show("id", id);
-			show("dgenName", dgenName);
-			show("dgenDescription", dgenDescription);
 			show("dgenThreadCount", dgenThreadCount);
-			show("dgenBrokerURL", dgenBrokerURL);
-			show("dgenEndpoint", dgenEndpoint);
-			show("degnFlowController", dgenFlowController);
-			show("referenceByName", referenceByName);
+			show("ddName", ddName);
 			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.dgen.iface.DeployableGeneration");
 			Constructor<?> constructor = clazz.getConstructor();
 			Object[] c_args = new Object[] { };
 			Object instance = ContextSwitch.construct(urlClassLoader, constructor, c_args);
 			Class<?>[] parameterTypes = { 
-					String.class,	// directory
-					String.class,	// id
-					String.class,	// dgenName
-					String.class,	// dgenDescription
-					Integer.class,	// dgenThreadCount
-					String.class,	// dgenBrokerURL
-					String.class,	// dgenEndpoint
-					String.class,	// dgenFlowController
-					String.class,	// referenceByName
+					String.class,	 // directory
+					String.class,	 // id
+					Integer.class, // dgenThreadCount
+					String.class,	 // ddName
+	        Boolean.class, // createUniqueFilename
 			};
 			Method method = clazz.getMethod("generate", parameterTypes);
+			Boolean createUniqueFilename = false;   // Use the standard name when created by the JD
 			Object[] args = { 
 					directory, 
 					id, 
-					dgenName, 
-					dgenDescription, 
 					dgenThreadCount, 
-					dgenBrokerURL, 
-					dgenEndpoint,
-					dgenFlowController,
-					referenceByName
+					ddName,
+	        createUniqueFilename
 					};
 			String dgen = (String) ContextSwitch.call(urlClassLoader, method, instance, args);
 			show("generated deployment descriptor", dgen);

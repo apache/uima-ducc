@@ -20,6 +20,7 @@
 package org.apache.uima.ducc.user.jp;
 
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +37,6 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.ducc.user.jp.uima.UimaAnalysisEngineInstancePoolWithThreadAffinity;
-import org.apache.uima.impl.UimaVersion;
 import org.apache.uima.resource.Resource;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.resource.ResourceManager;
@@ -94,14 +94,15 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 	   	return threadAffinity;
 	  }
 
+    // UIMA-5428 Generate the pieces-parts AE only if the JD-generated one is not accessible
     private int configureAndGetScaleout(String[] args ) throws Exception {
 	    analysisEngineDescriptor = ArgsParser.getArg("-aed", args);
+	    if (analysisEngineDescriptor == null || !new File(analysisEngineDescriptor).canRead()) {
+	      analysisEngineDescriptor = buildDeployable();
+	      System.out.println("Created descriptor: "+analysisEngineDescriptor);
+	    }
 	    String threadCount = ArgsParser.getArg("-t", args);  // Will be null if ducc.deploy.JpThreadCount is undefined
 	    scaleout = threadCount==null ? 1 : Integer.valueOf(threadCount);   // Default to 1
-	    String jobType = System.getProperty("ducc.deploy.JpType"); 
-	    if ( "uima".equals(jobType)) {
-	      System.out.println("UIMA Version:"+UimaVersion.getFullVersionString());
-	    } 
 	    return scaleout;		  
 	}
 	public byte[] getLastSerializedError() throws Exception {
@@ -114,9 +115,9 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 	}
 
 	public int doInitialize(Properties props, String[] args) throws Exception {
-			buildDeployable();
 			return configureAndGetScaleout(args);
 	}
+
 	public void doDeploy() throws Exception {
 	
 		System.out.println("....... UimaProcessContainer.doDeploy()");

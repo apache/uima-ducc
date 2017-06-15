@@ -23,21 +23,7 @@ public interface IDuccGeneratorUimaReferenceByName extends IDuccGeneratorUimaDep
 	public String getReferenceByName();
 	public void setReferenceByName(String referenceByName);
 	
-	public String getName();
-	public void setName(String name);
-	
-	public String getDescription();
-	public void setDescription(String description);
-	
 	public int getThreadCount();
 	public void setThreadCount(int threadCount);
-	
-	public String getBrokerURL();
-	public void setBrokerURL(String brokerURL);
-	
-	public String getEndpoint();
-	public void setEndpoint(String endpoint);
-	
-	public String getFlowController();
-	public void setFlowController(String flowController);
+
 }

@@ -27,62 +27,20 @@ public class DuccUimaReferenceByName implements IDuccGeneratorUimaReferenceByNam
 
 	private String referenceByName;
 	
-	private String name;
-	private String description;
 	private int threadCount = 1;
-	private String brokerURL;
-	private String endpoint;
-	private String flowController;
 	
-	public DuccUimaReferenceByName(String name, String description, int threadCount, String brokerURL, String endpoint, String flowController) {
-		setName(name);
-		setDescription(description);
+	public DuccUimaReferenceByName(int threadCount,String ddName) {
 		setThreadCount(threadCount);
-		setBrokerURL(brokerURL);
-		setEndpoint(endpoint);
-		setFlowController(flowController);
+		setReferenceByName(ddName);
 	}
-	
-	public DuccUimaReferenceByName(String name, String description, int threadCount, String brokerURL, String endpoint, String flowController, String referenceByName) {
-		setName(name);
-		setDescription(description);
-		setThreadCount(threadCount);
-		setBrokerURL(brokerURL);
-		setEndpoint(endpoint);
-		setFlowController(flowController);
-		setReferenceByName(referenceByName);
-	}
-	
 	
 	public String getReferenceByName() {
 		return referenceByName;
 	}
 	
-	
 	public void setReferenceByName(String referenceByName) {
 		this.referenceByName = referenceByName;
 	}
-	
-	
-	public String getName() {
-		return name;
-	}
-
-	
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	
-	public String getDescription() {
-		return description;
-	}
-
-	
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
 	
 	public int getThreadCount() {
 		return threadCount;
@@ -93,33 +51,4 @@ public class DuccUimaReferenceByName implements IDuccGeneratorUimaReferenceByNam
 		this.threadCount = threadCount;
 	}
 
-	
-	public String getBrokerURL() {
-		return brokerURL;
-	}
-
-	
-	public void setBrokerURL(String brokerURL) {
-		this.brokerURL = brokerURL;
-	}
-
-	
-	public String getEndpoint() {
-		return endpoint;
-	}
-
-	
-	public void setEndpoint(String endpoint) {
-		this.endpoint = endpoint;
-	}
-	
-	
-	public String getFlowController() {
-		return flowController;
-	}
-
-	
-	public void setFlowController(String flowController) {
-		this.flowController = flowController;
-	}
 }

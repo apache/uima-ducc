@@ -25,29 +25,22 @@ public interface IDeployableGeneration {
 	public String generate(
 			String directory,
 			String id,
-			String dgenName,
-			String dgenDescription,
 			Integer dgenThreadCount,
-			String dgenBrokerURL,
-			String dgenEndpoint,
 			String dgenFlowController,
 			String cm,
 			List<String> cmOverrides, 
 			String ae, 
 			List<String> aeOverrides, 
 			String cc,
-			List<String> ccOverrides
+			List<String> ccOverrides,
+			Boolean createUniqueFilename
 			) throws Exception;
 	
 	public String generate(
 			String directory,
 			String id,
-			String dgenName,
-			String dgenDescription,
 			Integer dgenThreadCount,
-			String dgenBrokerURL,
-			String dgenEndpoint,
-			String dgenFlowController,
-			String dgenReferenceByName
+			String ddName,
+			Boolean createUniqueFilename
 			) throws Exception;
 }

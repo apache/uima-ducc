@@ -47,10 +47,6 @@ public class FlagsHelper {
 		JpCmDescriptor,
 		JpCmOverrides,
 		JpDd,
-		JpDdBrokerEndpoint("${ducc.queue.name}"),   // NOTE - must match the names in UimaAsProcessContainer
-		JpDdBrokerURL("${ducc.broker.name}"),
-		JpDdDescription,
-		JpDdName,
 		JpThreadCount,
 		JpType,						// { uima, uima-as }
 		JpProcessorClass("processor.class"),
@@ -232,42 +228,6 @@ public class FlagsHelper {
 	
 	public String getJpDdDashD(String value) {
 		return Name.JpDd.arg(value);
-	}
-	
-	public String getJpDdBrokerEndpoint() {
-		Properties properties = System.getProperties();
-		return properties.getProperty(Name.JpDdBrokerEndpoint.pname());
-	}
-	
-	public String getJpDdBrokerEndpointDashD(String value) {
-		return Name.JpDdBrokerEndpoint.arg(value);
-	}
-	
-	public String getJpDdBrokerURL() {
-		Properties properties = System.getProperties();
-		return properties.getProperty(Name.JpDdBrokerURL.pname());
-	}
-	
-	public String getJpDdBrokerURLDashD(String value) {
-		return Name.JpDdBrokerURL.arg(value);
-	}
-	
-	public String getJpDdDescription() {
-		Properties properties = System.getProperties();
-		return properties.getProperty(Name.JpDdDescription.pname());
-	}
-	
-	public String getJpDdDescriptionDashD(String value) {
-		return Name.JpDdDescription.arg(value);
-	}
-	
-	public String getJpDdName() {
-		Properties properties = System.getProperties();
-		return properties.getProperty(Name.JpDdName.pname());
-	}
-	
-	public String getJpDdNameDashD(String value) {
-		return Name.JpDdName.arg(value);
 	}
 	
 	public String getJpThreadCount() {

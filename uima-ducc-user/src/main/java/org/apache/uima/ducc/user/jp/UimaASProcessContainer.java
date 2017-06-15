@@ -48,7 +48,6 @@ import org.apache.uima.ducc.IUser;
 import org.apache.uima.ducc.user.common.main.DuccJobService;
 import org.apache.uima.ducc.user.dgen.DeployableGenerator;
 import org.apache.uima.ducc.user.dgen.DuccUimaReferenceByName;
-import org.apache.uima.ducc.user.dgen.IDuccGeneratorUimaDeployableConfiguration;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
@@ -71,12 +70,11 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 	private volatile boolean threadAffinity=false;
 	boolean enablePerformanceBreakdownReporting = false;
 	
-	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	// WARNING - these names are also in FlagsHelper but that is in common so can't be used here 
-	// Since they are put in the system properties their names should be "reserved"
-	private static final String brokerPropertyName = "ducc.broker.name";
-	private static final String queuePropertyName  = "ducc.queue.name";
-	
+	// NOTE - these names are also used in DeployableGenerator when
+	// creating a DD with the appropriate placeholders
+	public static final String brokerPropertyName = "ducc.broker.name";
+	public static final String queuePropertyName  = "ducc.queue.name";
+  
 	public boolean useThreadAffinity() {
 	  return threadAffinity;
 	}
@@ -487,17 +485,12 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
    * @throws Exception
    */
 	public String parseDD(String ddPath, String threadCount) throws Exception {
-	  // The queue & broker attributes must reference these system properties
-	  final String reqdBrokerName = "${" + brokerPropertyName + "}";
-	  final String reqdQueueName = "${" + queuePropertyName + "}";
-	  
 		// For "custom" pull-services must convert the DD so it can be deployed locally
 		// For JPs this should return the same file, already converted by the JD
     String logDir = new File(System.getenv("DUCC_PROCESS_LOG_PREFIX")).getParent();
     DeployableGenerator deployableGenerator = new DeployableGenerator(logDir);
-    IDuccGeneratorUimaDeployableConfiguration configuration =
-            new DuccUimaReferenceByName(null, null, 0, reqdBrokerName, reqdQueueName, null, ddPath);
-    String ddNew = deployableGenerator.generate(configuration, System.getenv("DUCC_JOBID"));
+    DuccUimaReferenceByName configuration = new DuccUimaReferenceByName(0, ddPath);
+    String ddNew = deployableGenerator.generateDd(configuration, System.getenv("DUCC_JOBID"), true);
     if (ddNew != ddPath) {
       UIMAFramework.getLogger(CLASS_NAME).log(Level.INFO, "Generated " + ddNew + " from " + ddPath);
     }

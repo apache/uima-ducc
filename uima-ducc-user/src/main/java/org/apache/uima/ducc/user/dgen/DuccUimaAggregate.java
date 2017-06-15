@@ -30,28 +30,11 @@ public class DuccUimaAggregate implements IDuccGeneratorUimaAggregate {
 
 	private List<IDuccGeneratorUimaAggregateComponent> components = new ArrayList<IDuccGeneratorUimaAggregateComponent>();
 	
-	private String name;
-	private String description;
 	private int threadCount = 1;
-	private String brokerURL;
-	private String endpoint;
 	private String flowController;
 	
-	public DuccUimaAggregate(String name, String description, int threadCount, String brokerURL, String endpoint, String flowController) {
-		setName(name);
-		setDescription(description);
+	public DuccUimaAggregate(int threadCount, String flowController, List<IDuccGeneratorUimaAggregateComponent> components) {
 		setThreadCount(threadCount);
-		setBrokerURL(brokerURL);
-		setEndpoint(endpoint);
-		setFlowController(flowController);
-	}
-	
-	public DuccUimaAggregate(String name, String description, int threadCount, String brokerURL, String endpoint, String flowController, List<IDuccGeneratorUimaAggregateComponent> components) {
-		setName(name);
-		setDescription(description);
-		setThreadCount(threadCount);
-		setBrokerURL(brokerURL);
-		setEndpoint(endpoint);
 		setFlowController(flowController);
 		setComponents(components);
 	}
@@ -66,27 +49,6 @@ public class DuccUimaAggregate implements IDuccGeneratorUimaAggregate {
 		this.components = components;
 	}
 	
-	
-	public String getName() {
-		return name;
-	}
-
-	
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	
-	public String getDescription() {
-		return description;
-	}
-
-	
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	
 	public int getThreadCount() {
 		return threadCount;
 	}
@@ -96,27 +58,6 @@ public class DuccUimaAggregate implements IDuccGeneratorUimaAggregate {
 		this.threadCount = threadCount;
 	}
 
-	
-	public String getBrokerURL() {
-		return brokerURL;
-	}
-
-	
-	public void setBrokerURL(String brokerURL) {
-		this.brokerURL = brokerURL;
-	}
-
-	
-	public String getEndpoint() {
-		return endpoint;
-	}
-
-	
-	public void setEndpoint(String endpoint) {
-		this.endpoint = endpoint;
-	}
-	
-	
 	public String getFlowController() {
 		return flowController;
 	}

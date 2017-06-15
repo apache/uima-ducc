@@ -60,11 +60,7 @@ public class DgenManager {
 		initialize(
 			feh.getJobDirectory(),
 			feh.getJobId(),
-			feh.getJpDdName(),
-			feh.getJpDdDescription(),
 			convert2Integer(feh.getJpThreadCount()),
-			feh.getJpDdBrokerURL(),
-			feh.getJpDdBrokerEndpoint(),
 			feh.getJpFlowController(),
 			feh.getJpAeDescriptor(), 
 			convert2List(feh.getJpAeOverrides()), 
@@ -78,11 +74,7 @@ public class DgenManager {
 	public void initialize(
 			String jobDirectory,
 			String jobId,
-			String dgenName,
-			String dgenDescription,
 			Integer dgenThreadCount,
-			String dgenBrokerURL,
-			String dgenBrokerEndpoint,
 			String flowController, 
 			String aeDescriptor, 
 			List<String> aeOverrides, 
@@ -95,15 +87,15 @@ public class DgenManager {
 		try {
 			proxy = new ProxyDeployableGeneration();
 			if(referenceByName == null) {
-				String value = proxy.generate(jobDirectory, jobId, dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenBrokerEndpoint, flowController, cmDescriptor, cmOverrides, aeDescriptor, aeOverrides, ccDescriptor, ccOverrides);
+				String value = proxy.generate(jobDirectory, jobId, dgenThreadCount, flowController, cmDescriptor, cmOverrides, aeDescriptor, aeOverrides, ccDescriptor, ccOverrides);
 				setDeployable(value);
-				logger.info(location, null, "dd from parts: "+value);
+				logger.info(location, null, "ae from parts: "+value);
 			}
 			else {
 				String specification = referenceByName.trim();
-				// UIMA-5428 No longer convert the DD in the JD ... it will be done in the JP while extracting the scaleout
-				setDeployable(specification);
-				logger.info(location, null, "dd specified: "+specification+" (will be modified by the JP)");
+				String value = proxy.generate(jobDirectory, jobId, dgenThreadCount, specification);
+				setDeployable(value);
+				logger.info(location, null, "dd generated: "+value);
 			}
 		}
 		catch(ProxyDeployableGenerationException e) {

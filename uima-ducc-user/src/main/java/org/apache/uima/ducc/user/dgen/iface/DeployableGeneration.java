@@ -27,7 +27,6 @@ import org.apache.uima.ducc.user.dgen.DuccUimaAggregate;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregateComponent;
 import org.apache.uima.ducc.user.dgen.DuccUimaReferenceByName;
 import org.apache.uima.ducc.user.dgen.IDuccGeneratorUimaAggregateComponent;
-import org.apache.uima.ducc.user.dgen.IDuccGeneratorUimaDeployableConfiguration;
 
 public class DeployableGeneration implements IDeployableGeneration {
 
@@ -76,29 +75,22 @@ public class DeployableGeneration implements IDeployableGeneration {
 	public String generate(
 			String directory, 
 			String id,
-			String dgenName,
-			String dgenDescription,
 			Integer dgenThreadCount,
-			String dgenBrokerURL,
-			String dgenEndpoint,
 			String dgenFlowController,
 			String cmDescriptor,
 			List<String> cmOverrides, 
 			String aeDescriptor, 
 			List<String> aeOverrides, 
 			String ccDescriptor,
-			List<String> ccOverrides
+			List<String> ccOverrides,
+			Boolean createUniqueFilename
 			) throws Exception
 	{
 		String retVal = null;
 		try {
 			show("directory", directory);
 			show("id", id);
-			show("dgenName", dgenName);
-			show("dgenDescription", dgenDescription);
 			show("dgenThreadCount", dgenThreadCount.toString());
-			show("dgenBrokerURL", dgenBrokerURL);
-			show("dgenEndpoint", dgenEndpoint);
 			show("dgenFlowController", dgenFlowController);
 			show("cmDescriptor", cmDescriptor);
 			show("cmOverrides", cmOverrides);
@@ -106,14 +98,16 @@ public class DeployableGeneration implements IDeployableGeneration {
 			show("aeOverrides", aeOverrides);
 			show("ccDescriptor", ccDescriptor);
 			show("ccOverrides", ccOverrides);
+			show("createUniqueFilename", createUniqueFilename?"true":"false");
 			String targetDirectory = fabricateTargetDirectoryName(directory, id);
 			DeployableGenerator deployableGenerator = new DeployableGenerator(targetDirectory);
 			ArrayList<IDuccGeneratorUimaAggregateComponent> dgenComponents = new ArrayList<IDuccGeneratorUimaAggregateComponent>();
 			conditionalAddComponent(dgenComponents, cmDescriptor, cmOverrides);
 			conditionalAddComponent(dgenComponents, aeDescriptor, aeOverrides);
 			conditionalAddComponent(dgenComponents, ccDescriptor, ccOverrides);
-			IDuccGeneratorUimaDeployableConfiguration configuration = new DuccUimaAggregate(dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenEndpoint, dgenFlowController, dgenComponents);
-			retVal = deployableGenerator.generate(configuration, id);
+			DuccUimaAggregate configuration = new DuccUimaAggregate(dgenThreadCount, dgenFlowController, dgenComponents);
+			retVal = deployableGenerator.generateAe(configuration, id, createUniqueFilename);
+			
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -126,30 +120,22 @@ public class DeployableGeneration implements IDeployableGeneration {
 	public String generate(
 			String directory, 
 			String id,
-			String dgenName,
-			String dgenDescription,
 			Integer dgenThreadCount,
-			String dgenBrokerURL,
-			String dgenEndpoint,
-			String dgenFlowController,
-			String dgenReferenceByName
+			String ddName,
+			Boolean createUniqueFilename
 			) throws Exception
 	{
 		String retVal = null;
 		try {
 			show("directory", directory);
 			show("id", id);
-			show("dgenName", dgenName);
-			show("dgenDescription", dgenDescription);
 			show("dgenThreadCount", dgenThreadCount.toString());
-			show("dgenBrokerURL", dgenBrokerURL);
-			show("dgenEndpoint", dgenEndpoint);
-			show("dgenFlowController", dgenFlowController);
-			show("dgenReferenceByName", dgenReferenceByName);
+			show("ddName", ddName);
+			show("createUniqueFilename", createUniqueFilename?"true":"false");
 			String targetDirectory = fabricateTargetDirectoryName(directory, id);
 			DeployableGenerator deployableGenerator = new DeployableGenerator(targetDirectory);
-			IDuccGeneratorUimaDeployableConfiguration configuration = new DuccUimaReferenceByName(dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenEndpoint, dgenFlowController, dgenReferenceByName);
-			retVal = deployableGenerator.generate(configuration, id);
+			DuccUimaReferenceByName configuration = new DuccUimaReferenceByName(dgenThreadCount, ddName);
+			retVal = deployableGenerator.generateDd(configuration, id, createUniqueFilename);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
