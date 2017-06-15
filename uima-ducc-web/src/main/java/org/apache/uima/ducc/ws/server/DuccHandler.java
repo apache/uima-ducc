@@ -514,6 +514,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(process != null) {
 			switch(process.getProcessState()) {
 			case Starting:
+			case Started:
 			case Initializing:
 			case Running:
 				break;

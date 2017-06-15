@@ -682,7 +682,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       // Check if process exists in agent's inventory
       if (getInventoryRef().containsKey(process.getDuccId())) {
         IDuccProcess agentManagedProcess = getInventoryRef().get(process.getDuccId());
-        // check if process is Running, Initializing, or Starting
+        // check if process is Running, Initializing, Started, or Starting
         if (isAlive(agentManagedProcess)) {
           // Stop the process if it has been deallocated
           if (process.isDeallocated() ) {

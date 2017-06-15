@@ -168,6 +168,7 @@ public class DuccProcess implements IDuccProcess {
 	
 /*
 	Starting,               // Process Manager sent request to start the Process
+	Started,                // Process PID is available
 	Initializing,			// Process Agent is initializing process
 	Running,				// Process Agent is available for processing work items
 	Stopped,				// Process Agent reports process stopped
@@ -216,10 +217,22 @@ public class DuccProcess implements IDuccProcess {
 					break;
 				}
 				break;
+      case Started:
+        switch(nextProcessState) {
+        case Undefined:
+        case Starting:
+        case Started:
+          break;
+        default:
+          setProcessState(nextProcessState);
+          break;
+        }
+        break;
 			case Initializing:
 				switch(nextProcessState) {
 				case Undefined:
 				case Starting:
+				case Started:
 				case Initializing:
 					break;
 				default:
@@ -231,6 +244,7 @@ public class DuccProcess implements IDuccProcess {
 				switch(nextProcessState) {
 				case Undefined:
 				case Starting:
+				case Started:
 				case Initializing:
 				case Running:
 					break;
@@ -326,9 +340,10 @@ public class DuccProcess implements IDuccProcess {
 	public boolean isActive() {
 		boolean retVal = false;
 		switch(processState) {
+		case Starting:              // uima-4142 This state found missing.  Added by jrc 2015-01-15
+		case Started:
 		case Initializing:
 		case Running:
-		case Starting:              // uima-4142 This state found missing.  Added by jrc 2015-01-15
 			retVal = true;	
 			break;
 		}

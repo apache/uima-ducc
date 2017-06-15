@@ -693,6 +693,7 @@ public class ProcessAccounting {
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
 		switch(inventoryProcess.getProcessState()) {
 		case Starting:              // Process Manager sent request to start the Process
+		case Started:               // Process PID is available
 		case Initializing:			// Process Agent is initializing process
 			copyTimeInit(inventoryProcess, process);
 			break;

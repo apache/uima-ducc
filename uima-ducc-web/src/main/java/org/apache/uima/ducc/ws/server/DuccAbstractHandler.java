@@ -554,6 +554,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			IDuccProcess jp = map.get(duccId);
 			switch(jp.getProcessState()) {
 			case Starting:
+			case Started:
 			case Initializing:
 			case Running:
 				NodeIdentity nodeId = jp.getNodeIdentity();

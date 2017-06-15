@@ -718,6 +718,7 @@ implements Orchestrator {
 					if(idp != null) {
 						switch(idp.getProcessState()) {
 						case Starting:
+						case Started:
 						case Initializing:
 						case Running:
 							OrUtil.setResourceState(duccWorkJob, idp, ResourceState.Deallocated);

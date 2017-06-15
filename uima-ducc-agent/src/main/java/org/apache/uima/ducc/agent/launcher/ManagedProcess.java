@@ -415,7 +415,8 @@ public class ManagedProcess implements Process {
 			} else {
 				if ( !isstopping ) {
 					// check if process exited while in Initializing state  
-					if ( ProcessState.Initializing.equals(pstate) || ProcessState.Starting.equals(pstate)) {
+					if ( ProcessState.Initializing.equals(pstate) || ProcessState.Starting.equals(pstate) 
+					        || ProcessState.Started.equals(pstate)) {
 						getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.FailedInitialization.toString());
 		                log("ManagedProcess.drainProcessStreams",
 				    "Process Failed while in initializing state - setting reason to "+getDuccProcess().getReasonForStoppingProcess());

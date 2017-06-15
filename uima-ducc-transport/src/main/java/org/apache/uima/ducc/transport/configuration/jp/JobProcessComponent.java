@@ -106,6 +106,7 @@ implements IJobProcessor{
 				if ( state.equals(ProcessState.Stopping) && 
 						(currentState.equals(ProcessState.Initializing ) ||
 						 currentState.equals(ProcessState.Undefined ) ||
+						 currentState.equals(ProcessState.Started ) ||
 						 currentState.equals(ProcessState.Starting ) ) ) {
 					currentState = ProcessState.FailedInitialization;
 				} else {

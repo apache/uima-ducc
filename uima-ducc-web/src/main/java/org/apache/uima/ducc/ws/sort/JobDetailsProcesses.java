@@ -76,6 +76,7 @@ public class JobDetailsProcesses implements Comparable<JobDetailsProcesses> {
 			ProcessState processState = getProcess().getProcessState();
 			switch(processState) {
 			case Starting:
+			case Started:
 				retVal = true;
 				break;
 			default:
