@@ -633,13 +633,6 @@ int main(int argc, char **argv, char **envp)
     	exit(1);
     }
 
-    // Check if ducc_ling is able to switch ids
-    if ( stat(argv[0], &statbuf) == 0 ) {
-        if ( statbuf.st_mode & S_ISUID ) {
-            switch_ids = 1;
-        }
-    }
-	
     while ( (opt = getopt(argc, argv, "af:w:u:vqh?") ) != -1) {
         switch (opt) {
         case 'a':
@@ -680,6 +673,12 @@ int main(int argc, char **argv, char **envp)
         exit(1);
     }
 
+    // Check if ducc_ling is able to switch ids i.e. is running as root
+    if (geteuid() == 0) {
+      switch_ids = 1;
+      log_stdout("304 effective uid is root so can switch ids\n");
+    }
+    
     if ( getenv("DUCC_CONSOLE_LISTENER") != NULL ) {
         log_stdout("302 Redirecting console into socket %s.\n", getenv("DUCC_CONSOLE_LISTENER"));
         redirect = 1;
