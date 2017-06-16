@@ -703,23 +703,20 @@ int main(int argc, char **argv, char **envp)
 		uid_ducc = pwd->pw_uid;
 		//log_stdout("580 DUCC is %s (%d).\n", pwd->pw_name, uid_ducc);
 	}
-
+	if (uid_ducc <= 0) {
+	    log_stderr("910 The ducc_ling owner \"%s\" does not exist???\n", UID);
+		exit(1);
+	}
+	
 	if (switch_ids == 0 && uid_user != uid_caller) {
 	    log_stdout("700 ducc_ling is not setuid, not switching to %s\n", userid);
 	}
 
-    // Don't switch if the caller is not DUCC (or the DUCC userid doesn't exist - impossible?)
-    // or if the target user is the same as the caller
+    // Don't switch if the caller is not the DUCC owner/administrator
     if (switch_ids == 1) {
         if ( uid_ducc != uid_caller ) {
-            log_stdout("700 Caller is not %s (%d), not switching ids ... \n", UID, uid_ducc);
-            pwd = getpwuid(uid_caller);
-            log_stdout("800 Running instead as %s.\n", pwd->pw_name);
-            switch_ids = 0;
-        } else {
-            if (uid_caller == uid_user) {
-                switch_ids = 0;
-            }
+            log_stderr("700 Caller is not the ducc_ling owner %s (%d), permissions should not allow this!\n", UID, uid_ducc);
+            exit(1);
         }
     }
 
@@ -728,7 +725,8 @@ int main(int argc, char **argv, char **envp)
     //  assert:
     //    - ducc_ling is setuid 
     //    - caller is the "ducc-user" ... the one that compiled ducc_ling
-    //    - target user exists and is different
+    //  check that:
+    //    - target user exists and is not root 
     //
     if ( switch_ids ) {
 
