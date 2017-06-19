@@ -619,7 +619,39 @@ org.apache.uima.ducc.ws.authentication.SecureFileAuthenticator.java
 9. save   
 \end{verbatim}    
 
- 
+\section{DUCC webserver user data restricted access}
+
+To configure for user data secure access, use the following settings
+(port numbers can be any available, but normally as shown below):
+
+\begin{verbatim} 
+ducc.ws.port = 42133
+ducc.ws.port.ssl = 42155
+ducc.ws.login.enabled = true
+ducc.ws.user.data.access = encrypted
+\end{verbatim}
+
+With these settings, users will be required to login to the DUCC
+Web Server to view user data (e.g. user log files).  
+In addition, user data will be transported over https only.
+
+There is a list of exempted URIs for which transport over http 
+is allowed: 
+
+\begin{verbatim} 
+$DUCC_HOME/webserver/etc/http-uri-encryption-exemption.list
+\end{verbatim}
+
+The exemption list allows, for example, the 
+\begin{verbatim} 
+ducc_monitor
+\end{verbatim}
+to fetch status over http:
+
+\begin{verbatim} 
+ducc-servlet/proxy-job-monitor-report
+\end{verbatim}
+
 \section{DUCC daemons monitoring and notification}
 
 \begin{verbatim}
