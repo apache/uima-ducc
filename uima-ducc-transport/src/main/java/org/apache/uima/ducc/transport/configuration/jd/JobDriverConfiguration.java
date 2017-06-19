@@ -179,6 +179,7 @@ import org.springframework.context.annotation.Import;
 		public JobDriverComponent jobDriver() throws Exception {
 			String location = "jobDriver";
 			try {
+				initializing();
 				JobDriverComponent jdc = new JobDriverComponent("JobDriver", common.camelContext(), this);
 		        //	Instantiate delegate listener to receive incoming messages. 
 		        JobDriverEventListener delegateListener = this.jobDriverDelegateListener(jdc);
@@ -198,6 +199,7 @@ import org.springframework.context.annotation.Import;
 	            Server server = createServer(port, jdUniqueId, jdc);
 				server.start();
 				logger.info(location,jobid,"Jetty Started - Port: "+port);
+				running();
 				return jdc;
 			}
 			catch(Exception e) {
@@ -208,6 +210,19 @@ import org.springframework.context.annotation.Import;
 				throw e;
 			}
 		}
+		
+		private void initializing() {
+			String location = "initializing";
+			String args = "";
+			logger.info(location, jobid, args);
+		}
+		
+		private void running() {
+			String location = "running";
+			String args = "";
+			logger.info(location, jobid, args);
+		}
+		
 		public class JDServlet extends HttpServlet
 		{
 			private static final long serialVersionUID = 1L;
