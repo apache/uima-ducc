@@ -815,13 +815,14 @@ public class DuccCommandExecutor extends CommandExecutor {
 					   break;
 					}
 				}
+				boolean jd = ((ManagedProcess) super.managedProcess).isJd();
 				// Currently agent has two ports where it listens for process state updates. One is
-				// for JPs and the other is for APs. The APs use a simplified state update protocol
+				// for JPs and the other is for APs and JDs. The latter use a simplified state update protocol
 				// which is String based. The JPs actually serialize a more complex state Object.
 				// There is a way to deploy an AP with a JP "nature". Meaning an AP whose internal
 				// components looks just like a JP. Such AP must report its state to the same
 				// agent port as a JP. Only non-uima based APs will report to the other port.
-				if (isAP((ManagedProcess)super.managedProcess) && !uimaBasedAP ) {
+				if (jd || (isAP((ManagedProcess)super.managedProcess) && !uimaBasedAP ) ) {
 					logger.info("getDeployableCommandLine",
 	                        ((ManagedProcess) super.managedProcess).getDuccId(),
 	                        "Deploying Process Type:"+

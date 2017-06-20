@@ -42,6 +42,8 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
+import org.apache.uima.ducc.transport.dispatcher.ProcessStateDispatcher;
+import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -179,7 +181,13 @@ import org.springframework.context.annotation.Import;
 		public JobDriverComponent jobDriver() throws Exception {
 			String location = "jobDriver";
 			try {
+				// Dispatcher needed to notify Agent of this process state
+				// changes.
+				ProcessStateDispatcher stateNotifier =
+						new ProcessStateDispatcher();
 				initializing();
+				stateNotifier.sendStateUpdate(ProcessState.Initializing.name());
+				
 				JobDriverComponent jdc = new JobDriverComponent("JobDriver", common.camelContext(), this);
 		        //	Instantiate delegate listener to receive incoming messages. 
 		        JobDriverEventListener delegateListener = this.jobDriverDelegateListener(jdc);
@@ -200,6 +208,8 @@ import org.springframework.context.annotation.Import;
 				server.start();
 				logger.info(location,jobid,"Jetty Started - Port: "+port);
 				running();
+				stateNotifier.sendStateUpdate(ProcessState.Running.name());
+				
 				return jdc;
 			}
 			catch(Exception e) {
