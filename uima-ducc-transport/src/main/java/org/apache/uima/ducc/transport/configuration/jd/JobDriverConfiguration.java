@@ -185,8 +185,7 @@ import org.springframework.context.annotation.Import;
 				// changes.
 				ProcessStateDispatcher stateNotifier =
 						new ProcessStateDispatcher();
-				initializing();
-				stateNotifier.sendStateUpdate(ProcessState.Initializing.name());
+				initializing(stateNotifier);
 				
 				JobDriverComponent jdc = new JobDriverComponent("JobDriver", common.camelContext(), this);
 		        //	Instantiate delegate listener to receive incoming messages. 
@@ -207,8 +206,7 @@ import org.springframework.context.annotation.Import;
 	            Server server = createServer(port, jdUniqueId, jdc);
 				server.start();
 				logger.info(location,jobid,"Jetty Started - Port: "+port);
-				running();
-				stateNotifier.sendStateUpdate(ProcessState.Running.name());
+				running(stateNotifier);
 				
 				return jdc;
 			}
@@ -221,15 +219,17 @@ import org.springframework.context.annotation.Import;
 			}
 		}
 		
-		private void initializing() {
+		private void initializing(ProcessStateDispatcher stateNotifier) throws Exception{
 			String location = "initializing";
 			String args = "";
+			stateNotifier.sendStateUpdate(ProcessState.Initializing.name());
 			logger.info(location, jobid, args);
 		}
 		
-		private void running() {
+		private void running(ProcessStateDispatcher stateNotifier) throws Exception {
 			String location = "running";
 			String args = "";
+			stateNotifier.sendStateUpdate(ProcessState.Running.name());
 			logger.info(location, jobid, args);
 		}
 		
