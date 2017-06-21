@@ -125,6 +125,7 @@ implements Orchestrator {
 	}
 	
 	public void onDuccAdminKillEvent(DuccAdminEvent event) throws Exception {
+		OrchestratorCheckpoint.getInstance().saveState();
 		SystemEventsLogger.warn(IDuccLoggerComponents.abbrv_orchestrator, EventType.SHUTDOWN.name(), "");
 		super.onDuccAdminKillEvent(event);
 	}
