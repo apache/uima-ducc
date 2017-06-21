@@ -666,6 +666,7 @@ public class ProcessAccounting {
 
 	private void updateProcessInitilization(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		switch(inventoryProcess.getProcessState()) {
+		case Started:
 		case Running:
 			process.setInitialized();
 			if(job != null) {
