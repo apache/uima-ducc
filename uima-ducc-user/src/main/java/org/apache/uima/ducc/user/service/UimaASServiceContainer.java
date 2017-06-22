@@ -18,13 +18,19 @@
  */
 package org.apache.uima.ducc.user.service;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.uima.UIMAFramework;
 import org.apache.uima.adapter.jms.activemq.SpringContainerDeployer;
 import org.apache.uima.adapter.jms.service.UIMA_Service;
 import org.apache.uima.ducc.user.jp.DuccAbstractProcessContainer;
 import org.apache.uima.resource.ResourceInitializationException;
+import org.apache.uima.util.Level;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 /**
@@ -58,9 +64,16 @@ implements ApplicationListener<ApplicationEvent> {
 		if ( args == null || args.length == 0 ) {
 			throw new RuntimeException("Unable to Deploy UIMA-AS service Due to Missing Deployment Descriptor ");
 		}
-		// parse command args and run dd2spring to generate spring context
-		// files from deployment descriptors
 
+		// HACK - UIMA-AS should load DDs from the classpath or datapath
+    for (int i = 0; i < args.length - 1; i++) {
+      if (args[i].equals("-dd") && !args[i+1].endsWith(".xml")) {
+        args[i+1] = copyDD(args[i+1]);
+      }
+    }
+
+    // parse command args and run dd2spring to generate spring context
+    // files from deployment descriptors
 		String[] contextFiles = service.initialize(args);
 		if (contextFiles == null) {
 			throw new Exception(
@@ -83,6 +96,32 @@ implements ApplicationListener<ApplicationEvent> {
 		}
 	}
 
+	private static final Class<?> CLASS_NAME = UimaASServiceContainer.class;
+	
+	// Load DD from classpath and create file copy to satisfy dd2spring 
+	private String copyDD(String resourceName) throws IOException {
+	  String resourceFile = resourceName.replace('.', '/') + ".xml";
+    InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceFile);
+    if (is == null) {
+      return resourceName;
+    }
+	  String logDir = System.getProperty("ducc.process.log.dir");
+	  File dir = new File(logDir);
+	  if ( !dir.exists()) {
+       dir.mkdirs();
+	  }
+    File outf = File.createTempFile("uima-as-dd-", ".xml", dir);
+    try (FileOutputStream outs = new FileOutputStream(outf)) {
+      byte[] buf = new byte[4096];
+      int len;
+      while ((len = is.read(buf)) > 0) {
+        outs.write(buf, 0, len);
+      }
+    }
+    UIMAFramework.getLogger(CLASS_NAME).log(Level.INFO, "Copied resource "+resourceName+" as "+outf.getAbsolutePath());
+	  return outf.getAbsolutePath();
+	}
+	  
 	protected int doInitialize(Properties p, String[] args) throws Exception {
 		this.args = args;
 		return 1;  // default scaleout of 1

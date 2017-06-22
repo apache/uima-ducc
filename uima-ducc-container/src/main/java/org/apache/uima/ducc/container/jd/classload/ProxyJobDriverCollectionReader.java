@@ -28,7 +28,6 @@ import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.classloader.ContextSwitch;
-import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.common.classloader.ProxyHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
@@ -36,6 +35,7 @@ import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.mh.MessageHandler;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
+import org.apache.uima.ducc.user.common.PrivateClassLoader;
 
 public class ProxyJobDriverCollectionReader {
 

@@ -175,10 +175,16 @@ public class DuccServiceSubmit
         String customCmd = cli_props.getStringProperty(UiOption.ProcessExecutable.pname(), null);
 
         String endpoint = requestProperties.getProperty(UiOption.ServiceRequestEndpoint.pname());
-
+        
+        // No need to validate endpoint here as was done when registered
+        if (endpoint == null) {
+            message("ERROR: the endpoint should have been set and verified during registration");
+            return false;
+        }
+        
         boolean isUimaAs = true;
 
-        if (endpoint == null || endpoint.startsWith(ServiceType.UimaAs.decode())) {
+        if (endpoint.startsWith(ServiceType.UimaAs.decode())) {
             requestProperties.put(UiOption.ServiceTypeUima.pname(), "");
             if (uimaDD == null) {
                 message("ERROR: Must specify --process_DD for UIMA-AS services");
@@ -188,37 +194,14 @@ public class DuccServiceSubmit
                 message("WARN: --process_executable is ignored for UIMA-AS services");
             }
 
-            // This should have already been done when registered, but perhaps not in old services.
+            // The classpath should have been set during registration ... the SM's classpath won't help!
             String key_cp = UiOption.Classpath.pname();
             if (!cli_props.containsKey(key_cp)) {
-                cli_props.setProperty(key_cp, System.getProperty("java.class.path"));
-            }
-
-            //
-            // Always extract the endpoint from the DD since when it is explicitly specified it must match.
-            //
-            try {
-                String dd = (String) requestProperties.get(UiOption.ProcessDD.pname());
-                String wd = (String) requestProperties.get(UiOption.WorkingDirectory.pname());
-                String jvmarg_string = requestProperties.getProperty(UiOption.ProcessJvmArgs.pname());
-                String inferred_endpoint = DuccUiUtilities.getEndpoint(wd, dd, jvmarg_string);
-                if (endpoint == null) {
-                    endpoint = inferred_endpoint;
-                    requestProperties.put(UiOption.ServiceRequestEndpoint.pname(), endpoint);
-                } else if (!inferred_endpoint.equals(endpoint)) {
-                    message("ERROR: Endpoint from --service_request_endpoint does not match endpoint ectracted from UIMA DD"
-                                    + "\n--service_request_endpoint: "
-                                    + endpoint
-                                    + "\nextracted:                : " + inferred_endpoint);
-                    return false;
-                }
-                if (debug) {
-                    System.out.println("service_endpoint: " + endpoint);
-                }
-            } catch (IllegalArgumentException e) {
-                message("ERROR: Cannot read/process DD descriptor for endpoint:", e.getMessage());
+                message("ERROR: the classpath should have been set during registration");
                 return false;
             }
+
+            // No need to open DD and validate endpoint here as was done when registered
 
         } else if (endpoint.startsWith(ServiceType.Custom.decode())) {
             isUimaAs = false;

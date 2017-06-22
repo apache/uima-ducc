@@ -70,42 +70,55 @@ public class UimaUtils {
 				getXMLInputSource(resourceFile));
 	}
 
+	/**
+	 * Use the UIMA routine to load an xml descriptor from the filesystem or the current classpath
+	 * @param resourceName - resource to load by location or name
+	 * @return
+	 * @throws InvalidXMLException
+	 */
 	public static XMLInputSource getXMLInputSource(String resourceFile)
-			throws InvalidXMLException {
-		//
-		// If the resourceFile ends in .xml then we look in the filesystem, end
-		// of story.
-		//
-		// If not, then we turn it into a path by replacing . with / and
-		// appending .xml.
-		// We then have two places we need to look:
-		// a) in the user's classpath directly as a file (not inside a jar), or
-		// b) in the jar files in the user's classpath
-		//
+	        throws InvalidXMLException {
+	  return getXMLInputSource(resourceFile, Thread.currentThread().getContextClassLoader());
+	}
 
+	/**
+	 * Use the UIMA routine to load an xml descriptor from the filesystem or the specified classloader
+	 * @param resourceFile - resource to load by location or name
+	 * @param classloader  - class loader to use
+	 * @return             - input source stream
+	 * @throws InvalidXMLException
+	 */
+	public static XMLInputSource getXMLInputSource(String resourceFile, ClassLoader classloader)
+	         throws InvalidXMLException {
+
+	  // If the resourceFile ends in .xml then we look in the filesystem.
+		// If not, then we turn it into a path by replacing . with / and
+		// appending .xml, and look in the classpath or datapath.
+	  // TODO - should this be synchronized since resolver is statis?
+
+	  String resource = null;
 		try {
-			resourceFile = Utils.resolvePlaceholderIfExists(resourceFile,
-					System.getProperties());
+			resourceFile = Utils.resolvePlaceholderIfExists(resourceFile, System.getProperties());
 			XMLInputSource in = null;
 			if (resourceFile.endsWith(".xml")) {
+			  resource = resourceFile;
 				in = new XMLInputSource(resourceFile);
 			} else {
-				resourceFile = resourceFile.replace('.', '/') + ".xml";
-				URL relativeURL = resolver
-						.resolveRelativePath(getRelativePathWithProtocol(resourceFile));
+				resource = resourceFile.replace('.', '/') + ".xml";
+				resolver.setPathResolverClassLoader(classloader);
+				URL relativeURL = resolver.resolveRelativePath(new URL("file", "", resource));
+				if (relativeURL == null) {
+		      throw new InvalidXMLException(InvalidXMLException.IMPORT_BY_NAME_TARGET_NOT_FOUND,
+		              new String[] { resource, resourceFile });
+				}
 				in = new XMLInputSource(relativeURL);
 			}
 			return in;
-		} catch (NullPointerException npe) {
-			throw new InvalidXMLException(
-					InvalidXMLException.IMPORT_BY_NAME_TARGET_NOT_FOUND,
-					new String[] { resourceFile });
 		} catch (IOException e) {
 			throw new InvalidXMLException(
 					InvalidXMLException.IMPORT_FAILED_COULD_NOT_READ_FROM_URL,
-					new String[] { resourceFile });
+					new String[] { resource, resourceFile });
 		}
-
 	}
 
 	public static ConfigurationParameter findConfigurationParameter(

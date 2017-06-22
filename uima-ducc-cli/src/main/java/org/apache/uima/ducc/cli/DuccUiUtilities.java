@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
@@ -41,6 +42,7 @@ import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
+import org.apache.uima.ducc.user.common.PrivateClassLoader;
 import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.util.XMLInputSource;
@@ -151,7 +153,7 @@ public class DuccUiUtilities {
      * @param jvmargs
      * @return
      */
-    public static String getEndpoint(String working_dir, String process_DD, String jvmargs) {
+    public static String getEndpoint(String working_dir, String process_DD, String jvmargs, String classpath) {
         // convert relative path for process_DD to absolute if needed
         if (!process_DD.startsWith("/") && process_DD.endsWith(".xml") && working_dir != null) {
             process_DD = working_dir + "/" + process_DD;
@@ -159,8 +161,14 @@ public class DuccUiUtilities {
 
         // parse process_DD into DOM, resolving the descriptor either by name or by location
         Document doc = null;
+        XMLInputSource xmlin;
         try {
-            XMLInputSource xmlin = UimaUtils.getXMLInputSource(process_DD);
+            if (!process_DD.endsWith(".xml") && classpath != null) {
+              URLClassLoader classLoader = PrivateClassLoader.create(classpath);
+              xmlin = UimaUtils.getXMLInputSource(process_DD, classLoader);
+            } else {
+              xmlin = UimaUtils.getXMLInputSource(process_DD);
+            }
             DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             doc = db.parse(xmlin.getInputStream());
         } catch (Throwable t) {

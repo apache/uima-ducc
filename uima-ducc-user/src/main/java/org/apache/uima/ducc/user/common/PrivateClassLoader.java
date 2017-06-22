@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common.classloader;
+package org.apache.uima.ducc.user.common;
 
 import java.io.File;
 import java.io.IOException;

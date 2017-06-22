@@ -30,7 +30,6 @@ import java.net.URLClassLoader;
 import java.util.List;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
-import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGeneration;
 import org.apache.uima.ducc.container.jd.JobDriver;
@@ -42,6 +41,7 @@ import org.apache.uima.ducc.container.jd.test.TestBase;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
 import org.apache.uima.ducc.container.jd.user.error.classload.ProxyUserErrorStringify;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
+import org.apache.uima.ducc.user.common.PrivateClassLoader;
 import org.apache.uima.ducc.user.error.iface.Transformer;
 import org.junit.Before;
 import org.junit.Test;

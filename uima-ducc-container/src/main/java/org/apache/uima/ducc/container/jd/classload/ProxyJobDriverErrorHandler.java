@@ -26,12 +26,12 @@ import java.net.URLClassLoader;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.container.common.classloader.ContextSwitch;
-import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.classloader.ProxyHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriverException;
+import org.apache.uima.ducc.user.common.PrivateClassLoader;
 
 public class ProxyJobDriverErrorHandler {
 

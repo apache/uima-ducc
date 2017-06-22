@@ -305,14 +305,11 @@ public class DuccServiceApi
         if ( debug_port == null )       return;
 
         if ( debug_port.equals("off") ) {
-            switch (verb ) {
-                case Register:
-                    System.out.println("Note: 'process_debug = off' removed; 'off' is valid only for --modify");
-                    cli_props.remove(UiOption.ProcessDebug.pname());     // 'off' invalid for registration
-                    return;
-                case Modify:
-                    return;
+            if (verb != UiOption.Modify) {
+                System.out.println("Note: 'process_debug = off' removed; 'off' is valid only for --modify");
+                cli_props.remove(UiOption.ProcessDebug.pname());     // 'off' invalid for registration
             }
+            return;
         }
 
         if ( debug_port.contains(":") ) {
@@ -336,11 +333,11 @@ public class DuccServiceApi
         cli_props.setProperty(UiOption.ProcessDebug.pname(), debug_host + ":" + debug_port);
     }
 
-    private String extractEndpoint(String jvmargs)
+    private String extractEndpoint(String jvmargs, String classpath)
     {
         String dd = cli_props.getStringProperty(UiOption.ProcessDD.pname()); // will throw if can't find the prop
         String working_dir = cli_props.getStringProperty(UiOption.WorkingDirectory.pname());
-        endpoint = DuccUiUtilities.getEndpoint(working_dir, dd, jvmargs);
+        endpoint = DuccUiUtilities.getEndpoint(working_dir, dd, jvmargs, classpath);
         if ( debug ) {
             System.out.println("DD service endpoint resolves to " + endpoint);
         }
@@ -394,17 +391,13 @@ public class DuccServiceApi
                 discardOptions(pinger_only_options, "pinger-less UIMA-AS");
             }
 
-            // Set default classpath if not specified - only used for UIMA-AS services
-            String key_cp = UiOption.Classpath.pname();
-            if (!cli_props.containsKey(key_cp)) {
-                cli_props.setProperty(key_cp, System.getProperty("java.class.path"));
-            }
-
             // Given ep must match inferred ep. Use case: an application is wrapping DuccServiceApi and has to construct
             // the endpoint as well.  The app passes it in and we insure that the constructed endpoint matches the one
             // we extract from the DD - the job will fail otherwise, so we catch this early.
+            // If classpath provided use it if the DD is to be loaded from the classpath
             String jvmarg_string = cli_props.getProperty(UiOption.ProcessJvmArgs.pname());
-            String inferred_endpoint = extractEndpoint(jvmarg_string);
+            String classpath_string = cli_props.getProperty(UiOption.Classpath.pname());
+            String inferred_endpoint = extractEndpoint(jvmarg_string, classpath_string);
             if (endpoint == null) {
                 endpoint = inferred_endpoint;
             } else {
@@ -417,7 +410,13 @@ public class DuccServiceApi
                                                      + "\n                  extracted: " + inferred_endpoint );
                 }
             }
-
+            
+            // Set default classpath if not specified - only used for UIMA-AS services
+            String key_cp = UiOption.Classpath.pname();
+            if (!cli_props.containsKey(key_cp)) {
+                cli_props.setProperty(key_cp, System.getProperty("java.class.path"));
+            }
+            
             enrichPropertiesForDebug(UiOption.Register);
             check_heap_size(UiOption.ProcessJvmArgs.pname());
 
@@ -846,6 +845,9 @@ public class DuccServiceApi
                } else {
                    System.out.println(msg);
                }
+               break;
+           default:
+               System.out.println(msg);
                break;
         }
 

@@ -24,11 +24,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import org.apache.uima.ducc.common.utils.Utils;
-import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.jp.UimaProcessor;
 import org.apache.uima.ducc.container.jp.iface.IJobProcessDeployer;
 import org.apache.uima.ducc.container.jp.iface.IUimaProcessor;
 import org.apache.uima.ducc.container.jp.iface.ServiceFailedInitialization;
+import org.apache.uima.ducc.user.common.PrivateClassLoader;
 
 
 public class JobProcessDeployer implements IJobProcessDeployer {
