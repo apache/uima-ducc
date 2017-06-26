@@ -323,16 +323,14 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 				List<AnalysisEnginePerformanceMetrics> perfMetrics =
 						new ArrayList<AnalysisEnginePerformanceMetrics>();
 				uimaASClient.sendAndReceiveCAS(cas, perfMetrics);
-
 				for( AnalysisEnginePerformanceMetrics metrics : perfMetrics ) {
 					Properties p = new Properties();
 					p.setProperty("name", metrics.getName());
-
-					if ( scaleout > 1 && aeName != null ) {
-						if ( metrics.getUniqueName().startsWith("/"+aeName)) {
-							String st = metrics.getUniqueName().substring(metrics.getUniqueName().indexOf("/",1));
-							p.setProperty("uniqueName", "/"+aeName+st);
-						}
+					boolean aggregate = metrics.getUniqueName().startsWith("/"+aeName);
+					int pos = metrics.getUniqueName().indexOf("/",1);
+					if ( pos > -1 && scaleout > 1 && aeName != null && aggregate) {
+						String st = metrics.getUniqueName().substring(pos);
+						p.setProperty("uniqueName", "/"+aeName+st);
 					} else {
 						p.setProperty("uniqueName", metrics.getUniqueName());
 					}
@@ -341,7 +339,6 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 				//	System.out.println("... Metrics - AE:"+metrics.getUniqueName()+" AE Analysis Time:"+metrics.getAnalysisTime());
 					metricsList.add(p);
 				}
-
 			} else {
 				// delegate processing to the UIMA-AS service and wait for a reply
 				uimaASClient.sendAndReceiveCAS(cas);//, perfMetrics);
