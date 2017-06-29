@@ -90,7 +90,8 @@ public class DuccAuthenticator extends AbstractAuthenticator {
 			duccLogger.debug(methodName, jobid, retVal);
 		}
 		catch(Throwable t) {
-			duccLogger.error(methodName, jobid, t);
+			duccLogger.debug(methodName, jobid, "no notes available - legacy implementer?");
+			duccLogger.debug(methodName, jobid, t);
 		}
 		return retVal;
 	}
