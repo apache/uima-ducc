@@ -23,6 +23,7 @@ package org.apache.uima.ducc.common;
 public interface IDuccUser {
 
 	public enum EnvironmentVariable {
+	  // These are set internally and may be used by applications
 		DUCC_HOME("DUCC_HOME"),
 		DUCC_ID_JOB("DUCC_JOBID"),
 		DUCC_ID_PROCESS("DUCC_PROCESSID"),
@@ -30,12 +31,14 @@ public interface IDuccUser {
 		DUCC_ID_SERVICE("DUCC_SERVICE_INSTANCE"),
 		DUCC_LOG_PREFIX("DUCC_PROCESS_LOG_PREFIX"),
 		DUCC_UPDATE_PORT("DUCC_STATE_UPDATE_PORT"),
-		//
 		DUCC_IP("DUCC_IP"),
 		DUCC_NODENAME("DUCC_NODENAME"),
-		//
+		
+		// These may be set externally
 		DUCC_USER_CP_PREPEND("DUCC_USER_CP_PREPEND"),
-		//
+		DUCC_KEEP_TEMPORARY_DESCRIPTORS("DUCC_KEEP_TEMPORARY_DESCRIPTORS"),  /* The literal value is used in DeployableGenerator */
+		
+		// This is set when running with simulated users
 		USER("USER"),
 		;
 

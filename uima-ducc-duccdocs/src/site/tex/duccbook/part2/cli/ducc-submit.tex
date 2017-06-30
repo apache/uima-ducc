@@ -143,6 +143,11 @@
     specified log directory and will place an individual json.gz file for each 
     work item successfully processed comprising its performance breakdown.
     
+    \item[DUCC\_KEEP\_TEMPORARY\_DESCRIPTORS {[true]}  ]
+    If specified, DUCC will not delete any temporary descriptors it creates
+    (these are usually deleted when the process ends.)  DUCC may make a local file copy if the
+    descriptor is in a jar, or if the filesystem is not shared.
+    
   \end{enumerate}
 
 
