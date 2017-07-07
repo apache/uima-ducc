@@ -87,8 +87,9 @@ public class HttpWorkerThread implements Runnable {
 	    	logger.debug("HttpWorkerThread.run()", null, "Thread Id:"+Thread.currentThread().getId()+" Requesting next WI from JD");;
 			// send a request to JD and wait for a reply
 	    	transaction = httpClient.execute(transaction, postMethod);
+	    	//httpClient.testConnection();
 	        // The JD may not provide a Work Item to process.
-	    	if ( transaction.getMetaCas()!= null) {
+	    	if ( transaction != null && transaction.getMetaCas()!= null) {
 				logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaCas().getSystemKey());
 				// Confirm receipt of the CAS. 
 				transaction.setType(Type.Ack);
@@ -198,13 +199,22 @@ public class HttpWorkerThread implements Runnable {
 			
 	   	logger.info("HttpWorkerThread.run()", null, "Begin Processing Work Items - Thread Id:"+Thread.currentThread().getId());
 		try {
+			IMetaCasTransaction transaction=null;
+			int major = 0;
+			int minor = 0;
 			// Enter process loop. Stop this thread on the first process error.
 			while (duccComponent.isRunning()) {  
 
 				try {
-					int major = IdGenerator.addAndGet(1);
-					int minor = 0;
-					IMetaCasTransaction transaction = getWork(postMethod, major, minor);
+					major = IdGenerator.addAndGet(1);
+					minor = 0;
+					// the getWork() may block if connection is lost. 
+					transaction = getWork(postMethod, major, minor);
+					// first check if we are still running
+					if ( !duccComponent.isRunning() ) {
+    					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Process is Stopping - Terminating This Thread");
+    					break;
+					}
 					if ( !logConnectionToJD ) {
 						logConnectionToJD = true;   // reset flag in case we loose connection to JD in the future
 						logger.info("run", null, "T["+Thread.currentThread().getId()+"] - Regained Connection to JD");
@@ -221,9 +231,7 @@ public class HttpWorkerThread implements Runnable {
 						// do a GET in case JD changes its mind. The JP will
 						// eventually be stopped by the agent
 
-    					// use class level locking to block all but one thread to do retries.
-						// This is done to prevent flooding JD with retry requests 
-						synchronized (HttpWorkerThread.class) {
+ 						synchronized (HttpWorkerThread.class) {
 							while(duccComponent.isRunning() ) {
 								waitAwhile(duccComponent.getThreadSleepTime());
 								// just awoken, check if the JP is still in Running state
@@ -235,6 +243,7 @@ public class HttpWorkerThread implements Runnable {
 								}
 							}
 						}
+						
 					} 
 					if ( duccComponent.isRunning()) {
 						boolean workItemFailed = false;
@@ -275,7 +284,7 @@ public class HttpWorkerThread implements Runnable {
 							}
 							
 		                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
-							IPerformanceMetrics metricsWrapper =
+							PerformanceMetrics metricsWrapper =
 									new PerformanceMetrics();
 							metricsWrapper.set(metrics);
 							transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
@@ -339,7 +348,14 @@ public class HttpWorkerThread implements Runnable {
 						}
 
 						httpClient.execute(transaction, postMethod); // Work Item Processed - End
-                    	String wid = null;
+						// the execute() can block while recovering lost connection.
+						// first check if we are still running.
+						if ( !duccComponent.isRunning() ) {
+	    					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Process is Stopping - Terminating This Thread");
+	    					break;
+						}
+
+						String wid = null;
                     	try {
                     		wid = transaction.getMetaCas().getSystemKey();
                     	} catch( Exception e) {
@@ -392,15 +408,7 @@ public class HttpWorkerThread implements Runnable {
 				} catch( InterruptedException e) {
 					logger.error("run", null, "WorkerThread Interrupted - Terminating Thread "+Thread.currentThread().getId());
 					return;
-				} catch( HttpHostConnectException e) {
-					// Each thread should log once when it looses a connection to its JD. When a connection is recovered
-					// re-enable the flag.
-					if ( logConnectionToJD ) {
-						logConnectionToJD = false;
-						logger.error("run", null, "T["+Thread.currentThread().getId()+"] Lost Conection to JD - Will retry "+maxFrameworkErrors+" times - Failure caused by:\t"+e);
-					}
-				}
-				catch (Exception e ) {
+				} catch (Exception e ) {
 					logger.error("run", null, e);
 					e.printStackTrace();
 					// If max framework error count has been reached 

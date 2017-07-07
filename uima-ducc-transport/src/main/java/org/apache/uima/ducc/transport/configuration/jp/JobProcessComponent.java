@@ -276,7 +276,7 @@ implements IJobProcessor{
 				int scaleout = (Integer)initMethod.invoke(processorInstance, props, jpArgs);
 				
 				getLogger().info("start", null,"Ducc JP JobType="+jobType);
-				httpClient = new DuccHttpClient();
+				httpClient = new DuccHttpClient(this);
 				String jdURL="";
 				try {
 					jdURL = System.getProperty(FlagsHelper.Name.JdURL.pname());
@@ -302,7 +302,7 @@ implements IJobProcessor{
 				tpe = Executors.newFixedThreadPool(scaleout, tf);
 
 				// initialize http client's timeout
-				httpClient.setTimeout(timeout);
+				//httpClient.setTimeout(timeout);
 				
 				System.out.println("JMX Connect String:"+ processJmxUrl);
 		    	getLogger().info("start", null, "Starting "+scaleout+" Process Threads - JMX Connect String:"+ processJmxUrl);
