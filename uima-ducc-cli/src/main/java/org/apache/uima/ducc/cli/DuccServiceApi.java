@@ -402,14 +402,18 @@ public class DuccServiceApi
                 endpoint = inferred_endpoint;
             } else {
                 // Check & strip any broker URL decorations on the endpoint
+                // by (ab)using the method that syntax checks dependencies
                 endpoint = DuccUiUtilities.check_service_dependencies(null, endpoint);
-                cli_props.setProperty(UiOption.ServiceRequestEndpoint.pname(), endpoint);    // SM uses both endpoint definitions !!!
                 if ( !inferred_endpoint.equals(endpoint) ) {
                     throw new IllegalArgumentException("Specified endpoint does not match endpoint extracted from UIMA DD"
                                                      + "\n --service_request_endpoint: " + endpoint
                                                      + "\n                  extracted: " + inferred_endpoint );
                 }
             }
+            // UIMA-5486 Set this to the inferred-from-DD value when omitted from the spec
+            // or replace with the possibly stripped value.
+            // Note: SM puts this in the smreg table and also in the smmeta table as "endpoint"
+            cli_props.setProperty(UiOption.ServiceRequestEndpoint.pname(), endpoint);
             
             // Set default classpath if not specified - only used for UIMA-AS services
             String key_cp = UiOption.Classpath.pname();
