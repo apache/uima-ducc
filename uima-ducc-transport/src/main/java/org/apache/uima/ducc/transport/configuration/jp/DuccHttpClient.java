@@ -304,7 +304,6 @@ public class DuccHttpClient {
        			
        		} catch( HttpHostConnectException exx ) {
        			// Connection still not available so sleep awhile
-       			System.out.println(Thread.currentThread().getId()+" The Service is not available - sleeping and retrying");
        			synchronized(postMethod) {
        				postMethod.wait(duccComponent.getThreadSleepTime());
        			}
