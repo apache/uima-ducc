@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.ws;
 
+import java.io.File;
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 
@@ -28,6 +30,8 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
@@ -153,6 +157,41 @@ public class DuccBoot extends Thread {
         }
     }
     
+	/**
+	 * Verify user log dir is correct and fix-up (in WS cache) if not.
+	 * 
+	 * See https://issues.apache.org/jira/browse/UIMA-5506
+	 */
+    private void fixup(IDuccWork dw) {
+    	String location = "fixup";
+    	if(dw != null) {
+    		DuccId duccId = dw.getDuccId();
+    		try {
+    			if(dw instanceof DuccWorkJob) {
+    				DuccWorkJob dwj = (DuccWorkJob) dw;
+    				String s_logdir = dwj.getLogDirectory();
+    				String s_duccId = duccId.toString();
+    				File f_userlogdir = new File(s_logdir, s_duccId);
+    				String s_userlogdir = f_userlogdir.getPath()+File.separator;
+    				String h_userlogdir = dwj.getUserLogDir();
+    				if(s_userlogdir.equals(h_userlogdir)) {
+    					logger.debug(location, duccId, "==", h_userlogdir, s_userlogdir);
+    				}
+    				else {
+    					logger.debug(location, duccId, "!=", h_userlogdir, s_userlogdir);
+    					Field field = DuccWorkJob.class.getDeclaredField("userLogDir");
+    					field.setAccessible(true); // Force to access the field
+    					field.set(dwj, s_userlogdir); // Set value
+    					logger.info(location, duccId, dwj.getUserLogDir());
+    				}
+    			}
+    		}
+    		catch(Exception e) {
+    			logger.error(location, duccId, e);
+    		}
+    	}
+    }
+	
 	private void restoreJobs(IHistoryPersistenceManager hpm, DuccData duccData) 
     {
         // Replaced for database.  Both file and database now do all the looping and sorting internally.
@@ -170,6 +209,7 @@ public class DuccBoot extends Thread {
         int restored = 0;
         int nExperiments = 0;
         for ( IDuccWorkJob duccWorkJob : duccWorkJobs ) {
+        	fixup(duccWorkJob);
             try {
                 logger.debug(location, duccWorkJob.getDuccId(), messages.fetchLabel("restore"));
                 duccData.putIfNotPresent(duccWorkJob);
