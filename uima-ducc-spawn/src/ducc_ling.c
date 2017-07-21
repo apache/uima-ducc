@@ -81,7 +81,14 @@
  * 2015-11-19 2.1.0 Create 2 streams if console port ends with "?splitstreams".  Add timestamp to log. bll
  * 2017-03-08 2.2.1 Set umask before creating logs so permissions of log directories are set correctly. bll
  * 2017-04-27 2.2.1 DUCC should allow the "ducc" user to be other than exactly "ducc".  lrd bll
+ * 2017-07-21 2.2.1 Do not allow ducc_ling to run as any system user, e.g. uid < 500. eae
  */
+
+/**
+ * Minimum target uid that ducc_ling will try to switch to
+ */
+#define MIN_UID 500
+
 
 /**
  * Numbering - every message is numbered to facilitate filtering and identification in
@@ -673,12 +680,6 @@ int main(int argc, char **argv, char **envp)
         exit(1);
     }
 
-    // Check if ducc_ling is able to switch ids i.e. is running as root
-    if (geteuid() == 0) {
-      switch_ids = 1;
-      log_stdout("304 effective uid is root so can switch ids\n");
-    }
-    
     if ( getenv("DUCC_CONSOLE_LISTENER") != NULL ) {
         log_stdout("302 Redirecting console into socket %s.\n", getenv("DUCC_CONSOLE_LISTENER"));
         redirect = 1;
@@ -690,43 +691,32 @@ int main(int argc, char **argv, char **envp)
     // do this here before redirection stdout / stderr
     log_stdout("0 %d\n", getpid());                                         // code 0 means we passed tests and are about to dup I/O
 
-	// get target user number
-	pwd = getpwnam(userid);
-	if (pwd != NULL) {
-		uid_user = pwd->pw_uid;
-		//log_stdout("570 USER is %s (%d).\n", pwd->pw_name, uid_user);
-	}
-	
-    // get DUCC user number
+    //	fetch installed "ducc" user passwd structure
     pwd = getpwnam(UID);
-	if (pwd != NULL) {
-		uid_ducc = pwd->pw_uid;
-		//log_stdout("580 DUCC is %s (%d).\n", pwd->pw_name, uid_ducc);
-	}
-	if (uid_ducc <= 0) {
-	    log_stderr("910 The ducc_ling owner \"%s\" does not exist???\n", UID);
-		exit(1);
-	}
-	
-	if (switch_ids == 0 && uid_user != uid_caller) {
-	    log_stdout("700 ducc_ling is not setuid, not switching to %s\n", userid);
-	}
 
-    // Don't switch if the caller is not the DUCC owner/administrator
-    if (switch_ids == 1) {
-        if ( uid_ducc != uid_caller ) {
-            log_stderr("700 Caller is not the ducc_ling owner %s (%d), permissions should not allow this!\n", UID, uid_ducc);
-            exit(1);
+    if ( pwd == NULL ) {
+        pwd = getpwuid(getuid());
+#ifdef __APPLE__
+        // Seems theres a bug in getpwuid and nobody seems to have a good answer.  On mac we don't
+        // care anyway so we ignore it (because mac is supported for test only).
+        if ( pwd == NULL ) {
+		  log_stdout("600 No \"%s\" user found and I can't find my own name.  Running as id %d", UID, getuid());
+        } else {
+		  log_stdout("600 No \"%s\" user found, running instead as %s.\n", UID, pwd->pw_name);
         }
+#else
+        log_stdout("600 No \"%s\" user found, running instead as %s.\n", UID, pwd->pw_name);
+#endif
+    } else if ( pwd->pw_uid != getuid() ) {
+	  log_stdout("700 Caller is not %s (%d), not trying to switch ids ... \n", UID, pwd->pw_uid);
+        pwd = getpwuid(getuid());
+        log_stdout("800 Running instead as %s.\n", pwd->pw_name);
+    } else {
+        switch_ids = 1;
     }
 
     //
-    //	fetch target user's passwd structure and try switch identities
-    //  assert:
-    //    - ducc_ling is setuid 
-    //    - caller is the "ducc-user" ... the one that compiled ducc_ling
-    //  check that:
-    //    - target user exists and is not root 
+    //	fetch target user's passwd structure and try switch identities.
     //
     if ( switch_ids ) {
 
@@ -737,8 +727,8 @@ int main(int argc, char **argv, char **envp)
         }
 
         // don't allow to change uid to root.
-        if ( pwd->pw_uid == 0 ) {
-            log_stderr("900 setuid to root not allowed. Exiting.\n");
+        if ( pwd->pw_uid < MIN_UID ) {
+		  log_stderr("900 setuid < %d not allowed. Exiting.\n", MIN_UID);
             exit(1);
         }
 
