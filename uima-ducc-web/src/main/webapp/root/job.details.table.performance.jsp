@@ -19,7 +19,7 @@ under the License.
 <div id=loading_performance_area>
 </div>
 <table>
-<caption><b>Specification</b><br><i><small>click column heading to sort</small></i></caption>
+<caption><b>Performance</b><br><i><small>click column heading to sort</small></i></caption>
 <tr>
 <td>
 	<table class="sortable">
