@@ -100,7 +100,12 @@ public class NullHistoryManager
     {
 		return  new ArrayList<IDuccWorkService>();
 	}
-
+    
+    public List<IDuccWorkService> restoreArbitraryProcesses(long max)
+        	throws Exception
+    {
+    	return null;
+    }
 	
 	public IDuccWorkService serviceRestore(String fileName) 
     {

@@ -463,6 +463,12 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
         return ret;
     }
     
+    public List<IDuccWorkService> restoreArbitraryProcesses(long max)
+        	throws Exception
+    {
+    	return null;
+    }
+    
     // public void serviceSaveConditional(IDuccWorkService duccWorkService)
     //         throws IOException {
     //     String id = normalize(""+duccWorkService.getDuccId().getFriendly());

@@ -564,14 +564,24 @@ public class HistoryManagerDb
      * Reminder to self, we need to pass Clas<T> cl so compiler can infer T.
      */
     @SuppressWarnings("unchecked")
-	public <T> ArrayList<T> restoreSeveralThings(Class<T> cl, String tablename, long max)
+	public <T> ArrayList<T> restoreSeveralThings(Class<T> cl, String tablename, String where_clause, long max)
         throws Exception
     {
     	String methodName = "restoreSeveralThings";
 
         ArrayList<T> ret = new ArrayList<T>();
         DbHandle h = dbManager.open();
-        SimpleStatement s = new SimpleStatement("SELECT * from " + tablename + " limit " + max);
+        StringBuffer sb = new StringBuffer();
+        sb.append("SELECT * from ");
+        sb.append(tablename);
+        if(where_clause != null) {
+        	sb.append(" "+where_clause);
+        }
+        sb.append(" limit "+max);
+        sb.append(" ALLOW FILTERING");
+        String query =  sb.toString();
+        logger.info(methodName, null, query);
+        SimpleStatement s = new SimpleStatement(query);
         s.setFetchSize(100);
         long now = System.currentTimeMillis();
 
@@ -625,7 +635,7 @@ public class HistoryManagerDb
     public ArrayList<IDuccWorkJob> restoreJobs(long max)
         throws Exception
     {
-        return restoreSeveralThings(IDuccWorkJob.class, JOB_HISTORY_TABLE, max);
+        return restoreSeveralThings(IDuccWorkJob.class, JOB_HISTORY_TABLE, null, max);
     }
     // End of jobs section
     // ----------------------------------------------------------------------------------------------------
@@ -656,7 +666,7 @@ public class HistoryManagerDb
 	public ArrayList<IDuccWorkReservation> restoreReservations(long max) 
 		throws Exception
     {
-        return restoreSeveralThings(IDuccWorkReservation.class, RES_HISTORY_TABLE, max);
+        return restoreSeveralThings(IDuccWorkReservation.class, RES_HISTORY_TABLE, null, max);
     }
 
     // End of reservations section
@@ -688,8 +698,18 @@ public class HistoryManagerDb
 	public ArrayList<IDuccWorkService> restoreServices(long max) 
 		throws Exception
     {
-        return restoreSeveralThings(IDuccWorkService.class, SVC_HISTORY_TABLE, max);
+        return restoreSeveralThings(IDuccWorkService.class, SVC_HISTORY_TABLE, "WHERE TYPE = 'service'", max);
 	}
+	
+	/**
+     * Part of history management, recover these indicated AP instances from history.
+     */
+	public ArrayList<IDuccWorkService> restoreArbitraryProcesses(long max) 
+		throws Exception
+    {
+		return restoreSeveralThings(IDuccWorkService.class, SVC_HISTORY_TABLE, "WHERE TYPE = 'AP'", max);
+	}
+	
     // End of services section
     // ----------------------------------------------------------------------------------------------------
     

@@ -295,6 +295,43 @@ public class DuccBoot extends Thread {
         }
     }
 	
+	private void restoreArbitraryProcesses(IHistoryPersistenceManager hpm, DuccData duccData) 
+    {
+        // Replaced for database.  Both file and database now do all the looping and sorting internally.
+        String location = "restoreArbitraryProcesses";
+        List<IDuccWorkService> duccWorkServices = null;;
+		try {
+			duccWorkServices = hpm.restoreArbitraryProcesses(maxServices);
+		} catch (Exception e) {
+            logger.warn(location, null, e);
+            return;                               // Nothing to do if this fails
+		}
+
+        logger.info(location, jobid, messages.fetchLabel("Number of services fetched from history"), duccWorkServices.size());
+
+        int restored = 0;
+        int nExperiments = 0;
+        for ( IDuccWorkService duccWorkService : duccWorkServices ) {
+            try {
+                logger.debug(location, duccWorkService.getDuccId(), messages.fetchLabel("restore"));
+                duccData.putIfNotPresent(duccWorkService);
+                String directory = duccWorkService.getStandardInfo().getLogDirectory();
+                if (experimentsFound.add(directory)) {
+                    duccPlugins.restore(duccWorkService);
+                    nExperiments++;
+                }
+                restored++;
+            }
+            catch(Throwable t) {
+                logger.warn(location, duccWorkService.getDuccId(), t);
+            }
+        }
+        logger.info(location,null, messages.fetch("Services restored: "+restored));
+        if (nExperiments > 0) {
+        	logger.info(location,null, messages.fetch("Experiments found: "+nExperiments));
+        }
+    }
+	
 	// private void restoreServices(IHistoryPersistenceManager hpm, DuccData duccData) {
 	// 	String location = "restoreServices";
 	// 	ArrayList<String> duccWorkServices = hpm.serviceList();
@@ -343,6 +380,7 @@ public class DuccBoot extends Thread {
 		restoreReservations(hpm, duccData);
 		restoreJobs(hpm, duccData);
 		restoreServices(hpm, duccData);
+		restoreArbitraryProcesses(hpm, duccData);
 		experimentsFound = null;
 		duccData.report();
 	}
