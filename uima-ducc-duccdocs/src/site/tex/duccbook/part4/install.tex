@@ -348,6 +348,8 @@ $HOME/ducc/logs/job-id
     The service can be tested by sending it CASes that specify a sleep value.
     \begin{verbatim}
     export UIMA_HOME=$DUCC_HOME/apache-uima
+    export UIMA_CLASSPATH=$DUCC_HOME/lib/uima-ducc/examples
+    export UIMA_JVM_OPTS=-DDUCC_HOME=$DUCC_HOME
     $UIMA_HOME/bin/runRemoteAsyncAE.sh -c $DUCC_HOME/examples/simple/resources/randomsleep/FixedSleepCR.xml -o out $DefaultBrokerURL TopLevelTaeQueue 
     \end{verbatim}
 
