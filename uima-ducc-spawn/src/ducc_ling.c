@@ -624,18 +624,13 @@ int main(int argc, char **argv, char **envp)
     char *workingdir = NULL;
     char *logfile = NULL;
     struct passwd *pwd= NULL;
-    uid_t uid_ducc = -1;
-    uid_t uid_user = -1;
-    uid_t uid_caller = -1;
     int switch_ids = 0;
     int redirect = 0;
     char buf[BUFLEN];
     int append = 0;
-    struct stat statbuf;
 
     // don't allow root to exec a process
-    uid_caller = getuid();
-    if ( uid_caller == 0 ) {
+    if ( getuid() == 0 ) {
         log_stderr("400 Can't run ducc_ling as root\n");
     	exit(1);
     }
@@ -700,23 +695,25 @@ int main(int argc, char **argv, char **envp)
         // Seems theres a bug in getpwuid and nobody seems to have a good answer.  On mac we don't
         // care anyway so we ignore it (because mac is supported for test only).
         if ( pwd == NULL ) {
-		  log_stdout("600 No \"%s\" user found and I can't find my own name.  Running as id %d", UID, getuid());
+            log_stdout("600 No \"%s\" user found and I can't find my own name.  Running as id %d", UID, getuid());
         } else {
-		  log_stdout("600 No \"%s\" user found, running instead as %s.\n", UID, pwd->pw_name);
+            log_stdout("600 No \"%s\" user found, running instead as %s.\n", UID, pwd->pw_name);
         }
 #else
         log_stdout("600 No \"%s\" user found, running instead as %s.\n", UID, pwd->pw_name);
 #endif
     } else if ( pwd->pw_uid != getuid() ) {
-	  log_stdout("700 Caller is not %s (%d), not trying to switch ids ... \n", UID, pwd->pw_uid);
+	    log_stdout("700 Caller is not %s (%d), not trying to switch ids ... \n", UID, pwd->pw_uid);
         pwd = getpwuid(getuid());
         log_stdout("800 Running instead as %s.\n", pwd->pw_name);
     } else {
+        // Invoked by the owning "ducc" id so will try to switch - but may not succeed
         switch_ids = 1;
     }
 
     //
     //	fetch target user's passwd structure and try switch identities.
+    //  if not setuid the switch will fail but carry on anyway.
     //
     if ( switch_ids ) {
 
@@ -726,7 +723,7 @@ int main(int argc, char **argv, char **envp)
             exit(1);
         }
 
-        // don't allow to change uid to root.
+        // don't allow a change to a "system" uid 
         if ( pwd->pw_uid < MIN_UID ) {
 		  log_stderr("900 setuid < %d not allowed. Exiting.\n", MIN_UID);
             exit(1);
