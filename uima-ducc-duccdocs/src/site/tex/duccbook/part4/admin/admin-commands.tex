@@ -58,7 +58,7 @@
         \item[-n, --nodelist {[nodefile] }] \hfill \\
           Start agents on the nodes in the nodefile. Multiple nodefiles may be specified: 
 \begin{verbatim}
-start\_ducc -n foo.nodes -n bar.nodes -n baz.nodes 
+start_ducc -n foo.nodes -n bar.nodes -n baz.nodes 
 \end{verbatim}
           
 
@@ -68,7 +68,7 @@ start\_ducc -n foo.nodes -n bar.nodes -n baz.nodes
           a component name with a destination node, use the notation component@nodename. 
           Multiple components may be specified: 
 \begin{verbatim}
-start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2 
+start_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2 
 \end{verbatim}
           
           Components include: 
@@ -104,17 +104,17 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
 
       Start some nodes from two different nodelist and start the broker.  
 \begin{verbatim}
-        start\_ducc -n foo.nodes -n bar.nodes -c broker
+        start_ducc -n foo.nodes -n bar.nodes -c broker
 \end{verbatim}
                   
       Start an agent on a specific node: 
 \begin{verbatim}
-        start\_ducc -c agent@a.specific.node 
+        start_ducc -c agent@a.specific.node 
 \end{verbatim}
       
       Start the webserver on node 'bingle': 
 \begin{verbatim}
-        start\_ducc -c ws@bingle 
+        start_ducc -c ws@bingle 
 \end{verbatim}
 
       \subsubsection{{\em Debugging:}}
@@ -179,7 +179,7 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
             not shutdown within a designated grace period are then forcibly terminated with kill -9. 
             
 \begin{verbatim}
-stop\_ducc -n foo.nodes -n bar.nodes -n baz.nodes 
+stop_ducc -n foo.nodes -n bar.nodes -n baz.nodes 
 \end{verbatim}
 
           \item[-c, --component {[component]}] \hfill \\

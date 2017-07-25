@@ -343,22 +343,22 @@ $HOME/ducc/logs/job-id
     Services page and wait for the service to become Available.
     \begin{verbatim}
     export DefaultBrokerURL=tcp://<broker-host-name>:61616
-    $DUCC\_HOME/bin/ducc\_services --register $DUCC\_HOME/examples/simple/1.service
+    $DUCC_HOME/bin/ducc_services --register $DUCC_HOME/examples/simple/1.service
     \end{verbatim}
     The service can be tested by sending it CASes that specify a sleep value.
     \begin{verbatim}
-    export UIMA\_HOME=$DUCC\_HOME/apache-uima
-    $UIMA\_HOME/bin/runRemoteAsyncAE.sh -c $DUCC\_HOME/examples/simple/resources/randomsleep/FixedSleepCR.xml -o out $DefaultBrokerURL TopLevelTaeQueue 
+    export UIMA_HOME=$DUCC_HOME/apache-uima
+    $UIMA_HOME/bin/runRemoteAsyncAE.sh -c $DUCC_HOME/examples/simple/resources/randomsleep/FixedSleepCR.xml -o out $DefaultBrokerURL TopLevelTaeQueue 
     \end{verbatim}
 
     To remove the service use:
     \begin{verbatim}
-    $DUCC\_HOME/bin/ducc\_services --unregister <service-id-number>
+    $DUCC_HOME/bin/ducc_services --unregister <service-id-number>
     \end{verbatim}
 
 \subsection{To stop DUCC}
     \begin{verbatim}
-      cd $DUCC\_HOME/admin
+      cd $DUCC_HOME/admin
       ./stop_ducc -a
     \end{verbatim}
       
