@@ -80,7 +80,7 @@
    	 	  <nameValuePair>
 		    <name>jobfile</name>
 		    <value>
-		      <string>../ducc_test/jobs/1.job</string>
+		      <string><envVarRef>DUCC_HOME</envVarRef>/examples/simple/1.inputs</string>
 		    </value>
 		  </nameValuePair>
 

@@ -310,7 +310,7 @@ All threads returned
   WaitingForResources.  In a few minutes this should change to Assigned.
   Now jobs can be submitted.
   
-  To submit a job,
+\subsection{Submitting a test job}
   \begin{enumerate}
     \item \duccruntime/bin/ducc\_submit --specification \duccruntime/examples/simple/1.job
     \end{enumerate}
@@ -334,11 +334,33 @@ $HOME/ducc/logs/job-id
 
     Notice also, in the upper-right corner is a link to the full DUCC documentation, the ``DuccBook''.
 
-    Finally, stop DUCC:
-    \begin{enumerate}
-      \item cd \duccruntime/admin
-      \item./stop\_ducc -a
-      \end{enumerate}
+\subsection{Registering a test service}
+
+    First start an application broker using the UIMA-AS script included in the DUCC installation,
+    see \hyperref[sec:service.uima-as-broker]{UIMA-AS broker}.
+    Then in another shell define the broker URL using the name of the host the broker was started
+    on, and register the service. On your browser select the
+    Services page and wait for the service to become Available.
+    \begin{verbatim}
+    export DefaultBrokerURL=tcp://<broker-host-name>:61616
+    $DUCC\_HOME/bin/ducc\_services --register $DUCC\_HOME/examples/simple/1.service
+    \end{verbatim}
+    The service can be tested by sending it CASes that specify a sleep value.
+    \begin{verbatim}
+    export UIMA\_HOME=$DUCC\_HOME/apache-uima
+    $UIMA\_HOME/bin/runRemoteAsyncAE.sh -c $DUCC\_HOME/examples/simple/resources/randomsleep/FixedSleepCR.xml -o out $DefaultBrokerURL TopLevelTaeQueue 
+    \end{verbatim}
+
+    To remove the service use:
+    \begin{verbatim}
+    $DUCC\_HOME/bin/ducc\_services --unregister <service-id-number>
+    \end{verbatim}
+
+\subsection{To stop DUCC}
+    \begin{verbatim}
+      cd $DUCC\_HOME/admin
+      ./stop_ducc -a
+    \end{verbatim}
       
 
 \section{Add additional nodes to the DUCC cluster}

@@ -209,6 +209,7 @@ agentn.79 = 6
       user are bypassed when {\em ducc.runmode=Test} is configured.
 
       \subsection{Starting a Simulated Cluster}
+      \label{subsec:sim.start-sim}
       DUCC provides a start-up script in the directory {\tt \duccruntime/examples/systemtest} 
       called {\tt start\_sim}.  
 
@@ -217,7 +218,9 @@ agentn.79 = 6
       checking is done and processes may be started multiple time regardless of whether is sane to
       do this.
 
-      To start a simulated cluster, use the {\em start\_sim} script:
+      To start a simulated cluster, use the {\em start\_sim} script.
+      The DUCC broker will be started without any access restrictions so that it can be used as an
+      application broker for any UIMA-AS services used in the simulation tests.
 
       \paragraph{Description:}
       The {\em start\_sim} script is used to start a simulated cluster.

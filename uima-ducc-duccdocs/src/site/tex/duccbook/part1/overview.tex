@@ -277,6 +277,9 @@
     comprising userid and password.
     \item[ActiveMQ] DUCC uses ActiveMQ for administrative communication.
     AMQ authentication is used to prevent arbitrary processes from participating.
+    But when testing DUCC on a simulated cluster the AMQ broker runs without any access restrictions 
+    so that it can be used as an application broker for UIMA-AS services used in simulation tests. 
+    See \hyperref[subsec:sim.start-sim]{{\em start\_sim}}.
     \end{description}
     
     \subsection{ducc\_ling}   

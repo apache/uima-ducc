@@ -510,6 +510,7 @@ under the License.
         <include>1.dd.sync.job</include>
         <include>1.job</include>
         <include>1.inputs</include>
+        <include>1.service</include>
       </includes>
     </fileSet>
 

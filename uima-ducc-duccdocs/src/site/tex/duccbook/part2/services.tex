@@ -146,6 +146,18 @@
       A service is registered with DUCC using the \hyperref[sec:cli.ducc-services]{ducc\_services}
       API/CLI. Service registrations are persisted by DUCC and last over DUCC and cluster restarts.
 
+      \section{Application Broker for UIMA-AS Services}
+      \label{sec:service.uima-as-broker}
+      UIMA-AS services require a separate ActiveMQ broker.  An application broker can be started
+      using a script in the UIMA-AS distribution bundled with DUCC.
+\begin{verbatim}
+      export UIMA_HOME=$DUCC_HOME/apache-uima
+      $UIMA_HOME/bin/startBroker.sh
+\end{verbatim}
+      This uses the default configuration of port 61616 for tcp access and 1099 for JMX access (used
+      by the default UIMA-AS pinger.)  The internal DUCC broker uses different ports so both may run
+      on the same node.
+
       \section{Service Management Policies}
       \label{sec:service.management-policy}
 
