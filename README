@@ -1,4 +1,4 @@
-              Apache Distributed UIMA Cluster Computing (DUCC) Version 2.2.0 README
+              Apache Distributed UIMA Cluster Computing (DUCC) Version 2.2.1 README
               
 
 1. Building from the Source Distribution
@@ -6,7 +6,7 @@
      
 We use Maven 3.0 for building; download this if needed, 
 and set the environment variable MAVEN_OPTS to -Xmx800m -XX:MaxPermSize-256m.
-To build UIMA-DUCC, install Java SDK 7.
+To build UIMA-DUCC, install Java SDK 7 or Java SDK 8.
 
 Then build from the directory containing this README by issuing the command
    mvn clean install.

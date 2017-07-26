@@ -20,10 +20,10 @@
    ***************************************************************
    -->
 <head>
-  <title>Apache Distributed UIMA Cluster Computing (DUCC) 2.2.0 Release Notes</title>
+  <title>Apache Distributed UIMA Cluster Computing (DUCC) 2.2.1 Release Notes</title>
 </head>
 <body>
-<h1>Apache UIMA-DUCC (Unstructured Information Management Architecture - Distributed UIMA Cluster Computing ) v.2.2.0 Release Notes</h1>
+<h1>Apache UIMA-DUCC (Unstructured Information Management Architecture - Distributed UIMA Cluster Computing ) v.2.2.1 Release Notes</h1>
 
 <h2>Contents</h2>
 <p>
@@ -45,31 +45,24 @@ provides cluster management services to automate the scale-out of UIMA pipelines
       
 <h2><a name="major.changes">2. Major Changes in this Release</a></h2>
 <p>
-Apache UIMA DUCC 2.2.0 is a major release containing new features and bug fixes. What's new:<br>
+Apache UIMA DUCC 2.2.1 is a maintenance release containing new features and bug fixes. What's new:<br>
 
 <ul>
-
-<li>Ships with the latest UIMA-AS v2.9.0 and UIMA SDK 2.9.0</li>
-<li>Ships with ActiveMQ v5.14.0 </li>
-<li>Added support for static failover and capability to move the head node</li>
-<li>Fixed DUCC OR "warm" restart issues</li>  
-<li>Fixed DUCC startup script to fail if the DB doesn't start</li>
-<li>Fixed DUCC shutdown sequence bug which prevented agents from stopping if Broker was shutdown first</li>
-<li>Fixed Rogue process detector to detect and cleanup orphan services</li>
-<li>Deprecated ducc.agent.node.metrics.sys.gid.max and replaced with ducc.agent.rogue.process.sys.uid.max</li>
-<li>Enhanced DUCC Job Driver (JD) to provide individual work item performance breakdowns</li>
-<li>Modified DUCC to restrict broker use to ducc user only</li>
-<li>On process launch failure, agent supplies a reason for failure for display in ducc mon</li>
-<li>Added duplicate daemon detector to prevent starting duplicate DUCC daemon</li>
-<li>Many DUCC Database improvements </li>
-<li>Many DUCC webpage improvements </li>
-
+<li>The userid of a privileged DUCC installation does not have to be "ducc"</li>
+<li>ducc-mon login can be used on systems where users do not have password login</li>
+<li>The DUCC head-node daemons may be moved to another host without breaking working applications</li>
+<li>The deployment descriptor for a UIMA-AS service can be loaded from the classpath</li>  
+<li>Interactive applications run correctly with viaducc (fixed lost inputs)</li>
+<li>Files created by DUCC jobs inherit the permissions of the launching shell's umask.</li>
+<li>DUCC performance breakdown for scaled synchronous pipelines is now correct</li>
 </ul>
 
 <br><br>
 
 For a complete list of issues fixed and up-to-date information on UIMA-DUCC issues, see our issue tracker: 
-<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.0-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.0-Ducc%22%20</a>
+<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.1-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.1-Ducc%22%20</a>
+
+This version of DUCC includes UIMA-SDK v.2.9.0, UIMA-AS v.2.9.0, and ActiveMQ v.5.14.0.
 </p> 
       
 <h2><a name="migration">3. Migration from a Prior Release</a></h2>
