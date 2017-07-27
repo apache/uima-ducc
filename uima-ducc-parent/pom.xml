@@ -801,8 +801,32 @@ ${uimaDUCCNoticeText}
 
 		<!-- define common plugins that are shared by every pom -->
 		<plugins>
-
-
+		
+		<plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.10.4</version>
+          <configuration>
+          <additionalparam>-Xdoclint:none</additionalparam>
+            <source>${maven.compiler.source}</source>
+            <javadocVersion>${maven.compiler.source}</javadocVersion> <!-- https://issues.apache.org/jira/browse/UIMA-5369 -->
+          </configuration>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <configuration>
+                <source>${maven.compiler.source}</source>
+              </configuration>
+            </execution>
+            <execution>
+              <id>default-cli</id>  <!-- Jenkins runs this apparently 3/2015 -->
+              <configuration>
+                <source>${maven.compiler.source}</source>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+		
 		  <!-- Get SVN revision number and include in the manifest.
 		       Disable the check for local changes and the svn update -->
 		  <plugin>
