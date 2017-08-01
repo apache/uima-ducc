@@ -707,13 +707,17 @@ int main(int argc, char **argv, char **envp)
         pwd = getpwuid(getuid());
         log_stdout("800 Running instead as %s.\n", pwd->pw_name);
     } else {
-        // Invoked by the owning "ducc" id so will try to switch - but may not succeed
-        switch_ids = 1;
+        // Invoked by the owning "ducc" id so check if can switch, i.e. running as root
+        if (geteuid() == 0) {
+            switch_ids = 1;
+        }
     }
 
     //
-    //	fetch target user's passwd structure and try switch identities.
-    //  if not setuid the switch will fail but carry on anyway.
+    //  Fetch target user's passwd structure and switch identities.
+    //  Don't allow a switch to a fake or "system" id.
+    //  If not switching then the target uid may be real or fake. 
+    //  Fake ids are used when running on a simulated cluster.
     //
     if ( switch_ids ) {
 
