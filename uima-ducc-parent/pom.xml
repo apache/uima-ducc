@@ -807,7 +807,7 @@ ${uimaDUCCNoticeText}
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>2.10.4</version>
           <configuration>
-          <additionalparam>-Xdoclint:none</additionalparam>
+
             <source>${maven.compiler.source}</source>
             <javadocVersion>${maven.compiler.source}</javadocVersion> <!-- https://issues.apache.org/jira/browse/UIMA-5369 -->
           </configuration>
