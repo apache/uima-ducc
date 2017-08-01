@@ -2190,17 +2190,24 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		String jobNo = request.getParameter("id");
 		DuccWorkJob work = getJob(jobNo);
-		EffectiveUser eu = EffectiveUser.create(request);
-        String path = work.getUserLogDir() + DuccUiConstants.job_specification_properties;
-        Properties usProperties;
-        Properties properties;
-        try {
-            usProperties = DuccFile.getUserSpecifiedProperties(eu, work);
-            properties = DuccFile.getProperties(eu, path);
-        } catch (Throwable e) {
-            throw new IOException(e);
-        }
-		processSpecificationData(request, response, usProperties, properties, null);
+		if(work != null) {
+			EffectiveUser eu = EffectiveUser.create(request);
+	        String path = work.getUserLogDir() + DuccUiConstants.job_specification_properties;
+	        Properties usProperties;
+	        Properties properties;
+	        try {
+	            usProperties = DuccFile.getUserSpecifiedProperties(eu, work);
+	            properties = DuccFile.getProperties(eu, path);
+	        } catch (Throwable e) {
+	            throw new IOException(e);
+	        }
+			processSpecificationData(request, response, usProperties, properties, null);
+		}
+		else {
+			String msg = "(data not found)";
+            response.getWriter().println(msg);
+            duccLogger.warn(methodName, null, request.getParameter("id") + " failed: " + msg);
+		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
