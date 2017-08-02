@@ -406,7 +406,7 @@
    (webserver)jQuery UI v.1.11.0
    (webserver)DataTables v.1.10.1
    (webserver)DataTables-plugins v.1.10.1
-   (webserver>navigation
+   (webserver)navigation
    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
         iso-relax
    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
@@ -485,7 +485,7 @@
    jbcrypt-0.3m.jar	  
 
 ===-Common Public License - v 1.0  =============
-   (Webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
+   (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
        wsdl4j 
  
 ===-Eclipse Public License - v 1.0  =============
@@ -511,11 +511,11 @@
    (webserver) org.eclipse.jetty.orbit.org.eclipse.jdt.core-3.8.2.v20130121.jar
  
 ===-Sun Microsystems, Inc License =============
-   (Webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
+   (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
       JXTA 
 
 ===-Academic Free License =============
-   (Webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
+   (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
       Dojo   
    
 ===-jGuru.com (MageLang Institute) License =============   
@@ -543,7 +543,7 @@
 	    Multi-Schema Validator v. relaxngDatatype.jar
 
 ===-SUN PUBLIC LICENSE Version 1.0 =============
-    (Webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
+    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
 	    Java Pack200-ant-task
         schema2beans
 		dbschema
