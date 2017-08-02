@@ -358,7 +358,8 @@ check_ducc -n nlist1 -n nlist2
 
     \paragraph{Description:}
     The post-installation script must be run only after the first installation of DUCC. 
-    When updating an existing installation use \hyperref[subsec:admin.ducc-update]{\em ducc\_update}.
+    When updating an existing installation use the \hyperref[subsec:admin.ducc-update]{\em ducc\_update}
+    script.
     ducc\_post\_install performs these tasks:
     \begin{enumerate}
       \item Verifies that the correct level of Java and Python are installed and available.
@@ -392,7 +393,7 @@ check_ducc -n nlist1 -n nlist2
           \item Creates a site.ducc.properties file if updating from DUCC 1.1.0.
           \item Creates a time-stamped archive directory to hold the old runtime.
           \item Archives current files before updating them, except for the customizable ones.
-          \item Leaves in place any files added to the directories that may hold csite-specific files.
+          \item Leaves in place any files added to the directories that may hold site-specific files.
           \item Reports which are replaced, added, or kept.
           \item Rebuilds the non-privileged ducc\_ling.
         \end{enumerate}
@@ -402,8 +403,8 @@ check_ducc -n nlist1 -n nlist2
         while all replaced files are archived under a folder called {\em ducc\_archives} 
         so the previous installation can be restored if necessary.
 
-        Note that the update does not create the database.  After updating to 2.1.0 from an earlier
-        version with the file-based persistent scheme the database should be created with
+        Note that the update does not create the database.  After updating from a version prior
+        to 2.1.0 using the file-based persistent scheme the database should be created with
         \hyperref[subsec:admin.db-create]{\em db\_create} 
         and the files holding state such as job history and service registrations loaded into the database with
         \hyperref[subsec:admin.db-loader]{\em db\_loader}.
@@ -428,8 +429,11 @@ check_ducc -n nlist1 -n nlist2
      \end{description}
 
     \paragraph{Example:}
+        If this is the first installation or the current installation does not contain the
+        ducc\_update script you can first extract it from the tar file. 
 \begin{verbatim}
-ducc_update ducc_runtime /home/ducc/ducc_runtime Downloads/uima-ducc-2.1.0-bin.tar.gz 
+tar --no-anchored -zxf uima-ducc-2.1.0-bin.tar.gz ducc_update
+apache-uima-ducc-2.1.0/admin/ducc_update /home/ducc/ducc_runtime uima-ducc-2.1.0-bin.tar.gz 
 \end{verbatim}
 
 
