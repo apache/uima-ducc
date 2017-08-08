@@ -115,14 +115,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			return scaleout;
 		}
 	}
-	public byte[] getLastSerializedError() throws Exception {
 
-		if (lastError != null) {
-			return serialize(lastError);
-		}
-		return null;
-
-	}
 	/**
 	 * This method is called by each worker thread before entering
 	 * process loop in run(). Each work thread shares instance of
@@ -306,8 +299,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 	public List<Properties> doProcess(Object xmi) throws Exception {
 		CAS cas = uimaASClient.getCAS();   // fetch a new CAS from the client's Cas Pool
 		try {
-			// reset last error
-			lastError = null;
+
 			// Use thread dedicated UimaSerializer to de-serialize the CAS
 			getUimaSerializer().deserializeCasFromXmi((String)xmi, cas);
 
@@ -353,12 +345,10 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			}
 
 			return metricsList;
-		} catch( Throwable e ) {
-			lastError = e;
+		} catch( Throwable t ) {
 			Logger logger = UIMAFramework.getLogger();
-			logger.log(Level.WARNING, "UimaProcessContainer", e);
-			e.printStackTrace();
-			throw new AnalysisEngineProcessException();
+			logger.log(Level.WARNING, "UimaProcessContainer", t);
+			throw new RuntimeException(super.serializeAsString(t));
 		} finally {
 			if ( cas != null) {
 				cas.release();

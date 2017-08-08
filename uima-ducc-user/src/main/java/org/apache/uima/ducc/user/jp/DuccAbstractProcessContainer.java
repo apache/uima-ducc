@@ -21,6 +21,8 @@ package org.apache.uima.ducc.user.jp;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.HashMap;
@@ -50,7 +52,6 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     protected abstract List<Properties>  doProcess(Object subject) throws Exception;
     protected 	AnalysisEngineMetaData analysisEngineMetadata;
 
-	protected Throwable lastError = null;
     protected int scaleout=1;
     // Map to store DuccUimaSerializer instances. Each has affinity to a thread
 	protected static Map<Long, DuccUimaSerializer> serializerMap =
@@ -155,7 +156,21 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
          }
      }
 
-    
+    protected String serializeAsString(Throwable t) throws Exception {
+        StringWriter sw = new StringWriter();
+        String serializedCause = "";
+        try {
+ 
+            t.printStackTrace(new PrintWriter(sw));
+            serializedCause =  sw.toString();
+        } catch (Throwable e) {
+			e.printStackTrace();
+			// Unable to serialize user Exception (not Serializable?)
+			// Just send a simple msg telling user to check service log
+			serializedCause = "Unable to Serialize User Exception - Please Check JP Log File For More Details";
+		}
+        return serializedCause;
+    }
     protected byte[] serialize(Throwable t) throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(baos);

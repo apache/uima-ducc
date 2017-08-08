@@ -21,6 +21,7 @@ package org.apache.uima.ducc.user.jp;
 
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -105,14 +106,6 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 	    scaleout = threadCount==null ? 1 : Integer.valueOf(threadCount);   // Default to 1
 	    return scaleout;		  
 	}
-	public byte[] getLastSerializedError() throws Exception {
-
-		if (lastError != null) {
-			return serialize(lastError);
-		}
-		return null;
-
-	}
 
 	public int doInitialize(Properties props, String[] args) throws Exception {
 			return configureAndGetScaleout(args);
@@ -187,8 +180,6 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 		latch.await();
 		CAS cas = casPool.getCas();
 		try {
-			// reset last error
-			lastError = null;
 			// deserialize the CAS
 			getUimaSerializer().deserializeCasFromXmi((String)xmi, cas);
 
@@ -218,14 +209,11 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 						String.valueOf(metrics.getNumProcessed()));
 				metricsList.add(p);
 			}
-			
 			return metricsList;
-		} catch( Throwable e ) {
-			lastError = e;
+		} catch( Throwable t ) {
 			Logger logger = UIMAFramework.getLogger();
-			logger.log(Level.WARNING, "UimaProcessContainer", e);
-			e.printStackTrace();
-			throw new AnalysisEngineProcessException();
+			logger.log(Level.WARNING, "UimaProcessContainer", t);
+			throw new RuntimeException(super.serializeAsString(t));
 		}
 		finally {
 			if (ae != null) {
