@@ -308,11 +308,20 @@ public class HttpWorkerThread implements Runnable {
 								break;
 							}
 							IMetaCas mc = transaction.getMetaCas();
-							
-							// Fetch serialized exception as a blob
-							Method getLastSerializedErrorMethod = processorInstance.getClass().getDeclaredMethod("getLastSerializedError");
-							byte[] serializedException =
-							    (byte[])getLastSerializedErrorMethod.invoke(processorInstance);
+							// strip InvocationTargetException
+							byte[] serializedException = serializeException(ee.getCause());
+							/*
+							ByteArrayOutputStream baos = new ByteArrayOutputStream();
+						    ObjectOutputStream oos = new ObjectOutputStream(baos);
+						    try {
+						       oos.writeObject(ee.getCause());
+						       serializedException = baos.toByteArray();
+					        } catch (Exception e) {
+					        	Exception e2 = new RuntimeException("Ducc Service Failed to Serialize the Cause of Process Failure. Check Service Log for Details");
+					        	oos.writeObject(e2);
+					        	serializedException = baos.toByteArray();
+					        }
+					        */
 							mc.setUserSpaceException(serializedException);								
 
 							logger.info("run", null, "Work item processing failed - returning serialized exception to the JD");
@@ -325,12 +334,16 @@ public class HttpWorkerThread implements Runnable {
 								break;
 							}
 							// Serialize exception for the JD.
+							byte[] serializedException = serializeException(ee);
+							/*
 							ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						    ObjectOutputStream oos = new ObjectOutputStream( baos );
 						    oos.writeObject( ee);
 						    oos.close();
 							transaction.getMetaCas().setUserSpaceException(baos.toByteArray());
+						    */
 							logger.error("run", null, ee);
+							transaction.getMetaCas().setUserSpaceException(serializedException);								
 						}
 						// Dont return serialized CAS to reduce the msg size
 						transaction.getMetaCas().setUserSpaceCas(null);
@@ -454,6 +467,31 @@ public class HttpWorkerThread implements Runnable {
 		
 		}
 
+	}
+	private byte[] serializeException(Throwable t) {
+		byte[] serializedException;
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	    ObjectOutputStream oos = null;
+	    try {
+	       oos = new ObjectOutputStream(baos);
+	       oos.writeObject(t);
+	       serializedException = baos.toByteArray();
+        } catch (Exception ee) {
+        	Exception e2 = new RuntimeException("Ducc Service Failed to Serialize the Cause of Process Failure. Check Service Log for Details");
+        	try {
+        		oos.writeObject(e2);
+    		} catch( Exception ex ) {}
+        	
+        	serializedException = baos.toByteArray();
+        } finally {
+        	if ( oos != null ) {
+        		try {
+        			oos.close();
+        		} catch( Exception ex ) {}
+        	
+        	}
+        }
+	    return serializedException;
 	}
 
 }
