@@ -21,7 +21,6 @@ package org.apache.uima.ducc.user.jp;
 
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.analysis_engine.AnalysisEngineManagement;
-import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.ducc.user.jp.uima.UimaAnalysisEngineInstancePoolWithThreadAffinity;
@@ -106,6 +104,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 	    scaleout = threadCount==null ? 1 : Integer.valueOf(threadCount);   // Default to 1
 	    return scaleout;		  
 	}
+
 
 	public int doInitialize(Properties props, String[] args) throws Exception {
 			return configureAndGetScaleout(args);
@@ -186,7 +185,22 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 			// the following checks out AE instance pinned to this thread
 			ae = instanceMap.checkout();
 			List<AnalysisEnginePerformanceMetrics> beforeAnalysis = getMetrics(ae);
-			ae.process(cas);
+			
+			// Handle AnalysisEngineProcessException
+			try {
+				ae.process(cas);
+			} catch( Throwable t) {
+				// save the error
+				errorMap.put(Thread.currentThread().getId(), t);
+				// AE failed, throw an exception. The HttpWorketThread will 
+				// subsequently call getLastSerializedException() on this class
+				// to fetch serialized exception saved in errorMap above.
+				// The map entry for each thread is reset in super.process().
+				throw new RuntimeException(); 
+			}
+			// *****************************************************
+			// No exception in process() , return metrics as a List
+			// *****************************************************
 			List<AnalysisEnginePerformanceMetrics> afterAnalysis = getMetrics(ae);
 
 			// get the delta
@@ -210,11 +224,9 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 				metricsList.add(p);
 			}
 			return metricsList;
-		} catch( Throwable t ) {
-			Logger logger = UIMAFramework.getLogger();
-			logger.log(Level.WARNING, "UimaProcessContainer", t);
-			throw new RuntimeException(super.serializeAsString(t));
-		}
+		} catch( Throwable tt ) {
+			throw tt;
+ 		}
 		finally {
 			if (ae != null) {
 				instanceMap.checkin(ae);
@@ -223,6 +235,9 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 				casPool.releaseCas(cas);
 			}
 		}
+	}
+	public byte[] getLastSerializedError() throws Exception {
+	       return super.getLastSerializedError();
 	}
 	   private List<AnalysisEnginePerformanceMetrics> getMetrics(AnalysisEngine ae)
 			throws Exception {

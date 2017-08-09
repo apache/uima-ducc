@@ -308,8 +308,19 @@ public class HttpWorkerThread implements Runnable {
 								break;
 							}
 							IMetaCas mc = transaction.getMetaCas();
-							// strip InvocationTargetException
-							byte[] serializedException = serializeException(ee.getCause());
+							//byte[] serializedException = null;
+							Method getLastSerializedErrorMethod = processorInstance.getClass().getDeclaredMethod("getLastSerializedError");
+							byte[] serializedException =
+							    (byte[])getLastSerializedErrorMethod.invoke(processorInstance);
+			
+//							if ( ee.getCause() instanceof DuccUimaProcessException ) {
+//								// The process() exception had been serialized on the user side of the JP since
+//								// only there the Classloader has all the classes to serialize the exception.
+//								serializedException = ((DuccUimaProcessException)ee.getCause()).getSerializedException();
+//							} else {
+//								// strip InvocationTargetException
+//								serializedException = serializeException(ee.getCause());
+//							}
 							/*
 							ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						    ObjectOutputStream oos = new ObjectOutputStream(baos);
