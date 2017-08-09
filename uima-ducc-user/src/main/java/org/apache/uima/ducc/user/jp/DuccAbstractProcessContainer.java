@@ -206,22 +206,27 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 		if (errorMap.containsKey(Thread.currentThread().getId())) {
 			Throwable lastError = 
 					errorMap.get(Thread.currentThread().getId());
-
-			if ( System.getProperty("SendExceptionAsString")!= null ) {
-				// the client of this JP/Service does not have user classpath
-				// to be able to deserialize this exception. Instead of serializing
-				// the exception as a java object, stringify it first and wrap it.
-				// The client process might want to log this error.
-				result = serialize(new RuntimeException(serializeAsString(lastError)));
-			} else {
-				try {
-					// try to serialize as java Object
-					result = serialize(lastError);
-				} catch( Exception e) {
-					// Fallback is to stringify the exception and wrap it
+			if ( lastError != null ) {
+				if ( System.getProperty("SendExceptionAsString")!= null ) {
+					// the client of this JP/Service does not have user classpath
+					// to be able to deserialize this exception. Instead of serializing
+					// the exception as a java object, stringify it first and wrap it.
+					// The client process might want to log this error.
 					result = serialize(new RuntimeException(serializeAsString(lastError)));
+				} else {
+					try {
+						// try to serialize as java Object
+						result = serialize(lastError);
+					} catch( Exception e) {
+						// Fallback is to stringify the exception and wrap it
+						result = serialize(new RuntimeException(serializeAsString(lastError)));
+					}
 				}
-
+			} else {
+				// this is not be normal that we are here. This method was 
+				// called since the process() failed. An exception should have
+				// been added to the errorMap in such case with key=thread id
+				result = serialize(new RuntimeException("AE.process( )failed - check service log"));
 			}
 		}
 		return result;
