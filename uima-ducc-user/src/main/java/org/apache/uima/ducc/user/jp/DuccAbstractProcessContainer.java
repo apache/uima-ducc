@@ -222,12 +222,13 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 						result = serialize(new RuntimeException(serializeAsString(lastError)));
 					}
 				}
-			} else {
-				// this is not be normal that we are here. This method was 
-				// called since the process() failed. An exception should have
-				// been added to the errorMap in such case with key=thread id
-				result = serialize(new RuntimeException("AE.process( )failed - check service log"));
-			}
+			} 
+		} 
+		if ( result == null ) {
+			// this is not be normal that we are here. This method was 
+			// called since the process() failed. An exception should have
+			// been added to the errorMap in such case with key=thread id
+			result = serialize(new RuntimeException("AE.process( )failed - check service log"));
 		}
 		return result;
 	}
