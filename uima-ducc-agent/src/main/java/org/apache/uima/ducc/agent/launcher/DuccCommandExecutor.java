@@ -563,6 +563,11 @@ public class DuccCommandExecutor extends CommandExecutor {
 
 			throw ex;
 		} finally {
+			if ( isKillCmd ) {
+				// the kill command process has been launched. Nothing else to do. 
+				// We now wait for the process to die.
+				return; 
+			}
 		    if ( !failed ) {
 			// associate exit code
 			((ManagedProcess) managedProcess).getDuccProcess()
