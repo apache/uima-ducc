@@ -32,12 +32,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.HttpHostConnectException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
-import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.TransactionId;
@@ -230,17 +228,16 @@ public class HttpWorkerThread implements Runnable {
 						// the JD says there are no more WIs. Sleep awhile
 						// do a GET in case JD changes its mind. The JP will
 						// eventually be stopped by the agent
-
+    			  // Retry at the start of this block as another thread may have just exited with work
+    				// so the TAS (or JD) may now have a lot of work.	
  						synchronized (HttpWorkerThread.class) {
 							while(duccComponent.isRunning() ) {
+							  transaction = getWork(postMethod, major, ++minor);
+							  if ( transaction.getMetaCas() != null && transaction.getMetaCas().getUserSpaceCas() != null ) {
+							    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" work flow has restarted");
+							    break;
+							  }
 								waitAwhile(duccComponent.getThreadSleepTime());
-								// just awoken, check if the JP is still in Running state
-								if ( duccComponent.isRunning()) {
-									transaction = getWork(postMethod, major, ++minor);
-									if ( transaction.getMetaCas() != null && transaction.getMetaCas().getUserSpaceCas() != null ) {
-										break;
-									}
-								}
 							}
 						}
 						
