@@ -105,21 +105,18 @@ public abstract class AServicePing
      *
      * @param endpoint This is the name of the service endpoint, as passed in
      *                 at service registration.
+     *                 
+     * @throws Exception If initialization fails
      */
     public abstract void init(String arguments, String endpoint) throws Exception;
 
     /**
-     * <p>
      * Called by the ping driver to initialize static information about the service and
      * pinger.  This method calls the public init() method and is not intended for public
      * consumption.
-     * </p>
      *
-     * <p>
      * This method initializes the following state prior to invoking init(String, String):
-     * </p>
      *
-     * <xmp>
      * VAR NAME               TYPE         MEANING
      * ------------------     --------     ---------------------------------------------
      * monitor_rate           int          Ping period, in minutes.
@@ -133,7 +130,6 @@ public abstract class AServicePing
      * last_use               long         When was the last known use of this service
      *                                     before it was (re)started?
      *
-     * </xmp>
      *
      * @param arguments This is passed in from the service specification's
      *                  service_ping_arguments string.
@@ -143,6 +139,8 @@ public abstract class AServicePing
      *
      * @param initState Properties file with static data about the service and 
      *                  pinger.
+     *                  
+     * @throws Exception If initialization fails
      */
     public void init(String arguments, String endpoint, Map<String, Object> initState)
         throws Exception
@@ -180,7 +178,7 @@ public abstract class AServicePing
      */
     public abstract IServiceStatistics getStatistics();
 
-    /**
+    /*
      * Current state of the monitored service is passed in here.
      * NOTE: Used for SM to Ping/Monitor communicaiton only.
      */    
@@ -190,21 +188,18 @@ public abstract class AServicePing
     }
 
     /**
-     * <p>
      * Getter of the service state;  Implementors may just access it directly if they want.
      * Access the state passed to the ping/monitor from SM:
-     * </p>
-     * <xmp>
+     * 
      * KEY                  Object Type       MEANING
      * ----------------     -------------     ------------------------------------------------------------------
-     * all-instances        Long[]            DUCC Ids of all running instances (may not all be in Runing state)
+     * all-instances        Long[]            DUCC Ids of all running instances (may not all be in Running state)
      * active-instances     Long[]            DUCC Ids of all instances that are Running
      * autostart-enabled    Boolean           Current state of service autostart
      * references           Long[]            DUCC Ids of all jobs referencing this service
      * run-failures         Integer           Total run failures since the service was started
-     * </xmp>
      *
-     * @return A Map<String, Object> of string-key to Object containing dynamic information from the SM.  Callers
+     * @return A String to Object Map containing dynamic information from the SM.  Callers
      *        must cast the value to the correct type as shown below.
      */
     public Map<String, Object> getSmState() 
@@ -310,7 +305,7 @@ public abstract class AServicePing
         return String.format(sb.toString(), vals);
     }
 
-    /**
+    /*
      * <p>
      * This is used by the SM for running pingers internally as SM threads, to direct
      * the ping log into the SM log.
@@ -377,32 +372,23 @@ public abstract class AServicePing
     }
 
     /**
-     * <p>
      * This determines if there have been excessive service instance failures by tracking the 
      * number of failures, not consecutive, but rather within a window of time.  It may be
      * overridden by extending monitors.
-     * </p>
      *
-     * <p>
      * This default implementation uses a time window to determine if exessive failures
      * have occurred in a short period of time.  It operates off the two failure parameters
      * from the service registration:
-     * <xmp>
      *     instance_failure_window  [time-in-minutes]
      *     instance_failure_limit   [number of failures]
-     * </xmp>
-     * </p>
-     * <p>
+     *     
      * If more than 'instance_failure_limit' failures occure within the preceding 
      * 'time-in-minutes' this method returns 'true' and the SM disables automatic
      * restart of instances.  Restart may be resumed by manually issuing a CLI start
      * to the service one the problem is resolved.
-     * </p>
      *
-     * <p>
      * Implementing ping/monitors may override this with custom logic to determine if a
      * service has had excessive failures.
-     * </p>
      *
      * @return true if too many failures have been observed, false otherwise.  If 'true'
      * is returned, the SM no longer restarts failed instances.

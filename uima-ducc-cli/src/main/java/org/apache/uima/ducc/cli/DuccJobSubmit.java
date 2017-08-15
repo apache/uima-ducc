@@ -92,8 +92,11 @@ public class DuccJobSubmit
     private AllInOneLauncher allInOneLauncher = null;
 
     /**
+     * Submit a job
+     * 
      * @param args Array of string arguments as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
+     * Command Line Interface section of the DuccBook
+     * @throws Exception if request fails
      */
     public DuccJobSubmit(String[] args)
         throws Exception
@@ -102,8 +105,11 @@ public class DuccJobSubmit
     }
 
     /**
+     * Submit a job
+     * 
      * @param args List of string arguments as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
+     * Command Line Interface section of the DuccBook
+     * @throws Exception if request fails
      */
     public DuccJobSubmit(ArrayList<String> args)
         throws Exception
@@ -113,8 +119,11 @@ public class DuccJobSubmit
 
 
     /**
+     * Submit a job
+     * 
      * @param props Properties file of arguments, as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
+     * Command Line Interface section of the DuccBook
+     * @throws Exception if request fails
      */
     public DuccJobSubmit(Properties props)
         throws Exception
@@ -130,6 +139,7 @@ public class DuccJobSubmit
      *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
      * @param consoleCb If provided, messages are directed to it instead of
      *        stdout.
+     * @throws Exception if request fails
      */
     public DuccJobSubmit(ArrayList<String> args, IDuccCallback consoleCb)
         throws Exception
@@ -145,6 +155,7 @@ public class DuccJobSubmit
      *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
      * @param consoleCb If provided, messages are directed to it instead of
      *        stdout.
+     * @throws Exception if request fails
      */
     public DuccJobSubmit(String[] args, IDuccCallback consoleCb)
         throws Exception
@@ -164,6 +175,7 @@ public class DuccJobSubmit
      *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
      * @param consoleCb If provided, messages are directed to it instead of
      *        stdout.
+     * @throws Exception if request fails
      */
     public DuccJobSubmit(Properties props, IDuccCallback consoleCb)
         throws Exception

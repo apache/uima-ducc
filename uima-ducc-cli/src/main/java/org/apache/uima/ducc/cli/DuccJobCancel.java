@@ -51,8 +51,11 @@ public class DuccJobCancel
 
 	
     /**
-     * @param args Array of string arguments as described in the 
-     *      <a href="/doc/duccbook.html#DUCC_CLI_CANCEL">DUCC CLI reference.</a>
+     * Cancel a job
+     * 
+     * @param args Array of string arguments as described in the
+     *             Command Line Interface section of the DuccBook 
+     * @throws Exception if request fails
      */
 	public DuccJobCancel(String [] args) 
         throws Exception
@@ -61,8 +64,11 @@ public class DuccJobCancel
 	}
 
     /**
+     * Cancel a job
+     * 
      * @param args List of string arguments as described in the 
-     *      <a href="/doc/duccbook.html#DUCC_CLI_CANCEL">DUCC CLI reference.</a>
+     *             Command Line Interface section of the DuccBook
+     * @throws Exception if request fails
      */
 	public DuccJobCancel(List<String> args) 
         throws Exception
@@ -72,8 +78,11 @@ public class DuccJobCancel
 	}
 
     /**
-     * @param props Properties file of arguments, as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_CANCEL">DUCC CLI reference.</a>
+     * Cancel a job
+     * 
+     * @param props Properties file of arguments as described in the
+     *              Command Line Interface section of the DuccBook
+     * @throws Exception if request fails
      */
 	public DuccJobCancel(Properties props) 
         throws Exception

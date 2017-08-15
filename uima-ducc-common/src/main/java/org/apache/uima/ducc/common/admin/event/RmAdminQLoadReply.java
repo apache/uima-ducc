@@ -40,15 +40,15 @@ public class RmAdminQLoadReply
     }
 
 
-    /** RM only, other use produces incorrect results. */
+    /* RM only, other use produces incorrect results. */
     public void setShareQuantum(long q)               { this.shareQuantum = q / ( 1024*1024); }
-    /** RM only, other use produces incorrect results. */
+    /* RM only, other use produces incorrect results. */
     public void addNodepool    (RmQueriedNodepool np) { nodepools.add(np); }
-    /** RM only, other use produces incorrect results. */
+    /* RM only, other use produces incorrect results. */
     public void addClass       (RmQueriedClass    cl) { classes.add(cl); }
 
     /**
-     * Return the share quantum currently being used by RM.
+     * @return the share quantum currently being used by RM.
      */
     public long getShareQuantum()                 { return shareQuantum; }
 
@@ -62,7 +62,7 @@ public class RmAdminQLoadReply
      */
     public List<RmQueriedClass>    getClasses()   { return classes; }
 
-    /** RM only, other use produces incorrect results. */
+    /* RM only, other use produces incorrect results. */
     public void    notReady()                     { this.ready = false; }
 
     /**

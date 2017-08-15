@@ -42,7 +42,7 @@ package org.apache.uima.ducc.cli;
  *           public String description() { return "Run driver and pipeline in single process."; } 
  *           public String example()     { return null; }
  *       },
- *       public boolean multiargs() { return false; } // the option can have >1 arg
+ *       public boolean multiargs() { return false; } // the option can have multiple arguments
  *       public boolean required()  { return false; } // this option is required
  *       public String  deflt()     { return null; }  // default, or ""
  *       public String  sname()     { return null; }  // short name of option

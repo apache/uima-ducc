@@ -217,7 +217,7 @@ public abstract class CliBase
         }
     }
 
-    /**
+    /*
      * Standard init for all except the Service calls that are sent to the SM
      */
 
@@ -240,7 +240,7 @@ public abstract class CliBase
    * @param cli_props    (Initially) empty properties file to be filled in
    * @param consoleCb    Console callback object (optional)
    * @param servlet      The name of the http servlet that will serve this request
-   * @throws Exception
+   * @throws Exception   If initialization fails, e.g. invalid arguments or properties
    */
     protected synchronized void init(String myClassName, IUiOption[] uiOpts, String[] args, Properties props,
                     DuccProperties cli_props, IDuccCallback consoleCb, String servlet)
@@ -517,6 +517,8 @@ public abstract class CliBase
      * structures for the API, and extracts the numeric id of the [job, ducclet, reservation, service]
      * returned by the Orchestrator.
      *
+     * @param reply - an Orchestrator reply event
+     *   
      * @return true if the action succeeded and false otherwise.  The action in this case, is whatever
      *               the Orchestrator was asked to do: submit something, cancel something, etc.
      */
@@ -595,7 +597,7 @@ public abstract class CliBase
         return consoleCb;
     }
 
-    /**
+    /*
      * NOTE: We do NOT want to be intentionally throwing from the CLI.  Pls pass e.getMessage() or
      *       e.toString() to this instead of throwing.
      */
@@ -690,7 +692,7 @@ public abstract class CliBase
         mlt.start();
     }
 
-    /**
+    /*
      * Needs to be done before submitting the job because the job needs the ports.  We'll
      * just define the listener, but not start it until the job monitor starts, in case the
      * submission fails.
@@ -721,7 +723,7 @@ public abstract class CliBase
         cli_props.setProperty(key, env);
     }
 
-    /**
+    /*
      * Be sure to call this BEFORE submission, to insure the callback address is set in properties.
      */
     protected synchronized void startConsoleListener(boolean start_stdin)

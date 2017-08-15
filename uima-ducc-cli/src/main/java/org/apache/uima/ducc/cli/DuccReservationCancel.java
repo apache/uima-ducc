@@ -49,8 +49,8 @@ public class DuccReservationCancel
     };
 
     /**
-     * @param args Array of string arguments as described in the 
-     *      <a href="/doc/duccbook.html#DUCC_CLI_UNRESERVE">DUCC CLI reference.</a>
+     * @param args Array of string arguments as described in the
+     * @throws Exception if request fails 
      */	
 	public DuccReservationCancel(String [] args) 
         throws Exception
@@ -59,8 +59,9 @@ public class DuccReservationCancel
 	}
 
     /**
-     * @param args List of string arguments as described in the 
-     *      <a href="/doc/duccbook.html#DUCC_CLI_UNRESERVE">DUCC CLI reference.</a>
+     * @param args List of string arguments as described in the
+     *             Command Line Interface section of the DuccBook
+     * @throws Exception if request fails 
      */
 	public DuccReservationCancel(List<String> args) 
         throws Exception
@@ -71,7 +72,8 @@ public class DuccReservationCancel
 
     /**
      * @param props Properties file of arguments, as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_UNRESERVE">DUCC CLI reference.</a>
+     *              Command Line Interface section of the DuccBook
+     * @throws Exception if request fails             
      */
 	public DuccReservationCancel(Properties props) 
         throws Exception
@@ -80,9 +82,9 @@ public class DuccReservationCancel
 	}
 
     /**
-     * Return the DUCC Orchestrator message, if any, pertaining to the cancelation.
+     * Return the DUCC Orchestrator message, if any, pertaining to the cancellation.
      *
-     * @return Return any message associated with the cancelation.
+     * @return Return any message associated with the cancellation.
      */
 	public String getResponseMessage()
 	{
@@ -90,10 +92,11 @@ public class DuccReservationCancel
 	}
 
     /**
-     * Execute collects the parameters for reservation cancelation and sends them to the DUCC Orchestrator
-     * to effect the cancelation.
+     * Execute collects the parameters for reservation cancellation and sends them to the DUCC Orchestrator
+     * to effect the cancellation.
      *
-     * @return True if the orchestrator accepts the reservation cancelation.
+     * @return True if the orchestrator accepts the reservation cancellation.
+     * @throws Exception if request fails
      */
 	public boolean execute() 
         throws Exception 

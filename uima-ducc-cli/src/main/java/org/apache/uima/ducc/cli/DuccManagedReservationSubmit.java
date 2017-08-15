@@ -63,7 +63,8 @@ public class DuccManagedReservationSubmit
 
     /**
      * @param args List of string arguments as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
+     *             Command Line Interface section of the DuccBook
+     * @throws Exception if request fails
      */
     public DuccManagedReservationSubmit(String[] args)
         throws Exception
@@ -73,7 +74,8 @@ public class DuccManagedReservationSubmit
 
     /**
      * @param args Array of string arguments as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
+     *             Command Line Interface section of the DuccBook
+     * @throws Exception if request fails            
      */
     public DuccManagedReservationSubmit(ArrayList<String> args)
         throws Exception
@@ -83,7 +85,8 @@ public class DuccManagedReservationSubmit
 
     /**
      * @param props Properties file of arguments, as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
+     *              Command Line Interface section of the DuccBook
+     * @throws Exception if request fails             
      */
    public DuccManagedReservationSubmit(Properties props)
         throws Exception
@@ -96,9 +99,9 @@ public class DuccManagedReservationSubmit
      * messages, rather than directing them to stdout.
      *
      * @param args Array of string arguments as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
-     * @param consoleCb If provided, messages are directed to it instead of
-     *        stdout.
+     *             Command Line Interface section of the DuccBook
+     * @param consoleCb If provided, messages are directed to it instead of stdout.
+     * @throws Exception if request fails
      */
     public DuccManagedReservationSubmit(String[] args, IDuccCallback consoleCb)
         throws Exception
@@ -112,9 +115,9 @@ public class DuccManagedReservationSubmit
      * messages, rather than directing them to stdout.
      *
      * @param args List of string arguments as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
-     * @param consoleCb If provided, messages are directed to it instead of
-     *        stdout.
+     *             Command Line Interface section of the DuccBook
+     * @param consoleCb If provided, messages are directed to it instead of stdout.
+     * @throws Exception if request fails
      */
     public DuccManagedReservationSubmit(ArrayList<String> args, IDuccCallback consoleCb)
         throws Exception
@@ -129,9 +132,9 @@ public class DuccManagedReservationSubmit
      * messages, rather than directing them to stdout.
      *
      * @param props Properties file contianing string arguments as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
-     * @param consoleCb If provided, messages are directed to it instead of
-     *        stdout.
+     *              Command Line Interface section of the DuccBook
+     * @param consoleCb If provided, messages are directed to it instead of stdout.
+     * @throws Exception if request fails
      */
     public DuccManagedReservationSubmit(Properties props, IDuccCallback consoleCb)
         throws Exception
@@ -146,6 +149,7 @@ public class DuccManagedReservationSubmit
      * the job properties to the DUCC orchestrator for execution.
      *
      * @return True if the orchestrator accepts the job; false otherwise.
+     * @throws Exception if request fails
      */
     public boolean execute() throws Exception
     {

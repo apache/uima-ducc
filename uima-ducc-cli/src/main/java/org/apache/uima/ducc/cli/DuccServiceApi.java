@@ -363,8 +363,10 @@ public class DuccServiceApi
     /**
      * The register API is used to register a service with the service manager.
      *
-     * @param args String rray of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @param args String array of arguments as described in the
+     *             Command Line Interface section of the DuccBook
      * @return {@link IServiceReply IServiceReply} object with register status.
+     * @throws Exception if the request is invalid
      */
     public IServiceReply register(String[] args)
         throws Exception
@@ -492,8 +494,10 @@ public class DuccServiceApi
      * The unregister API is used to unregister a service.  The service manager will stop all instances and
      * remove the service registration.
      *
-     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @param args String array of arguments as described in the
+     *             Command Line Interface section of the DuccBook
      * @return {@link IServiceReply IServiceReply} object with unregister reply status.
+     * @throws Exception if the request is invalid
      */
     public IServiceReply unregister(String[] args)
         throws Exception
@@ -521,8 +525,10 @@ public class DuccServiceApi
     /**
      * The start API is used to start one or more instances of a registered service.
      *
-     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @param args String array of arguments as described in the
+     *             Command Line Interface section of the DuccBook
      * @return {@link IServiceReply IServiceReply} object with start reply status.
+     * @throws Exception if the request is invalid
      */
     public IServiceReply start(String[] args)
         throws Exception
@@ -555,8 +561,10 @@ public class DuccServiceApi
     /**
      * The stop API is used to stop one or more service instances.
      *
-     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @param args String array of arguments as described in the
+     *             Command Line Interface section of the DuccBook
      * @return {@link IServiceReply IServiceReply} object with stop status.
+     * @throws Exception if the request is invalid
      */
     public IServiceReply stop(String[] args)
         throws Exception
@@ -589,8 +597,10 @@ public class DuccServiceApi
      * The service 'modify' command is used to change various aspects of a registered service
      * without the need to reregister it.
      *
-     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @param args String array of arguments as described in the
+     *             Command Line Interface section of the DuccBook
      * @return {@link IServiceReply IServiceReply} object with modify status.
+     * @throws Exception if the request is invalid
      */
     public IServiceReply modify(String[] args)
         throws Exception
@@ -622,8 +632,10 @@ public class DuccServiceApi
      * The service 'modify' command is used to change various aspects of a registered service
      * without the need to reregister it.
      *
-     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @param args String array of arguments as described in the
+     *             Command Line Interface section of the DuccBook
      * @return {@link IServiceReply IServiceReply} object with modify status.
+     * @throws Exception if the request is invalid
      */
     public IServiceReply modifyX(String[] args)
         throws Exception
@@ -678,8 +690,10 @@ public class DuccServiceApi
     /**
      * The query API is used to query the status of services known to the service manager.
      *
-     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @param args String array of arguments as described in the
+     *             Command Line Interface section of the DuccBook
      * @return {@link IServiceReply IServiceReply} object with query results status.
+     * @throws Exception if the request is invalid
      */
     public IServiceReply query(String[] args)
         throws Exception

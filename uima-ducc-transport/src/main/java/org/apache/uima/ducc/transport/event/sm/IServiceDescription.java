@@ -37,19 +37,19 @@ public interface IServiceDescription
 {
 
     /**
-     * This returns the Unique ID of the service as assigned by DUCC.
+     * @return the Unique ID of the service as assigned by DUCC.
      */
 	public Long getId();
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setId(Long id);
 
     /**
-     * Get the owner of the service
+     * @return the owner of the service
      */
     public String getUser();
-    /**
+    /*
      * Set the owner of the service
      */
     public void   setUser(String u);
@@ -70,67 +70,67 @@ public interface IServiceDescription
      */
 	public Integer[] getInstanceIds();
 
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setImplementors(ArrayList<Long> implementors, ArrayList<Integer> instancids);
 
 	public Long[] getReferences();
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setReferences(ArrayList<Long> references);
 
 	public ServiceType getType();
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setType(ServiceType type);
 
 	public ServiceClass getSubclass();
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setSubclass(ServiceClass subclass);
 
 	public String getEndpoint();
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setEndpoint(String endpoint);
 
 	public String getBroker();
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setBroker(String broker);
 
 	public ServiceState getServiceState();
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setServiceState(ServiceState serviceState);
 
 	public JobState getJobState();
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setJobState(JobState jobState);
 
 	public boolean isActive();
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setActive(boolean active);
 
 	public void setDeregistered(boolean d);	
-    /**
+    /*
      * Internal to DUCC.
      */
     public void setQueueStatistics(IServiceStatistics qstats);    
 
     public IServiceStatistics getQueueStatistics();
-    /**
+    /*
      * Internal to DUCC.
      */
     public void setAutostart(boolean autostart);
@@ -163,13 +163,13 @@ public interface IServiceDescription
     public String getErrorString();
     public void   setErrorString(String s);
 
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setEnabled(boolean enable);
 
 	public IServiceStatistics getQstats();
-    /**
+    /*
      * Internal to DUCC.
      */
 	public void setQstats(IServiceStatistics qstats);
@@ -177,18 +177,18 @@ public interface IServiceDescription
 	public boolean isDeregistered();
 
 	public void setInstances(int instances);
-    /**
+    /*
      * Internal to DUCC.
      */
     public int getInstances();
 
     public void setLinger(long linger);    
-    /**
+    /*
      * Internal to DUCC.
      */
     public long getLinger();    
 
-    /**
+    /*
      * Internal to DUCC.
      */
     public void addDependency(String endpoint, String msg);
