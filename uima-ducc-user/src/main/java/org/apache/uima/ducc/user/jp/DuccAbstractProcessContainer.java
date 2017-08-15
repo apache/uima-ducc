@@ -21,6 +21,8 @@ package org.apache.uima.ducc.user.jp;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.HashMap;
@@ -41,6 +43,8 @@ import org.apache.uima.resource.metadata.FsIndexDescription;
 import org.apache.uima.resource.metadata.TypePriorities;
 import org.apache.uima.resource.metadata.TypeSystemDescription;
 import org.apache.uima.util.CasCreationUtils;
+import org.apache.uima.util.Level;
+import org.apache.uima.util.Logger;
 
 public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 	// Container implementation must implement the following methods
@@ -49,8 +53,9 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     protected abstract void doStop() throws Exception;
     protected abstract List<Properties>  doProcess(Object subject) throws Exception;
     protected 	AnalysisEngineMetaData analysisEngineMetadata;
-
-	protected Throwable lastError = null;
+    // Stores errors caught in doProcess() with key= current thread id. Each thread
+    // clears previous error in process() below before calling doProcess()
+    protected Map<Long, Throwable> errorMap = new HashMap<Long, Throwable>();
     protected int scaleout=1;
     // Map to store DuccUimaSerializer instances. Each has affinity to a thread
 	protected static Map<Long, DuccUimaSerializer> serializerMap =
@@ -133,7 +138,10 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
  		// a context cl before calling user code. 
  		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
  		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-         try {
+        // Clear previous error this thread may have added in doProcess()
+ 		errorMap.remove(Thread.currentThread().getId());
+        
+ 		try {
      		return doProcess(xmi);
          }finally {
  			Thread.currentThread().setContextClassLoader(savedCL);
@@ -155,7 +163,25 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
          }
      }
 
-    
+    protected String serializeAsString(Throwable t) throws Exception {
+        StringWriter sw = new StringWriter();
+        String serializedCause = "";
+        try {
+ 
+            t.printStackTrace(new PrintWriter(sw));
+            serializedCause =  sw.toString();
+        } catch (Throwable e) {
+			try {
+				Logger logger = UIMAFramework.getLogger(DuccAbstractProcessContainer.class);
+				logger.log(Level.WARNING, "Unable to Stringfiy "+t.getClass().getName());
+				
+			} catch( Exception ee) {}
+			// Unable to serialize user Exception (not Serializable?)
+			// Just send a simple msg telling user to check service log
+			serializedCause = "Unable to Stringifiy Exception "+t.getClass().getName()+" - Please Check JP Log File For More Details";
+		}
+        return serializedCause;
+    }
     protected byte[] serialize(Throwable t) throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -163,16 +189,47 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 		try {
 			oos.writeObject(t);
 		} catch (Exception e) {
-			e.printStackTrace();
-			// Unable to serialize user Exception (not Serializable?)
-			// Create a new Exception and serialize it
-			RuntimeException re 
- 			   = new RuntimeException("Unable to Serialize User Exception - Please Check JP Log File For More Details");
-			oos.writeObject(re);
+			try {
+				Logger logger = UIMAFramework.getLogger(DuccAbstractProcessContainer.class);
+				logger.log(Level.WARNING, "Unable to Serialize "+t.getClass().getName()+" - Will Stringify It Instead");
+				
+			} catch( Exception ee) {}
+			throw e;
+		} finally {
+			oos.close();
 		}
-		oos.close();
+		
 		return baos.toByteArray();
 	}
+	protected byte[] getLastSerializedError() throws Exception {
+		byte[] result = null;
+		if (errorMap.containsKey(Thread.currentThread().getId())) {
+			Throwable lastError = 
+					errorMap.get(Thread.currentThread().getId());
+			if ( System.getProperty("SendExceptionAsString")!= null ) {
+				// the client of this JP/Service does not have user classpath
+				// to be able to deserialize this exception. Instead of serializing
+				// the exception as a java object, stringify it first and wrap it.
+				// The client process might want to log this error.
+				result = serialize(new RuntimeException(serializeAsString(lastError)));
+			} else {
+				try {
+					// try to serialize Throwable as a java Object
+					result = serialize(lastError);
+				} catch( Exception e) {
+					// Fallback is to stringify the exception and wrap it
+					result = serialize(new RuntimeException(serializeAsString(lastError)));
+				}
+			}
+		} else {  // Throwable not found for this thread id in errorMap
+			// this is not normal that we are here. This method was 
+			// called since the process() failed. An exception should have
+			// been added to the errorMap with a key=thread id
+			result = serialize(new RuntimeException("AE.process( )failed - check service log"));
+		}
+		return result;
+	}
+
     private Socket connectWithAgent() throws Exception {
     	InetAddress host = null;
         int statusUpdatePort = -1;

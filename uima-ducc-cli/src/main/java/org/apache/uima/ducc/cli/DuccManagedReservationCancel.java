@@ -47,8 +47,9 @@ public class DuccManagedReservationCancel extends CliBase {
     };
 
     /**
-     * @param args Array of string arguments as described in the 
-     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_CANCEL">DUCC CLI reference.</a>
+     * @param args Array of string arguments as described in the
+     * Command Line Interface section of the DuccBook 
+     * @throws Exception if request fails
      */
 	public DuccManagedReservationCancel(String [] args) 
         throws Exception
@@ -57,8 +58,9 @@ public class DuccManagedReservationCancel extends CliBase {
 	}
 
     /**
-     * @param args List of string arguments as described in the 
-     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_CANCEL">DUCC CLI reference.</a>
+     * @param args List of string arguments as described in the
+     * Command Line Interface section of the DuccBook 
+     * @throws Exception if request fails
      */
 	public DuccManagedReservationCancel(List<String> args) 
         throws Exception
@@ -69,7 +71,8 @@ public class DuccManagedReservationCancel extends CliBase {
 
     /**
      * @param props Properties file of arguments, as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_CANCEL">DUCC CLI reference.</a>
+     * Command Line Interface section of the DuccBook
+     * @throws Exception if request fails
      */
 	public DuccManagedReservationCancel(Properties props) 
         throws Exception
@@ -92,6 +95,7 @@ public class DuccManagedReservationCancel extends CliBase {
      * to effect the cancellation.
      *
      * @return True if the orchestrator accepts the job cancellation.
+     * @throws Exception if request fails
      */
 	public boolean execute() 
         throws Exception 

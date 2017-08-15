@@ -52,7 +52,8 @@ public abstract class DuccAdminEvent implements Serializable
     }
 
     /**
-     * Return the id of the user making the request. 
+     * 
+     * @return -  the id of the user making the request. 
      */
     public String getUser()
     {
@@ -60,7 +61,7 @@ public abstract class DuccAdminEvent implements Serializable
     }
 
     /**
-     * Return the authentication block for the request.
+     * @return the authentication block for the request.
      */
     public byte[] getAuthBlock()
     {

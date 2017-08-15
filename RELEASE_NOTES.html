@@ -77,6 +77,13 @@ confirm, please check memory.stat file in <cgroups base dir>/ducc/ folder. If sw
 enabled there should be "swap" property defined. If it's missing, you need to add a kernel parameter 
 swapaccount=1. Details of how to do this can be found <a href="http://unix.stackexchange.com/questions/147158/how-to-enable-swap-accounting-for-memory-cgroup-in-archlinux">here</a>.
 
+Due to a bug in uima sdk, the uima AnalysisEngineProcessException cannot be serialized as a Java object. If your
+analysis engine throws an exception in process(), the ducc framework will stringify it and wrapt it in
+java RuntimeException. If you have a custom error handler plugged in into a job driver you will not be
+able to test for AnalysisEngineProcessException in a stack trace with a code like this:
+
+   if ( error instanceof AnalysisEngineProcessException ) ...
+
 
 </body>
 </html>

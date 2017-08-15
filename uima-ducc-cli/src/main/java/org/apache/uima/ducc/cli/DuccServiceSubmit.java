@@ -83,7 +83,8 @@ public class DuccServiceSubmit
 
     /**
      * @param args Array of string arguments as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_SUBMIT">DUCC CLI reference.</a>
+     *             Command Line Interface section of the DuccBook
+     * @throws Exception if the request is invalid
      */
     public DuccServiceSubmit(String[] args)
         throws Exception
@@ -93,7 +94,8 @@ public class DuccServiceSubmit
 
     /**
      * @param args List of string arguments as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_SUBMIT">DUCC CLI reference.</a>
+     *             Command Line Interface section of the DuccBook
+     * @throws Exception if the request is invalid
      */
     public DuccServiceSubmit(ArrayList<String> args)
         throws Exception
@@ -103,7 +105,8 @@ public class DuccServiceSubmit
 
     /**
      * @param props Properties file of arguments, as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_SUBMIT">DUCC CLI reference.</a>
+     *              Command Line Interface section of the DuccBook
+     * @throws Exception if the request is invalid
      */
     public DuccServiceSubmit(Properties props)
         throws Exception

@@ -44,7 +44,8 @@ public class DuccReservationSubmit
 	
     /**
      * @param args Array of string arguments as described in the 
-     *      <a href="/doc/duccbook.html#DUCC_CLI_RESERVE">DUCC CLI reference.</a>
+     *             Command Line Interface section of the DuccBook
+     * @throws Exception if request fails
      */
 	public DuccReservationSubmit(String[] args)
         throws Exception
@@ -54,7 +55,8 @@ public class DuccReservationSubmit
 
     /**
      * @param args List of string arguments as described in the 
-     *      <a href="/doc/duccbook.html#DUCC_CLI_RESERVE">DUCC CLI reference.</a>
+     *             Command Line Interface section of the DuccBook
+     * @throws Exception if request fails
      */
 	public DuccReservationSubmit(ArrayList<String> args)
         throws Exception
@@ -65,7 +67,8 @@ public class DuccReservationSubmit
 
     /**
      * @param props Properties file of arguments, as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_RESERVE">DUCC CLI reference.</a>
+     *              Command Line Interface section of the DuccBook
+     * @throws Exception if request fails
      */
 	public DuccReservationSubmit(Properties props)
         throws Exception
@@ -94,7 +97,7 @@ public class DuccReservationSubmit
      * Reservations must be from one of the 'reserve' classes i.e for a whole machine.
      *
      * @return True if the DUCC grants the reservation. 
-     * @throws Exception 
+     * @throws Exception if request fails
      */
 	public boolean execute() throws Exception
     {		

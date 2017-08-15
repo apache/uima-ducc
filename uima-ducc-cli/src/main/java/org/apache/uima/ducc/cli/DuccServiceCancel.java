@@ -50,8 +50,9 @@ public class DuccServiceCancel
 
 	
     /**
-     * @param args Array of string arguments as described in the 
-     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_CANCEL">DUCC CLI reference.</a>
+     * @param args Array of string arguments as described in the
+     *             Command Line Interface section of the DuccBook
+     * @throws Exception if the request is invalid 
      */
 	public DuccServiceCancel(String [] args) 
         throws Exception
@@ -60,8 +61,9 @@ public class DuccServiceCancel
 	}
 
     /**
-     * @param args List of string arguments as described in the 
-     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_CANCEL">DUCC CLI reference.</a>
+     * @param args List of string arguments as described in the
+     *             Command Line Interface section of the DuccBook
+     * @throws Exception if the request is invalid 
      */
 	public DuccServiceCancel(List<String> args) 
         throws Exception
@@ -72,7 +74,8 @@ public class DuccServiceCancel
 
     /**
      * @param props Properties file of arguments, as described in the
-     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_CANCEL">DUCC CLI reference.</a>
+     *              Command Line Interface section of the DuccBook
+     * @throws Exception if the request is invalid
      */
 	public DuccServiceCancel(Properties props) 
         throws Exception
@@ -83,7 +86,7 @@ public class DuccServiceCancel
     /**
      * Return the DUCC Orchestrator message, if any, pertaining to the cancelation.
      *
-     * @return Return any message associated with the cancelation.
+     * @return Return any message associated with the cancellation.
      */
 	public String getResponseMessage()
 	{
@@ -91,10 +94,11 @@ public class DuccServiceCancel
 	}
 
     /**
-     * Execute collects the parameters for job cancelation and sends them to the DUCC Orchestrator
-     * to effect the cancelation.
+     * Execute collects the parameters for job cancellation and sends them to the DUCC Orchestrator
+     * to effect the cancellation.
      *
-     * @return True if the orchestrator accepts the job cancelation.
+     * @return True if the orchestrator accepts the job cancellation.
+     * @throws Exception if the request is invalid
      */
 	public boolean execute() 
         throws Exception 

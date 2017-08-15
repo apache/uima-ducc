@@ -32,12 +32,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.HttpHostConnectException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
-import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.TransactionId;
@@ -230,17 +228,16 @@ public class HttpWorkerThread implements Runnable {
 						// the JD says there are no more WIs. Sleep awhile
 						// do a GET in case JD changes its mind. The JP will
 						// eventually be stopped by the agent
-
+    			  // Retry at the start of this block as another thread may have just exited with work
+    				// so the TAS (or JD) may now have a lot of work.	
  						synchronized (HttpWorkerThread.class) {
 							while(duccComponent.isRunning() ) {
+							  transaction = getWork(postMethod, major, ++minor);
+							  if ( transaction.getMetaCas() != null && transaction.getMetaCas().getUserSpaceCas() != null ) {
+							    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" work flow has restarted");
+							    break;
+							  }
 								waitAwhile(duccComponent.getThreadSleepTime());
-								// just awoken, check if the JP is still in Running state
-								if ( duccComponent.isRunning()) {
-									transaction = getWork(postMethod, major, ++minor);
-									if ( transaction.getMetaCas() != null && transaction.getMetaCas().getUserSpaceCas() != null ) {
-										break;
-									}
-								}
 							}
 						}
 						
@@ -308,11 +305,31 @@ public class HttpWorkerThread implements Runnable {
 								break;
 							}
 							IMetaCas mc = transaction.getMetaCas();
-							
-							// Fetch serialized exception as a blob
+							//byte[] serializedException = null;
 							Method getLastSerializedErrorMethod = processorInstance.getClass().getDeclaredMethod("getLastSerializedError");
 							byte[] serializedException =
 							    (byte[])getLastSerializedErrorMethod.invoke(processorInstance);
+			
+//							if ( ee.getCause() instanceof DuccUimaProcessException ) {
+//								// The process() exception had been serialized on the user side of the JP since
+//								// only there the Classloader has all the classes to serialize the exception.
+//								serializedException = ((DuccUimaProcessException)ee.getCause()).getSerializedException();
+//							} else {
+//								// strip InvocationTargetException
+//								serializedException = serializeException(ee.getCause());
+//							}
+							/*
+							ByteArrayOutputStream baos = new ByteArrayOutputStream();
+						    ObjectOutputStream oos = new ObjectOutputStream(baos);
+						    try {
+						       oos.writeObject(ee.getCause());
+						       serializedException = baos.toByteArray();
+					        } catch (Exception e) {
+					        	Exception e2 = new RuntimeException("Ducc Service Failed to Serialize the Cause of Process Failure. Check Service Log for Details");
+					        	oos.writeObject(e2);
+					        	serializedException = baos.toByteArray();
+					        }
+					        */
 							mc.setUserSpaceException(serializedException);								
 
 							logger.info("run", null, "Work item processing failed - returning serialized exception to the JD");
@@ -325,12 +342,16 @@ public class HttpWorkerThread implements Runnable {
 								break;
 							}
 							// Serialize exception for the JD.
+							byte[] serializedException = serializeException(ee);
+							/*
 							ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						    ObjectOutputStream oos = new ObjectOutputStream( baos );
 						    oos.writeObject( ee);
 						    oos.close();
 							transaction.getMetaCas().setUserSpaceException(baos.toByteArray());
+						    */
 							logger.error("run", null, ee);
+							transaction.getMetaCas().setUserSpaceException(serializedException);								
 						}
 						// Dont return serialized CAS to reduce the msg size
 						transaction.getMetaCas().setUserSpaceCas(null);
@@ -454,6 +475,31 @@ public class HttpWorkerThread implements Runnable {
 		
 		}
 
+	}
+	private byte[] serializeException(Throwable t) {
+		byte[] serializedException;
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	    ObjectOutputStream oos = null;
+	    try {
+	       oos = new ObjectOutputStream(baos);
+	       oos.writeObject(t);
+	       serializedException = baos.toByteArray();
+        } catch (Exception ee) {
+        	Exception e2 = new RuntimeException("Ducc Service Failed to Serialize the Cause of Process Failure. Check Service Log for Details");
+        	try {
+        		oos.writeObject(e2);
+    		} catch( Exception ex ) {}
+        	
+        	serializedException = baos.toByteArray();
+        } finally {
+        	if ( oos != null ) {
+        		try {
+        			oos.close();
+        		} catch( Exception ex ) {}
+        	
+        	}
+        }
+	    return serializedException;
 	}
 
 }

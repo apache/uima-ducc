@@ -41,7 +41,6 @@ import org.apache.uima.aae.client.UimaAsBaseCallbackListener;
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.aae.monitor.statistics.AnalysisEnginePerformanceMetrics;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
-import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.EntityProcessStatus;
 import org.apache.uima.ducc.IUser;
@@ -115,14 +114,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			return scaleout;
 		}
 	}
-	public byte[] getLastSerializedError() throws Exception {
 
-		if (lastError != null) {
-			return serialize(lastError);
-		}
-		return null;
-
-	}
 	/**
 	 * This method is called by each worker thread before entering
 	 * process loop in run(). Each work thread shares instance of
@@ -306,8 +298,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 	public List<Properties> doProcess(Object xmi) throws Exception {
 		CAS cas = uimaASClient.getCAS();   // fetch a new CAS from the client's Cas Pool
 		try {
-			// reset last error
-			lastError = null;
+
 			// Use thread dedicated UimaSerializer to de-serialize the CAS
 			getUimaSerializer().deserializeCasFromXmi((String)xmi, cas);
 
@@ -322,7 +313,19 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			if ( enablePerformanceBreakdownReporting ) {
 				List<AnalysisEnginePerformanceMetrics> perfMetrics =
 						new ArrayList<AnalysisEnginePerformanceMetrics>();
-				uimaASClient.sendAndReceiveCAS(cas, perfMetrics);
+				
+				try {
+					uimaASClient.sendAndReceiveCAS(cas, perfMetrics);
+				} catch( Throwable t) {
+					// save the error
+					errorMap.put(Thread.currentThread().getId(), t);
+					// AE failed, throw an exception. The HttpWorketThread will 
+					// subsequently call getLastSerializedException() on this class
+					// to fetch serialized exception saved in 'lastError' above.
+					// The 'lastError' is reset each time super.process() is called.
+					throw new RuntimeException(); 
+				}
+				
 				for( AnalysisEnginePerformanceMetrics metrics : perfMetrics ) {
 					Properties p = new Properties();
 					p.setProperty("name", metrics.getName());
@@ -341,7 +344,19 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 				}
 			} else {
 				// delegate processing to the UIMA-AS service and wait for a reply
-				uimaASClient.sendAndReceiveCAS(cas);//, perfMetrics);
+				try {
+					uimaASClient.sendAndReceiveCAS(cas);
+				} catch( Throwable t) {
+					// save the error
+					errorMap.put(Thread.currentThread().getId(), t);
+					// AE failed, throw an exception. The HttpWorketThread will 
+					// subsequently call getLastSerializedException() on this class
+					// to fetch serialized exception saved in errorMap above.
+					// The map entry for each thread is reset in super.process().
+
+					throw new RuntimeException();  
+				}
+				
 				// convert UIMA-AS metrics into properties so that we can return this
 				// data in a format which doesnt require UIMA-AS to digest
 				Properties p = new Properties();
@@ -353,17 +368,16 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			}
 
 			return metricsList;
-		} catch( Throwable e ) {
-			lastError = e;
-			Logger logger = UIMAFramework.getLogger();
-			logger.log(Level.WARNING, "UimaProcessContainer", e);
-			e.printStackTrace();
-			throw new AnalysisEngineProcessException();
+		} catch( Throwable t ) {
+			throw t;
 		} finally {
 			if ( cas != null) {
 				cas.release();
 			}
 		}
+	}
+	public byte[] getLastSerializedError() throws Exception {
+       return super.getLastSerializedError();
 	}
 	private String getPID(final String fallback) {
 		// the following code returns '<pid>@<hostname>'

@@ -186,12 +186,11 @@ public class DuccRmAdmin
     /**
      * Marshall and transmit the request to RM, waiting for the response.
      * 
-     * @param A DuccAdminEvent appropriate to the desired function.
+     * @param duccEvent A DuccAdminEvent appropriate to the desired function.
      *
      * @return An {@link RmAdminReply RmAdminReply} appropriate to the response.  See the specific replies
      *         for details.
-
-	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
+  	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
      */
     public RmAdminReply dispatchAndWaitForReply(DuccAdminEvent duccEvent) 
         throws Exception 
@@ -295,27 +294,27 @@ public class DuccRmAdmin
 
 	/**
 	 * This queries details on each host the RM is scheduling to.
-     *
-     * @return A {@link RmAdminQOccupancyReply RmAdminQOccupancyReply} containing data regarding the current
-     *         hosts.
+   *
+   * @return A {@link RmAdminQOccupancyReply RmAdminQOccupancyReply} containing data regarding the current
+   *         hosts.
 	 * 
 	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
 	 */
 	public RmAdminQOccupancyReply qoccupancy()
 		throws Exception 
     {
-        RmAdminQOccupancy qo = new RmAdminQOccupancy(user, cypheredMessage);
+	  RmAdminQOccupancy qo = new RmAdminQOccupancy(user, cypheredMessage);
 		return (RmAdminQOccupancyReply) dispatchAndWaitForReply(qo);
 	}
     
     // UIMA-4142
 	/**
 	 * Send a reconfigure event to RM.  RM rereads all its configuration data an possibly reconfigures
-     * the schedule if needed.  
-     *
-     * @return {@link RmAdminReply RmAdminReply}.  The message must be <code>Reconfiguration complete.</code>;
-     *         any other response indicates failure.  Failure occurs when the new configuration is invalid.  If this
-     *         occurs use <code>check_ducc -cv </code> to read and validate the current configuration.
+   * the schedule if needed.  
+   *
+   * @return {@link RmAdminReply RmAdminReply}.  The message must be <code>Reconfiguration complete.</code>;
+   *         any other response indicates failure.  Failure occurs when the new configuration is invalid.  If this
+   *         occurs use <code>check_ducc -cv </code> to read and validate the current configuration.
 	 * 
 	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
 	 */
@@ -330,8 +329,9 @@ public class DuccRmAdmin
      * This is called from <code>main</code> in response to a CLI request.
      *
      * @param args the command line arguments. See the usage method below for details.
+     * @return 0 if succeeds, 1 if fails
      *
-	 * @throws Exception if anything goes wrong in transmission or receipt of the request.
+	   * @throws Exception if anything goes wrong in transmission or receipt of the request.
      */    
     public int run(String[] args)
     	throws Exception
@@ -396,7 +396,7 @@ public class DuccRmAdmin
         System.exit(1);
     }
 
-    /**
+    /*
      * This is provided for use by the CLI, to invoke the various RM administrative commands.
      */
 	public static void main(String[] args) 
