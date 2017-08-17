@@ -213,7 +213,16 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 					int pipelineInitStats = (p.getValue()
 							.getUimaPipelineComponents() == null) ? 0 : p
 							.getValue().getUimaPipelineComponents().size();
+					StringBuffer gcInfo = new StringBuffer();
+					if (p.getValue().getGarbageCollectionStats() != null ) {
+						gcInfo.append(" GC Total=")
+								.append(p.getValue().getGarbageCollectionStats().getCollectionCount())
+								.append(" GC Time=")
+								.append(p.getValue().getGarbageCollectionStats().getCollectionTime())
+								.append(" ");
 
+
+					}
 					sb.append("\n\t[Process Type=")
 							.append(p.getValue().getProcessType())
 							.append(" DUCC ID=")
@@ -221,14 +230,10 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 							.append(" PID=")
 							.append(p.getValue().getPID())
 							.append(" State=")
-							.append(" GC Total=")
-							.append(p.getValue().getGarbageCollectionStats().getCollectionCount())
-							.append(" GC Time=")
-							.append(p.getValue().getGarbageCollectionStats().getCollectionTime())
-
 							.append(p.getValue().getProcessState())
 							.append(" Resident Memory=")
 							.append(p.getValue().getResidentMemory())
+							.append(gcInfo.toString())
 							.append(" Init Stats List Size:"
 									+ pipelineInitStats)
 							.append(" Reason: "+p.getValue().getReasonForStoppingProcess())		
