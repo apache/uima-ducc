@@ -331,6 +331,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 	private ProcessGarbageCollectionStats getGCStats() throws Exception {
 		if (!process.getProcessType().equals(ProcessType.Pop)) {
+			logger.info("LinuxProcessMetricsProcessor.getGCStats",	null, "Collecting GC Stats");
 			ProcessGarbageCollectionStats gcStats = gcStatsCollector
 					.collect();
 		   return gcStats;
