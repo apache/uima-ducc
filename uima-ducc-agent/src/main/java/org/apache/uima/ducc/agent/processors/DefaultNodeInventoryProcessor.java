@@ -221,6 +221,11 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 							.append(" PID=")
 							.append(p.getValue().getPID())
 							.append(" State=")
+							.append(" GC Total=")
+							.append(p.getValue().getGarbageCollectionStats().getCollectionCount())
+							.append(" GC Time=")
+							.append(p.getValue().getGarbageCollectionStats().getCollectionTime())
+
 							.append(p.getValue().getProcessState())
 							.append(" Resident Memory=")
 							.append(p.getValue().getResidentMemory())
