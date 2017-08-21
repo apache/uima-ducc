@@ -189,12 +189,12 @@
    </category>
 
    <category name="org.apache.uima.ducc.agent" additivity="false">
-     <priority value="debug"/>
+     <priority value="info"/>
      <appender-ref ref="agentlog" />
    </category>
 
    <category name="org.apache.uima.ducc.agent.deploy" additivity="false">
-     <priority value="off"/>
+     <priority value="info"/>
      <appender-ref ref="agentlog" />
    </category>
 
