@@ -65,6 +65,8 @@ public class HistoryManagerDb
 	private DuccLogger logger = null;
     private DbManager dbManager;
 
+    private long ckptBytesMax = -1;
+    
     PreparedStatement jobBlobPrepare = null;
     PreparedStatement reservationBlobPrepare = null;
     PreparedStatement serviceBlobPrepare = null;
@@ -758,8 +760,12 @@ public class HistoryManagerDb
             
             // Just insert/update the one row of checkpoint data - Jira 4892 - don't truncate as it creates snapshots
             DbHandle h = dbManager.open();
-            h.saveObject(ckptPrepare, 0, workbuf, mapbuf);       
-
+            h.saveObject(ckptPrepare, 0, workbuf, mapbuf);    
+            long ckptBytes = workbuf.array().length + mapbuf.array().length;
+            if(ckptBytes > ckptBytesMax) {
+            	ckptBytesMax = ckptBytes;
+            }
+            logger.info(methodName, null, "bytes="+ckptBytes+" "+"maxbytes="+ckptBytesMax);
         } catch ( Exception e ) {
             logger.error(methodName, null, "Cannot save ProcessToJob map", e);
             ret = false;
