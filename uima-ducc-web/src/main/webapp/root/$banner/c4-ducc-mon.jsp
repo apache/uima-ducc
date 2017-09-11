@@ -37,7 +37,7 @@ under the License.
 <br>
 <table>
 <tr>
-<td><i>Home: <b><span class="home" id="home"></span></b></i>
+<td><b>DUCC_HOME=</b><i></i><span class="home" id="home"></span></i>
 </table>
 <table>
 <tr>
