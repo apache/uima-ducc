@@ -43,11 +43,15 @@ public class DbQuery {
 	
 	private static boolean enabled = true;
 	
+	private static String component = IDuccLoggerComponents.abbrv_webServer;
+	
 	private IRmPersistence persistence = null;
 	
 	private IHistoryPersistenceManager history = null;
 	
-	private static String component = IDuccLoggerComponents.abbrv_webServer;
+	private boolean db_status = false; // false == down, true == up
+	private long db_status_age_limit = 1000*60;
+	private long db_status_tod = System.currentTimeMillis()-(db_status_age_limit+1);
 	
 	static {
 		synchronized(DbQuery.class) {
@@ -78,7 +82,7 @@ public class DbQuery {
 		return enabled;
 	}
 	
-	public Pair<DuccWorkMap, Map<DuccId, DuccId>> getCkpt() {
+	private Pair<DuccWorkMap, Map<DuccId, DuccId>> getCkpt() {
 		String location = "getCkpt";
 		Pair<DuccWorkMap, Map<DuccId, DuccId>> retVal = new Pair<DuccWorkMap, Map<DuccId, DuccId>>();
 		try {
@@ -91,17 +95,26 @@ public class DbQuery {
     }
 	
 	public boolean isUp() {
-		boolean status = false;
+		String location = "isUp";
 		/*
 		if(getMapMachines().size() > 0) {
 			status = true;
 		}
 		else 
 		*/
-			if(getCkpt().first() != null) {
-			status = true;
-		}
-		return status;
+			long now = System.currentTimeMillis();
+			long elapsed = now - db_status_tod;
+			if(elapsed > db_status_age_limit) {
+				db_status_tod = now;
+				if(getCkpt().first() != null) {
+					db_status = true;
+				}
+				else {
+					db_status = false;
+				}
+				logger.debug(location, jobid, db_status);
+			}
+		return db_status;
 	}
 	
 	public static void dumpMap(Map<String, IDbMachine> dbMachineMap) {
