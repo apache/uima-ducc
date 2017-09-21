@@ -31,7 +31,6 @@ import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
-import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
 import org.apache.uima.ducc.transport.configuration.jp.AgentSession;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;

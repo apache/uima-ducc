@@ -97,9 +97,9 @@ public class DuccServiceDriver implements ServiceDriver {
 			
 			protocolHandler = new DuccServiceTaskProtocolHandler(taskAllocator);
 			try {
-				
+				logger.log(Level.INFO, "Initializing protocol handler ...");
 				protocolHandler.initialize(properties);
-				logger.log(Level.INFO, "... Protocol handler initialized ...");
+				logger.log(Level.INFO, "Initializing transport ...");
 				transport.setTaskProtocolHandler(protocolHandler);
 				transport.initialize(properties);
 				

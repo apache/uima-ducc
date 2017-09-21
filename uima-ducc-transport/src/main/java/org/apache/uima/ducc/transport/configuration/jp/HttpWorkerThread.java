@@ -218,16 +218,16 @@ public class HttpWorkerThread implements Runnable {
 						logger.info("run", null, "T["+Thread.currentThread().getId()+"] - Regained Connection to JD");
 					}
                     
+					// If the client did not provide a Work Item, reduce frequency of Get requests
+					// by sleeping in between Get's. Synchronize so only one thread is polling for work
+
                     // if the JD did not provide a Work Item, most likely the CR is
 					// done. In such case, reduce frequency of Get requests
 					// by sleeping in between Get's. Eventually the OR will 
 					// deallocate this process and the thread will exit
 					if ( transaction.getMetaCas() == null || transaction.getMetaCas().getUserSpaceCas() == null) {
-    					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd Response: JD is presently out of work items. Will retry in "+duccComponent.getThreadSleepTime()/1000+" seconds.");
+					  logger.info("run", null, "Client is out of work - will retry quietly every",duccComponent.getThreadSleepTime()/1000,"secs.");
     					
-						// the JD says there are no more WIs. Sleep awhile
-						// do a GET in case JD changes its mind. The JP will
-						// eventually be stopped by the agent
     			  // Retry at the start of this block as another thread may have just exited with work
     				// so the TAS (or JD) may now have a lot of work.	
  						synchronized (HttpWorkerThread.class) {

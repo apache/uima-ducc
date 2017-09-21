@@ -32,6 +32,8 @@ import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
+import org.apache.uima.ducc.container.sd.ServiceRegistry;
+import org.apache.uima.ducc.container.sd.ServiceRegistry_impl;
 import org.apache.uima.ducc.container.sd.iface.ServiceDriver;
 import org.apache.uima.ducc.container.sd.task.error.TaskProtocolException;
 import org.apache.uima.ducc.container.sd.task.iface.TaskProtocolHandler;
@@ -54,6 +56,7 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
     private volatile boolean running = false;
     // mux is used to synchronize start()
     private Object mux = new Object();
+    
 	public HttpTaskTransportHandler() {
 	}
 
@@ -87,8 +90,8 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 		}
 	}
 
-	public Server createServer(int httpPort, int maxThreads, String app,
-			TaskProtocolHandler handler) throws Exception {
+  public Server createServer(int httpPort, int maxThreads, String app, TaskProtocolHandler handler, String registryAddr) 
+          throws Exception {
 
 		// Server thread pool
 		QueuedThreadPool threadPool = new QueuedThreadPool();
@@ -112,9 +115,30 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 		context.setContextPath("/");
 		server.setHandler(context);
 
-		context.addServlet(new ServletHolder(new TaskHandlerServlet(handler)),
-				app);
-		logger.log(Level.INFO,"Service Driver URL: "+ context.getServer().getURI().toString()+httpPort+app);//"Jetty URL: http://localhost:"+httpPort+app);
+		context.addServlet(new ServletHolder(new TaskHandlerServlet(handler)), "/"+app);
+
+    // Establish the URL we could register for our customers
+    String taskUrl = server.getURI().toString();
+    if (taskUrl.endsWith("/")) {
+      taskUrl = taskUrl.substring(0, taskUrl.length() - 1);
+    }
+    taskUrl += ":" + httpPort + "/" + app;
+    logger.log(Level.INFO, "Service Driver URL: " + taskUrl); // e.g. http://localhost:8888/test");
+
+    // Register the task allocator's URL if a registry is specified
+    // The type of registry is determined by the registry class.
+    
+    String taskServerName = app;   // why not?
+    if (registryAddr != null) {
+      ServiceRegistry registry = ServiceRegistry_impl.getInstance();
+      if (registry.initialize(registryAddr)) {
+        registry.register(taskServerName, taskUrl, "");   // Will also create a shutdown hook to unregister
+        logger.log(Level.INFO,"Registered: " + taskServerName);
+      }
+    } else {
+      logger.log(Level.WARNING, "Registration skipped - registry=" + registryAddr + " server="+taskServerName);
+    }
+
 		return server;
 	}
 
@@ -122,12 +146,11 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 	public void initialize(Properties properties) throws TaskTransportException {
 		// TODO Auto-generated method stub
 		// Max cores
-		int cores = Runtime.getRuntime().availableProcessors();
-		String portString = (String) properties.get(ServiceDriver.Port);
-		String maxThreadsString = (String) properties
-				.get(ServiceDriver.MaxThreads);
-		String appName = (String) properties
-				.get(ServiceDriver.Application);
+    int cores = Runtime.getRuntime().availableProcessors();
+    String portString = (String) properties.get(ServiceDriver.Port);
+    String maxThreadsString = (String) properties.get(ServiceDriver.MaxThreads);
+    String appName = (String) properties.get(ServiceDriver.Application);
+    String registry = (String) properties.get(ServiceDriver.Registry);    // optional
 
 		int maxThreads = cores;
 		int httpPort = -1;
@@ -152,13 +175,12 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 			}
 		}
 		if (appName == null) {
-			throw new TaskTransportException("The required "
-					+ ServiceDriver.Application
-					+ " property is not specified");
+		  appName = "test";
+		  logger.log(Level.WARNING, "The "+ServiceDriver.Application+" property is not specified - using "+appName);
 		}
 		try {
 			// create and initialize Jetty Server
-			server = createServer(httpPort, maxThreads, appName, taskProtocolHandler);
+			server = createServer(httpPort, maxThreads, appName, taskProtocolHandler, registry);
 		} catch (Exception e) {
 			throw new TaskTransportException(e);
 		}

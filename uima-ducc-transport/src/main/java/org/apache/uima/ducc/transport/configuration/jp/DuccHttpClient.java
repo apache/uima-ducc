@@ -19,9 +19,9 @@
 package org.apache.uima.ducc.transport.configuration.jp;
 import java.io.InvalidClassException;
 import java.lang.management.ManagementFactory;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -39,7 +39,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.pool.BasicConnPool;
-import org.apache.http.impl.pool.BasicPoolEntry;
 import org.apache.http.util.EntityUtils;
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.NodeIdentity;
@@ -52,6 +51,10 @@ import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.TransactionId;
+import org.apache.uima.ducc.container.sd.ConfigurationProperties;
+import org.apache.uima.ducc.container.sd.ServiceRegistry;
+import org.apache.uima.ducc.container.sd.ServiceRegistry_impl;
+import org.apache.uima.ducc.container.sd.iface.ServiceDriver;
 
 public class DuccHttpClient {
 	private DuccLogger logger = new DuccLogger(DuccHttpClient.class);
@@ -68,21 +71,54 @@ public class DuccHttpClient {
 	private int ClientMaxConnections = 0;
 	private int ClientMaxConnectionsPerRoute = 0;
 	private int ClientMaxConnectionsPerHostPort = 0;
-     
-    public DuccHttpClient(JobProcessComponent duccComponent) {
-    	 this.duccComponent = duccComponent;
-    }
+  private ServiceRegistry registry = null;
+  private String taskServerName;
+  private Properties config = null;
+	
+  public DuccHttpClient(JobProcessComponent duccComponent) {
+    this.duccComponent = duccComponent;
+  }
+  
 	public void setScaleout(int scaleout) {
 		connPool.setMaxTotal(scaleout);
 		connPool.setDefaultMaxPerRoute(scaleout);
 		connPool.setMaxPerRoute(host, scaleout);
 	}
+	
+	// If no registry use the url in the system properties, e.g. JD/JP case
+	// The fetch should return one of the values saved by the most recent notification.
+	// but should block if no instance currently registered.
 	public String getJdUrl() {
-		return jdUrl;
+	  if (registry == null) {
+	    return jdUrl;
+	  }
+	  String address = registry.fetch(taskServerName);   // Will block if none registered
+	  logger.info("getJdUrl", null, "Registry entry for", taskServerName, "is", address);
+	  return address;
 	}
 	
 	public void initialize(String jdUrl) throws Exception {
-		this.jdUrl = jdUrl;
+
+	  // If not specified get the url from the registry
+	  if (jdUrl == null || jdUrl.isEmpty()) {
+	    config = ConfigurationProperties.getProperties();    // Holds registry details AND service.type
+	    String registryLocn = config.getProperty(ServiceDriver.Registry);
+	    taskServerName = config.getProperty(ServiceDriver.Application);
+	    if (registryLocn != null && taskServerName != null) {
+	      registry = ServiceRegistry_impl.getInstance();
+	      if (!registry.initialize(registryLocn)) {
+	        registry = null;
+	      }
+	    } 
+	    if (registry == null) {
+	      throw new RuntimeException("Failed to connect to registry at "+registryLocn+" to locate server "+taskServerName);
+	    }
+	    logger.info("initialize", null, "Using registry at", registryLocn, "to locate server", taskServerName);
+	    jdUrl = getJdUrl();
+	  }
+	  this.jdUrl = jdUrl;
+		
+		logger.info("initialize", null, "Found jdUrl =", jdUrl);
 		
 		int pos = jdUrl.indexOf("//");
         int ipEndPos = jdUrl.indexOf(":", pos);
@@ -169,12 +205,13 @@ public class DuccHttpClient {
 		return nn;
 	}
 	private String getProcessName() {
-	  String pn = System.getProperty("UimaRequestServiceType");
-	  if (pn == null) {
-	    pn = System.getenv(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS.value());
+	  String pn = System.getenv(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS.value());
+	  if (config != null && config.containsKey("service.type")) {
+	    pn = config.getProperty("service.type");  // Indicates the type of service request
 	  }
 		return pn;
 	}
+	
     private void addCommonHeaders( IMetaCasTransaction transaction ) {
     	String location = "addCommonHeaders";
     	transaction.setRequesterAddress(getIP());
@@ -281,19 +318,25 @@ public class DuccHttpClient {
 			}
 		} 
 	}
+
 	private HttpResponse retryUntilSuccessfull(IMetaCasTransaction transaction, HttpPost postMethod) throws Exception {
         HttpResponse response=null;
 		// Only one thread attempts recovery. Other threads will block here
 		// until connection to the remote is restored. 
+		logger.error("retryUntilSucessfull", null, "Connection Lost to", postMethod.getURI(), "- Retrying Until Successful ...");
    		lock.lock();
-   		logger.error("retryUntilSucessfull", null, "Thread:"+Thread.currentThread().getId()+" - Connection Lost to "+postMethod.getURI()+" - Retrying Until Successfull ...");
 
          // retry indefinitely
 		while( duccComponent.isRunning() ) {
        		try {
        			// retry the command
+       		  jdUrl = getJdUrl();
+       		  URI jdUri = new URI(jdUrl);
+       		  postMethod.setURI(jdUri);
+       		  logger.warn("retryUntilSucessfull", null, "Trying to connect to", jdUrl);
        			response = httpClient.execute(postMethod);
-       			logger.error("retryUntilSucessfull", null, "Thread:"+Thread.currentThread().getId()+" Recovered Connection ...");
+       			logger.warn("retryUntilSucessfull", null, "Recovered Connection");
+
        			// success, so release the lock so that other waiting threads
        			// can retry command
        		    if ( lock.isHeldByCurrentThread()) {
@@ -305,12 +348,14 @@ public class DuccHttpClient {
        		} catch( HttpHostConnectException exx ) {
        			// Connection still not available so sleep awhile
        			synchronized(postMethod) {
+       			  logger.warn("retryUntilSucessfull", null, "Connection failed - retry in", duccComponent.getThreadSleepTime()/1000, "secs");
        				postMethod.wait(duccComponent.getThreadSleepTime());
        			}
        		}
         }
 		return response;
 	}
+
 	public static void main(String[] args) {
 		try {
 			HttpPost postMethod = new HttpPost(args[0]);
@@ -327,7 +372,7 @@ public class DuccHttpClient {
 			// HTTP request. HttpClient actually enforces this. So
 			// do a POST instead of a GET.
 			transaction.setType(Type.Get);  // Tell JD you want a Work Item
-			String command = Type.Get.name();
+			//String command = Type.Get.name();
 	    	System.out.println("HttpWorkerThread.run() "+ "Thread Id:"+Thread.currentThread().getId()+" Requesting next WI from JD");;
 			// send a request to JD and wait for a reply
 	    	transaction = client.execute(transaction, postMethod);
@@ -337,7 +382,7 @@ public class DuccHttpClient {
 				System.out.println("CAS:"+transaction.getMetaCas().getUserSpaceCas());
 	    		// Confirm receipt of the CAS. 
 				transaction.setType(Type.Ack);
-				command = Type.Ack.name();
+				//command = Type.Ack.name();
 				tid = new TransactionId(seq.incrementAndGet(), minor++);
 				transaction.setTransactionId(tid);
 				System.out.println("run  Thread:"+Thread.currentThread().getId()+" Sending ACK request - WI:"+transaction.getMetaCas().getSystemKey());
@@ -351,7 +396,7 @@ public class DuccHttpClient {
 
 	        }
 			transaction.setType(Type.End);
-			command = Type.End.name();
+			//command = Type.End.name();
 			tid = new TransactionId(seq.incrementAndGet(), minor++);
 			transaction.setTransactionId(tid);
 			IPerformanceMetrics metricsWrapper =

@@ -277,13 +277,13 @@ implements IJobProcessor{
 				
 				getLogger().info("start", null,"Ducc JP JobType="+jobType);
 				httpClient = new DuccHttpClient(this);
-				String jdURL="";
+				String jdURL = "";
 				try {
 					jdURL = System.getProperty(FlagsHelper.Name.JdURL.pname());
-					// initialize http client. It tests the connection and fails
-					// if unable to connect
+					// Test the connection and fail if unable to connect
+					// Gets the url from the registry if not in the system properties
 					httpClient.initialize(jdURL);
-					logger.info("start", null,"The JP Connected To JD Using URL "+jdURL);
+					logger.info("start", null,"The JP Connected To JD Using URL "+httpClient.getJdUrl());
 				} catch( Exception ee ) {
 					if ( ee.getCause() != null && ee instanceof java.net.ConnectException ) {
 						logger.error("start", null, "JP Process Unable To Connect to the JD Using Provided URL:"+jdURL+" Unable to Continue - Shutting Down JP");
