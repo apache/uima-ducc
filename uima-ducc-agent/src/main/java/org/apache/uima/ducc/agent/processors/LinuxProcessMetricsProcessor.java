@@ -330,7 +330,9 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 	}
 
 	private ProcessGarbageCollectionStats getGCStats() throws Exception {
-		if (!process.getProcessType().equals(ProcessType.Pop)) {
+//		if (!process.getProcessType().equals(ProcessType.Pop)) {
+		if ( process.getProcessJmxUrl() != null
+				&& process.getProcessJmxUrl().trim().length() > 0 ) {
 			logger.info("LinuxProcessMetricsProcessor.getGCStats",	null, "Collecting GC Stats");
 			ProcessGarbageCollectionStats gcStats = gcStatsCollector
 					.collect();
