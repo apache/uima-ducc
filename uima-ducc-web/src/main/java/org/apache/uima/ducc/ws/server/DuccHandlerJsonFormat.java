@@ -63,6 +63,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.JdReservationBean;
 import org.apache.uima.ducc.ws.Distiller;
@@ -88,10 +89,14 @@ import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.apache.uima.ducc.ws.server.DuccCookies.DisplayStyle;
+import org.apache.uima.ducc.ws.server.Helper.AllocationType;
 import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
+import org.apache.uima.ducc.ws.server.JsonHelper.JobProcessList;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
+import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
+import org.apache.uima.ducc.ws.utils.alien.FileInfo;
 import org.eclipse.jetty.server.Request;
 
 import com.google.gson.Gson;
@@ -108,6 +113,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private static BrokerHelper brokerHelper = BrokerHelper.getInstance();
 	private static DatabaseHelper databaseHelper = DatabaseHelper.getInstance();
 	
+	private static JsonHelper jh = new JsonHelper();
+	
 	//private static PagingObserver pagingObserver = PagingObserver.getInstance();
 	
 	private final String jsonFormatJobsAaData					= duccContextJsonFormat+"-aaData-jobs";
@@ -118,6 +125,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private final String jsonFormatClassesAaData				= duccContextJsonFormat+"-aaData-classes";
 	private final String jsonFormatDaemonsAaData				= duccContextJsonFormat+"-aaData-daemons";
 	private final String jsonFormatDaemonsAaDataAll				= duccContextJsonFormat+"-aaData-daemons-all";
+	
+	private final String jsonFormatJobProcessesData				= duccContextJsonFormat+"-job-processes";
 	
 	private final String jsonFormatMachines 		= duccContextJsonFormat+"-machines";
 	private final String jsonFormatReservations 	= duccContextJsonFormat+"-reservations";
@@ -617,6 +626,99 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}
 	
+	private JsonHelper.JobProcess create(DuccWorkJob job, IDuccProcess process, AllocationType type, Map<String, FileInfo> fileInfoMap) {
+		JsonHelper.JobProcess jsonProcess = jh.new JobProcess();
+		jsonProcess.process_number = ""+process.getDuccId().getFriendly();
+		jsonProcess.log_file = Helper.getLogFileName(job, process, type);
+		jsonProcess.log_size = Helper.getLogFileSize(job, process, jsonProcess.log_file, fileInfoMap);
+		jsonProcess.host_name = Helper.getHostname(job, process);
+		jsonProcess.pid = Helper.getPid(job, process);
+		jsonProcess.scheduler_state = Helper.getSchedulerState(job, process);
+		jsonProcess.scheduler_state_reason = Helper.getSchedulerReason(job, process);
+		jsonProcess.agent_state = Helper.getAgentState(job, process);
+		jsonProcess.agent_state_reason = Helper.getAgentReason(job, process);
+		jsonProcess.exit = Helper.getExit(job, process);
+		jsonProcess.time_init = Helper.getTimeInit(job, process, type);
+		jsonProcess.time_run = Helper.getTimeRun(job, process, type);
+		jsonProcess.time_gc = Helper.getTimeGC(job, process, type);
+		jsonProcess.swap = Helper.getSwap(job, process, type);
+		jsonProcess.swap_max = Helper.getSwapMax(job, process, type);
+		jsonProcess.pct_cpu_overall = Helper.getPctCpuOverall(job, process, type);
+		jsonProcess.pct_cpu_current = Helper.getPctCpuCurrent(job, process, type);
+		jsonProcess.rss = Helper.getRss(job, process, type);
+		jsonProcess.rss_max = Helper.getRssMax(job, process, type);
+		jsonProcess.wi_time_avg = Helper.getWiTimeAvg(job, process, type);
+		jsonProcess.wi_time_max = Helper.getWiTimeMax(job, process, type);
+		jsonProcess.wi_time_min = Helper.getWiTimeMin(job, process, type);
+		jsonProcess.wi_done = Helper.getWiDone(job, process, type);
+		jsonProcess.wi_error = Helper.getWiError(job, process, type);
+		jsonProcess.wi_dispatch = Helper.getWiDispatch(job, process, type);
+		jsonProcess.wi_retry = Helper.getWiRetry(job, process, type);
+		jsonProcess.wi_preempt = Helper.getWiPreempt(job, process, type);
+		jsonProcess.jconsole_url = Helper.getJConsoleUrl(job, process, type);
+		return jsonProcess;
+	}
+	
+	private void handleServletJsonFormatJobProcessesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleServletJsonFormatJobProcessesData";
+		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
+
+		EffectiveUser eu = EffectiveUser.create(request);
+		DuccWorkJob job = null;
+		String jobno = request.getParameter("id");
+		if(jobno != null) {
+			IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
+			if(duccWorkMap.getJobKeySet().size()> 0) {
+				Iterator<DuccId> iterator = null;
+				iterator = duccWorkMap.getJobKeySet().iterator();
+				while(iterator.hasNext()) {
+					DuccId jobId = iterator.next();
+					String fid = ""+jobId.getFriendly();
+					if(jobno.equals(fid)) {
+						job = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
+						break;
+					}
+				}
+			}
+		}
+		else {
+			jobno = "id=?";
+		}
+		
+		JobProcessList jpl = jh.new JobProcessList();
+		jpl.log_directory = Helper.getLogFileDirectory(job);
+		jpl.set_job_number(jobno);
+		
+		if(job != null) {
+			String directory = job.getLogDirectory()+File.separator+job.getId();
+			Map<String, FileInfo> fileInfoMap = Helper.getFileInfoMap(eu, directory);
+			Iterator<DuccId> iterator = null;
+			iterator = job.getDriver().getProcessMap().keySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId processId = iterator.next();
+				IDuccProcess duccProcess = job.getDriver().getProcessMap().get(processId);
+				JsonHelper.JobProcess jsonJobProcess = create(job,duccProcess,AllocationType.JD,fileInfoMap);
+				jpl.addJobProcess(jsonJobProcess);
+			}
+			iterator = job.getProcessMap().keySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId processId = iterator.next();
+				IDuccProcess duccProcess = job.getProcessMap().get(processId);
+				JsonHelper.JobProcess jsonJobProcess = create(job,duccProcess,AllocationType.UIMA,fileInfoMap);
+				jpl.addJobProcess(jsonJobProcess);
+			}
+		}
+		
+		String json = jpl.toJson();
+		
+		duccLogger.debug(methodName, jobid, json);
+		response.getWriter().println(json);
+		response.setContentType("application/json");
+		
+		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
+	}
 	
 	private JsonArray buildReservationRow(HttpServletRequest request, IDuccWork duccwork, DuccData duccData, long now) {
 		JsonArray row = new JsonArray();
@@ -2393,6 +2495,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 		else if(reqURI.startsWith(jsonFormatReservations)) {
 			handleServletJsonFormatReservations(target, baseRequest, request, response);
+		}
+		if(reqURI.startsWith(jsonFormatJobProcessesData)) {
+			handleServletJsonFormatJobProcessesData(target, baseRequest, request, response);
 		}
 		else {
 			handleServletUnknown(target, baseRequest, request, response);

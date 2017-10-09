@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -36,7 +35,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -66,7 +64,6 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
-import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -79,7 +76,6 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
-import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
@@ -87,9 +83,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
-import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
-import org.apache.uima.ducc.transport.event.common.TimeWindow;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccDataHelper;
@@ -107,6 +100,7 @@ import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
+import org.apache.uima.ducc.ws.server.Helper.AllocationType;
 import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.apache.uima.ducc.ws.sort.JobDetailsProcesses;
 import org.apache.uima.ducc.ws.types.NodeId;
@@ -114,8 +108,6 @@ import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.apache.uima.ducc.ws.utils.HandlersHelper.ServiceAuthorization;
-import org.apache.uima.ducc.ws.utils.LinuxSignals;
-import org.apache.uima.ducc.ws.utils.LinuxSignals.Signal;
 import org.apache.uima.ducc.ws.utils.UrlHelper;
 import org.apache.uima.ducc.ws.utils.alien.AlienWorkItemStateReader;
 import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
@@ -138,8 +130,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private final Set<String> hideableKeys = new HashSet<String>(Arrays.asList(n));
 
 	private enum DetailsType { Job, Reservation, Service };
-	private enum AllocationType { JD, MR, SPC, SPU, UIMA };
-	private enum LogType { POP, UIMA };
+
 
 	private DuccAuthenticator duccAuthenticator = DuccAuthenticator.getInstance();
 
@@ -384,49 +375,10 @@ public class DuccHandler extends DuccAbstractHandler {
 	*/
 
 	private String buildLogFileName(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
-		String retVal = "";
-		if(process != null) {
-			switch(type) {
-			case UIMA:
-				retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-				break;
-			case MR:
-				retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-				break;
-			case SPU:
-				retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-				break;
-			case SPC:
-				retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-				break;
-			case JD:
-				retVal = "jd.out.log";
-				// <UIMA-3802>
-				// {jobid}-JD-{node}-{PID}.log
-				String node = process.getNodeIdentity().getName();
-				String pid = process.getPID();
-				retVal = job.getDuccId()+"-"+"JD"+"-"+node+"-"+pid+".log";
-				// </UIMA-3802>
-				break;
-			}
-		}
-		return retVal;
+		return Helper.getLogFileName(job, process, type);
 	}
 
-	private String chomp(String leading, String whole) {
-		String retVal = whole;
-		while((retVal.length() > leading.length()) && (retVal.startsWith(leading))) {
-			retVal = retVal.replaceFirst(leading, "");
-		}
-		/*
-		if(retVal.equals("00:00")) {
-			retVal = "0";
-		}
-		*/
-		return retVal;
-	}
-
-	DecimalFormat sizeFormatter = new DecimalFormat("##0.00");
+	private DecimalFormat sizeFormatter = new DecimalFormat("##0.00");
 
 	private boolean fileExists(String fileName) {
 		String location = "fileExists";
@@ -442,17 +394,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 
 	private String normalizeFileSize(long fileSize) {
-		String location = "getFileSize";
-		String retVal = "0";
-		try {
-			double size = fileSize;
-			size = size / Constants.MB;
-			retVal = sizeFormatter.format(size);
-		}
-		catch(Exception e) {
-			duccLogger.warn(location,jobid,e);
-		}
-		return retVal;
+		return Helper.normalize(fileSize);
 	}
 
 	private String getId(IDuccWorkJob job, IDuccProcess process) {
@@ -480,89 +422,19 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 
 	private String getPid(IDuccWorkJob job, IDuccProcess process) {
-		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			String pid = process.getPID();
-			if(pid != null) {
-				sb.append(pid);
-			}
-		}
-		return sb.toString();
+		return Helper.getPid(job, process);
 	}
 
 	private String getStateScheduler(IDuccWorkJob job, IDuccProcess process) {
-		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			sb.append(process.getResourceState());
-		}
-		return sb.toString();
+		return Helper.getSchedulerState(job, process);
 	}
 
-	private String getRmReason(IDuccWorkJob job) {
-		StringBuffer sb = new StringBuffer();
-		String rmReason = job.getRmReason();
-		if(rmReason != null) {
-			sb.append("<span>");
-			sb.append(rmReason);
-			sb.append("</span>");
-		}
-		return sb.toString();
-	}
-
-	private String getProcessReason(IDuccProcess process) {
-		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			switch(process.getProcessState()) {
-			case Starting:
-			case Started:
-			case Initializing:
-			case Running:
-				break;
-			default:
-				ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
-				switch(deallocationType) {
-				case Undefined:
-					break;
-				default:
-					sb.append(process.getProcessDeallocationType());
-					break;
-				}
-				break;
-			}
-		}
-		return sb.toString();
-	}
 	private String getReasonScheduler(IDuccWorkJob job, IDuccProcess process) {
-		StringBuffer sb = new StringBuffer();
-		if(job.isOperational()) {
-			switch(job.getJobState()) {
-			case WaitingForResources:
-				sb.append(getRmReason(job));
-				break;
-			default:
-				sb.append(getProcessReason(process));
-				break;
-			}
-		}
-		else {
-			sb.append(getProcessReason(process));
-		}
-		return sb.toString();
+		return Helper.getSchedulerReason(job, process);
 	}
 
 	private String getStateAgent(IDuccWorkJob job, IDuccProcess process) {
-		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			ProcessState ps = process.getProcessState();
-			switch(ps) {
-			case Undefined:
-				break;
-			default:
-				sb.append(ps);
-				break;
-			}
-		}
-		return sb.toString();
+		return Helper.getAgentState(job, process);
 	}
 
 	private String getReasonAgent(IDuccWorkJob job, IDuccProcess process) {
@@ -586,298 +458,59 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 
 	private String getExit(IDuccWorkJob job, IDuccProcess process) {
-		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			boolean suppressExitCode = false;
-			if(!suppressExitCode) {
-				switch(process.getProcessState()) {
-				case LaunchFailed:
-				case Stopped:
-				case Failed:
-				case FailedInitialization:
-				case InitializationTimeout:
-				case Killed:
-					int code = process.getProcessExitCode();
-					if(LinuxSignals.isSignal(code)) {
-						Signal signal = LinuxSignals.lookup(code);
-						if(signal != null) {
-							sb.append(signal.name()+"("+signal.number()+")");
-						}
-						else {
-							sb.append("UnknownSignal"+"("+LinuxSignals.getValue(code)+")");
-						}
-					}
-					else {
-						sb.append("ExitCode"+"="+code);
-					}
-					break;
-				default:
-					break;
-				}
-			}
-		}
-		return sb.toString();
+		return Helper.getExit(job, process);
 	}
 
-	private String getTimeInit(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
-		String location = "getTimeInit";
-		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			switch(sType) {
-			case MR:
-				break;
-			default:
-				StringBuffer loadme = new StringBuffer();
-				String initTime = "00";
-				String isp0 = "<span>";
-				String isp1 = "</span>";
-				try {
-					TimeWindow t = (TimeWindow) process.getTimeWindowInit();
-					if(t != null) {
-						long now = System.currentTimeMillis();
-						String tS = t.getStart(""+now);
-						String tE = t.getEnd(""+now);
-						initTime = getDuration(jobid,tE,tS,Precision.Whole);
-						if(t.isEstimated()) {
-							isp0 = "<span class=\"health_green\">";
-						}
-						else {
-							isp0 = "<span class=\"health_black\">";
-						}
-					}
-					boolean cluetips_disabled = true;
-					if(cluetips_disabled) {
-						if(!initTime.equals("00")) {
-							String p_idJob = pname_idJob+"="+job.getDuccId().getFriendly();
-							String p_idPro = pname_idPro+"="+process.getDuccId().getFriendly();
-							initTime = "<a href=\""+duccUimaInitializationReport+"?"+p_idJob+"&"+p_idPro+"\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">"+initTime+"</a>";
-							loadme.append("");
-						}
-					}
-					else {
-						List<IUimaPipelineAEComponent> upcList = process.getUimaPipelineComponents();
-						if(upcList != null) {
-							if(!upcList.isEmpty()) {
-								String id = ""+process.getDuccId().getFriendly();
-								initTime = "<a class=\"classLoad\" title=\""+id+"\" href=\"#loadme"+id+"\" rel=\"#loadme"+id+"\">"+initTime+"</a>";
-								loadme.append("<div id=\"loadme"+id+"\">");
-								loadme.append("<table>");
-								loadme.append("<tr>");
-								String ch1 = "Name";
-								String ch2 = "State";
-								String ch3 = "Time";
-								loadme.append("<td>"+"<b>"+ch1+"</b>");
-								loadme.append("<td>"+"<b>"+ch2+"</b>");
-								loadme.append("<td>"+"<b>"+ch3+"</b>");
-								Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
-								while(upcIterator.hasNext()) {
-									IUimaPipelineAEComponent upc = upcIterator.next();
-									String iName = upc.getAeName();
-									String iState = upc.getAeState().toString();
-									String iTime = FormatHelper.duration(upc.getInitializationTime(),Precision.Whole);
-									loadme.append("<tr>");
-									loadme.append("<td>"+iName);
-									loadme.append("<td>"+iState);
-									loadme.append("<td>"+iTime);
-								}
-								loadme.append("</table>");
-								loadme.append("</div>");
-							}
-						}
-					}
-				}
-				catch(Exception e) {
-					duccLogger.trace(location, jobid, "no worries", e);
-				}
-				catch(Throwable t) {
-					duccLogger.trace(location, jobid, "no worries", t);
-				}
-				sb.append(isp0);
-				sb.append(loadme);
-				sb.append(initTime);
-				sb.append(isp1);
-				break;
-			}
-		}
-		return sb.toString();
+	private String getTimeInit(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
+		return Helper.getTimeInit(job, process, type);
 	}
 
-	private String getTimeRun(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
-		String location = "getTimeRun";
-		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			String runTime = "00";
-			String rsp0 = "<span>";
-			String rsp1 = "</span>";
-			// <UIMA-3351>
-			boolean useTimeRun = true;
-			switch(sType) {
-			case SPC:
-				break;
-			case SPU:
-				break;
-			case MR:
-				break;
-			case JD:
-				break;
-			case UIMA:
-				if(!process.isAssignedWork()) {
-					useTimeRun = false;
-				}
-				break;
-			default:
-				break;
-			}
-			// </UIMA-3351>
-			if(useTimeRun) {
-				try {
-					TimeWindow t = (TimeWindow) process.getTimeWindowRun();
-					if(t != null) {
-						long now = System.currentTimeMillis();
-						String tS = t.getStart(""+now);
-						String tE = t.getEnd(""+now);
-						runTime = getDuration(jobid,tE,tS,Precision.Whole);
-						if(t.isEstimated()) {
-							rsp0 = "<span class=\"health_green\">";
-						}
-						else {
-							rsp0 = "<span class=\"health_black\">";
-						}
-					}
-				}
-				catch(Exception e) {
-					duccLogger.trace(location, jobid, "no worries", e);
-				}
-				catch(Throwable t) {
-					duccLogger.trace(location, jobid, "no worries", t);
-				}
-			}
-			sb.append(rsp0);
-			sb.append(runTime);
-			sb.append(rsp1);
-		}
-		return sb.toString();
+	private boolean isTimeInitEstimated(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
+		return Helper.isTimeInitEstimated(job, process, type);
+	}
+	
+	private String getTimeRun(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
+		return Helper.getTimeRun(job, process, type);
 	}
 
-	private SynchronizedSimpleDateFormat dateFormat = new SynchronizedSimpleDateFormat("HH:mm:ss");
-
-	private String getTimeGC(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
-		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			switch(sType) {
-			case MR:
-				break;
-			default:
-				long timeGC = 0;
-				try {
-					timeGC = process.getGarbageCollectionStats().getCollectionTime();
-				}
-				catch(Exception e) {
-				}
-				dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				String displayGC = dateFormat.format(new Date(timeGC));
-				displayGC = chomp("00:", displayGC);
-				sb.append(displayGC);
-				break;
-			}
-		}
-		return sb.toString();
+	private boolean isTimeRunEstimated(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
+		return Helper.isTimeRunEstimated(job, process, type);
+	}
+	
+	private String getTimeGC(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
+		return Helper.getTimeGC(job, process, type);
 	}
 
 	private String getPgIn(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
-		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			switch(sType) {
-			case MR:
-			default:
-				long faults = 0;
-				try {
-					faults = process.getMajorFaults();
-				}
-				catch(Exception e) {
-				}
-				if(faults < 0) {
-					sb.append("<span class=\"health_black\""+">");
-					sb.append(notAvailable);
-					sb.append("</span>");
-				}
-				else {
-					double swap = process.getSwapUsageMax();
-					if((swap * faults) > 0) {
-						sb.append("<span class=\"health_red\""+">");
-					}
-					else {
-						sb.append("<span class=\"health_black\""+">");
-					}
-					sb.append(faults);
-					sb.append("</span>");
-				}
-				break;
-			}
-		}
-		return sb.toString();
+		return Helper.getPgIn(job, process, sType);
 	}
 
 	private DecimalFormat formatter = new DecimalFormat("##0.0");
 
 	private String getSwap(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			switch(sType) {
-			case MR:
-			default:
-				if(!process.isActive()) {
-					double swap = process.getSwapUsageMax();
-					if(swap < 0) {
-						sb.append("<span class=\"health_black\""+">");
-						sb.append(notAvailable);
-						sb.append("</span>");
-					}
-					else {
-						swap = swap/Constants.GB;
-						String displaySwap = formatter.format(swap);
-						if(swap > 0) {
-							sb.append("<span class=\"health_red\""+">");
-						}
-						else {
-							sb.append("<span class=\"health_black\""+">");
-						}
-						sb.append(displaySwap);
-						sb.append("</span>");
-					}
-				}
-				else {
-					double swap = process.getSwapUsage();
-					if(swap < 0) {
-						sb.append("<span class=\"health_black\""+">");
-						sb.append(notAvailable);
-						sb.append("</span>");
-					}
-					else {
-						swap = swap/Constants.GB;
-						String displaySwap = formatter.format(swap);
-						double swapMax = process.getSwapUsageMax();
-						swapMax = swapMax/Constants.GB;
-						String displaySwapMax = formatter.format(swapMax);
-						sb.append("<span title=\"max="+displaySwapMax+"\" align=\"right\" "+">");
-						if(swap > 0) {
-							sb.append("<span class=\"health_red\""+">");
-						}
-						else {
-							sb.append("<span class=\"health_black\""+">");
-						}
-						sb.append(displaySwap);
-						sb.append("</span>");
-					}
-				}
-				break;
-			}
+		boolean swapping = Helper.isSwapping(job, process, sType);
+		String swap = Helper.getSwap(job, process, sType);
+		String swapMax = Helper.getSwapMax(job, process, sType);
+		if(swapMax != null) {
+			sb.append("<span title=\"max="+swapMax+"\" align=\"right\" "+">");
+		}
+		if(swapping) {
+			sb.append("<span class=\"health_red\""+">");
+		}
+		else {
+			sb.append("<span class=\"health_black\""+">");
+		}
+		sb.append(swap);
+		sb.append("</span>");
+		if(swapMax != null) {
+			sb.append("</span>");
 		}
 		return sb.toString();
 	}
-
+	
 	// legacy
-	private String getPctCpuV0(IDuccWorkJob job, IDuccProcess process) {
+	private String getPctCpuV0(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		String retVal = "";
 		boolean rt = false;
 		double pctCPU_overall = 0;
@@ -932,22 +565,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		return retVal;
 	}
 
-	private String formatPctCpu(double pctCpu) {
-		String retVal = "";
-		if(pctCpu < 0) {
-			retVal = "N/A";
-		}
-		else {
-			retVal = formatter.format(pctCpu);
-		}
-		return retVal;
-	}
-
-	private String getPctCpuV1(IDuccWorkJob job, IDuccProcess process) {
-		double pctCPU_overall = process.getCpuTime();
-		double pctCPU_current = process.getCurrentCPU();
-		String fmtCPU_overall = formatPctCpu(pctCPU_overall);
-		String fmtCPU_current = formatPctCpu(pctCPU_current);
+	private String getPctCpuV1(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
+		String fmtCPU_overall = Helper.getPctCpuOverall(job, process, sType);
+		String fmtCPU_current = Helper.getPctCpuCurrent(job, process,sType);
 		StringBuffer sb = new StringBuffer();
 		switch(process.getProcessState()) {
 		case Running:
@@ -966,16 +586,16 @@ public class DuccHandler extends DuccAbstractHandler {
 		return retVal;
 	}
 
-	private String getPctCpu(IDuccWorkJob job, IDuccProcess process) {
+	private String getPctCpu(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		String location = "getPctCpu";
 		String retVal = "";
 		if(process != null) {
 			try {
 				if(process.getDataVersion() < 1) {
-					retVal = getPctCpuV0(job, process);
+					retVal = getPctCpuV0(job, process, sType);
 				}
 				else {
-					retVal = getPctCpuV1(job, process);
+					retVal = getPctCpuV1(job, process, sType);
 				}
 			}
 			catch(Exception e) {
@@ -985,41 +605,17 @@ public class DuccHandler extends DuccAbstractHandler {
 		return retVal;
 	}
 
-	private String getRSS(IDuccWorkJob job, IDuccProcess process) {
+	private String getRSS(IDuccWorkJob job, IDuccProcess process, AllocationType sType) {
 		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			if(process.isComplete()) {
-				double rss = process.getResidentMemoryMax();
-				if(rss < 0) {
-					sb.append("<span class=\"health_black\""+">");
-					sb.append(notAvailable);
-					sb.append("</span>");
-				}
-				else {
-					rss = rss/Constants.GB;
-					String displayRss = formatter.format(rss);
-					sb.append(displayRss);
-				}
-
-			}
-			else {
-				double rss = process.getResidentMemory();
-				if(rss < 0) {
-					sb.append("<span class=\"health_black\""+">");
-					sb.append(notAvailable);
-					sb.append("</span>");
-				}
-				else {
-					rss = rss/Constants.GB;
-					String displayRss = formatter.format(rss);
-					double rssMax = process.getResidentMemoryMax();
-					rssMax = rssMax/Constants.GB;
-					String displayRssMax = formatter.format(rssMax);
-					sb.append("<span title=\"max="+displayRssMax+"\" align=\"right\" "+">");
-					sb.append(displayRss);
-					sb.append("</span>");
-				}
-			}
+		String rss = Helper.getRss(job, process, sType);
+		String rssMax = Helper.getRssMax(job, process, sType);
+		if(rssMax != null) {
+			sb.append("<span title=\"max="+rssMax+"\" align=\"right\" "+">");
+			sb.append(rss);
+			sb.append("</span>");
+		}
+		else {
+			sb.append(rss);
 		}
 		return sb.toString();
 	}
@@ -1059,17 +655,8 @@ public class DuccHandler extends DuccAbstractHandler {
 	String pname_idJob = "idJob";
 	String pname_idPro = "idPro";
 
-	private long getLogFileSize(String key, Map<String, FileInfo> fileInfoMap) {
-		long retVal = 0;
-		if(key != null) {
-			if(fileInfoMap != null) {
-				FileInfo fileInfo = fileInfoMap.get(key);
-				if(fileInfo != null) {
-					retVal = fileInfo.length;
-				}
-			}
-		}
-		return retVal;
+	private long getLogFileSize(String filename, Map<String, FileInfo> fileInfoMap) {
+		return Helper.getFileSize(filename, fileInfoMap);
 	}
 
 	private void buildJobProcessListEntry(EffectiveUser eu, StringBuffer pb, DuccWorkJob job, IDuccProcess process, DetailsType dType, AllocationType sType, int counter, Map<String, FileInfo> fileInfoMap) {
@@ -1158,17 +745,14 @@ public class DuccHandler extends DuccAbstractHandler {
 		// Log Size (in MB)
 		index++; // jp.02
 		cbList[index].append("<td align=\"right\">");
-		String fileSize = normalizeFileSize(getLogFileSize(file_name, fileInfoMap));
+		String fileSize = Helper.getLogFileSize(job, process, log, fileInfoMap);
 		cbList[index].append(fileSize);
 		logAppend(index,"fileSize",fileSize);
 		cbList[index].append("</td>");
 		// Hostname
 		index++; // jp.03
 		cbList[index].append("<td>");
-		String hostname = "";
-		if(process != null) {
-			hostname = process.getNodeIdentity().getName();
-		}
+		String hostname = Helper.getHostname(job, process);
 		cbList[index].append(hostname);
 		logAppend(index,"hostname",hostname);
 		cbList[index].append("</td>");
@@ -1246,7 +830,13 @@ public class DuccHandler extends DuccAbstractHandler {
 		default:
 			index++; // jp.11
 			cbList[index].append("<td align=\"right\">");
-			String timeInit = getTimeInit(job,process,sType);
+			String timeInitPrefix = "<span class=\"health_black\">";
+			if(isTimeInitEstimated(job, process, sType)) {
+				timeInitPrefix = "<span class=\"health_green\">";
+			}
+			String timeInitBody = getTimeInit(job,process,sType);
+			String timeInitSuffix = "</span>";
+			String timeInit = timeInitPrefix+timeInitBody+timeInitSuffix;
 			cbList[index].append(timeInit);
 			logAppend(index,"timeInit",timeInit);
 			cbList[index].append("</td>");
@@ -1255,7 +845,13 @@ public class DuccHandler extends DuccAbstractHandler {
 		// Time:run
 		index++; // jp.12
 		cbList[index].append("<td align=\"right\">");
-		String timeRun = getTimeRun(job,process,sType);
+		String timeRunPrefix = "<span class=\"health_black\">";
+		if(isTimeRunEstimated(job, process, sType)) {
+			timeRunPrefix = "<span class=\"health_green\">";
+		}
+		String timeRunBody = getTimeRun(job,process,sType);
+		String timeRunSuffix = "</span>";
+		String timeRun = timeRunPrefix+timeRunBody+timeRunSuffix;
 		cbList[index].append(timeRun);
 		logAppend(index,"timeRun",timeRun);
 		cbList[index].append("</td>");
@@ -1299,14 +895,14 @@ public class DuccHandler extends DuccAbstractHandler {
 		// %cpu
 		index++; // jp.16
 		cbList[index].append("<td align=\"right\">");
-		String pctCPU = getPctCpu(job,process);
+		String pctCPU = getPctCpu(job,process,sType);
 		cbList[index].append(pctCPU);
 		logAppend(index,"%cpu",pctCPU);
 		cbList[index].append("</td>");
 		// rss
 		index++; // jp.17
 		cbList[index].append("<td align=\"right\">");
-		String rss = getRSS(job,process);
+		String rss = getRSS(job,process,sType);
 		cbList[index].append(rss);
 		logAppend(index,"rss",rss);
 		cbList[index].append("</td>");
@@ -1322,60 +918,36 @@ public class DuccHandler extends DuccAbstractHandler {
 			// Time:avg
 			index++; // jp.18
 			String timeAvg = "";
-			IDuccProcessWorkItems pwi = process.getProcessWorkItems();
 			cbList[index].append("<td align=\"right\">");
-			switch(sType) {
-			case JD:
-				if(pwi != null) {
-					timeAvg = ""+(job.getWiMillisAvg()/1000);
-				}
-				break;
-			default:
-				if(pwi != null) {
-					timeAvg = ""+pwi.getSecsAvg();
-				}
-				break;
-			}
+			timeAvg = Helper.getWiTimeAvg(job, process, sType);
 			cbList[index].append(timeAvg);
 			logAppend(index,"timeAvg",timeAvg);
 			cbList[index].append("</td>");
 			// Time:max
 			index++; // jp.19
 			cbList[index].append("<td align=\"right\">");
-			String timeMax = "";
-			if(pwi != null) {
-				timeMax = ""+pwi.getSecsMax();
-			}
+			String timeMax = Helper.getWiTimeMax(job, process, sType);
 			cbList[index].append(timeMax);
 			logAppend(index,"timeMax",timeMax);
 			cbList[index].append("</td>");
 			// Time:min
 			index++; // jp.20
 			cbList[index].append("<td align=\"right\">");
-			String timeMin = "";
-			if(pwi != null) {
-				timeMin = ""+pwi.getSecsMin();
-			}
+			String timeMin = Helper.getWiTimeMax(job, process, sType);
 			cbList[index].append(timeMin);
 			logAppend(index,"timeMin",timeMin);
 			cbList[index].append("</td>");
 			// Done
 			index++; // jp.21
 			cbList[index].append("<td align=\"right\">");
-			String done = "";
-			if(pwi != null) {
-				done = ""+pwi.getCountDone();
-			}
+			String done = Helper.getWiDone(job, process, sType);
 			cbList[index].append(done);
 			logAppend(index,"done",done);
 			cbList[index].append("</td>");
 			// Error
 			index++; // jp.22
 			cbList[index].append("<td align=\"right\">");
-			String error = "";
-			if(pwi != null) {
-				error = ""+pwi.getCountError();
-			}
+			String error = Helper.getWiError(job, process, sType);
 			cbList[index].append(error);
 			logAppend(index,"error",error);
 			cbList[index].append("</td>");
@@ -1384,15 +956,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			case Job:
 				index++; // jp.23
 				cbList[index].append("<td align=\"right\">");
-				String dispatch = "";
-				if(pwi != null) {
-					if(job.isCompleted()) {
-						dispatch = "0";
-					}
-					else {
-						dispatch = ""+pwi.getCountDispatch();
-					}
-				}
+				String dispatch = Helper.getWiDispatch(job, process, sType);
 				cbList[index].append(dispatch);
 				logAppend(index,"dispatch",dispatch);
 				cbList[index].append("</td>");
@@ -1403,20 +967,14 @@ public class DuccHandler extends DuccAbstractHandler {
 			// Retry
 			index++; // jp.24
 			cbList[index].append("<td align=\"right\">");
-			String retry = "";
-			if(pwi != null) {
-				retry = ""+pwi.getCountRetry();
-			}
+			String retry = Helper.getWiRetry(job, process, sType);
 			cbList[index].append(retry);
 			logAppend(index,"retry",retry);
 			cbList[index].append("</td>");
 			// Preempt
 			index++; // jp.25
 			cbList[index].append("<td align=\"right\">");
-			String preempt = "";
-			if(pwi != null) {
-				preempt = ""+pwi.getCountPreempt();
-			}
+			String preempt = Helper.getWiPreempt(job, process, sType);
 			cbList[index].append(preempt);
 			logAppend(index,"exit",exit);
 			cbList[index].append("</td>");
@@ -1648,15 +1206,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 
 	private Map<String, FileInfo> getFileInfoMap(EffectiveUser eu, String directory) {
-		String location = "";
-		Map<String, FileInfo> map = new TreeMap<String, FileInfo>();
-		try {
-			map = OsProxy.getFilesInDirectory(eu, directory);
-		}
-		catch(Throwable t) {
-			duccLogger.error(location, jobid, t);
-		}
-		return map;
+		return Helper.getFileInfoMap(eu, directory);
 	}
 
 	private void handleDuccServletJobProcessesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)

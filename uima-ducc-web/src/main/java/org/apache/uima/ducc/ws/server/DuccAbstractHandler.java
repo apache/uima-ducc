@@ -75,7 +75,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public static DuccWebAdministrators duccWebAdministrators = DuccWebAdministrators.getInstance();
 	public static DuccWebSessionManager duccWebSessionManager = DuccWebSessionManager.getInstance();
 
-	public final String notAvailable = "N/A";
+	public final String notAvailable = Helper.notAvailable;
 	public final String inc = "INC";
 
 	public final String duccUimaInitializationReport		  = "uima-initialization-report.html";
@@ -257,27 +257,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 					retVal = v2;
 				}
 			}
-		}
-		return retVal;
-	}
-
-	public String getDuration(DuccId jobId, String millisV2, String millisV1, Precision precision) {
-		String methodName = "getDuration";
-		String retVal = "";
-		try {
-			long d2 = Long.parseLong(millisV2);
-			long d1 = Long.parseLong(millisV1);
-			long diff = d2 - d1;
-			if(diff < 0) {
-				diff = 0;
-			}
-			retVal = FormatHelper.duration(diff, precision);
-		}
-		catch(Exception e) {
-			duccLogger.trace(methodName, null, "no worries", e);
-		}
-		catch(Throwable t) {
-			duccLogger.trace(methodName, null, "no worries", t);
 		}
 		return retVal;
 	}
@@ -615,7 +594,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			String v2 = dw.getStandardInfo().getDateOfCompletion();
 			String v1 = dw.getStandardInfo().getDateOfSubmission();
 			duccLogger.trace(methodName, null, "v2:"+v2+" v1:"+v1);
-			retVal = getDuration(dw.getDuccId(),v2,v1,precision);
+			retVal = Helper.getDuration(dw.getDuccId(),v2,v1,precision);
 		}
 		catch(Exception e) {
 			duccLogger.trace(methodName, null, "no worries", e);
@@ -633,7 +612,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			String v2 = ""+now;
 			String v1 = dw.getStandardInfo().getDateOfSubmission();
 			duccLogger.trace(methodName, null, "v2:"+v2+" v1:"+v1);
-			retVal = getDuration(dw.getDuccId(),v2,v1,precision);
+			retVal = Helper.getDuration(dw.getDuccId(),v2,v1,precision);
 		}
 		catch(Exception e) {
 			duccLogger.trace(methodName, null, "no worries", e);
