@@ -33,6 +33,9 @@ import time
 from HTMLParser import HTMLParser
 from optparse import OptionParser
 
+from ducc_base import find_ducc_home
+from properties import *
+
 # -----------------------------------------------------------------------
 # Extend OptionParser class
 class ExtendedOptionParser(OptionParser):
@@ -315,9 +318,28 @@ def display():
         for key in sorted(options.daemons):
             output = key+'='+options.daemons[key]
             info(output)
+
+def init():
+    global default_host
+    global default_port
+    DUCC_HOME = find_ducc_home()
+    #print DUCC_HOME
+    propsfile = DUCC_HOME+'/resources/ducc.properties'
+    ducc_properties = Properties()
+    ducc_properties.load(propsfile)
+    _head = ducc_properties.get('ducc.head')
+    #print _head
+    if _head != None:
+        default_host = _head
+    _port = ducc_properties.get('ducc.ws.port')
+    #print _port
+    if _port != None:
+        default_port = _port
+    
     
 # report current ducc daemons status
 def main(argv):
+    init()
     parse_cmdline()
     fetch_state_current()
     transform()
