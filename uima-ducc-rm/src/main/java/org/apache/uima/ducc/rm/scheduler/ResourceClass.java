@@ -26,7 +26,9 @@ import java.util.Map;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
 /**
@@ -37,7 +39,8 @@ public class ResourceClass
                IEntity
 {
     private static DuccLogger logger = DuccLogger.getLogger(ResourceClass.class, COMPONENT_NAME);
-
+    private static DuccId jobid = null;
+    
     private String id;
     private Policy policy;
     private int priority;           // orders evaluation of the class
@@ -84,8 +87,13 @@ public class ResourceClass
 
     private static Comparator<IEntity> apportionmentSorter = new ApportionmentSorterCl();
 
+    private static DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
+    private static final String ducc_jd_host_class = dpr.getProperty(DuccPropertiesResolver.ducc_jd_host_class);
+    private static final String ducc_jd_host_user = dpr.getProperty(DuccPropertiesResolver.ducc_jd_host_user);
+    
     public ResourceClass(DuccProperties props)
     {
+    	String location = "ResourceClass";
         //
         // We can assume everything useful is here because the parser insured it
         //
@@ -94,6 +102,16 @@ public class ResourceClass
         this.priority = props.getIntProperty("priority");
         // (Note: the share quantum is set when the nodepool is set because it isn't known quite yet in the constructor.)
 
+        // We put the jd.host.user as authorized for the jd.host.class
+        if(ducc_jd_host_class != null) {
+        	if(ducc_jd_host_class.equals(this.id)) {
+        		if(ducc_jd_host_user != null) {
+        			authorizedUsers.put(ducc_jd_host_user, ducc_jd_host_user);
+        			logger.info(location, jobid, "jd.host.class="+ducc_jd_host_class+" "+"jd.host.user="+ducc_jd_host_user);
+        		}
+        	}
+        }
+        
         String userset = props.getProperty("users");
         if ( userset != null ) {
             String[] usrs = userset.split("\\s+");
