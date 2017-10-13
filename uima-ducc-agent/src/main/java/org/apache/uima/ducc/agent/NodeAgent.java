@@ -51,6 +51,7 @@ import org.apache.uima.ducc.agent.config.AgentConfiguration;
 import org.apache.uima.ducc.agent.event.AgentEventListener;
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
 import org.apache.uima.ducc.agent.launcher.CGroupsManager;
+import org.apache.uima.ducc.agent.launcher.DefunctProcessDetector;
 import org.apache.uima.ducc.agent.launcher.Launcher;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess.StopPriority;
@@ -176,6 +177,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   public int numProcessors=0;
 
+  ExecutorService defunctDetectorExecutor = 
+		  Executors.newCachedThreadPool();
   private AgentEventListener eventListener;
 
   //  indicates whether or not this agent received at least one publication
@@ -1486,7 +1489,17 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           String pid = deployedProcess.getDuccProcess().getPID();
           processFound = true;
           if (deployedProcess.isStopping()) {
+            if ( isProcessRunning(deployedProcess.getDuccProcess())) {
+                logger.info(methodName, null, "....Checking if Proces with PID:" + process.getPID()+" is Defunct");
+
+            	// spin a thread where we check if the process is defunct. If true,
+            	// the process state is changed to Stopped and reason set to 'defunct'.
+            	// Next inventory publication will include this new state and the OR
+            	// can terminate a job.
+            	defunctDetectorExecutor.execute(new DefunctProcessDetector(deployedProcess, logger));
+            }
             logger.info(methodName, null, "....Process Already Stopping PID:" + process.getPID()+" Returning");
+            
             break; // this process is already in stopping state
           }
           logger.info(methodName, null, "....Undeploying Process - DuccId:" + process.getDuccId()

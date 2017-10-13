@@ -123,6 +123,7 @@ public interface IDuccProcess extends Serializable {
 		KilledByDucc,
 		CommandLineMissing,
 		Unexplained,
+		Defunct,
 		Other
 	}
 	
