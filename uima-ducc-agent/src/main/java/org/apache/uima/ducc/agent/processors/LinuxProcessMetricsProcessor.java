@@ -138,12 +138,12 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 			ProcessSwapUsageCollector processSwapCollector = new ProcessSwapUsageCollector(
 					logger, agent.cgroupsManager, containerId);
-			logger.info("LinuxProcessMetricsProcessor.getSwapUsage", null,
+			logger.debug("LinuxProcessMetricsProcessor.getSwapUsage", null,
 					"Fetching Swap Usage PID:" + process.getPID());
 			Future<ProcessSwapSpaceUsage> processFaults = pool
 					.submit(processSwapCollector);
 			swapUsage = processFaults.get().getSwapUsage();
-			logger.info("LinuxProcessMetricsProcessor.getSwapUsage", null,
+			logger.debug("LinuxProcessMetricsProcessor.getSwapUsage", null,
 					" Process Swap Usage:" + swapUsage);
 		}
 		return swapUsage;
@@ -156,10 +156,10 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 			ProcessMajorFaultCollector processFaultsCollector = 
 					new ProcessMajorFaultCollector(logger, agent.cgroupsManager, containerId);
-	        logger.info("LinuxProcessMetricsProcessor.getFaults",null,"Fetching Page Faults PID:"+process.getPID());
+	        logger.debug("LinuxProcessMetricsProcessor.getFaults",null,"Fetching Page Faults PID:"+process.getPID());
 	        Future<ProcessMemoryPageLoadUsage> processFaults = pool.submit(processFaultsCollector);
 		    faults = processFaults.get().getMajorFaults();
-			logger.info(
+			logger.debug(
 					"LinuxProcessMetricsProcessor.getFaults",null," Process Faults (pgpgin):"+faults);
 		}
 		return faults;
@@ -171,10 +171,10 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 			ProcessResidentMemoryCollector processRSSCollector = 
 					new ProcessResidentMemoryCollector(logger, agent.cgroupsManager, containerId);
-	        logger.info("LinuxProcessMetricsProcessor.getRss",null,"Fetching RSS Usage for PID:"+process.getPID());
+	        logger.debug("LinuxProcessMetricsProcessor.getRss",null,"Fetching RSS Usage for PID:"+process.getPID());
 	        Future<ProcessResidentMemory> processRss = pool.submit(processRSSCollector);
 		    rss = processRss.get().get();
-			logger.info(
+			logger.debug(
 					"LinuxProcessMetricsProcessor.getRss",null," Process RSS:"+rss);
 		}
 		return rss;
@@ -188,7 +188,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 			Future<ProcessCpuUsage> processCpuUsage = null;
 			ProcessCpuUsageCollector processCpuUsageCollector = 
 					new ProcessCpuUsageCollector(logger, agent.cgroupsManager, containerId);
-	        logger.info("LinuxProcessMetricsProcessor.getCpuUsage",null,"Fetching CPU Usage for PID:"+process.getPID());
+	        logger.debug("LinuxProcessMetricsProcessor.getCpuUsage",null,"Fetching CPU Usage for PID:"+process.getPID());
 			processCpuUsage = pool
 					.submit(processCpuUsageCollector);
 			long cpuUsageInNanos = processCpuUsage.get().getCpuUsage();
@@ -196,7 +196,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 				// cpuUsage comes from cpuacct.usage and is in nanos
 				cpuUsage = Math.round( cpuUsageInNanos / 1000000 );  // normalize into millis
 			} 
-			logger.info(
+			logger.debug(
 					"LinuxProcessMetricsProcessor.getCpuUsage",null,
 					"CPU USAGE:"+cpuUsageInNanos+ " CLOCK RATE:"+agent.cpuClockRate+" Total CPU USAGE:"+cpuUsage);
 		}
@@ -261,7 +261,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 
 			String[] cgroupPids = agent.cgroupsManager
 			        .getPidsInCgroup(containerId);
-            logger.info("LinuxProcessMetricsProcessor.process",null,"Container ID:"+containerId+" cgroup pids "+cgroupPids.length);
+            logger.debug("LinuxProcessMetricsProcessor.process",null,"Container ID:"+containerId+" cgroup pids "+cgroupPids.length);
 
 			// Use Memory Guard only if cgroups are disabled and fudge
 			// factor > -1
@@ -333,7 +333,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 //		if (!process.getProcessType().equals(ProcessType.Pop)) {
 		if ( process.getProcessJmxUrl() != null
 				&& process.getProcessJmxUrl().trim().length() > 0 ) {
-			logger.info("LinuxProcessMetricsProcessor.getGCStats",	null, "Collecting GC Stats");
+			logger.debug("LinuxProcessMetricsProcessor.getGCStats",	null, "Collecting GC Stats");
 			ProcessGarbageCollectionStats gcStats = gcStatsCollector
 					.collect();
 		   return gcStats;

@@ -81,7 +81,7 @@ public class DefunctProcessDetector implements Runnable {
 				childProcess.getDuccProcess().setProcessState(ProcessState.Stopped);
 				childProcess.getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.Defunct.name());
 			} else {
-				logger.info("DefunctProcessDetector.run()", childProcess.getDuccProcess().getDuccId(), "Process with PID:"+childProcess.getPid()+" Not Defunct");
+				logger.debug("DefunctProcessDetector.run()", childProcess.getDuccProcess().getDuccId(), "Process with PID:"+childProcess.getPid()+" Not Defunct");
 
 			}
 		} catch( Exception e) {

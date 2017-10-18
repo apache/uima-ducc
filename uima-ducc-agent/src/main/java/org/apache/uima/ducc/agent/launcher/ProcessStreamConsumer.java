@@ -87,7 +87,7 @@ public class ProcessStreamConsumer extends Thread {
 				if (is != null) {
 					is.close();
 				}
-				logger.info("ProcessStreamConsumer.run()", workDuccId, "Stream Consumer Thread Terminated - Process Streams Redirected to a Log");
+				logger.debug("ProcessStreamConsumer.run()", workDuccId, "Stream Consumer Thread Terminated - Process Streams Redirected to a Log");
 			} catch (IOException e) {
 				// ignore
 			}

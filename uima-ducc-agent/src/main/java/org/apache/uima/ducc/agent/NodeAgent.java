@@ -878,7 +878,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   }
 
-  private boolean isAlive(IDuccProcess invProcess) {
+  public boolean isAlive(IDuccProcess invProcess) {
     return invProcess.getProcessState().equals(ProcessState.Initializing)
             || invProcess.getProcessState().equals(ProcessState.Running)
             || invProcess.getProcessState().equals(ProcessState.Stopping)
@@ -1490,7 +1490,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           processFound = true;
           if (deployedProcess.isStopping()) {
             if ( isProcessRunning(deployedProcess.getDuccProcess())) {
-                logger.info(methodName, null, "....Checking if Proces with PID:" + process.getPID()+" is Defunct");
+                logger.debug(methodName, null, "....Checking if Proces with PID:" + process.getPID()+" is Defunct");
 
             	// spin a thread where we check if the process is defunct. If true,
             	// the process state is changed to Stopped and reason set to 'defunct'.
@@ -1498,7 +1498,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             	// can terminate a job.
             	defunctDetectorExecutor.execute(new DefunctProcessDetector(deployedProcess, logger));
             }
-            logger.info(methodName, null, "....Process Already Stopping PID:" + process.getPID()+" Returning");
+            logger.debug(methodName, null, "....Process Already Stopping PID:" + process.getPID()+" Returning");
             
             break; // this process is already in stopping state
           }
@@ -1619,7 +1619,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
       try {
         synchronized (monitor) {
-          logger.info(methodName, null, "----------------- Deployed Process List Size:"
+          logger.debug(methodName, null, "----------------- Deployed Process List Size:"
                   + deployedProcesses.size());
 
           // reference to an object we need to remove from the list
@@ -1635,10 +1635,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             }
           }
           if (deployedProcessRef != null) {
-            logger.info(methodName, null,
+            logger.debug(methodName, null,
                     "----------------- Removing Stopped Process from Deployed List");
             deployedProcesses.remove(deployedProcessRef);
-            logger.info(methodName, null,
+            logger.debug(methodName, null,
                     "----------------- Deployed Process List Size After Remove:"
                             + deployedProcesses.size());
           } else {
@@ -1947,7 +1947,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       }
 
       // this.reservations = reservations;
-      logger.info("setReservations", null, "+++++++++++ Copied User Reservations - List Size:"
+      logger.debug("setReservations", null, "+++++++++++ Copied User Reservations - List Size:"
               + reservations.size());
     } catch (InterruptedException e) {
     } finally {
@@ -1980,7 +1980,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     try {
       reservationsSemaphore.acquire();
       if (reservations != null) {
-        logger.info("copyAllUserReservations", null,
+        logger.debug("copyAllUserReservations", null,
                 "+++++++++++ Copying User Reservations - List Size:" + reservations.size());
         for (DuccUserReservation r : reservations) {
           if ("System".equals(r.getUserId())) {
@@ -1996,7 +1996,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           nui.addReservation(r.getReserveID());
         }
       } else {
-        logger.info("copyAllUserReservations", null, " ***********  No Reservations");
+        logger.debug("copyAllUserReservations", null, " ***********  No Reservations");
       }
     } catch (InterruptedException e) {
     } finally {

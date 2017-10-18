@@ -134,7 +134,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 		try {
 			String[] cmd = getDeployableCommandLine(cmdLine, processEnv);
 			if (isKillCommand(cmdLine)) {
-				logger.info(methodName, null, "Killing process");
+				logger.debug(methodName, null, "Killing process");
 				stopProcess(cmdLine, cmd);
 			} else {
 				IDuccProcess duccProcess = ((ManagedProcess) managedProcess)
@@ -335,7 +335,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			}
 			try {
 			    // NEW Code
-			    logger.info(methodName,
+			    logger.debug(methodName,
 					((ManagedProcess) super.managedProcess).getDuccId(),
 					">>>>>>>>>>>>>>> Stopping Process:"
 					+ ((ManagedProcess) managedProcess).getPid());

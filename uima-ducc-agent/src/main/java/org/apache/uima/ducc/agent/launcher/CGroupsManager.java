@@ -321,7 +321,7 @@ public class CGroupsManager {
 			String cpuLinkDir = "";
 			String cpuacctLinkDir = "";
 			
-			agentLogger.info("symbolicLinksForCpu", null, "Consuming Process Streams");
+			agentLogger.debug("symbolicLinksForCpu", null, "Consuming Process Streams");
 			while ((line = reader.readLine()) != null) {
 				agentLogger.info("symbolicLinksForCpu", null, ">>>>" + line);
 				//groupName = line.trim();
@@ -339,7 +339,7 @@ public class CGroupsManager {
 			    }
 			}
 			
-			agentLogger.info("symbolicLinksForCpu", null, "Waiting for Process to Exit");
+			agentLogger.debug("symbolicLinksForCpu", null, "Waiting for Process to Exit");
 			int retCode = process.waitFor();
 			agentLogger.info("symbolicLinksForCpu", null, "Pocess Exit Code="+retCode);
 			if ( cpuLinkDir.length() > 0 && cpuacctLinkDir.length() > 0) {
@@ -688,7 +688,7 @@ public class CGroupsManager {
 			containerId = containerId + System.getProperty("file.separator");
 		}
 		String file = composeCpuAccountingFileName(containerId.trim());
-		agentLogger.info("getCpuUsage", null, "CPUACCT.USAGE file:"+file);
+		agentLogger.debug("getCpuUsage", null, "CPUACCT.USAGE file:"+file);
 		File f = new File(file);
 		if ( f.exists() ) {
 			InputStreamReader isr = new InputStreamReader(new FileInputStream(f));
@@ -741,7 +741,7 @@ public class CGroupsManager {
 			containerId = containerId + System.getProperty("file.separator");
 		}
 		String file = composeMemoryStatFileName(containerId.trim());
-		agentLogger.info("getUsageForMemoryStat", null, "MEMORY.STAT file:"+file);
+		agentLogger.debug("getUsageForMemoryStat", null, "MEMORY.STAT file:"+file);
 		File f = new File(file);
 		if ( f.exists() ) {
 			InputStreamReader isr = new InputStreamReader(new FileInputStream(f));
@@ -749,7 +749,7 @@ public class CGroupsManager {
 			String line;
 			try {
 				while ((line = br.readLine()) != null) {
-					agentLogger.trace("getUsageForMemoryStat", null, "MEMORY.STAT Line:"+line);
+					agentLogger.debug("getUsageForMemoryStat", null, "MEMORY.STAT Line:"+line);
 					if ( line.startsWith(stat.getKey())) {
 						usage = Long.parseLong(line.trim().split(" ")[1]);
 						break;
@@ -762,10 +762,10 @@ public class CGroupsManager {
 				if (isr != null) {
 					isr.close();
 				}
-				agentLogger.trace("getUsageForMemoryStat", null, "Done Reading memory.stat file:"+file);
+				agentLogger.debug("getUsageForMemoryStat", null, "Done Reading memory.stat file:"+file);
 			}
 		} else {
-			agentLogger.info("getUsageForMemoryStat", null, "MEMORY.STAT file:"+file+" Not Found - Process RSS Usage is Unavailable");
+			agentLogger.debug("getUsageForMemoryStat", null, "MEMORY.STAT file:"+file+" Not Found - Process RSS Usage is Unavailable");
 
 			usage = -1;  // cgroups accounting not configured
 		}
@@ -799,7 +799,7 @@ public class CGroupsManager {
 	        		SYSTEM+"/" + containerId };
 			int retCode = launchCommand(command);
 			if (retCode == 0) {
-				agentLogger.info("setContainerMaxMemoryLimit", null, ">>>>"
+				agentLogger.debug("setContainerMaxMemoryLimit", null, ">>>>"
 						+ "SUCCESS - Created CGroup Limit on Container:"
 						+ containerId);
 				return true;
@@ -842,7 +842,7 @@ public class CGroupsManager {
         			SYSTEM+"/" + containerId };
 			int retCode = launchCommand(command);
 			if (retCode == 0) {
-				agentLogger.info("setContainerCpuShares", null, ">>>>"
+				agentLogger.debug("setContainerCpuShares", null, ">>>>"
 						+ "SUCCESS - Created CGroup with CPU Shares="+containerCpuShares+" on Container:"
 						+ containerId);
 				return true;

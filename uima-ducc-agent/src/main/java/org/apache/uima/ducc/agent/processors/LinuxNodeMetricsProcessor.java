@@ -142,7 +142,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 			if ( agent.receivedDuccState ) {
 			    NodeUsersCollector nodeUsersCollector = new NodeUsersCollector(agent, logger);
 			    
-			    logger.info(methodName, null, "... Agent Collecting User Processes");
+			    logger.debug(methodName, null, "... Agent Collecting User Processes");
 			    
 			    Future<TreeMap<String,NodeUsersInfo>> nuiFuture = 
 			            pool.submit(nodeUsersCollector);
