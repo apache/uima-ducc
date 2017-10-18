@@ -230,7 +230,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
        // System.out.println(
         //        "********** User Process Map Size After copyAllUserReservations:"+map.size());
       } else {
-        logger.info(location, null, "********** User Process Map Size After copyAllUserReservations:"+map.size());
+        logger.debug(location, null, "********** User Process Map Size After copyAllUserReservations:"+map.size());
       }
       if ( agent != null ) {
           // copy all known rogue processes detected previously
@@ -240,7 +240,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         //System.out.println(
          //       "********** User Process Map Size After copyAllUserRougeProcesses:"+map.size());
       } else {
-        logger.info(location, null, "********** User Process Map Size After copyAllUserRougeProcesses:"+map.size());
+        logger.debug(location, null, "********** User Process Map Size After copyAllUserRougeProcesses:"+map.size());
       }
       // Add all running processes to this list. Will use this list to determine if a process has a parent
       // which is a rogue process.
@@ -411,8 +411,10 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       System.out.println(
             "***************************************************************************************");
     } else {
-      logger.info(location, null, sb.toString());
-      logger.info(location, null, "******************************************************************************");
+    	if ( sb.length() > 0 ) {
+    	      logger.info(location, null, sb.toString());
+    	      logger.info(location, null, "******************************************************************************");
+    	}
     }
     // remove any rogue processes that are not in the list of current processes just collected
     agent.getRogueProcessReaper().removeDeadRogueProcesses(currentPids);

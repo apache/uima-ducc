@@ -50,7 +50,7 @@ public class DuccGarbageStatsCollector {
 	}
 
 	private MBeanServerConnection getServerConnection() throws Exception {
-		logger.info("DuccGarbageStatsCollector.getServerConnection()", null,
+		logger.debug("DuccGarbageStatsCollector.getServerConnection()", null,
 				"Connecting GC collector to remote child process - URL:"
 						+ jmxUrl.get());
 		JMXServiceURL url = new JMXServiceURL(jmxUrl.get()); // process.getProcessJmxUrl());
@@ -95,7 +95,7 @@ public class DuccGarbageStatsCollector {
 				// Returns the approximate accumulated collection elapsed time
 				// in milliseconds.
 				gcStats.setCollectionTime(totalCollectionTime);
-				logger.info("DuccGarbageStatsCollector.collect()", null,
+				logger.debug("DuccGarbageStatsCollector.collect()", null,
 						"GC Collector Fetch Stats For PID:" + process.getPID()
 								+ " GC Count:" + gcStats.getCollectionCount()
 								+ " GC Time:" + gcStats.getCollectionTime());
