@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.agent.event;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -26,10 +27,12 @@ import org.apache.camel.Body;
 import org.apache.uima.ducc.agent.Agent;
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.ProcessLifecycleController;
+import org.apache.uima.ducc.agent.deploy.DuccWorkHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
+import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
 import org.apache.uima.ducc.transport.event.ProcessPurgeDuccEvent;
@@ -37,9 +40,14 @@ import org.apache.uima.ducc.transport.event.ProcessStartDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessStateUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessStopDuccEvent;
 import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
+import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
+import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -57,12 +65,16 @@ public class AgentEventListener implements DuccEventDelegateListener {
 	private volatile boolean forceInventoryUpdateDueToSequence = false;
 	
 	private NodeAgent agent;
+	private static DuccWorkHelper dwHelper = null;
+
 	public AgentEventListener(NodeAgent agent, ProcessLifecycleController lifecycleController) {
 		this.agent = agent;
 		this.lifecycleController = lifecycleController;
+		dwHelper = new DuccWorkHelper();
 	}
 	public AgentEventListener(NodeAgent agent) {
-		this.agent = agent;
+		this(agent, null);
+//		this.agent = agent;
 	}
 	public void setDuccEventDispatcher( DuccEventDispatcher eventDispatcher ) {
 		//this.eventDispatcher = eventDispatcher;
@@ -88,6 +100,122 @@ public class AgentEventListener implements DuccEventDelegateListener {
 	public void resetForceInventoryUpdateFlag() {
 		forceInventoryUpdateDueToSequence = false;
 	}
+	private void handleJobOrPOPState(IDuccJobDeployment jobDeployment, IDuccWork dw, IDuccProcess process) throws Exception {
+		logger.info("onDuccJobsStateEvent",
+				jobDeployment.getJobId(),
+				"JP>>>>>>>>>>>> -PID:"
+						+ process.getPID());
+
+		IDuccWorkExecutable dwe = (IDuccWorkExecutable) dw;
+		// processCmdLine =
+		// dwe.getCommandLine();
+		// agent will check the state of JP
+		// process and either start, stop,
+		// or
+		// take no action
+		agent.reconcileProcessStateAndTakeAction(
+				lifecycleController,
+				process,
+				dwe.getCommandLine(), // jobDeployment.getJpCmdLine(),
+				jobDeployment
+						.getStandardInfo(),
+				jobDeployment
+						.getProcessMemoryAssignment(),
+				jobDeployment.getJobId());
+
+	}
+	private void handleServiceState(IDuccJobDeployment jobDeployment, IDuccWork dw, IDuccProcess process) throws Exception {
+		logger.info("onDuccJobsStateEvent",
+				jobDeployment.getJobId(),
+				"SERVICE>>>>>>>>>>>> -PID:"
+						+ process.getPID());
+		IDuccWorkJob service = (IDuccWorkJob) dw;
+		ICommandLine processCmdLine = service
+				.getCommandLine();
+		processCmdLine
+				.addOption("-Dducc.deploy.components=service");
+		agent.reconcileProcessStateAndTakeAction(
+				lifecycleController,
+				process,
+				processCmdLine,
+				jobDeployment
+						.getStandardInfo(),
+				jobDeployment
+						.getProcessMemoryAssignment(),
+				jobDeployment.getJobId());
+
+	}
+	private void handleJobDriverState(IDuccJobDeployment jobDeployment, Map<DuccId, IDuccProcess> processes) throws Exception {
+		IDuccWork dw = null;
+		boolean callReconcile = false;
+		ICommandLine cmdLine = null;
+		// if driver not running, launch it
+		if ( !processes.containsKey(jobDeployment.getJdProcess().getDuccId())) {
+			dw = dwHelper.fetch(jobDeployment.getJobId());
+			if ( dw == null ) {
+		      	logger.info("onDuccJobsStateEvent", jobDeployment.getJobId(), "!!!!! The OR did not provide commndline spec and other details required to launch processes for the Job. Received value of NULL from the OR");
+            } else {
+		        IDuccWorkJob job = (IDuccWorkJob) dw;
+			    DuccWorkPopDriver driver = job.getDriver();
+				if(driver != null) {
+					callReconcile = true;
+					cmdLine = driver.getCommandLine();
+				}
+            }
+		} else {
+			// driver running already. Still call reconcileProcessStateAndTakeAction()
+			// in case we need to stop it if deallocate=true
+			callReconcile = true;
+		}
+		if ( callReconcile) {
+			  agent.reconcileProcessStateAndTakeAction(lifecycleController, jobDeployment.getJdProcess(), cmdLine,  
+						jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId());
+
+		}
+	}
+
+	private void handleAPJobServiceProcesses(IDuccJobDeployment jobDeployment, Map<DuccId, IDuccProcess> processes) throws Exception {
+		// Service, AP, JP processes will be checked below
+		if (jobDeployment.getJpProcessList() != null) {
+			IDuccWork dw = null;
+			for (IDuccProcess process : jobDeployment.getJpProcessList()) {
+				// check if the process is targeted for this node
+				if (isTargetNodeForProcess(process)) {
+					// check if this is a new process we need to launch 
+					// on this node. The 'processes' is a Map of child
+					// processes already running on this node.
+					if (!processes.containsKey(process.getDuccId())) {
+						// call the OR to fetch task details
+						if ( (dw = dwHelper.fetch(jobDeployment.getJobId())) == null ) {
+							logger.info(
+									"onDuccJobsStateEvent",
+									jobDeployment.getJobId(),
+									"!!!!! The OR did not provide commndline spec and other details required to launch processes for the Job. Received value of NULL from the OR");
+						} else {
+							logger.debug("onDuccJobsStateEvent",jobDeployment.getJobId(),
+									"........... Job Type:" + jobDeployment.getType().name());
+							
+							if (DuccType.Service.equals(jobDeployment.getType())) {
+								handleServiceState(jobDeployment, dw, process);
+							} else if (dw instanceof IDuccWorkExecutable) {
+								handleJobOrPOPState(jobDeployment, dw, process);
+							} else {
+								logger.error("onDuccJobsStateEvent", jobDeployment.getJobId(),
+										"Unexpected process type -PID:" + process.getPID());
+							}
+						}
+					} else {
+						// process already running, check state and stop it if deallocate=true
+						agent.reconcileProcessStateAndTakeAction(lifecycleController,process,
+								null, jobDeployment.getStandardInfo(),
+								jobDeployment.getProcessMemoryAssignment(),
+								jobDeployment.getJobId());
+					}
+				} 
+			}  // for
+		}
+	}
+ 
 	/**
 	 * This method is called by Camel when PM sends DUCC state to agent's queue. It 
 	 * takes responsibility of reconciling processes on this node. 
@@ -95,76 +223,66 @@ public class AgentEventListener implements DuccEventDelegateListener {
 	 * @param duccEvent - contains list of current DUCC jobs. 
 	 * @throws Exception
 	 */
-	public void onDuccJobsStateEvent(@Body DuccJobsStateEvent duccEvent) throws Exception {
-	    long sequence = duccEvent.getSequence();
-	  // Recv'd ducc state update, restart process reaper task which detects missing
-	  // OR state due to a network problem. 
-//	  try {
-//	    agent.restartProcessReaperTimer();
-//	  } catch( Exception e) {
-//	    logger.error("onDuccJobsStateEvent", null, "", e);
-//	  }
-	  
+	public void onDuccJobsStateEvent(@Body DuccJobsStateEvent duccEvent)
+			throws Exception {
+		long sequence = duccEvent.getSequence();
+
 		try {
 
-		  synchronized( this ) {
-			  // check for out of band messages. Expecting a message with a sequence number
-			  // larger than the previous message.
-			    if ( sequence > lastSequence.get() ) {
-			    	lastSequence.set(sequence);
-			    	logger.info("reportIncomingStateForThisNode", null, "Received OR Sequence:"+sequence+" Thread ID:"+Thread.currentThread().getId());
-			    } else {
-			    	// Out of band message. Expected message with sequence larger than a previous message
-			    	logger.warn("reportIncomingStateForThisNode",null,"Received Out of Band Message. Expected Sequence Greater Than "+lastSequence+" Received "+sequence+" Instead");
-			    	forceInventoryUpdateDueToSequence = true;
-			    	return;
-			    } 
-
-			  //  typically lifecycleController is null and the agent assumes the role. For jUnit testing though, 
-			  //  a different lifecycleController is injected to facilitate black box testing
-			  if ( lifecycleController == null ) {
-					lifecycleController = agent;
-			  }
-			  //  print JP report targeted for this node
-			  reportIncomingStateForThisNode(duccEvent);
-
-			  List<DuccUserReservation> reservations = 
-			           duccEvent.getUserReservations();
-			  if ( cleanupPhase ) {   // true on Agent startup
-				  // cleanup reservation cgroups
-			  }
-			   agent.setReservations(reservations);
-				//	Stop any process that is in this Agent's inventory but not associated with any
-				//  of the jobs we just received
-				agent.takeDownProcessWithNoJob(agent,duccEvent.getJobList());
-				//	iterate over all jobs and reconcile those processes that are assigned to this agent. First,
-				//  look at the job's JD process and than JPs.
-				for( IDuccJobDeployment jobDeployment : duccEvent.getJobList()) {
-					//	check if this node is a target for this job's JD 
-					if ( isTargetNodeForProcess(jobDeployment.getJdProcess()) ) {
-						// agent will check the state of JD process and either start, stop, or take no action
-						agent.reconcileProcessStateAndTakeAction(lifecycleController, jobDeployment.getJdProcess(), jobDeployment.getJdCmdLine(), 
-								jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId());
-					} 
-					// check JPs
-					if ( jobDeployment.getJpProcessList() != null ) {
-						for( IDuccProcess process : jobDeployment.getJpProcessList() ) {
-							if ( isTargetNodeForProcess(process) ) {
-				          // agent will check the state of JP process and either start, stop, or take no action 
-								agent.reconcileProcessStateAndTakeAction(lifecycleController, process, jobDeployment.getJpCmdLine(), 
-										jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId());
-							}
-						}
-					} else {
-						logger.error("onDuccJobsStateEvent", jobDeployment.getJobId(), "Procss List is NULL");
-					}
+			synchronized (this) {
+				// check for out of band messages. Expecting a message with a
+				// sequence number larger than the previous message.
+				if (sequence > lastSequence.get()) {
+					lastSequence.set(sequence);
+					logger.info("reportIncomingStateForThisNode", null,
+							"Received OR Sequence:" + sequence + " Thread ID:"
+									+ Thread.currentThread().getId());
+				} else {
+					// Out of band message. Expected message with sequence
+					// larger than a previous message
+					logger.warn("reportIncomingStateForThisNode", null,
+							"Received Out of Band Message. Expected Sequence Greater Than "
+									+ lastSequence + " Received " + sequence
+									+ " Instead");
+					forceInventoryUpdateDueToSequence = true;
+					return;
 				}
-		  }
-		  // 	received at least one Ducc State
-		  if ( !agent.receivedDuccState ) {
-			  agent.receivedDuccState = true;
-		  }
-		} catch( Exception e ) {
+
+				// typically lifecycleController is null and the agent assumes
+				// the role. For jUnit testing though,
+				// a different lifecycleController is injected to facilitate
+				// black box testing
+				if (lifecycleController == null) {
+					lifecycleController = agent;
+				}
+				// print JP report targeted for this node
+				reportIncomingStateForThisNode(duccEvent);
+
+				agent.setReservations(duccEvent.getUserReservations());
+				// Stop any process that is in this Agent's inventory but not
+				// associated with any
+				// of the jobs we just received
+				agent.takeDownProcessWithNoJob(agent, duccEvent.getJobList());
+				Map<DuccId, IDuccProcess> processes = agent.getInventoryCopy();
+				// iterate over all jobs and reconcile those processes that are
+				// assigned to this agent. First,
+				// look at the job's JD process and than JPs.
+				for (IDuccJobDeployment jobDeployment : duccEvent.getJobList()) {
+					// check if this node is a target for this job's JD
+					if (jobDeployment.getJdProcess() != null
+							&& isTargetNodeForProcess(jobDeployment
+									.getJdProcess())) {
+						handleJobDriverState(jobDeployment, processes);
+					}
+
+					handleAPJobServiceProcesses(jobDeployment, processes);
+				}
+			}
+			// received at least one Ducc State
+			if (!agent.receivedDuccState) {
+				agent.receivedDuccState = true;
+			}
+		} catch (Exception e) {
 			logger.error("onDuccJobsStateEvent", null, e);
 		}
 	}

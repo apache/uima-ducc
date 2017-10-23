@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.dataformat.xstream.XStreamDataFormat;
+import org.apache.camel.impl.DefaultClassResolver;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
@@ -49,11 +51,15 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
+
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.security.AnyTypePermission;
 
 /**
  * The ProcessManager's main role is to receive Orchestrator updates, trim received state and
@@ -220,74 +226,21 @@ implements ProcessManager {
 	        
 	        ICommandLine driverCmdLine = null;
 	        ICommandLine processCmdLine = null;
+	        DuccType type = dcj.getDuccType();
+	        
+	        logger.info(methodName,dcj.getDuccId(),"............. DuccType:"+type.name());
 	        IDuccProcess driverProcess = null;
-	        IDuccWork dw = null;
-	        
-	        switch(dcj.getDuccType()) {
-	        case Job:
-	          logger.debug(methodName, dcj.getDuccId(), "case: Job");
-	          dw = dwHelper.fetch(dcj.getDuccId());
-	          
-	          if ( dw == null ) {
-	        	  logger.info(methodName, dcj.getDuccId(), "The OR did not provide commndline spec and other details required to launch processes for the Job. Received value of NULL from the OR");
-				  driverProcess = 
-						  dcj.getDriver().getProcessMap().entrySet().iterator().next().getValue();
-
-	          } else {
-		          IDuccWorkJob job = (IDuccWorkJob) dw;
-		          DuccWorkPopDriver driver = job.getDriver();
-				  if(driver != null) {
-					  driverCmdLine = driver.getCommandLine();
-					  driverProcess = driver.getProcessMap().entrySet().iterator().next().getValue();
-				  }
-		          processCmdLine = job.getCommandLine();
-	          }
-	          break;
-	        case Service:
-	          logger.debug(methodName, dcj.getDuccId(), "case: Service");
-	          dw = dwHelper.fetch(dcj.getDuccId());
-	          if ( dw == null ) {
-	        	  logger.info(methodName, dcj.getDuccId(), "The OR did not provide commndline spec and other details required to launch Service processes. Received value of NULL from the OR.");
-	              
-	          } else {
-		          IDuccWorkJob service = (IDuccWorkJob) dw;
-		          processCmdLine = service.getCommandLine();
-		          processCmdLine.addOption("-Dducc.deploy.components=service");
-	          }
-
-	          break;
-	        default:
-	          logger.debug(methodName, dcj.getDuccId(), "case: default");
-	          dw = dwHelper.fetch(dcj.getDuccId());
-	          if ( dw == null ) {
-	        	  logger.info(methodName, dcj.getDuccId(), "The OR did not provide commndline spec and other details required to launch processes. Received value of NULL from the OR.");
-	          } else if(dw instanceof IDuccWorkExecutable) {
-	        	  IDuccWorkExecutable dwe = (IDuccWorkExecutable) dw;
-	        	  processCmdLine = dwe.getCommandLine();
-	          }
-
-		      break;
+	        if ( dcj.getDriver() != null && dcj.getDriver().getProcessMap() != null && dcj.getDriver().getProcessMap().size() > 0) {
+	        	driverProcess = dcj.getDriver().getProcessMap().entrySet().iterator().next().getValue();
 	        }
-	        
-	        String dText = "n/a";
-	        if(driverCmdLine != null) {
-	        	dText = getCmdLine(driverCmdLine);
-	        }
-	        logger.trace(methodName, dcj.getDuccId(), "driver: "+dText);
-	        
-	        String pText = "n/a";
-	        if(processCmdLine != null) {
-	        	pText = getCmdLine(processCmdLine);
-	        }
-	        logger.trace(methodName, dcj.getDuccId(), "process: "+pText);
-	        
+
 	        jobDeploymentList.add( new DuccJobDeployment(dcj.getDuccId(), driverCmdLine,
 	                           processCmdLine, 
 	                           dcj.getStandardInfo(),
 	                           driverProcess,
 	                           pma,
 	                           //processAdjustedMemorySize,
-	                           jobProcessList ));
+	                           jobProcessList, type ));
 	      } else if (entry.getValue() instanceof DuccWorkReservation ) {
 	        String userId = ((DuccWorkReservation) entry.getValue()).getStandardInfo().getUser();
 	        if ( !"System".equals(userId)) {

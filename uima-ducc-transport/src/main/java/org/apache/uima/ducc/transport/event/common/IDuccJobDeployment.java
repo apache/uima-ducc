@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
 
 public interface IDuccJobDeployment extends Serializable {
@@ -65,4 +66,9 @@ public interface IDuccJobDeployment extends Serializable {
 	 */
   public ProcessMemoryAssignment getProcessMemoryAssignment();
 
+    /** 
+     * Returns the process type: Job, Service, Pop, Reservation
+     * @return
+     */
+	public DuccType getType();
 }

@@ -25,6 +25,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
 public class DuccJobDeployment implements IDuccJobDeployment {
 	private static final long serialVersionUID = 1L;
@@ -37,11 +38,12 @@ public class DuccJobDeployment implements IDuccJobDeployment {
 	private List<IDuccProcess> jobProcesses = new ArrayList<IDuccProcess>();
 //	private long processMemoryAssignment;
 	private ProcessMemoryAssignment pma; 
+	private DuccType type;
 	
 	public DuccJobDeployment(DuccId jobId, ICommandLine jdCmdLine,
 			ICommandLine jpCmdLine, IDuccStandardInfo stdInfo,
 			IDuccProcess jdProcess, ProcessMemoryAssignment pma,
-			List<IDuccProcess> jps) {
+			List<IDuccProcess> jps, DuccType type) {
 		this.jobId = jobId;
 		// this.jdclArray = new JavaCommandLine[2];
 
@@ -56,7 +58,12 @@ public class DuccJobDeployment implements IDuccJobDeployment {
 		this.jobProcesses.add(jdProcess);
 		this.jobProcesses.addAll(jps);
 		this.pma = pma;
+		this.type =type;
 		//this.processMemoryAssignment = processMemoryAssignment;
+	}
+
+	public DuccType getType() {
+		return type;
 	}
 
 	public ICommandLine getJdCmdLine() {
