@@ -2411,13 +2411,17 @@ public class NodepoolScheduler
 
             Map<Node, Machine> machs = np.getAllMachinesForPool();
             for ( Machine m : machs.values() ) {
-
                 int free = m.countFreedUpShares();                           // free space plus evicted shares - eventual space
                 if ( free != 0 ) {
-                    logger.trace(methodName, null, "Freed shares", free, "on machine", m.getId());
+                    logger.trace(methodName, null, "Freed shares", free, "on machine", m.getId(), "in nodepool", np.getId());
                     for ( NodePool npj = np; npj != null; npj = npj.getParent() ) {        // must propogate up because of how these tables work
                         String id_j = npj.getId();
                         int[] vmach_j = vshares.get(id_j);
+                        if (free >= vmach_j.length) {               // UIMA-5605 Avoid out-of-bounds exception
+                          logger.warn(methodName, null, "Nodepool",id_j,"has a maximum size of", vmach_j.length-1, 
+                                  "but the computed free space is", free);
+                          free = vmach_j.length - 1;
+                        }
                         logger.trace(methodName, null, "Update v before: NP[", id_j, "] v:", fmtArray(vmach_j));
                         vmach_j[free]++;                                         // This is the largest potential share that can be made on this machine,
                         // after evictions starting 'here' and propogating up

@@ -320,7 +320,26 @@ public class Machine
         this.shares_left = share_order;
         resetVirtualShareOrder();             // UIMA-4142 use common code to calculate this
     }
+    
+    public void updateShareOrder(int o)
+    {
+      String methodName = "updateShareOrder";
+      
+      // Check count of in-use shares and free shares
+      int in_use = blacklisted_shares;
+      for ( Share s : activeShares.values() ) {
+          in_use += s.getShareOrder();
+      }
+      if (in_use + shares_left != share_order) {
+        logger.warn(methodName, null, id, "ERROR -", shares_left, "free plus", in_use, "in use doesn't match old share order of", share_order);
+      }
+      logger.info(methodName, null, id, "Size has changed from", share_order, "to", o, "so changed free shares from", shares_left, "to", o-in_use);
 
+      share_order = o;
+      shares_left = share_order - in_use;
+      resetVirtualShareOrder();             // UIMA-4142 use common code to calculate this
+    }
+    
     public void setVirtualShareOrder(int o)
     {
         this.virtual_share_order = o; 
