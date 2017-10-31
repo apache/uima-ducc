@@ -229,7 +229,23 @@ public class DbCreate
                 doLog(methodName, "EXECUTE STATEMENT:", s.toString());
                 session.execute(s);
             }
-
+            
+            /*
+             * The following table for specifications is created by Orchestrator
+             * at boot time, if not already present.  This additional table was 
+             * not part of the DB in versions DUCC 2.2.1 and earlier.  In this
+             * fashion, both migrated systems as well as fresh installs are able
+             * to utilize this table without the need for invocation of 
+             * ducc_post_install.  The commented-out code below is thus for
+             * documentation purposes only.
+             * 
+            List<SimpleStatement>specificationsSchema = DbDuccWorks.mkSchema();
+            for ( SimpleStatement s : specificationsSchema ) {
+                doLog(methodName, "EXECUTE STATEMENT:", s.toString());
+                session.execute(s);
+            }
+			*/
+            
         } catch ( Exception e ) {
             doLog(methodName, "Cannot create schema:", e);
         }

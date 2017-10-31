@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.camel.CamelContext;
@@ -40,6 +41,8 @@ import org.apache.uima.ducc.common.crypto.CryptoException;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.main.DuccRmAdmin;
 import org.apache.uima.ducc.common.main.DuccService;
+import org.apache.uima.ducc.common.persistence.or.IDbDuccWorks;
+import org.apache.uima.ducc.common.persistence.or.TypedProperties;
 import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -47,6 +50,7 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.database.DbDuccWorks;
 import org.apache.uima.ducc.orchestrator.OrchestratorConstants.StartType;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.orchestrator.exceptions.ResourceUnavailableForJobDriverException;
@@ -75,6 +79,7 @@ import org.apache.uima.ducc.transport.event.cli.JobReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
+import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -120,8 +125,25 @@ implements Orchestrator {
 	private StateJobAccounting stateJobAccounting = StateJobAccounting.getInstance();
 	private DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 	
+	private IDbDuccWorks dbDuccWorks = null;
+	
 	public OrchestratorComponent(CamelContext context) {
 		super("Orchestrator", context);
+		init();
+	}
+	
+	/*
+	 * Initialize DB access, and create table(s) if not already present
+	 */
+	private void init() {
+		String location = "init";
+		try {
+			dbDuccWorks = new DbDuccWorks(logger);
+			dbDuccWorks.dbInit();
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
 	}
 	
 	public void onDuccAdminKillEvent(DuccAdminEvent event) throws Exception {
@@ -605,6 +627,24 @@ implements Orchestrator {
 						// prepare for reply to submitter
 						properties.put(JobRequestProperties.key_id, duccWorkJob.getId());
 						duccEvent.setProperties(properties);
+						// save specification to DB
+						TypedProperties tp = new TypedProperties();
+						for(Entry<Object, Object> entry : properties.entrySet()) {
+							String name = (String) entry.getKey();
+							if(name.equals("signature")) {
+								// skip it
+							}
+							else {
+								String type = TypedProperties.PropertyType.system.name();
+								if(properties.isUserProvided(name)) {
+									type = TypedProperties.PropertyType.user.name();
+								}
+								tp.add(type, entry.getKey(), entry.getValue());
+							}
+						}
+						String specificationType = TypedProperties.SpecificationType.Job.name();
+						Long id = duccWorkJob.getDuccId().getFriendly();
+						dbDuccWorks.upsertSpecification(specificationType, id, tp);
 					}
 					catch(ResourceUnavailableForJobDriverException e) {
 						String error_message = messages.fetch(" type=system error, text=job driver node unavailable.");
@@ -969,6 +1009,45 @@ implements Orchestrator {
 					// prepare for reply to submitter
 					properties.put(JobRequestProperties.key_id, duccWorkJob.getId());
 					duccEvent.setProperties(properties);
+					// save specification to DB
+					TypedProperties tp = new TypedProperties();
+					for(Entry<Object, Object> entry : properties.entrySet()) {
+						String name = (String) entry.getKey();
+						if(name.equals("signature")) {
+							// skip it
+						}
+						else {
+							String type = TypedProperties.PropertyType.system.name();
+							if(properties.isUserProvided(name)) {
+								type = TypedProperties.PropertyType.user.name();
+							}
+							tp.add(type, entry.getKey(), entry.getValue());
+						}
+					}
+					long id = duccWorkJob.getDuccId().getFriendly();
+					if(properties.containsKey(ServiceRequestProperties.key_service_type_other)) {
+						String specificationType = TypedProperties.SpecificationType.ManagedReservation.name();
+						dbDuccWorks.upsertSpecification(specificationType, id, tp);
+						/* 
+						 * save managed reservation specification instances
+						 */
+						logger.trace(methodName, duccWorkJob.getDuccId(), "type="+specificationType );
+					}
+					else {
+						String specificationType = TypedProperties.SpecificationType.Service.name();
+						long instance_id = 0;
+						try {
+							String value = properties.getProperty("id");
+							instance_id = Long.valueOf(value);
+						}
+						catch(Exception e) {
+							// oh well...
+						}
+						/* 
+						 * do not save service specification instances
+						 */
+						logger.trace(methodName, duccWorkJob.getDuccId(), "type="+specificationType, "instance_id="+instance_id );
+					}
 				}
 				else {
 					logger.info(methodName, null, messages.fetch("TODO")+" prepare error reply");

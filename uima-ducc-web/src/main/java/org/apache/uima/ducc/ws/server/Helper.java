@@ -20,6 +20,7 @@ package org.apache.uima.ducc.ws.server;
 
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
@@ -34,12 +35,15 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.Constants;
+import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
+import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.DuccMachinesDataHelper;
 import org.apache.uima.ducc.ws.MachineInfo;
@@ -61,6 +65,42 @@ public class Helper {
 	public static enum LogType { POP, UIMA };
 	
 	public static String notAvailable = "N/A";
+	
+	public static DuccWorkJob getJob(String jobNo) {
+		DuccWorkJob job = null;
+		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		if(duccWorkMap.getJobKeySet().size()> 0) {
+			Iterator<DuccId> iterator = null;
+			iterator = duccWorkMap.getJobKeySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId jobId = iterator.next();
+				String fid = ""+jobId.getFriendly();
+				if(jobNo.equals(fid)) {
+					job = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
+					break;
+				}
+			}
+		}
+		return job;
+	}
+	
+	public static DuccWorkJob getManagedReservation(String reservationNo) {
+		DuccWorkJob managedReservation = null;
+		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		if(duccWorkMap.getServiceKeySet().size()> 0) {
+			Iterator<DuccId> iterator = null;
+			iterator = duccWorkMap.getServiceKeySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId jobId = iterator.next();
+				String fid = ""+jobId.getFriendly();
+				if(reservationNo.equals(fid)) {
+					managedReservation = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
+					break;
+				}
+			}
+		}
+		return managedReservation;
+	}
 	
 	public static String getDuration(DuccId jobId, String millisV2, String millisV1, Precision precision) {
 		String methodName = "getDuration";

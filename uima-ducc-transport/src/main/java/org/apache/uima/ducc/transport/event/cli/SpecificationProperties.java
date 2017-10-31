@@ -19,6 +19,8 @@
 package org.apache.uima.ducc.transport.event.cli;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.uima.ducc.common.utils.DuccProperties;
 
@@ -52,6 +54,13 @@ public class SpecificationProperties extends DuccProperties implements Serializa
 	public static String key_reason = "reason";
 	
 	/*
+	 * A list keys for which the "user" provided the value.
+	 * The values for keys not listed here were therefore
+	 * provided by "system" (aka DUCC).
+	 */
+	private List<String> userProvided = new ArrayList<String>();
+	
+	/*
 	 * Disable place-holder expansion in DuccProperties.getProperty as CLI does it when processing the options,
 	 * and any unresolved ones must be left asis, e.g. DUCC_SERVICE_INSTANCE
 	 * All CLI apis should use this or a subclass of it.
@@ -59,4 +68,47 @@ public class SpecificationProperties extends DuccProperties implements Serializa
 	public SpecificationProperties() {
 		resolvePlaceholders = false;
 	}
+	
+	/*
+	 * <convenience methods to manage "userProvided" list>
+	 */
+	public boolean isUserProvided(String name) {
+		boolean retVal = false;
+		try {
+			if(name != null) {
+				retVal = userProvided.contains(name);
+			}
+		}
+		catch(Exception e) {
+			// legacy object
+		}
+		return retVal;
+	}
+	public void addUserProvided(String name) {
+		try {
+			if(name != null) {
+				if(!isUserProvided(name)) {
+					userProvided.add(name);
+				}
+			}
+		}
+		catch(Exception e) {
+			// legacy object
+		}
+	}
+	public void delUserProvided(String name) {
+		try {
+			if(name != null) {
+				if(isUserProvided(name)) {
+					userProvided.remove(name);
+				}
+			}
+		}
+		catch(Exception e) {
+			// legacy object
+		}
+	}
+	/*
+	 * </convenience methods to manage "userProvided" list>
+	 */
 }

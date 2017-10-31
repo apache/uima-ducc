@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.cli;
 
 import java.util.ArrayList;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.uima.ducc.cli.aio.AllInOneLauncher;
@@ -334,7 +335,15 @@ public class DuccJobSubmit
 
         // Warn if Xmx value is too large and may cause swapping
         check_heap_size(UiOption.ProcessJvmArgs.pname());
-
+        
+        /*
+         * keep list of user provided properties for WS display: user vs. system
+         */
+        for(Entry<Object, Object> entry : userSpecifiedProperties.entrySet()) {
+        	String key = (String) entry.getKey();
+        	jobRequestProperties.addUserProvided(key);
+        }
+        
         SubmitJobDuccEvent      submitJobDuccEvent      = new SubmitJobDuccEvent(jobRequestProperties, CliVersion.getVersion());
         SubmitJobReplyDuccEvent submitJobReplyDuccEvent = null;
         try {

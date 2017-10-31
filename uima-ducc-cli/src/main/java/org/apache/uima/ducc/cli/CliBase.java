@@ -480,9 +480,27 @@ public abstract class CliBase
         return sb.toString();
     }
 
+    /*
+     * Undocumented feature:
+     * Existence of environment variable DUCC_SAVE_SPECIFICATION 
+     * will result in specification written to filesystem, 
+     * otherwise not.  Orchestrator writes specifications to DB.
+     */
+    private boolean isSavable() {
+    	boolean retVal = false;
+    	String savespec = System.getenv("DUCC_SAVE_SPECIFICATION");
+    	if ( savespec != null ) {
+    		retVal = true;
+    	}
+    	return retVal;
+    }
+    
     void saveSpec(String name, DuccProperties props)
         throws Exception
     {
+    	if ( ! isSavable() ) {
+    		return;
+    	}
         String directory = props.getProperty("log_directory") + File.separator + friendlyId;
         String fileName = directory + File.separator + name;
         File f = new File(directory);

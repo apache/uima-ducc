@@ -138,9 +138,9 @@ public class HandlersHelper {
 	}
 	
 	/**
-	 * Enumeration of possible Service Authorizations
+	 * Enumeration of possible data access permissions
 	 */
-	public enum ServiceAuthorization { None, Read, Write };
+	public enum DataAccessPermission { None, Read, Write };
 	
 	/**
 	 * Transform service number into DuccId
@@ -302,13 +302,13 @@ public class HandlersHelper {
 	/**
 	 * Determine service authorization level for request
 	 */
-	public static ServiceAuthorization getServiceAuthorization(Request request) {
+	public static DataAccessPermission getServiceAuthorization(Request request) {
 		String methodName = "getServiceAuthorization";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
-		ServiceAuthorization retVal = ServiceAuthorization.None;
+		DataAccessPermission retVal = DataAccessPermission.None;
 		try {
 			if(request == null) {
-				// request not specified ==> ServiceAuthorization.None
+				// request not specified ==> DataAccessPermissions.None
 			}
 			else {
 				String reqUser = duccWebSessionManager.getUserId(request);
@@ -316,29 +316,29 @@ public class HandlersHelper {
 				ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 				ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
 				if(payload == null) {
-					// service not found ==> ServiceAuthorization.None
+					// service not found ==> DataAccessPermissions.None
 				}
 				else {
 					Properties svc = payload.svc;
 					Properties meta = payload.meta;
 					// write access for service owner
 					if(isServiceOwner(reqUser, meta)) {
-						retVal = ServiceAuthorization.Write;
+						retVal = DataAccessPermission.Write;
 					}
 					// write access for service administrator
 					else if(isServiceAdministrator(reqUser, svc)) {
-						retVal = ServiceAuthorization.Write;
+						retVal = DataAccessPermission.Write;
 					}
 					// Don't permit write access for ducc administrator
 					//else if(isDuccAdministrator(reqUser, meta)) {
-					//	retVal = ServiceAuthorization.Write;
+					//	retVal = DataAccessPermissions.Write;
 					//}
 					// read access only if user can read db.access file
 					else if(isServiceFileAccessForRead(reqUser, meta)) {
-						retVal = ServiceAuthorization.Read;
+						retVal = DataAccessPermission.Read;
 					}
 					else {
-						// none of the above ==> ServiceAuthorization.None
+						// none of the above ==> DataAccessPermissions.None
 					}
 				}
 			}
@@ -347,6 +347,56 @@ public class HandlersHelper {
 			duccLogger.error(methodName, jobid, e);
 		}
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
+		return retVal;
+	}
+	
+	/**
+	 * Determine resource authorization level, given resource owner and resource access requester
+	 */
+	public static DataAccessPermission getResourceAuthorization(String resOwner, String reqUser) {
+		String methodName = "getServiceAuthorization";
+		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
+		DataAccessPermission retVal = DataAccessPermission.None;
+		try {
+			if(resOwner == reqUser) {
+				retVal = DataAccessPermission.Read;
+			}
+			else {
+				String home = getSecurityHome(resOwner.trim());
+				if(home != null) {
+					if(!home.endsWith(File.separator)) {
+						home = home+File.separator;
+					}
+					String path = home+".ducc"+File.separator+"db.access";
+					boolean readable = isFileReadable(reqUser, path);
+					if(readable) {
+						retVal = DataAccessPermission.Read;
+						duccLogger.debug(methodName, jobid, "owner="+resOwner+" "+"user="+reqUser+" "+retVal);
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, jobid, e);
+		}
+		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
+		return retVal;
+	}
+	
+	/**
+	 * Determine resource accessibility, given resource owner and resource access requester
+	 */
+	public static boolean isResourceAuthorized(String resOwner, String reqUser) {
+		boolean retVal = false;
+		DataAccessPermission dap = getResourceAuthorization(resOwner, reqUser);
+		switch(dap) {
+			case Read:
+			case Write:
+				retVal = true;
+				break;
+			default:
+				break;
+		}
 		return retVal;
 	}
 }

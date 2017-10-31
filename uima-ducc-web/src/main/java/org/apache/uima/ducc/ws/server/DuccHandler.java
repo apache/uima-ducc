@@ -43,7 +43,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.uima.ducc.cli.DuccUiConstants;
 import org.apache.uima.ducc.common.CancelReasons.CancelReason;
 import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.SizeBytes;
@@ -101,13 +100,14 @@ import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.apache.uima.ducc.ws.server.Helper.AllocationType;
+import org.apache.uima.ducc.ws.server.HelperSpecifications.PType;
 import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.apache.uima.ducc.ws.sort.JobDetailsProcesses;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
-import org.apache.uima.ducc.ws.utils.HandlersHelper.ServiceAuthorization;
+import org.apache.uima.ducc.ws.utils.HandlersHelper.DataAccessPermission;
 import org.apache.uima.ducc.ws.utils.UrlHelper;
 import org.apache.uima.ducc.ws.utils.alien.AlienWorkItemStateReader;
 import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
@@ -131,7 +131,7 @@ public class DuccHandler extends DuccAbstractHandler {
 
 	private enum DetailsType { Job, Reservation, Service };
 
-
+	private HelperSpecifications helperSpecifications = HelperSpecifications.getInstance();
 	private DuccAuthenticator duccAuthenticator = DuccAuthenticator.getInstance();
 
 	private String duccVersion						= duccContext+"/version";
@@ -1279,39 +1279,11 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 
 	private DuccWorkJob getJob(String jobNo) {
-		DuccWorkJob job = null;
-		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
-		if(duccWorkMap.getJobKeySet().size()> 0) {
-			Iterator<DuccId> iterator = null;
-			iterator = duccWorkMap.getJobKeySet().iterator();
-			while(iterator.hasNext()) {
-				DuccId jobId = iterator.next();
-				String fid = ""+jobId.getFriendly();
-				if(jobNo.equals(fid)) {
-					job = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
-					break;
-				}
-			}
-		}
-		return job;
+		return Helper.getJob(jobNo);
 	}
 
 	private DuccWorkJob getManagedReservation(String reservationNo) {
-		DuccWorkJob managedReservation = null;
-		IDuccWorkMap duccWorkMap = DuccData.getInstance().get();
-		if(duccWorkMap.getServiceKeySet().size()> 0) {
-			Iterator<DuccId> iterator = null;
-			iterator = duccWorkMap.getServiceKeySet().iterator();
-			while(iterator.hasNext()) {
-				DuccId jobId = iterator.next();
-				String fid = ""+jobId.getFriendly();
-				if(reservationNo.equals(fid)) {
-					managedReservation = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
-					break;
-				}
-			}
-		}
-		return managedReservation;
+		return Helper.getManagedReservation(reservationNo);
 	}
 
 	private long getAdjustedTime(long time, IDuccWorkJob job) {
@@ -1739,19 +1711,28 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletJobSpecificationData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		String jobNo = request.getParameter("id");
-		DuccWorkJob work = getJob(jobNo);
-		if(work != null) {
-			EffectiveUser eu = EffectiveUser.create(request);
-	        String path = work.getUserLogDir() + DuccUiConstants.job_specification_properties;
-	        Properties usProperties;
-	        Properties properties;
-	        try {
-	            usProperties = DuccFile.getUserSpecifiedProperties(eu, work);
-	            properties = DuccFile.getProperties(eu, path);
-	        } catch (Throwable e) {
-	            throw new IOException(e);
-	        }
-			processSpecificationData(request, response, usProperties, properties, null);
+		DuccWorkJob dwj = getJob(jobNo);
+		String resOwner = dwj.getStandardInfo().getUser();
+		EffectiveUser eu = EffectiveUser.create(request);
+		String reqUser = eu.get();
+		Map<String,Properties> map = null;
+		if(HandlersHelper.isResourceAuthorized(resOwner, reqUser)) {
+			map = helperSpecifications.getJobSpecificationProperties(dwj, eu);
+		}
+		if(map != null) {
+			Properties propertiesUser = map.get(PType.user.name());
+			Properties propertiesSystem = map.get(PType.all.name());
+			int usize = -1;
+			if(propertiesUser != null) {
+				usize = propertiesUser.size();
+			}
+			duccLogger.debug(methodName, jobid, "user="+usize);
+			int ssize = -1;
+			if(propertiesSystem != null) {
+				ssize = propertiesSystem.size();
+			}
+			duccLogger.debug(methodName, jobid, "system="+ssize);
+			processSpecificationData(request, response, propertiesUser, propertiesSystem, null);
 		}
 		else {
 			String msg = "(data not found)";
@@ -2257,20 +2238,35 @@ public class DuccHandler extends DuccAbstractHandler {
 	{
 		String methodName = "handleDuccServletReservationSpecificationData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		String reservationNo = request.getParameter("id");
-		DuccWorkJob work = getManagedReservation(reservationNo);
-
-        EffectiveUser eu = EffectiveUser.create(request);
-        String path = work.getUserLogDir() + DuccUiConstants.managed_reservation_properties;
-        Properties usProperties;
-        Properties properties;
-        try {
-            usProperties = DuccFile.getUserSpecifiedProperties(eu, work);
-            properties = DuccFile.getProperties(eu, path);
-        } catch (Throwable e) {
-            throw new IOException(e);
-        }
-		processSpecificationData(request, response, usProperties, properties, null);
+		String mrNo = request.getParameter("id");
+		DuccWorkJob dwj = getManagedReservation(mrNo);
+		String resOwner = dwj.getStandardInfo().getUser();
+		EffectiveUser eu = EffectiveUser.create(request);
+		String reqUser = eu.get();
+		Map<String,Properties> map = null;
+		if(HandlersHelper.isResourceAuthorized(resOwner, reqUser)) {
+			map = helperSpecifications.getManagedReservationSpecificationProperties(dwj, eu);
+		}
+		if(map != null) {
+			Properties propertiesUser = map.get(PType.user.name());
+			Properties propertiesSystem = map.get(PType.all.name());
+			int usize = -1;
+			if(propertiesUser != null) {
+				usize = propertiesUser.size();
+			}
+			duccLogger.debug(methodName, jobid, "user="+usize);
+			int ssize = -1;
+			if(propertiesSystem != null) {
+				ssize = propertiesSystem.size();
+			}
+			duccLogger.debug(methodName, jobid, "system="+ssize);
+			processSpecificationData(request, response, propertiesUser, propertiesSystem, null);
+		}
+		else {
+			String msg = "(data not found)";
+            response.getWriter().println(msg);
+            duccLogger.warn(methodName, null, request.getParameter("id") + " failed: " + msg);
+		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
@@ -2391,8 +2387,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		try {
-			ServiceAuthorization sa = HandlersHelper.getServiceAuthorization(baseRequest);
-			switch(sa) {
+			DataAccessPermission dap = HandlersHelper.getServiceAuthorization(baseRequest);
+			switch(dap) {
 				case Read:
 				case Write:
 					String name = request.getParameter("name");
@@ -3568,8 +3564,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		String hint = getLoginRefreshHint(request, response);
 
 		String enable_or_disable = getDisabled();
-		ServiceAuthorization sa = HandlersHelper.getServiceAuthorization(baseRequest);
-		switch(sa) {
+		DataAccessPermission dap = HandlersHelper.getServiceAuthorization(baseRequest);
+		switch(dap) {
 			case Write:
 				enable_or_disable = getEnabledOrDisabled(request, response);
 				break;

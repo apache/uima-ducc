@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.cli;
 
 import java.util.ArrayList;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
@@ -176,11 +177,19 @@ public class DuccManagedReservationSubmit
         check_heap_size(UiOption.ProcessExecutableArgs.pname());
 
         // Create a copy to be saved later without these 3 "ducclet" properties required by DUCC
-        ServiceRequestProperties serviceProperties = (ServiceRequestProperties)serviceRequestProperties.clone();
+        ServiceRequestProperties userSpecifiedProperties = (ServiceRequestProperties)serviceRequestProperties.clone();
         serviceRequestProperties.setProperty(UiOption.ProcessPipelineCount.pname(), "1");
         serviceRequestProperties.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");
         serviceRequestProperties.setProperty(UiOption.ServiceTypeOther.pname(), "");
 
+        /*
+         * keep list of user provided properties for WS display: user vs. system
+         */
+        for(Entry<Object, Object> entry : userSpecifiedProperties.entrySet()) {
+        	String key = (String) entry.getKey();
+        	serviceRequestProperties.addUserProvided(key);
+        }
+        
         SubmitServiceDuccEvent ev = new SubmitServiceDuccEvent(serviceRequestProperties, CliVersion.getVersion());
         SubmitServiceReplyDuccEvent reply = null;
 
@@ -195,7 +204,7 @@ public class DuccManagedReservationSubmit
          */
         boolean rc = extractReply(reply);
 		if (rc) {
-			saveSpec(DuccUiConstants.managed_reservation_properties, serviceProperties);
+			saveSpec(DuccUiConstants.managed_reservation_properties, userSpecifiedProperties);
 			startMonitors(true, DuccContext.ManagedReservation);       // starts conditionally, based on job spec and console listener present
         }
 

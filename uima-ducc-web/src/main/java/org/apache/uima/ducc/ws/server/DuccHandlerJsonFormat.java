@@ -95,6 +95,7 @@ import org.apache.uima.ducc.ws.server.JsonHelper.JobProcessList;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
+import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 import org.apache.uima.ducc.ws.utils.alien.FileInfo;
 import org.eclipse.jetty.server.Request;
@@ -113,6 +114,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private static BrokerHelper brokerHelper = BrokerHelper.getInstance();
 	private static DatabaseHelper databaseHelper = DatabaseHelper.getInstance();
 	
+	private HelperSpecifications helperSpecifications = HelperSpecifications.getInstance();
+	private Gson gson = new Gson();
+	
 	private static JsonHelper jh = new JsonHelper();
 	
 	//private static PagingObserver pagingObserver = PagingObserver.getInstance();
@@ -127,6 +131,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private final String jsonFormatDaemonsAaDataAll				= duccContextJsonFormat+"-aaData-daemons-all";
 	
 	private final String jsonFormatJobProcessesData				= duccContextJsonFormat+"-job-processes";
+	
+	private final String jsonFormatJobSpecificationData					= duccContextJsonFormat+"-job-specification";
+	private final String jsonFormatManagedReservationSpecificationData	= duccContextJsonFormat+"-managed-reservation-specification";
 	
 	private final String jsonFormatMachines 		= duccContextJsonFormat+"-machines";
 	private final String jsonFormatReservations 	= duccContextJsonFormat+"-reservations";
@@ -717,6 +724,114 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		response.getWriter().println(json);
 		response.setContentType("application/json");
 		
+		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
+	}
+	
+	private void handleServletJsonFormatJobSpecificationData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleServletJsonFormatJobSpecificationData";
+		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
+		
+		String json = "{}";
+		
+		String jobNo = request.getParameter("id");
+		duccLogger.debug(methodName, jobid, "jobNo="+jobNo);
+		if(jobNo == null) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		}
+		else {
+			DuccWorkJob dwj = Helper.getJob(jobNo);
+			duccLogger.debug(methodName, jobid, "dwj="+dwj);
+			if(dwj == null) {
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			}
+			else {
+				String resOwner = dwj.getStandardInfo().getUser();
+				duccLogger.debug(methodName, jobid, "resOwner="+resOwner);
+				if(resOwner == null) {
+					response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+				}
+				else {
+					EffectiveUser eu = EffectiveUser.create(request);
+					String reqUser = eu.get();
+					duccLogger.debug(methodName, jobid, "reqUser="+reqUser);
+					if(reqUser == null) {
+						response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+					}
+					else {
+						if(HandlersHelper.isResourceAuthorized(resOwner, reqUser)) {
+							Map<String, Properties> properties = helperSpecifications.getJobSpecificationProperties(dwj, eu);
+							if(properties != null) {
+								if(!properties.isEmpty()) {
+									properties = helperSpecifications.convertAllToSystem(properties);
+									json = gson.toJson(properties);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		duccLogger.debug(methodName, jobid, "json="+json);
+		response.getWriter().println(json);
+		response.setContentType("application/json");
+		
+		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
+	}
+	
+	private void handleServletJsonFormatManagedReservationSpecificationData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleServletJsonFormatManagedReservationSpecificationData";
+		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
+				
+		String json = "{}";
+			
+		String resNo = request.getParameter("id");
+		duccLogger.debug(methodName, jobid, "resNo="+resNo);
+		if(resNo == null) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		}
+		else {
+			DuccWorkJob mr = Helper.getManagedReservation(resNo);
+			duccLogger.debug(methodName, jobid, "mr="+mr);
+			if(mr == null) {
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			}
+			else {
+				String resOwner = mr.getStandardInfo().getUser();
+				duccLogger.debug(methodName, jobid, "resOwner="+resOwner);
+				if(resOwner == null) {
+					response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+				}
+				else {
+					EffectiveUser eu = EffectiveUser.create(request);
+					String reqUser = eu.get();
+					duccLogger.debug(methodName, jobid, "reqUser="+reqUser);
+					if(reqUser == null) {
+						response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+					}
+					else {
+						if(HandlersHelper.isResourceAuthorized(resOwner, reqUser)) {
+							Map<String, Properties> properties = helperSpecifications.getManagedReservationSpecificationProperties(mr, eu);
+							if(properties != null) {
+								if(!properties.isEmpty()) {
+									properties = helperSpecifications.convertAllToSystem(properties);
+									json = gson.toJson(properties);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		duccLogger.debug(methodName, jobid, "json="+json);
+		response.getWriter().println(json);
+		response.setContentType("application/json");
+				
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}
 	
@@ -2496,8 +2611,14 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		else if(reqURI.startsWith(jsonFormatReservations)) {
 			handleServletJsonFormatReservations(target, baseRequest, request, response);
 		}
-		if(reqURI.startsWith(jsonFormatJobProcessesData)) {
+		else if(reqURI.startsWith(jsonFormatJobProcessesData)) {
 			handleServletJsonFormatJobProcessesData(target, baseRequest, request, response);
+		}
+		else if(reqURI.startsWith(jsonFormatJobSpecificationData)) {
+			handleServletJsonFormatJobSpecificationData(target, baseRequest, request, response);
+		}
+		else if(reqURI.startsWith(jsonFormatManagedReservationSpecificationData)) {
+			handleServletJsonFormatManagedReservationSpecificationData(target, baseRequest, request, response);
 		}
 		else {
 			handleServletUnknown(target, baseRequest, request, response);
