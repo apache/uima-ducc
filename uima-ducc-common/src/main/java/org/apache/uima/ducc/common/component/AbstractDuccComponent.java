@@ -18,9 +18,13 @@
  */
 package org.apache.uima.ducc.common.component;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.rmi.registry.LocateRegistry;
+import java.rmi.server.RMIServerSocketFactory;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -34,6 +38,8 @@ import javax.management.ObjectName;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
+import javax.management.remote.rmi.RMIConnectorServer;
+import javax.net.ServerSocketFactory;
 
 import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.camel.CamelContext;
@@ -49,7 +55,10 @@ import org.apache.uima.ducc.common.exception.DuccConfigurationException;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.JdkEvaluator;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.common.utils.JdkEvaluator.JDKVendor;
+import org.apache.uima.ducc.common.utils.JdkEvaluator.Vendors;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 /**
@@ -408,20 +417,40 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 			}
 		}
 	}
-  
+	private boolean daemonProcess() {
+		 if (System.getProperty("ducc.deploy.components") != null
+		            &&
+		            ( System.getProperty("ducc.deploy.components").equals("sm")
+		              || 
+		              System.getProperty("ducc.deploy.components").equals("orchestrator")
+		              ||
+		              System.getProperty("ducc.deploy.components").equals("pm")
+		              ||
+		              System.getProperty("ducc.deploy.components").equals("rm")
+		              ||
+		              System.getProperty("ducc.deploy.components").equals("ws")
+		              ||
+		              System.getProperty("ducc.deploy.components").equals("agent")
+		              ) ) {
+			 return true;
+		 }
+		 return false;
+	}
     public void start(DuccService service, String[] args) throws Exception {
 	    String endpoint = null;
 	    this.service = service;
 	    
 	    dumpArgs(args);
 	    dumpProps();
-	    
+	    /*
 	    if (System.getProperty("ducc.deploy.components") != null
 	            && !System.getProperty("ducc.deploy.components").equals("uima-as")
 	            && !System.getProperty("ducc.deploy.components").equals("job-process")
 	            && !System.getProperty("ducc.deploy.components").equals("service")
 	            && !System.getProperty("ducc.deploy.components").equals("jd")
 	            && (endpoint = System.getProperty("ducc.admin.endpoint")) != null) {
+	    	*/
+	    if ( daemonProcess() && ( endpoint = System.getProperty("ducc.admin.endpoint")) != null  ) {  
 	        logger.info("start", null, ".....Starting Admin Channel on endpoint:" + endpoint);
             startAdminChannel(endpoint, this);
             logger.info("start", null, "Admin Channel started on endpoint:" + endpoint);
@@ -437,20 +466,32 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 	    }
         logger.info("start",null, "..... Camel Initialized and Started");
 
-	    // Instrument this process with JMX Agent. The Agent will
-	    // find an open port and start JMX Connector allowing
-	    // jmx clients to connect to this jvm using standard
-	    // jmx connect url. This process does not require typical
-	    // -D<jmx params> properties. Currently the JMX does not
-	    // use security allowing all clients to connect.
 
-        logger.info("start",null, "..... Starting JMX Agent");
-	    processJmxUrl = startJmxAgent();
-	    if (processJmxUrl != null && processJmxUrl.trim().length() > 0 ) {
-	        logger.info("start",null, "..... JMX Agent Ready");
-	        logger.info("start",null, "Connect jConsole to this process using JMX URL:" + processJmxUrl);
-	      }
-	    System.getProperties().setProperty("ducc.jmx.url", processJmxUrl);
+        JDKVendor jdkVendor = Vendors.getVendor();
+        logger.info("start",null,"JDK Vendor:"+jdkVendor.getVendor()+" Version:"+System.getProperty("java.version")+" Runtime:"+jdkVendor.getRuntimeVersion());
+        try {
+            if ( JdkEvaluator.secureJdk(jdkVendor)) {
+        	    // Instrument this process with JMX Agent. The Agent will
+        	    // find an open port and start JMX Connector allowing
+        	    // jmx clients to connect to this jvm using standard
+        	    // jmx connect url. This process does not require typical
+        	    // -D<jmx params> properties. Currently the JMX does not
+        	    // use security allowing all clients to connect.
+                logger.info("start",null, "..... Starting JMX Agent");
+        	    processJmxUrl = startJmxAgent();
+        	    if (processJmxUrl != null && processJmxUrl.trim().length() > 0 ) {
+        	        logger.info("start",null, "..... JMX Agent Ready");
+        	        logger.info("start",null, "Connect jConsole to this process using JMX URL:" + processJmxUrl);
+        	      }
+        	    System.getProperties().setProperty("ducc.jmx.url", processJmxUrl);
+            } else {
+            	logger.info("start",null,"Remote JMX will not be enabled due to a dated JDK - consider using more recent JDK. Please review Java vulnerability report: CVE-2016-3427");
+        	    System.getProperties().setProperty("ducc.jmx.url", "Unavailable");
+            }
+        	
+        } catch( Exception e) {
+        	logger.error("start", null,e);
+        }
 
 	    if ( !System.getProperty("ducc.deploy.components").equals("uima-as")
 	             && !System.getProperty("ducc.deploy.components").equals("jd")) {
@@ -581,12 +622,19 @@ public abstract class AbstractDuccComponent implements DuccComponent,
       }
       boolean done = false;
       JMXServiceURL url = null;
-      
+      /*
+      String jmxAccess = "local";
+      String hostname = "localhost";
+      if ( (jmxAccess = System.getProperty("ducc.jmx.access") ) != null && jmxAccess.equals("remote") ) {
+         hostname = InetAddress.getLocalHost().getHostName();
+      }
+      RMIServerSocketFactory serverFactory = new RMIServerSocketFactoryImpl(InetAddress.getByName(hostname));
+      */
       // retry until a valid rmi port is found
       while (!done) {
         	try {
-             	//	 set up RMI registry on a given port
-        		LocateRegistry.createRegistry(rmiRegistryPort);
+        //		LocateRegistry.createRegistry(rmiRegistryPort, null, serverFactory);
+                LocateRegistry.createRegistry(rmiRegistryPort);
                 done = true;
                 // Got a valid port
         	} catch( Exception exx) {
@@ -596,12 +644,22 @@ public abstract class AbstractDuccComponent implements DuccComponent,
       } // while
 
       try {
-        	MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-         
-            final String hostname = InetAddress.getLocalHost().getHostName();
+          	MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+ 
+            String hostname = InetAddress.getLocalHost().getHostName();
+      
             String s = String.format("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname,
                     rmiRegistryPort);
             url = new JMXServiceURL(s);
+            /*
+            Map<String,Object> env = new HashMap<>();
+            env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, serverFactory);
+
+            RMIConnectorServer rmiServer = new RMIConnectorServer( new JMXServiceURL(url.toString()),
+               env, ManagementFactory.getPlatformMBeanServer() );
+
+            rmiServer.start();
+             */
             jmxConnector = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);
             jmxConnector.start();
         } catch (Exception e) {
@@ -724,4 +782,34 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   public boolean isStopping() {
     return stopping;
   }
+  
+  public class RMIServerSocketFactoryImpl implements RMIServerSocketFactory {
+
+	    private final InetAddress localAddress;
+
+	    public RMIServerSocketFactoryImpl( final InetAddress pAddress ) {
+	        localAddress = pAddress;
+	    }
+
+	    public ServerSocket createServerSocket(final int pPort) throws IOException  {
+	        return ServerSocketFactory.getDefault()
+	            .createServerSocket(pPort, 0, localAddress);
+	    }
+
+	    public boolean equals(Object obj) {
+	        if (obj == null) {
+	            return false;
+	        }
+	        if (obj == this) {
+	            return true;
+	        }
+
+	        return obj.getClass().equals(getClass());
+	    }
+
+	    public int hashCode() {
+	        return RMIServerSocketFactoryImpl.class.hashCode();
+	    }
+	}
+
 }

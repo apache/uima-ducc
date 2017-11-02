@@ -18,6 +18,11 @@
  */
 package org.apache.uima.ducc.common.utils;
 
+/*
+ * Evaluates java version to determine if it contains JMX security
+ * fix described in CVE-2016-3427.
+ * 
+ */
 public class JdkEvaluator {
 	public static final int JAVA7=7;
 	public static final int JAVA8=8;
@@ -95,27 +100,11 @@ public class JdkEvaluator {
 		public boolean containsSecurityFix(String javaVersion) {
         	boolean containsFix = false;
 			String runtimeVersion = getRuntimeVersion();
-//			String [] vs = javaVersion.split("\\.");
-//			int pos = 0;
 			int major = IbmJdkVersion.getMajor(javaVersion);
 			// Java 9 comes with a different version string format.
 			// It can be just 9, 9-ea or 9.X.X. We just need to 
 			// establish if its 9 or higher looking at the major. Any
 			// JDK 9 or higher has the jmx fix
-//			if ( (pos = vs[0].indexOf('-')) > 0 ) {
-//				major = Integer.parseInt(vs[0].substring(0, pos));
-//			} else {
-//				major = Integer.parseInt(vs[0]);
-//			}
-			// versions 9 and above are safe
-//			if ( major >= JAVA9) {
-//				containsFix = true;   // good
-//			} else if ( Integer.parseInt(vs[1]) == JAVA8 ) {
-//				containsFix = isJava8Fixed(runtimeVersion);
-//			} else if ( Integer.parseInt(vs[1]) == JAVA7 ) {
-//				int minor = Integer.parseInt(vs[2]);
-//				containsFix = isJava7Fixed(runtimeVersion, minor);
-//			}
 			if ( major >= JAVA9) {
 				containsFix = true;
 			} else if ( major == JAVA8 ) {
@@ -129,13 +118,15 @@ public class JdkEvaluator {
 			boolean containsFix = false;
 			// if Java 1.7.2+ the jmx fix is there
 			if ( minor > 1) {
-				containsFix = true;
-			} else if ( minor == 1 ) {  // Java 1.7.1
+				return true;
+			} 
+			int serviceReleaseVersion = getSecurityReleaseVersion(runtimeVersion);
+			int fixPackVersion = getFixPackVersion(runtimeVersion);
+			
+			if ( minor == 1 ) {  // Java 1.7.1
 				// check if service release is at least 3 ( SR3)
-				int serviceReleaseVersion = getServiceReleaseVersion(runtimeVersion);
 				if ( serviceReleaseVersion >= SR3) {
 					// check if fix pack at least 40
-					int fixPackVersion = getServiceFixPackVersion(runtimeVersion);
 					if ( fixPackVersion >= FIXPACK40) {
 						// 1.7.1 JDK equal or above SR3 FP40 we're good
 						containsFix = true;
@@ -143,9 +134,7 @@ public class JdkEvaluator {
 				} 
 			} else if ( minor == 0 ) {  // Java 1.7.0
 				// check if service release is at least 9 ( SR9)
-				int serviceReleaseVersion = getServiceReleaseVersion(runtimeVersion);
 				if ( serviceReleaseVersion >= SR9) {
-					int fixPackVersion = getServiceFixPackVersion(runtimeVersion);
 					if ( fixPackVersion >= FIXPACK40) {
 						// 1.7.0 JDK equal or above SR9 FP40 we're good
 						containsFix = true;
@@ -158,9 +147,9 @@ public class JdkEvaluator {
 			boolean containsFix = false;
 			// Locate Service Release (SR) first. Anything equal or above version 3 is good
 			// for IBM Java 8.
-			int serviceReleaseVersion = getServiceReleaseVersion(runtimeVersion);
+			int serviceReleaseVersion = getSecurityReleaseVersion(runtimeVersion);
 			if ( serviceReleaseVersion >= 3) {
-				int fixPackVersion = getServiceFixPackVersion(runtimeVersion);
+				int fixPackVersion = getFixPackVersion(runtimeVersion);
 				if ( fixPackVersion >= 0) {
 					// anything above SR3 is good for Java8
 					containsFix = true;
@@ -168,16 +157,22 @@ public class JdkEvaluator {
 			} 
 			return containsFix;
 		}
-		private int getServiceReleaseVersion(String runtimeVersion) {
+		private int getSecurityReleaseVersion(String runtimeVersion) {
 			int start = runtimeVersion.indexOf("(SR");
 			if (start > 0 ) {
 				String upgradeStringVersion = runtimeVersion.substring(start+1, runtimeVersion.indexOf(')', start));
-				String srAsString = upgradeStringVersion.substring(2, upgradeStringVersion.indexOf(' '));
+				String srAsString = ""; // could be {SR[number])
+				if ( upgradeStringVersion.indexOf(' ') > -1 ) {
+					// this version comes with a fix pack (SR[Number] FP[Number])
+					srAsString = upgradeStringVersion.substring(2, upgradeStringVersion.indexOf(' '));
+				} else {
+					srAsString = upgradeStringVersion.substring(2);
+				}
 				return Integer.parseInt(srAsString);
 			}
 			return -1;
 		}
-		private int getServiceFixPackVersion(String runtimeVersion) {
+		private int getFixPackVersion(String runtimeVersion) {
 			int fixPackVersion = -1;
 			int start = runtimeVersion.indexOf("(SR");
 			if (start > 0 ) {
@@ -209,17 +204,6 @@ public class JdkEvaluator {
         	boolean containsFix = false;
 			// 9, 9-ea, 9.0.1
 			String [] vs = javaVersion.split("\\.");
-//			int pos = 0;
-//			int major = 1;
-//			// Java 9 comes with a different version string format.
-//			// It can be just 9, 9-ea or 9.X.X. We just need to 
-//			// establish if its 9 or higher looking at the major. Any
-//			// JDK 9 or higher has the jmx fix
-//			if ( (pos = vs[0].indexOf('-')) > 0 ) {
-//				major = Integer.parseInt(vs[0].substring(0, pos));
-//			} else {
-//				major = Integer.parseInt(vs[0]);
-//			}
         	int pos=0;
         	int major = JdkVersion.getMajor(javaVersion);
         	// versions 9 and above are safe
