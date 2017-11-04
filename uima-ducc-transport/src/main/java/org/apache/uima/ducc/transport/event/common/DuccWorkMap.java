@@ -41,7 +41,7 @@ public class DuccWorkMap implements IDuccWorkMap {
 	 */
 	private static final long serialVersionUID = 2L;
 	
-	private ConcurrentHashMap<DuccId,IDuccWork> concurrentWorkMap = new ConcurrentHashMap<DuccId,IDuccWork>();
+	private Map<DuccId,IDuccWork> concurrentWorkMap = new ConcurrentHashMap<DuccId,IDuccWork>();
 	
 	private AtomicInteger atomicJobDriverNodeCount = new AtomicInteger(0);
 	
@@ -49,9 +49,9 @@ public class DuccWorkMap implements IDuccWorkMap {
 	private AtomicInteger atomicServiceCount = new AtomicInteger(0);
 	private AtomicInteger atomicReservationCount = new AtomicInteger(0);
 	
-	private ConcurrentHashMap<String,DuccId> concurrentJobMap = null;
-	private ConcurrentHashMap<String,DuccId> concurrentServiceMap = null;
-	private ConcurrentHashMap<String,DuccId> concurrentReservationMap = null;
+	private Map<String,DuccId> concurrentJobMap = null;
+	private Map<String,DuccId> concurrentServiceMap = null;
+	private Map<String,DuccId> concurrentReservationMap = null;
 	
 	public DuccWorkMap() {
 		concurrentJobMap = new ConcurrentHashMap<String,DuccId>();
@@ -254,7 +254,7 @@ public class DuccWorkMap implements IDuccWorkMap {
 	
 	//
 	
-	public ConcurrentHashMap<DuccId,IDuccWork> getMap() {
+	public Map<DuccId,IDuccWork> getMap() {
 		return concurrentWorkMap;
 	}
 	

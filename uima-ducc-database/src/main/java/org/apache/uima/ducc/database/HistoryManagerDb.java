@@ -744,7 +744,7 @@ public class HistoryManagerDb
             ByteBuffer workbuf = ByteBuffer.wrap(bytes);
 
             if ( logger.isTrace() ) {
-                ConcurrentHashMap<DuccId, IDuccWork> map = work.getMap();
+                Map<DuccId, IDuccWork> map = work.getMap();
                 for ( DuccId id : map.keySet() ) {
                     IDuccWork w = map.get(id);
                     logger.trace(methodName, id, "Checkpointing", w.getClass());
@@ -821,7 +821,7 @@ public class HistoryManagerDb
                 }
 
                 // only gets called once per boot and might be useful, let's leave at info
-                ConcurrentHashMap<DuccId, IDuccWork> map = work.getMap();
+                Map<DuccId, IDuccWork> map = work.getMap();
                 for ( DuccId id : map.keySet() ) {
                     IDuccWork w = map.get(id);
                     logger.info(methodName, id, "Restored", w.getClass());
