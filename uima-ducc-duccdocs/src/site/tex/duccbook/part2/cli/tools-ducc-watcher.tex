@@ -26,6 +26,7 @@
 
   \paragraph{Description:}
     The watcher tool is used to monitor the status of the various DUCC daemons. 
+    It can additionally be used monitor the status of the Job Driver allocation.
    
   \paragraph{Usage:}
     \begin{description}
@@ -41,7 +42,9 @@
         \item[$--$debug]          
           Prints internal debugging information, intended for DUCC developers or extended problem determination.      
         \item[$--$email-list]          
-          Blank separated list of e-mail address to receive status updates.    
+          Blank separated list of e-mail address to receive status updates.  
+        \item[$--$job-driver-allocation]          
+          Check job driver allocation for specified class.     
         \item[$--$path]          
           Path to directory where log and state information are written.  
         \item[$--$target host:port]          
