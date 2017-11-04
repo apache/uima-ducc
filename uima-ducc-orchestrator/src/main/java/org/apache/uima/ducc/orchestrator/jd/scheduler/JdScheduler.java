@@ -476,7 +476,7 @@ public class JdScheduler {
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
 		long slicesReserveActual = getSlicesReserveActual();
 		DuccId reservationIdentity = dwr.getDuccId();
-		logger.debug(location, reservationIdentity, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
+		logger.info(location, reservationIdentity, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
 	// Return an unused JD Reservation.
@@ -508,7 +508,7 @@ public class JdScheduler {
 		}
 		long slicesReserveDesired = getSlicesReserveDesired(jdHostProperties);
 		long slicesReserveActual = getSlicesReserveActual();
-		logger.debug(location, reservationIdentity, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
+		logger.info(location, reservationIdentity, "actual: "+slicesReserveActual+" "+"desired: "+slicesReserveDesired);
 	}
 	
 	// Nothing to do.
