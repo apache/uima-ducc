@@ -53,4 +53,14 @@
             
   \paragraph{Notes:}
     This command is meant to monitor DUCC daemons status and report only when there is a change, e.g. from up to down.
-       
+  
+  \paragraph{crontab:}
+  
+    Below is a sample {\em crontab} to check the state of DUCC head node daemons as well as
+    the JobDriver allocation every 5 minutes, and to send e-mail when there is a status change.
+    
+    \begin{verbatim}
+    
+    */5 * * * *  /home/ducc/ducc_runtime/bin/ducc_watcher --target http://uima-ducc-demo.apache.org:42133 --job-driver-allocation JobDriver --email degenaro@apache.org
+    
+    \end{verbatim}
