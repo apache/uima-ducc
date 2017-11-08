@@ -303,6 +303,13 @@ def validate_target(options):
     ducc_url_servlet_reservations_data = protocol+target+servlet
     debug('target: '+ducc_url_servlet_reservations_data)
     
+# mail host, if any
+def validate_mail_host(options):
+    global mail_host
+    if(not options.mail_host == None):
+        mail_host = options.mail_host
+    debug('mail-host: '+str(mail_host))
+        
 # list of e-mail recipients, if any
 def validate_email_list(options):
     global email_list
@@ -313,6 +320,7 @@ def validate_email_list(options):
 # parse command line
 def parse_cmdline():
     global name
+    global mail_host
     parser = ExtendedOptionParser(epilog=get_epilog())
     width = 45
     parser.formatter.help_position = width
@@ -325,6 +333,8 @@ def parse_cmdline():
                                help='blank separated list of email addresses to receive down + error notifications')
     parser.add_option('-j','--job-driver-allocation', action='store', dest='job_driver_allocation', default=None, 
                                help='check job driver allocation for specified class')
+    parser.add_option('-m','--mail-host', action='store', dest='mail_host', default=None, 
+                               help='mail host (default='+mail_host+')')                           
     parser.add_option('-p','--path', action='store', dest='path', default=None,
                                help='path to directory where log and state information are written, default is /tmp'+'/'+get_user())
     parser.add_option('-t','--target', action='store', dest='target', default=None,
@@ -340,6 +350,8 @@ def parse_cmdline():
     validate_target(options)
     # -e
     validate_email_list(options)
+    # -m
+    validate_mail_host(options)
     # -p
     validate_path(options)
     # dependencies
@@ -637,6 +649,7 @@ def is_reportable():
         retVal = True
     elif(not is_all_head_daemons()):
         retVal = True
+    debug('reportable: '+str(retVal))
     return retVal
 
 # e-mail message subject
