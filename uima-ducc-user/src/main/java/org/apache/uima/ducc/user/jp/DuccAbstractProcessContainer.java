@@ -201,7 +201,9 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 		
 		return baos.toByteArray();
 	}
-	protected byte[] getLastSerializedError() throws Exception {
+    
+  // A custom container sub class may override this from a different package
+	public byte[] getLastSerializedError() throws Exception {
 		byte[] result = null;
 		if (errorMap.containsKey(Thread.currentThread().getId())) {
 			Throwable lastError = 
