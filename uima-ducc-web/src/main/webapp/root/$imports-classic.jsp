@@ -17,8 +17,6 @@ specific language governing permissions and limitations
 under the License.
 -->
   <script src="opensources/jquery-2.0.3.min.js" type="text/javascript"></script>
-  <script src="opensources/cluetip/jquery.cluetip.js" type="text/javascript"></script>
-  <link href="opensources/cluetip/jquery.cluetip.css" rel="stylesheet" type="text/css">
   <script type="text/javascript" src="opensources/sorttable.js"></script>
   <script src="opensources/jgrowl-1.3/jquery.jgrowl.js" type="text/javascript"></script>
   <link rel="stylesheet" href="opensources/jgrowl-1.3/jquery.jgrowl.css" type="text/css"/>

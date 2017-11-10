@@ -39,8 +39,6 @@ if (cookies != null)
 }
 %>
   <script src="opensources/jquery-2.0.3.min.js" type="text/javascript"></script>
-  <script src="opensources/cluetip/jquery.cluetip.js" type="text/javascript"></script>
-  <link href="opensources/cluetip/jquery.cluetip.css" rel="stylesheet" type="text/css">
 <%
 if (table_style.equals("scroll")) {
 %>

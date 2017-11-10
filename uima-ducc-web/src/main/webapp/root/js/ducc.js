@@ -38,8 +38,6 @@ var ms_reload_min = 5000;
 
 var ms_timeout = 25000;
 
-var cluetips_disabled = true;
-
 var login_prompt = 0;
 
 $(window).resize(function() {
@@ -85,39 +83,6 @@ function ducc_console_success(fname) {
 function ducc_console_fail(fname, textStatus) {
     var text = fname + " " + "fail:" + " " + textStatus;
     ducc_console_warn(text);
-}
-
-function ducc_cluetips() {
-    if (cluetips_disabled) {
-        return;
-    }
-    try {
-        $('a.logfileLink').cluetip('destroy');
-        $('a.logfileLink').cluetip({
-            width: '600px',
-            attribute: 'href',
-            activation: 'click',
-            sticky: true,
-            closePosition: 'title',
-            closeText: '<img src="opensources/cluetip/cross.png" alt="close" />',
-            mouseOutClose: true
-        });
-        $('a.classLoad').cluetip('destroy');
-        $('a.classLoad').cluetip({
-            width: 'auto',
-            local: true,
-            cluetipClass: 'jtip',
-            activation: 'click',
-            sticky: true,
-            titleAttribute: 'title',
-            closePosition: 'title',
-            mouseOutClose: true,
-            dropShadow: false,
-            arrows: true
-        });
-    } catch (err) {
-        //ducc_error("ducc_cluetips",err);
-    }
 }
 
 function toggleById(id) {
@@ -718,7 +683,6 @@ function ducc_load_classic_jobs_data() {
             data = null;
             ducc_console_success(fname);
             ducc_load_common();
-            ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
             wip_jobs = false;
             ducc_console_fail(fname, textStatus);
@@ -742,7 +706,6 @@ function ducc_load_scroll_jobs_callback() {
     var fname = "ducc_load_scroll_jobs_callback";
     try {
         ducc_load_common();
-        ducc_cluetips();
         oTable.fnAdjustColumnSizing();
     } catch (err) {
         ducc_error(fname, err);
@@ -841,7 +804,6 @@ function ducc_load_classic_services_data() {
             data = null;
             ducc_console_success(fname);
             ducc_load_common();
-            ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
             wip_services = false;
             ducc_console_fail(fname, textStatus);
@@ -865,7 +827,6 @@ function ducc_load_scroll_services_callback() {
     var fname = "ducc_load_scroll_services_callback";
     try {
         ducc_load_common();
-        ducc_cluetips();
         oTable.fnAdjustColumnSizing();
     } catch (err) {
         ducc_error(fname, err);
@@ -1518,7 +1479,6 @@ function ducc_load_service_deployments_data() {
         }).done(function(data) {
             wip_service_deployments_data = false;
             $("#deployments_list_area").html(data);
-            ducc_cluetips();
             hide_show();
             data = null;
             ducc_console_success(fname);
@@ -1729,7 +1689,6 @@ function ducc_load_job_processes_data() {
         }).done(function(data) {
             wip_job_processes_data = false;
             $("#processes_list_area").html(data);
-            ducc_cluetips();
             hide_show();
             data = "";
             $("#loading_processes_area").html(data);
@@ -1792,7 +1751,6 @@ function ducc_load_reservation_processes_data() {
         }).done(function(data) {
             wip_reservation_processes_data = false;
             $("#processes_list_area").html(data);
-            ducc_cluetips();
             hide_show();
             data = "";
             $("#loading_processes_area").html(data);
@@ -1866,7 +1824,6 @@ function ducc_load_classic_machines_data() {
             data = null;
             ducc_console_success(fname);
             ducc_load_common();
-            ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
             wip_classic_machines_data = false;
             ducc_console_fail(fname, textStatus);
@@ -1890,7 +1847,6 @@ function ducc_load_scroll_machines_callback() {
     var fname = "ducc_load_scroll_machines_callback";
     try {
         ducc_load_common();
-        ducc_cluetips();
         oTable.fnAdjustColumnSizing();
     } catch (err) {
         ducc_error(fname, err);
@@ -1986,7 +1942,6 @@ function ducc_load_classic_reservations_data() {
             data = null;
             ducc_console_success(fname);
             ducc_load_common();
-            ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
             wip_classic_reservations_data = false;
             ducc_console_fail(fname, textStatus);
@@ -2010,7 +1965,6 @@ function ducc_load_scroll_reservations_callback() {
     var fname = "ducc_load_scroll_reservations_callback";
     try {
         ducc_load_common();
-        ducc_cluetips();
         oTable.fnAdjustColumnSizing();
     } catch (err) {
         ducc_error(fname, err);
@@ -2348,7 +2302,6 @@ function ducc_load_classic_system_classes_data() {
             data = null;
             ducc_console_success(fname);
             ducc_load_common();
-            ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
             wip_classic_system_classes_data = false;
             ducc_console_fail(fname, textStatus);
@@ -2372,7 +2325,6 @@ function ducc_load_scroll_system_classes_callback() {
     var fname = "ducc_load_scroll_system_classes_callback";
     try {
         ducc_load_common();
-        ducc_cluetips();
         oTable.fnAdjustColumnSizing();
     } catch (err) {
         ducc_error(fname, err);
@@ -2495,7 +2447,6 @@ function ducc_load_classic_system_daemons_data() {
             data = null;
             ducc_console_success(fname);
             ducc_load_common();
-            ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
             wip_classic_system_daemons_data = false;
             ducc_console_fail(fname, textStatus);
@@ -2519,7 +2470,6 @@ function ducc_load_scroll_system_daemons_callback() {
     var fname = "ducc_load_scroll_system_daemons_callback";
     try {
         ducc_load_common();
-        ducc_cluetips();
         oTable.fnAdjustColumnSizing();
     } catch (err) {
         ducc_error(fname, err);
@@ -2577,7 +2527,6 @@ function ducc_load_classic_system_broker_data() {
             data = null;
             ducc_console_success(fname);
             ducc_load_common();
-            ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
             wip_classic_system_broker_data = false;
             ducc_console_fail(fname, textStatus);
@@ -2601,7 +2550,6 @@ function ducc_load_scroll_system_broker_callback() {
     var fname = "ducc_load_scroll_system_broker_callback";
     try {
         ducc_load_common();
-        ducc_cluetips();
         oTable.fnAdjustColumnSizing();
     } catch (err) {
         ducc_error(fname, err);
