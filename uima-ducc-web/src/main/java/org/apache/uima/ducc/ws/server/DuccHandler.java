@@ -82,6 +82,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccDataHelper;
@@ -569,7 +570,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		String fmtCPU_overall = Helper.getPctCpuOverall(job, process, sType);
 		String fmtCPU_current = Helper.getPctCpuCurrent(job, process,sType);
 		StringBuffer sb = new StringBuffer();
-		switch(process.getProcessState()) {
+		ProcessState ps = process.getProcessState();
+		switch(ps) {
+		case Starting:
+		case Started:
+		case Initializing:
 		case Running:
 			String title = "title="+"\"lifetime: "+fmtCPU_overall+"\"";
 			sb.append("<span "+title+" class=\"health_green\">");
