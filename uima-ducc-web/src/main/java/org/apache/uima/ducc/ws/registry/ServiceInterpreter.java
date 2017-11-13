@@ -22,14 +22,13 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 import org.apache.uima.ducc.ws.DuccDataHelper;
 
 public class ServiceInterpreter {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(ServiceInterpreter.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(ServiceInterpreter.class);
 	private static DuccId jobid = null;
 	
 	protected Properties svc;

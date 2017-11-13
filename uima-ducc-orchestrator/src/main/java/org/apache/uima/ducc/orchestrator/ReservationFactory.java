@@ -20,7 +20,6 @@ package org.apache.uima.ducc.orchestrator;
 
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
 import org.apache.uima.ducc.orchestrator.utilities.MemorySpecification;
@@ -33,7 +32,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
 public class ReservationFactory {
 	private static ReservationFactory reservationFactory = new ReservationFactory();
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(ReservationFactory.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(ReservationFactory.class);
 	
 	public static ReservationFactory getInstance() {
 		return reservationFactory;

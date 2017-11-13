@@ -19,14 +19,13 @@
 package org.apache.uima.ducc.orchestrator;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IResourceState;
 
 public class OrUtil {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(OrUtil.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(OrUtil.class);
 	
 	public static void setResourceState(IDuccWorkJob job, IDuccProcess process, IResourceState.ResourceState value) {
 		String location = "setResourceState";

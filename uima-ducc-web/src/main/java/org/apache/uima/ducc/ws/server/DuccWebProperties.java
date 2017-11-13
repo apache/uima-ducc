@@ -25,14 +25,13 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DuccWebProperties {
 
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccWebProperties.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccWebProperties.class);
 	private static DuccId jobid = null;
 	
 	private static String dir_home = Utils.findDuccHome();

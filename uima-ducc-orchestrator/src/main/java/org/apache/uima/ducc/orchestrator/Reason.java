@@ -19,13 +19,12 @@
 package org.apache.uima.ducc.orchestrator;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 
 public class Reason {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(Reason.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(Reason.class);
 	
 	private String user = null;
 	private String role = null;

@@ -26,7 +26,6 @@ import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -36,7 +35,7 @@ import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceMa
 
 public class DbQuery {
 
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DbQuery.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(DbQuery.class);
 	private static DuccId jobid = null;
 	
 	private static DbQuery instance = null;

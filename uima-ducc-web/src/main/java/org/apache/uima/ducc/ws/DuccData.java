@@ -23,7 +23,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -40,7 +39,7 @@ import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceMa
 
 public class DuccData {
 
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccData.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(DuccData.class);
 	private static DuccId jobid = null;
 	
 	private static IDuccWorkMap duccWorkMap = new DuccWorkMap();

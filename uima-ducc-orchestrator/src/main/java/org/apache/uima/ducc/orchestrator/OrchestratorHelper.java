@@ -23,7 +23,6 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
@@ -43,7 +42,7 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class OrchestratorHelper {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorHelper.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(OrchestratorHelper.class);
 	
 	public static DuccId jobid = null;
 	

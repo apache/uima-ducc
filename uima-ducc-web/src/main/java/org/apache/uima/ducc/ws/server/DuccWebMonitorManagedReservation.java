@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.uima.ducc.common.CancelReasons.CancelReason;
 import org.apache.uima.ducc.common.json.MonitorInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
@@ -43,7 +42,7 @@ import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 
 public class DuccWebMonitorManagedReservation {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccWebMonitorManagedReservation.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccWebMonitorManagedReservation.class);
 	private static DuccId jobid = null;
 	
 	private ConcurrentHashMap<DuccId,MonitorInfo> mMap = new ConcurrentHashMap<DuccId,MonitorInfo>();

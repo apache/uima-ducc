@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.orchestrator.maintenance;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
@@ -29,7 +28,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 
 public class MaintenanceThread extends Thread {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(MaintenanceThread.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(MaintenanceThread.class);
 	
 	private static MaintenanceThread instance = new MaintenanceThread();
 	

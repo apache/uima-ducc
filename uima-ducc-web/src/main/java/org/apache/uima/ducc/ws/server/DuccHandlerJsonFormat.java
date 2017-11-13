@@ -46,7 +46,6 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.ComponentHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
@@ -107,7 +106,7 @@ import com.google.gson.JsonPrimitive;
 
 public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandlerJsonFormat.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccHandlerJsonFormat.class);
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 

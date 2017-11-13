@@ -41,14 +41,13 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 
 public class BrokerHelper extends JmxHelper {
 
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(BrokerHelper.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(BrokerHelper.class);
 	private static DuccId jobid = null;
 
 	public static BrokerHelper getInstance() {

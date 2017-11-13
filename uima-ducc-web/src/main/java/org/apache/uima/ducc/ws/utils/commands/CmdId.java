@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 /**
@@ -52,7 +51,7 @@ public class CmdId {
 	
 	private void init(boolean useLogger) {
 		if(useLogger) {
-			logger = DuccLoggerComponents.getWsLogger(CmdId.class.getName());
+			logger = DuccLogger.getLogger(CmdId.class);
 		}
 	}
 	

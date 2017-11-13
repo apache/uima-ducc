@@ -29,7 +29,7 @@ import java.util.zip.GZIPInputStream;
 
 public class AlienFile extends AlienAbstract {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(AlienFile.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(AlienFile.class);
 	
 	private static String ducc_ling = 
 			Utils.resolvePlaceholderIfExists(

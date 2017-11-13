@@ -29,7 +29,7 @@ import java.net.InetAddress;
 
 public class ComponentHelper {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(ComponentHelper.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(ComponentHelper.class);
 	
 	/**
 	 * Abort component (at start-up) if already running, indicated by the existence of

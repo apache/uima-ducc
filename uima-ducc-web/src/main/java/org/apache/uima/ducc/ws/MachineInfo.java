@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
 import org.apache.uima.ducc.ws.types.NodeId;
@@ -31,7 +30,7 @@ import org.apache.uima.ducc.ws.types.NodeId;
 
 public class MachineInfo implements Comparable<MachineInfo> {
 
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(MachineInfo.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(MachineInfo.class);
 	private static DuccId jobid = null;
 	
 	public enum MachineStatus { 

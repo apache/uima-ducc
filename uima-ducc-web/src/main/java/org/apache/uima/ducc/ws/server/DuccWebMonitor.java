@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.common.json.MonitorInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
@@ -33,7 +32,7 @@ import org.apache.uima.ducc.ws.IListenerOrchestrator;
 
 public class DuccWebMonitor implements IListenerOrchestrator, IWebMonitor {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccWebMonitor.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccWebMonitor.class);
 	private static DuccId jobid = null;
 	
 	public static DuccWebMonitor instance = new DuccWebMonitor();

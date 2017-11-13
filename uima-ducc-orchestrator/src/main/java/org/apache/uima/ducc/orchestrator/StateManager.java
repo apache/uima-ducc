@@ -35,7 +35,6 @@ import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.jd.files.workitem.IRemoteLocation;
 import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -82,7 +81,7 @@ import org.apache.uima.ducc.transport.event.sm.ServiceDependency;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 
 public class StateManager {
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(StateManager.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(StateManager.class);
 	private static final DuccId jobid = null;
 
 	private static StateManager stateManager = new StateManager();

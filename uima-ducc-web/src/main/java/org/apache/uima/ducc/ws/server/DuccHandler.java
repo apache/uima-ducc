@@ -58,7 +58,6 @@ import org.apache.uima.ducc.common.jd.files.perf.PerformanceSummary;
 import org.apache.uima.ducc.common.jd.files.perf.UimaStatistic;
 import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
@@ -121,7 +120,7 @@ public class DuccHandler extends DuccAbstractHandler {
 
 	private static String component = IDuccLoggerComponents.abbrv_webServer;
 
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandler.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccHandler.class);
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 

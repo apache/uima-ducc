@@ -27,7 +27,6 @@ import org.apache.uima.ducc.common.persistence.or.IDbDuccWorks;
 import org.apache.uima.ducc.common.persistence.or.ITypedProperties;
 import org.apache.uima.ducc.common.persistence.or.TypedProperties;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.database.DbDuccWorks;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -44,7 +43,7 @@ public class HelperSpecifications {
 	 * both storage methodologies for backwards compatibility.
 	 */
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(HelperSpecifications.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(HelperSpecifications.class);
 	private static DuccId jobid = null;
 
 	public static enum PType { user, all };

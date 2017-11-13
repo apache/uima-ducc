@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
@@ -32,7 +31,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 
 public class NodeAccounting {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(NodeAccounting.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(NodeAccounting.class);
 	private static final DuccId jobid = null;
 	
 	private static NodeAccounting instance = new NodeAccounting();

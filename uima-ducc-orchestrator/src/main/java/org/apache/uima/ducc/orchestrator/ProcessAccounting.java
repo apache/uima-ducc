@@ -25,7 +25,6 @@ import java.util.List;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.user.UserLogging;
@@ -51,7 +50,7 @@ import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 
 public class ProcessAccounting {
 
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(ProcessAccounting.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(ProcessAccounting.class);
 
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private Messages messages = orchestratorCommonArea.getSystemMessages();

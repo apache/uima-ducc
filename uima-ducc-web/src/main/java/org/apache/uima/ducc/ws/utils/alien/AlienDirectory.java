@@ -29,12 +29,11 @@ import java.util.TreeMap;
 
 import org.apache.uima.ducc.common.utils.AlienAbstract;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class AlienDirectory extends AlienAbstract {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(AlienDirectory.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(AlienDirectory.class);
 	private static DuccId jobid = null;
 	
 	private static String newline = "\n";

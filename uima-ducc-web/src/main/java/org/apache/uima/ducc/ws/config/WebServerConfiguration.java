@@ -32,7 +32,6 @@ import org.apache.camel.component.jms.JmsMessage;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.config.DuccBlastGuardPredicate;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
@@ -59,7 +58,7 @@ public class WebServerConfiguration {
 	//	use Spring magic to autowire (instantiate and bind) DuccTransportConfiguration to a local variable
 	@Autowired DuccTransportConfiguration webServerTransport;
 	
-	private DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(WebServerConfiguration.class.getName());
+	private DuccLogger duccLogger = DuccLogger.getLogger(WebServerConfiguration.class);
 	private DuccId jobid = null;
 	
 	private AtomicBoolean singleton = new AtomicBoolean(false);

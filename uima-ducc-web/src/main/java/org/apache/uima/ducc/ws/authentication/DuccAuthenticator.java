@@ -21,13 +21,12 @@ package org.apache.uima.ducc.ws.authentication;
 import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
 import org.apache.uima.ducc.common.authentication.IAuthenticationResult;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DuccAuthenticator extends AbstractAuthenticator {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccAuthenticator.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccAuthenticator.class);
 	private static DuccId jobid = null;
 	
 	private static DuccAuthenticator instance = new DuccAuthenticator();

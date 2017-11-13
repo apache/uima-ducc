@@ -21,13 +21,12 @@ package org.apache.uima.ducc.ws.registry.sort;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.sm.IService;
 
 public class SortableService extends ServiceAdapter implements Comparable<SortableService> {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(SortableService.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(SortableService.class);
 	private static DuccId jobid = null;
 	
 	public SortableService(Properties svc, Properties meta) {

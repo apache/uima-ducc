@@ -25,15 +25,13 @@ import java.util.TreeMap;
 
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 
 public class ServicesSortCache {
 	
-	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(ServicesSortCache.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(ServicesSortCache.class);
 	private static DuccId jobid = null;
 	
 	private static ServicesSortCache instance = new ServicesSortCache();

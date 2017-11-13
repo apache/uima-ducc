@@ -25,12 +25,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DuccWebSessionManager {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccWebSessionManager.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccWebSessionManager.class);
 	private static DuccId jobid = null;
 	
 	public static DuccWebSessionManager instance = new DuccWebSessionManager();

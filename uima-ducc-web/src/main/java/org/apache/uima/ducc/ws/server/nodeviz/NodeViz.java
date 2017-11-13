@@ -30,7 +30,6 @@ import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.Version;
@@ -58,7 +57,7 @@ import org.apache.uima.ducc.ws.types.NodeId;
 public class NodeViz
     implements IListenerOrchestrator
 {
-    private static DuccLogger logger = DuccLoggerComponents.getWsLogger(NodeViz.class.getName());
+    private static DuccLogger logger = DuccLogger.getLogger(NodeViz.class);
 
     private DuccMachinesData machineData;              // handle to static machine information
 

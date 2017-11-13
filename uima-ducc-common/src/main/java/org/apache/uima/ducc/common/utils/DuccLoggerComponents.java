@@ -39,10 +39,10 @@ public class DuccLoggerComponents implements IDuccLoggerComponents {
         return makeLogger(claz, abbrv_db);
     }
 	
-	static public DuccLogger getOrLogger(String claz)
-    {
-        return makeLogger(claz, abbrv_orchestrator);
-    }
+//	static public DuccLogger getOrLogger(String claz)
+//    {
+//        return makeLogger(claz, abbrv_orchestrator);
+//    }
 	
 //	static public DuccLogger getTrLogger(String claz)
 //    {

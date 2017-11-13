@@ -29,7 +29,6 @@ import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.config.DuccBlastGuardPredicate;
 import org.apache.uima.ducc.common.exception.DuccRuntimeException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -73,7 +72,7 @@ public class OrchestratorConfiguration {
 	//	Springframework magic to inject instance of {@link DuccTransportConfiguration}
 	@Autowired DuccTransportConfiguration orchestratorTransport;
 
-	private DuccLogger duccLogger = DuccLoggerComponents.getOrLogger(OrchestratorConfiguration.class.getName());
+	private DuccLogger duccLogger = DuccLogger.getLogger(OrchestratorConfiguration.class);
 	private DuccId jobid = null;
 	
 	/**

@@ -27,7 +27,6 @@ import org.apache.uima.ducc.common.persistence.IPropertiesFileManager;
 import org.apache.uima.ducc.common.persistence.PropertiesFileManager;
 import org.apache.uima.ducc.common.utils.ComponentHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -45,7 +44,7 @@ public class OrchestratorCommonArea {
 
 	private static OrchestratorCommonArea orchestratorCommonArea = null;
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorCommonArea.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(OrchestratorCommonArea.class);
 	private static final DuccId jobid = null;
 	
 	private static DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();

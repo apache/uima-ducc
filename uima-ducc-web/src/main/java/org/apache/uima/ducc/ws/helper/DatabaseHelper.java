@@ -22,14 +22,13 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.db.DbQuery;
 
 public class DatabaseHelper extends JmxHelper {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DatabaseHelper.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(DatabaseHelper.class);
 	private static DuccId jobid = null;
 	
 	private static DatabaseHelper instance = new DatabaseHelper();

@@ -20,8 +20,8 @@ package org.apache.uima.ducc.ws.server;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
@@ -39,7 +38,7 @@ import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 
 public class DuccWebUtil {
 
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccWebUtil.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccWebUtil.class);
 	
 	public static final void noCache(HttpServletResponse response) {
 		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.

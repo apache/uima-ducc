@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.transport.event.AbstractDuccEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
@@ -31,7 +30,7 @@ import org.apache.uima.ducc.ws.server.DuccWebProperties;
 
 public class DuccDaemonsData {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccDaemonsData.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccDaemonsData.class);
 	
 	private static DuccDaemonsData duccDaemonsData = new DuccDaemonsData();
 	private static ConcurrentHashMap<DaemonName,String> mapCurr = new ConcurrentHashMap<DaemonName,String>();

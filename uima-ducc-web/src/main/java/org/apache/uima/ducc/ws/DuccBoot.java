@@ -27,7 +27,6 @@ import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -41,7 +40,7 @@ import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceMa
 
 public class DuccBoot extends Thread {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccBoot.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(DuccBoot.class);
 	private static Messages messages = Messages.getInstance();
 	
 	private static DuccPlugins duccPlugins = DuccPlugins.getInstance();

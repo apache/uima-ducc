@@ -26,13 +26,12 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.standardize.WsStandardize;
 
 public class DuccWebServerHelper {
 
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccWebServerHelper.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(DuccWebServerHelper.class);
 
 	private static DuccId jobid = null;
 	

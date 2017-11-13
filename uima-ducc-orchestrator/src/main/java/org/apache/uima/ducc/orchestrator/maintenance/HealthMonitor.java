@@ -24,7 +24,6 @@ import java.util.Set;
 
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.Constants;
 import org.apache.uima.ducc.orchestrator.OrUtil;
@@ -48,7 +47,7 @@ import org.apache.uima.ducc.transport.event.common.Rationale;
 
 public class HealthMonitor {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(HealthMonitor.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(HealthMonitor.class);
 	
 	private static HealthMonitor healthMonitor = new HealthMonitor();
 	

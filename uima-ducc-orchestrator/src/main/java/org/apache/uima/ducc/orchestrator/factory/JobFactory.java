@@ -29,7 +29,6 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.container.FlagsHelper.Name;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -70,7 +69,7 @@ import org.apache.uima.ducc.user.common.QuotedOptions;
 
 public class JobFactory implements IJobFactory {
 	private static JobFactory jobFactory = new JobFactory();
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(JobFactory.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(JobFactory.class);
 	private DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 
 	public static IJobFactory getInstance() {

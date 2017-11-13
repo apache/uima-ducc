@@ -23,7 +23,6 @@ import java.util.Iterator;
 
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
@@ -32,7 +31,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 
 public class NodeInventoryEventLogger {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(NodeInventoryEventLogger.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(NodeInventoryEventLogger.class);
 	
 	private static final OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private static final Messages messages = orchestratorCommonArea.getSystemMessages();

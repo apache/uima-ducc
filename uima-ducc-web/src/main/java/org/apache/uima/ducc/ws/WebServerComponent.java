@@ -34,7 +34,6 @@ import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
@@ -57,7 +56,7 @@ import org.apache.uima.ducc.ws.utils.DatedNodeMetricsUpdateDuccEvent;
 public class WebServerComponent extends AbstractDuccComponent 
 implements IWebServer {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(WebServerComponent.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(WebServerComponent.class);
 	
 	private static DuccId jobid = null;
 	

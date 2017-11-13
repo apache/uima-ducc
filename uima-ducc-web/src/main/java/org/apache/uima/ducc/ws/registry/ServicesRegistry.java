@@ -27,7 +27,6 @@ import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
 import org.apache.uima.ducc.common.persistence.services.StateServicesFactory;
 import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
@@ -35,7 +34,7 @@ import org.springframework.util.StringUtils;
 
 public class ServicesRegistry {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(ServicesRegistry.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(ServicesRegistry.class);
 	private static DuccId jobid = null;
 	
 	private static ServicesRegistry instance = new ServicesRegistry();

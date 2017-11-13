@@ -32,7 +32,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.server.DuccWebServer.ConfigValue;
@@ -40,7 +39,7 @@ import org.eclipse.jetty.server.Request;
 
 public class DuccHandlerHttpRequestFilter extends DuccAbstractHandler {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandlerHttpRequestFilter.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccHandlerHttpRequestFilter.class);
 	private static volatile DuccId jobid = null;
 	
 	// refresh interval for both ducc.properties and URI encryption exception list

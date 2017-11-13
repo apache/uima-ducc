@@ -38,7 +38,6 @@ import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -67,7 +66,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public abstract class DuccAbstractHandler extends AbstractHandler {
 
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccAbstractHandler.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccAbstractHandler.class);
 	private static Messages messages = Messages.getInstance();
 
 	private DuccId jobid = null;

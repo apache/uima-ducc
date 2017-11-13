@@ -19,13 +19,12 @@
 package org.apache.uima.ducc.orchestrator.jd.scheduler;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class JdHostProperties {
 
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(JdHostProperties.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(JdHostProperties.class);
 	private static final DuccId jobid = null;
 
 	private static DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();

@@ -21,13 +21,12 @@ package org.apache.uima.ducc.ws.utils.alien;
 import java.util.TreeMap;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class OsProxy {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(OsProxy.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(OsProxy.class);
 	private static DuccId jobid = null;
 	
 	private static String ducc_ling = 

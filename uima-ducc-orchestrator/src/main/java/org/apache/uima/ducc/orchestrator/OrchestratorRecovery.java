@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
@@ -34,7 +33,7 @@ import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceMa
  */
 public class OrchestratorRecovery {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorRecovery.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(OrchestratorRecovery.class);
 	private static final DuccId jobid = null;
 	
 	IHistoryPersistenceManager historyPersistenceManager = null;

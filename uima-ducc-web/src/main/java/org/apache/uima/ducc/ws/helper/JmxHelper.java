@@ -27,12 +27,11 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public abstract class JmxHelper {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(JmxHelper.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(JmxHelper.class);
 	private static DuccId jobid = null;
 	
 	private String jmxHost = "localhost";

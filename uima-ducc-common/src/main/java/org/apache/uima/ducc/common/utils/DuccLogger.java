@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.log4j.Appender;
 import org.apache.log4j.Category;
 import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
 import org.apache.log4j.spi.ErrorHandler;
@@ -49,6 +48,8 @@ public class DuccLogger
     private Logger logger;
     private String component = "";
 
+    private static String daemonComponent = null;
+    
     private static DuccLoggingThread log_thread = null;
     private static LinkedBlockingQueue<DuccLoggingEvent> events = null;
     private static AtomicBoolean threaded = new AtomicBoolean(false);
@@ -70,11 +71,20 @@ public class DuccLogger
         }
     }
 
+    static public void setDaemonComponent(String value) {
+    	daemonComponent = value;
+    }
+    
     static public DuccLogger getLogger(@SuppressWarnings("rawtypes") Class claz, String component)
     {
         return new DuccLogger(claz, component);
     }
 
+    static public DuccLogger getLogger(Class<?> claz)
+    {
+        return new DuccLogger(claz, null);
+    }
+    
     static public DuccLogger getLogger(String claz, String component)
     {
         return new DuccLogger(claz, component);
@@ -143,7 +153,27 @@ public class DuccLogger
     	threaded.set(true);
     }
 
-    public DuccLogger(String claz, String component)
+    private void resolveComponent(String requestComponent) {
+    	if(requestComponent != null) {
+    		this.component = requestComponent;
+    	}
+    	else {
+    		String mdcComponent = (String) MDC.get("COMPONENT");
+    		if(mdcComponent != null) {
+    			this.component = mdcComponent;
+    		}
+    		else {
+    			if(daemonComponent != null) {
+    				this.component = daemonComponent;
+    			}
+    			else {
+    				this.component = DEFAULT_COMPONENT;
+    			}
+    		}
+    	}
+    }
+    
+    public DuccLogger(String claz, String requestComponent)
     {
         // initLogger();
 
@@ -177,31 +207,8 @@ public class DuccLogger
             } 
         }
 
-        //
-        // Try to set component from calling thread if not set.  
-        //
-        // If all else fails, set it to "DUCC"
-        //
-    	if ( debug) System.out.println("Creating logger '" + claz + "' with component " + component);
-        if ( component == null ) {
-            component = (String) MDC.get("COMPONENT");
-            if ( component == null ) {
-                component = DEFAULT_COMPONENT;
-            }
-            @SuppressWarnings("rawtypes")
-			Enumeration all_loggers = LogManager.getCurrentLoggers();
-            while (all_loggers.hasMoreElements() ) {
-                Logger l = (Logger) all_loggers.nextElement();
-                String n = l.getName();
-                if ( debug ) System.out.println(" ===> Configured loggers " + n);
-                if ( ! n.startsWith("org.apache.uima.ducc" ) ) {
-                    if ( debug ) System.out.println("      Special logger: " + n);
-                    nonDuccLoggers.add(l);
-                }
-            }
-        }
-
-    	this.component = component;
+        resolveComponent(requestComponent);
+        
         this.logger = Logger.getLogger(claz);
         MDC.put("COMPONENT", component);
 

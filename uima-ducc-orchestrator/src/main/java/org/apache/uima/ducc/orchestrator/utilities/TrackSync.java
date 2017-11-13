@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 /**
@@ -33,7 +32,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class TrackSync {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getOrLogger(TrackSync.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(TrackSync.class);
 	private static DuccId jobid = null;
 	
 	private static String sep = ".";

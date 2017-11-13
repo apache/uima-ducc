@@ -31,7 +31,6 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.Constants;
@@ -58,7 +57,7 @@ import org.apache.uima.ducc.ws.utils.alien.OsProxy;
 
 public class Helper {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(Helper.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(Helper.class);
 	private static DuccId jobid = null;
 	
 	public static  enum AllocationType { JD, MR, SPC, SPU, UIMA };

@@ -29,7 +29,6 @@ import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.DuccPlugins;
@@ -56,7 +55,7 @@ import org.eclipse.jetty.util.thread.ScheduledExecutorScheduler;
 
 
 public class DuccWebServer {
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccWebServer.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(DuccWebServer.class);
 	private static Messages messages = Messages.getInstance();
 	
 	private static DuccId jobid = null;

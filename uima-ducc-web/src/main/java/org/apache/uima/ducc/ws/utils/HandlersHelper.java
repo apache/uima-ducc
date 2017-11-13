@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.AlienFile;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.LinuxUtils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -40,7 +39,7 @@ import org.eclipse.jetty.server.Request;
 
 public class HandlersHelper {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(HandlersHelper.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(HandlersHelper.class);
 	private static Messages messages = Messages.getInstance();
 	
 	private static DuccId jobid = null;

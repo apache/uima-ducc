@@ -26,14 +26,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.server.nodeviz.NodeViz;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandlerViz extends DuccAbstractHandler {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandlerClassic.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccHandlerClassic.class);
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 	

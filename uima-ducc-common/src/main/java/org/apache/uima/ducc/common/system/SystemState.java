@@ -25,13 +25,11 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-
 
 public class SystemState {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(SystemState.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(SystemState.class);
 	
 	private static SystemState instance = new SystemState();
 	

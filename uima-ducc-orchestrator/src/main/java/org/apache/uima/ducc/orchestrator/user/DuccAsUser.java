@@ -26,13 +26,12 @@ import java.util.Map;
 
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.Utils;
 
 
 public class DuccAsUser {
 
-	private static DuccLogger duccLogger = DuccLoggerComponents.getOrLogger(DuccAsUser.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccAsUser.class);
 	private static Messages messages = Messages.getInstance();
 
 	public static String magicString = "1001 Command launching...";

@@ -50,7 +50,7 @@ public class JobDriverStateExchanger extends Thread {
 	
 	private JobProcessBlacklist jobProcessBlacklist = JobProcessBlacklist.getInstance();
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(JobDriverStateExchanger.class.getName());
+	private static final DuccLogger logger = DuccLoggerComponents.getJdOut(JobDriverStateExchanger.class.getName());
 	private static final DuccId jobid = null;
 	
 	private JobDriverComponent jdc = null;

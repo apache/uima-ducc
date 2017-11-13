@@ -25,14 +25,13 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.ws.MachineInfo;
 
 class VisualizedHost
 {
 
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(VisualizedHost.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(VisualizedHost.class);
     private static FragmentSorter sorter = new FragmentSorter();
 
     String name;        // host name

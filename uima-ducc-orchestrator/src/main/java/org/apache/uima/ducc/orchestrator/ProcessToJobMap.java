@@ -22,7 +22,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 /**
@@ -32,7 +31,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class ProcessToJobMap {
 
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(ProcessToJobMap.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(ProcessToJobMap.class);
 	private static final DuccId jobid = null;
 	
 	private static ProcessToJobMap instance = new ProcessToJobMap();

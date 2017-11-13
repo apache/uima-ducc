@@ -45,7 +45,6 @@ import org.apache.uima.ducc.common.persistence.or.IDbDuccWorks;
 import org.apache.uima.ducc.common.persistence.or.TypedProperties;
 import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -110,7 +109,7 @@ import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 
 public class OrchestratorComponent extends AbstractDuccComponent 
 implements Orchestrator {
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorComponent.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(OrchestratorComponent.class);
 	private static DuccId jobid = null;
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();

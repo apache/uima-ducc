@@ -21,13 +21,12 @@ package org.apache.uima.ducc.ws.utils.alien;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.server.DuccWebSessionManager;
 
 public class EffectiveUser {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(EffectiveUser.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(EffectiveUser.class);
 	private static DuccId jobid = null;
 	
 	protected static DuccWebSessionManager duccWebSessionManager = DuccWebSessionManager.getInstance();

@@ -35,7 +35,6 @@ import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo.NodeProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -60,7 +59,7 @@ import org.apache.uima.ducc.ws.utils.DatedNodeMetricsUpdateDuccEvent;
  */
 public class DuccMachinesData {
 
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccMachinesData.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(DuccMachinesData.class);
 	private static DuccId jobid = null;
 	
 	private static ConcurrentSkipListMap<MachineInfo,NodeId> sortedMachines = new ConcurrentSkipListMap<MachineInfo,NodeId>();

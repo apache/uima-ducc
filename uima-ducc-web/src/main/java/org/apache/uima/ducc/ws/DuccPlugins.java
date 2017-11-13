@@ -21,7 +21,6 @@ package org.apache.uima.ducc.ws;
 import java.util.ArrayList;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
@@ -32,7 +31,7 @@ import org.eclipse.jetty.server.Handler;
 
 public class DuccPlugins {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccPlugins.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(DuccPlugins.class);
 	private static DuccId jobid = null;
 	
 	private static DuccPlugins instance = new DuccPlugins();

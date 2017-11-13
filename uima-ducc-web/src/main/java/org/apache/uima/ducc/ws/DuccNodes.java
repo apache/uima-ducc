@@ -27,7 +27,6 @@ import java.util.Iterator;
 
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 /**
@@ -41,7 +40,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DuccNodes {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccNodes.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(DuccNodes.class);
 	private static DuccId jobid = null;
 	
 	private static DuccNodes duccNodes = new DuccNodes();

@@ -24,7 +24,6 @@ import org.apache.camel.Body;
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.orchestrator.Orchestrator;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.system.events.log.SystemEventsLogger;
@@ -48,7 +47,7 @@ import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 
 
 public class OrchestratorEventListener implements DuccEventDelegateListener {
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorEventListener.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(OrchestratorEventListener.class);
 
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private Messages messages = orchestratorCommonArea.getSystemMessages();

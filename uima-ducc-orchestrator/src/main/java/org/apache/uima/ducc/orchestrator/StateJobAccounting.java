@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.orchestrator;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.orchestrator.system.events.log.SystemEventsLogger;
@@ -34,7 +33,7 @@ import org.apache.uima.ducc.transport.event.common.IRationale;
 
 public class StateJobAccounting {
 
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(StateJobAccounting.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(StateJobAccounting.class);
 
 	private static StateJobAccounting instance = new StateJobAccounting();
 

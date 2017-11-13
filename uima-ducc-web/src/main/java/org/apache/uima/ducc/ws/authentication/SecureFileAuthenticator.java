@@ -24,7 +24,6 @@ import org.apache.uima.ducc.common.authentication.AuthenticationResult;
 import org.apache.uima.ducc.common.authentication.IAuthenticationResult;
 import org.apache.uima.ducc.common.utils.AlienFile;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 
@@ -49,7 +48,7 @@ import org.apache.uima.ducc.ws.utils.HandlersHelper;
  */
 public class SecureFileAuthenticator extends AbstractAuthenticator {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(SecureFileAuthenticator.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(SecureFileAuthenticator.class);
 	private static DuccId jobid = null;
 	
 	private String version = "Secure File 1.0";

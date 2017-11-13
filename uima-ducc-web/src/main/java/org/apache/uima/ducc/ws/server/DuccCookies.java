@@ -24,12 +24,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DuccCookies {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccCookies.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccCookies.class);
 	private static DuccId jobid = null;
 	private static Messages messages = Messages.getInstance();
 

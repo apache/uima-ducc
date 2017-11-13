@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.uima.ducc.common.json.MonitorInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.eclipse.jetty.server.Request;
@@ -36,7 +35,7 @@ import com.google.gson.Gson;
 
 public class DuccHandlerProxy extends DuccAbstractHandler {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandlerProxy.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccHandlerProxy.class);
 	private static DuccId jobid = null;
 
 	public final String proxyJobStatus			= duccContextProxy+"-job-status";

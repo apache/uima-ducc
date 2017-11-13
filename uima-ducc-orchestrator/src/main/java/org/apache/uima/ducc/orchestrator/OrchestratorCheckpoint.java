@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.IOHelper;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.utilities.Checkpointable;
@@ -45,7 +44,7 @@ import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceMa
 
 public class OrchestratorCheckpoint {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorCheckpoint.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(OrchestratorCheckpoint.class);
 	
 	private static OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private static Messages messages = orchestratorCommonArea.getSystemMessages();

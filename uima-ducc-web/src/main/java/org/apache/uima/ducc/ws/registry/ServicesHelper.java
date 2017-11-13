@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
@@ -34,7 +33,7 @@ import org.apache.uima.ducc.ws.DuccDataHelper;
 
 public class ServicesHelper {
 	
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(ServicesHelper.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(ServicesHelper.class);
 	private static DuccId jobid = null;
 	
 	private static ServicesHelper instance = new ServicesHelper();

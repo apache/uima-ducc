@@ -8,7 +8,6 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
@@ -40,7 +39,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 */
 public class Distiller {
 
-	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(Distiller.class.getName());
+	private static DuccLogger logger = DuccLogger.getLogger(Distiller.class);
 	private static DuccId jobid = null;
 	
 	// map of key = machine name, value = bytes allocated

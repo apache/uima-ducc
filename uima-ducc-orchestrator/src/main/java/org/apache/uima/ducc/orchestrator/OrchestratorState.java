@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 import com.google.gson.Gson;
@@ -36,7 +35,7 @@ import com.google.gson.reflect.TypeToken;
 
 public class OrchestratorState {
 
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(OrchestratorState.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(OrchestratorState.class);
 	
 	private static OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private static String fileName = orchestratorCommonArea.getStateDirectory()+File.separator+"orchestrator-state.json";

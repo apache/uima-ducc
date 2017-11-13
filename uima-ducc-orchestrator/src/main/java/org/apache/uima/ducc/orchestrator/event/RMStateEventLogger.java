@@ -20,14 +20,13 @@ package org.apache.uima.ducc.orchestrator.event;
 
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
 
 
 public class RMStateEventLogger {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(RMStateEventLogger.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(RMStateEventLogger.class);
 	
 	private static final OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private static final Messages messages = orchestratorCommonArea.getSystemMessages();

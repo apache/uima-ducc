@@ -24,7 +24,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public abstract class AlienAbstract {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(AlienAbstract.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(AlienAbstract.class);
 	
 	protected DuccId duccId = null;
 	

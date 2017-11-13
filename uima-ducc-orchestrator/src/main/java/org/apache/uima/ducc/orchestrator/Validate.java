@@ -22,11 +22,10 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
-import org.apache.uima.ducc.orchestrator.utilities.MemorySpecification;
 import org.apache.uima.ducc.orchestrator.utilities.CliVersion;
+import org.apache.uima.ducc.orchestrator.utilities.MemorySpecification;
 import org.apache.uima.ducc.transport.event.AbstractDuccOrchestratorEvent;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
@@ -43,7 +42,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 
 
 public class Validate {
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(Validate.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(Validate.class);
 	
 	private static DuccWebAdministrators duccWebAdministrators = new DuccWebAdministrators();
 	

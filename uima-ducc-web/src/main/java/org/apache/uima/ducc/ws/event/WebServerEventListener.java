@@ -21,7 +21,6 @@ package org.apache.uima.ducc.ws.event;
 import org.apache.camel.Body;
 import org.apache.camel.Header;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
@@ -36,7 +35,7 @@ import org.apache.uima.ducc.ws.self.message.WebServerStateDuccEvent;
 
 public class WebServerEventListener implements DuccEventDelegateListener {
 	
-	private DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(WebServerEventListener.class.getName());
+	private DuccLogger duccLogger = DuccLogger.getLogger(WebServerEventListener.class);
 	private DuccId jobid = null;
 	
 	private IWebServer webServer;

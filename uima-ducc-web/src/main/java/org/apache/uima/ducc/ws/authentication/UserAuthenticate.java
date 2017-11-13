@@ -19,12 +19,11 @@
 package org.apache.uima.ducc.ws.authentication;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 
 public class UserAuthenticate {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(UserAuthenticate.class.getName());
+	private static DuccLogger duccLogger = DuccLogger.getLogger(UserAuthenticate.class);
 	
 	private String failure = "failure";
 	

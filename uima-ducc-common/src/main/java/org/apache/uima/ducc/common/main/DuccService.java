@@ -36,6 +36,7 @@ import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
 import org.apache.uima.ducc.common.node.DuplicateDuccDaemonProcessDetector;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -268,6 +269,20 @@ public class DuccService extends AbstractDuccComponent {
 		}
 	}
 
+	private static void setLoggerComponent() {
+		String deployFlag = "ducc.deploy.components";
+		String myType = System.getProperty(deployFlag);
+		System.out.println("myType:"+myType+".");
+		if(myType != null) {
+			if(myType.equals("ws")) {
+				DuccLogger.setDaemonComponent(IDuccLoggerComponents.abbrv_webServer);
+			}
+			if(myType.equals("or")) {
+				DuccLogger.setDaemonComponent(IDuccLoggerComponents.abbrv_orchestrator);
+			}
+		}
+	}
+	
 	public static void main(String[] args) {
 		DuccService duccService = null;
 		try {
@@ -277,6 +292,8 @@ public class DuccService extends AbstractDuccComponent {
 				System.exit(-1);
 			}
 
+			setLoggerComponent();
+			
 			// Run duplicate daemon detector to make sure we dont start
             // multiple copies of Ducc daemons. It checks of this process
             // is a duplicate of OR, WS, PM, RM, SM, or Agent. The code

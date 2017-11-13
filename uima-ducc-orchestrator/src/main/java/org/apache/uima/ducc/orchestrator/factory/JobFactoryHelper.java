@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
@@ -33,7 +32,7 @@ import org.apache.uima.ducc.user.common.QuotedOptions;
 
 public class JobFactoryHelper {
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(JobFactoryHelper.class.getName());
+	private static final DuccLogger logger = DuccLogger.getLogger(JobFactoryHelper.class);
 	private static final DuccId jobid = null;
 	
 	public static long KB = 1024;
