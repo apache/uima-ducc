@@ -25,6 +25,7 @@ import string
 import subprocess
 import re
 import grp
+import pwd
 import resource
 import time
 import platform
@@ -63,6 +64,15 @@ import db_util as dbu
 
 global use_threading
 use_threading = True
+
+# The "ducc" userid is the user that installed DUCC and created this file.
+# If the admin dir's permissions were 700 then could assume the current user is the ducc user
+def find_ducc_uid():
+    my_file = os.path.abspath(__file__)    
+    my_stat = os.stat(my_file)
+    my_uid = my_stat.st_uid
+    pwdinfo = pwd.getpwuid(my_uid)
+    return pwdinfo.pw_name
 
 class ThreadWorker(Thread):
     def __init__(self, queue, outlock):
@@ -136,7 +146,7 @@ class DuccUtil(DuccBase):
         self.ssh_enabled       = self.ducc_properties.get('ducc.ssh')
         self.duccling          = self.ducc_properties.get('ducc.agent.launcher.ducc_spawn_path')
 
-        self.ducc_uid           = self.ducc_properties.get('ducc.uid')
+        self.ducc_uid          = find_ducc_uid()
         # self.broker_url      = self.ducc_properties.get('ducc.broker.url')
         self.broker_protocol   = self.ducc_properties.get('ducc.broker.protocol')
         self.broker_host       = self.ducc_properties.get('ducc.broker.hostname')
@@ -639,7 +649,7 @@ class DuccUtil(DuccBase):
                 duccgid = grpinfo.gr_gid
 
                 if ( (dl_stat.st_uid != 0) or (dl_stat.st_gid != duccgid) ):
-                    print 'ducc_ling module', dl, ': Invalid ownership. Should be root.'+self.ducc_uid
+                    print 'ducc_ling module', dl, ': Invalid ownership. Should be '+self.ducc_uid
                 else:
                     own_safe = True
             except:
@@ -735,6 +745,7 @@ class DuccUtil(DuccBase):
             return messages
 
         return None
+
         
     #
     # Input is array lines from ps command looking for ducc processes owned this user.

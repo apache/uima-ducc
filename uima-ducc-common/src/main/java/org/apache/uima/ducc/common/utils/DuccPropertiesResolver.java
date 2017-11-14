@@ -81,8 +81,6 @@ public class DuccPropertiesResolver {
         
     }
     
-    public static final String ducc_uid = "ducc.uid";
-    
     public static final String ducc_security_home = "ducc.security.home";
     
     public static final String ducc_private_resources = "ducc.private.resources";
