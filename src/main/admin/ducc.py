@@ -296,8 +296,6 @@ class Ducc(DuccUtil):
     
     def main(self, argv):
         
-        self.verify_head()     # Check that are running on the head node as the "ducc" user
-
         component = None
         numagents = 1
         rmoverride = '0'
