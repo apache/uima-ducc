@@ -568,10 +568,17 @@ public class Helper {
 				}
 				catch(Exception e) {
 				}
-				dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				String displayGC = dateFormat.format(new Date(timeGC));
-				displayGC = chomp("00:", displayGC);
-				sb.append(displayGC);
+				if(timeGC < 0) {
+					sb.append("<span class=\"health_black\""+">");
+					sb.append(notAvailable);
+					sb.append("</span>");
+				}
+				else {
+					dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+					String displayGC = dateFormat.format(new Date(timeGC));
+					displayGC = chomp("00:", displayGC);
+					sb.append(displayGC);
+				}
 				break;
 			}
 		}
