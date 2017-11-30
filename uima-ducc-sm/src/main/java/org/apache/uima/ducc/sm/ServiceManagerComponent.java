@@ -537,12 +537,6 @@ public class ServiceManagerComponent
 
 		logger.info(methodName, null, "===== Orchestrator State Arrives =====");
 
-        if ( workMap.size() == 0 ) {
-            logger.debug(methodName, null, "OR state is empty");
-            return;
-        }
-
-
         // try {
         //     ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("/home/challngr/for/jerry/working/incomingWorkMap.obj"));
         //     oos.writeObject(workMap);
@@ -752,10 +746,16 @@ public class ServiceManagerComponent
             logger.info(methodName, null, "SM not initialized, ignoring Orchestrator state update.");
             return;
         }
+        else {
+        	logger.debug(methodName, null, "SM initialized.");
+        }
 
-        if ( ! map.isJobDriverNodeAssigned() ) {
+        if ( ! map.isJobDriverMinimalAllocateRequirementMet() ) {
             logger.info(methodName, null, "Orchestrator JD node not assigned, ignoring Orchestrator state update.");
             return;
+        }
+        else {
+        	logger.debug(methodName, null, "JD requirements met.");
         }
 
         orchestrator_alive = true;

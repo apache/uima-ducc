@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.SerializationUtils;
@@ -43,7 +44,7 @@ public class DuccWorkMap implements IDuccWorkMap {
 	
 	private Map<DuccId,IDuccWork> concurrentWorkMap = new ConcurrentHashMap<DuccId,IDuccWork>();
 	
-	private AtomicInteger atomicJobDriverNodeCount = new AtomicInteger(0);
+	private AtomicBoolean atomicJobDriverMinimalAllocateRequirementMet = new AtomicBoolean(false);
 	
 	private AtomicInteger atomicJobCount = new AtomicInteger(0);
 	private AtomicInteger atomicServiceCount = new AtomicInteger(0);
@@ -60,24 +61,24 @@ public class DuccWorkMap implements IDuccWorkMap {
 	}
 
 	private void init() {
-		if(atomicJobDriverNodeCount == null) {
-			atomicJobDriverNodeCount = new AtomicInteger(0);
+		if(atomicJobDriverMinimalAllocateRequirementMet == null) {
+			atomicJobDriverMinimalAllocateRequirementMet = new AtomicBoolean(false);
 		}
 	}
 	
-	public boolean isJobDriverNodeAssigned() {
+	public boolean isJobDriverMinimalAllocateRequirementMet() {
 		init();
-		return atomicJobDriverNodeCount.get() > 0;
+		return atomicJobDriverMinimalAllocateRequirementMet.get();
 	}
 	
-	public int getJobDriverNodeCount() {
+	public void setJobDriverMinimalAllocateRequirementMet() {
 		init();
-		return atomicJobDriverNodeCount.get();
+		atomicJobDriverMinimalAllocateRequirementMet.set(true);
 	}
 	
-	public void setJobDriverNodeCount(int count) {
+	public void resetJobDriverMinimalAllocateRequirementMet() {
 		init();
-		atomicJobDriverNodeCount.set(count);
+		atomicJobDriverMinimalAllocateRequirementMet.set(false);
 	}
 	
 	public int getJobCount() {

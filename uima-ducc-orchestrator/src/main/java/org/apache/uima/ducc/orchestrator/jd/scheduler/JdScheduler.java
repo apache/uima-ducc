@@ -152,9 +152,36 @@ public class JdScheduler {
 		}
 	}
 	
+	public boolean isMinimalAllocateRequirementMet() {
+		String location = "isMinimalAllocateRequirementMet";
+		boolean retVal = false;
+		StringBuffer sb = new StringBuffer();
+		long minSlices = getReservationSlicesMinimum();
+		long resCount = getReservationCount();
+		sb.append("minSlices="+minSlices);
+		sb.append(" ");
+		sb.append("resCount="+resCount);
+		String text = sb.toString();
+		logger.info(location, jobid, text);
+		if(minSlices == 0) {
+			retVal = true;
+		}
+		else if(resCount > 0) {
+			retVal = true;
+		}
+		return retVal;
+	}
+	
+	// Return the number of Reservation Slices minimum needed for JDs.
+	
+	private long getReservationSlicesMinimum() {
+		JdHostProperties jdHostProperties = new JdHostProperties();
+		return getSlicesReserveDesired(jdHostProperties);
+	} 
+	
 	// Return the number of Reservations allocated for JDs.
 	
-	public int getReservationCount() {
+	private int getReservationCount() {
 		int count = 0;
 		for(Entry<DuccId, JdReservation> entry : map.entrySet()) {
 			JdReservation jdReservation = entry.getValue();

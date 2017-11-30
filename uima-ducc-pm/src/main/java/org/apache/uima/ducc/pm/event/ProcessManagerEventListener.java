@@ -53,7 +53,7 @@ implements DuccEventDelegateListener {
 	 */
 	public void onJobManagerStateUpdate(@Body OrchestratorStateDuccEvent duccEvent) {
 		// process OR state only if the JD has been assigned
-		if ( !duccEvent.getWorkMap().isJobDriverNodeAssigned() ) {
+		if ( !duccEvent.getWorkMap().isJobDriverMinimalAllocateRequirementMet() ) {
 			((ProcessManagerComponent)processManager).getLogger().info("onJobManagerStateUpdate", null, "Orchestrator JD node not assigned. Ignoring Orchestrator state update");
 			return;
 		}

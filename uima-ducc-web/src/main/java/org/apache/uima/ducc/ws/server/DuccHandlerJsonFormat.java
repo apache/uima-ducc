@@ -2299,8 +2299,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 								status = DuccHandlerUtils.up();
 							}
 							if(daemonName.equals(DaemonName.Orchestrator)) {
-								int jdCount = DuccData.getInstance().getLive().getJobDriverNodeCount();
-								if(jdCount == 0) {
+								boolean reqMet = DuccData.getInstance().getLive().isJobDriverMinimalAllocateRequirementMet();
+								if(!reqMet) {
 									status = DuccHandlerUtils.up_provisional(", pending JD allocation");
 								}
 							}

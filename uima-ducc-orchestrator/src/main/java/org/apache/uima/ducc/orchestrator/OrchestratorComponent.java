@@ -512,8 +512,13 @@ implements Orchestrator {
 											+" "+
 											messages.fetchLabel("active service count")+activeServices
 											);
-			int jobDriverNodeCount = jdScheduler.getReservationCount();
-			workMapCopy.setJobDriverNodeCount(jobDriverNodeCount);
+			if(jdScheduler.isMinimalAllocateRequirementMet()) {
+				workMapCopy.setJobDriverMinimalAllocateRequirementMet();
+			}
+			else {
+				workMapCopy.resetJobDriverMinimalAllocateRequirementMet();
+			}
+			logger.debug(methodName, jobid, "isJobDriverMinimalAllocateRequirementMet="+workMapCopy.isJobDriverMinimalAllocateRequirementMet());
 			orchestratorStateDuccEvent.setWorkMap(workMapCopy);
 			//stateManager.prune(workMapCopy);
 			//healthMonitor.cancelNonViableJobs();

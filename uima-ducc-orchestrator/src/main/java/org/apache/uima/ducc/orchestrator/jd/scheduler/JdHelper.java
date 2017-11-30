@@ -48,7 +48,7 @@ public class JdHelper {
 	}
 	
 	private static long parseCount(String value) {
-		long count = 0;
+		long count = -1;
 		try {
 			String tValue = value.trim();
 			count = new Long(tValue);
@@ -92,7 +92,7 @@ public class JdHelper {
 			retVal = parseCount(value);
 			logger.trace(location, jobid, retVal+" "+"specified");
 		}
-		if(retVal < 1) {
+		if(retVal < 0) {
 			retVal = SlicesReserveDefault;
 			logger.trace(location, jobid, retVal+" "+"default");
 		}

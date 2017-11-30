@@ -47,9 +47,9 @@ public interface IDuccWorkMap extends Serializable, Map {
 	public List<DuccWorkJob> getServicesList(List<String> implementors);
 	public Map<Long,DuccWorkJob> getServicesMap(List<String> implementors);
 	
-	public boolean isJobDriverNodeAssigned();
+	public boolean isJobDriverMinimalAllocateRequirementMet();
+	
 	public Map<DuccId,IDuccWork> getMap();
-	public int getJobDriverNodeCount();
 	
 	public void addDuccWork(IDuccWork duccWork);
 	public void removeDuccWork(DuccId duccId);

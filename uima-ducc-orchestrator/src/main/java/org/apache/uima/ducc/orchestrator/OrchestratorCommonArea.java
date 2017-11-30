@@ -127,6 +127,7 @@ public class OrchestratorCommonArea {
 		String ckpt_setting = dpr.getCachedProperty(DuccPropertiesResolver.ducc_orchestrator_checkpoint);
 		OrchestratorCheckpoint.getInstance().switchOnOff(ckpt_setting);
 		OrchestratorCheckpoint.getInstance().restoreState();
+		OrchestratorCheckpoint.getInstance().saveState();
 		jdScheduler = JdScheduler.getInstance();
         try {
             historyPersistenceManager = HistoryFactory.getInstance(this.getClass().getName());
