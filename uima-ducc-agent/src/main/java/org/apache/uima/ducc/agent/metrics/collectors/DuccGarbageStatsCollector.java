@@ -50,10 +50,10 @@ public class DuccGarbageStatsCollector {
 	}
 
 	private MBeanServerConnection getServerConnection() throws Exception {
-		logger.debug("DuccGarbageStatsCollector.getServerConnection()", null,
+		logger.info("DuccGarbageStatsCollector.getServerConnection()", null,
 				"Connecting GC collector to remote child process - URL:"
 						+ jmxUrl.get());
-		JMXServiceURL url = new JMXServiceURL(jmxUrl.get()); // process.getProcessJmxUrl());
+		JMXServiceURL url = new JMXServiceURL(jmxUrl.get()); 
 		JMXConnector jmxc = JMXConnectorFactory.connect(url, null);
 		return jmxc.getMBeanServerConnection();
 	}
@@ -62,54 +62,49 @@ public class DuccGarbageStatsCollector {
 		ProcessGarbageCollectionStats gcStats = new ProcessGarbageCollectionStats();
 		try {
 			if (connection == null) {
+				// if there is a problem here, an exception will be thrown.
+				// The connection should never be null if getServerConnection()
+				// returns without an exception.
 				connection = getServerConnection();
 			}
+			Set<ObjectInstance> mbeans = connection.queryMBeans(
+					new ObjectName("java.lang:type=GarbageCollector,*"),
+					null);
+			Long totalCollectionCount = new Long(0);
+			Long totalCollectionTime = new Long(0);
+
+			for (ObjectInstance gcObject : mbeans) {
+				String gcCollectorName = gcObject.getObjectName()
+						.getCanonicalKeyPropertyListString();
+				ObjectName memoryManagerMXBean = new ObjectName(
+						"java.lang:" + gcCollectorName);
+				totalCollectionCount += (Long) connection.getAttribute(
+						memoryManagerMXBean, "CollectionCount");
+				totalCollectionTime += (Long) connection.getAttribute(
+						memoryManagerMXBean, "CollectionTime");
+			}
+			// Returns the total number of collections that have occurred.
+			gcStats.setCollectionCount(totalCollectionCount);
+			// Returns the approximate accumulated collection elapsed time
+			// in milliseconds.
+			gcStats.setCollectionTime(totalCollectionTime);
+			logger.debug("DuccGarbageStatsCollector.collect()", null,
+					"GC Collector Fetch Stats For PID:" + process.getPID()
+							+ " GC Count:" + gcStats.getCollectionCount()
+							+ " GC Time:" + gcStats.getCollectionTime());
+
 		} catch (Throwable e) {
+			// will retry this connection again
+			connection = null;
+			logger.error("", null, "Failed to Fetch JMX GC Stats From PID:"
+					+ process.getPID() + " Reason:\n" + e);
+			
 			logger.info("DuccGarbageStatsCollector.collect()", null,
 					"GC Collector Failed to Connect via JMX to child process PID:"
 							+ process.getPID() + " JmxUrl:" + jmxUrl.get()
 							+ " Will try to reconnect later");
-			// will retry this connection again
 		}
-		if (connection != null) {
-
-			try {
-				Set<ObjectInstance> mbeans = connection.queryMBeans(
-						new ObjectName("java.lang:type=GarbageCollector,*"),
-						null);
-				Long totalCollectionCount = new Long(0);
-				Long totalCollectionTime = new Long(0);
-
-				for (ObjectInstance gcObject : mbeans) {
-					String gcCollectorName = gcObject.getObjectName()
-							.getCanonicalKeyPropertyListString();
-					ObjectName memoryManagerMXBean = new ObjectName(
-							"java.lang:" + gcCollectorName);
-					totalCollectionCount += (Long) connection.getAttribute(
-							memoryManagerMXBean, "CollectionCount");
-					totalCollectionTime += (Long) connection.getAttribute(
-							memoryManagerMXBean, "CollectionTime");
-				}
-				// Returns the total number of collections that have occurred.
-				gcStats.setCollectionCount(totalCollectionCount);
-				// Returns the approximate accumulated collection elapsed time
-				// in milliseconds.
-				gcStats.setCollectionTime(totalCollectionTime);
-				logger.debug("DuccGarbageStatsCollector.collect()", null,
-						"GC Collector Fetch Stats For PID:" + process.getPID()
-								+ " GC Count:" + gcStats.getCollectionCount()
-								+ " GC Time:" + gcStats.getCollectionTime());
-
-			} catch (Throwable e) {
-				logger.error("", null, "Failed to Fetch JMX GC Stats From PID:"
-						+ process.getPID() + " Reason:\n" + e);
-			}
-		} else {
-			logger.info(
-					"DuccGarbageStatsCollector.collect()",
-					null,
-					"Unable to connect Agent to remote child process via JMX - The child has not yet reported its JMX port");
-		}
+		
 		return gcStats;
 	}
 

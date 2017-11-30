@@ -25,6 +25,11 @@ public class ProcessGarbageCollectionStats implements Serializable {
 	String memoryManagerName;
 	long collectionCount;
 	long collectionTime;
+	
+	public ProcessGarbageCollectionStats() {
+		setCollectionCount(-1);
+		setCollectionTime(-1);
+	}
 	public void setMemoryManagerName(String mmn) {
 		this.memoryManagerName = mmn;
 	}
