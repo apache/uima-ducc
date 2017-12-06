@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.transport.event.common;
 
 import java.io.File;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -99,6 +100,22 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
         return userLogDir;
     }
 
+    // we expect exactly 0 or 1 process in the JD process map!
+    public IDuccProcess getDriverProcess() {
+    	IDuccProcess retVal = null;
+    	try {
+    		IDuccProcessMap map = getDriver().getProcessMap();
+    		for(Entry<DuccId, IDuccProcess> entry : map.entrySet()) {
+    			retVal = entry.getValue();
+    			break;
+    		}
+    	}
+    	catch(Exception e) {
+    		// no worries
+    	}
+    	return retVal;
+    }
+    
 	public DuccWorkPopDriver getDriver() {
 		return driver;
 	}

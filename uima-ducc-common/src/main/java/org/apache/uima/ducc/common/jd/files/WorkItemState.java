@@ -176,6 +176,10 @@ public class WorkItemState implements IWorkItemState {
 		state = State.preempt;
 	}
 
+	public long getMillisAtStart() {
+		return millisAtStart;
+	}
+	
 	public long getMillisOverhead() {
 		return getMillisOverhead(System.currentTimeMillis());
 	}

@@ -51,6 +51,8 @@ public interface IDuccWorkJob extends Identifiable, IDuccWorkService, IDuccWorkE
 	public DuccWorkPopDriver getDriver();
 	public void setDriver(DuccWorkPopDriver driver);
 
+	public IDuccProcess getDriverProcess();
+	
 	public String getjobBroker();
 	public void setJobBroker(String broker);
 

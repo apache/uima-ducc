@@ -1349,15 +1349,18 @@ public class DuccHandler extends DuccAbstractHandler {
 							// Status
 							row.append("<td align=\"right\">");
 							row.append("display");
-							// Queuing Time (sec)
+							// Start Time 
 							row.append("<td align=\"right\">");
 							row.append("limit");
+							// Queuing Time (sec)
+							row.append("<td align=\"right\">");
+							row.append("reached");
 							// Processing Time (sec)
 							row.append("<td align=\"right\">");
-							row.append("reached");
+							row.append("*****");
 							// Investment Time (sec)
 							row.append("<td align=\"right\">");
-							row.append("reached");
+							row.append("*****");
 							// Node (IP)
 							row.append("<td align=\"right\">");
 							row.append("*****");
@@ -1394,6 +1397,22 @@ public class DuccHandler extends DuccAbstractHandler {
 							break;
 						}
 						row.append(status);
+						// Start Time 
+						String fmt_startTime = "";
+						IDuccProcess jd = job.getDriverProcess();
+						if(jd != null) {
+							long jdStartTime = Helper.getTimeStart(jd);
+							if(jdStartTime >= 0) {
+								long wiStartTime = wis.getMillisAtStart();
+								if(wiStartTime > jdStartTime) {
+									double elapsedTime = wiStartTime - jdStartTime;
+									elapsedTime = elapsedTime/1000;
+									fmt_startTime = formatter.format(elapsedTime);
+								}
+							}
+						}
+						row.append("<td align=\"right\">");
+						row.append(fmt_startTime);
 						// Queuing Time (sec)
 						time = getAdjustedTime(wis.getMillisOverhead(), job);
 						time = time/1000;

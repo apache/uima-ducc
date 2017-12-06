@@ -449,6 +449,23 @@ public class Helper {
 		return retVal;
 	}
 	
+	public static long getTimeStart(IDuccProcess process) {
+		String location = "getTimeStart";
+		long retVal = -1;
+		if(process != null) {
+			try {
+				TimeWindow t = (TimeWindow) process.getTimeWindowRun();
+				if(t != null) {
+					retVal = t.getStartLong();
+				}
+			}
+			catch(Exception e) {
+				duccLogger.trace(location, jobid, "no worries", e);
+			}
+		}
+		return retVal;
+	}
+	
 	public static String getTimeRun(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
 		String location = "getTimeRun";
 		StringBuffer sb = new StringBuffer();

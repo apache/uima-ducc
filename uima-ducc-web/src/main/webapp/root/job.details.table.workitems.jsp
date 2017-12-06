@@ -28,6 +28,7 @@ under the License.
     <th class="sorttable_numeric" title="The system assigned work item sequence number">SeqNo</th>
     <th class="none"              title="The user assigned work item identity">Id</th>
     <th class="none"              title="The work item status, normally operating or ended">Status</th>
+    <th class="none"              title="The work item start time, relative to job driver start time">Start</th>
     <th class="sorttable_numeric" title="The approx. number of seconds elapsed between work item (a) requested for processing and (b) start of processing">Delivery<br>Time</th>
     <th class="sorttable_numeric" title="The approx. number of seconds elapsed between work item (a) start of processing and (b) end of processing">Process<br>Time</th>
     <th class="sorttable_numeric" title="The approx. number of seconds invested in current epoch">Investment<br>Time</th>
