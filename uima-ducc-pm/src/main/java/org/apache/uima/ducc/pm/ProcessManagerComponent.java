@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.camel.CamelContext;
-import org.apache.camel.dataformat.xstream.XStreamDataFormat;
-import org.apache.camel.impl.DefaultClassResolver;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
@@ -34,7 +32,6 @@ import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.pm.helper.DuccWorkHelper;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
@@ -54,12 +51,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
-
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.security.AnyTypePermission;
 
 /**
  * The ProcessManager's main role is to receive Orchestrator updates, trim received state and
@@ -76,8 +68,6 @@ implements ProcessManager {
 	private static String header;
 	private static String tbl=String.format("%1$-158s"," ").replace(" ", "-");
 	public static DuccLogger logger = new DuccLogger(ProcessManagerComponent.class, DuccComponent);
-	
-	private static DuccWorkHelper dwHelper = null;
 	
 	//	Dispatch component used to send messages to remote Agents
 	private DuccEventDispatcher eventDispatcher;
@@ -101,7 +91,6 @@ implements ProcessManager {
 				String.format(jobHeaderFormat,jobHeaderArray[0],jobHeaderArray[1],jobHeaderArray[2],
 						   jobHeaderArray[3],jobHeaderArray[4],jobHeaderArray[5],jobHeaderArray[6],
 						   jobHeaderArray[7],jobHeaderArray[8]+"\n");
-		dwHelper = new DuccWorkHelper();
 	}
 	
     /**
@@ -149,13 +138,13 @@ implements ProcessManager {
 	            Long.parseLong(processMemoryAssignment);
 	    // Normalize memory requirements for JPs into Gigs 
 	    if ( units.equals(MemoryUnits.KB ) ) {
-	      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements/(1024*1024);
+	      normalizedProcessMemoryRequirements = normalizedProcessMemoryRequirements/(1024*1024);
 	    } else if ( units.equals(MemoryUnits.MB ) ) {
-	      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements/1024;
+	      normalizedProcessMemoryRequirements = normalizedProcessMemoryRequirements/1024;
 	    } else if ( units.equals(MemoryUnits.GB ) ) {
 	      //  already normalized
 	    } else if ( units.equals(MemoryUnits.TB ) ) {
-	      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements*1024;
+	      normalizedProcessMemoryRequirements = normalizedProcessMemoryRequirements*1024;
 	    }
 	    return normalizedProcessMemoryRequirements;
 	}
@@ -163,20 +152,6 @@ implements ProcessManager {
 	    int shares = (int)normalizedProcessMemoryRequirements/shareQuantum;  // get number of shares
 	    if ( (normalizedProcessMemoryRequirements % shareQuantum) > 0 ) shares++; // ciel
 	    return shares;
-	}
-
-	private String getCmdLine(ICommandLine iCommandLine) {
-		StringBuffer sb = new StringBuffer();
-		if(iCommandLine != null) {
-			String[] commandLine = iCommandLine.getCommandLine();
-			if(commandLine != null) {
-				for(String item : commandLine) {
-					sb.append(item);
-					sb.append(" ");
-				}
-			}
-		}
-		return sb.toString();
 	}
 
 	public void dispatchStateUpdateToAgents(Map<DuccId, IDuccWork> workMap, long sequence) {
