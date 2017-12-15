@@ -63,7 +63,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 
 	protected final boolean debug = System.getProperty("ducc.debug") != null;
 
-   
+	private Logger logger = UIMAFramework.getLogger(DuccAbstractProcessContainer.class);
 	/**
 	 * This method is called to fetch a WorkItem ID from a given CAS which
 	 * is required to support investment reset. 
@@ -100,7 +100,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     }
 
     public int initialize(Properties p, String[] arg) throws Exception {
-    	System.out.println("DuccAbstractProcessContainer.initialize() >>>>>>>>> Initializing User Container");
+    	logger.log(Level.INFO, "DuccAbstractProcessContainer.initialize() >>>>>>>>> Initializing User Container");
 
     	// save current context cl and inject System classloader as
 		// a context cl before calling user code. This is done in 
@@ -111,12 +111,12 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     		return doInitialize(p, arg);
         }finally {
 			Thread.currentThread().setContextClassLoader(savedCL);
- 	 		System.out.println("DuccAbstractProcessContainer.initialize() <<<<<<<< User Container initialized");
+			logger.log(Level.INFO, "DuccAbstractProcessContainer.initialize() <<<<<<<< User Container initialized");
         }
     }
     public void deploy() throws Exception {
 
-    	System.out.println("DuccAbstractProcessContainer.deploy() >>>>>>>>> Deploying User Container");
+    	logger.log(Level.INFO, "DuccAbstractProcessContainer.deploy() >>>>>>>>> Deploying User Container");
     	// save current context cl and inject System classloader as
  		// a context cl before calling user code. 
  		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
@@ -129,11 +129,13 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
  			Thread.currentThread().setContextClassLoader(savedCL);
  			//	Pin thread to its own CAS serializer instance
  			serializerMap.put( Thread.currentThread().getId(), new DuccUimaSerializer());
-			System.out.println("DuccAbstractProcessContainer.deploy() <<<<<<<< User Container deployed");
+ 			logger.log(Level.INFO, "DuccAbstractProcessContainer.deploy() <<<<<<<< User Container deployed");
          }
      }
     public List<Properties> process(Object xmi) throws Exception {
-    	if (debug) System.out.println("DuccAbstractProcessContainer.process() >>>>>>>>> Processing User Container");
+    	if (logger.isLoggable(Level.FINE)) {
+    		logger.log(Level.FINE, "DuccAbstractProcessContainer.process() >>>>>>>>> Processing User Container");
+    	}
  		// save current context cl and inject System classloader as
  		// a context cl before calling user code. 
  		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
@@ -145,11 +147,18 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
      		return doProcess(xmi);
          }finally {
  			Thread.currentThread().setContextClassLoader(savedCL);
- 			if (debug) System.out.println("DuccAbstractProcessContainer.process() <<<<<<<< User Container processed");
+ 			if (logger.isLoggable(Level.FINE)) {
+ 				logger.log(Level.FINE,"DuccAbstractProcessContainer.process() <<<<<<<< User Container processed");
+				
+ 			}
+ 			
          }
      }
     public void stop() throws Exception {
-    	if (debug) System.out.println("DuccAbstractProcessContainer.stop() >>>>>>>>> Stopping User Container");
+    	if (logger.isLoggable(Level.FINE)) {
+    		logger.log(Level.FINE,"DuccAbstractProcessContainer.stop() >>>>>>>>> Stopping User Container");
+    		
+    	}
  		// save current context cl and inject System classloader as
  		// a context cl before calling user code. 
  		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
@@ -159,7 +168,9 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
      		doStop();
          }finally {
  			Thread.currentThread().setContextClassLoader(savedCL);
- 	 		if (debug) System.out.println("DuccAbstractProcessContainer.stop() <<<<<<<< User Container stopped");
+ 			if (logger.isLoggable(Level.FINE)) {
+ 				logger.log(Level.FINE,"DuccAbstractProcessContainer.stop() <<<<<<<< User Container stopped");
+ 			}
          }
      }
 
@@ -172,7 +183,6 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
             serializedCause =  sw.toString();
         } catch (Throwable e) {
 			try {
-				Logger logger = UIMAFramework.getLogger(DuccAbstractProcessContainer.class);
 				logger.log(Level.WARNING, "Unable to Stringfiy "+t.getClass().getName());
 				
 			} catch( Exception ee) {}
@@ -190,7 +200,6 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 			oos.writeObject(t);
 		} catch (Exception e) {
 			try {
-				Logger logger = UIMAFramework.getLogger(DuccAbstractProcessContainer.class);
 				logger.log(Level.WARNING, "Unable to Serialize "+t.getClass().getName()+" - Will Stringify It Instead");
 				
 			} catch( Exception ee) {}
@@ -245,7 +254,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
    		    } catch( NumberFormatException nfe) {
     		}
     	}
-    	System.out.println("Service Connecting Socket to Host:"+host.getHostName()+" Port:"+statusUpdatePort);
+    	logger.log(Level.INFO,"Service Connecting Socket to Host:"+host.getHostName()+" Port:"+statusUpdatePort);
     	String localhost=null;
     	//establish socket connection to an agent where this process will report its state
         return new Socket(localhost, statusUpdatePort);
@@ -265,7 +274,9 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
             out = new DataOutputStream(socket.getOutputStream());
             out.writeUTF(sb.toString());
             out.flush();
-            System.out.println("Sent new State:"+state);
+ 			if (logger.isLoggable(Level.FINE)) {
+ 				logger.log(Level.FINE,"Sent new State:"+state);
+ 			}
     	} catch( Exception e) {
     		throw e;
     	} finally {
@@ -281,15 +292,15 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 	  private boolean dump = false;
 	  
 	  private void dumpSystemProperties() {
-		  if(dump) {
-			  System.out.println("===== <System Properties> =====");
+		  if (logger.isLoggable(Level.FINE)) {
+			  logger.log(Level.FINE,"===== <System Properties> =====");
 			  Properties props = System.getProperties();
 			  for(Entry<Object, Object> entry : props.entrySet()) {
 				  String key = (String) entry.getKey();
 				  String value = (String) entry.getValue();
 				  System.out.println(key+"="+value);
 			  }
-			  System.out.println("===== </System Properties> =====");
+			  logger.log(Level.FINE,"===== </System Properties> =====");
 		  }
 	  }
 	  
@@ -324,7 +335,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 				  jpType = "uima";
 			  }
 			  if(jpType.equalsIgnoreCase("uima-as")) {
-				  System.out.println("ERROR - should not be called for type="+jpType);
+				  logger.log(Level.WARNING,"ERROR - should not be called for type="+jpType);
 			  }
 			  else {
 				  String cmDescriptor = getPropertyString("ducc.deploy.JpCmDescriptor"); 
@@ -352,6 +363,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 		  }
 		  catch(Exception e) {
 			  e.printStackTrace();
+			  logger.log(Level.WARNING,"buildDeployable",e);
 		  }
 		  return null;
 	  }
