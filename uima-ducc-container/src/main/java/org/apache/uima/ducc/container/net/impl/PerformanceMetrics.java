@@ -19,6 +19,7 @@
 
 package org.apache.uima.ducc.container.net.impl;
 
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
@@ -33,5 +34,17 @@ public class PerformanceMetrics implements IPerformanceMetrics {
 	public void set(List<Properties> metrics) {
 		perfMetrics = metrics;
 	}
-
+    public String toString() {
+    	StringBuilder sb = new StringBuilder();
+    	if ( perfMetrics != null && !perfMetrics.isEmpty()) {
+    		for( Properties p : perfMetrics ) {
+    			Enumeration<Object> keys = p.keys();
+    			while( keys.hasMoreElements() ) {
+    				String key = (String)keys.nextElement();
+    				sb.append(key).append(":").append(p.getProperty(key)).append("\t");
+    			}
+    		}
+    	} 
+    	return sb.toString();
+    }
 }
