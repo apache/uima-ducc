@@ -213,8 +213,9 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       if ( Utils.isMac() ) {
         pb = new ProcessBuilder("ps","-Ao","user=,pid=,ppid=,uid=,args=");
       } else {
-        pb = new ProcessBuilder("ps","-Ao","user:12,pid,ppid,uid,args", "--no-heading");
+        pb = new ProcessBuilder("ps","-Ao","user,pid,ppid,uid,args", "--no-heading");
       }
+      logger.info("NodeUsersCollector",null,"................ Collecting Processes on this node");
       pb.redirectErrorStream(true);
       Process proc = pb.start();
       //  spawn ps command and scrape the output
