@@ -22,7 +22,7 @@
 # +
 # + ducc_watcher
 # +
-# + purpose: send e-mail when a DUCC daemon state changes to not up
+# + purpose: send e-mail when a DUCC daemon overall state changes
 # + 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -30,7 +30,7 @@ import ast
 import datetime
 import getpass
 import json
-import logging
+#import logging
 import logging.handlers
 import os
 import smtplib
@@ -39,8 +39,6 @@ import string
 import sys
 import time
 import urllib2
-
-from HTMLParser import HTMLParser
 
 #from optparse import HelpFormatter
 #from optparse import OptionGroup
@@ -57,55 +55,11 @@ class ExtendedOptionParser(OptionParser):
 
 # ----------------------------------------------
 
-# parser for the system.daemons WS page
-class DuccHtmlParser(HTMLParser):
-    
-    tr_state = False
-    daemon_state = None
-    daemon_name = None  
-    daemon_date = None
-    daemon_ip = None
-    daemon_host = None
-    daemons = {}
-    
-    def get_daemons(self):
-        return self.daemons
-    
-    def handle_starttag(self, tag, attrs):
-        if(tag == 'tr' ):
-            self.tr_state = True
-        
-    def handle_endtag(self, tag):   
-        if(tag == 'tr'):
-            self.tr_state = False
-            self.daemon_state = None
-            self.daemon_name = None
-            self.daemon_date = None
-            self.daemon_ip = None
-            self.daemon_host = None
-        
-    def handle_data(self, data):
-        if(self.tr_state):
-            if(self.daemon_state == None):
-                self.daemon_state = data
-            elif(self.daemon_name == None):
-                self.daemon_name = data
-                if(self.daemon_name == 'Agent'):
-                    pass
-                else:
-                    self.daemons[self.daemon_name] = self.daemon_state
-            elif(self.daemon_date == None):
-                self.daemon_date = data
-            elif(self.daemon_ip == None):
-                self.daemon_ip = data
-            elif(self.daemon_host == None):
-                self.daemon_host = data
-                self.daemon_name = data
-                self.daemons[self.daemon_name] = self.daemon_state
-
-# ----------------------------------------------
-
 name = 'ducc_watcher'
+
+version = 2.0
+
+webserver_lifetime_millis = 0
 
 webserver = 'Webserver'
 head_daemons = [ 'Orchestrator',  'ResourceManager', 'Database', 'Broker', 'ProcessManager', 'ServiceManager', webserver ]
@@ -155,7 +109,7 @@ def mkdirs(path):
         return
     try:
         os.makedirs(path)
-    except Exception,e:
+    except Exception as e:
         exception(e)
     
 # info message to log
@@ -204,8 +158,8 @@ def warn(text):
     list_warns.append(line)
     return line
 
-# eggs_it
-def eggs_it(code):
+# _exit
+def _exit(code):
     text = 'exit code='+str(code)
     email(text)
     error(text)
@@ -287,7 +241,7 @@ def validate_target(options):
     protocol = 'http://'
     if(options.target == None):
         error('required "target" not specified')
-        eggs_it(1)
+        _exit(1)
     target = options.target
     if(':' not in target):
         target = target+':'+str(port)
@@ -295,7 +249,7 @@ def validate_target(options):
         target = target.replace(protocol,'',1)
     ducc_url_base = protocol+target
     #
-    servlet = '/ducc-servlet/classic-system-daemons-data'
+    servlet = '/ducc-servlet/json-format-aaData-daemons'
     ducc_url_servlet_system_daemons_data = protocol+target+servlet
     debug('target: '+ducc_url_servlet_system_daemons_data)
     #
@@ -401,28 +355,17 @@ def filter_state(state_dict):
                 retVal[key] = state_dict[key]
     return retVal
 
-def count_daemons(state_dict):
-    global head_daemons
-    count = 0
-    if(state_dict != None):
-        for key in state_dict:
-            if key in head_daemons:
-                count = count+1
-    return count
-
-# summarize state of all ducc daemons
-def summarize(state_dict):
-    global head_daemons
-    retVal = 'up'
-    if(count_daemons(state_dict) < len(head_daemons)):
-        retVal = 'down'
-    else:
-        for key in state_dict:
-            if key in head_daemons:
-                if(not state_dict[key] == 'up'):
-                    retVal = 'down'
-                    break;
-    return retVal
+# read previous daemons state
+def init_state_previous():
+    global state_file
+    try:
+        with open(state_file, 'r') as f:
+            f.read()
+    except:
+        with open(state_file, 'w') as f:
+            f.seek(0)
+            f.write('{}'+'\n')
+            f.truncate()
 
 # read precious daemons state
 def read_state_previous():
@@ -436,7 +379,7 @@ def read_state_previous():
             debug('state_previous(read): '+str(state_dict_previous))
             state_dict_previous = filter_state(state_dict_previous)
             debug('state_previous(filter): '+str(state_dict_previous))
-    except Exception,e:
+    except Exception as e:
         error('unable to read state from '+state_file)
         exception(e)
 
@@ -450,38 +393,82 @@ def write_state_current():
             f.write(str(state_dict_current)+'\n')
             f.truncate()
             debug('state_previous(write): '+str(state_dict_current))
-    except Exception,e:
+    except Exception as e:
         error('unable to write state to '+state_file)
         exception(e)
+        
+# remove <span></span> html decorations
+def _undecorate(text):
+    retVal = text
+    if(text != None):
+        item = text
+        index = item.find('</span>')
+        if(index > 0):
+            item = item[:index]
+            index = item.find('>')
+            if(index > 0):
+                item = item[index+1:]
+                retVal = item
+    return retVal
+
+def toMillis(dts):
+    debug(dts)
+    d = dts.split(' ')[0]
+    t= dts.split(' ')[1]
+    dt = datetime.datetime.strptime(d+' '+t, '%Y.%m.%d %H:%M:%S').strftime('%s')
+    ms = int(dt)*1000
+    debug(str(ms))
+    return ms
+
+def elapsedMillis(dts):
+    then = toMillis(dts)
+    now = 1000*time.time()
+    diff = now - then
+    text = str(dts)+' '+str(diff)
+    debug(text)
+    return diff
 
 # fetch daemons state
+# col[0] = Status
+# col[1] = Daemon Name
+# col[2] = Boot Time
+# col[3] = Host IP
+# col[4] = Host Name
 def fetch_state_daemons():
     global flag_agents
     global state_dict_current
     global ducc_url_servlet_system_daemons_data
     global webserver
+    global webserver_lifetime_millis
     global url_timeout
     state_dict_current = {}
+    daemons = {}
     try:
         opener = urllib2.build_opener()
         if(flag_agents):
             opener.addheaders.append(('Cookie', 'DUCCagents=show'))
         response = opener.open(ducc_url_servlet_system_daemons_data, timeout=url_timeout)
         data = response.read()
-        parser = DuccHtmlParser()
-        parser.feed(data)
-        daemons = parser.get_daemons()
-        if(daemons == None):
-            debug('daemons is None')
-        else:
-            for daemon in daemons:
-                status = daemons[daemon]
-                trace(daemon+':'+' '+status+' ')
-                state_dict_current[daemon] = status
-            debug('state_current(read): '+str(state_dict_current))
-            state_dict_current = filter_state(state_dict_current)
-            debug('state_current(filter): '+str(state_dict_current))
-    except Exception,e:
+        jdata = json.loads(data)['aaData']
+        for row in jdata:
+            if(len(row) > 4):
+                status = _undecorate(row[0])
+                daemon = row[1]
+                date = row[2]
+                if(daemon == webserver):
+                    webserver_lifetime_millis = elapsedMillis(date)
+                if(daemon == 'Agent'):
+                    daemon = daemon+'@'+row[4]
+                daemons[daemon] = status
+        #print "data="+str(jdata)
+        for daemon in daemons:
+            status = daemons[daemon]
+            debug(daemon+':'+' '+status+' ')
+            state_dict_current[daemon] = status
+        debug('state_current(read): '+str(state_dict_current))
+        state_dict_current = filter_state(state_dict_current)
+        debug('state_current(filter): '+str(state_dict_current))
+    except Exception as e:
         # for WS status to down whenever contact fails
         daemon = webserver
         status = 'unreachable'
@@ -490,12 +477,13 @@ def fetch_state_daemons():
         exception(e)
     debug('state_current: '+str(state_dict_current))
 
+# check if RM is 'up'
 def rm_up():
     global state_dict_current
     retVal = False
     debug(str(state_dict_current))
     if(state_dict_current != None):
-        rm_state = state_dict_current['ResourceManager']
+        rm_state = get_state(state_dict_current,'ResourceManager')
         if(rm_state == 'up'):
             retVal = True
     return retVal
@@ -523,7 +511,7 @@ def fetch_state_job_driver_allocation():
                     debug(str(len(reservations_list)))
                     rcount = 0
                     for reservation in reservations_list:
-                    	id = reservation['id']
+                        res_id = reservation['id']
                         rclass = reservation['rclass']
                         state = reservation['state']
                         rcount = rcount + 1
@@ -531,15 +519,18 @@ def fetch_state_job_driver_allocation():
                             state = reservation['state']
                             if(state == 'Assigned'):
                                 count = count+1
-                                text = 'id:'+str(id)+' '+'class:'+rclass+' '+'state:'+state
+                                text = 'id:'+str(res_id)+' '+'class:'+rclass+' '+'state:'+state
                                 debug(text)
                 if(count == 0):
                     state_dict_current[jda] = 'not assigned'
                 else:
                     state_dict_current[jda] = 'assigned'
                 debug(state_dict_current[jda])
-    except Exception,e:
+    except Exception as e:
         # for WS status to down whenever contact fails
+        daemon = webserver
+        status = 'unreachable'
+        state_dict_current[daemon] = status
         error('unable to fetch data from '+ducc_url_servlet_reservations_data)
         exception(e)
 
@@ -547,43 +538,56 @@ def fetch_state_job_driver_allocation():
 def fetch_state_current():
     fetch_state_daemons()
     fetch_state_job_driver_allocation()
-    
-# determine state changes between previous and current
-def determine_state_changes():
+
+# determine state summary overall:
+# { "up", "up, JD allocation pending", "down", "unknown", "no data" },
+# and list the daemons in each state
+def summarize_state(state_dict):
+    up = []
+    down = []
+    unknown = []
+    jd = []
+    for key in state_dict:
+        state = state_dict.get(key, '?')
+        if(state == 'unreachable'):
+            down.append(key)
+        elif(state == 'down'):
+            down.append(key)
+        elif(state == 'up'):
+            up.append(key)
+        elif(state == 'unknown'):
+            unknown.append(key)
+        elif(state == 'not assigned'):
+            jd = [ 'not assigned' ]
+        elif(state == 'assigned'):
+            jd = []
+        else:
+            warn(key+'='+state)
+    if(len(down) > 0):
+        overall = 'down'
+    elif(len(unknown) > 0):
+        overall = 'unknown'
+    elif(len(jd) > 0):
+        overall = 'up, JD allocation pending...'
+    elif(len(up) > 0):
+        overall = 'up'
+    else:
+        overall = 'no data'
+    summary = { 'overall':overall, 'up': up, 'down':down, 'unknown':unknown, 'jd':jd }
+    debug(str(summary))
+    return summary
+
+# summarize state previous and current
+def summarize():
     global state_dict_current
     global state_dict_previous
-    global state_dict_not_up
-    global state_changes_count
-    state_changes_count = 0
-    state_dict_not_up = {}
-    for key in state_dict_current:
-        state_current = state_dict_current.get(key, '?')
-        state_dict_not_up[key] = state_current
-        state_previous = state_dict_previous.get(key, '?')
-        if(state_current == state_previous):
-            pass
-        else:
-            info(key+' '+'from'+' '+state_previous+' '+'to'+' '+state_current)
-            if(state_current == 'up'):
-                pass
-            elif(state_current == 'assigned'):
-                pass
-            else:
-                state_changes_count = state_changes_count + 1
+    global summary_current
+    global summary_previous
+    summary_previous = summarize_state(state_dict_previous)
+    info('previous: '+str(summary_previous))
+    summary_current = summarize_state(state_dict_current)
+    info('current: '+str(summary_current))
     
-def build_text(TEXT):
-    global list_errors
-    global list_warns
-    LINES = ''
-    if(len(list_errors) > 0):
-        for item in list_errors:
-            LINES = LINES+item+'\n'
-    if(len(list_warns) > 0):
-        for item in list_warns:
-            LINES = LINES+item+'\n'
-    LINES = LINES+TEXT
-    return LINES
-
 # send email
 def email(HOST, SUBJECT, TO, FROM, TEXT):
     try:
@@ -598,7 +602,7 @@ def email(HOST, SUBJECT, TO, FROM, TEXT):
         server.sendmail(FROM, [TO], BODY)
         server.quit()
         info('sent: ['+TO+'] '+TEXT)
-    except Exception,e:
+    except Exception as e:
         error('not sent: ['+TO+'] '+TEXT)
         exception(e)
 
@@ -609,46 +613,17 @@ def email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT):
     else:
         for TO in TO_LIST:
             email(HOST, SUBJECT, TO, FROM, TEXT)
-        
-# check if all head node daemons are reported
-def is_all_head_daemons():
-    global state_dict_current
-    global head_daemons
+
+# wait to WS to be up > 60 seconds to complain about overall state 'unknown'
+def is_reportable(overall_current):
+    global webserver_lifetime_millis
     retVal = True
-    debug('states: '+str(state_dict_current))
-    debug('daemons: '+str(head_daemons))
-    for daemon in head_daemons:
-        if(daemon in state_dict_current):
-            debug(daemon+' reporting')
-        else:
-            info(daemon+' not reporting')
-            retVal = False
-            break
-    debug('all head daemons: '+str(retVal))   
-    return retVal
-
-# check if only webserver is reported
-def is_only_webserver():
-    global state_dict_current
-    global webserver
-    retVal = False
-    len_cur = len(state_dict_current)
-    if(len_cur == 1):
-        if(webserver in state_dict_current):
-            debug(webserver+' only reporting')
-            retVal = True
-    debug('webserver only: '+str(retVal))        
-    return retVal
-
-# not reportable when ducc boot is in progress
-def is_reportable():
-    global head_daemons
-    global state_dict_current
-    retVal = False
-    if(is_only_webserver()):
-        retVal = True
-    elif(not is_all_head_daemons()):
-        retVal = True
+    try:
+        if(webserver_lifetime_millis < 60*1000):
+            if(overall_current == 'unknown'):
+                retVal = False
+    except:
+        pass
     debug('reportable: '+str(retVal))
     return retVal
 
@@ -658,54 +633,85 @@ def get_subject(status):
     subject = 'DUCC'+' '+'status='+status+' '+ducc_url_base
     return subject
 
+def get_lines(LIST):
+    LINES = ''
+    if(len(LIST) > 0):
+        for item in LIST:
+            LINES = LINES+item+'\n'
+    LINES = LINES
+    return LINES
+    
+def get_errors():
+    global list_errors
+    return get_lines(list_errors)
+    
+def get_warnings():
+    global list_warns
+    return get_lines(list_warns)
+
+def toString(LIST):
+    retVal = ''
+    for item in LIST:
+        retVal = retVal+item+' '
+    return retVal
+
+def add_details(key):
+    global summary_current
+    details = ''
+    result = get_state(summary_current,key)
+    debug(key+'='+str(result))
+    if(result != None):
+        if(len(result) > 0):
+            details = key+':'+' '+toString(result)+'\n'
+    return details
+            
 # e-mail message body
 def get_body(text):
     global name
     global ducc_url_base
     sender = get_user()+'@'+get_host()
-    body = '['+sender+']'+' '+name+' '+'reports'+' '+ducc_url_base+' '+'state change:'+' '+text
+    body = '['+sender+']'+' '+name+' '+'reports'+' '+ducc_url_base+' '+'state change:'+' '+text+'\n\n'
+    body = body+add_details('down')
+    body = body+add_details('unknown')
     return body
+
+def get_state(state_dict,key):
+    try:
+        state = state_dict[key]
+    except:
+        state = None
+    debug(str(state))
+    return state
 
 # e-mail state changes, if any
 def email_state_changes():
-    global state_dict_current
-    global state_dict_previous
-    global state_dict_not_up
-    global state_changes_count
+    global summary_current
+    global summary_previous
     global mail_host
     global email_list
-    if(is_reportable()):
-        TIME = get_timestamp()
-        sum_prv = summarize(state_dict_previous)
-        sum_cur = summarize(state_dict_current)
-        status = sum_cur
-        subject = get_subject(status)
-        if(state_changes_count > 0):
-            info('state_changes(count): '+str(state_changes_count))
+    key = 'overall'
+    overall_previous = get_state(summary_previous,key)
+    info('previous: '+key+'='+overall_previous)
+    overall_current = get_state(summary_current,key)
+    info('current: '+key+'='+overall_current)
+    if(overall_previous != overall_current):
+        if(is_reportable(overall_current)):
+            status = overall_current
+            TIME = get_timestamp()
+            subject = get_subject(status)
             HOST = mail_host
             SUBJECT = subject
             TO_LIST = email_list
             FROM = get_user()+'@'+get_host()
-            TEXT = TIME+' '+get_body(str(state_dict_not_up))
-            TEXT = build_text(TEXT)
+            TEXT = TIME+' '+get_body(str(status))
+            TEXT = get_warnings()+TEXT
+            TEXT = get_errors()+TEXT
             email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT)
         else:
-            debug('state_changes(count): '+str(state_changes_count))
-            if(sum_cur == sum_prv):
-                debug('state_current(summary): '+str(sum_cur))
-                debug('state_previous(summary): '+str(sum_prv))
-            else:
-                info('state_current(summary): '+str(sum_cur))
-                info('state_previous(summary): '+str(sum_prv))
-                if(sum_cur == 'up'):
-                    HOST = mail_host
-                    SUBJECT = subject
-                    TO_LIST = email_list
-                    FROM = get_user()+'@'+get_host()
-                    TEXT = TIME+' '+get_body('All daemons up')
-                    TEXT = build_text(TEXT)
-                    email_to_list(HOST, SUBJECT, TO_LIST, FROM, TEXT)
-    
+            debug('not reportable')
+    else:
+        debug('no state change')
+        
 # check for DUCC daemon status changes
 def main(argv):
     global logger
@@ -714,12 +720,13 @@ def main(argv):
         handler = logging.StreamHandler(sys.stdout)
         logger.addHandler(handler)
         parse_cmdline()
+        init_state_previous()
         read_state_previous()
         fetch_state_current()
-        determine_state_changes() 
+        summarize() 
         write_state_current()
         email_state_changes()
-    except Exception,e:
+    except Exception as e:
         error('exception in main')
         exception(e)
              
