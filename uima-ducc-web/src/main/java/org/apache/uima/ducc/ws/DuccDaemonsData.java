@@ -65,6 +65,7 @@ public class DuccDaemonsData {
 			putEventSize(key, duccEvent);
 			break;
 		case SM_STATE:
+		case SM_HEARTBEAT:
 			key = DaemonName.ServiceManager;
 			putHeartbeat(key);
 			putEventSize(key, duccEvent);

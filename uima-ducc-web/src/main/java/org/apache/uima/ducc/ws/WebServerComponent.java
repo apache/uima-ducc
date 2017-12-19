@@ -44,6 +44,7 @@ import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
+import org.apache.uima.ducc.transport.event.SmHeartbeatDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
@@ -296,6 +297,15 @@ implements IWebServer {
 		String methodName = "update";
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
 		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"WebServerStateDuccEvent (broker is alive)");
+		DuccDaemonsData.getInstance().put(duccEvent);
+		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
+	}
+
+	@Override
+	public void update(SmHeartbeatDuccEvent duccEvent) {
+		String methodName = "update";
+		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
+		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"SmHeartbeatDuccEvent (SM is alive)");
 		DuccDaemonsData.getInstance().put(duccEvent);
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}

@@ -210,6 +210,9 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String _window_reservation_request = "_window_reservation_request";
 	private String _window_jconsole = "_window_jconsole";
 
+	private long boottime = System.currentTimeMillis();
+	private long maxTimeToBoot = 2*60*1000;
+	
 	public DuccHandler(DuccWebServer duccWebServer) {
 		super.init(duccWebServer);
 	}
@@ -3439,7 +3442,18 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append(additionalInfo);
 			}
 		}
-		response.getWriter().println(sb);
+		String text = sb.toString();
+		
+		if(sb.length() > 0) {
+			long now = System.currentTimeMillis();
+			long lifetime = now - boottime;
+			if(lifetime < maxTimeToBoot) {
+				long timeLeft = (maxTimeToBoot - lifetime)/1000;
+				text = "Webserver booting...maximum time remaining for daemons to check-in: "+timeLeft+" seconds.";
+				duccLogger.debug(methodName, null, text);
+			}
+		}
+		response.getWriter().println(text);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 

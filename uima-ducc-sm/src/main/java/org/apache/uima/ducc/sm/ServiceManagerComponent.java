@@ -66,6 +66,7 @@ import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
 import org.apache.uima.ducc.transport.event.ServiceStartEvent;
 import org.apache.uima.ducc.transport.event.ServiceStopEvent;
 import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
+import org.apache.uima.ducc.transport.event.SmHeartbeatDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -704,6 +705,21 @@ public class ServiceManagerComponent
         }
     }
 
+    /**
+     * Publish a heartbeat.
+     */
+    public void publish()
+    {
+        String methodName = "publish";
+        try {
+            SmHeartbeatDuccEvent ev = new SmHeartbeatDuccEvent();
+            logger.info(methodName, null, "Publishing Heartbeat");
+            eventDispatcher.dispatch(stateEndpoint, ev, "");  // tell the world SM is alive
+        } catch (Throwable t) {
+            logger.error(methodName, null, t);
+        }
+    }
+
     public void setTransportConfiguration(DuccEventDispatcher eventDispatcher, String stateEndpoint, String stateChangeEndpoint)
     {
         this.eventDispatcher = eventDispatcher;
@@ -752,6 +768,8 @@ public class ServiceManagerComponent
 
         if ( ! map.isJobDriverMinimalAllocateRequirementMet() ) {
             logger.info(methodName, null, "Orchestrator JD node not assigned, ignoring Orchestrator state update.");
+            // send a heartbeat to anyone who cares (
+            publish();
             return;
         }
         else {

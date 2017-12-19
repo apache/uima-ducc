@@ -28,6 +28,7 @@ import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
+import org.apache.uima.ducc.transport.event.SmHeartbeatDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 import org.apache.uima.ducc.ws.IWebServer;
@@ -74,6 +75,17 @@ public class WebServerEventListener implements DuccEventDelegateListener {
 	
 	public void onRmStateDuccEvent(@Body RmStateDuccEvent duccEvent, @Header("pubSize")Long pubSize) {
 		String location = "onRmStateDuccEvent";
+		try {
+			duccEvent.setEventSize(pubSize);
+			webServer.update(duccEvent);
+		}
+		catch(Throwable t) {
+			duccLogger.error(location, jobid, t);
+		}
+	}
+	
+	public void onSmHeartbeatDuccEvent(@Body SmHeartbeatDuccEvent duccEvent, @Header("pubSize")Long pubSize) {
+		String location = "onSmStateDuccEvent";
 		try {
 			duccEvent.setEventSize(pubSize);
 			webServer.update(duccEvent);
