@@ -70,6 +70,7 @@ import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
+import org.apache.uima.ducc.transport.event.SmHeartbeatDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
@@ -467,6 +468,14 @@ implements Orchestrator {
 		stateManager.reconcileState(serviceMap);
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
+	
+	@Override
+	public void reconcileSmHeartbeat(SmHeartbeatDuccEvent duccEvent) {
+		String methodName = "reconcileSmHeartbeat";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		logger.trace(methodName, null, messages.fetch("exit"));
+	}
+
 	/**
 	 * Node Inventory State Reconciliation
 	 */
@@ -1235,4 +1244,5 @@ implements Orchestrator {
             exchange.getIn().setBody(reply);
         }
     }
+
 }

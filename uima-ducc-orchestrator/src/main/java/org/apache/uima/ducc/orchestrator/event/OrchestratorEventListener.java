@@ -38,6 +38,7 @@ import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
+import org.apache.uima.ducc.transport.event.SmHeartbeatDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
@@ -139,6 +140,17 @@ public class OrchestratorEventListener implements DuccEventDelegateListener {
 		logger.trace(methodName, null, messages.fetch("enter"));
 		try {
 			orchestrator.reconcileSmState(duccEvent);
+		}
+		catch(Throwable t) {
+			logger.error(methodName, null, t);
+		}
+		logger.trace(methodName, null, messages.fetch("exit"));
+	}
+	public void onSmHeartbeatUpdateEvent(@Body SmHeartbeatDuccEvent duccEvent) throws Exception {
+		String methodName = "onSmHeartbeatUpdateEvent";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		try {
+			orchestrator.reconcileSmHeartbeat(duccEvent);
 		}
 		catch(Throwable t) {
 			logger.error(methodName, null, t);
