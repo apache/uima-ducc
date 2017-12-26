@@ -162,7 +162,7 @@ public class JdScheduler {
 		sb.append(" ");
 		sb.append("resCount="+resCount);
 		String text = sb.toString();
-		logger.info(location, jobid, text);
+		logger.debug(location, jobid, text);
 		if(minSlices == 0) {
 			retVal = true;
 		}
