@@ -19,18 +19,16 @@
 package org.apache.uima.ducc.transport.event;
 
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 
 @SuppressWarnings("serial")
 public class SubmitServiceDuccEvent extends AbstractDuccJobEvent {
-
-	public SubmitServiceDuccEvent() {
-		super(EventType.SUBMIT_SERVICE);
-	}
 	
-	public SubmitServiceDuccEvent(DuccProperties props, int cli_version)
+	public SubmitServiceDuccEvent(DuccProperties props, DuccContext context, int cli_version)
 	{
 		super(EventType.SUBMIT_SERVICE);
 		setProperties(props);
+		setContext(context);
 		setCliVersion(cli_version);
 	}
 }

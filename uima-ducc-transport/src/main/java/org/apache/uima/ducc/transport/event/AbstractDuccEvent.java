@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.transport.event;
 
+import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
+
 public abstract class AbstractDuccEvent 
 implements DuccEvent { 
 
@@ -29,6 +31,8 @@ implements DuccEvent {
 	private EventType eventType;
 	
 	private int cliVersion;
+	
+	private DuccContext context = DuccContext.Unspecified;
 	
 	public AbstractDuccEvent(EventType eventType) {
 		this.eventType = eventType;
@@ -58,4 +62,17 @@ implements DuccEvent {
 	public void setCliVersion(int version) {
 	    cliVersion = version;
 	}
+	
+	/*
+	 * Context is used to disambiguate, for example,
+	 * between Service and Managed Reservation.
+	 */
+	public void setContext(DuccContext context) {
+		this.context = context;
+	}
+	
+	public DuccContext getContext() {
+		return context;
+	}
+
 }

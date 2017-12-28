@@ -21,6 +21,7 @@ package org.apache.uima.ducc.cli;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
@@ -231,7 +232,8 @@ public class DuccServiceSubmit
 
         requestProperties.put(UiOption.ProcessPipelineCount.pname(), "1");         // enforce this - OR will complain if it's missing
 
-        SubmitServiceDuccEvent      ev    = new SubmitServiceDuccEvent(requestProperties, CliVersion.getVersion());
+        // Note: context is provided for system event logger to disambiguate Service from ManagedReservation
+        SubmitServiceDuccEvent      ev    = new SubmitServiceDuccEvent(requestProperties, DuccContext.Service, CliVersion.getVersion());
         SubmitServiceReplyDuccEvent reply = null;
 
         try {

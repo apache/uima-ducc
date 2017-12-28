@@ -26,6 +26,7 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelJobReplyDuccEvent;
@@ -34,6 +35,8 @@ import org.apache.uima.ducc.transport.event.CancelReservationReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
+import org.apache.uima.ducc.transport.event.DuccEvent;
+import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
@@ -47,14 +50,18 @@ import org.apache.uima.ducc.transport.event.cli.ReservationReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
+import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 import org.apache.uima.ducc.transport.event.common.IRationale;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 
 public class SystemEventsLogger {
 
 	private static DuccLogger duccLogger = getEventLogger(SystemEventsLogger.class.getName());
+	private static DuccId jobid = null;
 	
 	static public DuccLogger makeLogger(String claz, String componentId) {
         return DuccLogger.getLogger(claz, componentId);
@@ -99,6 +106,143 @@ public class SystemEventsLogger {
 		return getProperty(properties, key, "N/A");
 	}
 	
+	private static boolean isTypeManagedReservation(String type) {
+		boolean retVal = false;
+		if(type != null) {
+			if(type.equals(DuccEvent.EventType.SUBMIT_MANAGED_RESERVATION.toString())) {
+				retVal = true;
+			}
+			else if(type.equals(DuccEvent.EventType.END_OF_MANAGED_RESERVATION.toString())) {
+				retVal = true;
+			}
+			else if(type.equals(DuccEvent.EventType.CANCEL_MANAGED_RESERVATION.toString())) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
+	
+	/*
+	 * derive type based on state change for Job
+	 */
+	private static String getType(String state, IDuccWorkJob job) {
+		String type = state;
+		if(type != null) {
+			if(type.equals("Completed")) {
+				type = DuccEvent.EventType.END_OF_JOB.toString();
+			}
+		}
+		return type;
+	}
+	
+	/*
+	 * derive type based on state change for Reservation
+	 */
+	private static String getType(String state, IDuccWorkReservation reservation) {
+		String type = state;
+		if(type != null) {
+			if(type.equals("Completed")) {
+				type = DuccEvent.EventType.END_OF_RESERVATION.toString();
+			}
+		}
+		return type;
+	}
+	
+	/*
+	 * derive type based on state change for Service
+	 */
+	private static String getType(String state, IDuccWorkService service) {
+		String type = state;
+		if(type != null) {
+			if(type.equals("Completed")) {
+				ServiceDeploymentType sdt = service.getServiceDeploymentType();
+				if(sdt != null) {
+					switch(sdt) {
+					case other:
+						type = DuccEvent.EventType.END_OF_MANAGED_RESERVATION.toString();
+						break;
+					default:
+						type = DuccEvent.EventType.END_OF_SERVICE.toString();
+						break;
+					}
+				}
+			}
+		}
+		return type;
+	}
+	
+	/*
+	 * derive type (SERVICE or MANAGED_RESERVATION) for submit
+	 */
+	private static String getType(SubmitServiceDuccEvent request) {
+		String location = "getType.SubmitServiceDuccEvent";
+		String type = request.getEventType().name();
+		duccLogger.debug(location, jobid, "type:"+type);
+		DuccContext context = request.getContext();
+		if(context != null) {
+			duccLogger.debug(location, jobid, "context:"+context.toString());
+			switch(context) {
+			case ManagedReservation:
+				type = DuccEvent.EventType.SUBMIT_MANAGED_RESERVATION.toString();
+				break;
+			default:
+				break;
+			}
+		}
+		return type;
+	}
+	
+	/*
+	 * derive type (SERVICE or MANAGED_RESERVATION) for cancel
+	 */
+	private static String getType(CancelServiceDuccEvent request) {
+		String type = request.getEventType().name();
+		DuccContext context = request.getContext();
+		if(context != null) {
+			switch(context) {
+			case ManagedReservation:
+				type = DuccEvent.EventType.CANCEL_MANAGED_RESERVATION.toString();
+				break;
+			default:
+				break;
+			}
+		}
+		return type;
+	}
+		
+	public static void info(String daemon, String state, IDuccWork dw) {
+		DuccType type = dw.getDuccType();
+		if(type != null) {
+			switch(type) {
+			case Job:
+				IDuccWorkJob job = (IDuccWorkJob) dw;
+				info(daemon, state, job);
+				break;
+			case Service:
+				IDuccWorkService service = (IDuccWorkService) dw;
+				info(daemon, state, service);
+				break;
+			case Pop:
+				IDuccWorkJob pop = (IDuccWorkJob) dw;
+				info(daemon, state, pop);
+				break;
+			case Reservation:
+				IDuccWorkReservation reservation = (IDuccWorkReservation) dw;
+				info(daemon, state, reservation);
+				break;
+			case Undefined:
+				IDuccWorkJob undefined = (IDuccWorkJob) dw;
+				info(daemon, state, undefined);
+				break;
+			default:
+			}
+		}
+		else {
+			IDuccWorkJob job = (IDuccWorkJob) dw;
+			info(daemon, state, job);
+		}
+	}
+	
 	/*
 	 * log a job submit request
 	 */
@@ -132,9 +276,9 @@ public class SystemEventsLogger {
 	/*
 	 * log a job state change - nominally Completed only is logged
 	 */
-	public static void info(String daemon, String state, IDuccWorkJob job) {
+	private static void info(String daemon, String state, IDuccWorkJob job) {
 		String user = job.getStandardInfo().getUser();
-		String type = state;
+		String type = getType(state,job);
 		String id = job.getId();
 		String reason = job.isCompleted() ? job.getCompletionType().name() : "";
 		String rationale = "";
@@ -179,9 +323,9 @@ public class SystemEventsLogger {
 	/*
 	 * log a reservation state change - nominally Completed only is logged
 	 */
-	public static void info(String daemon, String state, IDuccWorkReservation reservation) {
+	private static void info(String daemon, String state, IDuccWorkReservation reservation) {
 		String user = reservation.getStandardInfo().getUser();
-		String type = state;
+		String type = getType(state,reservation);
 		String id = reservation.getId();
 		String reason = reservation.isCompleted() ? reservation.getCompletionType().name() : "";
 		String rationale = "";
@@ -197,16 +341,26 @@ public class SystemEventsLogger {
 	 * log a service submit request
 	 */
 	public static void info(String daemon, SubmitServiceDuccEvent request, SubmitServiceReplyDuccEvent response) {
-		Properties qprops = request.getProperties();
-		String user = getProperty(qprops, ServiceRequestProperties.key_user);
-		String type = request.getEventType().name();
-		String id = getProperty(qprops, ServiceRequestProperties.key_id);
-		String sclass = getProperty(qprops, ServiceRequestProperties.key_scheduling_class);
-		String size = getProperty(qprops, ServiceRequestProperties.key_process_memory_size);
+		Properties properties = request.getProperties();
+		String sclass = getProperty(properties, ServiceRequestProperties.key_scheduling_class);
+		String size = getProperty(properties, ServiceRequestProperties.key_process_memory_size);
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, ServiceReplyProperties.key_message, "");
-		Object[] event = { "id:"+id, "class:"+sclass, "size:"+size, message };
-		duccLogger.event_info(daemon, user, type, event);
+		String user = getProperty(properties, ServiceRequestProperties.key_user);
+		//
+		String type = getType(request);
+		if(isTypeManagedReservation(type)) {
+			String id = getProperty(properties, ServiceRequestProperties.key_id);
+			Object[] event = { "id:"+id, "class:"+sclass, "size:"+size, message };
+			duccLogger.event_info(daemon, user, type, event);
+		}
+		else {
+			String id = getProperty(properties, ServiceRequestProperties.key_service_id);
+			String instance = getProperty(properties, ServiceRequestProperties.key_id);
+			String name = getProperty(properties, ServiceRequestProperties.key_service_request_endpoint);
+			Object[] event = { "id:"+id, "instance:"+instance, "name:"+name, "class:"+sclass, "size:"+size, message };
+			duccLogger.event_info(daemon, user, type, event);
+		}
 	}
 	
 	/*
@@ -214,31 +368,52 @@ public class SystemEventsLogger {
 	 */
 	public static void info(String daemon, CancelServiceDuccEvent request, CancelServiceReplyDuccEvent response) {
 		Properties properties = request.getProperties();
-		String user = properties.getProperty(ServiceRequestProperties.key_user);
-		String type = request.getEventType().name();
-		String id = properties.getProperty(ServiceRequestProperties.key_id);
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, ReservationReplyProperties.key_message);
-		Object[] event = { "id:"+id, message };
-		duccLogger.event_info(daemon, user, type, event);
+		String user = properties.getProperty(ServiceRequestProperties.key_user);
+		//
+		String type = getType(request);
+		if(isTypeManagedReservation(type)) {
+			String id = properties.getProperty(ServiceRequestProperties.key_id);
+			Object[] event = { "id:"+id, message };
+			duccLogger.event_info(daemon, user, type, event);
+		}
+		else {
+			String id = getProperty(properties, ServiceRequestProperties.key_service_id);
+			String instance = properties.getProperty(ServiceRequestProperties.key_id);
+			String name = getProperty(properties, ServiceRequestProperties.key_service_request_endpoint);
+			Object[] event = { "id:"+id, "instance:"+instance, "name:"+name, message };
+			duccLogger.event_info(daemon, user, type, event);
+		}
 	}
 	
 	/*
 	 * log a service state change - nominally Completed only is logged
 	 */
-	public static void info(String daemon, String state, IDuccWorkService service) {
+	private static void info(String daemon, String state, IDuccWorkService service) {
 		String user = service.getStandardInfo().getUser();
-		String type = state;
-		String id = service.getId();
-		String reason = "";
-		//String reason = service.isCompleted() ? service.getCompletionType().name() : "";
-		String rationale = "";
-		//IRationale completionRationale = service.getCompletionRationale();
-		//if(completionRationale != null) {
-		//	rationale = completionRationale.getText();
-		//}
-		Object[] event = { "id:"+id,reason,rationale };
-		duccLogger.event_info(daemon, user, type, event);
+		String type = getType(state,service);
+		if(isTypeManagedReservation(type)) {
+			String id = service.getId();
+			String reason = "";
+			String rationale = "";
+			Object[] event = { "id:"+id,reason,rationale };
+			duccLogger.event_info(daemon, user, type, event);
+		}
+		else {
+			String id = service.getServiceId();
+			String instance = service.getId();
+			String name = service.getServiceEndpoint();
+			String reason = "";
+			//String reason = service.isCompleted() ? service.getCompletionType().name() : "";
+			String rationale = "";
+			//IRationale completionRationale = service.getCompletionRationale();
+			//if(completionRationale != null) {
+			//	rationale = completionRationale.getText();
+			//}
+			Object[] event = { "id:"+id,"instance:"+instance,"name:"+name,reason,rationale };
+			duccLogger.event_info(daemon, user, type, event);
+		}
 	}
 	
 	/*

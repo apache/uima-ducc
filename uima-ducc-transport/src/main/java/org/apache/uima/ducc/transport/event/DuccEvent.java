@@ -24,21 +24,29 @@ public interface DuccEvent extends Serializable { // extends Map<Object, Object>
 	public enum EventType{ 
 			BOOT, 
 			SHUTDOWN, 
+			//
         	SUBMIT_JOB, 
             CANCEL_JOB, 
             MODIFY_JOB, 
             JOB_REPLY, 
-            END_OF_JOB, 
+            END_OF_JOB,
+            //
             SUBMIT_RESERVATION, 
             CANCEL_RESERVATION, 
             MODIFY_RESERVATION, 
             RESERVATION_REPLY, 
-            END_OF_RESERVATION, 
+            END_OF_RESERVATION,
+            //
             SUBMIT_SERVICE, 
             CANCEL_SERVICE, 
             MODIFY_SERVICE, 
             SERVICE_REPLY, 
             END_OF_SERVICE,
+            //
+            SUBMIT_MANAGED_RESERVATION, 
+            CANCEL_MANAGED_RESERVATION, 
+            END_OF_MANAGED_RESERVATION, 
+            //
             START_PROCESS, 
             STOP_PROCESS, 
             WEBSERVER_STATE,

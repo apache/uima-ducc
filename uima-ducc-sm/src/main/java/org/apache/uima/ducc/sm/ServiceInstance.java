@@ -347,6 +347,13 @@ class ServiceInstance
     {
         String methodName = "stop";
 
+        /*
+         * Accommodate use of service id and endpoint for information purposes,
+         * which informs system event logger when canceling the instance.
+         */
+        String service_id = sset.getId().toString();
+        String service_endpoint = sset.getEndpoint();
+        
         setStopped(true);
         String[] args = {
             System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
@@ -359,6 +366,10 @@ class ServiceInstance
             "org.apache.uima.ducc.cli.DuccServiceCancel",
             "--id",
             Long.toString(numeric_id),
+            "--service_id",
+            service_id,
+            "--service_request_endpoint",
+            service_endpoint,
         };
 
         for ( int i = 0; i < args.length; i++ ) {

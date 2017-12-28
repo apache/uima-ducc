@@ -18,23 +18,11 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
-
 @SuppressWarnings("serial")
 public class AbstractDuccCancelEvent extends AbstractDuccJobEvent {
 
-	private DuccContext context = DuccContext.Unspecified;
-	
 	public AbstractDuccCancelEvent(EventType eventType) {
 		super(eventType);
-	}
-	
-	public void setContext(DuccContext context) {
-		this.context = context;
-	}
-	
-	public DuccContext getContext() {
-		return context;
 	}
 
 }

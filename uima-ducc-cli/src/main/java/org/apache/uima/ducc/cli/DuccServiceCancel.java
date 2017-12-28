@@ -46,6 +46,12 @@ public class DuccServiceCancel
 
         UiOption.JobId,
         UiOption.RoleAdministrator,
+        /*
+         * The following options are for informational purposes only,
+         * if specified they can be used by the system event logger.
+         */
+        UiOption.ServiceId,
+        UiOption.ServiceRequestEndpoint,
     };
 
 	

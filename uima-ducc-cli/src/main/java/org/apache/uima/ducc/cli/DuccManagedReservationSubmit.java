@@ -190,7 +190,8 @@ public class DuccManagedReservationSubmit
         	serviceRequestProperties.addUserProvided(key);
         }
         
-        SubmitServiceDuccEvent ev = new SubmitServiceDuccEvent(serviceRequestProperties, CliVersion.getVersion());
+        // Note: context is provided for system event logger to disambiguate Service from ManagedReservation
+        SubmitServiceDuccEvent ev = new SubmitServiceDuccEvent(serviceRequestProperties, DuccContext.ManagedReservation, CliVersion.getVersion());
         SubmitServiceReplyDuccEvent reply = null;
 
         try {

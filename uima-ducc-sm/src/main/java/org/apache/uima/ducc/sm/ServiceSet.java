@@ -256,6 +256,10 @@ public class ServiceSet
         return id;
     }
 
+    String getEndpoint() {
+    	return key;
+    }
+    
     // UIMA-4258
     // Get potentially pending instances from meta and stash them away for a bit
     // Used in hot-start to remap instance ids to ducc ids
