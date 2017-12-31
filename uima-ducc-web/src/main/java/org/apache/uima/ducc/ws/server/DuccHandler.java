@@ -1737,13 +1737,15 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletJobSpecificationData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		String jobNo = request.getParameter("id");
-		DuccWorkJob dwj = getJob(jobNo);
-		String resOwner = dwj.getStandardInfo().getUser();
-		EffectiveUser eu = EffectiveUser.create(request);
-		String reqUser = eu.get();
 		Map<String,Properties> map = null;
-		if(HandlersHelper.isResourceAuthorized(resOwner, reqUser)) {
-			map = helperSpecifications.getJobSpecificationProperties(dwj, eu);
+		DuccWorkJob dwj = getJob(jobNo);
+		if(dwj != null) {
+			String resOwner = dwj.getStandardInfo().getUser();
+			EffectiveUser eu = EffectiveUser.create(request);
+			String reqUser = eu.get();
+			if(HandlersHelper.isResourceAuthorized(resOwner, reqUser)) {
+				map = helperSpecifications.getJobSpecificationProperties(dwj, eu);
+			}
 		}
 		if(map != null) {
 			Properties propertiesUser = map.get(PType.user.name());
