@@ -42,7 +42,7 @@ public class DuccHandlerHttpRequestFilter extends DuccAbstractHandler {
 	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccHandlerHttpRequestFilter.class);
 	private static volatile DuccId jobid = null;
 	
-	// refresh interval for both ducc.properties and URI encryption exception list
+	// refresh interval for both ducc.properties and URI encryption Exemption list
 	private long expiryMillis = 60*1000;
 	
 	// TOD of last refresh
@@ -55,7 +55,7 @@ public class DuccHandlerHttpRequestFilter extends DuccAbstractHandler {
 	private volatile UserDataAccessMode userDataAccessMode = UserDataAccessMode.unrestricted;
 	
 	// present list of encryption exempt URI prefixes
-	private volatile List<String> listEncryptionException = new ArrayList<String>();
+	private volatile List<String> listEncryptionExemption = new ArrayList<String>();
 	
 	// file containing list of encryption exempt URI prefixes
 	// - one per line
@@ -74,8 +74,8 @@ public class DuccHandlerHttpRequestFilter extends DuccAbstractHandler {
 	}
 	
 	// re-read file containing list of encryption exempt URI prefixes
-	private void refreshListEncryptionException() {
-		String location = "refreshListEncryptionException";
+	private void refreshListEncryptionExemption() {
+		String location = "refreshListEncryptionExemption";
 		try {
 			List<String> listRefresh = new ArrayList<String>();
 			BufferedReader br = null;
@@ -91,7 +91,7 @@ public class DuccHandlerHttpRequestFilter extends DuccAbstractHandler {
 	                	listRefresh.add(line);
 	                }
 	            }
-	            listEncryptionException = listRefresh;
+	            listEncryptionExemption = listRefresh;
 	        } 
 	        catch (IOException e) {
 	        	duccLogger.trace(location, jobid, e);
@@ -106,15 +106,15 @@ public class DuccHandlerHttpRequestFilter extends DuccAbstractHandler {
 	            	duccLogger.error(location, jobid, e);
 	            }
 	        }
-	        duccLogger.debug(location, jobid, "size:"+listEncryptionException.size());
+	        duccLogger.debug(location, jobid, "size:"+listEncryptionExemption.size());
 		}
 		catch (Exception e) {
         	duccLogger.error(location, jobid, e);
         }
 	}
 	
-	private List<String> getListEncryptionException() {
-		return listEncryptionException;
+	private List<String> getListEncryptionExemption() {
+		return listEncryptionExemption;
 	}
 	
 	// re-read value of ducc.ws.user.data.access
@@ -192,13 +192,13 @@ public class DuccHandlerHttpRequestFilter extends DuccAbstractHandler {
 		return retVal;
 	}
 	
-	// if refresh time has elapsed, refresh ducc property and encryption exception list
+	// if refresh time has elapsed, refresh ducc property and encryption Exemption list
 	private void refresh() {
 		long timeMillisNow = System.currentTimeMillis();
 		long timeMillisLastUpdate = saveMillisUpdate.get();
 		if(timeMillisNow-timeMillisLastUpdate > expiryMillis) {
 			refreshUserDataAccessMode();
-			refreshListEncryptionException();
+			refreshListEncryptionExemption();
 			saveMillisUpdate.set(timeMillisNow);
 		}
 	}
@@ -217,7 +217,7 @@ public class DuccHandlerHttpRequestFilter extends DuccAbstractHandler {
 	
 	private boolean isRestrictedUri(String reqUri) {
 		boolean retVal = true;
-		List<String> list = getListEncryptionException();
+		List<String> list = getListEncryptionExemption();
 		for(String includeUri : list) {
 			if(reqUri.startsWith(includeUri)) {
 				retVal = false;
