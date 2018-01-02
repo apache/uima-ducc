@@ -32,6 +32,7 @@ import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.user.common.QuotedOptions;
 
@@ -229,7 +230,13 @@ class ServiceInstance
         Map<String, String> env = pb.environment();
         env.put(IDuccUser.EnvironmentVariable.DUCC_HOME.value(), System.getProperty(IDuccUser.EnvironmentVariable.DUCC_HOME.value()));
         env.put(IDuccUser.EnvironmentVariable.DUCC_ID_SERVICE.value(), Integer.toString(instance_id));  // UIMA-4258
-
+        // for runmode = Test
+        String runmode = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_runmode);
+		if(runmode != null) {
+			if(runmode.equals("Test")) {
+				env.put(IDuccUser.EnvironmentVariable.USER.value(), this.user);
+			}
+		}
         // Extract the DUCC_UMASK setting and put it ducc_ling's environment UIMA-5328
         // Could use QuotedOprtions to build a map but since we want just one ...
         //        ArrayList<String> envVarList = QuotedOptions.tokenizeList(environment, true);
@@ -385,7 +392,13 @@ class ServiceInstance
         ProcessBuilder pb = new ProcessBuilder(args);
         Map<String, String> env = pb.environment();
         env.put(IDuccUser.EnvironmentVariable.DUCC_HOME.value(), System.getProperty(IDuccUser.EnvironmentVariable.DUCC_HOME.value()));
-
+        // for runmode = Test
+        String runmode = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_runmode);
+		if(runmode != null) {
+			if(runmode.equals("Test")) {
+				env.put(IDuccUser.EnvironmentVariable.USER.value(), this.user);
+			}
+		}
         pb.redirectOutput(new File("/dev/null"));
         pb.redirectError(new File("/dev/null"));
 

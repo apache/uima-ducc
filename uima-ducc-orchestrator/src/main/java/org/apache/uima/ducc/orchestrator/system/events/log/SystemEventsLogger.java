@@ -86,6 +86,7 @@ public class SystemEventsLogger {
 		RC("rc"),
 		RESPONSE("response"),
 		SIZE("size"),
+		SUBMITTER("submitter"),
 		TOD("tod"),
 		TYPE("type"),
 		;
@@ -283,6 +284,7 @@ public class SystemEventsLogger {
 	 */
 	public static void info(String daemon, SubmitJobDuccEvent request, SubmitJobReplyDuccEvent response) {
 		Properties qprops = request.getProperties();
+		String submitter = getProperty(qprops, JobRequestProperties.key_submitter_pid_at_host);
 		String user = getProperty(qprops, JobRequestProperties.key_user);
 		String type = request.getEventType().name();
 		String id = getProperty(qprops, JobRequestProperties.key_id);
@@ -290,7 +292,7 @@ public class SystemEventsLogger {
 		String size = getProperty(qprops, JobRequestProperties.key_process_memory_size);
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, JobReplyProperties.key_message, "");
-		Object[] event = { Labels.JOB_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, message };
+		Object[] event = { Labels.JOB_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -300,11 +302,12 @@ public class SystemEventsLogger {
 	public static void info(String daemon, CancelJobDuccEvent request, CancelJobReplyDuccEvent response) {
 		Properties qprops = request.getProperties();
 		String user = getProperty(qprops, JobRequestProperties.key_user);
+		String submitter = getProperty(qprops, JobRequestProperties.key_submitter_pid_at_host);
 		String type = request.getEventType().name();
 		String id = getProperty(qprops, JobRequestProperties.key_id);
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, JobReplyProperties.key_message);
-		Object[] event = { Labels.JOB_ID+id, message };
+		Object[] event = { Labels.JOB_ID+id, Labels.SUBMITTER+submitter, message };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -331,13 +334,14 @@ public class SystemEventsLogger {
 	public static void info(String daemon, SubmitReservationDuccEvent request, SubmitReservationReplyDuccEvent response) {
 		Properties qprops = request.getProperties();
 		String user = getProperty(qprops, ReservationRequestProperties.key_user);
+		String submitter = getProperty(qprops, JobRequestProperties.key_submitter_pid_at_host);
 		String type = request.getEventType().name();
 		String id = getProperty(qprops, ReservationRequestProperties.key_id);
 		String sclass = getProperty(qprops, ReservationRequestProperties.key_scheduling_class);
 		String size = getProperty(qprops, ReservationRequestProperties.key_memory_size);
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, ReservationReplyProperties.key_message, "");
-		Object[] event = { Labels.RESERVATION_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, message };
+		Object[] event = { Labels.RESERVATION_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -347,11 +351,12 @@ public class SystemEventsLogger {
 	public static void info(String daemon, CancelReservationDuccEvent request, CancelReservationReplyDuccEvent response) {
 		Properties qprops = request.getProperties();
 		String user = getProperty(qprops, ReservationRequestProperties.key_user);
+		String submitter = getProperty(qprops, JobRequestProperties.key_submitter_pid_at_host);
 		String type = request.getEventType().name();
 		String id = getProperty(qprops, ReservationRequestProperties.key_id);
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, ReservationReplyProperties.key_message);
-		Object[] event = { Labels.RESERVATION_ID+id, message };
+		Object[] event = { Labels.RESERVATION_ID+id, Labels.SUBMITTER+submitter, message };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -382,18 +387,19 @@ public class SystemEventsLogger {
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, ServiceReplyProperties.key_message, "");
 		String user = getProperty(properties, ServiceRequestProperties.key_user);
+		String submitter = getProperty(properties, JobRequestProperties.key_submitter_pid_at_host);
 		//
 		String type = getType(request);
 		if(isTypeManagedReservation(type)) {
 			String id = getProperty(properties, ServiceRequestProperties.key_id);
-			Object[] event = { Labels.MANAGED_RESERVATION_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, message };
+			Object[] event = { Labels.MANAGED_RESERVATION_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
 			duccLogger.event_info(daemon, user, type, event);
 		}
 		else {
 			String id = getProperty(properties, ServiceRequestProperties.key_service_id);
 			String instance = getProperty(properties, ServiceRequestProperties.key_id);
 			String name = getProperty(properties, ServiceRequestProperties.key_service_request_endpoint);
-			Object[] event = { Labels.SERVICE_ID+id, Labels.INSTANCE_ID+instance, Labels.NAME+name, Labels.CLASS+sclass, Labels.SIZE+size, message };
+			Object[] event = { Labels.SERVICE_ID+id, Labels.INSTANCE_ID+instance, Labels.NAME+name, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
 			duccLogger.event_info(daemon, user, type, event);
 		}
 	}
@@ -406,18 +412,19 @@ public class SystemEventsLogger {
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, ReservationReplyProperties.key_message);
 		String user = properties.getProperty(ServiceRequestProperties.key_user);
+		String submitter = getProperty(properties, JobRequestProperties.key_submitter_pid_at_host);
 		//
 		String type = getType(request);
 		if(isTypeManagedReservation(type)) {
 			String id = properties.getProperty(ServiceRequestProperties.key_id);
-			Object[] event = { Labels.MANAGED_RESERVATION_ID+id, message };
+			Object[] event = { Labels.MANAGED_RESERVATION_ID+id, Labels.SUBMITTER+submitter, message };
 			duccLogger.event_info(daemon, user, type, event);
 		}
 		else {
 			String id = getProperty(properties, ServiceRequestProperties.key_service_id);
 			String instance = properties.getProperty(ServiceRequestProperties.key_id);
 			String name = getProperty(properties, ServiceRequestProperties.key_service_request_endpoint);
-			Object[] event = { Labels.SERVICE_ID+id, Labels.INSTANCE_ID+instance, Labels.NAME+name, message };
+			Object[] event = { Labels.SERVICE_ID+id, Labels.INSTANCE_ID+instance, Labels.NAME+name, Labels.SUBMITTER+submitter, message };
 			duccLogger.event_info(daemon, user, type, event);
 		}
 	}
