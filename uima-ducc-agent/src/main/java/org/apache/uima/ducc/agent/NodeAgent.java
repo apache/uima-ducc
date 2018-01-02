@@ -74,6 +74,8 @@ import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent;
+import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent.LifecycleEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessStateUpdateDuccEvent;
@@ -95,7 +97,7 @@ import org.apache.uima.ducc.transport.event.common.TimeWindow;
 
 public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLifecycleObserver {
   public static DuccLogger logger = DuccLogger.getLogger(NodeAgent.class, COMPONENT_NAME);
-
+  private static DuccId jobid = null;
   //  Replaced by duplicate in org.apache.uima.ducc.transport.agent.ProcessStateUpdate
   //public static final String ProcessStateUpdatePort = "ducc.agent.process.state.update.port";
 
@@ -220,6 +222,82 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	  return retVal;
   }
 
+  /*
+   * Report process lifecycle events on same channel that inventory is reported
+   */
+  public DuccEventDispatcher getProcessLifecycleReportDispatcher() {
+	  return inventoryDispatcher;
+  }
+  
+  /*
+   * Send process lifecycle event to interested listeners
+   */
+  private void sendProcessLifecycleEventReport(IDuccProcess process, LifecycleEvent lifecycleEvent) {
+	  String location = "sendProcessLifecycleEventReport";
+	  try {
+		  NodeIdentity nodeIdentity = getIdentity();
+		  AgentProcessLifecycleReportDuccEvent duccEvent = new AgentProcessLifecycleReportDuccEvent(process, nodeIdentity, lifecycleEvent);
+		  DuccEventDispatcher dispatcher = getProcessLifecycleReportDispatcher();
+		  dispatcher.dispatch(duccEvent);
+		  StringBuffer sb = new StringBuffer();
+		  sb.append("id:"+process.getDuccId().toString()+" ");
+		  sb.append("lifecycleEvent:"+lifecycleEvent.name()+" ");
+		  String args = sb.toString().trim();
+		  logger.info(location, jobid, args);
+	  }
+	  catch(Exception e) {
+		  logger.error(location, jobid, e);
+	  }
+  }
+  
+  /*
+   * Add ManagedProcess to map and send lifecycle event
+   */
+  private void processDeploy(ManagedProcess mp) {
+	  String location = "processDeploy";
+	  if(mp != null) {
+		  if(deployedProcesses.contains(mp)) {
+			  String args = "mp:"+mp.getProcessId();
+			  logger.error(location, jobid, args);
+		  }
+		  else {
+			  String args = "mp:"+mp.getProcessId();
+			  logger.debug(location, jobid, args);
+			  deployedProcesses.add(mp);
+			  IDuccProcess process = mp.getDuccProcess();
+			  sendProcessLifecycleEventReport(process,LifecycleEvent.Launch);
+		  }
+	  }
+	  else {
+		  String args = "mp:"+mp;
+		  logger.error(location, jobid, args);
+	  }
+  }
+  
+  /*
+   * Remove ManagedProcess from map and send lifecycle event
+   */
+  private void processUndeploy(ManagedProcess mp) {
+	  String location = "processUndeploy";
+	  if(mp != null) {
+		  if(!deployedProcesses.contains(mp)) {
+			  String args = "mp:"+mp.getProcessId();
+			  logger.error(location, jobid, args);
+		  }
+		  else {
+			  String args = "mp:"+mp.getProcessId();
+			  logger.debug(location, jobid, args);
+			  deployedProcesses.remove(mp);
+			  IDuccProcess process = mp.getDuccProcess();
+			  sendProcessLifecycleEventReport(process,LifecycleEvent.Terminate);
+		  }
+	  }
+	  else {
+		  String args = "mp:"+mp;
+		  logger.error(location, jobid, args);
+	  }
+  }
+  
   /**
    * C'tor for dependecy injection
    *
@@ -1000,7 +1078,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       // Find ManagedProcess instance the DuccProcess instance is
       // associated with
       if (deployedProcess.getDuccProcess().getDuccId().equals(process.getDuccId())) {
-        deployedProcesses.remove(deployedProcess);
+    	processUndeploy(deployedProcess);
         break;
       }
     }
@@ -1326,9 +1404,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           // used to correlate message
           // exchanges
           // between the agent and launched process
-          deployedProcesses.add(launcher.launchProcess(this, getIdentity(), process, commandLine,
-                  this, managedProcess));
-
+          
+          ManagedProcess deployedProcess = launcher.launchProcess(this, getIdentity(), process, commandLine, this, managedProcess);
+          processDeploy(deployedProcess);
         } catch (Exception e) {
           logger.error(methodName, null, e);
         }
@@ -1565,8 +1643,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 + " Not in Agent's inventory. Adding to the inventory with state=Stopped");
         process.setProcessState(ProcessState.Stopped);
         inventory.put(process.getDuccId(), process);
-        deployedProcesses.add(new ManagedProcess(process, null, this, logger,
-                new ProcessMemoryAssignment()));
+        ManagedProcess deployedProcess = new ManagedProcess(process, null, this, logger, new ProcessMemoryAssignment());
+        processDeploy(deployedProcess);
       }
     }
   }
@@ -1637,7 +1715,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           if (deployedProcessRef != null) {
             logger.debug(methodName, null,
                     "----------------- Removing Stopped Process from Deployed List");
-            deployedProcesses.remove(deployedProcessRef);
+            processUndeploy(deployedProcessRef);
             logger.debug(methodName, null,
                     "----------------- Deployed Process List Size After Remove:"
                             + deployedProcesses.size());

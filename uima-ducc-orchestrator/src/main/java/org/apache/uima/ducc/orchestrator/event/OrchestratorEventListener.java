@@ -29,6 +29,7 @@ import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.system.events.log.SystemEventsLogger;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.AServiceRequest;
+import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
@@ -203,7 +204,17 @@ public class OrchestratorEventListener implements DuccEventDelegateListener {
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
+	public void onAgentProcessLifecycleReportDuccEvent(@Body AgentProcessLifecycleReportDuccEvent duccEvent) throws Exception {
+		String methodName = "onAgentProcessLifecycleReportDuccEvent";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		try {
+			orchestrator.reconcileAgentProcessLifecycleReport(duccEvent);
+		}
+		catch(Throwable t) {
+			logger.error(methodName, null, t);
+		}
+		logger.trace(methodName, null, messages.fetch("exit"));
+	}
 	private SmChannel smChannel = null;
 	
 	public void initSmChannel(CamelContext context, String endpoint) {

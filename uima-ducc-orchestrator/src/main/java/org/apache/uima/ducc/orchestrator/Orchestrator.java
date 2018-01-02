@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
+import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
@@ -39,6 +40,7 @@ public interface Orchestrator {
 	public void reconcileSmHeartbeat(SmHeartbeatDuccEvent duccEvent);
 	public void reconcileJdState(JdRequestEvent duccEvent);
 	public void reconcileNodeInventory(NodeInventoryUpdateDuccEvent duccEvent);
+	public void reconcileAgentProcessLifecycleReport(AgentProcessLifecycleReportDuccEvent duccEvent);
 	public OrchestratorStateDuccEvent getState();
 	public void startJob(SubmitJobDuccEvent duccEvent);
 	public void stopJob(CancelJobDuccEvent duccEvent);

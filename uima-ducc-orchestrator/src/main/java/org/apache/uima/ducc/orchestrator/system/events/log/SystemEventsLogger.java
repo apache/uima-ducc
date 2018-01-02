@@ -26,8 +26,10 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.AServiceRequest;
+import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent.LifecycleEvent;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelJobReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
@@ -50,18 +52,51 @@ import org.apache.uima.ducc.transport.event.cli.ReservationReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
-import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
+import org.apache.uima.ducc.transport.event.common.IRationale;
 
 public class SystemEventsLogger {
 
 	private static DuccLogger duccLogger = getEventLogger(SystemEventsLogger.class.getName());
 	private static DuccId jobid = null;
+	
+	/*
+	 * For consistent labeling
+	 */
+	private enum Labels {
+		JOB_ID("jid"),
+		RESERVATION_ID("rid"),
+		SERVICE_ID("sid"),
+		INSTANCE_ID("iid"),
+		MANAGED_RESERVATION_ID("mid"),
+		OTHER_ID("oid"),
+		//
+		CLASS("class"),
+		CONTEXT("context"),
+		EVENT("event"),
+		NAME("name"),
+		NODE("node"),
+		RC("rc"),
+		RESPONSE("response"),
+		SIZE("size"),
+		TOD("tod"),
+		TYPE("type"),
+		;
+		public String abbrv = null;
+		private Labels(String abbreviation) {
+			abbrv = abbreviation+": ";
+		}
+		public String toString() {
+			return abbrv;
+		}
+	}
 	
 	static public DuccLogger makeLogger(String claz, String componentId) {
         return DuccLogger.getLogger(claz, componentId);
@@ -177,10 +212,10 @@ public class SystemEventsLogger {
 	private static String getType(SubmitServiceDuccEvent request) {
 		String location = "getType.SubmitServiceDuccEvent";
 		String type = request.getEventType().name();
-		duccLogger.debug(location, jobid, "type:"+type);
+		duccLogger.debug(location, jobid, Labels.TYPE+type);
 		DuccContext context = request.getContext();
 		if(context != null) {
-			duccLogger.debug(location, jobid, "context:"+context.toString());
+			duccLogger.debug(location, jobid, Labels.CONTEXT+""+context);
 			switch(context) {
 			case ManagedReservation:
 				type = DuccEvent.EventType.SUBMIT_MANAGED_RESERVATION.toString();
@@ -255,7 +290,7 @@ public class SystemEventsLogger {
 		String size = getProperty(qprops, JobRequestProperties.key_process_memory_size);
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, JobReplyProperties.key_message, "");
-		Object[] event = { "id:"+id, "class:"+sclass, "size:"+size, message };
+		Object[] event = { Labels.JOB_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, message };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -269,7 +304,7 @@ public class SystemEventsLogger {
 		String id = getProperty(qprops, JobRequestProperties.key_id);
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, JobReplyProperties.key_message);
-		Object[] event = { "id:"+id, message };
+		Object[] event = { Labels.JOB_ID+id, message };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -286,7 +321,7 @@ public class SystemEventsLogger {
 		if(completionRationale != null) {
 			rationale = completionRationale.getText();
 		}
-		Object[] event = { "id:"+id,reason,rationale };
+		Object[] event = { Labels.JOB_ID+id,reason,rationale };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -302,7 +337,7 @@ public class SystemEventsLogger {
 		String size = getProperty(qprops, ReservationRequestProperties.key_memory_size);
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, ReservationReplyProperties.key_message, "");
-		Object[] event = { "id:"+id, "class:"+sclass, "size:"+size, message };
+		Object[] event = { Labels.RESERVATION_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, message };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -316,7 +351,7 @@ public class SystemEventsLogger {
 		String id = getProperty(qprops, ReservationRequestProperties.key_id);
 		Properties rprops = response.getProperties();
 		String message = getProperty(rprops, ReservationReplyProperties.key_message);
-		Object[] event = { "id:"+id, message };
+		Object[] event = { Labels.RESERVATION_ID+id, message };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -333,7 +368,7 @@ public class SystemEventsLogger {
 		if(completionRationale != null) {
 			rationale = completionRationale.getText();
 		}
-		Object[] event = { "id:"+id,reason,rationale };
+		Object[] event = { Labels.RESERVATION_ID+id,reason,rationale };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -351,14 +386,14 @@ public class SystemEventsLogger {
 		String type = getType(request);
 		if(isTypeManagedReservation(type)) {
 			String id = getProperty(properties, ServiceRequestProperties.key_id);
-			Object[] event = { "id:"+id, "class:"+sclass, "size:"+size, message };
+			Object[] event = { Labels.MANAGED_RESERVATION_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, message };
 			duccLogger.event_info(daemon, user, type, event);
 		}
 		else {
 			String id = getProperty(properties, ServiceRequestProperties.key_service_id);
 			String instance = getProperty(properties, ServiceRequestProperties.key_id);
 			String name = getProperty(properties, ServiceRequestProperties.key_service_request_endpoint);
-			Object[] event = { "id:"+id, "instance:"+instance, "name:"+name, "class:"+sclass, "size:"+size, message };
+			Object[] event = { Labels.SERVICE_ID+id, Labels.INSTANCE_ID+instance, Labels.NAME+name, Labels.CLASS+sclass, Labels.SIZE+size, message };
 			duccLogger.event_info(daemon, user, type, event);
 		}
 	}
@@ -375,14 +410,14 @@ public class SystemEventsLogger {
 		String type = getType(request);
 		if(isTypeManagedReservation(type)) {
 			String id = properties.getProperty(ServiceRequestProperties.key_id);
-			Object[] event = { "id:"+id, message };
+			Object[] event = { Labels.MANAGED_RESERVATION_ID+id, message };
 			duccLogger.event_info(daemon, user, type, event);
 		}
 		else {
 			String id = getProperty(properties, ServiceRequestProperties.key_service_id);
 			String instance = properties.getProperty(ServiceRequestProperties.key_id);
 			String name = getProperty(properties, ServiceRequestProperties.key_service_request_endpoint);
-			Object[] event = { "id:"+id, "instance:"+instance, "name:"+name, message };
+			Object[] event = { Labels.SERVICE_ID+id, Labels.INSTANCE_ID+instance, Labels.NAME+name, message };
 			duccLogger.event_info(daemon, user, type, event);
 		}
 	}
@@ -397,7 +432,7 @@ public class SystemEventsLogger {
 			String id = service.getId();
 			String reason = "";
 			String rationale = "";
-			Object[] event = { "id:"+id,reason,rationale };
+			Object[] event = { Labels.MANAGED_RESERVATION_ID+id,reason,rationale };
 			duccLogger.event_info(daemon, user, type, event);
 		}
 		else {
@@ -411,7 +446,7 @@ public class SystemEventsLogger {
 			//if(completionRationale != null) {
 			//	rationale = completionRationale.getText();
 			//}
-			Object[] event = { "id:"+id,"instance:"+instance,"name:"+name,reason,rationale };
+			Object[] event = { Labels.SERVICE_ID+id,Labels.INSTANCE_ID+instance,Labels.NAME+name,reason,rationale };
 			duccLogger.event_info(daemon, user, type, event);
 		}
 	}
@@ -433,10 +468,10 @@ public class SystemEventsLogger {
 	public static void info(String daemon, AServiceRequest request, ServiceReplyEvent response) {
 		String user = request.getUser();
 		String type = request.getEventType().name();
-		long id = response.getId();
+		String id = ""+response.getId();
 		boolean rc = response.getReturnCode();
 		String message = response.getMessage();
-		Object[] event = { "id:"+id, "rc:"+rc, message };
+		Object[] event = { Labels.SERVICE_ID+id, Labels.RC+""+rc, message };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -458,7 +493,7 @@ public class SystemEventsLogger {
 		String user = request.getUser();
 		String type = request.getClass().getSimpleName();
 		String message = normalize(response.getMessage());
-		Object[] event = { "response: "+message };
+		Object[] event = { Labels.RESPONSE+message };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -480,7 +515,101 @@ public class SystemEventsLogger {
 		String daemon = dde.getDaemon().getAbbrev();
 		String user = System.getProperty("user.name");
 		String type = dde.getEventType().name();
-		Object[] event = { "node: "+dde.getNodeIdentity().getName(), "tod: "+dde.getTod() };
+		Object[] event = { Labels.NODE+dde.getNodeIdentity().getName(), Labels.TOD+""+dde.getTod() };
 		duccLogger.event_info(daemon, user, type, event);
+	}
+	
+	/*
+	 * derived types
+	 */
+	public enum DerivedType {
+		JobDriver("JobDriver"), 
+		JobWorker("JobProcess"), 
+		ServiceWorker("ServiceInstance"), 
+		SingletonWorker("ManagedReservation"), 
+		Undefined("Undefined");
+		private String alias = null;
+		private DerivedType(String alias) {
+			setAlias(alias);
+		}
+		private void setAlias(String value) {
+			alias = value;
+		}
+		public String getAlias() {
+			return alias;
+		}
+	}
+	
+	/*
+	 * get derived type for given process
+	 */
+	private static DerivedType getDerivedType(DuccType dwType, ProcessType processType) {
+		DerivedType dt = DerivedType.Undefined;
+		if(dwType != null) {
+			if(processType != null) {
+				switch(dwType) {
+				case Job:
+					switch(processType) {
+					case Pop:
+						dt = DerivedType.JobDriver;
+						break;
+					default:
+						dt = DerivedType.JobWorker;
+						break;
+					}
+					break;
+				case Service:
+					switch(processType) {
+					case Pop:
+						dt = DerivedType.SingletonWorker;
+						break;
+					default:
+						dt = DerivedType.ServiceWorker;
+						break;
+					}
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		return dt;
+	}
+	
+	/*
+	 * log an agent process lifecycle event
+	 */
+	public static void info(IDuccWork dw, IDuccProcess process, String node, LifecycleEvent lifecycleEvent, ProcessType processType) {
+		String daemon = Daemon.Agent.getAbbrev();
+		String user = dw.getStandardInfo().getUser();
+		DuccType dwType = dw.getDuccType();
+		DerivedType dt = getDerivedType(dwType, processType);
+		String type = dt.getAlias();
+		String dwid = dw.getDuccId().toString();
+		String id = process.getDuccId().toString();
+		switch(dt) {
+		case JobDriver:
+		case JobWorker:
+			Object[] eventA = { Labels.JOB_ID+dwid, Labels.INSTANCE_ID+id, Labels.NODE+node, Labels.EVENT+lifecycleEvent.toString() };
+			duccLogger.event_info(daemon, user, type, eventA);
+			break;
+		case SingletonWorker:
+			Object[] eventB = { Labels.MANAGED_RESERVATION_ID+dwid, Labels.INSTANCE_ID+id, Labels.NODE+node, Labels.EVENT+lifecycleEvent.toString() };
+			duccLogger.event_info(daemon, user, type, eventB);
+			break;
+		case ServiceWorker:
+			IDuccWorkService service = (IDuccWorkService) dw;
+			id = service.getServiceId();
+			String instance = service.getId();
+			String name = service.getServiceEndpoint();
+			Object[] eventC = { Labels.SERVICE_ID+id, Labels.INSTANCE_ID+instance, Labels.NAME+name, Labels.NODE+node, Labels.EVENT+lifecycleEvent.toString() };
+			duccLogger.event_info(daemon, user, type, eventC);
+			break;
+		default:
+			// huh?
+			Object[] eventD = { Labels.OTHER_ID+dwid, Labels.INSTANCE_ID+id, Labels.NODE+node, Labels.EVENT+lifecycleEvent.toString() };
+			duccLogger.event_info(daemon, user, type, eventD);
+			break;
+		}
 	}
 }

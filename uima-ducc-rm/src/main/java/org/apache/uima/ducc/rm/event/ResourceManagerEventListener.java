@@ -20,13 +20,18 @@ package org.apache.uima.ducc.rm.event;
 
 import org.apache.camel.Body;
 import org.apache.uima.ducc.common.ANodeStability;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.rm.ResourceManager;
 import org.apache.uima.ducc.rm.scheduler.SchedConstants;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent;
+import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent.LifecycleEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 
 
@@ -92,6 +97,28 @@ public class ResourceManagerEventListener
     public void onNodeInventoryUpdateEvent(@Body NodeInventoryUpdateDuccEvent duccEvent) throws Exception {
     }
 
+    /*
+     * Ignore process lifecycle events
+     */
+    public void onAgentLifecycleManagement(@Body AgentProcessLifecycleReportDuccEvent duccEvent) throws Exception {
+    	String location = "onAgentLifecycleManagement";
+    	DuccId jobid = null;
+    	try {
+    		IDuccProcess process = duccEvent.getProcess();
+    		NodeIdentity ni = duccEvent.getNodeIdentity();
+    		LifecycleEvent lifecycleEvent = duccEvent.getLifecycleEvent();
+    		StringBuffer sb = new StringBuffer();
+    		sb.append("node:"+ni.getName()+" ");
+  		  	sb.append("id:"+process.getDuccId().toString()+" ");
+  		  	sb.append("lifecycleEvent:"+lifecycleEvent.name()+" ");
+  		  	String args = sb.toString().trim();
+  		  	logger.trace(location, jobid, args);
+    	}
+    	catch(Exception e) {
+    		logger.trace(location, jobid, e);
+    	}
+    }
+    
     /**
      * Receives {@code OrchestratorDuccEvent} events from transport.
      * 

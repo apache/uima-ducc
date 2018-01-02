@@ -60,6 +60,8 @@ import org.apache.uima.ducc.orchestrator.maintenance.MaintenanceThread;
 import org.apache.uima.ducc.orchestrator.maintenance.NodeAccounting;
 import org.apache.uima.ducc.orchestrator.system.events.log.SystemEventsLogger;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
+import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent;
+import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent.LifecycleEvent;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
@@ -90,6 +92,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.Reservati
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
@@ -499,6 +502,124 @@ implements Orchestrator {
 		NodeIdentity nodeIdentity = duccEvent.getNodeIdentity();
 		long seqNo = duccEvent.getSequence();
 		OrchestratorState.getInstance().setNextSequenceNumberStateIfGreater(nodeIdentity, seqNo);
+	}
+	
+	/*
+	 * Safely obtain Node from the arriving event
+	 */
+	private String getNode(AgentProcessLifecycleReportDuccEvent duccEvent) {
+		String node = "?";
+		NodeIdentity nodeIdentity = duccEvent.getNodeIdentity();
+		if(nodeIdentity != null) {
+			node = nodeIdentity.getName();
+		}
+		return node;
+	}
+	
+	/*
+	 * Safely obtain LifecycleEvent from the arriving event
+	 */
+	private LifecycleEvent getLifecycleEvent(AgentProcessLifecycleReportDuccEvent duccEvent) {
+		LifecycleEvent lifecycleEvent = duccEvent.getLifecycleEvent();
+		if(lifecycleEvent == null) {
+			lifecycleEvent = LifecycleEvent.Undefined;
+		}
+		return lifecycleEvent;
+	}
+	
+	/*
+	 * Safely obtain DuccId from the arriving event
+	 */
+	private DuccId getProcessDuccId(AgentProcessLifecycleReportDuccEvent duccEvent) {
+		DuccId duccid = null;
+		IDuccProcess process = duccEvent.getProcess();
+		if(process != null) {
+			duccid = process.getDuccId();
+		}
+		return duccid;
+	}
+	
+	/*
+	 * Safely obtain ProcessId from the arriving event
+	 */
+	private String getProcessId(AgentProcessLifecycleReportDuccEvent duccEvent) {
+		String id = null;
+		DuccId duccid = getProcessDuccId(duccEvent);
+		if(duccid != null) {
+			id = duccid.toString();
+		}
+		return id;
+	}
+	
+	/*
+	 * Safely obtain ProcessType from the arriving event
+	 */
+	private ProcessType getProcessType(AgentProcessLifecycleReportDuccEvent duccEvent) {
+		ProcessType processType = null;
+		IDuccProcess process = duccEvent.getProcess();
+		if(process != null) {
+			processType = process.getProcessType();
+		}
+		return processType;
+	}
+	
+	/*
+	 * Validate arriving agent's process lifecycle event and record to system events log
+	 */
+	@Override
+	public void reconcileAgentProcessLifecycleReport(AgentProcessLifecycleReportDuccEvent duccEvent) {
+		String location = "reconcileAgentProcessLifecycleReport";
+		StringBuffer sb = new StringBuffer();
+		String id = getProcessId(duccEvent);
+		String node = getNode(duccEvent);
+		LifecycleEvent lifecycleEvent = getLifecycleEvent(duccEvent);
+		ProcessType processType = getProcessType(duccEvent);
+		IDuccProcess process = duccEvent.getProcess();
+		DuccId processDuccId = getProcessDuccId(duccEvent);
+		if(process == null) {
+			sb.append("process:"+process+" ");
+			sb.append("node:"+node+" ");
+			sb.append("lifefcycleEvent:"+lifecycleEvent.name()+" ");
+			logger.error(location, jobid, sb.toString());
+		}
+		else if(id == null) {
+			sb.append("id:"+id+" ");
+			sb.append("node:"+node+" ");
+			sb.append("lifefcycleEvent:"+lifecycleEvent.name()+" ");
+			logger.error(location, jobid, sb.toString());
+		}
+		else if(node == null) {
+			sb.append("id:"+id+" ");
+			sb.append("node:"+node+" ");
+			sb.append("lifefcycleEvent:"+lifecycleEvent.name()+" ");
+			logger.error(location, jobid, sb.toString());
+		}
+		else if(lifecycleEvent == LifecycleEvent.Undefined) {
+			sb.append("id:"+id+" ");
+			sb.append("node:"+node+" ");
+			sb.append("lifefcycleEvent:"+lifecycleEvent.name()+" ");
+			logger.error(location, jobid, sb.toString());
+		}
+		else if(processType == null) {
+			sb.append("id:"+id+" ");
+			sb.append("node:"+node+" ");
+			sb.append("lifefcycleEvent:"+lifecycleEvent.name()+" ");
+			sb.append("processType:"+processType+" ");
+			logger.error(location, jobid, sb.toString());
+		}
+		else {
+			DuccId dwId = OrchestratorCommonArea.getInstance().getProcessAccounting().getJobId(processDuccId);
+			IDuccWork dw = workMap.findDuccWork(dwId);
+			DuccType dwType = dw.getDuccType();
+			sb.append("dwId:"+dwId+" ");
+			sb.append("dwType:"+dwType+" ");
+			sb.append("id:"+id+" ");
+			sb.append("node:"+node+" ");
+			sb.append("lifefcycleEvent:"+lifecycleEvent.name()+" ");
+			sb.append("processType:"+processType.name()+" ");
+			logger.debug(location, jobid, sb.toString());
+			SystemEventsLogger.info(dw, process, node, lifecycleEvent, processType);
+		}
 	}
 	
 	/**
