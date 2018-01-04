@@ -131,7 +131,7 @@ implements IWebServer {
 		this.eventDispatcher = eventDispatcher;
 	}
 	
-	public void setstateChangeEndpoint(String stateChangeEndpoint) {
+	public void setStateChangeEndpoint(String stateChangeEndpoint) {
 		this.stateChangeEndpoint = stateChangeEndpoint;
 	}
 	

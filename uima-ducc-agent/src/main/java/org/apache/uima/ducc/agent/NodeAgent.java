@@ -67,6 +67,7 @@ import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.IDuccId;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
@@ -76,6 +77,8 @@ import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent;
 import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent.LifecycleEvent;
+import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
+import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessStateUpdateDuccEvent;
@@ -131,7 +134,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   private DuccEventDispatcher commonProcessDispatcher;
 
-  private DuccEventDispatcher inventoryDispatcher;
+  private DuccEventDispatcher ORDispatcher;
 
   private Object monitor = new Object();
 
@@ -187,6 +190,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   //  from the PM. This flag is used to determine if the agent should use
   //  rogue process detector. The detector will be used if this flag is true.
   public volatile boolean receivedDuccState = false;
+  
+  private String stateChangeEndpoint;
+
+  public void setStateChangeEndpoint(String stateChangeEndpoint) {
+	this.stateChangeEndpoint = stateChangeEndpoint;
+  }
+  
   /**
    * Ctor used exclusively for black-box testing of this class.
    */
@@ -222,11 +232,28 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	  return retVal;
   }
 
+  /**
+   * Tell Orchestrator about state change for recording into system-events.log
+   */
+  private void stateChange(EventType eventType) {
+  	String methodName = "stateChange";
+      try {
+  		Daemon daemon = Daemon.Agent;
+  		NodeIdentity nodeIdentity = new NodeIdentity();
+      	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
+          ORDispatcher.dispatch(stateChangeEndpoint, ev, "");
+          logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+      }
+  	catch(Exception e) {
+  		logger.error(methodName, null, e);
+  	}
+  }
+  
   /*
    * Report process lifecycle events on same channel that inventory is reported
    */
   public DuccEventDispatcher getProcessLifecycleReportDispatcher() {
-	  return inventoryDispatcher;
+	  return ORDispatcher;
   }
   
   /*
@@ -321,7 +348,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     this.launcher = launcher;
     this.configurationFactory = factory;
     this.commonProcessDispatcher = factory.getCommonProcessDispatcher(context);
-    this.inventoryDispatcher = factory.getORDispatcher(context);
+    this.ORDispatcher = factory.getORDispatcher(context);
 
     // fetch Page Size from the OS and cache it
     pageSize = getOSPageSize();
@@ -600,6 +627,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     String key = "ducc.broker.url";
 	String value = System.getProperty(key);
 	logger.info(methodName, null, key+"="+value);
+	stateChange(EventType.BOOT);
   }
 
   public DuccEventDispatcher getEventDispatcherForRemoteProcess() {
@@ -1924,9 +1952,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	    HashMap<DuccId, IDuccProcess> emptyMap =
 	    		new HashMap<DuccId, IDuccProcess>();
 	    DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap,getLastORSequence(), getIdentity());
-	    inventoryDispatcher.dispatch(duccEvent);
+	    ORDispatcher.dispatch(duccEvent);
 	    logger.info("stop", null, "Agent published final inventory");
-
+	    stateChange(EventType.SHUTDOWN);
+	    
 	    configurationFactory.stopRoutes();
 
 	    logger.info("stop", null, "Agent stopping managed processes");

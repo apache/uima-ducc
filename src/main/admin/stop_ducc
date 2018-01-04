@@ -311,17 +311,26 @@ class StopDucc(DuccUtil):
         if ( quiesce ):
             self.quiesce_agents(components, nodes)
         else:
+            for (nf, nl) in nodes.items():
+                for n in nl:
+                    self.stop_agents(n, force)       
             host = self.localhost.split('.')[0]
             for c in components:
                 c = c.strip()
-                if(c in ('or','pm','rm','sm','ws')):
+                if(c in ('pm','rm','sm','ws')):
                     c = c+'@'+host
+                    self.stop_component(c, force) 
+            time.sleep(2)
+            for c in components:
+                c = c.strip()
+                if(c in ('or')):
+                    c = c+'@'+host
+                    self.stop_component(c, force) 
+            time.sleep(2)
+            for c in components:
+                c = c.strip()
                 if(c in ('db','broker')):
-                    time.sleep(2)
-                self.stop_component(c, force)    
-            for (nf, nl) in nodes.items():
-                for n in nl:
-                    self.stop_agents(n, force)            
+                    self.stop_component(c, force)         
 
         if ( read_pids ):
             if ( len(self.pids) > 0 ):

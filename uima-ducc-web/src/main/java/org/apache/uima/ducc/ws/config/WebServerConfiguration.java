@@ -153,7 +153,7 @@ public class WebServerConfiguration {
 				}
 			}
 			ws = new WebServerComponent(common.camelContext(), common);
-			ws.setstateChangeEndpoint(common.daemonsStateChangeEndpoint);
+			ws.setStateChangeEndpoint(common.daemonsStateChangeEndpoint);
 			DuccBoot.boot(common);
 			//	Instantiate delegate listener to receive incoming messages. 
 			WebServerEventListener delegateListener = this.webServerDelegateListener(ws);

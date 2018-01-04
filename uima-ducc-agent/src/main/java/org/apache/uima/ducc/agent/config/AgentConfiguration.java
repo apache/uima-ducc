@@ -454,6 +454,8 @@ public class AgentConfiguration {
       AgentEventListener delegateListener = agentDelegateListener(agent);
 
       agent.setAgentEventListener(delegateListener);
+      
+      agent.setStateChangeEndpoint(common.daemonsStateChangeEndpoint);
 
       // Create server to receive status update from APs. The JPs report their status
       // via a Camel Mina-based route. The APs report to a different port handled

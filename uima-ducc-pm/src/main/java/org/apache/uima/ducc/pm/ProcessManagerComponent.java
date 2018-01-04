@@ -74,7 +74,7 @@ implements ProcessManager {
   private int shareQuantum;
   private int fudgeFactor = 5; // default 5%
   
-  String stateChangeEndpoint;
+  private String stateChangeEndpoint;
   
 	public ProcessManagerComponent(CamelContext context, DuccEventDispatcher eventDispatcher) {
 		super("ProcessManager",context);
@@ -122,7 +122,7 @@ implements ProcessManager {
         super.stop();
 	}
 	
-	public void setstateChangeEndpoint(String stateChangeEndpoint) {
+	public void setStateChangeEndpoint(String stateChangeEndpoint) {
 		this.stateChangeEndpoint = stateChangeEndpoint;
 	}
 	

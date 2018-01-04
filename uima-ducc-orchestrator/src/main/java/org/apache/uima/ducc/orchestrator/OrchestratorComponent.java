@@ -150,7 +150,20 @@ implements Orchestrator {
 	}
 	
 	public void onDuccAdminKillEvent(DuccAdminEvent event) throws Exception {
+		String location = "onDuccAdminKillEvent";
 		OrchestratorCheckpoint.getInstance().saveState();
+		/*
+		 * OR sleeps a short while to allow other daemons to report
+		 * their shutdowns for recording into the system events log.
+		 */
+		try { 
+			long delay = 10*1000; // 10 seconds
+			logger.info(location, jobid, "delay:"+delay);
+		    Thread.sleep(delay);
+		} 
+		catch(InterruptedException e) {
+			logger.error(location, jobid, e);
+		}
 		SystemEventsLogger.warn(IDuccLoggerComponents.abbrv_orchestrator, EventType.SHUTDOWN.name(), "");
 		super.onDuccAdminKillEvent(event);
 	}

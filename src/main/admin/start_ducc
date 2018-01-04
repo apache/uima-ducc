@@ -359,6 +359,21 @@ class StartDucc(DuccUtil):
         print "Starting", n_nodes, "agents"        
         self.threadpool = ThreadPool(n_nodes + 5)      # a few more for the head processes
         self.pidlock = threading.Lock()
+        
+        #start 'or' first to field system log requests
+        if ( len(components) != 0 ):
+            for com in components:
+                if ( com in ('or') ):
+                    try:
+                        self.threadpool.invoke(self.start_component, ducc, com, or_parms)
+                        #self.start_component(ducc, com, or_parms)
+                    except:
+                        self.threadpool.quit()
+                        print sys.exc_info()[0], "DUCC may not be started correctly."
+                        sys.exit(1)
+                    # give 'or' a small head start
+                    time.sleep(2)
+                    
         for (nodefile, nodelist) in nodes.items():
             print '********** Starting agents from file', nodefile
             try:
@@ -373,7 +388,7 @@ class StartDucc(DuccUtil):
             print 'Starting', or_parms
 
             for com in components:
-                if ( com in ('broker', 'db') ):
+                if ( com in ('broker', 'db', 'or') ):
                     pass     # already started
                 else:
                     try:
