@@ -214,6 +214,19 @@ public class DuccMachinesData {
 				NodeId nodeId = entry.getKey();
 				IDbMachine dbMachine = getDbMachine(dbMapMachines, nodeId);
 				MachineInfo machineInfo = entry.getValue();
+				String dbName = null;
+				Integer dbMem = null;
+				if(dbMachine != null) {
+					dbName = dbMachine.getName();
+					dbMem = dbMachine.getMemory();
+				}
+				String miName = null;
+				String miMem = null;
+				if(machineInfo != null) {
+					miName = machineInfo.getName();
+					miMem = machineInfo.getMemReserve();
+				}
+				logger.trace(location, jobid, dbName, dbMem, miName, miMem);
 				determineStatus(machineInfo, dbMachine);
 				map.put(machineInfo, nodeId);
 				logger.debug(location, jobid, "put: "+nodeId);
@@ -269,6 +282,17 @@ public class DuccMachinesData {
 					String longName = name.trim();
 					if(longName.length() > 0) {
 						NodeId nodeId = new NodeId(longName);
+						MachineInfo prev = unsortedMachines.get(nodeId);
+						if(prev != null) {
+							String prevMemReserve = prev.getMemReserve();
+							if(prevMemReserve != null) {
+								// Use DB value set by RM fr
+								MachineInfo curr = machineInfo;
+								String currMemReserve = curr.getMemReserve();
+								logger.trace(location, jobid, name, currMemReserve, "->", prevMemReserve );
+								machineInfo.setMemReserve(prevMemReserve);
+							}
+						}
 						unsortedMachines.put(nodeId,machineInfo);
 						logger.trace(location, jobid, "add="+nodeId.toString()+","+machineInfo.getIp());
 						String shortName = longName.split("\\.")[0];
@@ -660,6 +684,7 @@ public class DuccMachinesData {
 				int reserve = quantum*dbMachine.getShareOrder();
 				int free = quantum*dbMachine.getSharesLeft();
 				mi.setMemReserve(""+reserve);
+				logger.trace(location, jobid, mi.getName(), mi.getMemReserve());
 				mi.setMemFree(""+free);
 				dbSortedMachines.put(mi, nodeId);
 			}
