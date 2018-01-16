@@ -85,6 +85,7 @@ import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
+import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandlerClassic extends DuccAbstractHandler {
@@ -113,6 +114,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	}
 	
 	private void buildJobsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWorkJob job, DuccData duccData, long now, ServicesRegistry servicesRegistry) {
+		EffectiveUser eu = EffectiveUser.create(request);
 		String id = normalize(duccId);
 		// Terminate
 		sb.append("<td valign=\"bottom\" class=\"ducc-col-terminate\">");
@@ -407,7 +409,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Error
 		sb.append("<td valign=\"bottom\" align=\"right\">");
-		sb.append(buildErrorLink(job));
+		sb.append(buildErrorLink(eu,job));
 		sb.append("</td>");
 		// Dispatch
 		sb.append("<td valign=\"bottom\" align=\"right\">");

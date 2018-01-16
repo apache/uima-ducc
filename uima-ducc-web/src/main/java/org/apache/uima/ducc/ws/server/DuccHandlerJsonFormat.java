@@ -146,6 +146,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	}
 	
 	private JsonArray buildJobRow(HttpServletRequest request, IDuccWorkJob job, DuccData duccData, long now, ServicesRegistry servicesRegistry) {
+		EffectiveUser eu = EffectiveUser.create(request);
 		JsonArray row = new JsonArray();
 		StringBuffer sb;
 		DuccId duccId = job.getDuccId();
@@ -467,7 +468,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		// Error
 		sb = new StringBuffer();
 		sb.append("<span>");
-		sb.append(buildErrorLink(job));
+		sb.append(buildErrorLink(eu,job));
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Dispatch

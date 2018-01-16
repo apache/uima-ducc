@@ -48,6 +48,7 @@ import org.apache.uima.ducc.ws.DuccMachinesDataHelper;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
+import org.apache.uima.ducc.ws.utils.UrlHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.LinuxSignals;
 import org.apache.uima.ducc.ws.utils.LinuxSignals.Signal;
@@ -994,5 +995,20 @@ public class Helper {
 			}
 		}
 		return sb.toString();
+	}
+	
+	public static String getFilePagerUrl(EffectiveUser eu, String file_name) {
+		AlienTextFile atf = new AlienTextFile(eu, file_name);
+		int pages = atf.getPageCount();
+		return getFilePagerUrl(file_name, pages);
+	}
+	
+	public static String duccFilePager = "/file.pager.html";
+	
+	public static String getFilePagerUrl(String file_name, int pages) {
+		String encoded_file_name = UrlHelper.encode(file_name);
+		String parms = "?"+"fname="+encoded_file_name+"&"+"pages="+pages;
+		String url=duccFilePager+parms;
+		return url;
 	}
 }

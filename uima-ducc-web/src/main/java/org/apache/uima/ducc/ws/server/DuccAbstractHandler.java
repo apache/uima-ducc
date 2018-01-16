@@ -61,6 +61,7 @@ import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
 import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
+import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
@@ -82,7 +83,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public final String duccContext = "/ducc-servlet";
 
 	public final String duccLogData			  = duccContext+"/log-data";
-	public final String duccFilePager 		  = "/file.pager.html";
 
 	public final String duccJpInitSummary	  = duccContext+"/uima-initialization-report-summary";
 	public final String duccJpInitData		  = duccContext+"/uima-initialization-report-data";
@@ -781,11 +781,11 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 
-	public String buildErrorLink(IDuccWorkJob job) {
-		return(buildErrorLink(job,null));
+	public String buildErrorLink(EffectiveUser eu, IDuccWorkJob job) {
+		return(buildErrorLink(eu,job,null));
 	}
 
-	public String buildErrorLink(IDuccWorkJob job, String name) {
+	public String buildErrorLink(EffectiveUser eu, IDuccWorkJob job, String name) {
 		String retVal = job.getSchedulingInfo().getWorkItemsError();
 		if(!retVal.equals("0")) {
 			String errorCount = retVal;
@@ -794,7 +794,10 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			}
 			String logsjobdir = job.getUserLogDir();
 			String logfile = "jd.err.log";
-			String href = "<a href=\""+duccFilePager+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+name+"</a>";
+			String file_name= logsjobdir+logfile;
+			String _window_file_pager = "_window_file_pager";
+			String url = Helper.getFilePagerUrl(eu, file_name);
+			String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+name+"</a>";
 			retVal = href;
 		}
 		return retVal;

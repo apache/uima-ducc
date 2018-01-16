@@ -108,7 +108,6 @@ import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.apache.uima.ducc.ws.utils.HandlersHelper.DataAccessPermission;
-import org.apache.uima.ducc.ws.utils.UrlHelper;
 import org.apache.uima.ducc.ws.utils.alien.AlienWorkItemStateReader;
 import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 import org.apache.uima.ducc.ws.utils.alien.FileInfo;
@@ -646,19 +645,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		return sb.toString();
 	}
 
-	private String getFilePagerUrl(EffectiveUser eu, String file_name) {
-		AlienTextFile atf = new AlienTextFile(eu, file_name);
-		int pages = atf.getPageCount();
-		return getFilePagerUrl(file_name, pages);
-	}
-
-	private String getFilePagerUrl(String file_name, int pages) {
-		String encoded_file_name = UrlHelper.encode(file_name);
-		String parms = "?"+"fname="+encoded_file_name+"&"+"pages="+pages;
-		String url=duccFilePager+parms;
-		return url;
-	}
-
 	String pname_idJob = "idJob";
 	String pname_idPro = "idPro";
 
@@ -687,7 +673,7 @@ public class DuccHandler extends DuccAbstractHandler {
 
 		String file_name = logsjobdir+logfile;
 
-		String url = getFilePagerUrl(eu, file_name);
+		String url = Helper.getFilePagerUrl(eu, file_name);
 		String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
 		String tr = trGet(counter);
 		rb.append(tr);
@@ -1023,7 +1009,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				index = 0;
 				// Log
 				index = 1;
-				String jd_url = getFilePagerUrl(eu, logsjobdir+errfile);
+				String jd_url = Helper.getFilePagerUrl(eu, logsjobdir+errfile);
 				String href2 = "<a href=\""+jd_url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
 				cbList[index] = new StringBuffer();
 				cbList[index].append("<td>");
@@ -1802,7 +1788,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					*/
 					// name
 					row.append("<td>");
-					String url = getFilePagerUrl(eu, fileInfo.getName());
+					String url = Helper.getFilePagerUrl(eu, fileInfo.getName());
 					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
@@ -1862,7 +1848,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					*/
 					// name
 					row.append("<td>");
-					String url = getFilePagerUrl(eu, fileInfo.getName());
+					String url = Helper.getFilePagerUrl(eu, fileInfo.getName());
 					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
@@ -1915,7 +1901,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					row.append("</td>");
 					// name
 					row.append("<td>");
-					String url = getFilePagerUrl(eu, fileInfo.getName());
+					String url = Helper.getFilePagerUrl(eu, fileInfo.getName());
 					String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 					row.append(href);
 					row.append("</td>");
@@ -2052,7 +2038,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				// name
 				row.append("<td>");
 
-				String url = getFilePagerUrl(fileInfo.getName(), fileInfo.getPageCount());
+				String url = Helper.getFilePagerUrl(fileInfo.getName(), fileInfo.getPageCount());
 				String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+fileInfo.getShortName()+"</a>";
 				row.append(href);
 				row.append("</td>");
@@ -2144,7 +2130,7 @@ public class DuccHandler extends DuccAbstractHandler {
 								link = logfile+":"+reason;
 							}
 						}
-						String url = getFilePagerUrl(eu, logsjobdir+logfile);
+						String url = Helper.getFilePagerUrl(eu, logsjobdir+logfile);
 						String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
 						data.append(href);
 					}
@@ -2194,7 +2180,7 @@ public class DuccHandler extends DuccAbstractHandler {
 								link = logfile+":"+reason;
 							}
 						}
-						String url = getFilePagerUrl(eu, logsjobdir+logfile);
+						String url = Helper.getFilePagerUrl(eu, logsjobdir+logfile);
 						String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'"+_window_file_pager+"','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
 						data.append(href);
 					}
