@@ -56,6 +56,11 @@ public class HttpWorkerThread implements Runnable {
     		new ConcurrentHashMap<String, IMetaCasTransaction>();
     static AtomicInteger maxFrameworkFailures;
     private int maxFrameworkErrors = 2;   // default
+    // define what happens to this jvm when process() method fails.
+    // The default is to call exit() but user may override this and
+    // keep on running.
+    private final boolean exitOnProcessFailure;
+    
 	public HttpWorkerThread(JobProcessComponent component, DuccHttpClient httpClient,
 			Object processorInstance, CountDownLatch workerThreadCount,
 			CountDownLatch threadReadyCount, Map<String, IMetaCasTransaction> transactionMap,
@@ -68,6 +73,16 @@ public class HttpWorkerThread implements Runnable {
 		this.transactionMap = transactionMap;
 		HttpWorkerThread.maxFrameworkFailures = maxFrameworkFailures;
 		maxFrameworkErrors = maxFrameworkFailures.get();
+		String exitProperty = System.getProperty("ExitOnProcessFailure");
+		if ( exitProperty == null || exitProperty.trim().toLowerCase().equals("true")) {
+			exitOnProcessFailure = true;
+		} else  {
+			if ( exitProperty.trim().toLowerCase().equals("false") ) {
+				exitOnProcessFailure = false;
+			} else {
+				throw new IllegalArgumentException("Invalid value for property ExitOnProcessFailure. Should be [true/false] but is "+exitProperty);
+			}
+		}
 	}   
 
 	public IMetaCasTransaction getWork(HttpPost postMethod, int major, int minor) throws Exception {
@@ -383,7 +398,7 @@ public class HttpWorkerThread implements Runnable {
                     		
                     	}
 	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" sent END for WI:"+wid);
-	                    if ( workItemFailed ) {
+	                    if ( exitOnProcessFailure && workItemFailed ) {
 	                        if ( wid != null ) {
 		                    	logger.warn("run", null, "Worker thread exiting due to error while processing WI:"+wid);
 	                        } else {
