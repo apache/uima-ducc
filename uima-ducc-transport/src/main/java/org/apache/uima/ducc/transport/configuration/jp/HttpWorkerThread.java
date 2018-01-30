@@ -74,10 +74,10 @@ public class HttpWorkerThread implements Runnable {
 		HttpWorkerThread.maxFrameworkFailures = maxFrameworkFailures;
 		maxFrameworkErrors = maxFrameworkFailures.get();
 		String exitProperty = System.getProperty("ExitOnProcessFailure");
-		if ( exitProperty == null || exitProperty.trim().toLowerCase().equals("true")) {
+		if ( exitProperty == null || exitProperty.trim().equalsIgnoreCase("true")) {
 			exitOnProcessFailure = true;
 		} else  {
-			if ( exitProperty.trim().toLowerCase().equals("false") ) {
+			if ( exitProperty.trim().equalsIgnoreCase("false") ) {
 				exitOnProcessFailure = false;
 			} else {
 				throw new IllegalArgumentException("Invalid value for property ExitOnProcessFailure. Should be [true/false] but is "+exitProperty);
