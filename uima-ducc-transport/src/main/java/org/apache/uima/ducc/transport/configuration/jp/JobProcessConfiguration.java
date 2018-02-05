@@ -196,13 +196,19 @@ public class JobProcessConfiguration {
 				agentSocketParams = "?"
 						+ common.managedProcessStateUpdateEndpointParams;
 			}
+			boolean disableAgentUpdates = false;
 			// set up agent socket endpoint where this UIMA AS service will send
 			// state updates
-			// If not is system properties try envirobment
+			// If not is system properties try environment
 			if (common.managedProcessStateUpdateEndpointType != null
 					&& common.managedProcessStateUpdateEndpointType
 							.equalsIgnoreCase("socket")) {
 			  String updatePort = System.getenv(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value());
+			  // if agent did not launch this process, the DUCC_UPDATE_PORT will not be present
+			  // In such case, don't send updates
+			  if ( updatePort == null || updatePort.trim().isEmpty()) {
+				  disableAgentUpdates = true;
+			  }
 				common.managedProcessStateUpdateEndpoint = AGENT_ENDPOINT	+ updatePort + agentSocketParams;
 			}
 			// set up a socket endpoint where the UIMA AS service will receive
@@ -236,7 +242,9 @@ public class JobProcessConfiguration {
 			agent = new AgentSession(eventDispatcher,
 					processId,
 					common.managedServiceEndpoint);
-
+			if ( disableAgentUpdates ) {
+				agent.disable(disableAgentUpdates);
+			}
 			System.out
 					.println("#######################################################");
 			System.out.println("## Agent Service State Update Endpoint:"

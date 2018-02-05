@@ -57,6 +57,8 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 	
 	private volatile boolean log = true;  
 	
+	private volatile boolean disabled = false;
+	
 	/**
 	 * JMS based adapter C'tor
 	 * 
@@ -68,10 +70,16 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 		this.duccProcessId = duccProcessId;
 		this.endpoint = endpoint;
 	}
+	public void disable(boolean trueOrFalse) {
+		this.disabled = trueOrFalse;
+	}
 	public void notify(ProcessState state) {
 		notify(state, null);
 	}
 	public void notify(ProcessState state, String message) {
+		if ( disabled ) {
+			return; // the agent update port is not available
+		}
 	  synchronized( stateLock ) {
 	    this.state = state;
 	    if ( pid == null ) {
@@ -84,7 +92,6 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 	    } else {
 	      processUpdate = new ProcessStateUpdate(state, pid, duccProcessId,message, null);
 	    }
-	    //System.out.println("................. >>> ProcessStateUpdate==NULL?"+(processUpdate==null)+" JmxUrl="+processJmxUrl);
 	    if (endpoint != null ) {
 	      processUpdate.setSocketEndpoint(endpoint);
 	    }
@@ -97,6 +104,10 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 	 * 
 	 */
 	public void notify(ProcessStateUpdate state) {
+		if ( disabled ) {
+			return; // the agent update port is not available
+		}
+
 		if ( stopped || (state.getState().equals(ProcessState.Stopping)&& state.getMessage() == null  )) {
 			return;
 		}
@@ -120,7 +131,11 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 		}
 	}
 	public void notify(boolean forceUpdate, List<IUimaPipelineAEComponent> pipeline) {
-	   synchronized( stateLock ) {
+		if ( disabled ) {
+			return; // the agent update port is not available
+		}
+
+		synchronized( stateLock ) {
 	     //  Only send update if the AE is initializing
 	     if ( forceUpdate || state.equals(ProcessState.Initializing)) {
 	       try {
