@@ -162,8 +162,7 @@ public class ServiceComponent extends AbstractDuccComponent implements
 			Method deployMethod = processorInstance.getClass().getSuperclass()
 					.getDeclaredMethod("deploy");
 			deployMethod.invoke(processorInstance);
-			System.out
-					.println(".... Deployed Processing Container - Initialization Successful - Thread "
+			getLogger().info("start", null,".... Deployed Processing Container - Initialization Successful - Thread "
 							+ Thread.currentThread().getId());
 
 			// if initialization was successful, tell the agent that the JP is
@@ -184,7 +183,7 @@ public class ServiceComponent extends AbstractDuccComponent implements
 			}
 			
 		} catch (Exception ee) {
-			ee.printStackTrace();
+			getLogger().error("start", null,ee);
 			currentState = ProcessState.FailedInitialization;
 			getLogger()
 					.info("start", null,
@@ -212,7 +211,7 @@ public class ServiceComponent extends AbstractDuccComponent implements
 			return; // already stopping - nothing to do
 		}
 
-		System.out.println("... ServiceComponent - Stopping Service Adapter");
+		getLogger().info("stop", null, "... ServiceComponent - Stopping Service Adapter");
 		try {
 			exitLatch.countDown();   // count down the exit latch so this process can exit
 			// Stop executor. It was only needed to poll AE initialization
@@ -230,7 +229,7 @@ public class ServiceComponent extends AbstractDuccComponent implements
 				agent.stop();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			getLogger().error("stop", null, e);
 		} finally {
 
 			try {

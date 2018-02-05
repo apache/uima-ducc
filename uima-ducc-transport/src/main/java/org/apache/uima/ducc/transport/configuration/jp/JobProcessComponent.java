@@ -93,11 +93,6 @@ implements IJobProcessor{
 		}
 		try {
 			stateLock.lock();
-/*
-			if ( currentState.name().equals(ProcessState.FailedInitialization.name()) ) {
-				return;
-			}
-	*/
 			if ( message == null ) {
 				message = super.getProcessJmxUrl();
 			}
@@ -304,7 +299,6 @@ implements IJobProcessor{
 				// initialize http client's timeout
 				//httpClient.setTimeout(timeout);
 				
-				System.out.println("JMX Connect String:"+ processJmxUrl);
 		    	getLogger().info("start", null, "Starting "+scaleout+" Process Threads - JMX Connect String:"+ processJmxUrl);
 				
 		    	// Create and start worker threads that pull Work Items from the JD
@@ -331,14 +325,15 @@ implements IJobProcessor{
 						monitor.updateAgentWhenRunning();  // force final publication
 						executor.shutdown();
 					} catch( Exception ee) {
-						ee.printStackTrace();
+						logger.error("start", null,ee);
 					}
 				}
 				for( Future<?> future : threadHandles ) {
 					future.get();   // wait for each worker thread to exit run()
 				}
 		    } catch( Exception ee) {
-		    	ee.printStackTrace();
+	
+		    	logger.error("start", null,ee);
 		    	getLogger().info("start", null, ">>> Failed to Deploy UIMA Service. Check UIMA Log for Details");
 /*
 		    	currentState = ProcessState.FailedInitialization;
@@ -391,16 +386,13 @@ implements IJobProcessor{
 			agent.notify(currentState);
 			*/
 			setState(ProcessState.FailedInitialization);
-			e.printStackTrace();
+
+			logger.error("start", null,e);
 			stop();
 		} 
 
 	}
-/*	
-	public void setRunning() {
-		currentState = ProcessState.Running;
-	}
-	*/
+
 	public boolean isRunning() {
 		stateLock.lock();
 		try {
@@ -434,12 +426,6 @@ implements IJobProcessor{
 	}
 	public void stop() {
 		setState(ProcessState.Stopping);
-		/*
-		currentState = ProcessState.Stopping;
-		if ( agent != null ) {
-			agent.notify(currentState);
-		}
-		*/
 		if ( super.isStopping() ) {
 			return;  // already stopping - nothing to do
 		}
@@ -449,7 +435,7 @@ implements IJobProcessor{
 	        	// block until all worker threads exit run()
 	        	workerThreadCount.await();
 	    	}
-		System.out.println("... JobProcessComponent - All Worker Threads Exited run()");
+		    logger.info("stop",null,"... JobProcessComponent - All Worker Threads Exited run()");
 			// Stop executor. It was only needed to poll AE initialization status.
 			// Since deploy() completed
 			// the UIMA AS service either succeeded initializing or it failed. In
@@ -469,7 +455,7 @@ implements IJobProcessor{
             	httpClient.stop();
         	}
 	    } catch( Exception e) {
-	    	e.printStackTrace();
+	    	logger.error("stop",null,e);
 	    } finally {
 	    	try {
 		    	super.stop();

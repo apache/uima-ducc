@@ -121,7 +121,6 @@ public class HttpWorkerThread implements Runnable {
 	        }
 		} catch( SocketTimeoutException e) {
 			logger.warn("run", null, "Timed Out While Awaiting Response from JD for "+command+" Request - Retrying ...");
-			System.out.println("Time Out While Waiting For a Reply from JD For "+command+" Request");
 		} 
     	return transaction;
 
@@ -154,7 +153,7 @@ public class HttpWorkerThread implements Runnable {
 			synchronized(HttpWorkerThread.class) {
 				Method deployMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("deploy");
 				deployMethod.invoke(processorInstance);
-				System.out.println(".... Deployed Processing Container - Initialization Successful - Thread "+Thread.currentThread().getId());
+				logger.info("HttpWorkerThread.run()", null,".... Deployed Processing Container - Initialization Successful - Thread "+Thread.currentThread().getId());
 			}
 
 			// each thread needs its own PostMethod
@@ -168,7 +167,7 @@ public class HttpWorkerThread implements Runnable {
 	   			duccComponent.setState(ProcessState.FailedInitialization);
 			}
 	   		logger.error("HttpWorkerThread.run()", null, t);
-	   		System.out.println("EXITING WorkThread ID:"
+	   		logger.info("HttpWorkerThread.run()", null,"EXITING WorkThread ID:"
 					+ Thread.currentThread().getId());
 	   		logger.warn("HttpWorkerThread.run()", null, "The Job Process Terminating Due To Initialization Error");
 			/* *****************************************/
@@ -446,12 +445,9 @@ public class HttpWorkerThread implements Runnable {
 					return;
 				} catch (Exception e ) {
 					logger.error("run", null, e);
-					e.printStackTrace();
 					// If max framework error count has been reached 
 					// just exit the process
 					if ( maxFrameworkFailures.decrementAndGet() <= 0 ) {
-						System.out.println("Exiting Process Due to a Framework error");
-						System.out.flush();
 						logger.error("run", null, "The Job Process Terminating Due To a Framework Error");
 						Runtime.getRuntime().halt(-1);
 					}
@@ -462,12 +458,9 @@ public class HttpWorkerThread implements Runnable {
 			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
 			logger.error("run", null, t);
 		} finally {
 			logger.warn("run",null,"EXITING WorkThread ID:"
-					+ Thread.currentThread().getId());
-			System.out.println("EXITING WorkThread ID:"
 					+ Thread.currentThread().getId());
 		    try {
 		    	// Determine if the Worker thread has thread affinity to specific AE
@@ -483,7 +476,7 @@ public class HttpWorkerThread implements Runnable {
 					stopMethod.invoke(processorInstance);
 				}
 		   	} catch( Throwable t) {
-		   		t.printStackTrace();
+		   		logger.warn("run",null,t);
 		   	} finally {
 				workerThreadCount.countDown();
 		   	}

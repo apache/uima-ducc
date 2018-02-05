@@ -28,6 +28,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.container.FlagsHelper;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
@@ -42,6 +43,8 @@ import org.springframework.context.annotation.Import;
 @Import({ DuccTransportConfiguration.class, CommonConfiguration.class })
 public class ServiceConfiguration {
 	public static final String AGENT_ENDPOINT = "mina:tcp://localhost:";
+	protected static DuccLogger logger =
+			new DuccLogger(ServiceConfiguration.class);
 
 	@Autowired
 	DuccTransportConfiguration transport;
@@ -50,8 +53,6 @@ public class ServiceConfiguration {
 	ServiceComponent duccComponent = null;
 	CamelContext camelContext;
 	AgentSession agent = null;
-	// protected ProcessState currentState = ProcessState.Undefined;
-	// protected ProcessState previousState = ProcessState.Undefined;
 	RouteBuilder routeBuilder;
 	/**
 	 * Creates Camel Router to handle incoming messages
@@ -70,9 +71,6 @@ public class ServiceConfiguration {
 			Predicate filter = new DuccProcessFilter(thisNodeIP);
 
 			public void configure() throws Exception {
-				System.out
-						.println("Service Wrapper Starting Request Channel on Endpoint:"
-								+ common.managedServiceEndpoint);
 				onException(Exception.class).handled(true)
 						.process(new ErrorProcessor()).end();
 
@@ -91,50 +89,13 @@ public class ServiceConfiguration {
 			// the caused by exception is stored in a property on the exchange
 			Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT,
 					Throwable.class);
-			caused.printStackTrace();
+			logger.error("process", null, caused);
 		}
 	}
 
 
 	private void checkPrereqs() {
-/*
-		boolean uimaAsJob = false;
 
-		if (null == System.getProperty(FlagsHelper.Name.JpType.pname())) { // "Ducc.Job.Type")
-			throw new RuntimeException("Missing Job Type. Add -D"
-					+ FlagsHelper.Name.JpType.pname() + "=uima-as or "
-					+ FlagsHelper.Name.JpType.pname()
-					+ "=uima. Check your command line");
-		} else {
-			String jobType = System
-					.getProperty(FlagsHelper.Name.JpType.pname());
-			if (jobType.trim().equals("uima-as")) {
-				uimaAsJob = true;
-			} else if (!jobType.trim().equals("uima") && !jobType.trim().equals("custom")) {
-				throw new RuntimeException("Invalid value for -D"
-						+ FlagsHelper.Name.JpType.pname()
-						+ ". Expected uima-as,uima or custom, Instead it is "
-						+ jobType);
-			}
-		}
-
-		if (null == System.getProperty(FlagsHelper.Name.JpDuccClasspath.pname())) {
-			throw new RuntimeException("Missing the -D"
-					+ FlagsHelper.Name.JpDuccClasspath.pname() + "=XXXX property");
-		}
-		if (uimaAsJob && null == common.saxonJarPath) {
-			throw new RuntimeException(
-					"Missing saxon jar path. Check your ducc.properties");
-		}
-		if (uimaAsJob && null == common.dd2SpringXslPath) {
-			throw new RuntimeException(
-					"Missing dd2spring xsl path. Check your ducc.properties");
-		}
-		if (null == System.getProperty(FlagsHelper.Name.JdURL.pname())) {
-			throw new RuntimeException("Missing the -D"
-					+ FlagsHelper.Name.JdURL.pname() + " property");
-		}
-*/
 	}
 
 	public String getUserContainerClassForJob(String key) {
@@ -160,7 +121,6 @@ public class ServiceConfiguration {
 		try {
 			checkPrereqs();
 		} catch(Exception e) {
-			e.printStackTrace();
 			throw e;
 		}
 		try {
@@ -236,20 +196,11 @@ public class ServiceConfiguration {
 			if ( disableAgentUpdates ) {
 				agent.disable(disableAgentUpdates);
 			}
-			System.out
-					.println("#######################################################");
-			System.out.println("## Agent Service State Update Endpoint:"
-					+ common.managedProcessStateUpdateEndpoint + " ##");
-			System.out
-					.println("#######################################################");
-
 
 			duccComponent = new ServiceComponent("UimaProcess",
 					camelContext, this);
 
-			// jobProcessManager = new JobProcessManager();
 			duccComponent.setAgentSession(agent);
-			// duccComponent.setJobProcessManager(jobProcessManager);
 			duccComponent.setSaxonJarPath(common.saxonJarPath);
 			duccComponent.setDd2SpringXslPath(common.dd2SpringXslPath);
 
@@ -264,8 +215,8 @@ public class ServiceConfiguration {
 			return duccComponent;
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
+			logger.error("getServiceInstance",null,e);
+		    throw e;
 		}
 	}
 	private class DuccProcessFilter implements Predicate {
@@ -276,7 +227,6 @@ public class ServiceConfiguration {
 		}
 
 		public synchronized boolean matches(Exchange exchange) {
-			// String methodName="DuccProcessFilter.matches";
 			boolean result = false;
 			try {
 				String pid = (String) exchange.getIn().getHeader(
@@ -288,12 +238,9 @@ public class ServiceConfiguration {
 				// and the node match target process.
 				if (Utils.getPID().equals(pid) && thisNodeIP.equals(targetIP)) {
 					result = true;
-					System.out
-							.println(">>>>>>>>> Process Received a Message. Is Process target for message:"
-									+ result + ". Target PID:" + pid);
 				}
 			} catch (Throwable e) {
-				e.printStackTrace();
+				logger.error("matches",null,e);
 			}
 			return result;
 		}

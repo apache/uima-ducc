@@ -26,7 +26,6 @@ import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
-import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -44,54 +43,10 @@ public class JobProcessConfiguration {
 	JobProcessComponent duccComponent = null;
 	JobProcessManager jobProcessManager = null;
 	AgentSession agent = null;
-	// protected ProcessState currentState = ProcessState.Undefined;
-	// protected ProcessState previousState = ProcessState.Undefined;
 	RouteBuilder routeBuilder;
 	CamelContext camelContext;
 
-	/**
-	 * Creates Camel Router to handle incoming messages
-	 *
-	 * @param delegate
-	 *            - {@code AgentEventListener} to delegate messages to
-	 *
-	 * @return {@code RouteBuilder} instance
-	 */
-    /*
-	public synchronized RouteBuilder routeBuilderForIncomingRequests(
-			final String thisNodeIP, final JobProcessEventListener delegate) {
-		return new RouteBuilder() {
-			// Custom filter to select messages that are targeted for this
-			// process. Checks the Node IP in a message to determine if
-			// this process is the target.
-			Predicate filter = new DuccProcessFilter(thisNodeIP);
 
-			public void configure() throws Exception {
-				System.out
-						.println("Service Wrapper Starting Request Channel on Endpoint:"
-								+ common.managedServiceEndpoint);
-				onException(Exception.class).handled(true)
-						.process(new ErrorProcessor()).end();
-
-				from(common.managedServiceEndpoint)
-
-				.choice().when(filter).bean(delegate).end()
-						.setId(common.managedServiceEndpoint);
-
-			}
-		};
-	}
-
-	public class ErrorProcessor implements Processor {
-
-		public void process(Exchange exchange) throws Exception {
-			// the caused by exception is stored in a property on the exchange
-			Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT,
-					Throwable.class);
-			caused.printStackTrace();
-		}
-	}
-    */
 	private void checkPrereqs() {
 		boolean uimaAsJob = false;
 
@@ -155,7 +110,6 @@ public class JobProcessConfiguration {
 		try {
 			checkPrereqs();
 		} catch(Exception e) {
-			e.printStackTrace();
 			throw e;
 		}
 		try {
@@ -245,15 +199,11 @@ public class JobProcessConfiguration {
 			if ( disableAgentUpdates ) {
 				agent.disable(disableAgentUpdates);
 			}
-			System.out
-					.println("#######################################################");
-			System.out.println("## Agent Service State Update Endpoint:"
+			duccComponent.getLogger().info("getProcessManagerInstance", null,"#######################################################");
+			duccComponent.getLogger().info("getProcessManagerInstance", null,"## Agent Service State Update Endpoint:"
 					+ common.managedProcessStateUpdateEndpoint + " ##");
-			System.out
-					.println("#######################################################");
-			// jobProcessManager = new JobProcessManager();
+			duccComponent.getLogger().info("getProcessManagerInstance", null,"#######################################################");
 			duccComponent.setAgentSession(agent);
-			// duccComponent.setJobProcessManager(jobProcessManager);
 			duccComponent.setSaxonJarPath(common.saxonJarPath);
 			duccComponent.setDd2SpringXslPath(common.dd2SpringXslPath);
 			if ( common.processThreadSleepTime != null ) {
@@ -267,18 +217,9 @@ public class JobProcessConfiguration {
 			     "Overriding Default Process Request Timeout - New Timeout "+common.processRequestTimeout+" ms");
 			}
 
-			/*
-			JobProcessEventListener eventListener = new JobProcessEventListener(
-					duccComponent);
-			routeBuilder = this.routeBuilderForIncomingRequests(thisNodeIP,
-					eventListener);
-
-			camelContext.addRoutes(routeBuilder);
-			*/
 			return duccComponent;
 
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw e;
 		}
 	}

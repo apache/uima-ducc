@@ -282,7 +282,6 @@ public class DuccHttpClient {
                 if ( statusLine.getStatusCode() != 200) {
                     logger.error("execute", null, "Unable to Communicate with JD - Error:"+statusLine);
                     logger.error("execute", null, "Content causing error:"+content);
-                    System.out.println("Thread::"+Thread.currentThread().getId()+" ERRR::Content causing error:"+content);
                     throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+statusLine);
                 }
                 logger.debug("execute", null, "Thread:"+Thread.currentThread().getId()+" JD Reply Status:"+statusLine);
@@ -373,26 +372,16 @@ public class DuccHttpClient {
 			// do a POST instead of a GET.
 			transaction.setType(Type.Get);  // Tell JD you want a Work Item
 			//String command = Type.Get.name();
-	    	System.out.println("HttpWorkerThread.run() "+ "Thread Id:"+Thread.currentThread().getId()+" Requesting next WI from JD");;
 			// send a request to JD and wait for a reply
 	    	transaction = client.execute(transaction, postMethod);
 	        // The JD may not provide a Work Item to process.
 	    	if ( transaction.getMetaCas()!= null) {
-	    		System.out.println("run Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaCas().getSystemKey());
-				System.out.println("CAS:"+transaction.getMetaCas().getUserSpaceCas());
 	    		// Confirm receipt of the CAS. 
 				transaction.setType(Type.Ack);
 				//command = Type.Ack.name();
 				tid = new TransactionId(seq.incrementAndGet(), minor++);
 				transaction.setTransactionId(tid);
-				System.out.println("run  Thread:"+Thread.currentThread().getId()+" Sending ACK request - WI:"+transaction.getMetaCas().getSystemKey());
 				transaction = client.execute(transaction, postMethod); 
-				if ( transaction.getMetaCas() == null) {
-					// this can be the case when a JD receives ACK late 
-					System.out.println("run Thread:"+Thread.currentThread().getId()+" ACK reply recv'd, however there is no MetaCas. The JD Cancelled the transaction");
-				} else {
-					System.out.println("run Thread:"+Thread.currentThread().getId()+" ACK reply recv'd");
-				}
 
 	        }
 			transaction.setType(Type.End);
@@ -405,7 +394,6 @@ public class DuccHttpClient {
 			metricsWrapper.set(Arrays.asList(new Properties()));
 			transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
 			
-			System.out.println("run  Thread:"+Thread.currentThread().getId()+" Sending END request - WI:"+transaction.getMetaCas().getSystemKey());
 			transaction = client.execute(transaction, postMethod); 
 
 			

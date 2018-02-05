@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.transport.configuration.jp;
 
-//import org.apache.uima.ducc.agent.deploy.ManagedService;
 import org.apache.camel.Body;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.ProcessStopDuccEvent;

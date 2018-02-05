@@ -54,7 +54,7 @@ public class ProcessStateDispatcher {
    		    } catch( NumberFormatException nfe) {
     		}
     	}
-    	System.out.println("Service Connecting Socket to Host:"+host.getHostName()+" Port:"+statusUpdatePort);
+    	//System.out.println("Service Connecting Socket to Host:"+host.getHostName()+" Port:"+statusUpdatePort);
     	String localhost=null;
     	//establish socket connection to an agent where this process will report its state
         return new Socket(localhost, statusUpdatePort);
@@ -74,7 +74,7 @@ public class ProcessStateDispatcher {
             out = new DataOutputStream(socket.getOutputStream());
             out.writeUTF(sb.toString());
             out.flush();
-            System.out.println("Sent new State:"+state);
+            //System.out.println("Sent new State:"+state);
     	} catch( Exception e) {
     		throw e;
     	} finally {

@@ -45,8 +45,8 @@ public class UimaServiceThreadFactory implements ThreadFactory {
   
   private final int poolId = poolIdGenerator.incrementAndGet();
   
-  public UimaServiceThreadFactory(ThreadGroup tGroup) { //, BaseUIMAAsynchronousEngine_impl uimaASClient) {
-    
+  public UimaServiceThreadFactory(ThreadGroup tGroup) { 
+	  
     theThreadGroup = tGroup;
     }
   
