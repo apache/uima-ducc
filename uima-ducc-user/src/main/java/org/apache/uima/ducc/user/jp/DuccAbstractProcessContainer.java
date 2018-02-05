@@ -263,6 +263,11 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     protected void sendStateUpdate(String state) throws Exception {
     	DataOutputStream out = null;
     	Socket socket=null;
+    	// if this process is not launched by an agent, the update port will be missing
+    	// Dont send updates.
+    	if ( System.getenv("DUCC_STATE_UPDATE_PORT") == null ) {
+    		return;
+    	}
     	try {
 
     		StringBuilder sb =
