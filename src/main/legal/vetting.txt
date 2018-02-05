@@ -19,7 +19,9 @@
 
 This readme includes notes related to DUCC NOTICE and LICENSE files.
 
-15/12/2016 Updated with UIMA-AS 2.9.0 which includes new UIMA SDK 2.9.0 
+01/03/2017 Updated with jna-4.2.2 to support OS-based login to WS.
+
+12/15/2016 Updated with UIMA-AS 2.9.0 which includes new UIMA SDK 2.9.0 
            and ActiveMQ 5.14.0. There were no new images added nor
            new jars for the webserver.
 
