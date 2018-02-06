@@ -155,7 +155,7 @@ public class DuccService extends AbstractDuccComponent {
         //	property file can be overriden with -D<key>=<value>
 		loadProperties(DUCC_PROPERTY_FILE);
 
-		getLogger().info("boot",null,System.getProperties());
+		getLogger().trace("boot",null,System.getProperties());
 		//	Extract component configuration classes available in System properties
 		Class<?>[] configClasses = getComponentsToLoad();
 		//	Configure via Spring DI using named Spring's Java Config magic.
