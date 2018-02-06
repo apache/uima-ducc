@@ -113,7 +113,7 @@ public class DuccService extends AbstractDuccComponent {
 	 */
 	private void exitIfInvalid( String componentName, String classToVerify, String reason) {
 		if ( classToVerify == null || classToVerify.trim().length() == 0) {
-			System.out.println("Unable to start Component: "+componentName+". Missing "+reason+".\nUsage: java -DServiceConfigurationClass=<Configuration.class> ...");
+			getLogger().error("exitIfInvalid", null,"Unable to start Component: "+componentName+". Missing "+reason+".\nUsage: java -DServiceConfigurationClass=<Configuration.class> ...");
 			System.exit(-1);
 		}
 	}
@@ -155,7 +155,7 @@ public class DuccService extends AbstractDuccComponent {
         //	property file can be overriden with -D<key>=<value>
 		loadProperties(DUCC_PROPERTY_FILE);
 
-		System.out.println(System.getProperties());
+		getLogger().info("boot",null,System.getProperties());
 		//	Extract component configuration classes available in System properties
 		Class<?>[] configClasses = getComponentsToLoad();
 		//	Configure via Spring DI using named Spring's Java Config magic.
@@ -180,7 +180,7 @@ public class DuccService extends AbstractDuccComponent {
 				getDuccLogger().info(methodName, null, "... Component started: ", duccComponent.getKey());
 			}
 		}
-		System.out.println("Starting Camel. Use ctrl + c to terminate the JVM.\n");
+		getDuccLogger().info(methodName, null,"Starting Camel. Use ctrl + c to terminate the JVM.\n");
         // run until you terminate the JVM
         getDuccLogger().info(methodName, null, "Starting Camel. Use ctrl + c to terminate the JVM.\n");
         main.start();
@@ -272,7 +272,7 @@ public class DuccService extends AbstractDuccComponent {
 	private static void setLoggerComponent() {
 		String deployFlag = "ducc.deploy.components";
 		String myType = System.getProperty(deployFlag);
-		System.out.println("myType:"+myType+".");
+		//System.out.println("myType:"+myType+".");
 		if(myType != null) {
 			if(myType.equals("ws")) {
 				DuccLogger.setDaemonComponent(IDuccLoggerComponents.abbrv_webServer);
@@ -340,7 +340,7 @@ public class DuccService extends AbstractDuccComponent {
             Logger logger = (Logger) loggers.nextElement();
             if ( logger.getName().equals(clz)) {
                 logger.setLevel(Level.toLevel(level));
-                System.out.println("---------Set New Log Level:"+level+" For Logger:"+clz);
+                //System.out.println("---------Set New Log Level:"+level+" For Logger:"+clz);
             }
         }
     }

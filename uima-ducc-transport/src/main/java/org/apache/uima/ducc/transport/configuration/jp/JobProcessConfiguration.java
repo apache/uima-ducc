@@ -198,11 +198,12 @@ public class JobProcessConfiguration {
 					common.managedServiceEndpoint);
 			if ( disableAgentUpdates ) {
 				agent.disable(disableAgentUpdates);
+			} else {
+				duccComponent.getLogger().info("getProcessManagerInstance", null,"#######################################################");
+				duccComponent.getLogger().info("getProcessManagerInstance", null,"## Agent Service State Update Endpoint:"
+						+ common.managedProcessStateUpdateEndpoint + " ##");
+				duccComponent.getLogger().info("getProcessManagerInstance", null,"#######################################################");
 			}
-			duccComponent.getLogger().info("getProcessManagerInstance", null,"#######################################################");
-			duccComponent.getLogger().info("getProcessManagerInstance", null,"## Agent Service State Update Endpoint:"
-					+ common.managedProcessStateUpdateEndpoint + " ##");
-			duccComponent.getLogger().info("getProcessManagerInstance", null,"#######################################################");
 			duccComponent.setAgentSession(agent);
 			duccComponent.setSaxonJarPath(common.saxonJarPath);
 			duccComponent.setDd2SpringXslPath(common.dd2SpringXslPath);

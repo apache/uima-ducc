@@ -98,7 +98,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 	    analysisEngineDescriptor = ArgsParser.getArg("-aed", args);
 	    if (analysisEngineDescriptor == null || !new File(analysisEngineDescriptor).canRead()) {
 	      analysisEngineDescriptor = buildDeployable();
-	      System.out.println("Created descriptor: "+analysisEngineDescriptor);
+	      //System.out.println("Created descriptor: "+analysisEngineDescriptor);
 	    }
 	    String threadCount = ArgsParser.getArg("-t", args);  // Will be null if ducc.deploy.JpThreadCount is undefined
 	    scaleout = threadCount==null ? 1 : Integer.valueOf(threadCount);   // Default to 1
@@ -112,7 +112,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 
 	public void doDeploy() throws Exception {
 	
-		System.out.println("....... UimaProcessContainer.doDeploy()");
+		//System.out.println("....... UimaProcessContainer.doDeploy()");
 		ResourceSpecifier rSpecifier = null;
 	    HashMap<String,Object> paramsMap = 
 				new HashMap<String,Object>();
@@ -153,7 +153,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 			latch.countDown();
 			Logger logger = UIMAFramework.getLogger();
 			logger.log(Level.WARNING, "UimaProcessContainer", e);
-			e.printStackTrace();
+			//e.printStackTrace();
 			throw new RuntimeException(e);
 
 		} finally {
@@ -169,7 +169,8 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 				ae.destroy();
 			}
 		} catch( Exception e) {
-	        e.printStackTrace();		
+			Logger logger = UIMAFramework.getLogger();
+			logger.log(Level.WARNING, "doStop", e);
 		} finally {
 		}
 	}

@@ -95,7 +95,8 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		System.setProperty(queuePropertyName, endpointName);
 		String jobType = System.getProperty("ducc.deploy.JpType");
 		if ( "uima-as".equals(jobType)) {
-			System.out.println("UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
+			Logger logger = UIMAFramework.getLogger();
+			logger.log(Level.INFO,"UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
         }
 		// enable performance breakdown reporting when support is added in the next UIMA AS release after 2.6.0
 		// (assumes the fix will be after the current 2.6.1-SNAPSHOT level)
@@ -136,8 +137,8 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 				// below code runs once to create broker, uima-as client and
 				// uima-as service
 				if ( brokerInstance == null ) {
-
-					System.out.println("UIMA-AS Version::"+UimaAsVersion.getFullVersionString());
+					Logger logger = UIMAFramework.getLogger();
+					logger.log(Level.INFO, "UIMA-AS Version::"+UimaAsVersion.getFullVersionString());
 					// isolate broker by loading it in its own Class Loader
 					// Sets the brokerInstance
 					deployBroker(duccHome);
@@ -160,7 +161,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			} catch ( Throwable e) {
 				Logger logger = UIMAFramework.getLogger();
 				logger.log(Level.WARNING, "UimaProcessContainer", e);
-				e.printStackTrace();
+				//e.printStackTrace();
 				throw new RuntimeException(e);
 
 			} finally {
@@ -188,7 +189,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 
 			classToLaunch = ucl.loadClass("org.apache.activemq.broker.BrokerService");
 			if (System.getProperty("ducc.debug") != null) {
-				System.out.println("Classpath for the internal broker");
+				//System.out.println("Classpath for the internal broker");
 				DuccJobService.dump(ucl, 4);
 			}
 			brokerInstance = classToLaunch.newInstance();
@@ -263,17 +264,19 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		try {
 			synchronized(UimaASProcessContainer.class) {
 				if ( brokerRunning ) {
-					System.out.println("Stopping UIMA_AS Client");
+					Logger logger = UIMAFramework.getLogger();
+					logger.log(Level.INFO,"Stopping UIMA_AS Client");
 					try {
 						// Prevent UIMA-AS from exiting
 						System.setProperty("dontKill", "true");
 						uimaASClient.stop();
 
 					} catch (Exception e) {
-						e.printStackTrace();
+						//logger.log(Level.SEVERE,e);
+						logger.log(Level.WARNING, "doStop", e);
 					}
 
-					System.out.println("Stopping Broker");
+					//System.out.println("Stopping Broker");
 
 					Method stopMethod = classToLaunch.getMethod("stop");
 					stopMethod.invoke(brokerInstance);
@@ -438,7 +441,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		try {
 			// use UIMA-AS client to deploy the service using provided
 			// Deployment Descriptor
-		System.out.println("---------------- BROKER URL:::"+System.getProperty(brokerPropertyName));
+		//System.out.println("---------------- BROKER URL:::"+System.getProperty(brokerPropertyName));
         ClassLoader duccCl = Thread.currentThread().getContextClassLoader();
 		ClassLoader cl = this.getClass().getClassLoader();
 		Thread.currentThread().setContextClassLoader(cl);
@@ -560,9 +563,9 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		}
 
 		public void onUimaAsServiceExit(EventTrigger cause) {
-			System.out
-					.println("runTest: Received onUimaAsServiceExit() Notification With Cause:"
-							+ cause.name());
+			//System.out
+			//		.println("runTest: Received onUimaAsServiceExit() Notification With Cause:"
+			//				+ cause.name());
 		}
 
 		public synchronized void entityProcessComplete(CAS aCAS,
