@@ -133,7 +133,6 @@ public abstract class AbstractDuccComponent implements DuccComponent,
       public void process(Exchange exchange) throws Exception {
           // the caused by exception is stored in a property on the exchange
           Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
-          caused.printStackTrace();
           logger.error("ErrorProcessor.process()", null, caused);
           
       }
@@ -565,10 +564,6 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             logger.info(methodName, null, "Component cleanup completed - terminating process");
 
         } catch (Exception e) {
-            // It's a sensitive time, let's emit twice just for luck
-            System.out.println("----------------------------------------------------------------------------------------------------");
-            e.printStackTrace();
-            System.out.println("----------------------------------------------------------------------------------------------------");
             logger.error(methodName, null, e);
         }
         
@@ -590,11 +585,12 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
 
   public void handleUncaughtException(Exception e) {
-    e.printStackTrace();
+    logger.error("handleUncaughtException", null,"Unexpected Java Exception");
+    logger.error("handleUncaughtException", null, e);
   }
   public void handleUncaughtException(Error e) {
-    e.printStackTrace();
-   	System.out.println("Unexpected Java Error - Terminating Process via Runtime halt");
+    logger.error("handleUncaughtException", null,"Unexpected Java Error - Terminating Process via Runtime halt");
+    logger.error("handleUncaughtException", null,e);
    	Runtime.getRuntime().halt(2);
   }
 
@@ -617,19 +613,11 @@ public abstract class AbstractDuccComponent implements DuccComponent,
           rmiRegistryPort = tmp;
         } catch (NumberFormatException nfe) {
           // default to 2099
-        	nfe.printStackTrace();
+        	logger.error("startJmxAgent", null,nfe);
         }
       }
       boolean done = false;
       JMXServiceURL url = null;
-      /*
-      String jmxAccess = "local";
-      String hostname = "localhost";
-      if ( (jmxAccess = System.getProperty("ducc.jmx.access") ) != null && jmxAccess.equals("remote") ) {
-         hostname = InetAddress.getLocalHost().getHostName();
-      }
-      RMIServerSocketFactory serverFactory = new RMIServerSocketFactoryImpl(InetAddress.getByName(hostname));
-      */
       // retry until a valid rmi port is found
       while (!done) {
         	try {
@@ -651,15 +639,6 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             String s = String.format("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname,
                     rmiRegistryPort);
             url = new JMXServiceURL(s);
-            /*
-            Map<String,Object> env = new HashMap<>();
-            env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, serverFactory);
-
-            RMIConnectorServer rmiServer = new RMIConnectorServer( new JMXServiceURL(url.toString()),
-               env, ManagementFactory.getPlatformMBeanServer() );
-
-            rmiServer.start();
-             */
             jmxConnector = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);
             jmxConnector.start();
         } catch (Exception e) {
@@ -674,11 +653,11 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   }
 
   public void cleanup(Throwable e) {
-    e.printStackTrace();
+    logger.error("cleanup", null, e);
   }
 
   public void uncaughtException(final Thread t, final Throwable e) {
-    e.printStackTrace();
+    logger.error("uncaughtException", null, "Unhandled Error Reported by Thread (ID):"+t.getId()+" Error:"+e);
     System.exit(1);
   }
 
@@ -741,7 +720,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             duccProcess.stop();
         }
       } catch (Exception e) {
-        e.printStackTrace();
+    	  logger.error("start", null, e);
       }
     }
   }
@@ -762,7 +741,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
         Runtime.getRuntime().halt(-1);
         
       } catch (Exception e) {
-        e.printStackTrace();
+    	  logger.error("KillerThreadTask.run()", null, e);
       }
     }
   }
