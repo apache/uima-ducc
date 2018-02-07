@@ -486,10 +486,38 @@ public abstract class CliBase
      * will result in specification written to filesystem, 
      * otherwise not.  Orchestrator writes specifications to DB.
      */
-    private boolean isSavable() {
+    private boolean isSaveSpecification() {
     	boolean retVal = false;
     	String savespec = System.getenv("DUCC_SAVE_SPECIFICATION");
     	if ( savespec != null ) {
+    		retVal = true;
+    	}
+    	return retVal;
+    }
+    
+    /*
+     * If DB is disabled, then save specification to filesystem
+     */
+    private boolean isDbDisabled() {
+    	boolean retVal = false;
+    	String dbHost = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_database_host, "?");
+    	if(dbHost.equals(DuccPropertiesResolver.ducc_database_disabled)) {
+    		retVal = true;
+    	}
+    	return retVal;
+    }
+    
+    /*
+     * Save specification to filesystem if:
+     * 1. User requested or
+     * 2. DB is disabled
+     */
+    private boolean isSavable() {
+    	boolean retVal = false;
+    	if(isSaveSpecification()) {
+    		retVal = true;
+    	}
+    	else if(isDbDisabled()) {
     		retVal = true;
     	}
     	return retVal;

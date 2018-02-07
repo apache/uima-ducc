@@ -25,6 +25,7 @@ import org.apache.uima.ducc.common.persistence.or.IDbDuccWorks;
 import org.apache.uima.ducc.common.persistence.or.ITypedProperties;
 import org.apache.uima.ducc.common.persistence.or.TypedProperties;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 import com.datastax.driver.core.ResultSet;
@@ -54,6 +55,17 @@ public class DbDuccWorks implements IDbDuccWorks {
 	public DbDuccWorks(DuccLogger duccLogger) throws Exception {
 		init(duccLogger);
 	}
+	
+	private String messageDbDisabled = "db disabled";
+	private String dbHost = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_database_host, "?");
+    
+	private boolean isDbDisabled() {
+    	boolean retVal = false;
+    	if(dbHost.equals(DuccPropertiesResolver.ducc_database_disabled)) {
+    		retVal = true;
+    	}
+    	return retVal;
+    }
 	
 	/*
 	 * connect to DB
@@ -108,6 +120,10 @@ public class DbDuccWorks implements IDbDuccWorks {
 	 */
 	public void dbInit() throws Exception {
 		String location = "dbInit";
+		if(isDbDisabled()) {
+			logger.debug(location, jobid, messageDbDisabled);
+			return;
+		}
 		try {
 			List<SimpleStatement>specificationsSchema = mkSchema();
 			DbHandle h = dbManager.open();
@@ -127,7 +143,12 @@ public class DbDuccWorks implements IDbDuccWorks {
 	 */
 	@Override
 	public void init(DuccLogger duccLogger) throws Exception {
+		 String location = "init";
 		 this.logger = duccLogger;
+		 if(isDbDisabled()) {
+			 logger.debug(location, jobid, messageDbDisabled);
+			 return;
+		 }
 	     String dbUrl = System.getProperty(DbManager.URL_PROPERTY);
 	     init(dbUrl);
 	}
@@ -142,6 +163,10 @@ public class DbDuccWorks implements IDbDuccWorks {
 	public void upsertSpecification(String type, long id, ITypedProperties properties) throws Exception {
 		String location = "upsertSpecification";
 		String gsonString = null;
+		if(isDbDisabled()) {
+			logger.debug(location, jobid, messageDbDisabled);
+			return;
+		}
 		try {
 			gsonString = gson.toJson(properties);
 			String table = DUCC_WORKS_TABLE;
@@ -168,6 +193,10 @@ public class DbDuccWorks implements IDbDuccWorks {
 	public ITypedProperties fetchSpecification(String type, long id) throws Exception {
 		String location = "fetchSpecification";
 		ITypedProperties properties = null;
+		if(isDbDisabled()) {
+			logger.debug(location, jobid, messageDbDisabled);
+			return properties;
+		}
 		try {
 			String table = DUCC_WORKS_TABLE;
 			String c1 = COL_TYPE+"="+"'"+type+"'";
