@@ -51,12 +51,13 @@ import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.TransactionId;
-import org.apache.uima.ducc.container.sd.ConfigurationProperties;
 import org.apache.uima.ducc.container.sd.ServiceRegistry;
 import org.apache.uima.ducc.container.sd.ServiceRegistry_impl;
-import org.apache.uima.ducc.container.sd.iface.ServiceDriver;
 
 public class DuccHttpClient {
+  private final static String REGISTERED_DRIVER = "ducc.deploy.service.driver";
+  private final static String SERVICE_TYPE      = "ducc.deploy.service.type";
+  
 	private DuccLogger logger = new DuccLogger(DuccHttpClient.class);
 	private JobProcessComponent duccComponent;
 	private BasicConnPool connPool = null;
@@ -73,7 +74,6 @@ public class DuccHttpClient {
 	private int ClientMaxConnectionsPerHostPort = 0;
   private ServiceRegistry registry = null;
   private String taskServerName;
-  private Properties config = null;
 	
   public DuccHttpClient(JobProcessComponent duccComponent) {
     this.duccComponent = duccComponent;
@@ -97,23 +97,30 @@ public class DuccHttpClient {
 	  return address;
 	}
 	
+	// If the client URL has been provided use it (JD/JP case)
+	// Otherwise look it up in the registry using the entry in -Dducc.deploy.service.driver
+	// which must specify: <registry-location>?<registry-entry>
 	public void initialize(String jdUrl) throws Exception {
 
 	  // If not specified get the url from the registry
 	  if (jdUrl == null || jdUrl.isEmpty()) {
-	    config = ConfigurationProperties.getProperties();    // Holds registry details AND service.type
-	    String registryLocn = config.getProperty(ServiceDriver.Registry);
-	    taskServerName = config.getProperty(ServiceDriver.Application);
-	    if (registryLocn != null && taskServerName != null) {
-	      registry = ServiceRegistry_impl.getInstance();
-	      if (!registry.initialize(registryLocn)) {
-	        registry = null;
+	    String registryAddr = null;
+	    String registryUri = System.getProperty(REGISTERED_DRIVER);
+	    if (registryUri != null) {
+	      String[] parts = registryUri.split("\\?", 2);
+	      if (parts.length == 2) {
+	        registryAddr = parts[0];
+	        taskServerName = parts[1];
 	      }
-	    } 
-	    if (registry == null) {
-	      throw new RuntimeException("Failed to connect to registry at "+registryLocn+" to locate server "+taskServerName);
 	    }
-	    logger.info("initialize", null, "Using registry at", registryLocn, "to locate server", taskServerName);
+	    if (registryAddr == null) {
+	      throw new RuntimeException("Missing or invalid system property " + REGISTERED_DRIVER + ": " + registryUri);
+      }
+	    registry = ServiceRegistry_impl.getInstance();
+	    if (!registry.initialize(registryAddr)) {
+	      throw new RuntimeException("Failed to connect to registry at "+registryAddr+" to locate server "+taskServerName);
+	    }
+	    logger.info("initialize", null, "Using registry at", registryAddr, "to locate server", taskServerName);
 	    jdUrl = getJdUrl();
 	  }
 	  this.jdUrl = jdUrl;
@@ -205,9 +212,9 @@ public class DuccHttpClient {
 		return nn;
 	}
 	private String getProcessName() {
-	  String pn = System.getenv(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS.value());
-	  if (config != null && config.containsKey("service.type")) {
-	    pn = config.getProperty("service.type");  // Indicates the type of service request
+	  String pn = System.getProperty(SERVICE_TYPE);  // Indicates the type of service request
+	  if (pn == null) {   // JP's use the ID set by the agent
+	    pn = System.getenv(IDuccUser.EnvironmentVariable.DUCC_ID_PROCESS.value());
 	  }
 		return pn;
 	}

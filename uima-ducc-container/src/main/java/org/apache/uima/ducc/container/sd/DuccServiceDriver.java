@@ -90,7 +90,7 @@ public class DuccServiceDriver implements ServiceDriver {
 			protocolHandler.stop();
 		}
 	}
-	public void initialize(Properties properties) throws DriverException {
+	public String initialize(Properties properties) throws DriverException {
 		if ( TransportType.HTTP.equals(transportType)) {
 			transport = 
 					Transports.newHttpTransport();
@@ -101,10 +101,7 @@ public class DuccServiceDriver implements ServiceDriver {
 				protocolHandler.initialize(properties);
 				logger.log(Level.INFO, "Initializing transport ...");
 				transport.setTaskProtocolHandler(protocolHandler);
-				transport.initialize(properties);
-				
-				start();
-			
+				return transport.initialize(properties);
 			} catch( TaskProtocolException e) {
 				throw new DriverException(e);
 			} catch( TaskTransportException e) {
@@ -113,6 +110,7 @@ public class DuccServiceDriver implements ServiceDriver {
 				throw new DriverException(e);
 			}
 		}
+    return null;
 	}
 	public void test() throws Exception {
 		AtomicInteger IdGenerator =
@@ -160,7 +158,7 @@ public class DuccServiceDriver implements ServiceDriver {
 			ServiceDriver driver = DuccServiceDriver.getInstance();
 			driver.setTaskAllocator(taskAllocator);
 			driver.initialize(properties);
-			//driver.start();
+			driver.start();
 		//	((DuccServiceDriver)driver).test();
 				
 		} catch( Exception e) {

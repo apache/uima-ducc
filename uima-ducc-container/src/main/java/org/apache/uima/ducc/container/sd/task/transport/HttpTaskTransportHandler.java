@@ -32,8 +32,6 @@ import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
-import org.apache.uima.ducc.container.sd.ServiceRegistry;
-import org.apache.uima.ducc.container.sd.ServiceRegistry_impl;
 import org.apache.uima.ducc.container.sd.iface.ServiceDriver;
 import org.apache.uima.ducc.container.sd.task.error.TaskProtocolException;
 import org.apache.uima.ducc.container.sd.task.iface.TaskProtocolHandler;
@@ -90,7 +88,7 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 		}
 	}
 
-  public Server createServer(int httpPort, int maxThreads, String app, TaskProtocolHandler handler, String registryAddr) 
+  public Server createServer(int httpPort, int maxThreads, String app, TaskProtocolHandler handler) 
           throws Exception {
 
 		// Server thread pool
@@ -117,40 +115,17 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 
 		context.addServlet(new ServletHolder(new TaskHandlerServlet(handler)), "/"+app);
 
-    // Establish the URL we could register for our customers
-    String taskUrl = server.getURI().toString();
-    if (taskUrl.endsWith("/")) {
-      taskUrl = taskUrl.substring(0, taskUrl.length() - 1);
-    }
-    taskUrl += ":" + httpPort + "/" + app;
-    logger.log(Level.INFO, "Service Driver URL: " + taskUrl); // e.g. http://localhost:8888/test");
-
-    // Register the task allocator's URL if a registry is specified
-    // The type of registry is determined by the registry class.
-    
-    String taskServerName = app;   // why not?
-    if (registryAddr != null) {
-      ServiceRegistry registry = ServiceRegistry_impl.getInstance();
-      if (registry.initialize(registryAddr)) {
-        registry.register(taskServerName, taskUrl, "");   // Will also create a shutdown hook to unregister
-        logger.log(Level.INFO,"Registered: " + taskServerName);
-      }
-    } else {
-      logger.log(Level.WARNING, "Registration skipped - registry=" + registryAddr + " server="+taskServerName);
-    }
-
 		return server;
 	}
 
 	@Override
-	public void initialize(Properties properties) throws TaskTransportException {
+	public String initialize(Properties properties) throws TaskTransportException {
 		// TODO Auto-generated method stub
 		// Max cores
     int cores = Runtime.getRuntime().availableProcessors();
     String portString = (String) properties.get(ServiceDriver.Port);
     String maxThreadsString = (String) properties.get(ServiceDriver.MaxThreads);
     String appName = (String) properties.get(ServiceDriver.Application);
-    String registry = (String) properties.get(ServiceDriver.Registry);    // optional
 
 		int maxThreads = cores;
 		int httpPort = -1;
@@ -180,11 +155,20 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 		}
 		try {
 			// create and initialize Jetty Server
-			server = createServer(httpPort, maxThreads, appName, taskProtocolHandler, registry);
+			server = createServer(httpPort, maxThreads, appName, taskProtocolHandler);
 		} catch (Exception e) {
 			throw new TaskTransportException(e);
 		}
-
+    
+		// Establish the URL we could register for our customers
+    String taskUrl = server.getURI().toString();
+    if (taskUrl.endsWith("/")) {
+      taskUrl = taskUrl.substring(0, taskUrl.length() - 1);
+    }
+    taskUrl += ":" + httpPort + "/" + appName;
+    logger.log(Level.INFO, "Service Driver URL: " + taskUrl); // e.g. http://localhost:8888/test");
+    
+    return taskUrl;
 	}
 
 

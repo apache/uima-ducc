@@ -27,6 +27,6 @@ import org.apache.uima.ducc.container.sd.task.transport.TaskTransportException;
 
 public interface TaskTransportHandler extends Lifecycle {
 	
-	public void initialize(Properties properties) throws TaskTransportException;
+	public String initialize(Properties properties) throws TaskTransportException;
 	public void setTaskProtocolHandler(TaskProtocolHandler taskProtocolHandler);
 }

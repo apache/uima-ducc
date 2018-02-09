@@ -29,10 +29,8 @@ public interface ServiceDriver extends Lifecycle {
 	public static String Application = "driver.application.name";
 	public static String Port = "driver.server.port";
 	public static String MaxThreads = "driver.server.max.threads";
-	public static String Registry = "registry";
-	// Perhaps should move all these keys into the shared ConfigurationProperties?
 
-	public void initialize(Properties props) throws DriverException;
+	public String initialize(Properties props) throws DriverException;
 	public TaskAllocatorCallbackListener getTaskAllocator();
 	public void setTaskAllocator(TaskAllocatorCallbackListener taskAllocator);
 }
