@@ -174,7 +174,11 @@ public class ClassManager
         	if ( args[i] == null ) {
         		cl = null;
         	} else {
-                cl = args[i].getClass();
+        		if ( args[i] instanceof Class) {
+        			cl = (Class<?>)args[i];
+        		} else {
+                    cl = args[i].getClass();
+        		}
         	}
         	
         	if ( !cparms[i].isPrimitive() && (cl == null) ) continue; // we'll assume everything we pass in now is assignable to null
