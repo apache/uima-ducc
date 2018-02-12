@@ -32,12 +32,13 @@ import org.apache.uima.ducc.container.net.impl.MetaCas;
 
 public class TestSuite extends TestBase {
 
+	String prefix3 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:xmi=\"http://www.omg.org/XMI\" xmlns:examples=\"http:///org/apache/uima/examples.ecore\" xmlns:tcas=\"http:///uima/tcas.ecore\" xmlns:cas=\"http:///uima/cas.ecore\" xmi:version=\"2.0\"";
 	String prefix2 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:examples=\"http:///org/apache/uima/examples.ecore\"";
 	String prefix1 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:tcas=\"http:///uima/tcas.ecore\"";
 	String prefix0 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:cas=\"http:///uima/cas.ecore\"";
 	
 	private void checkCas(String cas) {
-		boolean ok = cas.startsWith(prefix0) || cas.startsWith(prefix1) || cas.startsWith(prefix2);
+		boolean ok = cas.startsWith(prefix0) || cas.startsWith(prefix1) || cas.startsWith(prefix2) || cas.startsWith(prefix3);
 		if (!ok) {
 			fail("cas = '" + cas + "'");
 		}
