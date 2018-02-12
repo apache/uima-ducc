@@ -115,7 +115,7 @@ public class DuccAdmin extends AbstractDuccComponent implements
 					      path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
 				    	  Credentials credentials = BrokerCredentials.get(path);
 						  if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
-							duccAMQComponent.setUserName(credentials.getUsername());
+							duccAMQComponent.setUsername(credentials.getUsername());
 							duccAMQComponent.setPassword(credentials.getPassword());
 				 		  }   
 			    	} catch(FileNotFoundException e) {
@@ -125,6 +125,9 @@ public class DuccAdmin extends AbstractDuccComponent implements
 			    }
 				context.addComponent("activemq",duccAMQComponent);
 				this.pt = context.createProducerTemplate();
+				if ( !context.getStatus().isStarted() ) {
+					context.start();
+				} 
 			} catch( Throwable exx) {
 				System.out.println("DuccAdmin Failed:"+exx);
 				System.exit(-1);

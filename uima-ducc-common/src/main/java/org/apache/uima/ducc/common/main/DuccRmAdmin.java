@@ -128,7 +128,7 @@ public class DuccRmAdmin
                         path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
                         Credentials credentials = BrokerCredentials.get(path);
                         if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
-							duccAMQComponent.setUserName(credentials.getUsername());
+							duccAMQComponent.setUsername(credentials.getUsername());
 							duccAMQComponent.setPassword(credentials.getPassword());
                         }   
 			    	} catch(FileNotFoundException e) {
@@ -147,6 +147,10 @@ public class DuccRmAdmin
 		        context.addComponent("activemq",duccAMQComponent);
 		        
 				this.pt = context.createProducerTemplate();
+				if ( !context.getStatus().isStarted() ) {
+					context.start();
+				} 
+
 			} catch( Throwable exx) {
 				System.out.println("DuccRmAdmin Failed:"+exx);
 				System.exit(-1);
