@@ -21,20 +21,26 @@ package org.apache.uima.ducc.common.utils;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.security.AnyTypePermission;
+import com.thoughtworks.xstream.security.NoTypePermission;
 
 public class XStreamUtils {
 	
+	private static void initXStreanSecurity(XStream xStream) {
+		XStream.setupDefaultSecurity(xStream);
+		xStream.addPermission(NoTypePermission.NONE);
+		xStream.addPermission(AnyTypePermission.ANY);
+	}
 	public static String marshall( Object targetToMarshall) throws Exception {
         synchronized(XStreamUtils.class) {
     		XStream xStream = new XStream(new DomDriver());
-    		xStream.addPermission(AnyTypePermission.ANY);
+    		initXStreanSecurity(xStream);
             return xStream.toXML(targetToMarshall); 
         }
 	}
 	public static Object unmarshall( String targetToUnmarshall) throws Exception {
         synchronized(XStreamUtils.class) {
     		XStream xStream = new XStream(new DomDriver());
-    		xStream.addPermission(AnyTypePermission.ANY);
+    		initXStreanSecurity(xStream);
     		return xStream.fromXML(targetToUnmarshall);
         }
 	}

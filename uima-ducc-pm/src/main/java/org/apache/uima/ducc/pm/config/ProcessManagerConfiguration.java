@@ -28,6 +28,7 @@ import org.apache.camel.impl.DefaultClassResolver;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.config.DuccBlastGuardPredicate;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.pm.ProcessManager;
 import org.apache.uima.ducc.pm.ProcessManagerComponent;
 import org.apache.uima.ducc.pm.event.ProcessManagerEventListener;
@@ -40,6 +41,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.security.AnyTypePermission;
 
 /**
  * A {@link ProcessManagerConfiguration} to configure Process Manager component. Depends on 
@@ -127,10 +129,15 @@ public class ProcessManagerConfiguration {
 		public void process(Exchange exchange) throws Exception {
 			String methodName="process";
 			if ( pm.getLogLevel().toLowerCase().equals("trace")) {
+				String marshalledEvent = 
+						XStreamUtils.marshall(exchange.getIn().getBody());
+				/*
 				XStreamDataFormat xStreamDataFormat = new XStreamDataFormat();
 				xStreamDataFormat.setPermissions("*");
 		        XStream xStream = xStreamDataFormat.getXStream(new DefaultClassResolver());
+		        xStream.addPermission(AnyTypePermission.ANY);
 				String marshalledEvent = xStream.toXML(exchange.getIn().getBody());
+				*/
 				pm.logAtTraceLevel(methodName, marshalledEvent);
 			}
 //			if ( logger.isDebug() ) {
