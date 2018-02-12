@@ -243,6 +243,7 @@ under the License.
         <include>org.apache.camel:camel-http-common</include>
         <include>org.apache.camel:camel-http4</include>
         <include>org.apache.camel:camel-jetty</include>
+        <include>org.apache.camel:camel-jetty9</include>
         <include>org.apache.camel:camel-jetty-common</include>
         <include>org.apache.camel:camel-jms</include>
         <include>org.apache.camel:camel-mina</include>
