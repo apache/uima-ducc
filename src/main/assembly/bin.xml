@@ -305,6 +305,16 @@ under the License.
       <directoryMode>755</directoryMode>        
     </fileSet>
     
+    <fileSet>
+      <directory>target</directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>README</include>
+        <include>RELEASE_NOTES.html</include>
+      </includes>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
     <!--      JETTY  -->
     <fileSet>
       <directory>target/jetty/jetty-distribution-${jetty.version}/lib</directory>
@@ -388,8 +398,8 @@ under the License.
       <outputDirectory></outputDirectory>
       <includes>
         <include>issuesFixed/**</include>
-        <include>README</include>
-        <include>RELEASE_NOTES.html</include>
+        <include>target/README</include>
+        <include>target/RELEASE_NOTES.html</include>
         <!-- Temporarily disable the include below for 1.1.0-Ducc release -->
         <!-- JIRAs bug prevents more than 100 jiras in the report produced -->
         <!-- by maven changes plugin. Workaround is to generate report     -->

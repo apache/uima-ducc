@@ -20,10 +20,10 @@
    ***************************************************************
    -->
 <head>
-  <title>Apache Distributed UIMA Cluster Computing (DUCC) 2.2.1 Release Notes</title>
+  <title>Apache Distributed UIMA Cluster Computing (DUCC) ${project.version} Release Notes</title>
 </head>
 <body>
-<h1>Apache UIMA-DUCC (Unstructured Information Management Architecture - Distributed UIMA Cluster Computing ) v.2.2.1 Release Notes</h1>
+<h1>Apache UIMA-DUCC (Unstructured Information Management Architecture - Distributed UIMA Cluster Computing ) v.${project.version} Release Notes</h1>
 
 <h2>Contents</h2>
 <p>
@@ -45,7 +45,7 @@ provides cluster management services to automate the scale-out of UIMA pipelines
       
 <h2><a name="major.changes">2. Major Changes in this Release</a></h2>
 <p>
-Apache UIMA DUCC 2.2.1 is a maintenance release containing new features and bug fixes. What's new:<br>
+Apache UIMA DUCC ${project.version} is a maintenance release containing new features and bug fixes. What's new:<br>
 
 <ul>
 <li>The userid of a privileged DUCC installation does not have to be "ducc"</li>
@@ -62,7 +62,7 @@ Apache UIMA DUCC 2.2.1 is a maintenance release containing new features and bug 
 For a complete list of issues fixed and up-to-date information on UIMA-DUCC issues, see our issue tracker: 
 <a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.1-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.1-Ducc%22%20</a>
 
-This version of DUCC includes UIMA-SDK v.2.9.0, UIMA-AS v.2.9.0, and ActiveMQ v.5.14.0.
+This version of DUCC includes UIMA-SDK v.2.10.2, UIMA-AS v.2.10.2, and ActiveMQ v.5.15.2.
 </p> 
       
 <h2><a name="migration">3. Migration from a Prior Release</a></h2>
@@ -84,6 +84,8 @@ able to test for AnalysisEngineProcessException in a stack trace with a code lik
 
    if ( error instanceof AnalysisEngineProcessException ) ...
 
+To use OS-based login with the WebServer while running DUCC with IBM java, the minimum JDK version is 
+Java 8 SR4 FP5 (8.0.4.5).
 
 </body>
 </html>
