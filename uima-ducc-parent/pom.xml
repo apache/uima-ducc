@@ -821,6 +821,7 @@ ${uimaDUCCNoticeText}
               <id>attach-javadocs</id>
               <configuration>
                 <source>${maven.compiler.source}</source>
+                <additionalparam>${javadoc.opts}</additionalparam>
               </configuration>
             </execution>
             <execution>
@@ -888,7 +889,15 @@ ${uimaDUCCNoticeText}
 
 
 	<profiles>
-
+        <profile>
+           <id>doclint-java8-disable</id>
+           <activation>
+              <jdk>[1.8,)</jdk>
+           </activation>
+           <properties>
+              <javadoc.opts>-Xdoclint:none</javadoc.opts>
+           </properties>
+        </profile>
 		<!--profile>
                    currently disabled. It packages java source files but doesnt package xml and other resource files when building
                    causing runtime problems.  
