@@ -19,6 +19,12 @@
 
 This readme includes notes related to DUCC NOTICE and LICENSE files.
 
+02/12/2018 Updated with Apache Camel 2.9.13
+
+02/12/2018 Updated with UIMA-AS which includes UIMA-SDK 2.10.2 and
+           ActiveMQ 5.15.2, Spring Framework 4.3.9, xstream 1.4.10,
+           Jetty 9.2.22 v20170606
+           
 01/03/2017 Updated with jna-4.2.2 to support OS-based login to WS.
 
 12/15/2016 Updated with UIMA-AS 2.9.0 which includes new UIMA SDK 2.9.0 

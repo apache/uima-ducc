@@ -205,7 +205,7 @@
 =====================================
 
 ====- Apache Software License 2.0 =============
-   uima v.2.9.0
+   uima v.2.10.2
        uima-core.jar
        uimaj-json.jar
        jackson-core-2.4.2.jar  
@@ -217,7 +217,7 @@
        uima-adapter-soap.jar   
        uima-adapter-vinci.jar  
 
-   uima-as v.2.9.0
+   uima-as v.2.10.2
        uimaj-as-core.jar      
        uimaj-as-activemq.jar  
        uimaj-bootstrap.jar
@@ -225,84 +225,87 @@
        uimaj-as-camel.jar
        xmlbeans.jar
 
-   camel v2.16.2
-       camel-context-2.16.2.jar
-       camel-core-2.16.2.jar
-       camel-http-2.16.2.jar
-       camel-http4-2.16.2.jar
-       camel-http-common-2.16.2.jar
-       camel-jetty-2.16.2.jar
-       camel-jetty-common-2.16.2.jar  
-       camel-test-2.16.2.jar
-       camel-jms-2.16.2.jar           
-       camel-test-spring-2.16.2.jar
-       camel-mina-2.16.2.jar          
-       camel-xmlbeans-2.16.2.jar
-       camel-servlet-2.16.2.jar       
-       camel-xstream-2.16.2.jar
-       camel-spring-2.16.2.jar
-       camel-stream-2.16.2.jar
+   camel v2.19.3
+       camel-context-2.19.3.jar
+       camel-core-2.19.3.jar
+       camel-http-2.19.3.jar
+       camel-http4-2.19.3.jar
+       camel-http-common-2.19.3.jar
+       camel-jetty-2.19.3.jar
+       camel-jetty9-2.19.3.jar
+       camel-jetty-common-2.19.3.jar  
+       camel-jms-2.19.3.jar           
+       camel-mina-2.19.3.jar          
+       camel-servlet-2.19.3.jar          
+       camel-spring-2.19.3.jar
+       camel-stream-2.19.3.jar
+       camel-test-2.19.3.jar
+       camel-test-spring-2.19.3.jar
+       camel-xmlbeans-2.19.3.jar
+       camel-xstream-2.19.3.jar
+       camel-mina-core-2.19.3.jar          
 
-   activemq v5.14.0
-       activemq-amqp-5.14.0.jar
-       activemq-broker-5.14.0.jar
-       activemq-camel-5.14.0.jar 
-       activemq-client-5.14.0.jar
-       activemq-console-5.14.0.jar
-       activemq-http-5.14.0.jar
-       activemq-jaas-5.14.0.jar
-       activemq-jms-pool-5.14.0.jar
-       activemq-kahadb-store-5.14.0.jar
-       activemq-leveldb-store-5.14.0.jar   
-       activemq-log4j-appender-5.14.0.jar  
-       activemq-mqtt-5.14.0.jar            
-       activemq-partition-5.14.0.jar       
-       activemq-pool-5.14.0.jar            
-       activemq-runtime-config-5.14.0.jar  
-       activemq-shiro-5.14.0.jar           
-       activemq-spring-5.14.0.jar          
-       activemq-stomp-5.14.0.jar
+   activemq v5.15.2
+       activemq-amqp-5.15.2.jar
+       activemq-broker-5.15.2.jar
+       activemq-camel-5.15.2.jar 
+       activemq-client-5.15.2.jar
+       activemq-console-5.15.2.jar
+       activemq-http-5.15.2.jar
+       activemq-jaas-5.15.2.jar
+       activemq-jms-pool-5.15.2.jar
+       activemq-kahadb-store-5.15.2.jar
+       activemq-leveldb-store-5.15.2.jar   
+       activemq-log4j-appender-5.15.2.jar  
+       activemq-mqtt-5.15.2.jar            
+       activemq-partition-5.15.2.jar       
+       activemq-pool-5.15.2.jar            
+       activemq-runtime-config-5.15.2.jar  
+       activemq-shiro-5.15.2.jar           
+       activemq-spring-5.15.2.jar          
+       activemq-stomp-5.15.2.jar
 
-   spring framework v.4.1.9.RELEASE
-       spring-aop-4.1.9.RELEASE.jar   
-       spring-beans-4.1.9.RELEASE.jar 
-       spring-context-4.1.9.RELEASE.jar
-       spring-core-4.1.9.RELEASE.jar
-       spring-expression-4.1.9.RELEASE.jar
-       spring-jms-4.1.9.RELEASE.jar
-       spring-tx-4.1.9.RELEASE.jar
-       xbean-spring-3.18.jar
+   spring framework v.4.3.9.RELEASE
+       spring-aop-4.3.9.RELEASE.jar   
+       spring-beans-4.3.9.RELEASE.jar 
+       spring-context-4.3.9.RELEASE.jar
+       spring-core-4.3.9.RELEASE.jar
+       spring-expression-4.3.9.RELEASE.jar
+       spring-jms-4.3.9.RELEASE.jar
+       spring-tx-4.3.9.RELEASE.jar
+       xbean-spring-4.2.jar
 
-   jetty v9.2.13.v20150730
-       jetty-all-9.2.13.v20150730.jar
-       jetty-proxy-9.2.13.v20150730.jar
-       jetty-quickstart-9.2.13.v20150730.jar
-       jetty-rewrite-9.2.13.v20150730.jar
+   jetty v9.2.22.v20170606
+       jetty-all-9.2.22.v20170606.jar
+       jetty-alpn-client-9.2.22.v20170606.jar   
+       jetty-alpn-server-9.2.22.v20170606.jar   
+       jetty-annotations-9.2.22.v20170606.jar   
+       jetty-cdi-9.2.22.v20170606.jar           
+       jetty-client-9.2.22.v20170606.jar        
+       jetty-continuation-9.2.22.v20170606.jar
+       jetty-deploy-9.2.22.v20170606.jar
+       jetty-http-9.2.22.v20170606.jar
+       jetty-io-9.2.22.v20170606.jar
+       jetty-jaas-9.2.22.v20170606.jar
+       jetty-jaspi-9.2.22.v20170606.jar
+       jetty-jmx-9.2.22.v20170606.jar
+       jetty-jndi-9.2.22.v20170606.jar
+       jetty-plus-9.2.22.v20170606.jar
+       jetty-spring-9.2.22.v20170606.jar
+       jetty-proxy-9.2.22.v20170606.jar
+       jetty-quickstart-9.2.22.v20170606.jar
+       jetty-rewrite-9.2.22.v20170606.jar
        jetty-schemas-3.1.jar
-       jetty-security-9.2.13.v20150730.jar
-       jetty-server-9.2.13.v20150730.jar
-       jetty-alpn-client-9.2.13.v20150730.jar   
-       jetty-servlet-9.2.13.v20150730.jar
-       jetty-alpn-server-9.2.13.v20150730.jar   
-       jetty-servlets-9.2.13.v20150730.jar
-       jetty-annotations-9.2.13.v20150730.jar   
-       jetty-util-9.2.13.v20150730.jar
-       jetty-cdi-9.2.13.v20150730.jar           
-       jetty-webapp-9.2.13.v20150730.jar
-       jetty-client-9.2.13.v20150730.jar        
-       jetty-xml-9.2.13.v20150730.jar
-       jetty-continuation-9.2.13.v20150730.jar
-       jetty-deploy-9.2.13.v20150730.jar
-       jetty-http-9.2.13.v20150730.jar
-       jetty-io-9.2.13.v20150730.jar
-       jetty-jaas-9.2.13.v20150730.jar
-       jetty-jaspi-9.2.13.v20150730.jar
-       jetty-jmx-9.2.13.v20150730.jar
-       jetty-jndi-9.2.13.v20150730.jar
-       jetty-plus-9.2.13.v20150730.jar
-       jetty-spring-9.2.13.v20150730.jar
-       jetty-jsp-9.2.13.v20150730.jar
-       jetty-monitor-9.2.13.v20150730.jar   
+       jetty-security-9.2.22.v20170606.jar
+       jetty-server-9.2.22.v20170606.jar
+       jetty-servlet-9.2.22.v20170606.jar
+       jetty-servlets-9.2.22.v20170606.jar
+       jetty-util-9.2.22.v20170606.jar
+       jetty-webapp-9.2.22.v20170606.jar
+       jetty-xml-9.2.22.v20170606.jar
+       jetty-jsp-9.2.22.v20170606.jar
+       jetty-jsp-jdt-9.2.22.v20170606.jar
+       jetty-monitor-9.2.22.v20170606.jar   
 
    cassandra v2.1.8 ( Client side )
        cassandra-driver-core-2.1.8.jar
@@ -344,6 +347,8 @@
    (cassandra server) stream-2.5.2.jar
    (cassandra server) super-csv-2.1.0.jar
    (cassandra server) thrift-server-0.3.7.jar
+   (cassandra server) commons-cli-1.1.jar
+   (cassandra server) commons-lang3-3.1.jar
    (cassandra) jna-4.0.0.jar
    (webserver) org.mortbay.jasper.apache-jsp-8.0.9.M3.jar
    (webserver) org.mortbay.jasper.apache-el-8.0.9.M3.jar
@@ -354,11 +359,11 @@
    (webserver) JPagination
 
    (activemq) hawtbuf-1.11.jar
-   commons-cli-1.2.jar
-   commons-collections-3.2.1.jar
+   (activemq)commons-cli-1.2.jar
+   commons-collections-3.2.2.jar
    commons-lang-2.6.jar
    commons-pool2-2.4.2.jar
-   log4j-1.2.16.jar
+   log4j-1.2.17.jar
    gson-2.2.2.jar
    guava-14.0.1.jar
    jna-4.2.2.jar
@@ -368,7 +373,7 @@
    geronimo-jms_1.1_spec-1.1.1.jar 
    geronimo-servlet_3.0_spec-1.0.jar
    httpcore-4.4.4.jar
-   httpclient-4.5.1.jar
+   httpclient-4.5.3.jar
    log4j-1.2.17.jar
 
 ===-Apache Software License v 1.0 =============  
@@ -441,7 +446,7 @@
 
 ===-BSD Style License =============
    (cassandra) HdrHistogram-2.1.4.jar
-   xstream-1.4.8.jar
+   xstream-1.4.10.jar
    SVG Icons
    mina-core-1.1.7.jar
    
@@ -480,7 +485,7 @@
    jaxb-impl   
  
 === Damien Miller License ============================
-   jbcrypt-0.3m.jar	  
+   (cassandra)jbcrypt-0.3m.jar	  
 
 ===-Common Public License - v 1.0  =============
    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
@@ -489,23 +494,23 @@
 ===-Eclipse Public License - v 1.0  =============
    (cassandra) logback-classic-1.1.2.jar
    (cassandra) logback-core-1.1.2.jar
-   (webserver) javax-websocket-client-impl-9.2.13.v20150730.jar
-   (webserver) javax-websocket-server-impl-9.2.13.v20150730.jar
-   (webserver) websocket-api-9.2.13.v20150730.jar
-   (webserver) websocket-client-9.2.13.v20150730.jar
-   (websocket) websocket-common-9.2.13.v20150730.jar
-   (websocket) websocket-server-9.2.13.v20150730.jar
-   (webserver) websocket-servlet-9.2.13.v20150730.jar
-   (webserver) spdy-server-9.2.13.v20150730.jar
-   (webserver) spdy-http-server-9.2.13.v20150730.jar
-   (webserver) spdy-http-common-9.2.13.v20150730.jar
-   (webserver) spdy-core-9.2.13.v20150730.jar
-   (webserver) spdy-client-9.2.13.v20150730.jar
+   (webserver) javax-websocket-client-impl-9.2.22.v20170606.jar
+   (webserver) javax-websocket-server-impl-9.2.22.v20170606.jar
+   (webserver) websocket-api-9.2.22.v20170606.jar
+   (webserver) websocket-client-9.2.22.v20170606.jar
+   (websocket) websocket-common-9.2.22.v20170606.jar
+   (websocket) websocket-server-9.2.22.v20170606.jar
+   (webserver) websocket-servlet-9.2.22.20170606.jar
+   (webserver) spdy-server-9.2.22.v20170606.jar
+   (webserver) spdy-http-server-9.2.22.v20170606.jar
+   (webserver) spdy-http-common-9.2.22.v20170606.jar
+   (webserver) spdy-core-9.2.22.v20170606.jar
+   (webserver) spdy-client-9.2.22.v20170606.jar
    (webserver) jetty-setuid-java-1.0.1.jar
    (webserver) org.eclipse.jdt.core-3.8.2.v20130121.jar
-   (webserver) org.eclipse.jetty.apache-jsp-9.2.13.v20150730.jar   
-   (webserver) fcgi-client-9.2.13.v20150730.jar
-   (webserver) fcgi-server-9.2.13.v20150730.jar
+   (webserver) org.eclipse.jetty.apache-jsp-9.2.22.v20170606.jar   
+   (webserver) fcgi-client-9.2.22.v20170606.jar
+   (webserver) fcgi-server-9.2.22.v20170606.jar
    (webserver) org.eclipse.jetty.orbit.org.eclipse.jdt.core-3.8.2.v20130121.jar
  
 ===-Sun Microsystems, Inc License =============
