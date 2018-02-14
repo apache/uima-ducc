@@ -4,9 +4,9 @@
 1. Building from the Source Distribution
 ========================================
      
-We use Maven 3.0 for building; download this if needed, 
+We use Maven 3.3.3 for building; download this if needed, 
 and set the environment variable MAVEN_OPTS to -Xmx800m -XX:MaxPermSize-256m.
-To build UIMA-DUCC, install Java SDK 7.
+To build UIMA-DUCC, install Java SDK 8.
 
 Maven uses JAVA_HOME to locate the java runtime. Before starting maven build do this:
 
@@ -85,7 +85,7 @@ installation instructions.
 3.1 Supported Platforms
 -----------------------
 
-UIMA-DUCC runtime has been tested with Oracle Java 7 & 8 as well as IBM Java 7 & 8 on Linux. 
+UIMA-DUCC runtime has been tested with Oracle 8 as well as IBM Java 8 on Linux. 
 The cluster of machines DUCC manages
 must all be running a reasonably current level of Linux; other operating systems are not supported.
 . 
