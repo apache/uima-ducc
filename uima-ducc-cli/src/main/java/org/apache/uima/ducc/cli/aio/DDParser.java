@@ -26,6 +26,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.apache.uima.internal.util.XMLUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -50,7 +51,11 @@ public class DDParser extends DefaultHandler {
 	
 	private void parse() throws ParserConfigurationException, SAXException, IOException {
 		fis = new FileInputStream(file);
-		parser = SAXParserFactory.newInstance().newSAXParser();
+		//TransformerFactory tFactory = 
+		SAXParserFactory f =
+				XMLUtils.createSAXParserFactory();
+		parser = f.newSAXParser();
+//		parser = SAXParserFactory.newInstance().newSAXParser();
 		parser.parse(fis, this);
 	}
 	

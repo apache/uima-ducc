@@ -39,6 +39,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.uima.analysis_engine.AnalysisEngineDescription;
 import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.ducc.user.jp.UimaASProcessContainer;
+import org.apache.uima.internal.util.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -123,7 +124,11 @@ public class DeployableGenerator {
 		//  Create DOM from the DD ... file or class-like name
 		String location = configuration.getReferenceByName();
     org.apache.uima.util.XMLInputSource xmlin = UimaUtils.getXMLInputSource(location);  // Reads from FS or classpath
-    DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    
+    DocumentBuilderFactory dbFactory = XMLUtils.createDocumentBuilderFactory();
+    DocumentBuilder db = dbFactory.newDocumentBuilder();
+    
+    //DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
     doc = db.parse(xmlin.getInputStream());
 		
     // Create converted descriptor if input is not a file or if endpoint or broker wrong
@@ -207,10 +212,14 @@ public class DeployableGenerator {
 		StringWriter writer = null;
 
 		DOMSource domSource = new DOMSource(xmlDoc.getDocumentElement());
+		
 		writer = new StringWriter();
 
 		StreamResult streamResult = new StreamResult(writer);
-		TransformerFactory factory = TransformerFactory.newInstance();
+		TransformerFactory factory =
+		    XMLUtils.createTransformerFactory();
+		
+		//TransformerFactory factory = TransformerFactory.newInstance();
 		Transformer transformer = factory.newTransformer();
 		transformer.transform(domSource, streamResult);
 

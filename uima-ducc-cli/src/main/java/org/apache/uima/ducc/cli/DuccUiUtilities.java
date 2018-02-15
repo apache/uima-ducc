@@ -36,7 +36,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.TcpStreamHandler;
@@ -45,6 +44,7 @@ import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
 import org.apache.uima.ducc.user.common.PrivateClassLoader;
 import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.ducc.user.common.UimaUtils;
+import org.apache.uima.internal.util.XMLUtils;
 import org.apache.uima.util.XMLInputSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -169,7 +169,9 @@ public class DuccUiUtilities {
             } else {
               xmlin = UimaUtils.getXMLInputSource(process_DD);
             }
-            DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            DocumentBuilder db = 
+            		XMLUtils.createDocumentBuilderFactory().newDocumentBuilder();
+            //DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             doc = db.parse(xmlin.getInputStream());
         } catch (Throwable t) {
             t.printStackTrace();

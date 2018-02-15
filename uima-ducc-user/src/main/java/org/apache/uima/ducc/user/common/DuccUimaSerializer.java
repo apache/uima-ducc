@@ -31,12 +31,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiCasDeserializer;
 import org.apache.uima.cas.impl.XmiCasSerializer;
+import org.apache.uima.internal.util.XMLUtils;
 import org.apache.uima.util.XMLSerializer;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 //import com.thoughtworks.xstream.XStream;
 //import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -70,7 +70,10 @@ public class DuccUimaSerializer {
   public void deserializeCasFromXmi(String anXmlStr, CAS aCAS)
           throws FactoryConfigurationError, ParserConfigurationException, SAXException, IOException {
 
-    XMLReader xmlReader = XMLReaderFactory.createXMLReader(); // localXmlReader.get();
+	XMLReader xmlReader =
+		  XMLUtils.createXMLReader();
+	  
+    //XMLReader xmlReader = XMLReaderFactory.createXMLReader(); // localXmlReader.get();
     Reader reader = new StringReader(anXmlStr);
     XmiCasDeserializer deser = new XmiCasDeserializer(aCAS.getTypeSystem());
     ContentHandler handler = deser.getXmiCasHandler(aCAS);
