@@ -25,13 +25,15 @@ roughly as follows:
 \begin{itemize}
     \item Single system installation - single node - all work runs with the credentials of the installer.
       
-    \item Optionally add more nodes. 
+    \item Optionally add worker nodes to the cluster. 
+      
+    \item Enable CGroup containers. CGroups protect DUCC managed processes running on the same machine from inappropriately 
+      stealing memory or CPU resources from each other. CGroups are also required for DUCC to measure and report
+      performance metrics on managed processes.  
       
     \item Enable multiple-user support - processes run with the credentials of the submitting user,
       while DUCC runs as user {\em ducc}.
       This step requires root authority on one or more machines.
-      
-    \item Enable CGroup containers. This step requires root authority on every DUCC machine.
 \end{itemize}
 
 Nominally user {\em ducc} runs the DUCC software.  However another user, for example 
@@ -73,8 +75,8 @@ file as the ``$<$distribution.file$>$''.
 Single system installation:
 
 \begin{itemize}
-  \item Reasonably current Linux.  DUCC has been tested on SLES 11, RHEL 6 \& 7, and Ubuntu 14.04 
-    with 64-bit Intel, IBM Power (Big and Little Endian) hardware.
+  \item Reasonably current Linux.  DUCC has been tested on RHEL 6 \& 7, SLES 11 \& 12, Ubuntu 14.04 \& 16.04
+    with 64-bit Intel and IBM Power (Big and Little Endian) hardware.
     
     {\em Note:} On some systems the default {\em user limits}
     for max user processes (ulimit -u) and nfiles (ulimit -n) are defined too
@@ -92,26 +94,37 @@ Single system installation:
 Additional requirements for multiple system installation:
 
 \begin{itemize}
-  \item All systems must have a shared filesystem (such as NFS or GPFS) and common user space.
+  \item All systems must have a shared filesystem (such as NFS or GPFS) and common user credentials.
         The \$DUCC\_HOME directory must be located on a shared filesystem.
 \end{itemize}
   
 Additional requirements for running multiple user processes with their own credentials.
 
 \begin{itemize}
-  \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must the the only member of group {\em ducc}.
-  \item DUCC run with user {\em ducc} credentials.
+  \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must be the only member of group {\em ducc}.
+  \item DUCC installed and run with user {\em ducc} credentials.
+  
+    {\em Note:} With these restrictions any userid can be configured to be the DUCC user and group.
+  
   \item Root access is required to setuid-root the DUCC process launcher.
 \end{itemize}
   
 Additional requirements for CGroup containers:
 
 \begin{itemize}
-  \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must the the only member of group {\em ducc}.
-  \item DUCC run with user {\em ducc} credentials.
-  \item libcgroup1-0.37+ on SLES, libcgroup-0.37+ on RHEL, and on Ubuntu all of cgroup-bin cgroup-lite libcgroup1
-  \item along with a customized /etc/cgconfig.conf
-  \item On some flavors of Linux, the cgroup swap accounting is not enabled and swap is reported as N/A. To enable swap accounting add swapaccount=1 kernel parameter. More information on this step is available here: \url{http://unix.stackexchange.com/questions/147158/how-to-enable-swap-accounting-for-memory-cgroup-in-archlinux}.  
+  \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must be the only member of group {\em ducc}.
+  \item DUCC installed and run with user {\em ducc} credentials.
+  
+    {\em Note:} With these restrictions any userid can be configured to be the DUCC user and group.
+  
+  \item Root access is required to configure and enable a custom cgroup for DUCC.
+  \item A running cgroup subsystem. True by default for newer OS.
+  \item Create a custom cgroup definition that the DUCC user can use to run managed applications in. 
+  The custom definition to go into /etc/cgconfig.conf is described in \hyperref[subsec:cgroup.configure]{\em  CGroups Installation and Configuration}.
+  \item The cgroup tools package, e.g. libcgroup-tools on centos and cgroup-tools on ubuntu. 
+  \item On some flavors of Linux, the cgroup swap accounting is not enabled and swap is reported as N/A. 
+  To enable swap accounting add swapaccount=1 kernel parameter. 
+  More information on this step is available here: \url{http://unix.stackexchange.com/questions/147158/how-to-enable-swap-accounting-for-memory-cgroup-in-archlinux}.  
 \end{itemize}
 
   
@@ -119,7 +132,7 @@ In order to build DUCC from source the following software is also required:
 \begin{itemize}
     \item A Subversion client, from \url{http://subversion.apache.org/packages.html}.  The
       svn url is \url{https://svn.apache.org/repos/asf/uima/uima-ducc/trunk}.
-    \item Apache Maven, from \url{http://maven.apache.org/index.html}
+    \item Apache Maven, version 3.3.3+, from \url{http://maven.apache.org/index.html}
 \end{itemize}
 
 The DUCC webserver server optionally supports direct ``jconsole'' attach to DUCC job processes.  To install
@@ -151,8 +164,22 @@ or
 \begin{verbatim}
     mvn install -Pbuild-duccdocs
 \end{verbatim}
-if you have LaTeX insalled and wish to do the optional build of documentation.
+if you have LaTeX installed and wish to do the optional build of documentation.
 The build-duccdocs profile can also activated if the environment valiable BUILD\_DUCCDOCS is set true.
+
+{\em Note: LaTeX output is quite verbose and it is suppressed when run via maven.}
+
+An alternative approach for modifying DUCCDOCS is to use the LaTeX commands manually.
+Not only is the build much faster, it also exposes LaTeX error messages lost by the suppression.
+To build duccbook.html manually and leave the output in the same directory:
+\begin{verbatim}
+    cd {path-to-src}/uima-ducc-duccdocs/src/site/tex/duccbook
+    htlatex duccbook.tex
+\end{verbatim}
+Use the pdflatex command to build the PDF version.
+
+{\em Note: The manual command needs to be run twice if modifications have been made that affect internal book
+references such as the table of contents. Also, temporary files created by LaTeX will need to be cleaned up manually.}
 
 If this is your first Maven build it may take quite a while as Maven downloads all the
 open-source pre-requisites.  (The pre-requisites are stored in the Maven repository, usually
@@ -470,6 +497,7 @@ For more information see
 
 
 \section{CGroups Installation and Configuration}
+\label{subsec:cgroup.configure}
 
 \begin{description}
     \item[Note:] A key feature of DUCC is to run user processes in CGroups in order to guarantee
@@ -483,7 +511,7 @@ For more information see
       50\% of the machine's CPU resources as well. 
 \end{description}
 
-    The steps in this task must be done as user root and user ducc.
+    The steps in this task must be done as user root and the ducc user.
 
     To install and configure CGroups for DUCC:
     \begin{enumerate}
@@ -494,10 +522,26 @@ For more information see
    \hyperref[sec:install.prerequisites]{libcgroup package} at level 0.37 or above.
    \fi
 
-       \item Configure /etc/cgconfig.conf as follows:
+       \item For newer OS configure /etc/cgconfig.conf as follows:
+\begin{verbatim}
+   # Define cgroup for the userid you have opted to install and run DUCC, normally 'ducc' but in this example 'duccster', and setup permissions
+   group duccster {
+    perm {
+        task {
+           uid = duccster;
+        }
+        admin {
+           uid = duccster;
+        }
+    }
+    memory {}
+    cpu{}
+    cpuacct{}
+   }
+\end{verbatim}
+For older OS that mount cgroups in /cgroup, configure /etc/cgconfig.conf as follows:
 \begin{verbatim}
    # Mount cgroups for older OS (e.g. RHEL v6)
-   # For newer OS, remove entire mount block 
    mount {
       cpuset = /cgroup/cpuset;
       cpu = /cgroup/cpu;
@@ -520,22 +564,19 @@ For more information see
     }
     memory {}
     cpu{}
+    cpuacct{}
    }
 \end{verbatim}
-       \item Start the cgconfig service:
-\begin{verbatim}
-   service cgconfig start
-\end{verbatim}
+
+       \item Restart the cgconfig service as per the specific OS instructions.
          
-       \item Verify cgconfig service is running by the existence of directory: 
+       \item Verify the custom cgroup configuration is active by getting good output from the following 3 commands: 
 \begin{verbatim}
-   /cgroups/duccster
+   cgget -g memory:ducc | grep swappiness
+   cgget -g cpu:ducc  | grep cpu.shares
+   cgget -g cpuacct:ducc | grep cpuacct.stat
 \end{verbatim}
 
-       \item Configure the cgconfig service to start on reboot:
-\begin{verbatim}
-   chkconfig cgconfig on
-\end{verbatim}
     \end{enumerate}
 
 {\em Note:} if CGroups is not installed on a machine the DUCC Agent will detect this and not 
