@@ -24,21 +24,19 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.RMIServerSocketFactory;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Map.Entry;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
-import javax.management.remote.rmi.RMIConnectorServer;
 import javax.net.ServerSocketFactory;
 
 import org.apache.activemq.camel.component.ActiveMQComponent;
@@ -56,9 +54,9 @@ import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.JdkEvaluator;
-import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.JdkEvaluator.JDKVendor;
 import org.apache.uima.ducc.common.utils.JdkEvaluator.Vendors;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 /**

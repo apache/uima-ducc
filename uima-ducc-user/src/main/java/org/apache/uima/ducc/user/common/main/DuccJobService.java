@@ -38,6 +38,9 @@ import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 public class DuccJobService {
 	boolean DEBUG = false;
 	private Investment investment = null;
+	private Method stopMethod;
+	private Object duccContainerInstance;
+	private Logger logger = Logger.getLogger(DuccJobService.class.getName());
 	
 	public static URLClassLoader create(String classPath)
 			throws MalformedURLException {
@@ -109,9 +112,9 @@ public class DuccJobService {
 			Method setProcessorMethod = duccServiceClass.getMethod("setProcessor", Object.class, String[].class);
 			Method registerInvestmentInstanceMethod = duccServiceClass.getMethod("registerInvestmentInstance", Object.class);
 			Method startMethod = duccServiceClass.getMethod("start");
+			stopMethod = duccServiceClass.getMethod("stop");
 
 			// Establish user's logger early to prevent the DUCC code from accidentally doing so
-			Logger logger = Logger.getLogger(DuccJobService.class.getName());
 			logger.log(Level.INFO, ">>>>>>>>> Booting Ducc Container");
 
 			HashMap<String, String> savedPropsMap = hideLoggingProperties();  // Ensure DUCC doesn't try to use the user's logging setup
@@ -119,7 +122,7 @@ public class DuccJobService {
 			// Construct & initialize Ducc fenced container. 
 			// It calls component's Configuration class
 			Thread.currentThread().setContextClassLoader(ucl);
-			Object duccContainerInstance = duccServiceClass.newInstance();
+			duccContainerInstance = duccServiceClass.newInstance();
 			bootMethod.invoke(duccContainerInstance, (Object) args);
 
 			logger.log(Level.INFO, "<<<<<<<< Ducc Container booted");
@@ -164,6 +167,18 @@ public class DuccJobService {
 
 	}
 	
+	/*
+	 * Terminate the service connection
+	 */
+	public void stop() {
+		try {
+			stopMethod.invoke(duccContainerInstance);
+		} catch( Throwable t) {
+			logger.log(Level.SEVERE, "Stop failed");
+			t.printStackTrace();
+		}
+	}
+
 	public static HashMap<String,String> hideLoggingProperties() {
 		String[] propsToSave = { "log4j.configuration", 
 				                 "java.util.logging.config.file",

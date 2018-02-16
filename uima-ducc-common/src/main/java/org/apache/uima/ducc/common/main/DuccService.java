@@ -60,7 +60,7 @@ public class DuccService extends AbstractDuccComponent {
 	public static final String DUCC_PROPERTY_FILE="ducc.deploy.configuration";
 	public static final String DUCC_DEPLOY_COMPONENTS="ducc.deploy.components";
     //private Investment investment = null;
-	private Main main;
+	private Main camelMain;
     private static DuccLogger globalLogger = null;
     private ApplicationContext context;
     Map<String,AbstractDuccComponent> duccComponents = null;
@@ -147,9 +147,9 @@ public class DuccService extends AbstractDuccComponent {
 	public void boot(String[] args) throws Exception {
         String methodName = "boot";
         // create a Main instance
-        main = new Main();
+        camelMain = new Main();
         // enable hangup support so you can press ctrl + c to terminate the JVM
-        main.enableHangupSupport();
+        camelMain.enableHangupSupport();
         //	Load ducc properties file and enrich System properties. It supports
         //  overrides for entries in ducc properties file. Any key in the ducc
         //	property file can be overriden with -D<key>=<value>
@@ -183,7 +183,7 @@ public class DuccService extends AbstractDuccComponent {
 		getDuccLogger().info(methodName, null,"Starting Camel. Use ctrl + c to terminate the JVM.\n");
         // run until you terminate the JVM
         getDuccLogger().info(methodName, null, "Starting Camel. Use ctrl + c to terminate the JVM.\n");
-        main.start();
+        camelMain.start();
   }
 	public AbstractDuccComponent getComponentInstance(String componentKey) {
     //  Extract all Ducc components from Spring container
@@ -259,14 +259,20 @@ public class DuccService extends AbstractDuccComponent {
 
 	}
 	public void stop() throws Exception {
-		if ( main.isStarted() ) {
-			List<CamelContext> ctxList = main.getCamelContexts();
+		AbstractDuccComponent duccComponent = getComponentByInstanceType(IJobProcessor.class);
+		if ( duccComponent instanceof IJobProcessor ) {
+			duccComponent.stop();
+			getDuccLogger().info("stop", null, "Stopped JobComponent");
+		}
+		if ( camelMain.isStarted() ) {
+			List<CamelContext> ctxList = camelMain.getCamelContexts();
 			for( CamelContext ctx : ctxList ) {
 				ctx.stop();
 			}
-			main.stop();
-			getDuccLogger().shutdown();
+			camelMain.stop();
+			getDuccLogger().info("stop", null, "Stopped main");
 		}
+		getDuccLogger().shutdown();
 	}
 
 	private static void setLoggerComponent() {

@@ -55,7 +55,7 @@ import org.apache.uima.ducc.container.sd.ServiceRegistry;
 import org.apache.uima.ducc.container.sd.ServiceRegistry_impl;
 
 public class DuccHttpClient {
-  private final static String REGISTERED_DRIVER = "ducc.deploy.service.driver";
+  private final static String REGISTERED_DRIVER = "ducc.deploy.registered.driver";
   private final static String SERVICE_TYPE      = "ducc.deploy.service.type";
   
 	private DuccLogger logger = new DuccLogger(DuccHttpClient.class);
@@ -97,8 +97,8 @@ public class DuccHttpClient {
 	  return address;
 	}
 	
-	// If the client URL has been provided use it (JD/JP case)
-	// Otherwise look it up in the registry using the entry in -Dducc.deploy.service.driver
+	// If the client URL provided use it (JD/JP case)
+	// Otherwise in the registry lookup "ducc.deploy.registered.driver"
 	// which must specify: <registry-location>?<registry-entry>
 	public void initialize(String jdUrl) throws Exception {
 
