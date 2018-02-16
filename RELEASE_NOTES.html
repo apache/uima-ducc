@@ -48,21 +48,22 @@ provides cluster management services to automate the scale-out of UIMA pipelines
 Apache UIMA DUCC ${project.version} is a maintenance release containing new features and bug fixes. What's new:<br>
 
 <ul>
-<li>The userid of a privileged DUCC installation does not have to be "ducc"</li>
-<li>ducc-mon login can be used on systems where users do not have password login</li>
-<li>The DUCC head-node daemons may be moved to another host without breaking working applications</li>
-<li>The deployment descriptor for a UIMA-AS service can be loaded from the classpath</li>  
-<li>Interactive applications run correctly with viaducc (fixed lost inputs)</li>
-<li>Files created by DUCC jobs inherit the permissions of the launching shell's umask.</li>
-<li>DUCC performance breakdown for scaled synchronous pipelines is now correct</li>
+<li>Upgraded UIMA (2.10.2), UIMA-AS (2.10.2), ActiveMQ (5.15.2), Spring Framework (4.3.9), Camel (2.19.3), XStream (1.4.10)</li>
+<li>Requires java 8 for builds and runtime</li>
+<li>Fixed rogue process detector to prevent truncation of user names</li>
+<li>Reduced size of publications between the PM and Agents</li>
+<li>Improved Agent's detection of defunct processes</li>
+<li>Improved logging of system events</li>
+<li>ducc_watcher improvements</li>
+<li>Job & managed reservation specs now saved in DB</li>
+<li>DUCC Web Server (WS) queries DB too often</li>
+<li>DUCC Web Server (WS) should use Resource Manager (RM) calculated value for machine's memory available</li>
 </ul>
 
 <br><br>
 
 For a complete list of issues fixed and up-to-date information on UIMA-DUCC issues, see our issue tracker: 
-<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.1-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.1-Ducc%22%20</a>
-
-This version of DUCC includes UIMA-SDK v.2.10.2, UIMA-AS v.2.10.2, and ActiveMQ v.5.15.2.
+<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.2-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.2-Ducc%22%20</a>
 </p> 
       
 <h2><a name="migration">3. Migration from a Prior Release</a></h2>
