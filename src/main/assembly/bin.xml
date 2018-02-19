@@ -398,8 +398,8 @@ under the License.
       <outputDirectory></outputDirectory>
       <includes>
         <include>issuesFixed/**</include>
-        <include>target/README</include>
-        <include>target/RELEASE_NOTES.html</include>
+        <!--include>target/README</include>
+        <include>target/RELEASE_NOTES.html</include-->
         <!-- Temporarily disable the include below for 1.1.0-Ducc release -->
         <!-- JIRAs bug prevents more than 100 jiras in the report produced -->
         <!-- by maven changes plugin. Workaround is to generate report     -->
