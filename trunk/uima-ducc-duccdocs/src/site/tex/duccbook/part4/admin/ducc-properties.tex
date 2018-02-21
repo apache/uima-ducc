@@ -1,0 +1,74 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+
+\section{Properties}
+ 	
+ 	Public properties are in a primary configuration file is called ducc.properties 
+	and always resides in the directory
+    ducc\_runtime/resources.
+
+	Private properties are in a secondary configuration file call ducc.private.properties
+	and always resides in the directory
+    ducc\_runtime/resources/private.
+
+\section{Properties merging}
+\label{sec:admin.properties-merge}
+    
+    With DUCC 2.0.0 the shipped DUCC properties file is designed to be read-only.  Installations
+    create a local properties file which is automatically merged with the default properties file
+    as part of system startup.
+
+    The shipped DUCC properties file is called {\em default.ducc.properties}.  This file should
+    never be edited or modified.
+
+    The local site override properties file is called {\em site.ducc.properties}.  This is a 
+    normal Java properties file containing override and additional properties.  An initial
+    {\em site.ducc.properties} is created on installation of DUCC 2.0.0 by {\em ducc\_post\_install}.
+
+    On startup 
+    (\hyperref[subsec:admin.start-ducc]{\em start\_ducc}), 
+    verification 
+    (\hyperref[subsec:admin.check-ducc]{\em check\_ducc}),     
+    and RM reconfiguration
+    (\hyperref[subsec:admin.rm-reconfigure]{\em rm\_reconfigure}),     
+    the two properties files are
+    merged, with {\em site.ducc.properties} taking preference, to create the operational file,
+    {\em ducc.properties}, which is used by all DUCC components.  This file should not be
+    edited as it will be over-written whenever {\em start\_ducc} or {\em check\_ducc} is run.
+
+\section{ducc.properties}
+\label{sec:ducc.properties}
+   
+    Some of the properties in ducc.properties are intended as the "glue" that brings the various 
+    DUCC components together and lets then run as a coherent whole. These types of properties should 
+    be modified only by developers of DUCC itself.
+
+    Some of the properties are tuning parameters: timeouts, heartbeat intervals, and so on. These
+    may be modified by DUCC administrators, but only after experience is gained with DUCC, and only
+    to solve specific performance problems. The default tuning parameters have been chosen by the
+    DUCC system developers to provide "best" operation under most reasonable situations.
+
+    Some of the properties describe the local cluster configuration: the location of the ActiveMQ
+    broker, the location of the Java JRE, port numbers, etc. These should be modified by the DUCC
+    administrators to configure DUCC to each individual installation.
+   
+\section{default.ducc.properties}
+\label{sec:default.ducc.properties}   
+	\verbatiminput{../../../../../src/main/resources/default.ducc.properties}
+    

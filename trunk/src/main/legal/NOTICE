@@ -1,0 +1,462 @@
+ Apache UIMA-DUCC
+Copyright 2012 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+Portions of Apache UIMA were originally developed by
+International Business Machines Corporation and are
+licensed to the Apache Software Foundation under the
+"Software Grant License Agreement", informally known as the
+"IBM UIMA License Agreement".
+Copyright (c) 2003 IBM Corporation.
+
+Portions of UIMA-DUCC were originally developed by
+International Business Machines Corporation and are
+licensed to the Apache Software Foundation under the
+"Software Grant License Agreement", informally known as the 
+"IBM UIMA-DUCC License Agreement".
+Copyright (c) 2012 IBM Corporation
+
+Portions of UIMA-AS were originally developed by
+International Business Machines Corporation and are
+licensed to the Apache Software Foundation under the
+"Software Grant License Agreement", informally known as the 
+"IBM UIMA-EE License Agreement".
+Copyright (c) 2007 IBM Corporation
+
+========================================================================= 
+------------------ Saxon Notice
+========================================================================= 
+This product includes software known as 
+"The Saxon XSLT and XQuery Processor from Saxonica Limited", whose
+home page URL is http://www.saxonica.com/ 
+
+Saxon includes the org.apache.xerces.util.XMLChar module from the Apache 
+Xerces product, renamed as net.sf.saxon.om.XMLChar but otherwise unchanged. 
+See the copyright statements included in the source code of that module for
+conditions of use.
+
+Saxon includes code for performing Unicode normalization that is derived 
+from the sample code published for this purpose by the Unicode consortium. 
+For the terms of use of this code, see http://www.unicode.org/terms_of_use.html, 
+which should be regarded as forming part of these conditions of use, and part 
+of the Saxon documentation. 
+
+========================================================================= 
+------------------ SVG Notice
+========================================================================= 
+
+This product contains icons developed by the SVG Icons project 
+(http://sourceforge.net/projects/svgicons), licensed under the 
+BSD license (see LICENSE file).
+
+
+=========================== DUCC IMAGES ================================ 
+
+1. image......... 120px-Anas_platyrhynchos_-United_Kingdom_-adult_female_and_ducklings-8.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Anas_platyrhynchos_-United_Kingdom_-adult_female_and_ducklings-8.jpg#metadata
+   license....... http://creativecommons.org/licenses/by/2.0/deed.en
+   attribution... © jans canon / Wikimedia Commons / CC-BY-2.0
+   
+2. image......... 120px-Ducks_eating.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Ducks_eating.jpg
+   license....... http://creativecommons.org/licenses/by/2.0/deed.en
+   attribution... © Neil Phillips / Wikimedia Commons / CC-BY-2.0
+   
+3. image......... 120px-Head_of_a_white_domesticated_duck.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Head_of_a_white_domesticated_duck.jpg
+   license....... http://creativecommons.org/licenses/by-sa/2.0/deed.en
+   attribution... © Ernst Vikne / Wikimedia Commons / CC-BY-SA-2.0   
+      
+4. image......... 120px-Rubber_duckies_So_many_ducks.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Rubber_duckies_So_many_ducks.jpg
+   license....... http://creativecommons.org/licenses/by/2.0/deed.en
+   attribution... © Gaetan Lee / Wikimedia Commons / CC-BY-2.0   
+         
+5. image......... 120px-Thermal_image_of_four_ducks_swimming.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Thermal_image_of_four_ducks_swimming.jpg
+   license....... http://creativecommons.org/publicdomain/zero/1.0/deed.en
+   attribution... N/A
+          
+6. image......... 120px-Tracks_duck.gif
+   source........ http://commons.wikimedia.org/wiki/File:Tracks_duck.gif
+   license....... This work is in the public domain in the United States because it is a work prepared by an officer or employee of the United States Government
+                  as part of that person's official duties under the terms of Title 17, Chapter 1, Section 105 of the US Code. See Copyright.
+   attribution... N/A
+
+7. image......... refresh.png
+   source........ http://commons.wikimedia.org/wiki/File:Human-gnome-session-reboot.svg
+   license....... http://creativecommons.org/licenses/by-sa/2.5/deed.en
+   attribution... User:Pander / Wikimedia Commons / CC BY-SA 2.5  
+          
+8. image......... 144x144Stick_figure_-_choosing.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Stick_figure_-_choosing.jpg
+   license....... http://creativecommons.org/licenses/by-sa/3.0/deed.en
+   attribution... © User:Obsidian Soul / Wikimedia Commons / CC-BY-SA-3.0  
+               
+9. image......... 2x1.33in-Bariken_kid.JPG
+   source........ http://commons.wikimedia.org/wiki/File:Bariken_kid.JPG
+   license....... http://creativecommons.org/licenses/by-sa/3.0/deed.en
+   attribution... © User:Materialscientist / Wikimedia Commons / CC-BY-SA-3.0  
+           
+10. image........ 800px-Duck_crossing_Louisiana.2x1.4.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Duck_crossing_Louisiana_2010-10-15.JPG
+   license....... I, the copyright holder of this work, release this work into the public domain. This applies worldwide.
+                  In some countries this may not be legally possible; if so:
+                  I grant anyone the right to use this work for any purpose, without any conditions, unless such conditions are required by law.
+   attribution... User:Richard David Ramsey    
+      
+11. image........ 800px-Leg_Of_White_Duck.2x1.6.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Leg_Of_White_Duck.jpg
+   license....... http://creativecommons.org/licenses/by-sa/3.0/deed.en
+   attribution... © User:Ezhuttukari / Wikimedia Commons / CC-BY-SA-3.0         
+            
+12. image........ 90px-Swimming_white_domesticated_ducks.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Swimming_white_domesticated_ducks.jpg
+   license....... http://creativecommons.org/licenses/by-sa/2.0/deed.en
+   attribution... © Ernst Vikne / Wikimedia Commons / CC-BY-SA-2.0
+         
+13. image........ Ducklings_in_Shaw_Creek.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Ducklings_in_Shaw_Creek.jpg
+   license....... http://creativecommons.org/licenses/by/2.0/deed.en
+   attribution... © Author:Peggy2012CREATIVELENZ / Wikimedia Commons / CC-BY-2.0   
+         
+14. image........ Flying_mallard_duck_-_female_2.0x1.4.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Flying_mallard_duck_-_female.jpg
+   license....... http://creativecommons.org/licenses/by-sa/3.0/deed.en
+   attribution... © Author:Martin Correns / Wikimedia Commons / CC-BY-SA-3.0   
+
+15. image........ indicator.gif
+   source........ http://commons.wikimedia.org/wiki/File:Birdleft.gif
+   license....... I, the copyright holder of this work, release this work into the public domain. This applies worldwide.
+                  In some countries this may not be legally possible; if so:
+                  I grant anyone the right to use this work for any purpose, without any conditions, unless such conditions are required by law.
+   attribution... User:Pigpen
+    
+16. image........ propeller_hat_large.svg.png, propeller_hat_small.svg.png
+   source........ http://commons.wikimedia.org/wiki/File:Propeller.svg
+   license....... http://creativecommons.org/publicdomain/zero/1.0/deed.en
+   attribution... N/A 
+
+17. image........ RCA_Indian_Head_test_pattern.JPG
+   source........ http://commons.wikimedia.org/wiki/File:RCA_Indian_Head_test_pattern.JPG
+   license....... This work is in the public domain in that it was published in the United States between 1923 and 1977 and without a copyright notice. 
+                  Unless its author has been dead for several years, it is copyrighted in jurisdictions that do not apply the rule of the shorter term 
+                  for US works, such as Canada (50 p.m.a.), Mainland China (50 p.m.a., not Hong Kong or Macao), Germany (70 p.m.a.), Mexico (100 p.m.a.), 
+                  Switzerland (70 p.m.a.), and other countries with individual treaties.
+   attribution... N/A
+   
+18. image........ ts-2.0x1.3.jpeg
+   source........ http://commons.wikimedia.org/wiki/File:Mallard_close-up.jpg
+   license....... This work has been released into the public domain by its author, Frankyboy5 at the wikipedia project. This applies worldwide.
+                  In case this is not legally possible: Frankyboy5 grants anyone the right to use this work for any purpose, without any conditions, unless
+                  such conditions are required by law.
+   attribution... N/A
+      
+19. image........ Delena-cancerides-huntsman-spider.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Delena-cancerides-huntsman-spider.jpg
+   license....... http://creativecommons.org/licenses/by-sa/2.0/deed.en
+   attribution... © Bryce McQuillan / Wikimedia Commons / CC-BY-SA-2.0
+      
+20. image........ 120px-BURROUGH_AUDUBON_SOCIETY_MEMBERS_USE_BINOCULARS_TO_IDENTIFY_MIGRATORY_SHORE_BIRDS_DURING_A_SCHEDULED_OUTING_AT_THE..._-_NARA_-_557179.jpg
+   source........ http://commons.wikimedia.org/wiki/File:BURROUGH_AUDUBON_SOCIETY_MEMBERS_USE_BINOCULARS_TO_IDENTIFY_MIGRATORY_SHORE_BIRDS_DURING_A_SCHEDULED_OUTING_AT_THE..._-_NARA_-_557179.jpg
+   license....... This work is in the public domain in the United States because it is a work prepared by an officer or employee of the United States Government as part of that person's official 
+                  duties under the terms of Title 17, Chapter 1, Section 105 of the US Code. See Copyright.
+   attribution... Duncan, Patricia D.
+      
+21. image........ Cygnet_in_Hyde_Park.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Cygnet_in_Hyde_Park.jpg
+   license....... http://creativecommons.org/licenses/by-sa/2.0/deed.en
+   attribution... Files from Keven Law Flickr stream
+
+
+==============================================================
+ Jetty Web Container
+ Copyright 1995-2006 Mort Bay Consulting Pty Ltd
+==============================================================
+
+This product includes some software developed at The Apache Software
+Foundation (http://www.apache.org/).
+
+The javax.servlet package used by Jetty is copyright
+Sun Microsystems, Inc and Apache Software Foundation. It is
+distributed under the Common Development and Distribution License.
+You can obtain a copy of the license at
+https://glassfish.dev.java.net/public/CDDLv1.0.html.
+
+The UnixCrypt.java code ~Implements the one way cryptography used by
+Unix systems for simple password protection.  Copyright 1996 Aki Yoshida,
+modified April 2001  by Iris Van den Broeke, Daniel Deville.
+
+The default JSP implementation is provided by the Glassfish JSP engine
+from project Glassfish http://glassfish.dev.java.net.  Copyright 2005
+Sun Microsystems, Inc. and portions Copyright Apache Software Foundation.
+
+Some portions of the code are Copyright:
+  2006 Tim Vernum
+  1999 Jason Gilbert.
+
+
+===============================================================================
+webserver/lib/jsp/org.eclipse.jetty.orbit.javax.servlet.jsp.jstl-1.2.0.v201105211821.jar
+===============================================================================
+
+JavaServer Pages Standard Tag Library API 2.1 from Glassfish
+The plug-in includes software developed by Sun as part of the Glassfish project.
+
+Your use of the library code is subject to the terms and conditions of the Apache Software License 2.0 and the Common Development and Distribution License("CDDL") license.
+A copy of the Apache Software License 2.0 is contained in the file LICENSE_ASL20.txt and is also available at http://www.apache.org/licenses/LICENSE-2.0.html.
+
+A copy of the Common Development and Distribution License is contained in the file about_files/LICENSE_CDDL.txt and is also
+available at http://www.sun.com/cddl/cddl.html">http://www.sun.com/cddl/cddl.html
+
+Original binaries and source are available from the http://glassfish.dev.java.net
+
+
+===============================================
+Java Authentication SPI for Containers
+Copyright 2003-2009 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+===============================================
+Apache Tomcat
+Copyright 1999-2014 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+==============================================
+
+=====================================
+==== Apache Commons Codec NOTICE
+=====================================
+
+Copyright 2002-2011 The Apache Software Foundation
+
+This product includes software developed by
+The Apache Software Foundation (http://www.apache.org/).
+
+--------------------------------------------------------------------------------
+src/test/org/apache/commons/codec/language/DoubleMetaphoneTest.java contains
+test data from http://aspell.sourceforge.net/test/batch0.tab.
+
+Copyright (C) 2002 Kevin Atkinson (kevina@gnu.org). Verbatim copying
+and distribution of this entire article is permitted in any medium,
+provided this notice is preserved.
+--------------------------------------------------------------------------------
+
+=========================================================================
+------------------ Jetty (jetty-util) Notice
+
+The UnixCrypt.java code implements the one way cryptography used by
+Unix systems for simple password protection.  Copyright 1996 Aki Yoshida,
+modified April 2001  by Iris Van den Broeke, Daniel Deville.
+Permission to use, copy, modify and distribute UnixCrypt
+for non-commercial or commercial purposes and without fee is
+granted provided that the copyright notice appears in all copies.
+
+=========================================================================
+------------------- www.ibatis.com Notice -------
+=========================================================================
+This product also includes software developed by
+Clinton Begin (http://www.ibatis.com).
+
+=========================================================================
+------------------- GlassFish JSP Notice -------
+=========================================================================
+The default JSP implementation is provided by the Glassfish JSP engine
+from project Glassfish http://glassfish.dev.java.net.  Copyright 2005
+Sun Microsystems, Inc. and portions Copyright Apache Software Foundation.
+
+Some portions of the code are Copyright:
+  2006 Tim Vernum
+  1999 Jason Gilbert.
+
+=========================================================================
+==  ActiveMQ Notice                                                      ==
+=========================================================================
+
+This product includes software, Apache ActiveMQ, developed
+at the Apache Software Foundation (http://www.apache.org/).
+
+
+=========================================================================
+----------- Spring Notice --------------
+=========================================================================
+This product includes software, Spring Framework developed by
+Spring Framework (http://www.springframework.org/).
+
+The end-user documentation included with a redistribution, if any,
+must include the following acknowledgement:
+
+ "This product includes software developed by the Spring Framework
+  Project (http://www.springframework.org)."
+
+Alternately, this acknowledgement may appear in the software itself,
+if and wherever such third-party acknowledgements normally appear.
+
+The names "Spring" and "Spring Framework" must not be used to
+endorse or promote products derived from this software without
+prior written permission. For written permission, please contact
+rod.johnson@interface21.com or juergen.hoeller@interface21.com.
+
+This product includes software, QDox, developed by
+ThoughtWorks, Inc (http://www.thoughtworks.com/).
+
+=========================================================================
+------- jaxb-api, jaxb-impl Package Notice ----------
+=========================================================================
+The jaxb-api, jaxb-impl,javax.servlet is distributed under the 
+Common Development and Distribution License v1.0.
+
+You can obtain a copy of the license at
+https://glassfish.dev.java.net/public/CDDLv1.0.html.
+
+Source code for jaxb-api, jaxb-impl is at http://jaxb.java.net/
+
+==================================================
+==== Apache HttpComponents HttpCore (httpcore-4.4.4.jar)
+==================================================
+
+Copyright 2005-2013 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+This project contains annotations derived from JCIP-ANNOTATIONS
+Copyright (c) 2005 Brian Goetz and Tim Peierls. See http://www.jcip.net
+
+==================================================
+=== Servlet 3.0 (geronimo-servlet_3.0_spec-1.0.jar)
+==================================================
+
+Copyright 2003-2010 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+
+
+This product includes software developed by
+The W3C Consortium (http://www.w3.org/).
+
+Copyright © 1994-2002 World Wide Web Consortium,
+(Massachusetts Institute of Technology, Institut National
+de Recherche en Informatique et en Automatique, Keio
+University). All Rights Reserved.
+http://www.w3.org/Consortium/Legal/
+
+
+=========================================================================
+-------- ASM 3.1 library Notice
+=========================================================================
+
+Copyright (c) 2000-2005 INRIA, France Telecom.
+
+=========================================================================
+-------- JavaServer Pages Expression Language 2.1 library Notice
+=========================================================================
+JavaServer Pages Expression Language 2.1 Reference Implementation from Glassfish
+
+The plug-in includes software developed by Sun as part of the Glassfish project.
+
+Your use of the library code is subject to the terms and conditions of the Common Development and Distribution License("CDDL") license.
+
+A copy of the Common Development and Distribution License is available at http://www.sun.com/cddl/cddl.html
+
+Original binaries and source are available from the Glassfish website http://glassfish.dev.java.net
+
+=========================================================================
+-------- JavaServer Pages Expression Language API 2.1 library Notice
+=========================================================================
+JavaServer Pages Expression Language API 2.1 from Glassfish
+
+The plug-in includes software developed by Sun as part of the Glassfish project.
+
+Your use of the library code is subject to the terms and conditions of the Apache Software License 2.0 and the Common Development and Distribution License("CDDL") license.
+A copy of the Apache Software License 2.0 is contained is available at http://www.apache.org/licenses/LICENSE-2.0.html.
+
+A copy of the Common Development and Distribution License is available at http://www.sun.com/cddl/cddl.html.
+
+Original binaries and source are available from the Glassfish website http://glassfish.dev.java.net
+
+=========================================================================
+-------- JavaServer Pages Standard Tag Library library Notice
+=========================================================================
+JavaServer Pages Standard Tag Library Implementation for the 1.2 version of the JSTL spec
+
+The plug-in includes software developed by Sun as part of the Glassfish project.
+
+Your use of the library code is subject to the terms and conditions of the Apache Software License 2.0 and the Common Development and Distribution License("CDDL") license.
+A copy of the Apache Software License 2.0 is contained is available at http://www.apache.org/licenses/LICENSE-2.0.html.
+
+A copy of the Common Development and Distribution License is available at http://www.sun.com/cddl/cddl.html.
+
+Original binaries and source are available from the Glassfish website http://glassfish.dev.java.net
+
+=========================================================================
+-------- Java Mail 1.4.1 library Notice
+=========================================================================
+Your use of the Java Mail code is subject to the terms and
+conditions of the Common Development and Distribution License (CDDL) Version 1.0. A
+copy of the license is available
+at https://glassfish.dev.java.net/public/CDDL+GPL.html
+
+The Eclipse Foundation elects to include this software in this distribution 
+under the CDDL license.
+	
+The original source for this javax.mail bundle is available on
+the Glassfish website at 
+    https://glassfish.dev.java.net/downloads/v2-b58g.html
+
+=========================================================================
+---------------------- Mina Notice
+=========================================================================
+Data compression support is provided by the JZLib library package,
+which is open source software, written by JCraft, and copyright
+by JCraft.  The original software is available from
+
+   http://www.jcraft.com/jzlib/
+   
+=========================================================================
+-------------------- Joda library Notice
+=========================================================================
+This product includes software developed by
+Joda.org (http://www.joda.org/).
+
+(C) Copyright 1997,2004 International Business Machines Corporation.  All rights reserved.
+
+(C) Copyright IBM Corp. 2003. 
+
+-------------------- xmlbean library Notice
+
+   This product includes software developed by
+   The Apache Software Foundation (http://www.apache.org/).
+
+   Portions of this software were originally based on the following:
+     - software copyright (c) 2000-2003, BEA Systems, <http://www.bea.com/>.
+
+   Aside from contributions to the Apache XMLBeans project, this
+   software also includes:
+
+    - one or more source files from the Apache Xerces-J and Apache Axis
+      products, Copyright (c) 1999-2003 Apache Software Foundation
+
+    - W3C XML Schema documents Copyright 2001-2003 (c) World Wide Web
+      Consortium (Massachusetts Institute of Technology, European Research
+      Consortium for Informatics and Mathematics, Keio University)
+
+    - resolver.jar from Apache Xml Commons project,
+      Copyright (c) 2001-2003 Apache Software Foundation
+
+    - Piccolo XML Parser for Java from http://piccolo.sourceforge.net/,
+      Copyright 2002 Yuval Oren under the terms of the Apache Software License 2.0
+
+    - JSR-173 Streaming API for XML from http://sourceforge.net/projects/xmlpullparser/,
+      Copyright 2005 BEA under the terms of the Apache Software License 2.0
+
+=========================================================================
+

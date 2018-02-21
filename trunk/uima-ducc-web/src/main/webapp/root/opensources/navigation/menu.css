@@ -1,0 +1,37 @@
+body, input{
+	font-family: Calibri, Arial;
+}
+#accordion {
+	list-style: none;
+	padding: 0 0 0 0;
+	width: 100px;
+}
+#accordion li{
+	display: block;
+	background-color: #6699ff;
+	font-weight: bold;
+	margin: 1.25px;
+	cursor: pointer;
+	padding: 0 0 0 0;
+	list-style: circle;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+}
+#accordion ul {
+	list-style: none;
+	padding: 0 0 0 0;
+	display: none;
+}
+#accordion ul li{
+	font-weight: normal;
+	cursor: auto;
+	background-color: #fff;
+	padding: 0 0 0 7px;
+}
+#accordion a {
+	text-decoration: none;
+}
+#accordion a:hover {
+	text-decoration: underline;
+}

@@ -1,0 +1,330 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+
+\input{part5/ducc-pops-defs.tex}
+
+% body
+
+\chapter{Platform}
+
+    The \varDistributedUIMAClusterComputing~(\varDUCC) platform comprises software 
+    designed to facilitate the scale-out of 
+    \varUnstructuredInformationManagementArchitecture~(\varUIMA) pipelines on a 
+    collection of \varNodesMachinesComputers~shared "fairly" by a group of users.
+    
+    The major components of \varDUCC~are the \varOrchestrator~(\varOR), the \varJobDriver~(\varJD), 
+    the \varResourceManager~(\varRM), the \varProcessManager~(\varPM), the \varServicesManager~(\varSM), 
+    the \varAgents, the \varCommandLineInterface~(\varCLI), the \varApplicationProgramInterface~(\varAPI), 
+    and the \varWebServer~(\varWS).
+        
+    \section{Highlights}
+    
+    \varDUCC~was conceived to address the following:
+    
+    \begin{itemize}
+      \item manage a cluster of machines for \varUIMA~workloads
+      \item highly configurable "fair-share" resource allocation system
+      \item application code runs with credentials of submitting user
+      \item "virtual machine" resources for user processes allocated instantaneously via \varLinuxControlGroups
+      \item extensive Web, \varCLI~and \varAPI~interfaces
+      \item rich debugging support for user processes
+    \end{itemize} 
+    
+    \section{Architecture}
+    
+    The \varDUCC~platform employs building-block software from the open-source community
+    where possible to achieve it goals. Foremost and not surprisingly \varDUCC~employs in
+    its foundation \varUIMAAS, which in-turn relies upon \varUIMA-Core.
+    
+    Additionally, \varCamel~is used for inter-component communications.
+    \varActiveMQ~is employed to process work items amongst a distributed set of work item processors.
+    Logging is facilitated by \varLogger. \varJetty~is used for the \varWebServer~and \varjQuery~is deployed
+    to web browsers.  And various other open-source softwares are likewise employed.
+    
+    By employing reliable open-source code where possible, the amount of custom code needed
+    to develop and maintain \varDUCC~functionality is minimized. And substitution of implementation
+    for equivalent functionality is possible, for example replacing \varApacheActiveMQ~with 
+    \varIBMWebSphereMQ.
+    
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=6.5in]{images/ducc-arch.jpg}
+      \label{fig:DUCC-Architecture}
+    \end{figure}
+    
+%    \begin{figure}[h]
+%    \centering
+%    \includegraphics[width=6.5in]{images/ducc-arch.jpg}
+%    \caption[]{\varDUCC~Architecture}
+%    \label{fig:\varDUCC~Architecture}
+%    \end{figure}
+%    \label{fig:01}
+
+    \section{\varJobs}
+
+    The main focus of the system is running "batch" \varJobs~comprising \varUIMA~pipelines.
+    
+    Users submit \varJobs~to the system to be deployed and executed. \varJobs~have a
+    life-cycle from birth to death during which time a (normally) finite collection of
+    work items are processed by one or more \varUIMA~pipelines. \varJobs~consist of two
+    parts: a singleton work item supplier, known in \varUIMA~parlance as a
+    \varCollectionReader~(\varCR); and one or more pipelines, each known in \varUIMA~parlance
+    as an \varAnalysisEngine~(\varAE).
+        
+    \subsection{Characteristics}   
+    
+    \varDUCC~facilitates "fair-share" \varUIMA~pipeline scale-out.
+    
+    The \varUIMA~pipelines comprising a \varJob~represent "embarrassingly parallel" 
+    deployments. Over time, a \varJob~may expand and contract with respect to the number of 
+    \varUIMA~pipelines deployed during its lifetime. This may be due to the introduction 
+    or completion of other \varJobs, the rise and fall of other resource consumers such 
+    as \varReservations~or \varServices, and the addition or removal of computer resources 
+    to the cluster.
+    
+    With respect to contraction, each \varUIMA~pipeline must be prepared to
+    process work items that may have been partially processed previously.
+   
+    Pipelines themselves may comprise one or more duplicate threads, such that each
+    pipeline can simultaneously process multiple work items.
+    The number of pipelines and threads per pipeline are configurable per \varJob.
+   
+    \subsection{Performance}  
+    
+    For the distributed environment, \varDUCC~relies upon a \varNetworkFileSystem~(\varNFS)
+    for file access to work items.
+    High performance is achieved through \varNFS~data sharing and (via \varActiveMQ) the passing of
+    data-handles that are utilized by the "embarrassingly parallel" pipelines.
+    
+    \section{\varReservations}
+    
+    To help support Jobs, \varDUCC~provides facilities for \varReservations~of two types: 
+    Managed and Unmanaged. \varReservations, once allocated, are preserved until 
+    canceled. 
+    
+    \varManagedReservations~(MRs) comprise "arbitrary" processes, for example Java
+    programs, c-programs, bash shells, etc.
+    
+    \varUnmanagedReservations~(URs) comprise a resource that can be utilized for any 
+    purpose, subject to the limitations of the assigned \varShare~or \varShares.
+            
+    \section{\varServices}
+       
+    To help support \varJobs, \varDUCC~provides facilities for \varServices~of two types: 
+    \varUIMA~and \varPingOnly. \varServices~can be predefined in a registry, and 
+    \varJobs~can declare dependency on one or more of them.
+    
+    \varServices~can be shared by my multiple \varJobs~or can be tied to just one.
+    \varServices~can be started at \varDUCC-boot time or at \varService-definition time or
+    at \varJob~launch time.
+    
+    \varServices~can be expanded and contracted by command or on-demand.  
+    \varServices~can be stopped by command or due to absence of demand.
+    
+    \varServices~nominally exists for reasons of efficiency due to high start-up costs
+    or high resource consumption.  Benefits of cost amortization are realized by sharing
+    \varServices~amongst a collection of \varJobs~rather than employing a private copy 
+    for each.
+    
+    The lifecycle of each \varUIMA~\varService~is managed by \varDUCC, which is not the
+    case for \varPingOnly~\varServices.  However, each comprises a "pinger" which 
+    adheres to a standard interface and provides health and statistical information.
+    
+    \section{Management} 
+    
+    The \varDUCC~system employs several management techniques to fairly apportion
+    resources.
+    
+    \subsection{Memory Shares} 
+    
+    The \varDUCC~system partitions the entire set of available resources comprising
+    \varNodesMachinesComputers~into \varShares.
+    
+    Partitioning of the available \varNodesMachinesComputers~into \varShares~facilitates
+    multitenancy amongst a collection of \varDUCC-managed user applications consisting 
+    of \varUIMA~pipelines.
+    
+    One or more \varShares~are allocated and sub-partitioned into \varJdShares.
+    
+    Users submit \varJobs~to the \varDUCC~system specifying a requisite memory size.
+    Each \varJob~is allocated one \varJdShare~and, based upon user specified
+    memory size, one or more \varShares. 
+    Likewise, users submit \varReservations~and \varServices~also comprising memory size
+    information.  These are assigned \varShares~only.
+    
+    New \varJobs, \varReservations~and \varServices~may only enter the system when
+    there are sufficient unallocated \varShares~available. To make room for newly arriving
+    submissions, the \varResourceManager~may preempt use of already previously
+    assigned \varShares~for re-assignment.
+    
+    \subsection{\varLinuxControlGroups} 
+    
+    If available, \varDUCC~employs \varLinuxControlGroups~to enforce limits on
+    deployed applications. Exceeding limits penalizes only the offender.
+    For example, if a user application exceeds its memory \varShare~size then it is forced
+    to swap while other co-resident applications remain unaffected.
+    
+    \subsection{Preemption} 
+        
+    Preemption is employed by \varDUCC~to re-apportion \varShares~when new work is submitted.
+    
+    For example, presume a simple \varDUCC~system with just one preemptable scheduling class
+    and resources comprising 11 \varShares. Further, suppose that 1 \varShare~is allocated 
+    for partitioning into \varJdShares.
+    When the Job \#1 is submitted it is entitled to all remaining 10 shares.  
+    When Job \#2 arrives, each job is entitled to only 5 shares.
+    Thus, 5 \varShares~from Job \#1 are preempted and reassigned to Job \#2.
+    
+\chapter{System Organization}
+
+    \section{Single System Image}
+    
+    \varDUCC~runs on \varLinux. It can be run on a single system in simulation-mode
+    or on a cluster (two or more machines). For clusters, \varDUCC~replies upon 
+    these requirements:
+    
+    \begin{itemize}
+      \item common userids across the cluster
+      
+      Each userid must have the same definition on all machines participating
+      in the \varDUCC~cluster.
+      
+      \item a shared filesystem for user and \varDUCC~data across the cluster
+      
+      Each machine shares a filesystem (commonly provided by NFS) with all 
+      machines participating in the \varDUCC~cluster.
+      
+    \end{itemize} 
+    
+    \section{Communications}
+    
+    \varDUCC~comprises a collection of singleton and distributed daemons that need
+    to coordinate activities.  This coordination is accomplished via messaging.
+    
+    The system is fault tolerant with respect to lost messages, since
+    publications occur at regular intervals and each message encapsulates
+    the current and/or desired state for the target audience.
+    As such, actions may be be delayed but will be carried out as soon as the
+    next message arrives.
+    
+    \section{Daemons}
+    
+    \varDUCC~is implemented through a collection of configurable singleton 
+    and distributed daemons.
+    
+    \input{part5/ducc-pops-component-orchestrator.tex}
+    \input{part5/ducc-pops-component-resource-manager.tex}
+    \input{part5/ducc-pops-component-services-manager.tex}
+    \input{part5/ducc-pops-component-process-manager.tex}
+    \input{part5/ducc-pops-component-agent.tex}
+    \input{part5/ducc-pops-component-job-driver.tex}
+    \input{part5/ducc-pops-component-user-interface.tex}
+    \input{part5/ducc-pops-component-webserver.tex}
+
+    \section{Interfaces}
+    
+    Interfaces description.
+    
+\chapter{Runtime}
+    
+    \section{State Machines}
+    
+    \subsection{Job State Machine}    
+       
+        \begin{table}[H]
+        \caption{Job State Machine}
+        \begin{tabular}{{l}{l}{l}{l}}
+        Id      & Name                      & Next           & Description \\
+        \hline
+        1       & Received                  &  2, 7          & Job has been vetted, persisted, and assigned unique Id \\
+        2       & WaitingForDriver          &  3, 4, 7       & Process Manager is launching Job Driver \\         
+        3       & WaitingForServices        &  4, 7          & Service Manager is checking/starting service dependencies for Job \\
+        4       & WaitingForResources       &  5, 7          & Scheduler is assigning resources to Job \\
+        5       & Initializing              &  6, 7          & Process Agents are initializing pipelines \\
+        6       & Running                   &  7             & At least one Process Agent has reported process initialization complete \\
+        7       & Completing                &  8             & Job processing is completing \\
+        8       & Completed                 &                & Job processing is completed
+        \end{tabular}
+        \end{table}
+    
+    \subsection{Service State Machine}   
+    
+        \begin{table}[H]
+        \caption{Service State Machine}
+        \begin{tabular}{{l}{l}{l}{l}}
+        Id      &Name                       & Next           & Description \\
+        \hline
+        1       & Received                  &  2, 3, 6       & Service has been vetted, persisted, and assigned unique Id \\
+        2       & WaitingForServices        &  3, 6          & Service Manager is checking/starting service dependencies for Service \\
+        3       & WaitingForResources       &  4, 6          & Scheduler is assigning resources to Service \\
+        4       & Initializing              &  5, 6          & Process Agents are initializing pipelines \\
+        5       & Running                   &  6             & At least one Process Agent has reported process initialization complete \\
+        6       & Completing                &  7             & Service processing is completing \\
+        7       & Completed                 &                & Service processing is completed
+        \end{tabular}
+        \end{table}
+    
+    \subsection{Reservation State Machines}     
+    
+        \begin{table}[H]
+        \caption{Unmanaged Reservation State Machine}
+        \begin{tabular}{{l}{l}{l}{l}}
+        Id      &Name                       & Next           & Description \\
+        \hline
+        1       & Received                  &  2, 3          & Reservation has been vetted, persisted, and assigned unique Id \\
+        2       & Assigned                  &  3             & \varShares~are assigned \\
+        3       & Completed                 &                & \varShares~not assigned  
+        \end{tabular}
+        \end{table}
+     
+        \begin{table}[H]
+        \caption{Managed Reservation State Machine}
+        \begin{tabular}{{l}{l}{l}{l}}
+        Id      &Name                       & Next           & Description \\
+        \hline
+        1       & Received                  &  2, 3, 5       & Reservation has been vetted, persisted, and assigned unique Id \\
+        2       & WaitingForServices        &  3, 5          & Service Manager is checking/starting service dependencies for Reservation \\
+        3       & WaitingForResources       &  4, 5          & Scheduler is assigning resources to Reservation \\
+        4       & Running                   &  5             & Process Agent has reported program launched \\
+        5       & Completing                &  6             & Reservation processing is completing \\
+        6       & Completed                 &                & Reservation processing is completed
+        \end{tabular}
+        \end{table}
+         
+    \section{Dependencies}
+    
+    \section{Scheduling}
+    
+    \section{Monitoring and Control}
+    
+    \subsection{Automatic} 
+    
+    \subsection{Manual} 
+        
+    \section{Logging}
+        
+    \subsection{System} 
+    
+    \subsection{User} 
+    
+    \section{Recovery}
+  
+    \subsection{System} 
+    
+    \subsection{User} 

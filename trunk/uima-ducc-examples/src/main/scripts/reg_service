@@ -1,0 +1,134 @@
+#! /usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+import sys
+import os
+import getopt
+
+#designed to run only here, relative to ducc_runtime
+DUCC_HOME = os.path.abspath(__file__ + '/../../..')
+sys.path.append(DUCC_HOME + '/admin')
+
+from ducc_util  import DuccUtil
+from properties import Properties
+
+class RegService(DuccUtil):
+
+    def usage(self, msg):
+        if ( msg != None ):
+            print msg
+            print ''
+
+        print 'This script creates a service descriptor for one of the 10 defined sample'
+        print 'services and registers it.  It optionally writes the descriptor to a'
+        print 'file, optionally starts the service, and optionally allows the registration'
+        print 'of multiple instances of the service.'
+        print ''
+        print 'Usage:'
+        print ''
+        print '   define_service --id <id> [--file <descriptor file>] [--instances <num instances>] [--description "text"]'
+        print '   define_service   -i <id> [ -f    <descriptor file>] [ -n         <num instances>]'
+        print ''
+        print 'Where:'
+        print '    -i  <id>'
+        print '    -id <id> Specifies which of the 10 defined services to register.'
+        print '            The services are identical aside from their endpoint, to allow'
+        print '            convenient testing of multiple services.'
+        print ''
+        print '    -f     <descriptor file>'
+        print '    --file <descriptor file> If given, also write out the generated service descriptor'
+        print '            to this file.'
+        print ''
+        print '    -n          <num instances>'
+        print '    --instances <num instances> If given, specifies the default number instances of the service.'
+        print '            The number of instances is optional.  If not given, one instance'
+        print '            is registered. This may be modified with ducc_services --instances <n> later.'  
+        print ''
+        print '    --description "text" If given, specifies the description for this service.'
+        print ''
+        print 'Notes:'
+        print '   This is not a replacement or substitute for the "ducc_services" CLI. This script'
+        print '   is intended only to build a service descriptor for one of the predefined sample'
+        print'    services for test and verification purposes.'
+        print '' 
+        sys.exit(1)
+
+    def main(self, argv):
+
+        svcid = None
+        outfile = None
+        instances = 1
+        props = Properties()
+        description = None
+
+        if ( len(argv) == 0 ):
+            self.usage(None)
+
+        opts, args  = getopt.getopt(argv, 'i:f:n:?h', ['id=', 'file=', 'instances=', 'description=', 'help'])   
+        for ( o, a ) in opts:
+            if o in ('-i', '--id'):
+                svcid = a
+            elif o in ('-f', '--file'):
+                outfile = a
+                props = Properties()
+            elif o in ('-n', '--instances'):
+                instances = int(a)
+            elif o in ('--description'):
+                description = a
+            elif o in ('-h', '--help'):
+                self.usage()
+
+        if ( svcid == None ):
+            self.usage("Missing service id")
+
+        if ( description == None ):
+            description = "Test Service "+svcid
+            
+        self.examples_classpath = self.DUCC_HOME + '/lib/uima-ducc/examples/*'
+        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/apache-uima/lib/*'
+        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/apache-uima/apache-activemq/lib/*'
+        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/apache-uima/apache-activemq/lib/optional/*'
+        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/examples/simple/resources/service'
+
+        plain_broker_url = self.broker_protocol + '://' + self.broker_host + ':' + self.broker_port
+        props.put('description', description)
+        props.put('process_descriptor_DD', self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + svcid + '.xml')
+        props.put('process_memory_size', '15')
+        props.put('classpath', self.examples_classpath);
+        props.put('process_jvm_args', '-DdefaultBrokerURL=' + plain_broker_url)
+        props.put('environment', 'AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0')
+        props.put('scheduling_class', 'fixed')
+        props.put('working_directory', os.getcwd())
+        props.put('service_ping_arguments', 'broker-jmx-port=' + self.broker_jmx_port)
+
+        if ( outfile != None ):
+            props.write(outfile)
+            print outfile, 'created.'
+        
+        CMD = ' '.join((self.DUCC_HOME + '/bin/ducc_services', '--register', '--instances', str(instances)))
+        for (k, v) in props.items():
+            CMD = CMD + ' --' + k + " '" + v.v + "'"
+        print CMD
+        os.system(CMD)
+
+if __name__ == "__main__":
+    rs = RegService()
+    rs.main(sys.argv[1:])
+

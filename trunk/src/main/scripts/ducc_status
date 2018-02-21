@@ -1,0 +1,350 @@
+#! /usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +
+# + ducc_status
+# +
+# + purpose: report current ducc daemons status
+# + 
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+import datetime
+import sys
+import time
+
+from HTMLParser import HTMLParser
+from optparse import OptionParser
+
+from ducc_base import find_ducc_home
+from properties import *
+
+# -----------------------------------------------------------------------
+# Extend OptionParser class
+class ExtendedOptionParser(OptionParser):
+    # override epilog formatter so 
+    # that newlines are not deleted!
+    def format_epilog(self, formatter):
+        return self.epilog
+# -----------------------------------------------------------------------
+# parser for the system.daemons WS page
+class DuccHtmlParser(HTMLParser):
+    
+    tr_state = False
+    daemon_state = None
+    daemon_name = None  
+    daemon_date = None
+    daemon_ip = None
+    daemon_host = None
+    daemons = {}
+    
+    def get_daemons(self):
+        return self.daemons
+    
+    def handle_starttag(self, tag, attrs):
+        if(tag == 'tr' ):
+            self.tr_state = True
+        
+    def handle_endtag(self, tag):   
+        if(tag == 'tr'):
+            self.tr_state = False
+            self.daemon_state = None
+            self.daemon_name = None
+            self.daemon_date = None
+            self.daemon_ip = None
+            self.daemon_host = None
+        
+    def handle_data(self, data):
+        if(self.tr_state):
+            if(self.daemon_state == None):
+                self.daemon_state = data
+            elif(self.daemon_name == None):
+                self.daemon_name = data
+                if(self.daemon_name == 'Agent'):
+                    pass
+                else:
+                    self.daemons[self.daemon_name] = self.daemon_state
+            elif(self.daemon_date == None):
+                self.daemon_date = data
+            elif(self.daemon_ip == None):
+                self.daemon_ip = data
+            elif(self.daemon_host == None):
+                self.daemon_host = data
+                self.daemon_name = data
+                self.daemons[self.daemon_name] = self.daemon_state
+# -----------------------------------------------------------------------
+
+default_host = 'localhost'
+default_port = '42133'
+protocol = 'http://'
+servlet = '/ducc-servlet/classic-system-daemons-data'
+options = None
+
+webserver = 'Webserver'
+head_daemons = [ 'Orchestrator',  'ResourceManager', 'Database', 'Broker', 'ProcessManager', 'ServiceManager', webserver ]
+
+newline = '\n'
+version = '1.0'
+
+# to console
+def to_stdout(text):
+    try:
+        print text
+    except:
+        pass
+    try:
+        sys.stdout.flush()
+    except:
+        pass
+        
+def close():
+    try:
+        sys.stdout.close()
+    except:
+        pass
+    
+# check for log-style formating of text message
+def is_log_format():
+    retVal = False
+    if(not options == None):
+        if(options.flag_log_format):
+            retVal = True
+    return retVal
+
+# produce a time stamp
+def get_timestamp():
+    global options
+    tod = time.time()
+    timestamp = datetime.datetime.fromtimestamp(tod).strftime('%Y-%m-%d %H:%M:%S')   
+    return timestamp
+
+# exception
+def exception(e):
+    to_stdout(str(e))
+
+# error message
+def error(text):
+    prefix = ''
+    if(is_log_format()):
+        type = 'E'
+        prefix = get_timestamp()+' '+type+' '
+    line = prefix+text
+    to_stdout(line)
+
+# info message
+def info(text):
+    prefix = ''
+    if(is_log_format()):
+        type = 'I'
+        prefix = get_timestamp()+' '+type+' '
+    line = prefix+text
+    to_stdout(line)
+
+# debug message
+def debug(text):
+    global options
+    if(not options == None):
+        if(options.flag_debug):
+            prefix = ''
+            if(is_log_format()):
+                type = 'D'
+                prefix = get_timestamp()+' '+type+' '
+            line = prefix+text
+            to_stdout(line)
+
+# trace message
+def trace(text):
+    pass
+
+# exit
+def exit(code,msg=True):
+    if(msg):
+        text = 'exit code='+str(code)
+        error(text)
+    sys.exit(code)
+
+# epilog for --help
+def get_epilog():
+    epilog = ''
+    return epilog
+
+# --target host:port of WS for fetching of daemons status
+def validate_target():
+    global options
+    global default_port
+    global protocol
+    global servlet
+    target = options.target
+    if(':' not in target):
+        target = target+':'+default_port
+    if(target.startswith(protocol)):
+        target = target.replace(protocol,'',1)
+    options.ducc_url_base = protocol+target
+    options.ducc_url_servlet = protocol+target+servlet
+    debug('target: '+options.ducc_url_base)
+    
+# parse command line
+def parse_cmdline():
+    global options
+    global default_host
+    global default_port
+    parser = ExtendedOptionParser(epilog=get_epilog())
+    width = 45
+    parser.formatter.help_position = width
+    parser.formatter.max_help_position = width
+    parser.add_option('-a','--agents', action='store_true', dest='flag_agents', default=False, 
+                               help='include agents')
+    parser.add_option('-d','--debug', action='store_true', dest='flag_debug', default=False, 
+                               help='display debugging messages')
+    parser.add_option('-e','--enumerate', action='store_true', dest='flag_enumerate', default=False, 
+                               help='display each individual daemon status')
+    parser.add_option('-l','--log-format', action='store_true', dest='flag_log_format', default=False, 
+                               help='display in log format')
+    parser.add_option('-t','--target', action='store', dest='target', default=default_host+':'+default_port,
+                               help='<host>:<port> with default of '+default_host+':'+default_port)
+    parser.add_option('-v','--version', action='store_true', dest='flag_version', default=False, 
+                               help='display version of this script')
+    (options, args) = parser.parse_args()
+    if(options.flag_version):
+        info('version='+version)
+        exit(1,msg=False)
+    validate_target()
+
+# fetch current daemons state
+def fetch_state_current():
+    global options
+    import urllib2
+    try:
+        opener = urllib2.build_opener()
+        if(options.flag_agents):
+            opener.addheaders.append(('Cookie', 'DUCCagents=show'))
+        response = opener.open(options.ducc_url_servlet)
+        options.ducc_raw_data = response.read()
+        trace(options.ducc_raw_data)
+    except Exception,e:
+        error('unable to fetch data from '+options.ducc_url_servlet)
+        exception(e)
+        exit(1)
+
+# filter non-head daemons
+def filter():
+    global options
+    global head_daemons
+    if(not options.flag_agents):
+        daemons = options.daemons
+        options.daemons = {}
+        for key in daemons:
+            if(key in head_daemons):
+                options.daemons[key] = daemons[key]
+            else:
+                debug('delete '+key)
+
+# transform raw data               
+def transform():
+    global options
+    global head_daemons
+    try:
+        parser = DuccHtmlParser()
+        parser.feed(options.ducc_raw_data)
+        options.daemons = parser.get_daemons()
+        options.daemons_head = {}
+        options.daemons_agent = {}
+        for key in options.daemons:
+            value = options.daemons[key]
+            if(key in head_daemons):
+                options.daemons_head[key] = value
+            else:
+                options.daemons_agent[key] = value
+        debug(str(options.daemons))
+        filter()
+    except Exception,e:
+        error('unable to transform data from '+options.ducc_url_servlet)
+        exception(e)
+        exit(1)
+
+# summarize
+def summarize():
+    global options
+    global head_daemons
+    options.head_up = 0
+    options.head_down = 0
+    options.agent_up = 0
+    options.agent_down = 0
+    for key in options.daemons_head:
+        value = options.daemons_head[key]
+        if(value == 'up'):
+            options.head_up = options.head_up + 1
+        else:
+            options.head_down = options.head_down + 1
+    for key in options.daemons_agent:
+        value = options.daemons_agent[key]
+        if(value == 'up'):
+            options.agent_up = options.agent_up + 1
+        else:
+            options.agent_down = options.agent_down + 1
+
+# display results
+def display():
+    global options
+    global newline
+    summarize();
+    text0 = options.target
+    text1 = 'head: '+'up='+str(options.head_up)+' '+'down='+str(options.head_down)
+    text2 = 'agent: '+'up='+str(options.agent_up)+' '+'down='+str(options.agent_down)
+    if(options.flag_agents):
+        text = text0+' '+text1+' '+text2
+    else:
+        text = text0+' '+text1
+    output = text
+    info(output)
+    if(options.flag_enumerate):
+        for key in sorted(options.daemons):
+            output = key+'='+options.daemons[key]
+            info(output)
+
+def init():
+    global default_host
+    global default_port
+    DUCC_HOME = find_ducc_home()
+    #print DUCC_HOME
+    propsfile = DUCC_HOME+'/resources/ducc.properties'
+    ducc_properties = Properties()
+    ducc_properties.load(propsfile)
+    _head = ducc_properties.get('ducc.head')
+    #print _head
+    if _head != None:
+        default_host = _head
+    _port = ducc_properties.get('ducc.ws.port')
+    #print _port
+    if _port != None:
+        default_port = _port
+    
+    
+# report current ducc daemons status
+def main(argv):
+    init()
+    parse_cmdline()
+    fetch_state_current()
+    transform()
+    display()
+    close()
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

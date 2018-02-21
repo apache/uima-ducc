@@ -1,0 +1,25 @@
+# 
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+# 
+#   http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# 
+tod = 497942532
+elapsed = 2160 2152 2106 2141 2256 2203 243 247 331 200 255 171 156 464 1816 1934 190 2004 203 288 229 2144 189 1959 188 150 2057 248 188 2104 194 225 183 246 171 173 419 310 194 398 274 155 201 188 251 561 581 645 729 677 826 169 2112 304 2249 2222 2385 2464 2199 242 2444 360 396 395 159 2372 296 358 2527 403 468 174 228 337 487 250 188 2436 300 448 424 4546 4597 2752 2804 520 432 482 2885 238 272 356 344 404 464 612 532 579 197 233 273 331 305 381 396 109 144 298 239 780 2214 695 646 632 2294 1988 858 768 930 896 959 207 257 311 362 404 395 955 180 231 291 1944 475 132 187 249 295 325 1749 2041 488 525 181 370 271 325 469 401 420 468 481 153 300 360 400 449 521 156 228 203 304 391 495 555 187 160 299 432 435 502 552 172 220 300 276 300 383 383 408 500 568 185 240 277 312 460 139 247 326 352 400 100 124 160 196 223 260 749 805 805 835 938 637 576 708 636 765 789 829 291 320 379 428 972 127 2896 252 239 304 411 444 487 513 556 131 136 220 257 266 412 2729 468 2724 509 533 140 200 354 477 536 172 166 280 280 356 396 542 613 152 200 219 296 330 412 464 535 600 551 588 134 199 276 312 364 421 479 513 555 120 593 657 693 761 821 148 188 105 784 334 924 108 170 207 235 378 352 396 458 460 531 572 545 150 173 196 225 317 391 367 428 452 205
+threads = 4
+user = Magnus
+memory = 20
+class = normal
+machines = 10

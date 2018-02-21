@@ -1,0 +1,386 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_CLI_SUBMIT'></a>}
+\fi
+
+    \section{ducc\_submit}
+    \label{sec:cli.ducc-submit}
+%       The source for this section is ducc\_duccbook/documents/part-user/cli/submit.xml.
+       \paragraph{Description:}
+           The submit CLI is used to submit work for execution by DUCC. DUCC assigns a unique id to the
+           job and schedules it for execution. The submitter may optionally request that the progress of
+           the job is monitored, in which case the state of the job as it progresses through its
+           lifetime is printed on the console.
+       \paragraph{Usage:}
+           \begin{description}
+             \item[Script wrapper] \ducchome/bin/ducc\_submit {\em options}
+             \item[Java Main]      java -cp \ducchome/lib/uima-ducc-cli.jar org.apache.uima.ducc.cli.DuccJobSubmit {\em options}
+           \end{description}
+
+        \paragraph{Options:}
+           \begin{description}
+
+           \item[$--$all\_in\_one $<$local $|$ remote $>$]
+               Run driver and pipeline in single process.  If {\em local} is specified, the
+               process is executed on the local machine, for example, in the current Eclipse session.
+               If {\em remote} is specified, the jobs is submitted to DUCC as a {\em managed reservation}
+               and run on some (presumably larger) machine allocated by DUCC.
+
+           \item[$--$attach\_console] If specified, redirect remote stdout and stderr
+             to the local submitting console.
+
+           \item[$--$cancel\_on\_interrupt] If specified, the job is monitored 
+             and will be canceled if the submit command is interrupted, e.g. with CTRL-C. 
+             This option always implies {\em $--$wait\_for\_completion}.
+
+           \item[$--$classpath {[path-string]}] The CLASSPATH used for the job.  If specified, this is used
+             for both the Job Driver and each Job Process. If not specified, the CLASSPATH of the
+             process invoking this request is used.
+
+           \item[$--$classpath\_order {[user-before-ducc $|$ ducc-before-user]} ]  
+             OBSOLETE - ignored.
+
+           \item[$--$debug] Enable debugging messages. 
+             This is primarily for debugging DUCC itself.
+
+           \item[$--$description {[text]}] The text is any string used to describe the job. It is
+             displayed in the Web Server. When specified on a command-line the text usually 
+             must be surrounded by quotes to protect it from the shell.  The default is ``none''.
+
+           \item[$--$driver\_debug {[debug-port]}] Append JVM debug flags to the JVM arguments
+             to start the JobDriver in remote debug mode.  The remote process debugger will attempt
+             to contact the specified port.
+
+           \item[$--$driver\_descriptor\_CR {[descriptor.xml]} ] This is the XML descriptor for the
+             Collection Reader.  This 
+             descriptor is a resource that is searched for in the filesystem or Java classpath as described 
+             in the ~\hyperref[par:cli.submit.notes]{notes below}. (Required)
+
+           \item[$--$driver\_descriptor\_CR\_overrides {[list]} ]             
+             This is the Job Driver collection reader configuration overrides. They are specified as 
+             name/value pairs in a whitespace-delimited list. Example: 
+             \begin{verbatim}
+     --driver_descriptor_CR_overrides name1=value1 name2=value2...
+             \end{verbatim}
+             
+           \item[$--$driver\_exception\_handler {[classname]}] 
+             This specifies a developer-supplied exception handler for the Job Driver.  
+             It must implement {\em org.apache.uima.ducc.IErrorHandler} or extend
+             {\em org.apache.uima.ducc.ErrorHandler}.  A built-in default exception handler is provided.
+           
+           \item[$--$driver\_exception\_handler\_arguments {[argument-string]}] This is a string
+             containing arguments for the exception handler.  The contents of
+             the string is entirely a function of the specified exception handler.  If not specified,
+             a {\em null} is passed in.
+             \\The built-in default exception handler supports an argument string of the following form
+             (with NO embedded blanks):
+             \begin{verbatim}
+     max_job_errors=15 max_timeout_retrys_per_workitem=0
+             \end{verbatim}
+             Note: When used as a CLI option, the string must usually be
+             quoted to protect it from the shell, if it contains blanks.
+             The built-in default exception handler supports two arguments, whose
+             default values are shown above.  The max\_job\_errors limit specifies the number
+             of work item errors allowed before forcibly terminating the job.  The
+             max\_timeout\_retrys\_per\_workitem limit specifies the number of times each
+             work item is retried in the event of a time-out.
+
+           \item[$--$driver\_jvm\_args {[list]} ]
+             This specifies extra JVM arguments to be provided to the Job Driver process. It is a blank-delimited 
+             list of strings. Example: 
+             \begin{verbatim}
+     --driver_jvm_args -Xmx100M -Xms50M
+             \end{verbatim}
+             Note: When used as a CLI option, the list must usually be
+             quoted to protect it from the shell.
+
+           \item[$--$environment {[env vars]}] Blank-delimited list of environment variables and
+             variable assignments. 
+             Entries will be copied from the user's environment if just the variable name is
+             specified, optionally with a final '*' for those with the same prefix.
+             If specified, this is used for all DUCC processes in the job. Example:
+             \begin{verbatim}
+     --environment TERM=xterm DISPLAY=:1.0 LANG UIMA_*
+             \end{verbatim}
+             Additional entries may be copied from the user's environment based on the setting of
+             {\em ducc.submit.environment.propagated}
+             in the global DUCC configuration ducc.properties.
+             \\Note: When used as a CLI option, the environment string must usually be
+             quoted to protect it from the shell.
+
+   
+             The following cause special runtime behavior. 
+             They are considered experimental and are not guaranteed 
+             to be effective from release to release.
+             
+  \begin{enumerate}
+  
+    \item[DUCC\_USER\_CP\_PREPEND {[path-to-ducc-jars-and-classes]}  ]
+    If specified, this path is used to supply the DUCC classes required for running
+    the Job Driver and Job Process(es), normally set to \$DUCC\_HOME/lib/uima-ducc/users/*.
+    
+    \item[DUCC\_WORK\_ITEM\_PERFORMANCE {[true]}  ]
+    If specified, DUCC will create subdirectory work-item-performance in the user 
+    specified log directory and will place an individual json.gz file for each 
+    work item successfully processed comprising its performance breakdown.
+    
+    \item[DUCC\_KEEP\_TEMPORARY\_DESCRIPTORS {[true]}  ]
+    If specified, DUCC will not delete any temporary descriptors it creates
+    (these are usually deleted when the process ends.)  DUCC may make a local file copy if the
+    descriptor is in a jar, or if the filesystem is not shared.
+    
+  \end{enumerate}
+
+
+           \item[$--$help ]
+             Prints the usage text to the console. 
+
+           \item[$--$jvm {[path-to-java]}  ]
+             States the JVM to use. If not specified, the same JVM used by the Agents is used.  This is
+             the full path to the JVM, not the JAVA\_HOME.
+             Example: 
+             \begin{verbatim}
+     --jvm /share/jdk1.6/bin/java
+             \end{verbatim}
+             
+           \item[$--$log\_directory {[path-to-log-directory]} ]
+             This specifies the path to the directory for the user logs. 
+             If not fully specified the path is made relative to the value of the {\em $--$working\_directory}.
+             If omitted, the default is \$HOME/ducc/logs. 
+             Example: 
+             \begin{verbatim}
+     --log_directory /home/bob
+             \end{verbatim}
+             Within this directory DUCC creates a sub-directory for each job, using the unique numerical 
+             ID of the job. The format of the generated log file names as described
+             \hyperref[chap:job-logs]{here}.
+             \\Note: The {\em $--$log\_directory} specifies only the path to a directory where 
+             logs are to be stored. In order to manage multiple processes running in multiple 
+             machines, sub-directory and file names are generated by DUCC and may 
+             not be directly specified. 
+
+           \item[$--$process\_debug {[debug-port]}] Append JVM debug flags to the JVM
+             arguments to start the Job Process in remote debug mode.  The remote process will start
+             its debugger and attempt to contact the debugger (usually Eclipse) on the specified
+             port.
+             
+           \item[$--$process\_deployments\_max {[integer]} ]
+             This specifies the maximum number of Job Processes to deploy at any given time. If not 
+             specified, DUCC will attempt to provide the largest number of processes within the 
+             constraints of fair\_share scheduling and the amount of work remaining.
+             in the job. Example:
+             \begin{verbatim}
+     --process_deployments_max 66
+             \end{verbatim}
+
+           \item[$--$process\_descriptor\_AE {[descriptor]}  ]
+             This specifies the Analysis Engine descriptor to be deployed in the Job Processes. This 
+             descriptor is a resource that is searched for in the filesystem or Java classpath as described 
+             in the ~\hyperref[par:cli.submit.notes]{notes below}.
+             It is mutually exclusive with {\em $--$process\_descriptor\_DD}.
+             Example: 
+             \begin{verbatim}
+     --process_descriptor_AE /home/billy/resource/AE_foo.xml
+             \end{verbatim}
+
+
+           \item[$--$process\_descriptor\_AE\_overrides {[list]}  ]
+             This specifies AE overrides. It is a whitespace-delimited list of name/value pairs. Example: 
+             \begin{verbatim}
+     --process_descriptor_AE_Overrides name1=value1 name2=value2
+             \end{verbatim}
+
+           \item[$--$process\_descriptor\_CC {[descriptor]}  ]
+             This specifies the CAS Consumer descriptor to be deployed in the Job Processes. This 
+             descriptor is a resource that is searched for in the filesystem or Java classpath as described 
+             in the ~\hyperref[par:cli.submit.notes]{notes below}.
+             It is mutually exclusive with {\em $--$process\_descriptor\_DD}.
+             Example: 
+             \begin{verbatim}
+     --process_descriptor_CC /home/billy/resourceCCE_foo.xml
+             \end{verbatim}
+
+           \item[$--$process\_descriptor\_CC\_overrides {[list]}  ]
+             This specifies CC overrides. It is a whitespace-delimited list of name/value pairs. Example: 
+             \begin{verbatim}
+     --process_descriptor_CC_overrides name1=value1 name2=value2
+             \end{verbatim}
+           
+           \item[$--$process\_descriptor\_CM {[descriptor]} ]
+             This specifies the CAS Multiplier descriptor to be deployed in the Job Processes. This 
+             descriptor is a resource that is searched for in the filesystem or Java classpath as described 
+             in the ~\hyperref[par:cli.submit.notes]{notes below}.
+             It is mutually exclusive with {\em $--$process\_descriptor\_DD}.
+             Example: 
+             \begin{verbatim}             
+     --process_descriptor_CM /home/billy/resource/CM_foo.xml
+             \end{verbatim}
+
+           \item[$--$process\_descriptor\_CM\_overrides {[list]}  ]
+             This specifies CM overrides. It is a whitespace-delimited list of name/value pairs. Example: 
+             \begin{verbatim}
+     --process_descriptor_CM_overrides name1=value1 name2=value2
+             \end{verbatim}
+           
+           \item[$--$process\_descriptor\_DD {[descriptor]}  ]
+             This specifies a UIMA Deployment Descriptor for the job processes for DD-style jobs. 
+             This is mutually exclusive with {\em $--$process\_descriptor\_AE}, {\em $--$process\_descriptor\_CM}, 
+             and {\em $--$process\_descriptor\_CC}. This 
+             descriptor is a resource that is searched for in the filesystem or Java classpath as described 
+             in the ~\hyperref[par:cli.submit.notes]{notes below}.
+             Example:
+             \begin{verbatim}
+     --process_descriptor_DD /home/billy/resource/DD_foo.xml
+             \end{verbatim}
+             Alias: $--$process\_DD
+
+           \item[$--$process\_failures\_limit {[integer]} ]
+             This specifies the maximum number of individual Job Process (JP) failures allowed
+             before killing the job. The default is twenty(20). If this limit is exceeded over the lifetime 
+             of a job DUCC terminates the entire job. 
+             Example:
+             \begin{verbatim}
+     --process_failures_limit 23
+             \end{verbatim}
+                          
+           \item[$--$process\_initialization\_failures\_cap {[integer]} ] This specifies the maximum
+             number of failures during a UIMA process's initialization phase.  If the number is
+             exceeded the system will allow processes which are already running to continue, but
+             will assign no new processes to the job.  The default is ninety-nine(99). Example:
+             \begin{verbatim}
+     --process_initialization_failures_cap 62
+             \end{verbatim}
+             Note that the job is NOT killed if there are processes that have passed initialization and are 
+             running. If this limit is reached, the only action is to not start new processes for the job. 
+
+           \item[$--$process\_initialization\_time\_max {[integer]}] This is the maximum time in minutes that 
+             a process is allowed to remain in the ``initializing'' state, before DUCC terminates it.  The 
+             error counts as an initialization error towards the initialization failure cap.
+
+           \item[$--$process\_jvm\_args {[list]} ] This specifies additional arguments to be passed to
+             all of the job processes as a blank-delimited list of strings. Example:
+             \begin{verbatim}
+     --process_jvm_args -Xmx400M -Xms100M
+             \end{verbatim}
+             Note: When used as a CLI option, the arguments must usually be
+             quoted to protect them from the shell.
+                          
+           \item[$--$process\_memory\_size {[size]} ] This specifies the maximum amount of RAM in GB
+             to be allocated to each Job Process.  This value is used by the Resource Manager to
+             allocate resources.
+
+           \item[$--$process\_per\_item\_time\_max {[integer]} ] This specifies the maximum time in
+             minutes that the Job Driver will wait for a Job Processes to process a CAS. If a
+             timeout occurs the process is terminated and the CAS marked in error (not retried). If
+             not specified, the default is 24 hours. Example:
+             \begin{verbatim}
+     --process_per_item_time_max 60
+             \end{verbatim}
+             
+           \item[$--$process\_pipeline\_count {[integer]} ] This specifies the number of pipelines per
+             process to be deployed, i.e. the number of work-items each JP will process simultaneously. 
+             It is used by the Resource Manager to determine how many
+             processes are needed, by the Job Process wrapper to determine how many threads to
+             spawn, and by the Job Driver to determine how many CASs to dispatch. If not specified,
+             the default is 4. Example:
+             \begin{verbatim}
+     --process_pipeline_count 7
+             \end{verbatim}
+             Alias:  $--$process\_thread\_count
+             
+           \item[$--$scheduling\_class {[classname]} ] This specifies the name of the scheduling class
+             the used to determine the resource allocation for each process. The names of the
+             classes are installation dependent. 
+             If not specified, the FAIR\_SHARE default is taken from the site class definitions file
+             described \hyperref[subsubsec:class.configuration]{here.} 
+             Example:
+             \begin{verbatim}
+     --scheduling_class normal
+             \end{verbatim}
+
+           \item[$--$service\_dependency{[list]}] This specifies a blank-delimited list of services the job
+             processes are dependent upon. Service dependencies are discussed in detail
+             \hyperref[sec:service.endpoints]{here}. Example:
+             \begin{verbatim}
+     --service_dependency UIMA-AS:Service1:tcp:host1:61616 UIMA-AS:Service2:tcp:host2:123
+             \end{verbatim}
+           
+           \item[$--$specification, $-$f {[file]}  ]
+             All the parameters used to submit a job may be placed in a standard Java properties file. 
+             This file may then be used to submit the job (rather than providing all the parameters 
+             directory to submit). The leading $--$ is omitted from the keywords.
+
+             For example, 
+             \begin{verbatim}
+     ducc_submit --specification job.props 
+     ducc_submit -f job.props 
+             \end{verbatim}
+             where job.props contains: 
+\begin{verbatim}
+working_directory                   = /home/bob/projects/ducc/ducc_test/test/bin 
+process_failures_limit              = 20 
+driver_descriptor_CR                = org.apache.uima.ducc.test.randomsleep.FixedSleepCR 
+environment                         = AE_INIT_TIME=10000 UIMA LD_LIBRARY_PATH=/a/bogus/path
+log_directory                       = /home/bob/ducc/logs/ 
+process_pipeline_count              = 1 
+driver_descriptor_CR_overrides      = jobfile:../simple/jobs/1.job compression:10 
+process_initialization_failures_cap = 99 
+process_per_item_time_max           = 60 
+driver_jvm_args                     = -Xmx500M 
+process_descriptor_AE               = org.apache.uima.ducc.test.randomsleep.FixedSleepAE 
+classpath                           = /home/bob/duccapps/ducky_process.jar 
+description                         = ../simple/jobs/1.job[AE] 
+process_jvm_args                    = -Xmx100M -DdefaultBrokerURL=tcp://localhost:61616 
+scheduling_class                    = normal 
+process_memory_size                 = 15 
+\end{verbatim}
+             Note that properties in a specification file may be overridden by other command-line
+             parameters, as discussed \hyperref[chap:cli]{here}.
+
+           \item[$--$suppress\_console\_log] If specified, suppress creation of the log files that 
+             normally hold the redirected stdout and stderr.
+
+           \item[$--$timestamp ]
+             If specified, messages from the submit process are timestamped. This is intended primarily 
+             for use with a monitor with --wait\_for\_completion. 
+
+           \item[$--$wait\_for\_completion ]             
+             If specified, the submit command monitors the job and prints periodic
+             state and progress information to the console.  When the job completes, the monitor
+             is terminated and the submit command returns.  If the command is interrupted, e.g. with CTRL-C,
+             the job will not be canceled unless {\em $--$cancel\_on\_interrupt} is also specified.
+             
+           \item[$--$working\_directory ]             
+             This specifies the working directory to be set by the Job Driver and Job Process processes. 
+             If not specified, the current directory is used.
+  \end{description}
+             
+  \paragraph{Notes:}
+  \phantomsection\label{par:cli.submit.notes}
+  When searching for UIMA XML resource files such as descriptors, DUCC searches either the 
+  filesystem or Java classpath according to the following rules:
+  \begin{enumerate}
+    \item If the resource ends in .xml it is assumed the resource is a file in the filesystem 
+      and the path is either an absolute path or a path relative to the specified working directory. [by location]
+    \item If the resource does not end in .xml, it is assumed the resource is in the Java
+      classpath. DUCC creates a resource name by replacing the "." separators with "/" and appending ".xml". [by name]
+  \end{enumerate}

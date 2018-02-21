@@ -1,0 +1,365 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_RM'></a>}
+\fi
+\chapter{Resource Management}
+\label{chap:rm}
+    \section{Overview}
+
+    The DUCC Resource Manager is responsible for allocating cluster resources among the various 
+    requests for work in the system. DUCC recognizes several categories of work: 
+
+    \begin{description}
+        \item[Managed Jobs]
+            Managed jobs are Java applications implemented in the UIMA framework
+            and are scaled out by DUCC as some number of discrete processes.  Processes which 
+            compose managed jobs are always restartable and usually preemptable.  Preemption
+            occurs as a consequence of enforcing fair-share scheduling policies.
+
+        \item[Services]
+            Services are long-running processes which perform some (common) function on behalf of 
+            jobs or other services.  Services are scaled out as a set of, from the RM point of view,
+            unrelated non-preemptable processes.  
+
+        \item[Reservations]
+            A reservation provides non-preemptable, persistent, dedicated use of a machine to a specific user.
+
+        \item[Arbitrary Processes]
+            An {\em arbitrary process} or {\em managed reservation} is any process at all, which may
+            or may not have anything to do with UIMA.  These processes are typically used to
+            run non-UIMA tasks such as application builds, large Eclipse workspaces for debugging,
+            etc. These processes are usually scheduled as non-preemptable allocations,
+            occupying either a dedicated machine or some portion of a machine.
+
+    \end{description}
+          
+    To apportion the cumulative memory resource among requests the Resource Manager
+    defines some minimum unit of memory and allocates machines such that a "fair" number of "memory
+    units" are awarded to every user of the system. This minimum quantity is called a share quantum,
+    or simply, a share. The scheduling goal is to award an equitable number of memory shares to
+    every user of the system.  The memory shares in a system are divided equally among all the users
+    who have work in the system. Once an allocation is assigned to a user, that user's jobs are then
+    also assigned an equal number of shares, out of the user's allocation. Finally, the Resource
+    Manager maps the share allotments to physical resources.  To map a share allotment to physical
+    resources, the Resource Manager considers the amount of memory that each job declares it
+    requires for each process. That per-process memory requirement is translated into the minimum
+    number of co-located quantum shares required for the process to run.
+    
+    To compute the memory requirements for a job, the declared memory is rounded up to the nearest
+    multiple of the share quantum.  The total number of quantum shares for the job is calculated,
+    and then divided by the number of quantum shares declared for the job to arrive at the number of
+    processes to allocate.  The output of each scheduling cycle is always in terms of processes,
+    where each process is allowed to occupy some number of shares. The DUCC agents implement a
+    mechanism to ensure that no user's job processes exceed their allocated memory assignments.
+
+    For example, suppose the share quantum is 15GB. A job that declares it requires 14GB per process 
+    is assigned one quantum share per process. If that job is assigned 20 shares, it will be allocated 20 
+    processes across the cluster. A job that declares 28GB per process would be assigned two quanta 
+    per process. If that job is assigned 20 shares, it is allocated 10 processes across the cluster. Both     
+    jobs occupy the same amount of memory; they consume the same level of system resources. The 
+    second job does so in half as many processes.
+    
+    
+    Some work may be deemed to be more "important" than other work. To accommodate this, the RM
+    implements a weighted fair-share scheduler.  During the fair share 
+    calculations, jobs with higher weights are assigned more shares proportional to their weights; jobs 
+    with lower weights are assigned proportionally fewer shares. Jobs with equal weights are assigned 
+    an equal number of shares. 
+    
+    The abstraction used to organized jobs by fair-share weight is the
+    job class or simply {\em class}.  All job submissions must included a declared job class; if none
+    is declared, a default class is chosen by DUCC.  As jobs enter the system they are
+    grouped with other jobs of the same class weight. The class abstraction
+    and its attributes are described in \hyperref[sec:rm.job-classes]{subsequent sections}.
+    
+    The scheduler executes in three primary phases: 
+    \begin{enumerate}
+
+        \item The How-Much phase: every job is assigned some number of
+          quantum shares, which is converted to the number of
+          processes of the declared size.
+
+        \item The What-Of phase: physical machines are found which can
+          accommodate the number of processes allocated by the
+          How-Much phase. Jobs are mapped to physical machines such
+          that the total declared per-process amount of memory for all
+          jobs scheduled to a machine do not exceed the physical
+          memory on the machine.
+
+        \item Defragmentation. If the what-of phase cannot allocate
+          space according to the output of the how-much phase, the
+          system is said to be {\em fragmented.}  The RM scans for
+          ``rich'' jobs and will attempt to preempt some small number
+          of processes sufficient to guarantee every job gets at least
+          one process allocation. (Note that sometimes this is not possible,
+          in which case unscheduled work remains pending until such
+          time as space is freed-up.)
+
+    \end{enumerate}
+      
+    The How-Much phase is itself subdivided into three phases:
+    \begin{enumerate}
+
+        \item Class counts:Apply weighed fair-share to all the job classes that have jobs assigned to
+          them. This apportions all shares in the system among all the classes according to their
+          weights.  This phase takes into account all users and all jobs in the system.
+
+        \item User counts: For each class, collect all the users with
+          jobs submitted to that class, and apply fair-share (with
+          equal weights) to equally divide all the class shares among
+          the users.
+          
+        \item Job counts: For each user, collect all jobs
+          assigned to that user and equally divide all the user's shares among
+          the jobs. This apportions all shares given to this user for each class among the user's
+          jobs in that class. 
+    \end{enumerate}
+
+    All non-preemptable allocations are restricted to one allocation per request.  If space is
+    available, the request succeeds immediately.  If space can be made for the request through
+    preemptions, the preemptions are scheduled and the reservation is deferred until space
+    is available.  If space cannot be found by means of preemption, the reservation remains
+    pending until it either succeeds (by cancelation of other non-preemptive work, by
+    adding resources to the system, or by increasing the user's non-preemptive allotment), or until
+    it is canceled by the user or an administrator.
+
+    \section{Preemption vs Eviction}
+    The RM makes a subtle distinction between {\em preemption} and {\em eviction}.
+
+    {\em Preemption} occurs only as a result of fair-share
+    calculations or defragmentation.  Preemption is the process of
+    deallocating shares from jobs belonging to users whose current
+    allocation exceeds their fair-share, and conversely, only processes
+    belonging to fair-share jobs can be preempted. This is generally 
+    dynamic: more jobs in the system result in a smaller fair-share
+    for any given user, and fewer jobs result in a higher fair-share
+    allocation.
+
+    {\em Eviction} occurs only as a result of system-detected errors,
+    changes in node configuration, or changes in class
+    configuration. Eviction may affect both preemptable work and some
+    types of non-preemptable work.
+
+    Work that is non-preemptable, but restartable can be evicted.  Such work consists of service
+    processes (which are automatically resubmitted by the Service Manager), and managed reservations,
+    which can be resubmitted by the user.
+
+    Unmanaged reservations are never evicted for any reason.  If something occurs that
+    would result in the reservation being (fatally) misplaced, the node is marked
+    unschedulable and remains as such until the condition is corrected or the reservation
+    is canceled.  Once the condition is repaired (either the reservation is canceled, or
+    the problem is corrected), the node becomes schedulable again.
+
+    \section{Scheduling Policies}
+
+    The Resource Manager implements three scheduling policies. Scheduling policies are
+    associated with \hyperref[sec:rm.job-classes]{\em classes}.
+    \begin{description}
+        \item[FAIR\_SHARE] This is weighted-fair-share.  All processes scheduled under
+           fair-share are always {\em preemptable}.
+
+        \item[FIXED\_SHARE] The FIXED\_SHARE policy is used to allocate non-preemptable
+          shares.  The shares might be {\em evicted} as described above, but they are 
+          never {\em preempted}.  Fixed share allocations are restricted to one
+          allocation per request and may be subject to \hyperref[sec:rm.allotment]{allotment caps}.
+
+          FIXED\_SHARE allocations have several uses:
+          \begin{itemize}
+%            \item Unmanaged reservations.  In this case DUCC starts no work in the share(s); the user must
+%              log in (or run something via ssh), and then manually release the reservation to free
+%              the resources.  This is often used for testing and debugging.
+            \item Services.  If a service is registered to run in a FIXED\_SHARE allocation,
+              DUCC allocates the resources, starts and manages the service, and releases the
+              resource if the service is stopped or unregistered.
+            \item UIMA jobs.  A ``normal'' UIMA job may be submitted to a FIXED\_SHARE
+              class.  In this case, the processes are never preempted, allowing constant and
+              predictable execution of the job.  The resources are automatically released when
+              the job exits.
+            \item Managed reservations.  The \hyperref[sec:cli.viaducc]{\em viaducc} utility is provided 
+              as a convenience for running managed reservations.
+          \end{itemize}                    
+          
+        \item[RESERVE] The RESERVE policy is used to allocate a dedicated machine.
+          The allocation may be {\em evicted} but it is never {\em preempted}. It is
+          restricted to a single machine per request.  Usually the memory size
+          of the machine must match the size specified in the reservation 
+          exactly, after rounding up to the next highest multiple of the quantum.
+          But if {\em ducc.rm.reserve\_overage} is greater than 0 it is added to a reservation 
+          request size to determine the largest possible machine to reserve. 
+          Quantum rounding is done on both the original request size and the overage adjusted size
+          to define the minimum and maximum machine sizes which are targets for the reservation request.
+          A reservation that does not adequately match any
+          machine remains pending until resources are made available or it is 
+          canceled by the user or an administrator. Reservations may be
+          subject to \hyperref[sec:rm.allotment]{allotment caps}.
+          A class that implements the RESERVE policy is required for unmanaged reservations.
+
+    \end{description}
+    
+    \section{Allotment}
+    \label{sec:rm.allotment}
+    
+    Allotment is a new concept introduced with DUCC 2.0.0 to prevent non-preemptable 
+    requests from dominating a cluster.  This replaces the DUCC version 1 class
+    policies of max-processes and max-machines.
+
+    It is possible to associate a maximum share allotment with any non-preemptable class. 
+    Allotment is assigned per user and is global across all non-preemptable classes.  It is configured
+    \hyperref[sec:ducc.properties]{ducc.properties} with {\em ducc.rm.global\_allotment}.  
+
+    A simple user registry provides per-user overrides of the global allotment as needed.  The
+    registry may be included in the class definition file (specified in ducc.properties under
+    ducc.rm.class.definitions), or in a separate file, specified in ducc.properties as
+    {\em ducc.rm.user.registry}.
+
+
+    \section{Priority vs Weight}
+
+    It is possible that the various policies may interfere with each other. It is also possible that
+    the fair share weights are not sufficient to guarantee sufficient resources are allocated to
+    high importance jobs. Class-based priorities are used to resolve these conflicts.
+
+    Simply: priority is used to specify the order of evaluation of the
+    job classes. Weight is used to proportionally allocate the number
+    of shares to all classes of the same priority under the weighted
+    fair-share policies.
+
+    \paragraph{Priority.} 
+    
+    When a scheduling cycle starts, the scheduling classes are ordered from "best" to "worst" priority. 
+    The scheduler then attempts to allocate ALL of the system's resources to the "best" priority class. 
+    If any resources are left, the scheduler proceeds to schedule classes in the next best
+    priority, and so on, until either all the 
+    resources are exhausted or there is no more work to schedule. 
+    
+    It is possible to have multiple job classes of the same priority. What this means is that resources 
+    are allocated for the set of job classes from the same set of resources at the same time, usually
+    under weighted fair-share. (It would be unusual to have multiple non-preemptable classes at the
+    same priority.  If this is configured, the class requests are filled arbitrarily with no attempt
+    to divide the resources fairly or equitably). Resources for higher priority 
+    classes will have already been allocated, resources for lower priority classes may never become 
+    available. 
+    
+    To constrain high priority jobs from completely monopolizing the
+    system, fair-share weights are used for FAIR\_SHARE classes, and 
+    allotment is used for non-preemptable classes. 
+
+    \paragraph{Weight.} Weight is used to determine the relative importance of jobs in a set of job classes of 
+    the same priority when doing fair-share allocation. All job classes of the same priority are assigned 
+    shares from the full set of available resources according to their weights using weighted fair-share. 
+    Weights are used only for fair-share allocation. 
+    
+    \section{Node Pools}
+    It may be desired or necessary to constrain certain types of resource allocations to a specific
+    subset of the resources. Some nodes may have special hardware, or perhaps it is desired to
+    prevent certain types of jobs from being scheduled on some specific set of machines. Nodepools
+    are designed to provide this function.
+
+    Nodepools impose hierarchical partitioning on the set of available machines. A nodepool is a
+    subset of the full set of machines in the cluster. Nodepools may not overlap. A nodepool may
+    itself contain non-overlapping subpools. 
+
+    Job classes are associated with nodepools.  The scheduler treates preemptable work and
+    non-preemptable work differently with regards to nodepools:
+    \begin{description}
+      \item[Preemptable work.] The scheduler will attempt to allocate preemptable work in
+        the nodepool associated with the work's class.  If this nodepool becomes exhausted,
+        and there are subpools, the scheduler proceeds to try to allocate resources within
+        the subpools, recursively, until either all work is scheduled or there is no more
+        work to schedule.  (Allocations made within subpools are referred to as ``squatters'';
+        allocations made in the directly associated nodepool are referred to as ``residents''.)
+
+        During eviction, the scheduler attempts to evict squatters first and only evicts
+        residents once all the squatters are gone.
+        
+      \item[Non-Preemptable work.]  Non-preemptable work can only be allocated directly
+        in the nodepool associated with the work's class.  Such work can never become a
+        squatter.  The reason is that non-preemptbable squatters cannot be evicted, and so
+        could dominate pools intended for other work.
+     \end{description}    
+    
+    More information on nodepools and their configuration can be \hyperref[subsec:nodepools]{found here}.
+
+    \section{Scheduling Classes}
+    \label{sec:rm.job-classes}
+    The primary abstraction to control and configure the scheduler is the {\em class}. A class is simply a set 
+    of rules used to parametrize how resources are assigned to work requests. Every request that enters the system is 
+    associated with a single class. 
+    
+    The scheduling class defines the following rules: 
+    
+    \begin{description}
+        \item[Priority] This is the order of evaluation and assignment of resources to this class. See
+          the discussion of priority vs Weight for details. 
+
+        \item[Weight] This is used for the weighted fair-share calculations. 
+
+        \item[Scheduling Policy] This defines the policy, fair share, fixed share, or reserve used to
+          schedule the jobs in this class.
+
+        \item[Nodepool] A class may be associated with exactly one nodepool. Fair-share jobs submitted to the class
+          are assigned only resources which lie in that nodepool, or in any of the subpools defined
+          within that nodepool.  Non-preemptable requests must always be fulfilled from the nodepool
+          assigned to the class; subpools are exempt from non-preemptable requests submitted to higher-level
+          nodepools.
+
+        \item[Prediction] For the type of work that DUCC is designed to run, new processes typically take
+          a great deal of time initializing. It is not unusual to experience 30 minutes or more of
+          initialization before work items start to be processed.
+
+          When a job is expanding (i.e. the number of assigned processes is allowed to dynamically 
+          increase), it may be that the job will complete before the new processes can be assigned and 
+          the analytics within them complete initialization. In this situation it is wasteful to allow the 
+          job to expand, even if its fair-share is greater than the number of processes it currently has 
+          assigned. 
+          
+          By enabling prediction, the scheduler will consider the average initialization time for processes 
+          in this job, current rate of work completion, and predict the number of processes needed to 
+          complete the job in the optimal amount of time. If this number is less than the job's fair, share, 
+          the actual allocation is capped by the predicted needs. 
+          
+        \item[Prediction Fudge] When doing prediction, it may be desired to look some time into the
+          future past initialization times to predict if the job will end soon after it is expanded. 
+          The prediction fudge specifies a time past the expected initialization time that is used to
+          predict the number of future shares needed.  This avoids wasteful preemption of work to make space
+          for other work that will be completing very soon anyway.
+
+        \item[Initialization cap] Because of the long initialization time of processes in most DUCC jobs,
+          process failure during the initialization phase can be very expensive in terms of wasted
+          resources. If a process is going to fail because of bugs, missing services, or any other
+          reason, it is best to catch it early.
+
+          The initialization cap is used to limit the number of processes assigned to a job until it is 
+          known that at least one process has successfully passed from initialization to running. As soon 
+          as this occurs the scheduler will proceed to assign the job its full fair-share of resources. 
+
+        \item[Expand By Doubling] Even after initialization has succeeded, it may be desired to throttle
+          the rate of expansion of a job into new processes. 
+
+          When expand-by-doubling is enabled, the scheduler allocates either twice the number of 
+          resources a job currently has, or its fair-share of resources, whichever is smallest. 
+
+          If expand-by-doubling is disabled, jobs are allocated their full fair-share immediately.
+
+    \end{description}
+        
+    More information on nodepools and their configuration can be \hyperref[subsubsec:class.configuration]{found here}.
