@@ -24,26 +24,31 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.uima.UIMAFramework;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiCasDeserializer;
 import org.apache.uima.cas.impl.XmiCasSerializer;
-import org.apache.uima.internal.util.XMLUtils;
+import org.apache.uima.util.Level;
 import org.apache.uima.util.XMLSerializer;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
-//import com.thoughtworks.xstream.XStream;
-//import com.thoughtworks.xstream.io.xml.DomDriver;
-//import java.util.concurrent.ConcurrentHashMap;
 
 public class DuccUimaSerializer {
-
+	private static final String LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+	private static final String EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
+	private static final String EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
   /**
    * Utility method for serializing a CAS to an XMI String
    */
@@ -61,7 +66,38 @@ public class DuccUimaSerializer {
       writer.close();
     }
   }
+  private void secureXmlReader(XMLReader xmlReader) {
+	    try {
+	        xmlReader.setFeature(EXTERNAL_GENERAL_ENTITIES, false);
+	      } catch (SAXNotRecognizedException e) {
+	        UIMAFramework.getLogger().log(Level.WARNING, 
+	            "XMLReader didn't recognize feature " + EXTERNAL_GENERAL_ENTITIES);
+	      } catch (SAXNotSupportedException e) {
+	        UIMAFramework.getLogger().log(Level.WARNING, 
+	            "XMLReader doesn't support feature " + EXTERNAL_GENERAL_ENTITIES);
+	      }
 
+	      try {
+	        xmlReader.setFeature(EXTERNAL_PARAMETER_ENTITIES, false);
+	      } catch (SAXNotRecognizedException e) {
+	        UIMAFramework.getLogger().log(Level.WARNING, 
+	            "XMLReader didn't recognize feature " + EXTERNAL_PARAMETER_ENTITIES);
+	      } catch (SAXNotSupportedException e) {
+	        UIMAFramework.getLogger().log(Level.WARNING, 
+	            "XMLReader doesn't support feature " + EXTERNAL_PARAMETER_ENTITIES);
+	      }
+
+	      try {
+	        xmlReader.setFeature(LOAD_EXTERNAL_DTD,false);
+	      } catch (SAXNotRecognizedException e) {
+	        UIMAFramework.getLogger().log(Level.WARNING, 
+	            "XMLReader didn't recognized feature " + LOAD_EXTERNAL_DTD);
+	      } catch (SAXNotSupportedException e) {
+	        UIMAFramework.getLogger().log(Level.WARNING, 
+	            "XMLReader doesn't support feature " + LOAD_EXTERNAL_DTD);
+	      }
+
+  }
   /** 
    * Utility method for deserializing a CAS from an XMI String
    * Does both processing of requests arriving to this service
@@ -70,10 +106,8 @@ public class DuccUimaSerializer {
   public void deserializeCasFromXmi(String anXmlStr, CAS aCAS)
           throws FactoryConfigurationError, ParserConfigurationException, SAXException, IOException {
 
-	XMLReader xmlReader =
-		  XMLUtils.createXMLReader();
-	  
-    //XMLReader xmlReader = XMLReaderFactory.createXMLReader(); // localXmlReader.get();
+	XMLReader xmlReader = XMLReaderFactory.createXMLReader();
+	secureXmlReader(xmlReader);
     Reader reader = new StringReader(anXmlStr);
     XmiCasDeserializer deser = new XmiCasDeserializer(aCAS.getTypeSystem());
     ContentHandler handler = deser.getXmiCasHandler(aCAS);

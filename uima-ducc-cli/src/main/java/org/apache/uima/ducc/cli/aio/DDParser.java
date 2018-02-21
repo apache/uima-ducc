@@ -21,18 +21,26 @@ package org.apache.uima.ducc.cli.aio;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.uima.internal.util.XMLUtils;
+import org.apache.uima.UIMAFramework;
+import org.apache.uima.util.Level;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class DDParser extends DefaultHandler {
 	
+	private static final String DISALLOW_DOCTYPE_DECL = "http://apache.org/xml/features/disallow-doctype-decl";
+	private static final String LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+
 	private File file = null;
 	private FileInputStream fis = null;
 	private SAXParser parser = null;
@@ -48,14 +56,40 @@ public class DDParser extends DefaultHandler {
 		this.file = file;
 		parse();
 	}
-	
+	private void secureFactory(SAXParserFactory f) {
+        try {
+            f.setFeature(DISALLOW_DOCTYPE_DECL, true);
+          } catch (SAXNotRecognizedException e) {
+            UIMAFramework.getLogger().log(Level.WARNING, 
+                "SAXParserFactory didn't recognize feature " + DISALLOW_DOCTYPE_DECL);
+          } catch (SAXNotSupportedException e) {
+            UIMAFramework.getLogger().log(Level.WARNING, 
+                "SAXParserFactory doesn't support feature " + DISALLOW_DOCTYPE_DECL);
+          } catch (ParserConfigurationException e) {
+            UIMAFramework.getLogger().log(Level.WARNING, 
+                "SAXParserFactory doesn't support feature " + DISALLOW_DOCTYPE_DECL);
+          }
+          
+          try {
+            f.setFeature(LOAD_EXTERNAL_DTD, false);
+          } catch (SAXNotRecognizedException e) {
+            UIMAFramework.getLogger().log(Level.WARNING, 
+                "SAXParserFactory didn't recognize feature " + LOAD_EXTERNAL_DTD);
+          } catch (SAXNotSupportedException e) {
+            UIMAFramework.getLogger().log(Level.WARNING, 
+                "SAXParserFactory doesn't support feature " + LOAD_EXTERNAL_DTD);
+          } catch (ParserConfigurationException e) {
+            UIMAFramework.getLogger().log(Level.WARNING, 
+                "SAXParserFactory doesn't support feature " + LOAD_EXTERNAL_DTD);
+          }
+          f.setXIncludeAware(false);
+	}
 	private void parse() throws ParserConfigurationException, SAXException, IOException {
 		fis = new FileInputStream(file);
-		//TransformerFactory tFactory = 
-		SAXParserFactory f =
-				XMLUtils.createSAXParserFactory();
-		parser = f.newSAXParser();
-//		parser = SAXParserFactory.newInstance().newSAXParser();
+
+		SAXParserFactory f = SAXParserFactory.newInstance();
+    	secureFactory(f);
+        parser = f.newSAXParser();
 		parser.parse(fis, this);
 	}
 	
