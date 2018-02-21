@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -31,22 +33,27 @@ import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.uima.UIMAFramework;
 import org.apache.uima.analysis_engine.AnalysisEngineDescription;
 import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.ducc.user.jp.UimaASProcessContainer;
-import org.apache.uima.internal.util.XMLUtils;
+import org.apache.uima.util.Level;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class DeployableGenerator {
-	
-	private String userLogDir = null;
+  private static final String ACCESS_EXTERNAL_STYLESHEET = "http://javax.xml.XMLConstants/property/accessExternalStylesheet";
+  private static final String ACCESS_EXTERNAL_DTD = "http://javax.xml.XMLConstants/property/accessExternalDTD";
+  private static final String DISALLOW_DOCTYPE_DECL = "http://apache.org/xml/features/disallow-doctype-decl";
+  private static final String LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+  private String userLogDir = null;
   private Document doc;
   private String registryURL;
   
@@ -114,7 +121,24 @@ public class DeployableGenerator {
 			}
 		}
 	}
-	
+	private void secureDocumentBuilderFactory(DocumentBuilderFactory documentBuilderFactory) {
+		try {
+			documentBuilderFactory.setFeature(DISALLOW_DOCTYPE_DECL, true);
+		} catch (ParserConfigurationException e1) {
+			UIMAFramework.getLogger().log(Level.WARNING, 
+					"DocumentBuilderFactory didn't recognize setting feature " + DISALLOW_DOCTYPE_DECL);
+		}
+
+		try {
+			documentBuilderFactory.setFeature(LOAD_EXTERNAL_DTD, false);
+		} catch (ParserConfigurationException e) {
+			UIMAFramework.getLogger().log(Level.WARNING, 
+					"DocumentBuilderFactory doesn't support feature " + LOAD_EXTERNAL_DTD);
+		}
+
+		documentBuilderFactory.setXIncludeAware(false);
+		documentBuilderFactory.setExpandEntityReferences(false);
+	}
 	/*
 	 * This method is used by the JD to convert a deployment descriptor's inputQueue element
 	 * to make it suitable for the JP's internal broker.
@@ -125,10 +149,10 @@ public class DeployableGenerator {
 		String location = configuration.getReferenceByName();
     org.apache.uima.util.XMLInputSource xmlin = UimaUtils.getXMLInputSource(location);  // Reads from FS or classpath
     
-    DocumentBuilderFactory dbFactory = XMLUtils.createDocumentBuilderFactory();
+    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+    secureDocumentBuilderFactory(dbFactory);
     DocumentBuilder db = dbFactory.newDocumentBuilder();
     
-    //DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
     doc = db.parse(xmlin.getInputStream());
 		
     // Create converted descriptor if input is not a file or if endpoint or broker wrong
@@ -207,19 +231,34 @@ public class DeployableGenerator {
 	public String getRegistryUrl() {
 	  return registryURL;
 	}
-	
+	private void secureTransformerFactory(TransformerFactory transformerFactory) {
+	    try {
+	        transformerFactory.setAttribute(ACCESS_EXTERNAL_DTD, "");
+	      } catch (IllegalArgumentException e) {
+	        UIMAFramework.getLogger().log(Level.WARNING, 
+	            "TransformerFactory didn't recognize setting attribute " + ACCESS_EXTERNAL_DTD);
+	      }
+	      
+	      try {
+	        transformerFactory.setAttribute(ACCESS_EXTERNAL_STYLESHEET, "");
+	      } catch (IllegalArgumentException e) {
+	        UIMAFramework.getLogger().log(Level.WARNING, 
+	            "TransformerFactory didn't recognize setting attribute " + ACCESS_EXTERNAL_STYLESHEET);
+	      }
+
+	}
 	private String xml2String(Document xmlDoc) throws Exception {
 		StringWriter writer = null;
-
+		
 		DOMSource domSource = new DOMSource(xmlDoc.getDocumentElement());
 		
 		writer = new StringWriter();
 
 		StreamResult streamResult = new StreamResult(writer);
-		TransformerFactory factory =
-		    XMLUtils.createTransformerFactory();
 		
-		//TransformerFactory factory = TransformerFactory.newInstance();
+		TransformerFactory factory = TransformerFactory.newInstance();
+    	secureTransformerFactory(factory);
+
 		Transformer transformer = factory.newTransformer();
 		transformer.transform(domSource, streamResult);
 

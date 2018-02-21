@@ -20,6 +20,8 @@ package org.apache.uima.ducc.cli;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -36,7 +38,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -44,7 +49,7 @@ import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
 import org.apache.uima.ducc.user.common.PrivateClassLoader;
 import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.ducc.user.common.UimaUtils;
-import org.apache.uima.internal.util.XMLUtils;
+import org.apache.uima.util.Level;
 import org.apache.uima.util.XMLInputSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -52,7 +57,9 @@ import org.w3c.dom.NodeList;
 
 
 public class DuccUiUtilities {
-
+	private static final String DISALLOW_DOCTYPE_DECL = "http://apache.org/xml/features/disallow-doctype-decl";
+	private static final String LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+	
 	public static String getUser() {
 		String user = System.getProperty("user.name");
 		String runmode = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_runmode);
@@ -143,7 +150,25 @@ public class DuccUiUtilities {
         }
         return "http://" + host + ":" + port + "/" + server.substring(0, 2);
 	}
+	private static void secureDocumentBuilderFactory(DocumentBuilderFactory documentBuilderFactory) {
+	    try {
+	        documentBuilderFactory.setFeature(DISALLOW_DOCTYPE_DECL, true);
+	      } catch (ParserConfigurationException e1) {
+	        UIMAFramework.getLogger().log(Level.WARNING, 
+	            "DocumentBuilderFactory didn't recognize setting feature " + DISALLOW_DOCTYPE_DECL);
+	      }
+	      
+	      try {
+	        documentBuilderFactory.setFeature(LOAD_EXTERNAL_DTD, false);
+	      } catch (ParserConfigurationException e) {
+	        UIMAFramework.getLogger().log(Level.WARNING, 
+	            "DocumentBuilderFactory doesn't support feature " + LOAD_EXTERNAL_DTD);
+	      }
+	      
+	      documentBuilderFactory.setXIncludeAware(false);
+	      documentBuilderFactory.setExpandEntityReferences(false);
 
+	}
     /**
      * Extract the endpoint from the deployment descriptor, resolving names and placeholders against
      * the same environment as that of the JVM that will deploy the service
@@ -169,9 +194,10 @@ public class DuccUiUtilities {
             } else {
               xmlin = UimaUtils.getXMLInputSource(process_DD);
             }
-            DocumentBuilder db = 
-            		XMLUtils.createDocumentBuilderFactory().newDocumentBuilder();
-            //DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            DocumentBuilder db = null;
+        	DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
+        	secureDocumentBuilderFactory(f);
+        	db = f.newDocumentBuilder();
             doc = db.parse(xmlin.getInputStream());
         } catch (Throwable t) {
             t.printStackTrace();
