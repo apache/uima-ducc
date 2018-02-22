@@ -1,2 +1,0 @@
-*/5 * * * * /home/duccy/ducc_runtime/examples/uima-ducc-vm/cron/autostart.sh
-* 22 * * * /home/duccy/ducc_runtime/examples/uima-ducc-vm/cron/cleanup.sh
