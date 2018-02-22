@@ -301,11 +301,8 @@ public class HttpWorkerThread implements Runnable {
 							transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
 							
 						}  catch( InvocationTargetException ee) {
-							// The only way we would be here is if uimaProcessor.process() method failed.
-							// In this case, the process method serialized stack trace into binary blob
-							// and wrapped it in AnalysisEngineProcessException. The serialized stack 
-							// trace is available via getMessage() call.
-
+							
+							logger.error("run", null, ee);
 							// This is process error. It may contain user defined
 							// exception in the stack trace. To protect against
 						    // ClassNotFound, the entire stack trace was serialized.
@@ -324,26 +321,6 @@ public class HttpWorkerThread implements Runnable {
 							byte[] serializedException =
 							    (byte[])getLastSerializedErrorMethod.invoke(processorInstance);
 			
-//							if ( ee.getCause() instanceof DuccUimaProcessException ) {
-//								// The process() exception had been serialized on the user side of the JP since
-//								// only there the Classloader has all the classes to serialize the exception.
-//								serializedException = ((DuccUimaProcessException)ee.getCause()).getSerializedException();
-//							} else {
-//								// strip InvocationTargetException
-//								serializedException = serializeException(ee.getCause());
-//							}
-							/*
-							ByteArrayOutputStream baos = new ByteArrayOutputStream();
-						    ObjectOutputStream oos = new ObjectOutputStream(baos);
-						    try {
-						       oos.writeObject(ee.getCause());
-						       serializedException = baos.toByteArray();
-					        } catch (Exception e) {
-					        	Exception e2 = new RuntimeException("Ducc Service Failed to Serialize the Cause of Process Failure. Check Service Log for Details");
-					        	oos.writeObject(e2);
-					        	serializedException = baos.toByteArray();
-					        }
-					        */
 							mc.setUserSpaceException(serializedException);								
 
 							logger.info("run", null, "Work item processing failed - returning serialized exception to the JD");
