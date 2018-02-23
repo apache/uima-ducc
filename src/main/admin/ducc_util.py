@@ -388,7 +388,7 @@ class DuccUtil(DuccBase):
         is_operational = False
         req = node.split('.')[0]
         cmd = '/bin/hostname'
-        ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=10'+' '+node+" "+cmd
+        ssh_cmd = 'ssh -q -o BatchMode=yes -o ConnectTimeout=10'+' '+node+" "+cmd
         resp = self.popen(ssh_cmd)
         lines = resp.readlines()
         if(len(lines)== 1):
