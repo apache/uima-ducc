@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
@@ -97,6 +96,8 @@ public class HistoryManagerDb
 
     // Jira 4804 For now don't save details in tables: jobs, reservations, & processes
     static final boolean saveDetails  = System.getenv("SAVE_DB_DETAILS") == null ? false : true;
+    
+    private long restoreCount = 0;
     
     public HistoryManagerDb()
     {
@@ -792,7 +793,12 @@ public class HistoryManagerDb
             String cql = "SELECT * FROM ducc.orckpt WHERE id=0";
             ResultSet rs = h.execute(cql);
             for ( Row r : rs ) {
-                logger.info(methodName, null, "Found checkpoint.");
+            	if(restoreCount > 0) {
+            		logger.debug(methodName, null, "Found checkpoint.");
+            	}
+            	else {
+            		logger.info(methodName, null, "Found checkpoint.");
+            	}
                 if(r == null) {
                 	continue;
                 }
@@ -824,16 +830,26 @@ public class HistoryManagerDb
                 Map<DuccId, IDuccWork> map = work.getMap();
                 for ( DuccId id : map.keySet() ) {
                     IDuccWork w = map.get(id);
-                    logger.info(methodName, id, "Restored", w.getClass());
+                    if(restoreCount > 0) {
+                    	logger.debug(methodName, id, "Restored", w.getClass());
+                    }
+                    else {
+                    	logger.info(methodName, id, "Restored", w.getClass());
+                    }
                 }
                 
                 ret = new Pair<DuccWorkMap, Map<DuccId, DuccId>>(work, processToJob);
             }
 
        } catch ( Exception e ) {
-            logger.error(methodName, null, "Error restoring checkpoint:", e);
+    	   if(restoreCount > 0) {
+    		   logger.debug(methodName, null, "Error restoring checkpoint:", e);
+    	   }
+    	   else {
+    		   logger.error(methodName, null, "Error restoring checkpoint:", e);
+    	   }
         } 
-        
+        restoreCount = restoreCount+1;
         return ret;
     }
     
