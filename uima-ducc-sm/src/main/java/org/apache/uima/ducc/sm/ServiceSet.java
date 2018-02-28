@@ -631,9 +631,7 @@ public class ServiceSet
 
     synchronized void setAutostart(boolean auto)
     {
-        meta_props.setProperty(IStateServices.SvcMetaProps.autostart.pname(), auto ? "true" : "false");
-        this.autostart = auto;
-        if ( auto ) {
+        if (!this.autostart && auto) {   // UIMA-5390 Restrict these resets to only if autostart was off but is now on 
             // turning this on gives benefit of the doubt on failure management
             // by definition, an autostarted services is NOT reference started
             cancelLinger();
@@ -641,6 +639,8 @@ public class ServiceSet
             init_failures = 0;
             resetRuntimeErrors();
         }
+        meta_props.setProperty(IStateServices.SvcMetaProps.autostart.pname(), auto ? "true" : "false");
+        this.autostart = auto;
     }
 
     synchronized void restartPinger()
@@ -1490,7 +1490,7 @@ public class ServiceSet
                         disable(disable_reason);
                         save_meta = true;
                     } else {
-                        logger.warn(methodName, id, "Instance", inst_id + ": Uunsolicited termination, not yet excessive.  Restarting instance.");
+                        logger.warn(methodName, id, "Instance", inst_id + ": Unsolicited termination, not yet excessive.  Restarting instance.");
                         start();
                         return;         // don't use termination to set state - start will signal the state machine
                     }
