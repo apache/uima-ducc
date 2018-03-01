@@ -187,6 +187,7 @@ public class ServicePingMain
             System.out.println("Exceeded error count. Exiting.");
             System.exit(1);
         }
+        System.out.println("ServicePingMain: Error count " + error_count + " < threshold of " + error_max);
     }
 
     // /**

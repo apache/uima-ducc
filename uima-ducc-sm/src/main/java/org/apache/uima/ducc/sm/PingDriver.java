@@ -783,13 +783,13 @@ class PingDriver
         PingStopper()
         {
             String methodName = "PingStopper.init";
-            logger.debug(methodName, sset.getId(), "Wait for pinger to exit:", 60000);
+            logger.info(methodName, sset.getId(), "Wait for pinger to exit:", 60000);
         }
 
         public void run()
         {
             String methodName = "PingStopper.run";
-            logger.debug(methodName, sset.getId(), "PingStopper kills reluctant pinger");
+            logger.info(methodName, sset.getId(), "PingStopper kills reluctant pinger");
             if ( ping_main != null )  ping_main.destroy();
         }
     }
@@ -900,6 +900,8 @@ class PingDriver
 			} catch (ClassNotFoundException e) {
                 logger.error(methodName, sset.getId(), "ExtrnPingDriver: Input garbled:", e);
                 errors++;
+			} finally {
+				logger.error(methodName, sset.getId(), "ExtrnPingDriver: Terminating ping thread after " + errors + " errors");
 			}
         }
     }

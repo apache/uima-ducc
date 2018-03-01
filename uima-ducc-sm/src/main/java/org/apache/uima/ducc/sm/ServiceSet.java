@@ -900,14 +900,14 @@ public class ServiceSet
     	case Waiting:
     		if(serviceMeta == null) {
     			notPinging = true;
-    			notPingingReason = "pinger has not reported";
+    			notPingingReason = "pinger is not running";
     		}
     		else {
     			configPing();
     			long pingExpiry = pingStability * pingRate;
         		long now = System.currentTimeMillis();
         		long pingElapsed = now - last_ping;
-        		if(pingElapsed > pingExpiry) {
+        		if (pingElapsed > pingExpiry && last_ping != 0) {    // Don't treat first ping as stale
         			notPinging = true;
         			notPingingReason = "pinger data is stale";
         		}
@@ -974,7 +974,9 @@ public class ServiceSet
         meta_props.put(IStateServices.SvcMetaProps.service_healthy.pname(),    "false");
 
         if ( excessiveFailures() ) {
-            meta_props.put(IStateServices.SvcMetaProps.submit_error.pname(), "Service stopped by exessive failures.  Initialization failures[" + init_failures + "], Runtime failures[" + run_failures + "]");
+        	String msg = init_failures >= init_failure_max ? "initialization failures [" + init_failures + "]" 
+        			                                       : "runtime failures [" + run_failures + "]";
+        	meta_props.put(IStateServices.SvcMetaProps.submit_error.pname(), "Service disabled by excessive " + msg);
         } else {
             meta_props.put(IStateServices.SvcMetaProps.service_statistics.pname(), "N/A");
         }
@@ -1928,7 +1930,10 @@ public class ServiceSet
         if ( inShutdown ) return;              // in shutdown, don't restart
 
         if ( ping_failures > ping_failure_max ) {
-            logger.warn(methodName, id, "Not restarting pinger due to excessiver errors:", ping_failures);
+            String msg = "Service stopped as pinger failed to start " + ping_failures + " times.";
+            logger.warn(methodName, id, msg);
+            meta_props.put(IStateServices.SvcMetaProps.submit_error.pname(), msg);
+            disableAndStop(msg);
             return;
         }
 
