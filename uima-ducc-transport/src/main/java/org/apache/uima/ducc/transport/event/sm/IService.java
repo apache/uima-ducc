@@ -105,6 +105,7 @@ public interface IService
         // In code we want to be able to use the nicer mixed-case names.
         // Always use encode and decode and you can't get this wrong.
         //
+		Dispossessed      { public String decode() { return "dispossessed"   ; } },  // Service is not controlled by this Service Manager
         Pending           { public String decode() { return "pending"        ; } },  // Work is waiting on at least one service to start but
                                                                                      // the service is not disabled or some such.  UIMA-4223
 
@@ -131,6 +132,7 @@ public interface IService
             if ( value.equals("available"     ) ) return Available;
             if ( value.equals("not-available" ) ) return NotAvailable;
             if ( value.equals("stopping"      ) ) return Stopping;
+            if ( value.equals("dispossessed"  ) ) return Dispossessed;
             if ( value.equals("undefined"     ) ) return Undefined;
             return Undefined;
         }
@@ -139,6 +141,7 @@ public interface IService
         public int ordinality()
         {
             switch ( this ) {
+            	case Dispossessed: return 10;
                 case Pending:      return 9;  // UIMA-4223 waiting for dependent service to become available
                 case Available:    return 8;
                 case Waiting:      return 7;

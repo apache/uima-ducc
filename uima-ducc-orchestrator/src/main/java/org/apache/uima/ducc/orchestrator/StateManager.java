@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -39,6 +40,7 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.orchestrator.ckpt.OrchestratorCheckpoint;
 import org.apache.uima.ducc.orchestrator.user.UserLogging;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
@@ -95,7 +97,6 @@ public class StateManager {
 
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private Messages messages = orchestratorCommonArea.getSystemMessages();
-	private DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 	private StateJobAccounting stateJobAccounting = StateJobAccounting.getInstance();
 
 	private IHistoryPersistenceManager hpm = orchestratorCommonArea.getHistoryPersistencemanager();
@@ -110,7 +111,7 @@ public class StateManager {
 			DuccId duccId = processMapIterator.next();
 			IDuccProcess process = processMap.get(duccId);
 			if(process.isActive()) {
-				logger.debug(methodName, duccId,  messages.fetch("processes active"));
+				logger.debug(methodName, duccWorkJob.getDuccId(),  messages.fetch("processes active:")+duccId);
 				status = false;
 			}
 		}
@@ -128,7 +129,7 @@ public class StateManager {
 			DuccId duccId = processMapIterator.next();
 			IDuccProcess process = processMap.get(duccId);
 			if(process.isActive()) {
-				logger.debug(methodName, duccId,  messages.fetch("processes active"));
+				logger.debug(methodName, duccWorkJob.getDuccId(),  messages.fetch("processes active:")+duccId);
 				status = false;
 			}
 		}
@@ -182,11 +183,13 @@ public class StateManager {
 			nowMillis = System.currentTimeMillis();
 			elapsed = (nowMillis - endMillis);
 			if(elapsed <= AgeTime) {
+				logger.info(methodName, jobid, "Completion", elapsed, AgeTime);
 				retVal = false;
 			}
 			endMillis = duccWork.getStandardInfo().getDateOfShutdownProcessesMillis();
 			elapsed = (nowMillis - endMillis);
 			if(elapsed <= AgeTime) {
+				logger.info(methodName, jobid, "Shutdown", elapsed, AgeTime);
 				retVal = false;
 			}
 		}
@@ -256,6 +259,31 @@ public class StateManager {
 			logger.error(location, jobid, e);
 		}
 	}
+	
+	
+	private boolean isCompleting(DuccWorkJob dwj) {
+		String location = "isCompleting";
+		boolean retVal = false;
+		DuccId duccId = null;
+		if(dwj != null) {
+			duccId = dwj.getDuccId();
+			retVal = dwj.isCompleting();
+		}
+		logger.debug(location, duccId, retVal);
+		return retVal;
+	}
+	
+	private boolean isCompleted(DuccWorkJob dwj) {
+		String location = "isCompleted";
+		boolean retVal = false;
+		DuccId duccId = null;
+		if(dwj != null) {
+			duccId = dwj.getDuccId();
+			retVal = dwj.isCompleted();
+		}
+		logger.debug(location, duccId, retVal);
+		return retVal;
+	}
 
 	public int prune(DuccWorkMap workMap) {
 		String methodName = "prune";
@@ -263,7 +291,9 @@ public class StateManager {
 		int changes = 0;
 		logger.trace(methodName, null, messages.fetch("enter"));
 		long t0 = System.currentTimeMillis();
-		Iterator<DuccId> workMapIterator = workMap.keySet().iterator();
+		Set<DuccId> workMapSet = workMap.keySet();
+		logger.debug(methodName, jobid, "size="+workMapSet.size());
+		Iterator<DuccId> workMapIterator = workMapSet.iterator();
 		while(workMapIterator.hasNext()) {
 			DuccId duccId = workMapIterator.next();
 			IDuccWork duccWork = WorkMapHelper.findDuccWork(workMap, duccId, this, methodName);
@@ -285,13 +315,15 @@ public class StateManager {
 					case Job:
 						if(jobDriverTerminated(duccWorkJob)) {
 							OrchestratorHelper.jdDeallocate(duccWorkJob);
+							changes ++;
 						}
 						break;
 					}
-					if(duccWorkJob.isCompleting() && allProcessesTerminated(duccWorkJob)) {
+					if(isCompleting(duccWorkJob) && allProcessesTerminated(duccWorkJob)) {
 						stateJobAccounting.stateChange(duccWorkJob, JobState.Completed);
+						changes ++;
 					}
-					if(duccWorkJob.isCompleted() && allProcessesTerminated(duccWorkJob) && isSaved(duccWorkJob) && isAgedOut(duccWorkJob)) {
+					if(isCompleted(duccWorkJob) && allProcessesTerminated(duccWorkJob) && isSaved(duccWorkJob) && isAgedOut(duccWorkJob)) {
 						WorkMapHelper.removeDuccWork(workMap, duccWorkJob, this, methodName);
 						logger.info(methodName, duccId, messages.fetch("removed job"));
 						changes ++;
@@ -567,6 +599,7 @@ public class StateManager {
 	public void reconcileState(IDriverStatusReport jdStatusReport) {
 		String methodName = "reconcileState (JD)";
 		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		int changes = 0;
 		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {
@@ -942,6 +975,7 @@ public class StateManager {
 		String methodName = "reconcileState (RM)";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		logger.debug(methodName, null, messages.fetchLabel("size")+rmResourceStateMap.size());
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		int changes = 0;
 		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {
@@ -1418,6 +1452,7 @@ public class StateManager {
 	public void reconcileState(ServiceMap serviceMap) {
 		String methodName = "reconcileState (SM)";
 		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		int changes = 0;
 		Iterator<DuccId> serviceMapIterator = serviceMap.keySet().iterator();
 		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
@@ -1631,6 +1666,7 @@ public class StateManager {
 	public void reconcileState(HashMap<DuccId, IDuccProcess> inventoryProcessMap) {
 		String methodName = "reconcileState (Node Inventory)";
 		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		Iterator<DuccId> iterator = inventoryProcessMap.keySet().iterator();
 		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {

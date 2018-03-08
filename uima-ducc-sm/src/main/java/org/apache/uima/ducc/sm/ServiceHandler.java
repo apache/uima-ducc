@@ -29,6 +29,7 @@ import org.apache.uima.ducc.cli.DuccServiceApi;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
+import org.apache.uima.ducc.common.persistence.services.IStateServices.AccessMode;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -47,6 +48,8 @@ import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
 import org.apache.uima.ducc.transport.event.sm.ServiceDependency;
@@ -63,7 +66,8 @@ public class ServiceHandler
 	 *
 	 */
 	private DuccLogger logger = DuccLogger.getLogger(ServiceHandler.class.getName(), COMPONENT_NAME);
-    private IServiceManager serviceManager;
+    private DuccId jobid = null;
+	private IServiceManager serviceManager;
 
     private ServiceStateHandler serviceStateHandler = new ServiceStateHandler();
 	private ServiceMap serviceMap = new ServiceMap();       // note this is the sync object for publish
@@ -98,6 +102,85 @@ public class ServiceHandler
         }
     }
 
+    /*
+     * initialize data structures (in preparation for resume)
+     */
+    public void init() {
+    	String methodName = "init";
+    	logger.debug(methodName, jobid, "");
+    	serviceStateHandler = new ServiceStateHandler();
+    	serviceMap.clear();  
+    }
+    
+    /*
+     * resume: this head node has become master
+     */
+    public void resume(IDuccWorkMap dwm) {
+    	String methodName = "resume";
+    	logger.debug(methodName, jobid, "");
+    	// clear state
+        newJobs.clear();
+        newServices.clear();
+        deletedJobs.clear();
+        deletedServices.clear();
+        modifiedJobs.clear();
+        modifiedServices.clear();
+        pendingRequests.clear();
+        // Add implementors from OR publication to SM state
+        Set<DuccId> serviceKeys = dwm.getServiceKeySet();
+        if(serviceKeys != null) {
+        	for(DuccId duccId : serviceKeys) {
+            	IDuccWork dw = dwm.findDuccWork(duccId);
+            	if(dw != null) {
+            		IDuccWorkService service = (IDuccWorkService) dw;
+            		long swId = duccId.getFriendly();
+            		String endpoint = service.getServiceEndpoint();
+            		if(endpoint != null) {
+            			ServiceSet ss = serviceStateHandler.getServiceByUrl(endpoint);
+            			if(ss != null) {
+            				ServiceInstance si = new ServiceInstance(ss);
+            				ss.implementors.put(swId, si);
+            				addInstance(ss, si);
+            				logger.info(methodName, ss.getId(), swId, ss.endpoint);
+            			}
+            			else {
+            				logger.warn(methodName, duccId, "ss == null");
+            			}
+            		}
+            		else {
+            			logger.warn(methodName, duccId, "endpoint == null");
+            		}
+            	}
+            	else {
+            		logger.warn(methodName, duccId, "dw == null");
+            	}
+            }
+        }
+        else {
+        	logger.debug(methodName, jobid, "serviceKeys == null");
+        }
+    }
+    
+    /*
+     * quiesce: this head node has become backup
+     */
+    public void quiesce() {
+    	String methodName = "quiesce";
+    	List<ServiceSet> list = serviceStateHandler.getServices();
+    	logger.debug(methodName, jobid, list.size());
+    	// stop all pingers
+        for(ServiceSet ss : list) {
+        	DuccId duccId = ss.getId();
+        	ss.setState(ServiceState.Dispossessed);
+        	logger.info(methodName, duccId, ss.getState(), ss.getImplementors().length, ss.getKey());
+        	ss.stopPingThread();
+        }
+    }
+    
+    public void setAccessMode(AccessMode accessMode) {
+    	stateHandler.setAccessMode(accessMode);
+    }
+    
     void setStateHandler(IStateServices handler)
     {
         this.stateHandler = handler;
@@ -166,21 +249,27 @@ public class ServiceHandler
         synchronized(stateUpdateLock) {
                 deletedJobsMap.putAll(deletedJobs);
                 deletedJobs.clear();
+                logger.info(methodName, jobid, "deletedJobsMap", deletedJobsMap.size());
 
                 modifiedJobsMap.putAll(modifiedJobs);
                 modifiedJobs.clear();
-
+                logger.info(methodName, jobid, "modifiedJobsMap", modifiedJobsMap.size());
+                
                 deletedServicesMap.putAll(deletedServices);
                 deletedServices.clear();
-
+                logger.info(methodName, jobid, "deletedServicessMap", deletedServicesMap.size());
+                
                 modifiedServicesMap.putAll(modifiedServices);
                 modifiedServices.clear();
+                logger.info(methodName, jobid, "modifiedServicesMap", modifiedServicesMap.size());
 
                 newServicesMap.putAll(newServices);
                 newServices.clear();
-
+                logger.info(methodName, jobid, "newServicesMap", newServicesMap.size());
+                
                 newJobsMap.putAll(newJobs);
                 newJobs.clear();
+                logger.info(methodName, jobid, "newJobsMap", newJobsMap.size());
         }
 
         // We could potentially have several updates where a service or arrives, is modified, and then deleted, while

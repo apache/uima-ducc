@@ -49,6 +49,8 @@ import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
+import org.apache.uima.ducc.common.head.DuccHeadHelper;
+import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState.State;
@@ -59,6 +61,7 @@ import org.apache.uima.ducc.common.jd.files.perf.UimaStatistic;
 import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccPropertiesHelper;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
@@ -85,6 +88,7 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccDataHelper;
+import org.apache.uima.ducc.ws.DuccHead;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
@@ -122,7 +126,9 @@ public class DuccHandler extends DuccAbstractHandler {
 	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccHandler.class);
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
-
+	
+	private static IDuccHead dh = DuccHead.getInstance();
+	
 	// These keys may have large values and be displayed with Show/Hide buttons.
 	// ducc.js must be updated if more than 4 are needed (services may have 4)
 	private final String[] n = {"classpath", "service_ping_classpath", "process_executable_args", "process_jvm_args", "environment"};
@@ -175,6 +181,8 @@ public class DuccHandler extends DuccAbstractHandler {
 
 	private String duccClusterName 					= duccContext+"/cluster-name";
 	private String duccClusterUtilization 			= duccContext+"/cluster-utilization";
+	private String duccClusterReliableLabel			= duccContext+"/cluster-reliable-label";
+	private String duccClusterReliableStatus		= duccContext+"/cluster-reliable-status";
 	private String duccTimeStamp   					= duccContext+"/timestamp";
 	private String duccAlerts   					= duccContext+"/alerts";
 	private String duccBannerMessage   				= duccContext+"/banner-message";
@@ -215,7 +223,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	public DuccHandler(DuccWebServer duccWebServer) {
 		super.init(duccWebServer);
 	}
-
+	
 	public String getUserIdFromRequest(HttpServletRequest request) {
 		String retVal = duccWebSessionManager.getUserId(request);
 		return retVal;
@@ -3330,6 +3338,64 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
+	private void handleDuccServletClusterReliableStatus(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletClusterReliableStatus";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		if(DuccHeadHelper.isVirtualIpAddress()) {
+			String ipAddress = DuccPropertiesHelper.getDuccHeadVirtualIpAddress();
+			String ipDevice = DuccPropertiesHelper.getDuccHeadVirtualIpDevice();
+			if(ipAddress.length() > 0) {
+				if(ipDevice.length() > 0) {
+					String status = dh.get_ducc_head_mode();
+					String hover = ipDevice+" "+ipAddress;
+					if(dh.is_ducc_head_master()) {
+						String text = "<span title=\""+hover+"\">"+status+"</span>";
+						sb.append(text);
+					}
+					else {
+						String text = "<span>"+status+"</span>";
+						sb.append(text);
+					}
+				}
+			}
+		}
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
+	private void handleDuccServletClusterReliableLabel(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletClusterReliableLabel";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		if(DuccHeadHelper.isVirtualIpAddress()) {
+			String ipAddress = DuccPropertiesHelper.getDuccHeadVirtualIpAddress();
+			String ipDevice = DuccPropertiesHelper.getDuccHeadVirtualIpDevice();
+			if(ipAddress.length() > 0) {
+				if(ipDevice.length() > 0) {
+					String label = "reliable:";
+					if(dh.is_ducc_head_backup()) {
+						String hover = "Click to visit master";
+						String text = "<span title=\""+hover+"\">"+label+"</span>";
+						String link = "http://"+ipAddress+":"+getDuccWebServer().getPort()+"/";
+			    		String href = "<a href=\""+link+"\" target=\"_ducc_master\"  >"+text+"</a>";
+			    		sb.append(href);
+					}
+					else {
+						String text = "<span>"+label+"</span>";
+						sb.append(text);
+					}
+				}
+			}
+		}
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
 	private void handleDuccServletTimeStamp(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
@@ -4387,6 +4453,12 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else if(reqURI.startsWith(duccLogoutLink)) {
 				handleDuccServletLogoutLink(target, baseRequest, request, response);
+			}
+			else if(reqURI.startsWith(duccClusterReliableStatus)) {
+				handleDuccServletClusterReliableStatus(target, baseRequest, request, response);
+			}
+			else if(reqURI.startsWith(duccClusterReliableLabel)) {
+				handleDuccServletClusterReliableLabel(target, baseRequest, request, response);
 			}
 			else if(reqURI.startsWith(duccJobIdData)) {
 				handleDuccServletJobIdData(target, baseRequest, request, response);

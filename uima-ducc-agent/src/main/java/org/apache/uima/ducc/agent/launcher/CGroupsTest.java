@@ -83,7 +83,7 @@ public class CGroupsTest {
 	}
 	public void initialize() throws Exception {
 
-		idFactory = new DuccIdFactory(null,null);
+		idFactory = new DuccIdFactory();
 		String cgroupsUtilsDirs = System.getProperty("ducc.agent.launcher.cgroups.utils.dir");
       	String cgUtilsPath=null;
       	if (cgroupsUtilsDirs == null) {

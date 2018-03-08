@@ -140,6 +140,12 @@ public class DuccWebServer {
 		return commonConfiguration.classDefinitionFile;
 	}
 	
+	public int getPort() {
+		String property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port);
+        int portHttp = ConfigValue.PortHttp.getInt(property);
+        return portHttp;
+	}
+	
 	public int getPortSsl() {
 		String property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port_ssl);
         int portHttps = ConfigValue.PortHttps.getInt(property);

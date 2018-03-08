@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.apache.uima.ducc.common.IDuccEnv;
-import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -51,9 +50,9 @@ public class DuccBoot extends Thread {
 	public static long maxReservations = 4096;
 	public static long maxServices = 4096;
 	
-	public static void boot(CommonConfiguration commonConfiguration) {
+	public static void boot() {
 		DuccBoot duccBoot = new DuccBoot();
-		duccBoot.initialize(commonConfiguration);
+		duccBoot.initialize();
 		duccBoot.start();
 	}
 
@@ -359,7 +358,7 @@ public class DuccBoot extends Thread {
 	// 	logger.info(location, jobid, messages.fetch("Services restored: "+restored));
 	// }
 	
-	private void initialize(CommonConfiguration commonConfiguration) {
+	private void initialize() {
 		String location = "initialize";
 		long limit = getLimit();
 		if(limit > 0) {
@@ -374,6 +373,7 @@ public class DuccBoot extends Thread {
 		String location = "restore";
 		logger.info(location, jobid, messages.fetchLabel("History directory")+IDuccEnv.DUCC_HISTORY_DIR);
 		IHistoryPersistenceManager hpm = HistoryFactory.getInstance(this.getClass().getName());
+		DuccData.reset();
 		DuccData duccData = DuccData.getInstance();
 		experimentsFound = new HashSet<String>();  // Lets the restore methods avoid inspecting already-found experiments
 		restoreReservations(hpm, duccData);

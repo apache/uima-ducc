@@ -40,7 +40,7 @@
 \begin{verbatim}
     internal = true
 \end{verbatim}
-    to the registration file.  To specify that it run externall, add the property
+    to the registration file.  To specify that it run externally, add the property
 \begin{verbatim}
     internal = false
 \end{verbatim}
@@ -53,7 +53,7 @@
     Best practices dictate that the filename of an {\em external} pinger contain the
     postfix {\em .external} to clearly identify it as external.  
 
-    As an example, the default UIMA-AS pinger is supplied in the global registery
+    As an example, the default UIMA-AS pinger is supplied in the global registry
     under the two names:
 \begin{verbatim}
     org.apache.uima.ducc.sm.UimaAsPing
@@ -62,7 +62,7 @@
 
     Note that users may override any of the properties in globally-registered
     {\em external} pingers, but only the {\em service\_ping\_arguments} of an {\em internal}
-    pinger to protect its integrity by speicfy that argument in their own
+    pinger to protect its integrity by specify that argument in their own
     service registrations.
 
     By default external pingers are launched with the same JRE as used by the DUCC daemons but if the

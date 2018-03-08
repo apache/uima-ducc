@@ -81,6 +81,12 @@ public class DuccPropertiesResolver {
         
     }
     
+    public static final String ducc_head = "ducc.head";
+    public static final String ducc_head_failover = "ducc.head.failover";
+    
+    public static final String ducc_head_virtual_ip_address = "ducc.virtual.ip.address";
+    public static final String ducc_head_virtual_ip_device = "ducc.virtual.ip.device";
+    
     public static final String ducc_security_home = "ducc.security.home";
     
     public static final String ducc_private_resources = "ducc.private.resources";

@@ -19,6 +19,7 @@
 
 package org.apache.uima.ducc.agent.deploy;
 import org.apache.uima.ducc.agent.Agent;
+import org.apache.uima.ducc.common.head.DuccHeadHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -60,6 +61,7 @@ public class DuccWorkHelper {
 		String targetUrl = null;
 		String server = getServer();
 		String host = DuccPropertiesResolver.get("ducc." + server + ".http.node");
+		host = DuccHeadHelper.getVirtualHost(host);
 	    String port = DuccPropertiesResolver.get("ducc." + server + ".http.port");
         if ( host == null || port == null ) {
         	String message = "ducc." + server + ".http.node and/or .port not set in ducc.properties";

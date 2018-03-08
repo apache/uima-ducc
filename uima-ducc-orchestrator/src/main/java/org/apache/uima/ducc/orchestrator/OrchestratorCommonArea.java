@@ -18,21 +18,20 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.internationalization.Messages;
-import org.apache.uima.ducc.common.persistence.IPropertiesFileManager;
-import org.apache.uima.ducc.common.persistence.PropertiesFileManager;
 import org.apache.uima.ducc.common.utils.ComponentHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
+import org.apache.uima.ducc.orchestrator.ckpt.OrchestratorCheckpoint;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdScheduler;
+import org.apache.uima.ducc.orchestrator.state.DuccWorkIdFactory;
 import org.apache.uima.ducc.orchestrator.utilities.Checkpointable;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
@@ -64,48 +63,16 @@ public class OrchestratorCommonArea {
 	
 	private IHistoryPersistenceManager historyPersistenceManager = null;
 	
-	@Deprecated
-	private void initSeqNo() {
-		String location = "initSeqNo";
-		DuccId jobid = null;
-		PropertiesFileManager pfm = (PropertiesFileManager) propertiesFileManager;
-		if(!pfm.containsKey(constSeqNo)) {
-			int biggest = -1;
-			try {
-				int seqno = Integer.valueOf(pfm.get(constJobSeqNo,"-1"));
-				if(seqno > biggest) {
-					biggest = seqno;
-				}
-			}
-			catch(Exception e) {
-				logger.error(location, jobid, e);
-			}
-			try {
-				int seqno = Integer.valueOf(pfm.get(constServiceSeqNo,"-1"));
-				if(seqno > biggest) {
-					biggest = seqno;
-				}
-			}
-			catch(Exception e) {
-				logger.error(location, jobid, e);
-			}
-			try {
-				int seqno = Integer.valueOf(pfm.get(constReservationSeqNo,"-1"));
-				if(seqno > biggest) {
-					biggest = seqno;
-				}
-			}
-			catch(Exception e) {
-				logger.error(location, jobid, e);
-			}
-			try {
-				pfm.set(constSeqNo,""+biggest);
-				pfm.remove(constServiceSeqNo);
-				pfm.remove(constReservationSeqNo);
-				pfm.remove(constJobSeqNo);
-			}
-			catch(Exception e) {
-				logger.error(location, jobid, e);
+	public void restart() {
+		String location = "restart";
+		init();
+		logger.debug(location, jobid,"jobs:"+workMap.getJobCount());
+		logger.debug(location, jobid,"reservations:"+workMap.getReservationCount());
+		logger.debug(location, jobid,"services:"+workMap.getServiceCount());
+		Set<DuccId> serviceKeys = workMap.getServiceKeySet();
+		if(serviceKeys != null) {
+			for(DuccId duccId : serviceKeys) {
+				logger.info(location, duccId, "");
 			}
 		}
 	}
@@ -118,14 +85,10 @@ public class OrchestratorCommonArea {
 			ComponentHelper.oneInstance(IDuccEnv.DUCC_STATE_DIR,"orchestrator");
 		}
 		// </Jira 3414>
-		PropertiesFileManager pfm = new PropertiesFileManager(IDuccLoggerComponents.abbrv_orchestrator, IDuccEnv.DUCC_STATE_DIR, constOrchestratorProperties, false, true);
-		setPropertiesFileManager(pfm);
-		initSeqNo();
-		setDuccIdFactory(new DuccIdFactory(propertiesFileManager,constSeqNo));
+		
+		setDuccIdFactory(new DuccWorkIdFactory());
 		workMap = new DuccWorkMap();
 		processAccounting = new ProcessAccounting();
-		String ckpt_setting = dpr.getCachedProperty(DuccPropertiesResolver.ducc_orchestrator_checkpoint);
-		OrchestratorCheckpoint.getInstance().switchOnOff(ckpt_setting);
 		OrchestratorCheckpoint.getInstance().restoreState();
 		OrchestratorCheckpoint.getInstance().saveState();
 		jdScheduler = JdScheduler.getInstance();
@@ -147,28 +110,6 @@ public class OrchestratorCommonArea {
 	
 	public String getStateDirectory() {
 		return IDuccEnv.DUCC_STATE_DIR;
-	}
-	
-	private static final String constOrchestratorProperties = "orchestrator.properties";
-	@Deprecated
-	private static final String constJobSeqNo = "job.seqno";
-	@Deprecated
-	private static final String constServiceSeqNo = "service.seqno";
-	@Deprecated
-	private static final String constReservationSeqNo = "reservation.seqno";
-	private static final String constSeqNo = "seqno";
-	
-	// **********
-	
-	private IPropertiesFileManager propertiesFileManager = null;
-	
-	private void setPropertiesFileManager(IPropertiesFileManager instance) {
-		propertiesFileManager = instance;
-	}
-	
-	public IPropertiesFileManager getPropertiesFileManager() {
-		assert(propertiesFileManager != null);
-		return propertiesFileManager;
 	}
 	
 	// **********

@@ -22,6 +22,7 @@ package org.apache.uima.ducc.orchestrator.system.events.log;
  * Use the methods of this class to record system events to the system-event.log file.
  * This class is located in the Orchestrator since it alone is given responsibility for this task.
  */
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
@@ -52,6 +53,7 @@ import org.apache.uima.ducc.transport.event.cli.ReservationReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
+import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
@@ -294,6 +296,17 @@ public class SystemEventsLogger {
 		String message = getProperty(rprops, JobReplyProperties.key_message, "");
 		Object[] event = { Labels.JOB_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
 		duccLogger.event_info(daemon, user, type, event);
+		//
+		String key = SpecificationProperties.key_submit_errors;
+		@SuppressWarnings("unchecked")
+		List<String> value_submit_errors = (List<String>) qprops.get(key);
+		if(value_submit_errors != null) {
+			if(value_submit_errors.size() > 0) {
+				message = value_submit_errors.get(0);
+				Object[] event_error = { Labels.JOB_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
+				duccLogger.event_info(daemon, user, type, event_error);
+			}
+		}
 	}
 	
 	/*
@@ -309,6 +322,17 @@ public class SystemEventsLogger {
 		String message = getProperty(rprops, JobReplyProperties.key_message);
 		Object[] event = { Labels.JOB_ID+id, Labels.SUBMITTER+submitter, message };
 		duccLogger.event_info(daemon, user, type, event);
+		//
+		String key = SpecificationProperties.key_submit_errors;
+		@SuppressWarnings("unchecked")
+		List<String> value_submit_errors = (List<String>) qprops.get(key);
+		if(value_submit_errors != null) {
+			if(value_submit_errors.size() > 0) {
+				message = value_submit_errors.get(0);
+				Object[] event_error = { Labels.JOB_ID+id, Labels.SUBMITTER+submitter, message };
+				duccLogger.event_info(daemon, user, type, event_error);
+			}
+		}
 	}
 	
 	/*
@@ -343,6 +367,17 @@ public class SystemEventsLogger {
 		String message = getProperty(rprops, ReservationReplyProperties.key_message, "");
 		Object[] event = { Labels.RESERVATION_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
 		duccLogger.event_info(daemon, user, type, event);
+		//
+		String key = SpecificationProperties.key_submit_errors;
+		@SuppressWarnings("unchecked")
+		List<String> value_submit_errors = (List<String>) qprops.get(key);
+		if(value_submit_errors != null) {
+			if(value_submit_errors.size() > 0) {
+				message = value_submit_errors.get(0);
+				Object[] event_error = { Labels.RESERVATION_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
+				duccLogger.event_info(daemon, user, type, event_error);
+			}
+		}
 	}
 	
 	/*
@@ -358,6 +393,17 @@ public class SystemEventsLogger {
 		String message = getProperty(rprops, ReservationReplyProperties.key_message);
 		Object[] event = { Labels.RESERVATION_ID+id, Labels.SUBMITTER+submitter, message };
 		duccLogger.event_info(daemon, user, type, event);
+		//
+		String key = SpecificationProperties.key_submit_errors;
+		@SuppressWarnings("unchecked")
+		List<String> value_submit_errors = (List<String>) qprops.get(key);
+		if(value_submit_errors != null) {
+			if(value_submit_errors.size() > 0) {
+				message = value_submit_errors.get(0);
+				Object[] event_error = { Labels.RESERVATION_ID+id, Labels.SUBMITTER+submitter, message };
+				duccLogger.event_info(daemon, user, type, event_error);
+			}
+		}
 	}
 	
 	/*
@@ -394,6 +440,17 @@ public class SystemEventsLogger {
 			String id = getProperty(properties, ServiceRequestProperties.key_id);
 			Object[] event = { Labels.MANAGED_RESERVATION_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
 			duccLogger.event_info(daemon, user, type, event);
+			//
+			String key = SpecificationProperties.key_submit_errors;
+			@SuppressWarnings("unchecked")
+			List<String> value_submit_errors = (List<String>) properties.get(key);
+			if(value_submit_errors != null) {
+				if(value_submit_errors.size() > 0) {
+					message = value_submit_errors.get(0);
+					Object[] event_error = { Labels.MANAGED_RESERVATION_ID+id, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
+					duccLogger.event_info(daemon, user, type, event_error);
+				}
+			}
 		}
 		else {
 			String id = getProperty(properties, ServiceRequestProperties.key_service_id);
@@ -401,6 +458,17 @@ public class SystemEventsLogger {
 			String name = getProperty(properties, ServiceRequestProperties.key_service_request_endpoint);
 			Object[] event = { Labels.SERVICE_ID+id, Labels.INSTANCE_ID+instance, Labels.NAME+name, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
 			duccLogger.event_info(daemon, user, type, event);
+			//
+			String key = SpecificationProperties.key_submit_errors;
+			@SuppressWarnings("unchecked")
+			List<String> value_submit_errors = (List<String>) properties.get(key);
+			if(value_submit_errors != null) {
+				if(value_submit_errors.size() > 0) {
+					message = value_submit_errors.get(0);
+					Object[] event_error = { Labels.SERVICE_ID+id, Labels.INSTANCE_ID+instance, Labels.NAME+name, Labels.CLASS+sclass, Labels.SIZE+size, Labels.SUBMITTER+submitter, message };
+					duccLogger.event_info(daemon, user, type, event_error);
+				}
+			}
 		}
 	}
 	
@@ -419,6 +487,17 @@ public class SystemEventsLogger {
 			String id = properties.getProperty(ServiceRequestProperties.key_id);
 			Object[] event = { Labels.MANAGED_RESERVATION_ID+id, Labels.SUBMITTER+submitter, message };
 			duccLogger.event_info(daemon, user, type, event);
+			//
+			String key = SpecificationProperties.key_submit_errors;
+			@SuppressWarnings("unchecked")
+			List<String> value_submit_errors = (List<String>) properties.get(key);
+			if(value_submit_errors != null) {
+				if(value_submit_errors.size() > 0) {
+					message = value_submit_errors.get(0);
+					Object[] event_error = { Labels.MANAGED_RESERVATION_ID+id, Labels.SUBMITTER+submitter, message };
+					duccLogger.event_info(daemon, user, type, event_error);
+				}
+			}
 		}
 		else {
 			String id = getProperty(properties, ServiceRequestProperties.key_service_id);
@@ -426,6 +505,17 @@ public class SystemEventsLogger {
 			String name = getProperty(properties, ServiceRequestProperties.key_service_request_endpoint);
 			Object[] event = { Labels.SERVICE_ID+id, Labels.INSTANCE_ID+instance, Labels.NAME+name, Labels.SUBMITTER+submitter, message };
 			duccLogger.event_info(daemon, user, type, event);
+			//
+			String key = SpecificationProperties.key_submit_errors;
+			@SuppressWarnings("unchecked")
+			List<String> value_submit_errors = (List<String>) properties.get(key);
+			if(value_submit_errors != null) {
+				if(value_submit_errors.size() > 0) {
+					message = value_submit_errors.get(0);
+					Object[] event_error = { Labels.SERVICE_ID+id, Labels.INSTANCE_ID+instance, Labels.NAME+name, Labels.SUBMITTER+submitter, message };
+					duccLogger.event_info(daemon, user, type, event_error);
+				}
+			}
 		}
 	}
 	
@@ -524,6 +614,17 @@ public class SystemEventsLogger {
 		String type = dde.getEventType().name();
 		Object[] event = { Labels.NODE+dde.getNodeIdentity().getName(), Labels.TOD+""+dde.getTod() };
 		duccLogger.event_info(daemon, user, type, event);
+	}
+	
+	/*
+	 * log a daemon event
+	 */
+	public static void warn(DaemonDuccEvent dde) {
+		String daemon = dde.getDaemon().getAbbrev();
+		String user = System.getProperty("user.name");
+		String type = dde.getEventType().name();
+		Object[] event = { Labels.NODE+dde.getNodeIdentity().getName(), Labels.TOD+""+dde.getTod() };
+		duccLogger.event_warn(daemon, user, type, event);
 	}
 	
 	/*

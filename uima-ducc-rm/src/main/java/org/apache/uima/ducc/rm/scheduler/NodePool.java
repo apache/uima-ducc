@@ -30,11 +30,11 @@ import java.util.Map;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
-import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmNodes;
-import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
+import org.apache.uima.ducc.rm.persistence.access.IPersistenceAccess;
+import org.apache.uima.ducc.rm.persistence.access.PersistenceAccess;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
 
@@ -101,7 +101,7 @@ class NodePool
     HashMap<Integer, Map<Node, Machine>> virtualMachinesByOrder = new HashMap<Integer, Map<Node, Machine>>();  // UIMA-4142
     GlobalOrder maxorder = null;
 
-    IRmPersistence persistence = null;
+    private IPersistenceAccess persistenceAccess = PersistenceAccess.getInstance();
     boolean canReserve = false;       // if we contain a class with policy Reserve, then stuff in this pool is reservable
 
     int reserve_overage;              // Allowable excess size in GB for unmanaged reservations
@@ -126,8 +126,6 @@ class NodePool
         } else {
             maxorder = parent.getGlobalOrder();
         }
-
-        persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
 
         reserve_overage = SystemPropertyResolver.getIntProperty("ducc.rm.reserve_overage", 0);  // Can't be static as may be reconfigured
     }
@@ -1014,7 +1012,7 @@ class NodePool
     {
         String methodName = "signalDb";
         try {
-            persistence.setNodeProperty(m.getNode().getNodeIdentity().getName(), key, value);
+            persistenceAccess.setNodeProperty(m.getNode().getNodeIdentity().getName(), key, value);
         } catch (Exception e) {
             logger.warn(methodName, null, "Cannot update DB property", key, "for machine", m);
         }
@@ -1147,7 +1145,7 @@ class NodePool
         props.put(RmNodes.Responsive, true);
         props.put(RmNodes.Online, true);
         try {
-            persistence.createMachine(machine.getId(), props);
+            persistenceAccess.createMachine(machine.getId(), props);
         } catch (Exception e) {
             logger.warn(methodName, null, "Cannot write machine to DB:", machine.getId(), e);
         }

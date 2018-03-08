@@ -86,6 +86,8 @@ public class StateJobAccounting {
 		logger.debug(methodName, job.getDuccId(), job.getCompletionType()+" "+job.getCompletionRationale());
 		JobState prev = job.getJobState();
 		JobState next = state;
+		String p = prev.name();
+		String n = next.name();
 		switch(prev) {
 		case Completing:
 			retVal = stateChangeFromCompleting(prev, next);
@@ -156,6 +158,7 @@ public class StateJobAccounting {
 				logger.error(methodName, job.getDuccId(),"current["+prev+"] requested["+next+"]"+" ignored", e);
 			}
 		}
+		logger.info(methodName, job.getDuccId(), p, n, retVal);
 		return retVal;
 	}
 

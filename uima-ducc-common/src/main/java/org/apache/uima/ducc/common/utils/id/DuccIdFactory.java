@@ -20,23 +20,16 @@ package org.apache.uima.ducc.common.utils.id;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.uima.ducc.common.persistence.IPropertiesFileManager;
-
 public class DuccIdFactory implements IDuccIdFactory {
 	
-	private AtomicLong seqno = new AtomicLong(-1);
-
-	private IPropertiesFileManager propertiesFileManager = null;
-	private String propertiesFileKey = null;       
+	private AtomicLong seqno = new AtomicLong(-1);   
 
 	public DuccIdFactory() {	
 	}
-
-	public DuccIdFactory(IPropertiesFileManager propertiesFileManager, String propertiesFileKey) {	
-		this.propertiesFileManager = propertiesFileManager;
-		this.propertiesFileKey = propertiesFileKey;
-	}
 	
+	/*
+	 * seed is the first number to give out
+	 */
 	public DuccIdFactory(long seed) {
 		seqno.set(seed-1);
 	}
@@ -53,12 +46,7 @@ public class DuccIdFactory implements IDuccIdFactory {
 
 	public DuccId next() {
 		synchronized(this) {
-			if(propertiesFileManager != null) {
-				seqno.set(propertiesFileManager.increment(propertiesFileKey));
-			}
-			else {
-				seqno.incrementAndGet();                
-			}
+			seqno.incrementAndGet();                
 			return new DuccId(seqno.get());
 		}
 	}
@@ -69,23 +57,8 @@ public class DuccIdFactory implements IDuccIdFactory {
 	public long setIfMax(long candidate) {
 		long previous = seqno.get();
 		synchronized(this) {
-			if(propertiesFileManager != null) {
-				try {
-					String propertiesFileValue = propertiesFileManager.get(propertiesFileKey, ""+previous);
-					previous = Long.parseLong(propertiesFileValue);
-				}
-				catch(Exception e) {
-					// No worries
-				}
-				if(candidate > previous) {
-					propertiesFileManager.set(propertiesFileKey, ""+candidate);
-					seqno.set(candidate);
-				}
-			}
-			else {
-				if(candidate > previous) {
-					seqno.set(candidate);
-				}
+			if(candidate > previous) {
+				seqno.set(candidate);
 			}
 		}
 		return previous;

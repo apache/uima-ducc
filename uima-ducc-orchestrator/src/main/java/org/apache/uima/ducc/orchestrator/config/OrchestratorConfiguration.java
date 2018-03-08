@@ -34,8 +34,9 @@ import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.Orchestrator;
 import org.apache.uima.ducc.orchestrator.OrchestratorComponent;
-import org.apache.uima.ducc.orchestrator.OrchestratorState;
 import org.apache.uima.ducc.orchestrator.event.OrchestratorEventListener;
+import org.apache.uima.ducc.orchestrator.state.IOrchestratorState;
+import org.apache.uima.ducc.orchestrator.state.OrchestratorState;
 import org.apache.uima.ducc.orchestrator.system.events.log.SystemEventsLogger;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.event.AServiceRequest;
@@ -284,8 +285,8 @@ public class OrchestratorConfiguration {
 			OrchestratorStateDuccEvent jse = orchestrator.getState();
 			//	add sequence number to the outgoing message. This should be used to manage
 			//  processing order in the consumer
-			OrchestratorState orchestratorState = OrchestratorState.getInstance();
-			long seqNo = orchestratorState.getNextSequenceNumberState();
+			IOrchestratorState orchestratorState = OrchestratorState.getInstance();
+			long seqNo = orchestratorState.getNextPublicationSequenceNumber();
 			duccLogger.debug(location, jobid, ""+seqNo);
 			jse.setSequence(seqNo);
 			//	Add the state object to the Message

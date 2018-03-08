@@ -171,8 +171,8 @@ public class OrchestratorRecovery {
 		String location = "maxOf";
 		Long retVal = v0;
 		if(v1 > v0) {
-			retVal = v1+1;
-			logger.info(location, jobid, text);
+			retVal = v1;
+			logger.info(location, jobid, text, v0, v1);
 		}
 		return retVal;
 	}

@@ -37,10 +37,13 @@ import org.apache.uima.ducc.common.admin.event.RmAdminVaryReply;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.head.IDuccHead;
+import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadTransition;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.rm.scheduler.ISchedulerMain;
 import org.apache.uima.ducc.rm.scheduler.JobManagerUpdate;
 import org.apache.uima.ducc.rm.scheduler.SchedConstants;
@@ -49,6 +52,7 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
+import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 
 
@@ -59,7 +63,8 @@ public class ResourceManagerComponent
                Runnable
 {
     private static DuccLogger logger = DuccLogger.getLogger(ResourceManagerComponent.class, COMPONENT_NAME);
-
+    private static DuccId jobid = null;
+    
     int nodeStability;                // number of heartbeats from agent metrics we are allowed to miss before purging node
     int initStability;                // number of heartbeats from agent metrics we must wait for during init befor starting
     int nodeMetricsUpdateRate;
@@ -80,6 +85,8 @@ public class ResourceManagerComponent
     String stateChangeEndpoint;
 
     NodeStability stabilityManager = null;
+    
+    private IDuccHead dh = null;
 
     public ResourceManagerComponent(CamelContext context) {
         super("ResourceManager", context);
@@ -380,6 +387,79 @@ public class ResourceManagerComponent
         }
     }
 
+    private IDuccHead getDuccHead() {
+    	if(dh == null) {
+    		dh = DuccHead.getInstance();
+    		if(dh.is_ducc_head_backup()) {
+    			stateChange(EventType.INIT_AS_BACKUP);
+    		}
+    		else {
+    			stateChange(EventType.INIT_AS_MASTER);
+    		}
+    	}
+    	return dh;
+    }
+    
+    private IDuccWorkMap adjustMap(IDuccWorkMap map) {
+		String location = "adjustMap";
+		IDuccWorkMap retVal = map;
+		DuccId jobid = null;
+		DuccHeadTransition transition = getDuccHead().transition();
+		switch(transition) {
+		case master_to_master:
+			logger.debug(location, jobid, "ducc head == master");
+			break;
+		case master_to_backup:
+			logger.warn(location, jobid, "ducc head -> backup");
+			stateChange(EventType.SWITCH_TO_BACKUP);
+			retVal = new DuccWorkMap();
+			break;
+		case backup_to_master:
+			logger.warn(location, jobid, "ducc head -> master");
+			stateChange(EventType.SWITCH_TO_MASTER);
+			break;
+		case backup_to_backup:
+			logger.debug(location, jobid, "ducc head == backup");
+			retVal = new DuccWorkMap();
+			break;
+		default:
+			logger.debug(location, jobid, "ducc head == unspecified");
+			break;
+		}
+		return retVal;
+    }
+    
+    private void handleNewMaster() {
+    	String methodName = "handleNewMaster";
+    	try {
+    		DuccHeadTransition dh_transition = getDuccHead().transition();
+    		logger.info(methodName, jobid, dh_transition);
+    		switch(dh_transition) {
+    		case master_to_backup:
+    			stateChange(EventType.SWITCH_TO_BACKUP);
+    			logger.warn(methodName, jobid, "ducc head -> backup");
+    			break;
+    		case backup_to_master:
+    			stateChange(EventType.SWITCH_TO_MASTER);
+    			logger.warn(methodName, jobid, "ducc head -> master");
+    			scheduler.reconfigure();
+    			break;
+    		case master_to_master:
+    			logger.debug(methodName, jobid, "ducc head == master");
+    			break;
+    		case backup_to_backup:
+    			logger.debug(methodName, jobid, "ducc head == backup");
+    			break;
+    		default:
+    			logger.debug(methodName, jobid, "ducc head == unspecified");
+    			break;
+    		}
+    	}
+    	catch(Exception e) {
+    		logger.error(methodName, jobid, e);
+    	}
+    }
+    
     public void onOrchestratorStateUpdate(IDuccWorkMap map)
     {
         String methodName = "onJobManagerStateUpdate";
@@ -392,7 +472,9 @@ public class ResourceManagerComponent
                 // the OR rate in order to be as responsive as possible.
                 long now = System.currentTimeMillis();
                 if ( now - lastSchedule >= minRmPublishingRate ) {
-                    converter.eventArrives(map);
+                	handleNewMaster();
+                	IDuccWorkMap adjustedMap = adjustMap(map);
+                    converter.eventArrives(adjustedMap);
                     if ( ((++epoch_counter) % schedulingRatio) == 0 ) {
                         notify();
                     }

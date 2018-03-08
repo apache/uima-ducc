@@ -28,6 +28,7 @@ public class JdEvent extends AbstractDuccJobEvent {
 	private IDuccProcessMap processMap = null;
 	
 	private String killDriverReason = null;
+	private boolean duccHeadMaster = true;
 	
 	public JdEvent() {
 		super(EventType.JD_STATE);
@@ -59,5 +60,13 @@ public class JdEvent extends AbstractDuccJobEvent {
 	
 	public boolean isKillDriver() {
 		return (getKillDriverReason() != null);
+	}
+	
+	public boolean isDuccHeadMaster() {
+		return duccHeadMaster;
+	}
+	
+	public void setDuccHeadMaster(boolean value) {
+		duccHeadMaster = value;
 	}
 }

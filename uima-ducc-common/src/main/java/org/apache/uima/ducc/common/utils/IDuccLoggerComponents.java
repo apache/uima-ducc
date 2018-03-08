@@ -47,5 +47,6 @@ public interface IDuccLoggerComponents {
 	public final String abbrv_orchestrator = Daemon.Orchestrator.getAbbrev();
 	public final String abbrv_servicesManager = Daemon.ServicesManager.getAbbrev();
 	public final String abbrv_resourceManager = Daemon.ResourceManager.getAbbrev();
+	public final String abbrv_processManager = Daemon.ProcessManager.getAbbrev();
 	public final String abbrv_webServer = Daemon.WebServer.getAbbrev();
 }

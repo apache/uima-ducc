@@ -18,6 +18,9 @@
 */
 package org.apache.uima.ducc.common.utils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 public class DuccPropertiesHelper {
@@ -31,5 +34,44 @@ public class DuccPropertiesHelper {
 			System.setProperties(properties);
 		}
 		return DuccPropertiesResolver.getInstance();
+	}
+	
+	private static String defaultDuccHead = "?";
+	
+	public static String getDuccHead() {
+		String key = DuccPropertiesResolver.ducc_head;
+		String value = DuccPropertiesResolver.get(key,defaultDuccHead);
+		String retVal = value;
+		return retVal;
+	}
+	
+	private static String defaultDuccHeadFailover = "";
+	
+	public static List<String> getDuccHeadFailover() {
+		List<String> arraylist = new ArrayList<String>();
+		String key = DuccPropertiesResolver.ducc_head_failover;
+		String value = DuccPropertiesResolver.get(key,defaultDuccHeadFailover);
+		String[] array = value.split(" ");
+		Collections.addAll(arraylist, array);
+		List<String> retVal = arraylist;
+		return retVal;
+	}
+	
+	private static String defaultDuccHeadVirtualIpAddress= "";
+	
+	public static String getDuccHeadVirtualIpAddress() {
+		String key = DuccPropertiesResolver.ducc_head_virtual_ip_address;
+		String value = DuccPropertiesResolver.get(key,defaultDuccHeadVirtualIpAddress);
+		String retVal = value;
+		return retVal;
+	}
+	
+	private static String defaultDuccHeadVirtualIpDevice= "";
+	
+	public static String getDuccHeadVirtualIpDevice() {
+		String key = DuccPropertiesResolver.ducc_head_virtual_ip_device;
+		String value = DuccPropertiesResolver.get(key,defaultDuccHeadVirtualIpDevice);
+		String retVal = value;
+		return retVal;
 	}
 }

@@ -43,6 +43,7 @@ import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
+import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.ComponentHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -66,6 +67,7 @@ import org.apache.uima.ducc.transport.event.common.JdReservationBean;
 import org.apache.uima.ducc.ws.Distiller;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
+import org.apache.uima.ducc.ws.DuccHead;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.DuccMachinesDataHelper;
 import org.apache.uima.ducc.ws.Info;
@@ -96,6 +98,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	
 	private static BrokerHelper brokerHelper = BrokerHelper.getInstance();
 	private static DatabaseHelper databaseHelper = DatabaseHelper.getInstance();
+	
+	private static IDuccHead dh = DuccHead.getInstance();
 	
 	public final String classicJobs 				= duccContextClassic+"-jobs-data";
 	public final String classicReservations 		= duccContextClassic+"-reservations-data";
@@ -479,39 +483,46 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
-		ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
-		
-		long now = System.currentTimeMillis();
-		
-		int maxRecords = getJobsMax(request);
-		ArrayList<String> users = getJobsUsers(request);
-		DuccData duccData = DuccData.getInstance();
-		ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = duccData.getSortedJobs();
-		if(sortedJobs.size()> 0) {
-			Iterator<Entry<JobInfo, JobInfo>> iterator = sortedJobs.entrySet().iterator();
-			int counter = 0;
-			while(iterator.hasNext()) {
-				JobInfo jobInfo = iterator.next().getValue();
-				DuccWorkJob job = jobInfo.getJob();
-				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, job);
-				if(list) {
-					counter++;
-					sb.append(trGet(counter));
-					buildJobsListEntry(request, sb, job.getDuccId(), job, duccData, now, servicesRegistry);
-				}
-			}
-		}
-		else {
+		if(dh.is_ducc_head_backup()) {
 			sb.append("<tr>");
 			sb.append("<td>");
-			if(DuccData.getInstance().isPublished()) {
-				sb.append(messages.fetch("no jobs"));
-			}
-			else {
-				sb.append(messages.fetch("no data"));
-			}
+			sb.append(messages.fetch("no data - not master"));
 			sb.append("</td>");
 			sb.append("</tr>");
+		}
+		else {
+			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
+			long now = System.currentTimeMillis();
+			int maxRecords = getJobsMax(request);
+			ArrayList<String> users = getJobsUsers(request);
+			DuccData duccData = DuccData.getInstance();
+			ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = duccData.getSortedJobs();
+			if(sortedJobs.size()> 0) {
+				Iterator<Entry<JobInfo, JobInfo>> iterator = sortedJobs.entrySet().iterator();
+				int counter = 0;
+				while(iterator.hasNext()) {
+					JobInfo jobInfo = iterator.next().getValue();
+					DuccWorkJob job = jobInfo.getJob();
+					boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, job);
+					if(list) {
+						counter++;
+						sb.append(trGet(counter));
+						buildJobsListEntry(request, sb, job.getDuccId(), job, duccData, now, servicesRegistry);
+					}
+				}
+			}
+			else {
+				sb.append("<tr>");
+				sb.append("<td>");
+				if(DuccData.getInstance().isPublished()) {
+					sb.append(messages.fetch("no jobs"));
+				}
+				else {
+					sb.append(messages.fetch("no data"));
+				}
+				sb.append("</td>");
+				sb.append("</tr>");
+			}
 		}
 		
 		duccLogger.debug(methodName, jobid, sb);
@@ -980,52 +991,56 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
-		int maxRecords = getReservationsMax(request);
-		
-		DuccData duccData = DuccData.getInstance();
-		
-		ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = duccData.getSortedCombinedReservations();
-
-		ArrayList<String> users = getReservationsUsers(request);
-		
-		long now = System.currentTimeMillis();
-		
-		if((sortedCombinedReservations.size() > 0)) {
-			int counter = 0;
-			Iterator<Entry<Info, Info>> iR = sortedCombinedReservations.entrySet().iterator();
-			while(iR.hasNext()) {
-				Info info = iR.next().getValue();
-				IDuccWork dw = info.getDuccWork();
-				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, dw);
-				if(list) {
-					counter++;
-					if(dw instanceof DuccWorkReservation) {
-						DuccWorkReservation reservation = (DuccWorkReservation) dw;
-						sb.append(trGet(counter));
-						buildReservationsListEntry(request, sb, reservation.getDuccId(), reservation, duccData, now);
-					}
-					else if(dw instanceof DuccWorkJob) {
-						DuccWorkJob job = (DuccWorkJob) dw;
-						sb.append(trGet(counter));
-						buildReservationsListEntry(request, sb, job.getDuccId(), job, duccData, now);
-					}
-					else {
-						// huh?
+		if(dh.is_ducc_head_backup()) {
+			sb.append("<tr>");
+			sb.append("<td>");
+			sb.append(messages.fetch("no data - not master"));
+			sb.append("</td>");
+			sb.append("</tr>");
+		}
+		else {
+			int maxRecords = getReservationsMax(request);
+			DuccData duccData = DuccData.getInstance();
+			ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = duccData.getSortedCombinedReservations();
+			ArrayList<String> users = getReservationsUsers(request);
+			long now = System.currentTimeMillis();
+			if((sortedCombinedReservations.size() > 0)) {
+				int counter = 0;
+				Iterator<Entry<Info, Info>> iR = sortedCombinedReservations.entrySet().iterator();
+				while(iR.hasNext()) {
+					Info info = iR.next().getValue();
+					IDuccWork dw = info.getDuccWork();
+					boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, dw);
+					if(list) {
+						counter++;
+						if(dw instanceof DuccWorkReservation) {
+							DuccWorkReservation reservation = (DuccWorkReservation) dw;
+							sb.append(trGet(counter));
+							buildReservationsListEntry(request, sb, reservation.getDuccId(), reservation, duccData, now);
+						}
+						else if(dw instanceof DuccWorkJob) {
+							DuccWorkJob job = (DuccWorkJob) dw;
+							sb.append(trGet(counter));
+							buildReservationsListEntry(request, sb, job.getDuccId(), job, duccData, now);
+						}
+						else {
+							// huh?
+						}
 					}
 				}
 			}
-		}
-		else {
-			sb.append("<tr>");
-			sb.append("<td>");
-			if(DuccData.getInstance().isPublished()) {
-				sb.append(messages.fetch("no reservations"));
-			}
 			else {
-				sb.append(messages.fetch("no data"));
+				sb.append("<tr>");
+				sb.append("<td>");
+				if(DuccData.getInstance().isPublished()) {
+					sb.append(messages.fetch("no reservations"));
+				}
+				else {
+					sb.append(messages.fetch("no data"));
+				}
+				sb.append("</td>");
+				sb.append("</tr>");
 			}
-			sb.append("</td>");
-			sb.append("</tr>");
 		}
 		
 		duccLogger.debug(methodName, jobid, sb);
@@ -1040,285 +1055,294 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
-		ServicesSortCache servicesSortCache = ServicesSortCache.getInstance();
-		Collection<IServiceAdapter> servicesSortedCollection = servicesSortCache.getSortedCollection();
-		if(!servicesSortedCollection.isEmpty()) {
-			int maxRecords = getServicesMax(request);
-			ArrayList<String> users = getServicesUsers(request);
-			int counter = 0;
-			for(IServiceAdapter service : servicesSortedCollection) {
-				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, service);
-				if(!list) {
-					continue;
-				}
-				counter++;
-				// Row Begin
-				sb.append("<tr>");
-				int sid = service.getId();
-				String user = service.getUser();
-				long deployments = service.getDeployments();
-				long instances = service.getInstances();
-				// Enable
-				sb.append("<td valign=\"bottom\" class=\"ducc-col-start\">");
-				if(service.isRegistered()) {
-					if(buttonsEnabled) {
-						if(service.isDisabled()) {
-							sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_enable("+sid+")\" value=\"Enable\" "+getDisabledWithHover(request,user)+"/>");
-						}
-					}
-				}
-				sb.append("</td>");
-				// Stop
-				sb.append("<td valign=\"bottom\" class=\"ducc-col-stop\">");
-				if(service.isRegistered()) {
-					if(buttonsEnabled) {
-						if(service.isPingOnly()) {
-							if(service.isPingActive()) {
-								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
-							}
-						}
-						else {
-							if(deployments != 0) {
-								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
-							}
-						}
-					}
-				}
-				sb.append("</td>");
-				// Id
-				String name = service.getName();
-				sb.append("<td align=\"right\">");
-				String id = "<a href=\"service.details.html?name="+name+"\">"+sid+"</a>";
-				sb.append(""+id);
-				sb.append("</td>");
-				// Name
-				sb.append("<td>");
-				sb.append(name);
-				sb.append("</td>");
-				// State
-				sb.append("<td>");
-				String state = service.getState();
-				boolean alert = service.isAlert();
-				boolean available = service.isStateAvailable();
-				if(alert) {
-					state += "+Alert";
-				}
-				String style = "class=\"health_black\";";
-				if(alert) {
-					style = "class=\"health_red\"";
-				}
-				else if(available) {
-					style = "class=\"health_green\"";
-				}
-				String stateHover = ServicesHelper.getInstance().getStateHover(service);
-				if(stateHover.length() > 0) {
-					stateHover = "title="+"\""+stateHover+"\"";
-				}
-				sb.append("<span "+style+" "+stateHover+">");
-				sb.append(state);
-				sb.append("</span>");
-				sb.append("</td>");
-				// Last Use
-				sb.append("<td>");
-				long lastUse = service.getLastUse();
-				if(lastUse > 0) {
-					sb.append(getTimeStamp(request, jobid, ""+lastUse));
-				}
-				sb.append("</td>");
-				// Instances
-				sb.append("<td align=\"right\">");
-				sb.append(instances);
-				sb.append("</td>");
-				// Deployments
-				sb.append("<td align=\"right\">");
-				sb.append(deployments);
-				sb.append("</td>");
-				// Start-State
-				StartState startState = service.getStartState();
-				sb.append("<td align=\"right\">");
-				sb.append("<span>");
-				sb.append(startState.name());
-				if(service.isDisabled()) {
-					sb.append("<br>");
-					String health = "class=\"health_red\"";
-					String reason = "title=\""+service.getDisableReason()+"\"";
-					sb.append("<span "+health+" "+reason+">");
-					sb.append("Disabled");
-					sb.append("</span>");
-				}
-				sb.append("</span>");
-				sb.append("</td>");
-				// User
-				sb.append("<td>");
-				sb.append(user);
-				sb.append("</td>");
-				// Share Class (or Type)
-				sb.append("<td>");
-				if(service.isPingOnly()) {
-					String schedulingClass = service.getSchedulingClass();
-					sb.append("<span title=\""+schedulingClass+"\">");
-					String serviceType = "ping-only";
-					sb.append("<span>");
-					sb.append(serviceType);
-				}
-				else {
-					String schedulingClass = service.getSchedulingClass();
-					sb.append(schedulingClass);
-				}
-				sb.append("</td>");
-				// PgIn
-				sb.append("<td align=\"right\">");
-				long faults = 0;
-				try {
-					faults = service.getPgIn();
-				}
-				catch(Exception e) {
-				}
-				int ifaults = (int)faults;
-				switch(ifaults) {
-				case -3: // (some do and some don't have cgroups) but retVal would have been > 0
-					sb.append("<span title=\"incomplete\" class=\"health_red\""+">");
-					sb.append(inc);
-					break;
-				case -2: // (some do and some don't have cgroups) but retVal would have been == 0
-					sb.append("<span title=\"incomplete\" class=\"health_black\""+">");
-					sb.append(inc);
-					break;
-				case -1: // (none have cgroups)
-					sb.append("<span title=\"not available\" class=\"health_black\""+">");
-					sb.append(notAvailable);
-					break;
-				default: // (all have cgroups)
-					double swapping = service.getSwap();
-					if((swapping * faults) > 0) {
-						sb.append("<span class=\"health_red\""+">");
-					}
-					else {
-						sb.append("<span class=\"health_black\""+">");
-					}
-					sb.append(faults);
-					break;
-				}
-				sb.append("</span>");
-				sb.append("</td>");
-				// Swap
-				sb.append("<td align=\"right\">");
-				String swapSizeDisplay = "";
-				String swapSizeHover = "";
-				String title = "";
-				double swap = service.getSwap();
-				int iswap = (int)swap;
-				switch(iswap) {
-				case -3: // (some do and some don't have cgroups) but retVal would have been > 0
-					sb.append("<span title=\"incomplete\" class=\"health_red\""+">");
-					sb.append(inc);
-					break;
-				case -2: // (some do and some don't have cgroups) but retVal would have been == 0
-					sb.append("<span title=\"incomplete\" class=\"health_black\""+">");
-					sb.append(inc);
-					break;
-				case -1: // (none have cgroups)
-					sb.append("<span title=\"not available\" class=\"health_black\""+">");
-					sb.append(notAvailable);
-					break;
-				default: // (all have cgroups)
-					double swapBytes = swap;
-					swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
-					swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
-					title = "title="+"\""+swapSizeHover+"\"";
-					if(swapBytes > 0) {
-						sb.append("<span "+title+" "+"class=\"health_red\""+">");
-					}
-					else {
-						sb.append("<span "+title+" "+"class=\"health_black\""+">");
-					}
-					sb.append(swapSizeDisplay);
-					break;
-				}
-				sb.append("</span>");
-				sb.append("</td>");
-				// Size
-				sb.append("<td align=\"right\">");
-				long size = service.getSize();
-				if(size < 0) {
-					size = 0;
-				}
-				sb.append(size);
-				sb.append("</td>");
-				// Jobs
-				sb.append("<td align=\"right\">");
-				ArrayList<String> dependentJobs = service.getDependentJobs();
-				int countDependentJobs = dependentJobs.size();
-				String titleJobs = "";
-				if(countDependentJobs > 0) {
-					StringBuffer idList = new StringBuffer();
-					for(String duccId : dependentJobs) {
-						if(idList.length() > 0) {
-							idList.append(",");
-						}
-						idList.append(duccId);
-					}
-					titleJobs = "dependent Job Id list: "+idList;
-				}
-				String jobs = "<span title=\""+titleJobs+"\">"+countDependentJobs+"</span>";
-				sb.append(jobs);
-				sb.append("</td>");
-				// Services
-				sb.append("<td align=\"right\">");
-				ArrayList<String> dependentServices = service.getDependentServices();
-				int countDependentServices = dependentServices.size();
-				String titleServices = "";
-				if(countDependentServices > 0) {
-					StringBuffer idList = new StringBuffer();
-					for(String duccId : dependentServices) {
-						if(idList.length() > 0) {
-							idList.append(",");
-						}
-						idList.append(duccId);
-					}
-					titleServices = "dependent Service Name list: "+idList;
-				}
-				String services = "<span title=\""+titleServices+"\">"+countDependentServices+"</span>";
-				sb.append(services);
-				sb.append("</td>");
-				// Reservations
-				sb.append("<td align=\"right\">");
-				ArrayList<String> dependentReservations = service.getDependentReservations();
-				int countDependentReservations = dependentReservations.size();
-				String titleReservations = "";
-				if(countDependentReservations > 0) {
-					StringBuffer idList = new StringBuffer();
-					for(String duccId : dependentReservations) {
-						if(idList.length() > 0) {
-							idList.append(",");
-						}
-						idList.append(duccId);
-					}
-					titleReservations = "dependent Reservation Id list: "+idList;
-				}
-				String reservations = "<span title=\""+titleReservations+"\">"+countDependentReservations+"</span>";
-				sb.append(reservations);
-				sb.append("</td>");
-				// Description
-				sb.append("<td>");
-				String description = service.getDescription();
-				sb.append(description);
-				sb.append("</td>");
-				// Row End
-				sb.append("</tr>");
-			}
-		}
-		else {
+		if(dh.is_ducc_head_backup()) {
 			sb.append("<tr>");
 			sb.append("<td>");
-			if(DuccData.getInstance().isPublished()) {
-				sb.append(messages.fetch("no services"));
-			}
-			else {
-				sb.append(messages.fetch("no data"));
-			}
+			sb.append(messages.fetch("no data - not master"));
 			sb.append("</td>");
 			sb.append("</tr>");
+		}
+		else {
+			ServicesSortCache servicesSortCache = ServicesSortCache.getInstance();
+			Collection<IServiceAdapter> servicesSortedCollection = servicesSortCache.getSortedCollection();
+			if(!servicesSortedCollection.isEmpty()) {
+				int maxRecords = getServicesMax(request);
+				ArrayList<String> users = getServicesUsers(request);
+				int counter = 0;
+				for(IServiceAdapter service : servicesSortedCollection) {
+					boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, service);
+					if(!list) {
+						continue;
+					}
+					counter++;
+					// Row Begin
+					sb.append("<tr>");
+					int sid = service.getId();
+					String user = service.getUser();
+					long deployments = service.getDeployments();
+					long instances = service.getInstances();
+					// Enable
+					sb.append("<td valign=\"bottom\" class=\"ducc-col-start\">");
+					if(service.isRegistered()) {
+						if(buttonsEnabled) {
+							if(service.isDisabled()) {
+								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_enable("+sid+")\" value=\"Enable\" "+getDisabledWithHover(request,user)+"/>");
+							}
+						}
+					}
+					sb.append("</td>");
+					// Stop
+					sb.append("<td valign=\"bottom\" class=\"ducc-col-stop\">");
+					if(service.isRegistered()) {
+						if(buttonsEnabled) {
+							if(service.isPingOnly()) {
+								if(service.isPingActive()) {
+									sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+								}
+							}
+							else {
+								if(deployments != 0) {
+									sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+								}
+							}
+						}
+					}
+					sb.append("</td>");
+					// Id
+					String name = service.getName();
+					sb.append("<td align=\"right\">");
+					String id = "<a href=\"service.details.html?name="+name+"\">"+sid+"</a>";
+					sb.append(""+id);
+					sb.append("</td>");
+					// Name
+					sb.append("<td>");
+					sb.append(name);
+					sb.append("</td>");
+					// State
+					sb.append("<td>");
+					String state = service.getState();
+					boolean alert = service.isAlert();
+					boolean available = service.isStateAvailable();
+					if(alert) {
+						state += "+Alert";
+					}
+					String style = "class=\"health_black\";";
+					if(alert) {
+						style = "class=\"health_red\"";
+					}
+					else if(available) {
+						style = "class=\"health_green\"";
+					}
+					String stateHover = ServicesHelper.getInstance().getStateHover(service);
+					if(stateHover.length() > 0) {
+						stateHover = "title="+"\""+stateHover+"\"";
+					}
+					sb.append("<span "+style+" "+stateHover+">");
+					sb.append(state);
+					sb.append("</span>");
+					sb.append("</td>");
+					// Last Use
+					sb.append("<td>");
+					long lastUse = service.getLastUse();
+					if(lastUse > 0) {
+						sb.append(getTimeStamp(request, jobid, ""+lastUse));
+					}
+					sb.append("</td>");
+					// Instances
+					sb.append("<td align=\"right\">");
+					sb.append(instances);
+					sb.append("</td>");
+					// Deployments
+					sb.append("<td align=\"right\">");
+					sb.append(deployments);
+					sb.append("</td>");
+					// Start-State
+					StartState startState = service.getStartState();
+					sb.append("<td align=\"right\">");
+					sb.append("<span>");
+					sb.append(startState.name());
+					if(service.isDisabled()) {
+						sb.append("<br>");
+						String health = "class=\"health_red\"";
+						String reason = "title=\""+service.getDisableReason()+"\"";
+						sb.append("<span "+health+" "+reason+">");
+						sb.append("Disabled");
+						sb.append("</span>");
+					}
+					sb.append("</span>");
+					sb.append("</td>");
+					// User
+					sb.append("<td>");
+					sb.append(user);
+					sb.append("</td>");
+					// Share Class (or Type)
+					sb.append("<td>");
+					if(service.isPingOnly()) {
+						String schedulingClass = service.getSchedulingClass();
+						sb.append("<span title=\""+schedulingClass+"\">");
+						String serviceType = "ping-only";
+						sb.append("<span>");
+						sb.append(serviceType);
+					}
+					else {
+						String schedulingClass = service.getSchedulingClass();
+						sb.append(schedulingClass);
+					}
+					sb.append("</td>");
+					// PgIn
+					sb.append("<td align=\"right\">");
+					long faults = 0;
+					try {
+						faults = service.getPgIn();
+					}
+					catch(Exception e) {
+					}
+					int ifaults = (int)faults;
+					switch(ifaults) {
+					case -3: // (some do and some don't have cgroups) but retVal would have been > 0
+						sb.append("<span title=\"incomplete\" class=\"health_red\""+">");
+						sb.append(inc);
+						break;
+					case -2: // (some do and some don't have cgroups) but retVal would have been == 0
+						sb.append("<span title=\"incomplete\" class=\"health_black\""+">");
+						sb.append(inc);
+						break;
+					case -1: // (none have cgroups)
+						sb.append("<span title=\"not available\" class=\"health_black\""+">");
+						sb.append(notAvailable);
+						break;
+					default: // (all have cgroups)
+						double swapping = service.getSwap();
+						if((swapping * faults) > 0) {
+							sb.append("<span class=\"health_red\""+">");
+						}
+						else {
+							sb.append("<span class=\"health_black\""+">");
+						}
+						sb.append(faults);
+						break;
+					}
+					sb.append("</span>");
+					sb.append("</td>");
+					// Swap
+					sb.append("<td align=\"right\">");
+					String swapSizeDisplay = "";
+					String swapSizeHover = "";
+					String title = "";
+					double swap = service.getSwap();
+					int iswap = (int)swap;
+					switch(iswap) {
+					case -3: // (some do and some don't have cgroups) but retVal would have been > 0
+						sb.append("<span title=\"incomplete\" class=\"health_red\""+">");
+						sb.append(inc);
+						break;
+					case -2: // (some do and some don't have cgroups) but retVal would have been == 0
+						sb.append("<span title=\"incomplete\" class=\"health_black\""+">");
+						sb.append(inc);
+						break;
+					case -1: // (none have cgroups)
+						sb.append("<span title=\"not available\" class=\"health_black\""+">");
+						sb.append(notAvailable);
+						break;
+					default: // (all have cgroups)
+						double swapBytes = swap;
+						swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
+						swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
+						title = "title="+"\""+swapSizeHover+"\"";
+						if(swapBytes > 0) {
+							sb.append("<span "+title+" "+"class=\"health_red\""+">");
+						}
+						else {
+							sb.append("<span "+title+" "+"class=\"health_black\""+">");
+						}
+						sb.append(swapSizeDisplay);
+						break;
+					}
+					sb.append("</span>");
+					sb.append("</td>");
+					// Size
+					sb.append("<td align=\"right\">");
+					long size = service.getSize();
+					if(size < 0) {
+						size = 0;
+					}
+					sb.append(size);
+					sb.append("</td>");
+					// Jobs
+					sb.append("<td align=\"right\">");
+					ArrayList<String> dependentJobs = service.getDependentJobs();
+					int countDependentJobs = dependentJobs.size();
+					String titleJobs = "";
+					if(countDependentJobs > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(String duccId : dependentJobs) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						titleJobs = "dependent Job Id list: "+idList;
+					}
+					String jobs = "<span title=\""+titleJobs+"\">"+countDependentJobs+"</span>";
+					sb.append(jobs);
+					sb.append("</td>");
+					// Services
+					sb.append("<td align=\"right\">");
+					ArrayList<String> dependentServices = service.getDependentServices();
+					int countDependentServices = dependentServices.size();
+					String titleServices = "";
+					if(countDependentServices > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(String duccId : dependentServices) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						titleServices = "dependent Service Name list: "+idList;
+					}
+					String services = "<span title=\""+titleServices+"\">"+countDependentServices+"</span>";
+					sb.append(services);
+					sb.append("</td>");
+					// Reservations
+					sb.append("<td align=\"right\">");
+					ArrayList<String> dependentReservations = service.getDependentReservations();
+					int countDependentReservations = dependentReservations.size();
+					String titleReservations = "";
+					if(countDependentReservations > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(String duccId : dependentReservations) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						titleReservations = "dependent Reservation Id list: "+idList;
+					}
+					String reservations = "<span title=\""+titleReservations+"\">"+countDependentReservations+"</span>";
+					sb.append(reservations);
+					sb.append("</td>");
+					// Description
+					sb.append("<td>");
+					String description = service.getDescription();
+					sb.append(description);
+					sb.append("</td>");
+					// Row End
+					sb.append("</tr>");
+				}
+			}
+			else {
+				sb.append("<tr>");
+				sb.append("<td>");
+				if(DuccData.getInstance().isPublished()) {
+					sb.append(messages.fetch("no services"));
+				}
+				else {
+					sb.append(messages.fetch("no data"));
+				}
+				sb.append("</td>");
+				sb.append("</tr>");
+			}
 		}
 		
 		duccLogger.debug(methodName, jobid, sb);
@@ -1526,9 +1550,11 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 								status = DuccHandlerUtils.up();
 							}
 							if(daemonName.equals(DaemonName.Orchestrator)) {
-								boolean reqMet = DuccData.getInstance().getLive().isJobDriverMinimalAllocateRequirementMet();
-								if(!reqMet) {
-									status = DuccHandlerUtils.up_provisional(", pending JD allocation");
+								if(dh.is_ducc_head_virtual_master()) {
+									boolean reqMet = DuccData.getInstance().getLive().isJobDriverMinimalAllocateRequirementMet();
+									if(!reqMet) {
+										status = DuccHandlerUtils.up_provisional(", pending JD allocation");
+									}
 								}
 							}
 						}
@@ -1606,113 +1632,122 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		if(cookie.equals(DuccCookies.valueAgentsShow)) {
 			duccLogger.trace(methodName, jobid, "== show: "+cookie);
 			
-			Map<MachineInfo,NodeId> machines = duccMachinesData.getMachines();
-			Iterator<MachineInfo> iterator = machines.keySet().iterator();
-			while(iterator.hasNext()) {
-				MachineInfo machineInfo = iterator.next();
-				DuccDaemonRuntimeProperties drp = DuccDaemonRuntimeProperties.getInstance();
-				String machineName = machineInfo.getName();
-				if(machineName.startsWith("=")) {
-					continue;
-				}
-				Properties properties = drp.getAgent(machineName);
-				sb.append(trGet(counter));
-				// Status
-				StringBuffer status = new StringBuffer();
-				if(brokerAlive) {
-					String machineStatus = machineInfo.getStatus();
-					if(machineStatus.equals("down")) {
-						//status.append("<span class=\"health_red\""+">");
-						status.append(DuccHandlerUtils.down());
-						//status.append("</span>");
+			if(dh.is_ducc_head_backup()) {
+				sb.append("<tr>");
+				sb.append("<td>");
+				sb.append(messages.fetch("no agents - not master"));
+				sb.append("</td>");
+				sb.append("</tr>");
+			}
+			else {
+				Map<MachineInfo,NodeId> machines = duccMachinesData.getMachines();
+				Iterator<MachineInfo> iterator = machines.keySet().iterator();
+				while(iterator.hasNext()) {
+					MachineInfo machineInfo = iterator.next();
+					DuccDaemonRuntimeProperties drp = DuccDaemonRuntimeProperties.getInstance();
+					String machineName = machineInfo.getName();
+					if(machineName.startsWith("=")) {
+						continue;
 					}
-					else if(machineStatus.equals("up")) {
-						//status.append("<span class=\"health_green\""+">");
-						status.append(DuccHandlerUtils.up());
-						//status.append("</span>");
+					Properties properties = drp.getAgent(machineName);
+					sb.append(trGet(counter));
+					// Status
+					StringBuffer status = new StringBuffer();
+					if(brokerAlive) {
+						String machineStatus = machineInfo.getStatus();
+						if(machineStatus.equals("down")) {
+							//status.append("<span class=\"health_red\""+">");
+							status.append(DuccHandlerUtils.down());
+							//status.append("</span>");
+						}
+						else if(machineStatus.equals("up")) {
+							//status.append("<span class=\"health_green\""+">");
+							status.append(DuccHandlerUtils.up());
+							//status.append("</span>");
+						}
+						else {
+							status.append(DuccHandlerUtils.unknown());
+						}
 					}
 					else {
 						status.append(DuccHandlerUtils.unknown());
 					}
-				}
-				else {
-					status.append(DuccHandlerUtils.unknown());
-				}
-				sb.append("<td>");
-				sb.append(status);
-				sb.append("</td>");	
-				sb.append("</td>");	
-				// Daemon Name
-				String daemonName = "Agent";
-				sb.append("<td>");
-				sb.append(daemonName);
-				sb.append("</td>");	
-				// Boot Time
-				String bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
-				sb.append("<td>");
-				sb.append(bootTime);
-				sb.append("</td>");
-				// Host IP
-				String hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
-				sb.append("<td>");
-				sb.append(hostIP);
-				sb.append("</td>");	
-				// Host Name
-				String hostName = machineInfo.getName();
-				sb.append("<td>");
-				sb.append(hostName);
-				sb.append("</td>");
-				// PID
-				String pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
-				sb.append("<td>");
-				sb.append(pid);
-				sb.append("</td>");
-				// Publication Size (last)
-				String publicationSizeLast = machineInfo.getPublicationSizeLast();
-				sb.append("<td align=\"right\">");
-				sb.append(publicationSizeLast);
-				sb.append("</td>");	
-				// Publication Size (max)
-				String publicationSizeMax = machineInfo.getPublicationSizeMax();
-				sb.append("<td align=\"right\">");
-				sb.append(publicationSizeMax);
-				sb.append("</td>");	
-				// Heartbeat (last)
-				String heartbeatLast = machineInfo.getHeartbeatLast();
-				sb.append("<td align=\"right\">");
-				sb.append(heartbeatLast);
-				sb.append("</td>");	
-				// Heartbeat (max)
-				long heartbeatMax = machineInfo.getHeartbeatMax();
-				sb.append("<td align=\"right\">");
-				if(heartbeatMax > 0) {
-					sb.append(heartbeatMax);
-				}
-				sb.append("</td>");
-				// Heartbeat (max) TOD
-				String fmtHeartbeatMaxTOD = "";
-				long heartbeatMaxTOD = machineInfo.getHeartbeatMaxTOD();
-				if(heartbeatMaxTOD > 0) {
-					fmtHeartbeatMaxTOD = TimeStamp.simpleFormat(""+heartbeatMaxTOD);
-					try {
-						fmtHeartbeatMaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),fmtHeartbeatMaxTOD);
+					sb.append("<td>");
+					sb.append(status);
+					sb.append("</td>");	
+					sb.append("</td>");	
+					// Daemon Name
+					String daemonName = "Agent";
+					sb.append("<td>");
+					sb.append(daemonName);
+					sb.append("</td>");	
+					// Boot Time
+					String bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+					sb.append("<td>");
+					sb.append(bootTime);
+					sb.append("</td>");
+					// Host IP
+					String hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
+					sb.append("<td>");
+					sb.append(hostIP);
+					sb.append("</td>");	
+					// Host Name
+					String hostName = machineInfo.getName();
+					sb.append("<td>");
+					sb.append(hostName);
+					sb.append("</td>");
+					// PID
+					String pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
+					sb.append("<td>");
+					sb.append(pid);
+					sb.append("</td>");
+					// Publication Size (last)
+					String publicationSizeLast = machineInfo.getPublicationSizeLast();
+					sb.append("<td align=\"right\">");
+					sb.append(publicationSizeLast);
+					sb.append("</td>");	
+					// Publication Size (max)
+					String publicationSizeMax = machineInfo.getPublicationSizeMax();
+					sb.append("<td align=\"right\">");
+					sb.append(publicationSizeMax);
+					sb.append("</td>");	
+					// Heartbeat (last)
+					String heartbeatLast = machineInfo.getHeartbeatLast();
+					sb.append("<td align=\"right\">");
+					sb.append(heartbeatLast);
+					sb.append("</td>");	
+					// Heartbeat (max)
+					long heartbeatMax = machineInfo.getHeartbeatMax();
+					sb.append("<td align=\"right\">");
+					if(heartbeatMax > 0) {
+						sb.append(heartbeatMax);
 					}
-					catch(Exception e) {
+					sb.append("</td>");
+					// Heartbeat (max) TOD
+					String fmtHeartbeatMaxTOD = "";
+					long heartbeatMaxTOD = machineInfo.getHeartbeatMaxTOD();
+					if(heartbeatMaxTOD > 0) {
+						fmtHeartbeatMaxTOD = TimeStamp.simpleFormat(""+heartbeatMaxTOD);
+						try {
+							fmtHeartbeatMaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),fmtHeartbeatMaxTOD);
+						}
+						catch(Exception e) {
+						}
 					}
+					sb.append("<td>");
+					sb.append(fmtHeartbeatMaxTOD);
+					sb.append("</td>");
+					// JConsole URL
+					sb.append("<td>");
+					String jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
+					if(jmxUrl != null) {
+						sb.append(buildjConsoleLink(jmxUrl));
+					}
+					sb.append("</td>");
+					//
+					sb.append("</tr>");
+					counter++;
 				}
-				sb.append("<td>");
-				sb.append(fmtHeartbeatMaxTOD);
-				sb.append("</td>");
-				// JConsole URL
-				sb.append("<td>");
-				String jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
-				if(jmxUrl != null) {
-					sb.append(buildjConsoleLink(jmxUrl));
-				}
-				sb.append("</td>");
-				//
-				sb.append("</tr>");
-				counter++;
 			}
 		}
 		else {
@@ -1898,162 +1933,173 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	{
 		String methodName = "handleServletClassicSystemMachines";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
-		int counter = 0;
-		long sumMemTotal = 0;	// Memory(GB):reported by Agent
-		long sumMemFree = 0;	// Memory(GB):free
-		long sumMemReserve = 0;	// Memory(GB):usable
-		long sumMemAllocated = 0;
-		double sumCPU = 0;
-		long sumMachines = 0;
-		long sumSwapInuse = 0;
-		long sumSwapFree = 0;
-		long sumAliens = 0;
-		String hover;
-		StringBuffer row;
 		StringBuffer data = new StringBuffer();
-		StringBuffer individualMachines = new StringBuffer();
-		DuccMachinesData instance = DuccMachinesData.getInstance();
-		Map<MachineInfo, NodeId> machines = instance.getMachines();
-		if(!machines.isEmpty()) {
-			Map<String, Long> allocatedMap = Distiller.getMap();
-			for(Entry<MachineInfo, NodeId> entry : machines.entrySet()) {
-				MachineInfo machineInfo = entry.getKey();
-				SizeBytes sb = new SizeBytes(Type.Bytes, 0);
-				if(DuccMachinesDataHelper.isUp(machineInfo)) {
-					try {
-						sumMemTotal += ConvertSafely.String2Long(machineInfo.getMemTotal());
-						// Calculate total for Memory(GB):usable
-						sumMemReserve += ConvertSafely.String2Long(machineInfo.getMemReserve());
-						sumSwapInuse += ConvertSafely.String2Long(machineInfo.getSwapInuse());
-						sumSwapFree += ConvertSafely.String2Long(machineInfo.getSwapFree());
-						sumCPU += machineInfo.getCpu();
-						sumMachines += 1;
-						sumAliens += machineInfo.getAlienPidsCount();
-						String machineName = machineInfo.getName();
-						long bytes = allocatedMap.get(machineName);
-						sumMemAllocated += bytes;
-						sb = new SizeBytes(Type.Bytes, bytes);
-						String text = "allocated "+machineName+"="+sb.getGBytes();
-						duccLogger.trace(methodName, jobid, text);
-					}
-					catch(Exception e) {
-						duccLogger.trace(methodName, jobid, e);
-					}
-				}
-				buildRowForIndividualMachine(individualMachines, counter, machineInfo, sb);
-				counter++;
-			}
-			SizeBytes sbAllocated = new SizeBytes(Type.Bytes, sumMemAllocated);
-			sumMemFree = sumMemReserve - sbAllocated.getGBytes();
-			//
-			row = new StringBuffer();
-			row.append("<tr>");
-			// Status
-			row.append("<td>");
-			row.append(""+"Total");
-			row.append("</td>");
-			// IP
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Name
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Nodepool
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Memory: usable
-			hover = "title=\"total="+sumMemTotal+"\"";
-			row.append("<td align=\"right\" "+hover+">");
-			row.append(""+sumMemReserve);
-			row.append("</td>");
-			// Memory: free
-			row.append("<td align=\"right\">");
-			row.append(""+sumMemFree);
-			row.append("</td>");
-			// CPU: load average
-			row.append("<td align=\"right\">");
-			String cpuTotal = formatter1.format(sumCPU/sumMachines);
-			row.append(""+cpuTotal);
-			row.append("</td>");
-			// Swap: inuse
-			row.append("<td align=\"right\">");
-			row.append(""+sumSwapInuse);
-			row.append("</td>");
-			// Swap: free
-			row.append("<td align=\"right\">");
-			row.append(""+sumSwapFree);
-			row.append("</td>");
-			// C-Groups
-			row.append("<td align=\"right\">");
-			row.append("");
-			row.append("</td>");
-			// Alien PIDs
-			row.append("<td align=\"right\">");
-			row.append(""+sumAliens);
-			row.append("</td>");
-			// Heartbeat: last
-			row.append("<td align=\"right\">");
-			row.append("");
-			row.append("</td>");
-			row.append("</tr>");
-			//
-			data.append(row);
-			data.append(individualMachines);
+		
+		if(dh.is_ducc_head_backup()) {
+			data.append("<tr>");
+			data.append("<td>");
+			data.append(messages.fetch("no data - not master"));
+			data.append("</td>");
+			data.append("</tr>");
 		}
 		else {
-			row = new StringBuffer();
-			row.append((trGet(counter)));
-			// Release
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Status
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// IP
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Name
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Reserve
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Memory: total
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Swap: inuse
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Alien PIDs
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Shares: total
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Shares:inuse
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			// Heartbeat: last
-			row.append("<td>");
-			row.append("");
-			row.append("</td>");
-			row.append("</tr>");
-			//
-			data.append(row);
+			int counter = 0;
+			long sumMemTotal = 0;	// Memory(GB):reported by Agent
+			long sumMemFree = 0;	// Memory(GB):free
+			long sumMemReserve = 0;	// Memory(GB):usable
+			long sumMemAllocated = 0;
+			double sumCPU = 0;
+			long sumMachines = 0;
+			long sumSwapInuse = 0;
+			long sumSwapFree = 0;
+			long sumAliens = 0;
+			String hover;
+			StringBuffer row;
+			StringBuffer individualMachines = new StringBuffer();
+			DuccMachinesData instance = DuccMachinesData.getInstance();
+			Map<MachineInfo, NodeId> machines = instance.getMachines();
+			if(!machines.isEmpty()) {
+				Map<String, Long> allocatedMap = Distiller.getMap();
+				for(Entry<MachineInfo, NodeId> entry : machines.entrySet()) {
+					MachineInfo machineInfo = entry.getKey();
+					SizeBytes sb = new SizeBytes(Type.Bytes, 0);
+					if(DuccMachinesDataHelper.isUp(machineInfo)) {
+						try {
+							sumMemTotal += ConvertSafely.String2Long(machineInfo.getMemTotal());
+							// Calculate total for Memory(GB):usable
+							sumMemReserve += ConvertSafely.String2Long(machineInfo.getMemReserve());
+							sumSwapInuse += ConvertSafely.String2Long(machineInfo.getSwapInuse());
+							sumSwapFree += ConvertSafely.String2Long(machineInfo.getSwapFree());
+							sumCPU += machineInfo.getCpu();
+							sumMachines += 1;
+							sumAliens += machineInfo.getAlienPidsCount();
+							String machineName = machineInfo.getName();
+							long bytes = allocatedMap.get(machineName);
+							sumMemAllocated += bytes;
+							sb = new SizeBytes(Type.Bytes, bytes);
+							String text = "allocated "+machineName+"="+sb.getGBytes();
+							duccLogger.trace(methodName, jobid, text);
+						}
+						catch(Exception e) {
+							duccLogger.trace(methodName, jobid, e);
+						}
+					}
+					buildRowForIndividualMachine(individualMachines, counter, machineInfo, sb);
+					counter++;
+				}
+				SizeBytes sbAllocated = new SizeBytes(Type.Bytes, sumMemAllocated);
+				sumMemFree = sumMemReserve - sbAllocated.getGBytes();
+				//
+				row = new StringBuffer();
+				row.append("<tr>");
+				// Status
+				row.append("<td>");
+				row.append(""+"Total");
+				row.append("</td>");
+				// IP
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Name
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Nodepool
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Memory: usable
+				hover = "title=\"total="+sumMemTotal+"\"";
+				row.append("<td align=\"right\" "+hover+">");
+				row.append(""+sumMemReserve);
+				row.append("</td>");
+				// Memory: free
+				row.append("<td align=\"right\">");
+				row.append(""+sumMemFree);
+				row.append("</td>");
+				// CPU: load average
+				row.append("<td align=\"right\">");
+				String cpuTotal = formatter1.format(sumCPU/sumMachines);
+				row.append(""+cpuTotal);
+				row.append("</td>");
+				// Swap: inuse
+				row.append("<td align=\"right\">");
+				row.append(""+sumSwapInuse);
+				row.append("</td>");
+				// Swap: free
+				row.append("<td align=\"right\">");
+				row.append(""+sumSwapFree);
+				row.append("</td>");
+				// C-Groups
+				row.append("<td align=\"right\">");
+				row.append("");
+				row.append("</td>");
+				// Alien PIDs
+				row.append("<td align=\"right\">");
+				row.append(""+sumAliens);
+				row.append("</td>");
+				// Heartbeat: last
+				row.append("<td align=\"right\">");
+				row.append("");
+				row.append("</td>");
+				row.append("</tr>");
+				//
+				data.append(row);
+				data.append(individualMachines);
+			}
+			else {
+				row = new StringBuffer();
+				row.append((trGet(counter)));
+				// Release
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Status
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// IP
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Name
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Reserve
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Memory: total
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Swap: inuse
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Alien PIDs
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Shares: total
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Shares:inuse
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Heartbeat: last
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				row.append("</tr>");
+				//
+				data.append(row);
+			}
 		}
+
 		duccLogger.debug(methodName, jobid, data);
 		response.getWriter().println(data);
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));

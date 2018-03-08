@@ -269,6 +269,11 @@ public interface IStateServices {
 	//public List<Long> getSvcList()  throws Exception;                               // list of registered services
 	//public List<Long> getMetaList() throws Exception;                               // not used ?
 	
+    public enum AccessMode { RW, RO, NONE };
+    
+    public void setAccessMode(AccessMode accessMode);
+    public AccessMode getAccessMode();
+     
 	public StateServicesDirectory getStateServicesDirectory() throws Exception;    // all the registy in one blow
 
     public boolean storeProperties (DuccId serviceId, Properties svc, Properties meta) throws Exception;   // save svc and meta in a transaction

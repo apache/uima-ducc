@@ -25,11 +25,11 @@ import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
 import org.apache.uima.ducc.common.admin.event.RmQueriedShare;
-import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmNodes;
-import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.rm.persistence.access.IPersistenceAccess;
+import org.apache.uima.ducc.rm.persistence.access.PersistenceAccess;
 
 
 
@@ -75,14 +75,13 @@ public class Machine
     Node node;   
 
     private HashMap<Share, Share> activeShares = new HashMap<Share, Share>();
-    private IRmPersistence persistence = null;
+    private IPersistenceAccess persistenceAccess = PersistenceAccess.getInstance();
 
     public Machine(Node node)
     {
         this.node = node;
         this.memory =  node.getNodeMetrics().getNodeMemory().getMemTotal();
         this.id = node.getNodeIdentity().getName();
-        this.persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
     }
 
 //    public Machine(String id, long memory)
@@ -188,7 +187,7 @@ public class Machine
         heartbeats = 0;
         try {
             logger.info(methodName, null, id, "Reset heartbeat to 0 from", heartbeats);
-			persistence.setNodeProperty(id, RmNodes.Heartbeats, 0);
+			persistenceAccess.setNodeProperty(id, RmNodes.Heartbeats, 0);
             logger.info(methodName, null, id, "Time to reset heartbeat", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, null, id, "Cannot update heartbeat count in database:", e);
@@ -204,7 +203,7 @@ public class Machine
         heartbeats = c;
         try {
             logger.info(methodName, null, id, "Missed heartbeat count", c);
-			persistence.setNodeProperty(id, RmNodes.Heartbeats, c);
+			persistenceAccess.setNodeProperty(id, RmNodes.Heartbeats, c);
             logger.info(methodName, null, id, "Time to record misssed heartbeat", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, null, id, "Cannot update heartbeat count in database:", e);
@@ -370,8 +369,8 @@ public class Machine
         }
         try {
             // Not transactional.  If this turns into a problem we'll have to find a way
-			persistence.setNodeProperties(id, RmNodes.Assignments, activeShares.size(), RmNodes.NPAssignments, countNpShares(), RmNodes.SharesLeft, shares_left);
-			persistence.addAssignment(id, s.getJob().getId(), s, getQuantum(), s.getJob().getShortType()); // update jobs on machine and specific shares
+			persistenceAccess.setNodeProperties(id, RmNodes.Assignments, activeShares.size(), RmNodes.NPAssignments, countNpShares(), RmNodes.SharesLeft, shares_left);
+			persistenceAccess.addAssignment(id, s.getJob().getId(), s, getQuantum(), s.getJob().getShortType()); // update jobs on machine and specific shares
             logger.debug(methodName, s.getJob().getId(), "Time to assign share", s.getId(), "in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, s.getJob().getId(), "Cannot save state for share", s.getId(), "shares_left", shares_left, e);
@@ -389,8 +388,8 @@ public class Machine
         shares_left += s.getShareOrder();
         try {
             // Not transactional.  If this turns into a problem we'll have to find a way
-			persistence.setNodeProperties(id, RmNodes.Assignments,  activeShares.size(), RmNodes.NPAssignments, countNpShares(),  RmNodes.SharesLeft, shares_left);
-			persistence.removeAssignment(id, s.getJob().getId(), s);  // update jobs on machine and specific shares
+			persistenceAccess.setNodeProperties(id, RmNodes.Assignments,  activeShares.size(), RmNodes.NPAssignments, countNpShares(),  RmNodes.SharesLeft, shares_left);
+			persistenceAccess.removeAssignment(id, s.getJob().getId(), s);  // update jobs on machine and specific shares
             logger.debug(methodName, s.getJob().getId(), "Time to remove share", s.getId(), "in db", System.currentTimeMillis() - now);
 		} catch (Exception e) {
             logger.warn(methodName, s.getJob().getId(), "Cannot save state for share", s.getId(), "shares_left", shares_left);

@@ -42,8 +42,9 @@ public class StateServicesDb
     implements IStateServices
 {
 	private DuccLogger logger = null;
+	private DuccId jobid = null;
     private DbManager dbManager;
-
+    private AccessMode accessMode = AccessMode.RW;
     private static final String SVC_TABLE = "ducc." + SvcRegProps.TABLE_NAME.pname();
     private static final String META_TABLE = "ducc." + SvcMetaProps.TABLE_NAME.pname();
     // (My) db conventions are that everything must follow the conventions of IDbProperty.  SM
@@ -251,6 +252,16 @@ public class StateServicesDb
     public boolean storeProperties (DuccId serviceId, Properties svc_props, Properties meta_props)
     {
         String methodName = "storePropertiesInternal";
+        
+        // allow write iff access mode == RW
+        switch(accessMode) {
+        case RW:
+        	break;
+        default:
+        	logger.debug(methodName, jobid, accessMode.name());
+        	return false;
+        }
+        
         DbHandle h = null;
 
         boolean ret = false;
@@ -297,6 +308,16 @@ public class StateServicesDb
     {
        // All we need to do is re-sync the final properties, and be sure to set DUCC_HISTORY to false
         String methodName = "moveToHistory";
+        
+        // allow write iff access mode == RW
+        switch(accessMode) {
+        case RW:
+        	break;
+        default:
+        	logger.debug(methodName, jobid, accessMode.name());
+        	return false;
+        }
+        
         DbHandle h = null;
         try {
             
@@ -372,7 +393,18 @@ public class StateServicesDb
      */
     public boolean updateJobProperties(DuccId serviceId, Properties props) 
     {
-        return updateProperties(serviceId, SVC_TABLE, "numeric_id='" + Long.toString(serviceId.getFriendly()) + "'", s2regProps, props);
+        String methodName = "updateJobProperties";
+    	
+        // allow write iff access mode == RW
+        switch(accessMode) {
+        case RW:
+        	break;
+        default:
+        	logger.debug(methodName, jobid, accessMode.name());
+        	return false;
+        }
+    	
+    	return updateProperties(serviceId, SVC_TABLE, "numeric_id='" + Long.toString(serviceId.getFriendly()) + "'", s2regProps, props);
     }
 
     /**
@@ -380,6 +412,17 @@ public class StateServicesDb
      */
     public boolean updateMetaProperties(DuccId serviceId, Properties props) 
     {
+String methodName = "updateMetaProperties";
+    	
+        // allow write iff access mode == RW
+        switch(accessMode) {
+        case RW:
+        	break;
+        default:
+        	logger.debug(methodName, jobid, accessMode.name());
+        	return false;
+        }
+        
         return updateProperties(serviceId, META_TABLE, "numeric_id='" + Long.toString(serviceId.getFriendly()) + "'", s2metaProps, props);
     }
 
@@ -408,5 +451,24 @@ public class StateServicesDb
 
         return ret;
     }
+
+	@Override
+	public void setAccessMode(AccessMode accessMode) {
+		String methodName = "setAccessMode";
+		String prev = this.accessMode.name();
+		String curr = accessMode.name();
+		if(prev.equals(curr)) {
+			// no change
+		}
+		else {
+			this.accessMode = accessMode;
+			logger.warn(methodName, jobid, prev, "=>", curr);
+		}
+	}
+
+	@Override
+	public AccessMode getAccessMode() {
+		return accessMode;
+	}
 
 }

@@ -18,9 +18,9 @@
 */
 package org.apache.uima.ducc.agent.event;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.camel.Body;
@@ -28,6 +28,7 @@ import org.apache.uima.ducc.agent.Agent;
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.ProcessLifecycleController;
 import org.apache.uima.ducc.agent.deploy.DuccWorkHelper;
+import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -39,7 +40,6 @@ import org.apache.uima.ducc.transport.event.ProcessPurgeDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessStartDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessStateUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessStopDuccEvent;
-import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
 import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
@@ -57,6 +57,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 public class AgentEventListener implements DuccEventDelegateListener {
 	DuccLogger logger = DuccLogger.getLogger(this.getClass(), Agent.COMPONENT_NAME);
+	DuccId jobid = null;
 	ProcessLifecycleController lifecycleController = null;
 	// On startup of the Agent we may need to do cleanup of cgroups.
 	// This cleanup will happen once right after processing of the first OR publication.
@@ -86,10 +87,27 @@ public class AgentEventListener implements DuccEventDelegateListener {
   	        IDuccProcess process = jobDeployment.getJdProcess();
   	        sb.append("\nJD--> JobId:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
   	      }
+  	      /*
+  	      else {
+  	    	IDuccProcess process = jobDeployment.getJdProcess();
+  	    	String ip1 = process.getNodeIdentity().getIp();
+  	    	String ip2 = agent.getIdentity().getIp();
+  	    	sb.append("\nREJECTED: processIP="+ip1+" "+"agentIP="+ip2);
+  	    	sb.append("\nREJECTED: JD--> JobId:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
+  	      }
+		  */
   	      for( IDuccProcess process : jobDeployment.getJpProcessList() ) {
   	        if ( isTargetNodeForProcess(process) ) {
   	          sb.append("\n\tJob ID:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
   	        }
+  	        /*
+  	        else {
+  	          String ip1 = process.getNodeIdentity().getIp();
+  	  	      String ip2 = agent.getIdentity().getIp();
+  	  	      sb.append("\nREJECTED: processIP="+ip1+" "+"agentIP="+ip2);
+  	          sb.append("\n\tREJECTED: Job ID:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
+  	        }
+			*/
   	      }
   	    }
   	    logger.info("reportIncomingStateForThisNode",null,sb.toString());
@@ -215,7 +233,9 @@ public class AgentEventListener implements DuccEventDelegateListener {
 			}  // for
 		}
 	}
- 
+	
+	private Map<String,String> map = new ConcurrentHashMap<String,String>();
+	
 	/**
 	 * This method is called by Camel when PM sends DUCC state to agent's queue. It 
 	 * takes responsibility of reconciling processes on this node. 
@@ -225,11 +245,32 @@ public class AgentEventListener implements DuccEventDelegateListener {
 	 */
 	public void onDuccJobsStateEvent(@Body DuccJobsStateEvent duccEvent)
 			throws Exception {
+		String location = "onDuccJobsStateEvent";
 		long sequence = duccEvent.getSequence();
 
 		try {
 
 			synchronized (this) {
+				
+				String host = duccEvent.getProducerHost();
+				DuccHeadState dhs = duccEvent.getDuccHeadState();
+				switch(dhs) {
+				case backup:
+					if(!map.containsKey(host)) {
+						map.put(host, host);
+						logger.warn(location, jobid, "suspended"+" "+"host:"+host);
+					}
+					return;
+				case master:
+					if(map.containsKey(host)) {
+						map.remove(host);
+						logger.warn(location, jobid, "resumed"+" "+"host:"+host);
+					}
+					break;
+				default:
+					break;
+				}
+				
 				// check for out of band messages. Expecting a message with a
 				// sequence number larger than the previous message.
 				if (sequence > lastSequence.get()) {

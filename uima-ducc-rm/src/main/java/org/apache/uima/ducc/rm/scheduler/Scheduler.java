@@ -37,8 +37,6 @@ import org.apache.uima.ducc.common.admin.event.RmQueriedClass;
 import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
 import org.apache.uima.ducc.common.admin.event.RmQueriedNodepool;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
-import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
-import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -46,6 +44,8 @@ import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
+import org.apache.uima.ducc.rm.persistence.access.IPersistenceAccess;
+import org.apache.uima.ducc.rm.persistence.access.PersistenceAccess;
 
 
 /**
@@ -131,7 +131,7 @@ public class Scheduler
     boolean stability = false;
 
     private static DuccIdFactory idFactory;
-    IRmPersistence persistence = null;
+    private IPersistenceAccess persistenceAccess = PersistenceAccess.getInstance();
 
     // static boolean expandByDoubling = true;
     // static int initializationCap = 2;      // Max allocation until we know initialization works in
@@ -264,8 +264,7 @@ public class Scheduler
         logger.info(methodName, null, "                       RM Version              : ", ""+ rmversion_major   + "." 
                                                                                              + rmversion_minor   + "." 
                                                                                              + rmversion_ptf);
-        persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
-        persistence.clear();
+        persistenceAccess.clear();
         initialized = true;
     }
 
@@ -803,7 +802,7 @@ public class Scheduler
 
     public void stop()
     {
-        persistence.close();
+        persistenceAccess.close();
     }
 
     protected void handleIllNodes()
@@ -1059,7 +1058,7 @@ public class Scheduler
                 prclass.addJob(j);
                 j.setResourceClass(prclass);
                 try {
-					persistence.addJob(j);
+					persistenceAccess.addJob(j);
 				} catch (Exception e) {
 					logger.warn(methodName, j.getId(), "Cannot persist new job in database:", e);					
 				}
@@ -1074,7 +1073,7 @@ public class Scheduler
 
             for ( IRmJob j : allJobs.values() ) {       // UIMA-4577 persist 'demand'
                 try {
-					persistence.updateDemand(j);
+					persistenceAccess.updateDemand(j);
 				} catch (Exception e) {
 					logger.warn(methodName, j.getId(), "Cannot update demand in database:", e);
 				}
@@ -1561,7 +1560,7 @@ public class Scheduler
         logger.info(methodName, job.getId(), "Job completes.");
 
         try {
-			persistence.deleteJob(job);     // UIMA-4577
+			persistenceAccess.deleteJob(job);     // UIMA-4577
 		} catch (Exception e) {
 			logger.warn(methodName, job.getId(), "Cannot delete job from database:", e);
 		}
@@ -1731,7 +1730,7 @@ public class Scheduler
         logger.info(methodName, j.getId(), "Recovered shares:", sharenames.toString());
 
         try {
-			persistence.addJob(j);
+			persistenceAccess.addJob(j);
 		} catch (Exception e) {
 			logger.warn(methodName, j.getId(), "Cannot persist recovered job in database:", j);
 		}

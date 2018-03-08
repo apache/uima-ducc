@@ -1569,6 +1569,13 @@ public class ServiceSet
         return service_state;
     }
 
+    synchronized void setState(ServiceState ss)
+    {
+    	String methodName = "setState";
+    	logger.debug(methodName, id, service_state, "==>", ss);
+        service_state = ss;
+    }
+    
     synchronized void setState(ServiceState req_new_state, ServiceState req_cumulative, ServiceInstance si)
     {
         String methodName = "setState";
@@ -1581,6 +1588,11 @@ public class ServiceSet
         }
 
         ServiceState prev = this.service_state;
+        switch(prev) {
+        case Dispossessed:
+        	logger.debug(methodName, id, prev);
+        	return;
+        }
         ServiceState new_state = req_new_state;
         ServiceState cumulative = req_cumulative;
         
@@ -1677,6 +1689,8 @@ public class ServiceSet
                 // If I'm brand new and something is initting then I can be too.  If something is
                 // actually running then I can start a pinger which will set my state.
 
+            	case Dispossessed:
+            		return;
                 case Available:
                     switch ( cumulative ) {
                         case Starting:
