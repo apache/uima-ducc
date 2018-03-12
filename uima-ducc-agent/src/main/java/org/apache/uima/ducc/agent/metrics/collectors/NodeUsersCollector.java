@@ -213,7 +213,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       if ( Utils.isMac() ) {
         pb = new ProcessBuilder("ps","-Ao","user=,pid=,ppid=,uid=,args=");
       } else {
-        pb = new ProcessBuilder("ps","-Ao","user,pid,ppid,uid,args", "--no-heading");
+        pb = new ProcessBuilder("ps","-Ao","user:32,pid,ppid,uid,args", "--no-heading");
       }
       pb.redirectErrorStream(true);
       Process proc = pb.start();
