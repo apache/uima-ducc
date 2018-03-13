@@ -37,11 +37,9 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.CASException;
 import org.apache.uima.examples.SourceDocumentInformation;
-import org.apache.uima.resource.ResourceConfigurationException;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
-import org.apache.uima.util.Settings;
 
 /**
  * Simple AE for the system test.  It does no computation, instead sleeping to simulate computation.  It
@@ -76,18 +74,6 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             System.out.println("Is this nuts or what, no logger!");
         }
 
-        logger.log(Level.INFO, "UIMA version: "+UIMAFramework.getVersionString());
-        String[] keys = {"filesystem", "classpath", "datapath"};
-        Settings settings = uimaContext.getExternalOverrides();
-        for (String key : keys) {
-          try {
-            logger.log(Level.INFO, "External override setting '"+key+"' = '"+settings.getSetting(key)+"'");
-          } catch (ResourceConfigurationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-        }
-        
         if ( initComplete ) {
             logger.log(Level.INFO, "Init bypassed in PID:TID " + pid + ":" + tid + ", already completed. ");
             return;
@@ -383,7 +369,7 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
     @Override
     public void process(CAS cas) throws AnalysisEngineProcessException 
     {
-    	System.out.println("!! FixedSleepAE:process");new Throwable().printStackTrace();
+
         forceCpuUsage();
 
     	String data = cas.getSofaDataString();
