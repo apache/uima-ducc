@@ -106,7 +106,7 @@ public class NodeMemInfoCollector implements CallableMemoryCollector {
 	      if ( Utils.isMac() ) {
 	        pb = new ProcessBuilder("ps","-Ao","user=,pid=,uid=,rss=");
 	      } else {
-	        pb = new ProcessBuilder("ps","-Ao","user:12,pid,uid,rss", "--no-heading");
+	        pb = new ProcessBuilder("ps","-Ao","user:32,pid,uid,rss", "--no-heading");
 	      }
 	      pb.redirectErrorStream(true);
 	      Process proc = pb.start();

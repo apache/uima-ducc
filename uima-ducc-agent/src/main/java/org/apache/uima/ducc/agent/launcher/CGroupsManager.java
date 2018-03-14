@@ -1189,7 +1189,7 @@ public class CGroupsManager {
 		try {
 
 			ProcessBuilder pb = new ProcessBuilder("ps", "-Ao",
-					"user:12,pid,ppid,args,stat", "--no-heading");
+					"user:32,pid,ppid,args,stat", "--no-heading");
 			pb.redirectErrorStream(true);
 			java.lang.Process proc = pb.start();
 			// spawn ps command and scrape the output

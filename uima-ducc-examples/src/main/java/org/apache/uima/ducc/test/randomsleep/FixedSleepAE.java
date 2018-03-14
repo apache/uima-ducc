@@ -74,7 +74,6 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             System.out.println("Is this nuts or what, no logger!");
         }
 
-        
         if ( initComplete ) {
             logger.log(Level.INFO, "Init bypassed in PID:TID " + pid + ":" + tid + ", already completed. ");
             return;
@@ -88,13 +87,13 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             File workingdir = new File(System.getProperty("user.dir"));
             File[] files = workingdir.listFiles();
             if ( logger != null )
-               logger.log(Level.INFO, "Working directory is " + workingdir.toString());
-            if ( files != null ) {
+               logger.log(Level.INFO, "Working directory " + workingdir.toString() + " has " + files.length + " files.");
+/*            if ( files != null ) {
                 for ( File f : files ) {
                 	if ( logger != null )
                 	   logger.log(Level.INFO, "File: " + f.toString());
                 }
-            }
+            }*/
         }
 
         long sleep;

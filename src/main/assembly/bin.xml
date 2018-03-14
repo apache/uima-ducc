@@ -516,14 +516,6 @@ under the License.
       <outputDirectory>examples/simple</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
-      <includes>
-        <include>1.dd.job</include>
-        <include>1.dd.sync.job</include>
-        <include>1.job</include>
-        <include>1-error.job</include>
-        <include>1.inputs</include>
-        <include>1.service</include>
-      </includes>
     </fileSet>
 
     <fileSet>
