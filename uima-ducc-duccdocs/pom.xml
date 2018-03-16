@@ -289,6 +289,8 @@
                     <delete file="target/site/duccbook-install/reliable-ducc.log" />
                     <delete file="target/site/duccbook-install/reliable-ducc.out" />
                     <delete file="target/site/duccbook-install/reliable-ducc.dvi" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc0x.png" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc1x.png" />
                     <echo message="Completed duccbook Reliable DUCC Design Text file as INSTALL" />
                     
                     <!-- /Relaible DUCC Design -->
