@@ -138,6 +138,13 @@ class ThreadPool:
 
 class DuccUtil(DuccBase):
 
+    def makedirs(self,dir):
+        try:
+            os.makedirs(dir)
+            print 'make: '+dir
+        except:
+            pass
+        
     def update_properties(self):
 
         if ( self.ducc_properties == None ):
@@ -204,12 +211,10 @@ class DuccUtil(DuccBase):
                 
     # does the database process exist?  
     def db_process_alive(self):
-        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
-
-        if ( not os.path.exists(pidfile) ):
+        if ( not os.path.exists(self.db_pidfile) ):
             return False
 
-        f = open(self.DUCC_HOME + '/state/cassandra.pid')
+        f = open(self.db_pidfile)
         pid = f.read();
         f.close()
         answer = []
@@ -239,8 +244,7 @@ class DuccUtil(DuccBase):
                 print 'No database location defined.'
             return False
 
-        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
-        if ( not os.path.exists(pidfile) ):
+        if ( not os.path.exists(self.db_pidfile) ):
             if(verbose):
                 print 'Database pid file does not exist.  Checking DB connectivity.'
 
@@ -311,10 +315,9 @@ class DuccUtil(DuccBase):
             print '   (Bypass database stop because ducc.database.host =', self.db_disabled + ')'
             return True
 
-        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
-        if ( os.path.exists(pidfile) ):
+        if ( os.path.exists(self.db_pidfile) ):
             # for cassandra, just send it a terminate signal.  a pidfile is written on startup
-            CMD = ['kill', '-TERM', '`cat ' + pidfile + '`']
+            CMD = ['kill', '-TERM', '`cat ' + self.db_pidfile + '`']
             CMD = ' '.join(CMD)
             os.system(CMD)
 
@@ -1116,6 +1119,20 @@ class DuccUtil(DuccBase):
 
         os.environ['DUCC_NODENAME'] = self.localhost    # to match java code's implicit propery so script and java match
 
+        dbhost = self.ducc_properties.get('ducc.database.host')
+        if ( dbhost == None ):
+            dbhost = self.ducc_properties.get('ducc.head')
+        if ( dbhost == None ):
+            dbhost = 'localhost'
+
+        dir_db_state = self.DUCC_HOME + '/state/database/'+dbhost
+        self.makedirs(dir_db_state)
+        dir_db_logs = self.DUCC_HOME + '/logs/database/'+dbhost
+        self.makedirs(dir_db_logs)
+
+        self.db_pidfile = dir_db_state+ '/cassandra.pid'
+        self.db_logfile = dir_db_logs + '/cassandra.console'
+        
         self.pid_file  = self.DUCC_HOME + '/state/ducc.pids'
         self.set_classpath()
         self.os_pagesize = self.get_os_pagesize()

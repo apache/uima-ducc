@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.camel.CamelContext;
-import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
@@ -54,6 +53,7 @@ import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.self.message.WebServerStateDuccEvent;
 import org.apache.uima.ducc.ws.server.DuccListeners;
 import org.apache.uima.ducc.ws.server.DuccWebServer;
+import org.apache.uima.ducc.ws.server.DuccWebServerHelper;
 import org.apache.uima.ducc.ws.utils.DatedNodeMetricsUpdateDuccEvent;
 
 
@@ -166,7 +166,7 @@ implements IWebServer {
 	private void init() {
 		String methodName = "init";
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
-		File file = new File(IDuccEnv.DUCC_LOGS_WEBSERVER_DIR);
+		File file = new File(DuccWebServerHelper.getDuccWebLogsDir());
 		file.mkdirs();
 		webServerStart();
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));

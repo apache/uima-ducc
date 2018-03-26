@@ -472,14 +472,14 @@ class PostInstall():
 
         statedir = self.DUCC_HOME + "/state"
         logdir = self.DUCC_HOME + "/logs"
-        logwsdir = self.DUCC_HOME + "/logs/webserver"
+        #logwsdir = self.DUCC_HOME + "/logs/webserver"
         historydir = self.DUCC_HOME + "/history"
         if ( not os.path.exists(statedir) ):
             os.mkdir(statedir)
         if ( not os.path.exists(logdir) ):
             os.mkdir(logdir)
-        if ( not os.path.exists(logwsdir) ):
-            os.mkdir(logwsdir)
+        #if ( not os.path.exists(logwsdir) ):
+        #    os.mkdir(logwsdir)
         if ( not os.path.exists(historydir) ):
             os.mkdir(historydir)
 

@@ -148,7 +148,7 @@ corresponding Java code (see common.head.ADuccHead.java)
 that interprets the status to make transitions between 
 {\em master} and {\em backup} states.
 
-\subsubsection{scripts and configuration files}
+\subsubsection{new scripts}
 
 \textbf{ducc\_head\_mode.py}
 
@@ -165,7 +165,19 @@ publication.
     #             and employ linux commands to determine if system
     #             has matching configured virtual ip address
    \end{verbatim}
-    
+
+\subsubsection{existing scripts}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{ducc\_post\_install} - no need to create webserver request log directory
+  \item \textbf{ducc\_util.py} - incorporate host name into cassandra.pid, cassandra.console path
+  \item \textbf{ducc.py} - incorporate host name into cassandra.pid, cassandra.console path
+\end{itemize}
+}
+
+\subsubsection{configuration files}
+
 \textbf{ducc.properties}  
 
    \begin{verbatim}
@@ -182,7 +194,15 @@ publication.
     ducc.virtual.ip.device = eth0
     ducc.virtual.ip.address = 0.0.0.0
    \end{verbatim}
-    
+
+\textbf{log4j.xml}
+
+   \begin{verbatim}
+    Add DUCC\_NODENAME to log file name for OR, RM, PM, SM, and system-events.
+    This allows reliable DUCC head nodes to share the same ducc\_runtime directory
+    in the filesystem without collisions.
+   \end{verbatim}
+
 \subsubsection{agent}
 
 {\renewcommand\labelitemi{}
@@ -210,9 +230,12 @@ publication.
   \item \textbf{ADuccHead} - abstract class with reliable DUCC share functionality
   \item \textbf{DuccHeadHelper, IDuccHead} - reliable DUCC utilities
   \item \textbf{IDuccHead} - reliable DUCC interface
+  \item \textbf{IDuccEnv} - remove DUCC\_LOGS\_WEBSERVER\_DIR, not used
   \item \textbf{IStateServices} - database access control RW or RO
   \item \textbf{NullStateServices} - database access control RW or RO
   \item \textbf{StateServices} - database access control RW or RO
+  \item \textbf{DuccDaemonRuntimeProperties} - incorporate hostname into logs directory location
+  \item \textbf{InetHelper} - incorporate hostname into logs directory location
   \item \textbf{DuccPropertiesHelper} - fetch virtual IP address
   \item \textbf{DuccPropertiesResolver} - Reliable DUCC properties keys
   \item \textbf{IDuccLoggerComponents} - Missing PM abbreviation
@@ -310,12 +333,13 @@ publication.
   \item \textbf{DuccBoot} - make boot reusable for switch to {\em master}
   \item \textbf{DuccData} - create reset function for switch to {\em master}
   \item \textbf{DuccHead} - loggable wrapper around common.ADuccHead
-  \item \textbf{WebServerComponent} - make transitions between {\em master} and {\em backup} states
+  \item \textbf{WebServerComponent} - make transitions between {\em master} and {\em backup} states; incorporate hostname info logs directory location
   \item \textbf{WebServerConfiguration} - make boot reusable for switch to {\em master}
   \item \textbf{DuccHandler} - servlet to produce reliable DUCC state {\em master} or {\em backup}
   \item \textbf{DuccHandlerClassic} - servlets to produce \"no data - not master\" when appropriate
   \item \textbf{DuccHandlerJsonFormat} - servlets to produce \"no data - not master\" when appropriate
-  \item \textbf{DuccWebServer} - add method getPort
+  \item \textbf{DuccWebServer} - add method getPort; use host as part of request log directory path; incorporate hostname info logs directory location
+   \item \textbf{DuccWebServerHelper} - incorporate hostname info logs directory location
   \item \textbf{c4-ducc-mon.jsp} - web page header location for reliable DUCC state
   \item \textbf{ducc.js} - web page header updating for reliable DUCC state
 \end{itemize}

@@ -59,7 +59,7 @@
   
   <appender name="system-events-log" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/system-events.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/system-events.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -69,7 +69,7 @@
   
   <appender name="rmlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/rm.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/rm.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -79,7 +79,7 @@
   
   <appender name="orlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/or.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/or.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -89,7 +89,7 @@
   
   <appender name="smlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/sm.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/sm.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -99,7 +99,7 @@
 
   <appender name="pmlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/pm.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/pm.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -109,7 +109,7 @@
 
   <appender name="wslog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/ws.${DUCC_NODENAME}.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/ws.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -139,7 +139,7 @@
 
   <appender name="agentlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/${DUCC_NODENAME}.${ducc.deploy.components}.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/agents/${DUCC_NODENAME}.${ducc.deploy.components}.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 

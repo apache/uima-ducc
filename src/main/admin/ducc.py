@@ -71,9 +71,7 @@ class Ducc(DuccUtil):
             os.environ['LOCAL_JMX'] = 'no'
 
         os.chdir(self.DUCC_HOME + "/cassandra-server")
-        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
-        logfile = self.DUCC_HOME + '/logs/cassandra.console'
-        CMD = "bin/cassandra -p " + pidfile + " > " + logfile + " 2>&1"
+        CMD = "bin/cassandra -p " + self.db_pidfile + " > " + self.db_logfile + " 2>&1"
         print '------- Running', CMD
 
         os.system(CMD);

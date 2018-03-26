@@ -29,6 +29,7 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.utils.IOHelper;
+import org.apache.uima.ducc.common.utils.InetHelper;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 
 
@@ -81,9 +82,13 @@ public class DuccDaemonRuntimeProperties {
 		IOHelper.mkdirs(ducc_agents_dir);
 	}
 	
+	private String getDaemonsHostDir() {
+		return IDuccEnv.DUCC_DAEMONS_DIR+InetHelper.getHostName()+File.separator;
+	}
+	
 	public Properties get(DaemonName daemonName) {
 		Properties properties = new Properties();
-		String fileName = IDuccEnv.DUCC_DAEMONS_DIR+daemonName+suffix;
+		String fileName = getDaemonsHostDir()+daemonName+suffix;
 		try {
 			File file = new File(fileName);
 			FileInputStream fis;
@@ -101,7 +106,10 @@ public class DuccDaemonRuntimeProperties {
 	}
 	
 	public void put(DaemonName daemonName, Properties properties) {
-		String fileName = IDuccEnv.DUCC_DAEMONS_DIR+daemonName+suffix;
+		
+		String fileDir = getDaemonsHostDir();
+		IOHelper.mkdirs(fileDir);
+		String fileName = fileDir+daemonName+suffix;
 		try {
 			File file = new File(fileName);
 			FileOutputStream fos;
