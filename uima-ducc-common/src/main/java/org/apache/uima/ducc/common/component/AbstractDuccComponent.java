@@ -139,7 +139,6 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   }
 
   private static String agent = "agent";
-  private static String ducc_head_failover = "ducc.head.failover";
   private static String ducc_virtual_ip_device = "ducc.virtual.ip.device";
   private static String ducc_virtual_ip_address = "ducc.virtual.ip.address";
   private static String ducc_broker_hostname = "ducc.broker.hostname";
@@ -164,8 +163,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 	  String retVal = brokerHostname;
 	  String ipDevice = System.getProperty(ducc_virtual_ip_device);
 	  String ipAddress = System.getProperty(ducc_virtual_ip_address);
-	  String headFailover = System.getProperty(ducc_head_failover);
-	  logger.info(location, jobid, ducc_broker_hostname+"="+brokerHostname, ducc_virtual_ip_device+"="+ipDevice, ducc_virtual_ip_address+"="+ipAddress, ducc_head_failover+"="+headFailover);
+	  logger.info(location, jobid, ducc_broker_hostname+"="+brokerHostname, ducc_virtual_ip_device+"="+ipDevice, ducc_virtual_ip_address+"="+ipAddress);
 	  if(is_virtual_ip_used()) {
 		  retVal = DuccHeadHelper.getVirtualHost(brokerHostname);
 	  }
@@ -228,78 +226,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 
   private static String sepHost = "://";
   private static String sepPort = ":";
-  private static String sepBloc = ",";
   private static String sepDeco = "?";
-  
-  /**
-   * Override ducc.broker.url when ducc.head.failover is specified
-   */
-  private void composeBrokerFailoverUrl(String duccBrokerProtocol, String duccBrokerPort) {
-	  String location = "composeBrokerFailoverUrl";
-	  try {
-		  String key;
-		  String value;
-		  // fetch the failover specification
-		  key = "ducc.head.failover";
-		  value = System.getProperty(key);
-		  logger.debug(location, jobid, key+"="+value);
-		  if(value == null) {
-			  value = "";
-		  }
-		  // normalize stringified list of nodes (remove commas)
-		  value = value.replace(","," ");
-		  value = value.trim();
-		  // never mind if failover not specified
-		  if(value.length() > 0) {
-			  // transform string of nodes to array of nodes
-			  String[] tokens = value.split("\\s+");
-			  int count = tokens.length;
-			  logger.debug(location, jobid, tokens+"="+count);
-			  // no need to failover if not at least 2 nodes!
-			  if(count > 1) {
-				  // build the failover string (for property ducc.broker.url)
-				  StringBuffer sb = new StringBuffer();
-				  // add the prefix
-				  sb.append("failover");
-				  sb.append(":");
-				  sb.append("(");
-				  for(String host : tokens) {
-					  sb.append(duccBrokerProtocol);
-					  sb.append(sepHost);
-					  sb.append(host);
-					  sb.append(sepPort);
-					  sb.append(duccBrokerPort);
-					  sb.append(sepBloc);
-				  }
-				  // remove extra comma
-				  sb.setLength(sb.length()-1);
-				  // add the suffix
-				  sb.append(")");
-				  // add the decoration, if any
-				  key = "ducc.broker.url.decoration";
-				  value = System.getProperty(key);
-				  logger.debug(location, jobid, key+"="+value);
-				  if(value == null) {
-					  value = "";
-				  }
-				  value = value.trim();
-				  if(value.length() > 0) {
-					  sb.append(sepDeco);
-					  sb.append(value);
-				  }
-				  // set property and record to log
-				  key = "ducc.broker.url";
-				  value = sb.toString();
-				  System.setProperty(key, value);
-				  logger.debug(location, jobid, key+"="+value);
-			  }
-		  }
-	  }
-	  catch(Exception e) {
-		  logger.error(location, jobid, e);
-	  }
-	  return;
-  }
   
   /**
    * ducc.properties provides broker URL in pieces as follows: - ducc.broker.protocol -
@@ -346,7 +273,6 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     System.setProperty("ducc.broker.url", burl.toString());
     // UIMA-4142 (remove annoying debug statement) 
     // logger.info("composeBrokerUrl", null, "Ducc Composed Broker URL:" + System.getProperty("ducc.broker.url"));
-    composeBrokerFailoverUrl(duccBrokerProtocol, duccBrokerPort);
   }
 
   // Jira 3943 - Adjust endpoints only on those in ducc.properties

@@ -531,29 +531,6 @@ class DuccUtil(DuccBase):
             print 'NOTOK', CMD, 'returns', int(rc), '.  Must return rc 0.  Startup cannot continue.'
             return False
         return True
-
-    # inspect ducc.head.failover
-    def verify_head_failover(self, head):
-        key = "ducc.head.failover"
-        failover = self.ducc_properties.get(key)
-        # check for no failover
-        if(failover == None):
-            logger.debug(key+" not specified")
-        else:
-            # insure ducc.head listed in ducc.head.failover
-            if(not head in failover):
-                text = head+" not found in "+key
-                logger.error(text)
-                sys.exit(1);
-            # test viability fo failover nodes
-            nodes = failover.replace(',',' ').split()
-            for node in nodes:
-                if(self.ssh_operational(node)):
-                    text = "ssh is operational to "+node
-                    logger.debug(text)
-                else:
-                    text = "ssh to specified failover node unsuccessful or otherwise problematic: "+node
-                    logger.warn(text)
     
     # Exit if this is not the head node.  Ignore the domain as uname sometimes drops it.
     # Also check that ssh to this node works
@@ -576,8 +553,6 @@ class DuccUtil(DuccBase):
         if dir_stat.st_uid != os.getuid():
             print ">>> ERROR - this script must be run by the userid that installed DUCC"
             sys.exit(1);
-        self.verify_head_failover(head)
-
 
     #
     # Verify the viability of ducc_ling.
@@ -1063,33 +1038,6 @@ class DuccUtil(DuccBase):
         #print 'result: '+result
         #print 'status: '+str(status)
         return result
-    
-    def verify_head_failover_configuration(self):
-        rc = 0
-        failover_nodes = self.ducc_properties.get('ducc.head.failover')
-        message = "OK: Head node failover not configured."
-        if(failover_nodes != None):
-            failover_nodes = failover_nodes.strip()
-            if(len(failover_nodes) >= 0):
-                nodes = failover_nodes.split()
-                head_node = self.ducc_properties.get('ducc.head')
-                head_pool = self.get_nodepool(head_node,'<None>')
-                for node in nodes:
-                    node_pool = self.get_nodepool(node,'<None>')
-                    #print 'head:'+head_pool+' '+'node:'+node_pool
-                    if( head_pool != node_pool):
-                        if(rc == 0):
-                            message = 'OK: Head failover node '+head_node+' in node pool '+head_pool
-                            print message
-                        message = 'NOTOK: Head failover node '+node+' in node pool '+node_pool
-                        print message
-                        rc = 1
-                if (rc > 0):
-                    message = "NOTOK: Head failover nodepools incorrectly configured."
-                else:
-                    message = "OK: Head failover nodepools correctly configured."
-        print message
-        return (rc == 0)
         
     def disable_threading(self):
         global use_threading

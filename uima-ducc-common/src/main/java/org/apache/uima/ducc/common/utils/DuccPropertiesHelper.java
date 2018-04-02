@@ -45,18 +45,6 @@ public class DuccPropertiesHelper {
 		return retVal;
 	}
 	
-	private static String defaultDuccHeadFailover = "";
-	
-	public static List<String> getDuccHeadFailover() {
-		List<String> arraylist = new ArrayList<String>();
-		String key = DuccPropertiesResolver.ducc_head_failover;
-		String value = DuccPropertiesResolver.get(key,defaultDuccHeadFailover);
-		String[] array = value.split(" ");
-		Collections.addAll(arraylist, array);
-		List<String> retVal = arraylist;
-		return retVal;
-	}
-	
 	private static String defaultDuccHeadVirtualIpAddress= "";
 	
 	public static String getDuccHeadVirtualIpAddress() {
