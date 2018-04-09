@@ -79,15 +79,15 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 			Type type = trans.getType();
 			switch(type) {
 			case Get:
-				logger.log(Level.INFO,"---- Driver handling GET Request - Requestor:"+taskConsumer.toString());
+				logger.log(Level.FINE,"---- Driver handling GET Request - Requestor:"+taskConsumer.toString());
 				handleMetaCasTransationGet(trans, taskConsumer);
 				break;
 			case Ack:
-				logger.log(Level.INFO,"---- Driver handling ACK Request - Requestor:"+taskConsumer.toString());
+				logger.log(Level.FINE,"---- Driver handling ACK Request - Requestor:"+taskConsumer.toString());
 				handleMetaCasTransationAck(trans, taskConsumer);
 				break;
 			case End:
-				logger.log(Level.INFO,"---- Driver handling END Request - Requestor:"+taskConsumer.toString());
+				logger.log(Level.FINE,"---- Driver handling END Request - Requestor:"+taskConsumer.toString());
 				handleMetaCasTransationEnd(trans, taskConsumer);
 				break;
 			case InvestmentReset:
