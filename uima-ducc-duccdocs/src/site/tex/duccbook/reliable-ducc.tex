@@ -76,6 +76,48 @@ This first major section describes support for multiple active DUCC head nodes.
     which can be found at this web address: 
     \url{https://docs.oracle.com/cd/E37670_01/E41138/html/section_uxg_lzh_nr.html}.
 
+	Sample MASTER /etc/keepalived/keepalived.conf
+	
+	\begin{verbatim}
+    ! Configuration File for keepalived
+
+	vrrp_instance VI_1 {
+	    state MASTER
+	    interface eth0
+	    virtual_router_id 51
+	    priority 100
+	    advert_int 1
+	    authentication {
+	        auth_type PASS
+	        auth_pass 1111
+	    }
+	    virtual_ipaddress {
+	        192.168.6.253
+	    }
+	}
+   	\end{verbatim}
+
+	Sample BACKUP /etc/keepalived/keepalived.conf
+	
+	\begin{verbatim}
+    ! Configuration File for keepalived
+
+	vrrp_instance VI_1 {
+	    state BACKUP
+	    interface eth0
+	    virtual_router_id 51
+	    priority 100
+	    advert_int 1
+	    authentication {
+	        auth_type PASS
+	        auth_pass 1111
+	    }
+	    virtual_ipaddress {
+	        192.168.6.253
+	    }
+	}
+   	\end{verbatim}
+
 	Linux Commands
 	
 	Starting keepalived
@@ -88,13 +130,13 @@ This first major section describes support for multiple active DUCC head nodes.
    	Querying keepalived
 	
     \begin{verbatim}
-    > ip addr show dev eth0
-    2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP qlen 1000
-    link/ether 00:21:5e:20:02:84 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.3.7/16 brd 192.168.255.255 scope global eth0
-    inet 192.168.200.17/32 scope global eth0
-    inet6 fe80::221:5eff:fe20:284/64 scope link 
-       valid_lft forever preferred_lft forever
+    > /sbin/ip addr show dev eth0
+	2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP qlen 1000
+	    link/ether 00:21:5e:20:02:84 brd ff:ff:ff:ff:ff:ff
+	    inet 192.168.3.7/16 brd 192.168.255.255 scope global eth0
+	    inet 192.168.6.253/32 scope global eth0
+	    inet6 fe80::221:5eff:fe20:284/64 scope link 
+	       valid_lft forever preferred_lft forever
    	\end{verbatim}
 
 	Stopping keepalived
@@ -105,15 +147,14 @@ This first major section describes support for multiple active DUCC head nodes.
    	\end{verbatim}
 
 \subsection{Configuring DUCC}  
-    To configure DUCC to run reliable, there are two properties that must
+    To configure DUCC to run reliable, one required property must
     be configured in the {\em site.ducc.properties} file.  Example:
     
     \begin{verbatim}
-	ducc.virtual.ip.device = eth0
-	ducc.virtual.ip.address = 192.168.200.17
+	ducc.head = 192.168.6.253
    	\end{verbatim}
     
-    Use the device and virtual IP address configured for your host machines. 
+    Use the virtual IP address configured for your host machines keepalived. 
     
 \subsection{Webserver}
 
@@ -163,7 +204,7 @@ publication.
     # output:     one of { unspecified, master, backup }
     # operation:  look in ducc.properties for relevant keywords
     #             and employ linux commands to determine if system
-    #             has matching configured virtual ip address
+    #             has matching configured virtual IP address
    \end{verbatim}
 
 \subsubsection{existing scripts}
@@ -171,8 +212,9 @@ publication.
 {\renewcommand\labelitemi{}
 \begin{itemize}
   \item \textbf{ducc\_post\_install} - no need to create webserver request log directory
-  \item \textbf{ducc\_util.py} - incorporate host name into cassandra.pid, cassandra.console path
+  \item \textbf{ducc\_util.py} - incorporate host name into cassandra.pid, cassandra.console path; broker host must be local host; head node must be eligible with respect to keepalived.conf; head node local components are all daemons except Database and Agents
   \item \textbf{ducc.py} - incorporate host name into cassandra.pid, cassandra.console path
+  \item \textbf{start\_ducc.py} - head node local components must start on eligible local host
 \end{itemize}
 }
 
@@ -181,19 +223,20 @@ publication.
 \textbf{ducc.properties}  
 
    \begin{verbatim}
-    # These optional properties declare virtual ip device and address for "reliable" DUCC.
-    # Reliable DUCC comprises a MASTER and BACKUP configured using Linux keepalived, which
-    # must correspond with the below two DUCC properties.
-    # The following signify "reliable" DUCC is *not* in effect:
-    # - omission of one or both of these properties
-    # - 0.0.0.0 specified as <ducc.virtual.ip.address>
-    # When in effect, a DUCC head node will act as MASTER only when the command
-    # > ip addr show dev <ducc.virtual.ip.device> displays <ducc.virtual.ip.address>
-    # Automatic takeover by the DUCC head BACKUP from DUCC head MASTER (and vice versa) occurs 
-    # when the above command results change.
-    ducc.virtual.ip.device = eth0
-    ducc.virtual.ip.address = 0.0.0.0
+    # The name of the node where DUCC runs.
+    # This property declares the node where the DUCC administrative processes run (Orchestrator,
+    # Resource Manager, Process Manager, Service Manager).  This property is required and MUST be
+    # configured in new installation.  The installation script ducc_post_install initializes this 
+    # property to the node the script is executed on.
+    # Reliable DUCC: if running reliably, then this value must be the same as that specified
+    # for the virtual_ipaddress in /etc/keepalived/keepalived.conf.  DUCC CLI and Agents employ
+    # this value to connect to the current reliable DUCC head node.
+    ducc.head = <head-node>
    \end{verbatim}
+
+Although not strictly true, the Orchestrator, RM, SM, PM, Webserver and Broker "must"
+all be configured on the head node.  Reliable DUCC may work with other configurations,
+but it has not been tested as such.
 
 \textbf{log4j.xml}
 
@@ -207,9 +250,10 @@ publication.
 
 {\renewcommand\labelitemi{}
 \begin{itemize}
-  \item \textbf{DuccWorkHelper} - use virtualIP address or head node
+  \item \textbf{DuccWorkHelper} - use virtual IP address configured as ducc.head node
   \item \textbf{AgentEventListener} - ignore any incoming publications from backup producer
   \item \textbf{CGroupsTest} - employ changed DuccIdFactory signature
+  \item \textbf{ServiceTester} - broker must be on ducc.head node
 \end{itemize}
 }
 
@@ -217,8 +261,8 @@ publication.
 
 {\renewcommand\labelitemi{}
 \begin{itemize}
-  \item \textbf{DuccMonitor} - use virtual IP address, or WS node, or head node
-  \item \textbf{DuccUiUtilities} - use virtualIP address or head node (to submit, cancel..)
+  \item \textbf{DuccMonitor} - use WS node or virtual IP address configured as ducc.head node
+  \item \textbf{DuccUiUtilities} - use virtual IP address configured as ducc.head node (to submit, cancel..)
 \end{itemize}
 }
 
@@ -226,9 +270,8 @@ publication.
 
 {\renewcommand\labelitemi{}
 \begin{itemize}
-  \item \textbf{AbstractDuccComponent} - for broker use virtual IP address or head node, remove commented-out code, remove print to console
+  \item \textbf{AbstractDuccComponent} - remove commented-out code, remove print to console, head node local components are all daemons except Database and Agents
   \item \textbf{ADuccHead} - abstract class with reliable DUCC share functionality
-  \item \textbf{DuccHeadHelper, IDuccHead} - reliable DUCC utilities
   \item \textbf{IDuccHead} - reliable DUCC interface
   \item \textbf{IDuccEnv} - remove DUCC\_LOGS\_WEBSERVER\_DIR, not used
   \item \textbf{IStateServices} - database access control RW or RO
@@ -236,8 +279,8 @@ publication.
   \item \textbf{StateServices} - database access control RW or RO
   \item \textbf{DuccDaemonRuntimeProperties} - incorporate hostname into logs directory location
   \item \textbf{InetHelper} - incorporate hostname into logs directory location
-  \item \textbf{DuccPropertiesHelper} - fetch virtual IP address
-  \item \textbf{DuccPropertiesResolver} - Reliable DUCC properties keys
+  \item \textbf{DuccPropertiesHelper} - fetch virtual IP address configured as ducc.head node
+  \item \textbf{DuccPropertiesResolver} - Remove key ducc.broker.hostname, broker must be on ducc.head node
   \item \textbf{IDuccLoggerComponents} - Missing PM abbreviation
   \item \textbf{DuccIdFactory} - improved (generalized) to handle DB persisted sequence numbering
 \end{itemize}
@@ -317,7 +360,7 @@ publication.
 
 {\renewcommand\labelitemi{}
 \begin{itemize}
-  \item \textbf{JobDriverStateExchanger} - use virtualIP address or head node
+  \item \textbf{JobDriverStateExchanger} - use virtual IP address configured as ducc.head node
   \item \textbf{AbstractDuccEvent} - tag publications with producer host identity and state {\em master} or {\em backup}
   \item \textbf{DaemonDuccEvent} - switch to {\em master} or {\em backup} state for recording to system event log
   \item \textbf{DuccEvent} - add events SWITCH\_TO\_MASTER and SWITCH\_TO\_BACKUP
@@ -330,6 +373,7 @@ publication.
 
 {\renewcommand\labelitemi{}
 \begin{itemize}
+  \item \textbf{BrokerHelper} - use local host name to find co-located broker
   \item \textbf{DuccBoot} - make boot reusable for switch to {\em master}
   \item \textbf{DuccData} - create reset function for switch to {\em master}
   \item \textbf{DuccHead} - loggable wrapper around common.ADuccHead
@@ -344,6 +388,15 @@ publication.
   \item \textbf{ducc.js} - web page header updating for reliable DUCC state
 \end{itemize}
 }
+
+\subsubsection{examples}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{start\_sim} - broker must be on head node
+\end{itemize}
+}
+
 
 \section{Installing and Cloning}
 

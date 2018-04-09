@@ -50,10 +50,11 @@ import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
 import org.apache.uima.ducc.common.exception.DuccConfigurationException;
-import org.apache.uima.ducc.common.head.DuccHeadHelper;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccPropertiesHelper;
+import org.apache.uima.ducc.common.utils.InetHelper;
 import org.apache.uima.ducc.common.utils.JdkEvaluator;
 import org.apache.uima.ducc.common.utils.JdkEvaluator.JDKVendor;
 import org.apache.uima.ducc.common.utils.JdkEvaluator.Vendors;
@@ -139,11 +140,12 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   }
 
   private static String agent = "agent";
-  private static String ducc_virtual_ip_device = "ducc.virtual.ip.device";
-  private static String ducc_virtual_ip_address = "ducc.virtual.ip.address";
-  private static String ducc_broker_hostname = "ducc.broker.hostname";
   private static String ducc_deploy_components = "ducc.deploy.components";
+  private static String ducc_broker_hostname = "inet.hostname";
   
+  /*
+   * Agents use virtual IP, other daemons use local host
+   */
   private boolean is_virtual_ip_used() {
 	  String location = "is_virtual_ip_used";
 	  boolean retVal = false;
@@ -159,14 +161,12 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   
   private String getBrokerHostname() throws Exception {
 	  String location = "getBrokerHostname";
-	  String brokerHostname = System.getProperty(ducc_broker_hostname);
+	  String brokerHostname = InetHelper.getHostName();
 	  String retVal = brokerHostname;
-	  String ipDevice = System.getProperty(ducc_virtual_ip_device);
-	  String ipAddress = System.getProperty(ducc_virtual_ip_address);
-	  logger.info(location, jobid, ducc_broker_hostname+"="+brokerHostname, ducc_virtual_ip_device+"="+ipDevice, ducc_virtual_ip_address+"="+ipAddress);
 	  if(is_virtual_ip_used()) {
-		  retVal = DuccHeadHelper.getVirtualHost(brokerHostname);
+		  retVal = DuccPropertiesHelper.getDuccHead();
 	  }
+	  logger.debug(location, jobid, ducc_broker_hostname+"="+brokerHostname);
 	  return retVal;
   }
   
@@ -229,9 +229,12 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   private static String sepDeco = "?";
   
   /**
-   * ducc.properties provides broker URL in pieces as follows: - ducc.broker.protocol -
-   * ducc.broker.hostname - ducc.broker.port - ducc.broker.url.decoration Assemble the above into a
-   * complete URL
+   * ducc.properties provides broker URL in pieces as follows: 
+   * - ducc.broker.protocol 
+   * - ducc.broker.port
+   * - ducc.broker.url.decoration 
+   * Assemble the above with broker host (ducc.head for Agents, local host for other daemons)
+   * into a complete URL
    * 
    * @throws Exception
    */
@@ -252,7 +255,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
     if ((duccBrokerHostname = getBrokerHostname()) == null) {
       throw new DuccConfigurationException(
-              "Ducc Configuration Exception. Please add ducc.broker.hostname property to ducc.propeties");
+              "Ducc Configuration Exception. Please add ducc.head property to ducc.propeties");
     }
     if ((duccBrokerPort = System.getProperty("ducc.broker.port")) == null) {
       throw new DuccConfigurationException(

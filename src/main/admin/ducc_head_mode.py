@@ -18,11 +18,12 @@
 # under the License.
 # -----------------------------------------------------------------------
 
+import os
 import subprocess
 
 from ducc_util import DuccUtil
 
-class Master(DuccUtil):
+class DuccHeadMode(DuccUtil):
 
     # purpose:    determine reliable ducc status
     # input:      none
@@ -31,31 +32,31 @@ class Master(DuccUtil):
     #             and employ linux commands to determine if system
     #             has matching configured virtual ip address
 
+    debug_flag = False
+    
+    def debug(self,text):
+        if(self.debug_flag):
+            print(text)
+            
     def main(self):
     	result = 'unspecified'
     	try:
-	    	device = self.ducc_properties.get('ducc.virtual.ip.device')
-	    	address = self.ducc_properties.get('ducc.virtual.ip.address')
-	    	#print "device: "+device, "address: "+address
-	    	if(device == None):
-	    		pass
-	    	elif(address == None):
-	    		pass
-	    	elif(address == '0.0.0.0'):
-	    		pass
-	    	else:
-	    		#print 'cmd: ', '/sbin/ip', 'addr', 'list', device
-	    		p = subprocess.Popen(['/sbin/ip', 'addr', 'list', device], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        		output, err = p.communicate()
-        		#print "output: "+output
-        		if(address in output):
-        			result = 'master'
-        		else:
-        			result = 'backup'
+            head = self.ducc_properties.get('ducc.head')
+            if(self.is_reliable_head_eligible(head)):
+    	    	text = 'cmd: ', '/sbin/ip', 'addr', 'list'
+                self.debug(text)
+    	    	p = subprocess.Popen(['/sbin/ip', 'addr', 'list'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            	output, err = p.communicate()
+            	text = "output: "+output
+                self.debug(text)
+            	if(head in output):
+            		result = 'master'
+            	else:
+            		result = 'backup'
     	except Exception as e:
     		print e
     	print result
         
 if __name__ == '__main__':
-    instance = Master()
+    instance = DuccHeadMode()
     instance.main()

@@ -22,7 +22,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.common.NodeIdentity;
-import org.apache.uima.ducc.common.head.DuccHeadHelper;
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -129,11 +128,7 @@ public class JobDriverStateExchanger extends Thread {
 	private String getTargetUrl() {
 		String targetUrl = null;
 		String server = getServer();
-		String host = DuccPropertiesResolver.get("ducc." + server + ".http.node");
-		
-		// employ virtual IP if configured
-		host = DuccHeadHelper.getVirtualHost(host);
-
+		String host = DuccPropertiesResolver.get("ducc.head");
 	    String port = DuccPropertiesResolver.get("ducc." + server + ".http.port");
         if ( host == null || port == null ) {
         	String message = "ducc." + server + ".http.node and/or .port not set in ducc.properties";

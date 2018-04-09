@@ -96,7 +96,7 @@ public class ServiceTester
     	throws Exception
     {
         String proto = ducc_properties.getStringProperty("ducc.broker.protocol");
-        String host  = ducc_properties.getStringProperty("ducc.broker.hostname");
+        String host  = ducc_properties.getStringProperty("ducc.head");
         String port  = ducc_properties.getStringProperty("ducc.broker.port");
         return proto + "://" + host + ":" + port;
     }

@@ -49,7 +49,6 @@ import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
-import org.apache.uima.ducc.common.head.DuccHeadHelper;
 import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState;
@@ -3344,23 +3343,15 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletClusterReliableStatus";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		if(DuccHeadHelper.isVirtualIpAddress()) {
-			String ipAddress = DuccPropertiesHelper.getDuccHeadVirtualIpAddress();
-			String ipDevice = DuccPropertiesHelper.getDuccHeadVirtualIpDevice();
-			if(ipAddress.length() > 0) {
-				if(ipDevice.length() > 0) {
-					String status = dh.get_ducc_head_mode();
-					String hover = ipDevice+" "+ipAddress;
-					if(dh.is_ducc_head_master()) {
-						String text = "<span title=\""+hover+"\">"+status+"</span>";
-						sb.append(text);
-					}
-					else {
-						String text = "<span>"+status+"</span>";
-						sb.append(text);
-					}
-				}
-			}
+		String status = dh.get_ducc_head_mode();
+		String hover = DuccPropertiesHelper.getDuccHead();
+		if(dh.is_ducc_head_master()) {
+			String text = "<span title=\""+hover+"\">"+status+"</span>";
+			sb.append(text);
+		}
+		else {
+			String text = "<span>"+status+"</span>";
+			sb.append(text);
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
@@ -3372,25 +3363,18 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletClusterReliableLabel";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		if(DuccHeadHelper.isVirtualIpAddress()) {
-			String ipAddress = DuccPropertiesHelper.getDuccHeadVirtualIpAddress();
-			String ipDevice = DuccPropertiesHelper.getDuccHeadVirtualIpDevice();
-			if(ipAddress.length() > 0) {
-				if(ipDevice.length() > 0) {
-					String label = "reliable:";
-					if(dh.is_ducc_head_backup()) {
-						String hover = "Click to visit master";
-						String text = "<span title=\""+hover+"\">"+label+"</span>";
-						String link = "http://"+ipAddress+":"+getDuccWebServer().getPort()+"/";
-			    		String href = "<a href=\""+link+"\" target=\"_ducc_master\"  >"+text+"</a>";
-			    		sb.append(href);
-					}
-					else {
-						String text = "<span>"+label+"</span>";
-						sb.append(text);
-					}
-				}
-			}
+		String label = "reliable:";
+		if(dh.is_ducc_head_backup()) {
+			String hover = "Click to visit master";
+			String text = "<span title=\""+hover+"\">"+label+"</span>";
+			String host = DuccPropertiesHelper.getDuccHead();;
+			String link = "http://"+host+":"+getDuccWebServer().getPort()+"/";
+			String href = "<a href=\""+link+"\" target=\"_ducc_master\"  >"+text+"</a>";
+			sb.append(href);
+		}
+		else {
+			String text = "<span>"+label+"</span>";
+			sb.append(text);
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));

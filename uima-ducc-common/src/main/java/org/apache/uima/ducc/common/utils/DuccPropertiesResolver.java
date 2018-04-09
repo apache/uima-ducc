@@ -83,9 +83,6 @@ public class DuccPropertiesResolver {
     
     public static final String ducc_head = "ducc.head";
     
-    public static final String ducc_head_virtual_ip_address = "ducc.virtual.ip.address";
-    public static final String ducc_head_virtual_ip_device = "ducc.virtual.ip.device";
-    
     public static final String ducc_security_home = "ducc.security.home";
     
     public static final String ducc_private_resources = "ducc.private.resources";
@@ -105,7 +102,6 @@ public class DuccPropertiesResolver {
     public static final String ducc_signature_required = "ducc.signature.required";
     public static final String ducc_broker_url = "ducc.broker.url";
     public static final String ducc_broker_protocol = "ducc.broker.protocol";
-    public static final String ducc_broker_hostname = "ducc.broker.hostname";
     public static final String ducc_broker_port = "ducc.broker.port";
     public static final String ducc_broker_url_decoration = "ducc.broker.url.decoration";
     public static final String ducc_broker_name = "ducc.broker.name";

@@ -42,6 +42,7 @@ import javax.management.remote.JMXServiceURL;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.InetHelper;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 
@@ -108,8 +109,7 @@ public class BrokerHelper extends JmxHelper {
 		String key;
 		String value;
 		//
-		key = "ducc.broker.hostname";
-		value = duccPropertiesResolver.getCachedProperty(key);
+		value = InetHelper.getHostName();
 		setHost(value);
 		//
 		key = "ducc.broker.jmx.port";

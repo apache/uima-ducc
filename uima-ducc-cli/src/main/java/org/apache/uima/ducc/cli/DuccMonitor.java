@@ -128,12 +128,9 @@ public abstract class DuccMonitor {
 	public abstract String getUrl(String id);
 
 	public String getHost() {
-		String host = duccPropertiesResolver.getFileProperty("ducc.virtual.ip.address");
+		String host = duccPropertiesResolver.getFileProperty("ducc.ws.node");
 		if (host == null) {
-			host = duccPropertiesResolver.getFileProperty("ducc.ws.node");
-			if (host == null) {
-				host = duccPropertiesResolver.getFileProperty("ducc.head");
-			}
+			host = duccPropertiesResolver.getFileProperty("ducc.head");
 		}
 		return host;
 	}

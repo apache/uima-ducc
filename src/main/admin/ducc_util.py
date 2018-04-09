@@ -156,7 +156,7 @@ class DuccUtil(DuccBase):
         self.ducc_uid          = find_ducc_uid()
         # self.broker_url      = self.ducc_properties.get('ducc.broker.url')
         self.broker_protocol   = self.ducc_properties.get('ducc.broker.protocol')
-        self.broker_host       = self.ducc_properties.get('ducc.broker.hostname')
+        self.broker_host       = self.localhost
         self.broker_port       = self.ducc_properties.get('ducc.broker.port')
         self.broker_jmx_port   = self.ducc_properties.get('ducc.broker.jmx.port')
         self.broker_decoration = self.ducc_properties.get('ducc.broker.url.decoration')
@@ -357,7 +357,7 @@ class DuccUtil(DuccBase):
 
     def stop_broker(self):
 
-        broker_host = self.ducc_properties.get('ducc.broker.hostname')
+        broker_host = self.localhost
         broker_home = self.ducc_properties.get('ducc.broker.home')
         broker_name = self.ducc_properties.get('ducc.broker.name')
         broker_jmx  = self.ducc_properties.get('ducc.broker.jmx.port')
@@ -391,6 +391,13 @@ class DuccUtil(DuccBase):
         is_operational = False
         req = node.split('.')[0]
         cmd = '/bin/hostname'
+        if(node == 'localhost'):
+            resp = self.popen(cmd)
+            lines = resp.readlines()
+            if(len(lines)== 1):
+                line = lines[0]
+                line = line.strip();
+                req = line.split('.')[0]
         ssh_cmd = 'ssh -q -o BatchMode=yes -o ConnectTimeout=10'+' '+node+" "+cmd
         resp = self.popen(ssh_cmd)
         lines = resp.readlines()
@@ -532,16 +539,31 @@ class DuccUtil(DuccBase):
             return False
         return True
     
+    keepalivd_conf = '/etc/keepalived/keepalived.conf'
+    
+    def is_reliable_head_eligible(self, head):
+        retVal = False
+        if ( os.path.exists(self.keepalivd_conf) ):
+            with open(self.keepalivd_conf) as f:
+                for line in f:
+                    if head in line:
+                        retVal = True
+                        break
+        return retVal
+    
     # Exit if this is not the head node.  Ignore the domain as uname sometimes drops it.
     # Also check that ssh to this node works
     # Also restrict operations to the userid that installed ducc
     def verify_head(self):
         head = self.ducc_properties.get("ducc.head").split('.')[0]
-        local = self.localhost.split('.')[0]
-        if local != head:
-            print ">>> ERROR - this script must be run from the head node"
-            sys.exit(1);
-        node = head
+        if(self.is_reliable_head_eligible(head)):
+            node = 'localhost'
+        else:
+            local = self.localhost.split('.')[0]
+            if local != head:
+                print ">>> ERROR - this script must be run from the head node"
+                sys.exit(1);
+            node = head
         if(self.ssh_operational(node)):
             text = "ssh is operational to "+node
             #print text
@@ -1060,6 +1082,7 @@ class DuccUtil(DuccBase):
         self.broker_host = 'localhost'
         self.broker_port = '61616'
         self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'db', 'broker']
+        self.local_components = ['rm', 'pm', 'sm', 'or', 'ws', 'broker']
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
 
         if ( self.localhost == self.ducc_properties.get("ducc.head")):

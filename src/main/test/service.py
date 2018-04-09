@@ -201,7 +201,7 @@ def mkBrokerUrl(ducc_home):
     props = DuccProperties()
     props.load(ducc_home + '/resources/ducc.properties')
     protocol = props.get('ducc.broker.protocol')
-    host     = props.get('ducc.broker.hostname')
+    host     = props.get('ducc.head')
     port     = props.get('ducc.broker.port')
     return protocol + '://' + host + ':' + port
 

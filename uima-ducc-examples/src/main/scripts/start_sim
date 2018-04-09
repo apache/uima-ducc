@@ -60,7 +60,7 @@ class StartSim(DuccUtil):
         if ( not self.automanage ):
             print "Broker is not automanaged, returning."
 
-        broker_host = self.ducc_properties.get('ducc.broker.hostname')
+        broker_host = self.localhost
         print 'broker host', broker_host
         lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', '--simtest', "'")
 

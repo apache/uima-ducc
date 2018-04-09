@@ -41,7 +41,7 @@ class StartDucc(DuccUtil):
 
     def start_broker(self):
         
-        broker_host = self.ducc_properties.get('ducc.broker.hostname')
+        broker_host = self.localhost
         print 'Starting broker on', broker_host
         lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', "'")
         while 1:
@@ -68,14 +68,13 @@ class StartDucc(DuccUtil):
         msgs = []
 
         node = self.ducc_properties.get('ducc.head')
+        
         com = component
         if ( com.find('@') >= 0 ):            
             com, node = com.split('@')
-
-        if ( ( com == 'ws' ) and ( node == 'local' ) and ( self.webserver_node != 'localhost' )):
-            if ( self.webserver_node != None ):
-                node = self.webserver_node
-                component = com + '@' + node
+            
+        if (com in self.local_components):
+			node = self.localhost
 
         if ((com in self.default_components) or ( com == 'agent')) :
             msgs.append((node, 'Starting', com))

@@ -42,6 +42,48 @@
     which can be found at this web address: 
     \url{https://docs.oracle.com/cd/E37670_01/E41138/html/section_uxg_lzh_nr.html}.
 
+	Sample MASTER /etc/keepalived/keepalived.conf
+	
+	\begin{verbatim}
+    ! Configuration File for keepalived
+
+	vrrp_instance VI_1 {
+	    state MASTER
+	    interface eth0
+	    virtual_router_id 51
+	    priority 100
+	    advert_int 1
+	    authentication {
+	        auth_type PASS
+	        auth_pass 1111
+	    }
+	    virtual_ipaddress {
+	        192.168.6.253
+	    }
+	}
+   	\end{verbatim}
+
+	Sample BACKUP /etc/keepalived/keepalived.conf
+	
+	\begin{verbatim}
+    ! Configuration File for keepalived
+
+	vrrp_instance VI_1 {
+	    state BACKUP
+	    interface eth0
+	    virtual_router_id 51
+	    priority 100
+	    advert_int 1
+	    authentication {
+	        auth_type PASS
+	        auth_pass 1111
+	    }
+	    virtual_ipaddress {
+	        192.168.6.253
+	    }
+	}
+   	\end{verbatim}
+   	
 	Linux Commands
 	
 	Starting keepalived
@@ -54,13 +96,13 @@
    	Querying keepalived
 	
     \begin{verbatim}
-    > ip addr show dev eth0
-    2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP qlen 1000
-    link/ether 00:21:5e:20:02:84 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.3.7/16 brd 192.168.255.255 scope global eth0
-    inet 192.168.200.17/32 scope global eth0
-    inet6 fe80::221:5eff:fe20:284/64 scope link 
-       valid_lft forever preferred_lft forever
+    > /sbin/ip addr show dev eth0
+	2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP qlen 1000
+	    link/ether 00:21:5e:20:02:84 brd ff:ff:ff:ff:ff:ff
+	    inet 192.168.3.7/16 brd 192.168.255.255 scope global eth0
+	    inet 192.168.6.253/32 scope global eth0
+	    inet6 fe80::221:5eff:fe20:284/64 scope link 
+	       valid_lft forever preferred_lft forever
    	\end{verbatim}
 
 	Stopping keepalived
@@ -71,15 +113,14 @@
    	\end{verbatim}
 
 \section{Configuring DUCC}  
-    To configure DUCC to run reliable, there are two properties that must
+    To configure DUCC to run reliable, one required property must
     be configured in the {\em site.ducc.properties} file.  Example:
     
     \begin{verbatim}
-	ducc.virtual.ip.device = eth0
-	ducc.virtual.ip.address = 192.168.200.17
+	ducc.head = 192.168.6.253
    	\end{verbatim}
     
-    Use the device and virtual IP address configured for your host machines. 
+    Use the virtual IP address configured for your host machines keepalived. 
     
 \section{Webserver}
 

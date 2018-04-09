@@ -42,7 +42,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.TcpStreamHandler;
-import org.apache.uima.ducc.common.head.DuccHeadHelper;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
 import org.apache.uima.ducc.user.common.PrivateClassLoader;
@@ -142,8 +141,7 @@ public class DuccUiUtilities {
 	 * Get URL for service handling request. (server is always "orchestrator")
 	 */
 	public static String dispatchUrl(String server) {
-	    String host = DuccPropertiesResolver.get("ducc." + server + ".http.node");
-	    host = DuccHeadHelper.getVirtualHost(host);
+	    String host = DuccPropertiesResolver.get("ducc.head");
 	    String port = DuccPropertiesResolver.get("ducc." + server + ".http.port");
         if ( host == null || port == null) {
             throw new IllegalStateException("ducc." + server + ".http.node and/or .port not set in ducc.properties");
