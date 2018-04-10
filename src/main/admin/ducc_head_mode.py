@@ -37,19 +37,36 @@ class DuccHeadMode(DuccUtil):
     def debug(self,text):
         if(self.debug_flag):
             print(text)
-            
+    
+    keepalivd_conf = '/etc/keepalived/keepalived.conf'
+    
+    # eligible when keepalived config comprises the ip
+    def is_reliable_eligible(self, ip):
+        retVal = False
+        if ( os.path.exists(self.keepalivd_conf) ):
+            with open(self.keepalivd_conf) as f:
+                for line in f:
+                    if ip in line:
+                        retVal = True
+                        break
+        return retVal
+    
+    # master when current node keepalived answers for head node ip
+    # backup when current node keepalived does not answer for head ip, but is capable in config
+    # unspecified otherwise
     def main(self):
     	result = 'unspecified'
     	try:
-            head = self.ducc_properties.get('ducc.head')
-            if(self.is_reliable_head_eligible(head)):
+            ducc_head = self.ducc_properties.get('ducc.head')
+            head_ip = self.get_ip_address(ducc_head)
+            if(self.is_reliable_eligible(head_ip)):
     	    	text = 'cmd: ', '/sbin/ip', 'addr', 'list'
                 self.debug(text)
     	    	p = subprocess.Popen(['/sbin/ip', 'addr', 'list'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             	output, err = p.communicate()
             	text = "output: "+output
                 self.debug(text)
-            	if(head in output):
+            	if(head_ip in output):
             		result = 'master'
             	else:
             		result = 'backup'

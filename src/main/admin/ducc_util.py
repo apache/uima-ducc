@@ -65,6 +65,12 @@ import db_util as dbu
 global use_threading
 use_threading = True
 
+ducc_util_debug_flag = False
+
+def debug(label,data):
+    if(ducc_util_debug_flag):
+        print label, data
+
 # The "ducc" userid is the user that installed DUCC and created this file.
 # If the admin dir's permissions were 700 then could assume the current user is the ducc user
 def find_ducc_uid():
@@ -539,31 +545,119 @@ class DuccUtil(DuccBase):
             return False
         return True
     
-    keepalivd_conf = '/etc/keepalived/keepalived.conf'
+    # determine if string represent an integer
+    def is_int(self,string):
+        result = True
+        try:
+            number = int(string)
+        except:
+            result = False
+        return result
     
-    def is_reliable_head_eligible(self, head):
-        retVal = False
-        if ( os.path.exists(self.keepalivd_conf) ):
-            with open(self.keepalivd_conf) as f:
-                for line in f:
-                    if head in line:
-                        retVal = True
-                        break
-        return retVal
+    # transform hostname into ip address
+    def get_ip_address(self,hostname):
+        result = None
+        try:
+            p = subprocess.Popen(['/usr/bin/nslookup', hostname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output, err = p.communicate()
+            #print hostname, output, err
+            name = None
+            for line in output.splitlines():
+                tokens = line.split()
+                if(len(tokens) == 2):
+                    t0 = tokens[0]
+                    t1 = tokens[1]
+                    if(t0 == 'Address:'):
+                        if(name != None):
+                            result = t1
+                            break
+                    elif(t0 == 'Name:'):
+                        name = t1
+        except Exception as e:
+            print e
+        debug('ip_address: ', str(result))
+        return result
+    
+    # get all possible hostnames & ip addresses for a head node
+    def get_head_node_list_variations(self):
+        head_node_list = []
+        # add ducc.head.reliable.list node(s)
+        ducc_head_list = self.ducc_properties.get("ducc.head.reliable.list")
+        if(ducc_head_list != None):
+            ducc_head_nodes = ducc_head_list.split()
+            if(len(ducc_head_nodes)== 0):
+                pass
+            elif(len(ducc_head_nodes)== 1):
+                print '>>> ERROR - "ducc.head.reliable.list" missing or invalid.'
+                sys.exit(1);
+            else:
+                head_node_list = ducc_head_nodes
+        # add ducc.head node
+        ducc_head = self.ducc_properties.get("ducc.head")
+        if(ducc_head == None):
+            print '>>> ERROR - "ducc.head" missing or invalid.'
+            sys.exit(1);
+        ducc_head_nodes = ducc_head.split()
+        if(len(ducc_head_nodes) != 1):
+            print '>>> ERROR - "ducc.head" missing or invalid.'
+            sys.exit(1);
+        head_node = ducc_head_nodes[0]
+        if(not head_node in head_node_list):
+            head_node_list.append(head_node)
+        # add short names
+        list = head_node_list
+        for node in list:
+            short_name = node.split('.')[0]
+            if(not self.is_int(short_name)):
+                if(not short_name in head_node_list):
+                    head_node_list.append(short_name)
+        # add ip addresses
+        list = head_node_list
+        for node in list:
+            ip = self.get_ip_address(node)
+            if(ip != None):
+                if(not ip in head_node_list):
+                    head_node_list.append(ip)
+        #
+        debug('head_node_list: ', head_node_list)
+        return head_node_list
+    
+    # drop domain and whitespace
+    def normalize(self,name):
+        result = name
+        if(name != None):
+            result = name
+            result = result.strip()
+            result = result.split('.')[0]
+        return result
+    
+    # get current host's name
+    def get_node_name(self):
+        node_name = 'unknown'
+        cmd = '/bin/hostname'
+        resp = self.popen(cmd)
+        lines = resp.readlines()
+        if(len(lines)== 1):
+            name = lines[0]
+            node_name = self.normalize(name)
+        debug('node_name: ', node_name)
+        return node_name
     
     # Exit if this is not the head node.  Ignore the domain as uname sometimes drops it.
     # Also check that ssh to this node works
     # Also restrict operations to the userid that installed ducc
     def verify_head(self):
-        head = self.ducc_properties.get("ducc.head").split('.')[0]
-        if(self.is_reliable_head_eligible(head)):
-            node = 'localhost'
+        head_node_list = self.get_head_node_list_variations()
+        node = self.get_node_name()
+        if(node in head_node_list):
+            pass
         else:
-            local = self.localhost.split('.')[0]
-            if local != head:
-                print ">>> ERROR - this script must be run from the head node"
+            ip = self.get_ip_address(node)
+            if(ip in head_node_list):
+                pass
+            else:
+                print ">>> ERROR - "+node+" not configured as head node."
                 sys.exit(1);
-            node = head
         if(self.ssh_operational(node)):
             text = "ssh is operational to "+node
             #print text
