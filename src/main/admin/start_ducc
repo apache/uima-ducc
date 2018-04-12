@@ -327,7 +327,7 @@ class StartDucc(DuccUtil):
             sys.exit(1)
         
         # activeMQ needs to be started externally before starting any DUCC processes
-        if ( self.automanage and ('broker' in components) ):
+        if ( self.automanage_broker and ('broker' in components) ):
             if ( self.is_amq_active() ):
                 print 'ActiveMQ broker is already running on host and port:', self.broker_host + ':' + self.broker_port, 'NOT restarting'
             else:
@@ -337,7 +337,7 @@ class StartDucc(DuccUtil):
                     print sys.exc_info()[0], "DUCC may not be started correctly."
                     sys.exit(1)
 
-        if ( 'db' in components ):
+        if ( self.automanage_database and ('db' in components) ):
             try:
                 if ( not self.db_start() ):
                     print "Failed to start or connect to the database."

@@ -176,11 +176,11 @@ class StopSim(DuccUtil):
         print "Waiting " + str(sleeptime) + " seconds to broadcast agent shutdown."
         time.sleep(sleeptime)
 
-        if ( stopdatabase ) :
+        if ( stopdatabase and self.automanage_database ) :
             print 'Stopping database'
             self.db_stop()
 
-        if ( stopbroker and self.automanage ):
+        if ( stopbroker and self.automanage_broker ):
             print "Stopping broker"
             self.stop_broker()                
 

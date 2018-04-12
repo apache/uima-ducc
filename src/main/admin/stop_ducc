@@ -33,12 +33,11 @@ class StopDucc(DuccUtil):
 
     def stop_component(self, component, force):
 
-        if ( (component == 'broker') and self.automanage ):
+        if ( (component == 'broker') and self.automanage_broker ):
             print 'Stopping broker'
             self.stop_broker()
             return
-
-        if ( component == 'db' ):
+        if ( (component == 'db') and self.automanage_database ):
             print 'Stopping database'
             self.db_stop()
             return
@@ -253,12 +252,13 @@ class StopDucc(DuccUtil):
                 print "Waiting " + str(wait_time) + " seconds to broadcast agent shutdown."
                 time.sleep(wait_time)
 
-                if ( self.automanage ):
+                if ( self.automanage_broker ):
                     print "Stopping broker"
                     self.stop_broker()                
 
-                print "Stopping database"
-                self.db_stop()
+                if ( self.automanage_database ):
+                	print "Stopping database"
+                	self.db_stop()
 
                 if ( os.path.exists(self.pid_file) ):
                     os.remove(self.pid_file)

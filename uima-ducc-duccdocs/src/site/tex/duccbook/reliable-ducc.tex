@@ -181,7 +181,32 @@ This first major section describes support for multiple active DUCC head nodes.
    	\begin{verbatim}
 	no data - not master
    	\end{verbatim}
+
+\section{Database}
+
+	Configure the database to be on a separate machine from the reliable DUCC head nodes.
+	In {\em site.ducc.properties} specify:
 	
+	\begin{verbatim}
+	# Database location
+    ducc.database.host = dbhost123
+    ducc.database.jmx.host = dbhost123
+    ducc.database.automanage = false
+   	\end{verbatim}
+	
+	Two new convenience commands are available for DUCC administrators.  
+	When issued by the DUCC administrator, these commands will start and stop the database 
+	on the database host machine regardless of the value specified for 
+	{\em ducc.database.automanage} in {\em site.ducc.properties}.
+	
+	\begin{verbatim}
+	admin/db\_start
+	afmin/db\_stop
+   	\end{verbatim}
+   	
+   	The existing administrator commands {\em start\_ducc} and {\em stop\_ducc} will
+   	honor the value specified for {\em ducc.database.automanage} in {\em site.ducc.properties}.
+
 \subsection{Code changes}
 
 The key changes include a new script (see ducc\_head\_mode.py) to 
@@ -208,14 +233,18 @@ publication.
     #             has matching configured virtual IP address
    \end{verbatim}
 
-\subsubsection{existing scripts}
+\subsubsection{existing and new scripts}
 
 {\renewcommand\labelitemi{}
 \begin{itemize}
   \item \textbf{ducc\_post\_install} - no need to create webserver request log directory
-  \item \textbf{ducc\_util.py} - incorporate host name into cassandra.pid, cassandra.console path; broker host must be local host; head node must be eligible with respect to keepalived.conf; head node local components are all daemons except Database and Agents
+  \item \textbf{ducc\_util.py} - incorporate host name into cassandra.pid, cassandra.console path; broker host must be local host; head node must be eligible with respect to keepalived.conf; head node local components are all daemons except Database and Agents; fix remote db stop; honor ducc.database.automanage flag in site.ducc.properties
   \item \textbf{ducc.py} - incorporate host name into cassandra.pid, cassandra.console path
   \item \textbf{start\_ducc.py} - head node local components must start on eligible local host
+  \item \textbf{db\_start} - (new) start DUCC database
+  \item \textbf{db\_stop} - (new) stop DUCC database
+  \item \textbf{start\_sim} - (example) honor database autostart flag in ducc.properties
+  item \textbf{stop\_sim} - (example) honor database autostart flag in ducc.properties
 \end{itemize}
 }
 
@@ -238,6 +267,12 @@ publication.
 Although not strictly true, the Orchestrator, RM, SM, PM, Webserver and Broker "must"
 all be configured on the head node.  Reliable DUCC may work with other configurations,
 but it has not been tested as such.
+
+	\begin{verbatim}
+	# If set to true, DUCC will start and stop the Cassandra database as part of its normal
+	# start/stop scripting.  
+	ducc.database.automanage = true
+	\end{verbatim}
 
 \textbf{log4j.xml}
 

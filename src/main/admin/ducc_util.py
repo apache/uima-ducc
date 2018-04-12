@@ -316,16 +316,37 @@ class DuccUtil(DuccBase):
         return False
 
     def db_stop(self):
-
-        if ( self.db_bypass == True) :
-            print '   (Bypass database stop because ducc.database.host =', self.db_disabled + ')'
-            return True
-
-        if ( os.path.exists(self.db_pidfile) ):
-            # for cassandra, just send it a terminate signal.  a pidfile is written on startup
-            CMD = ['kill', '-TERM', '`cat ' + self.db_pidfile + '`']
-            CMD = ' '.join(CMD)
-            os.system(CMD)
+        try:
+            if ( self.db_bypass == True) :
+                print '   (Bypass database stop because ducc.database.host =', self.db_disabled + ')'
+                return True
+            dbnode = self.ducc_properties.get('ducc.database.host')
+            dbnode = dbnode.strip()
+            pidfile = os.path.join(DUCC_HOME,'state','database',dbnode,'cassandra.pid')
+            cmd = [ 'less', '-FX', pidfile ]
+            cmd = ' '.join(cmd)
+            #print cmd
+            stdout = self.ssh(dbnode, True, cmd)
+            result = stdout.read().strip()
+            tokens = result.split()
+            if(len(tokens) == 1):
+                pid = tokens[0].strip()
+                #print pid
+                cmd = [ 'kill', '-15', pid ]
+                cmd = ' '.join(cmd)
+                #print cmd
+                stdout = self.ssh(dbnode, True, cmd)
+                result = stdout.read().strip()
+                #print result
+                print 'Database stopped.'
+                return True
+            else:
+                #print result
+                print 'Database not running.'
+                return True
+        except Exception,e:
+            print e
+            return False
 
     def find_netstat(self):
         # don't you wish people would get together on where stuff lives?
@@ -393,17 +414,23 @@ class DuccUtil(DuccBase):
         if ( showpid ) :
             print 'PID', ducc.pid
 
+    def get_hostname(self):
+        hostname = '?'
+        cmd = '/bin/hostname'
+        resp = self.popen(cmd)
+        lines = resp.readlines()
+        if(len(lines)== 1):
+            line = lines[0]
+            line = line.strip();
+            hostname = line.split('.')[0]
+        return hostname
+    
     def ssh_operational(self, node):
         is_operational = False
         req = node.split('.')[0]
         cmd = '/bin/hostname'
         if(node == 'localhost'):
-            resp = self.popen(cmd)
-            lines = resp.readlines()
-            if(len(lines)== 1):
-                line = lines[0]
-                line = line.strip();
-                req = line.split('.')[0]
+            req = self.get_hostname()
         ssh_cmd = 'ssh -q -o BatchMode=yes -o ConnectTimeout=10'+' '+node+" "+cmd
         resp = self.popen(ssh_cmd)
         lines = resp.readlines()
@@ -1205,11 +1232,15 @@ class DuccUtil(DuccBase):
 
         self.db_configure()
         
-
         manage_broker = self.ducc_properties.get('ducc.broker.automanage')
-        self.automanage = False
+        self.automanage_broker = False
         if (manage_broker in ('t', 'true', 'T', 'True')) :
-            self.automanage = True                    
+            self.automanage_broker = True                    
+
+        manage_database = self.ducc_properties.get('ducc.database.automanage')
+        self.automanage_database = False
+        if (manage_database in ('t', 'true', 'T', 'True')) :
+            self.automanage_database = True     
 
         py_version = platform.python_version().split('.')
         if ( int(py_version[0]) > 2 ):

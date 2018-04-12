@@ -151,4 +151,28 @@
    	\begin{verbatim}
 	no data - not master
    	\end{verbatim}
+
+\section{Database}
+
+	Configure the database to be on a separate machine from the reliable DUCC head nodes.
+	In {\em site.ducc.properties} specify:
 	
+	\begin{verbatim}
+	# Database location
+    ducc.database.host = dbhost123
+    ducc.database.jmx.host = dbhost123
+    ducc.database.automanage = false
+   	\end{verbatim}
+	
+	Two new convenience commands are available for DUCC administrators.  
+	When issued by the DUCC administrator, these commands will start and stop the database 
+	on the database host machine regardless of the value specified for 
+	{\em ducc.database.automanage} in {\em site.ducc.properties}.
+	
+	\begin{verbatim}
+	admin/db\_start
+	afmin/db\_stop
+   	\end{verbatim}
+   	
+   	The existing administrator commands {\em start\_ducc} and {\em stop\_ducc} will
+   	honor the value specified for {\em ducc.database.automanage} in {\em site.ducc.properties}.
