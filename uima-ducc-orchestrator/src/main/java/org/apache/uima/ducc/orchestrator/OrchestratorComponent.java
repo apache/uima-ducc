@@ -591,7 +591,7 @@ implements Orchestrator {
 		String node = "?";
 		NodeIdentity nodeIdentity = duccEvent.getNodeIdentity();
 		if(nodeIdentity != null) {
-			node = nodeIdentity.getName();
+			node = nodeIdentity.getCanonicalName();
 		}
 		return node;
 	}
@@ -1155,7 +1155,7 @@ implements Orchestrator {
 					IDuccReservationMap map = duccWorkReservation.getReservationMap();
 					for (DuccId key : map.keySet()) { 
 						IDuccReservation value = duccWorkReservation.getReservationMap().get(key);
-						String node = value.getNodeIdentity().getName();
+						String node = value.getNodeIdentity().getCanonicalName();
 						sb.append(node);
 						sb.append(" ");
 					}

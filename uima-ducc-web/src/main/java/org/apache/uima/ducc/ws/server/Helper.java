@@ -171,22 +171,22 @@ public class Helper {
 		if(process != null) {
 			switch(type) {
 			case UIMA:
-				retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+				retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getCanonicalName()+"-"+process.getPID()+".log";
 				break;
 			case MR:
-				retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+				retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getCanonicalName()+"-"+process.getPID()+".log";
 				break;
 			case SPU:
-				retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+				retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getCanonicalName()+"-"+process.getPID()+".log";
 				break;
 			case SPC:
-				retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+				retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getCanonicalName()+"-"+process.getPID()+".log";
 				break;
 			case JD:
 				retVal = "jd.out.log";
 				// <UIMA-3802>
 				// {jobid}-JD-{node}-{PID}.log
-				String node = process.getNodeIdentity().getName();
+				String node = process.getNodeIdentity().getCanonicalName();
 				String pid = process.getPID();
 				retVal = job.getDuccId()+"-"+"JD"+"-"+node+"-"+pid+".log";
 				// </UIMA-3802>
@@ -245,7 +245,7 @@ public class Helper {
 		if(process != null) {
 			NodeIdentity ni = process.getNodeIdentity();
 			if(ni != null) {
-				String name = ni.getName();
+				String name = ni.getCanonicalName();
 				if(name != null) {
 					sb.append(name);
 				}

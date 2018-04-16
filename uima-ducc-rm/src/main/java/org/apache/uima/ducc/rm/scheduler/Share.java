@@ -287,7 +287,7 @@ public class Share
                 npid = Long.parseLong(pid);
             }
 
-			persistenceAccess.updateShare(getNode().getNodeIdentity().getName(), id, jobid, investment, state.toString(), getInitializationTime(), npid);
+			persistenceAccess.updateShare(getNode().getNodeIdentity().getCanonicalName(), id, jobid, investment, state.toString(), getInitializationTime(), npid);
 		} catch (Exception e) {
             logger.warn(methodName, job.getId(), "Cannot update share statistics in database for share", id, e);
 		}
@@ -361,7 +361,7 @@ public class Share
     	String methodName = "setFixed";
         fixed = true;
         try {
-			persistenceAccess.setFixed(getNode().getNodeIdentity().getName(), id, job.getId(), true);
+			persistenceAccess.setFixed(getNode().getNodeIdentity().getCanonicalName(), id, job.getId(), true);
 		} catch (Exception e) {
             logger.warn(methodName, job.getId(), "Cannot update 'fixed' in database for share", id, e);
 		}
@@ -377,7 +377,7 @@ public class Share
     	String methodName = "evicted";
         evicted = true;
         try {
-        	persistenceAccess.setEvicted(getNode().getNodeIdentity().getName(), id, job.getId(), true);
+        	persistenceAccess.setEvicted(getNode().getNodeIdentity().getCanonicalName(), id, job.getId(), true);
 		} catch (Exception e) {
             logger.warn(methodName, job.getId(), "Cannot update 'evicted' in database for share", id, e);
 		}
@@ -393,7 +393,7 @@ public class Share
     	String methodName = "purge";
         purged = true;
         try {
-        	persistenceAccess.setPurged(getNode().getNodeIdentity().getName(), id, job.getId(), true);
+        	persistenceAccess.setPurged(getNode().getNodeIdentity().getCanonicalName(), id, job.getId(), true);
 		} catch (Exception e) {
             logger.warn(methodName, job.getId(), "Cannot update 'purge bit' in database for share", id, e);
 		}

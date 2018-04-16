@@ -631,7 +631,7 @@ public class ServiceHandler
             } else {
                 for ( DuccId pid : pm.keySet() ) {
                     NodeIdentity ni = pm.get(pid).getNodeIdentity();
-                    node = ni.getName();
+                    node = ni.getCanonicalName();
                     share_id = pid.getFriendly();
                 }
             }

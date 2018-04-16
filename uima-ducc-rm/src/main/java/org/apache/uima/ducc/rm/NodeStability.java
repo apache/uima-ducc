@@ -48,21 +48,21 @@ public class NodeStability
 
         scheduler.nodeDeath(nodes);
         for ( Node n : nodes.keySet() ) {
-            logger.debug(methodName, null, "*** ! Notification of node death:", n.getNodeIdentity().getName());
+            logger.debug(methodName, null, "*** ! Notification of node death:", n.getNodeIdentity().getCanonicalName());
         }
     }
 
     public void missedNode(Node n, int c)
     {
     	String methodName = "missedNode";
-        logger.warn(methodName, null, "*** Missed heartbeat ***", n.getNodeIdentity().getName(), "count[", c, "]");
+        logger.warn(methodName, null, "*** Missed heartbeat ***", n.getNodeIdentity().getCanonicalName(), "count[", c, "]");
         scheduler.nodeHb(n, c);
     }
 
     public void nodeRecovers(Node n)
     {
     	String methodName = "nodeRecovers";
-        logger.info(methodName, null, "*** Node recovers ***", n.getNodeIdentity().getName());
+        logger.info(methodName, null, "*** Node recovers ***", n.getNodeIdentity().getCanonicalName());
         scheduler.nodeHb(n, 0);
     }
 

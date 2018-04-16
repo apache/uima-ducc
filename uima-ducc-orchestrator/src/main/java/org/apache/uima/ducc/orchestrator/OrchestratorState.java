@@ -88,7 +88,7 @@ public class OrchestratorState {
 		synchronized(this) {
 			String node = "?";
 			if(nodeIdentity != null) {
-				node = nodeIdentity.getName();
+				node = nodeIdentity.getCanonicalName();
 			}
 			long currentValue = sequenceNumberState.get();
 			if(value > currentValue) {

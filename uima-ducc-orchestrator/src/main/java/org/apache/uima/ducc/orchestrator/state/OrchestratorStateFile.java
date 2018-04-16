@@ -108,7 +108,7 @@ public class OrchestratorStateFile implements IOrchestratorState {
 		synchronized(this) {
 			String node = "?";
 			if(nodeIdentity != null) {
-				node = nodeIdentity.getName();
+				node = nodeIdentity.getCanonicalName();
 			}
 			long currentValue = seqNoPublication.get();
 			if(value > currentValue) {

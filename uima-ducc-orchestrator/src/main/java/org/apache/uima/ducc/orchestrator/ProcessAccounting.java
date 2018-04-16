@@ -754,7 +754,7 @@ public class ProcessAccounting {
 		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		try {
 			DuccId processId = inventoryProcess.getDuccId();
-			logger.debug(methodName, null, processId, messages.fetchLabel("node")+inventoryProcess.getNodeIdentity().getName()+" "+messages.fetchLabel("PID")+inventoryProcess.getPID());
+			logger.debug(methodName, null, processId, messages.fetchLabel("node")+inventoryProcess.getNodeIdentity().getCanonicalName()+" "+messages.fetchLabel("PID")+inventoryProcess.getPID());
 			TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 			synchronized(workMap) {
 				ts.using();

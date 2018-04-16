@@ -487,7 +487,7 @@ public class AgentConfiguration {
       camelContext.addRoutes(inventoryRouteBuilder);
 
       logger.info("nodeAgent", null, "------- Agent Initialized - Identity Name:"
-              + agent.getIdentity().getName() + " IP:" + agent.getIdentity().getIp()
+              + agent.getIdentity().getCanonicalName() + " IP:" + agent.getIdentity().getIp()
               + " JP State Update Endpoint:" + common.managedProcessStateUpdateEndpoint);
       return agent;
 

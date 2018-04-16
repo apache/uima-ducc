@@ -114,7 +114,7 @@ implements IWebServer {
     		NodeIdentity nodeIdentity = new NodeIdentity();
         	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
             eventDispatcher.dispatch(stateChangeEndpoint, ev, "");
-            duccLogger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+            duccLogger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getCanonicalName());
         }
     	catch(Exception e) {
     		duccLogger.error(methodName, null, e);

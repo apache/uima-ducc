@@ -539,8 +539,8 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 				if(nodeId != null) {
 					String ip = nodeId.getIp();
 					if(DuccMachinesData.getInstance().isMachineSwapping(ip)) {
-						if(!retVal.contains(nodeId.getName())) {
-							retVal.add(nodeId.getName());
+						if(!retVal.contains(nodeId.getCanonicalName())) {
+							retVal.add(nodeId.getCanonicalName());
 						}
 					}
 				}

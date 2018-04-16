@@ -205,7 +205,7 @@ public class NodeViz
                         ProcessState state = proc.getProcessState();
                         Node n = proc.getNode();
 
-                        logger.debug(methodName, w.getDuccId(), (n == null ? "N/A" : n.getNodeIdentity().getName()), "Process[", pid, "] state [", state, "] is complete[", proc.isComplete(), "]");
+                        logger.debug(methodName, w.getDuccId(), (n == null ? "N/A" : n.getNodeIdentity().getCanonicalName()), "Process[", pid, "] state [", state, "] is complete[", proc.isComplete(), "]");
                         if ( proc.isComplete() ) {
                             continue;
                         }
@@ -224,10 +224,10 @@ public class NodeViz
                             	break;
                         }
                         NodeIdentity ni = n.getNodeIdentity();
-                    	NodeId nodeId = new NodeId(ni.getName());
+                    	NodeId nodeId = new NodeId(ni.getCanonicalName());
                         MachineInfo mi = machinesData.getMachineInfoForNodeid(nodeId);
                         if ( mi != null ) {
-                            String key = strip(n.getNodeIdentity().getName());
+                            String key = strip(n.getNodeIdentity().getCanonicalName());
                             VisualizedHost vh = hosts.get(key);
                             if ( vh == null ) {
                                 // System.out.println("Set host from OR with key:" + key + ":");
@@ -260,10 +260,10 @@ public class NodeViz
                             logger.debug(methodName, w.getDuccId(),  "NodeIdentity [N/A] mem[N/A");
                         } else {
                         	NodeIdentity ni = n.getNodeIdentity();
-                        	NodeId nodeId = new NodeId(ni.getName());
+                        	NodeId nodeId = new NodeId(ni.getCanonicalName());
                             MachineInfo mi = machinesData.getMachineInfoForNodeid(nodeId);
                             if ( mi != null ) {
-                                String key = strip(n.getNodeIdentity().getName());
+                                String key = strip(n.getNodeIdentity().getCanonicalName());
                                 VisualizedHost vh = hosts.get(key);
                                 if ( vh == null ) {
                                     // System.out.println("Set host from OR with key:" + key + ":");

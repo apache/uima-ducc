@@ -72,6 +72,6 @@ public class Resource implements IResource {
 
     public String toString()
     {
-        return getNodeId().getName() + "." + duccId.getFriendly() + "^" + itime + ( purged ? "^P" : "");
+        return getNodeId().getCanonicalName() + "." + duccId.getFriendly() + "^" + itime + ( purged ? "^P" : "");
     }
 }

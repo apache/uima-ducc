@@ -204,7 +204,7 @@ class NodePool
     {
         // allow the names to be machines or ip addresses
         if ( subpoolNames.containsKey( n.getNodeIdentity().getIp()   )) return true;
-        if ( subpoolNames.containsKey( n.getNodeIdentity().getName() )) return true;
+        if ( subpoolNames.containsKey( n.getNodeIdentity().getCanonicalName() )) return true;
         return false;
     }
 
@@ -1012,7 +1012,7 @@ class NodePool
     {
         String methodName = "signalDb";
         try {
-            persistenceAccess.setNodeProperty(m.getNode().getNodeIdentity().getName(), key, value);
+            persistenceAccess.setNodeProperty(m.getNode().getNodeIdentity().getCanonicalName(), key, value);
         } catch (Exception e) {
             logger.warn(methodName, null, "Cannot update DB property", key, "for machine", m);
         }
@@ -1024,7 +1024,7 @@ class NodePool
         NodeIdentity nid = n.getNodeIdentity();
 
         Map<RmNodes, Object> props = new HashMap<RmNodes, Object>();
-        props.put(RmNodes.Name, nid.getName());
+        props.put(RmNodes.Name, nid.getCanonicalName());
         props.put(RmNodes.Ip, nid.getIp());
         props.put(RmNodes.Nodepool, id);
         props.put(RmNodes.Quantum, share_quantum / ( 1024*1024));
@@ -1078,7 +1078,7 @@ class NodePool
 
         updateMaxOrder(order);
 
-        String n = node.getNodeIdentity().getName();
+        String n = node.getNodeIdentity().getCanonicalName();
 
         // if it's offline it can't be restored like this.
         if ( offlineMachines.containsKey(node) ) {

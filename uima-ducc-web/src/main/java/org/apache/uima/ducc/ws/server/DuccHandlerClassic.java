@@ -767,7 +767,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				IDuccReservationMap map = reservation.getReservationMap();
 				for (DuccId key : map.keySet()) { 
 					IDuccReservation value = reservation.getReservationMap().get(key);
-					String node = value.getNodeIdentity().getName();
+					String node = value.getNodeIdentity().getCanonicalName();
 					if(!nodeMap.containsKey(node)) {
 						nodeMap.put(node,new Integer(0));
 					}
@@ -824,7 +824,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = job.getProcessMap().get(processId);
-				String node = process.getNodeIdentity().getName();
+				String node = process.getNodeIdentity().getCanonicalName();
 				nodeMap.put(node, 1);
 			}
 		}
@@ -1645,7 +1645,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				while(iterator.hasNext()) {
 					MachineInfo machineInfo = iterator.next();
 					DuccDaemonRuntimeProperties drp = DuccDaemonRuntimeProperties.getInstance();
-					String machineName = machineInfo.getName();
+					String machineName = machineInfo.getShortName();
 					if(machineName.startsWith("=")) {
 						continue;
 					}

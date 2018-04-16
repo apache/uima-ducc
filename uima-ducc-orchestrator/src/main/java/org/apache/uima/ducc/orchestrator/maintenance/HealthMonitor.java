@@ -179,7 +179,7 @@ public class HealthMonitor {
 						}
 						else {
 							if(!process.isComplete()) {
-								String nodeName = process.getNodeIdentity().getName();
+								String nodeName = process.getNodeIdentity().getCanonicalName();
 								if(!NodeAccounting.getInstance().isAlive(nodeName)) {
 									process.advanceProcessState(ProcessState.Stopped);
 									logger.info(methodName, job.getDuccId(), process.getDuccId(), ProcessState.Stopped);

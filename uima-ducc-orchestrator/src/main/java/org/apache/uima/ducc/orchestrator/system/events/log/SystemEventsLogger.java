@@ -612,7 +612,7 @@ public class SystemEventsLogger {
 		String daemon = dde.getDaemon().getAbbrev();
 		String user = System.getProperty("user.name");
 		String type = dde.getEventType().name();
-		Object[] event = { Labels.NODE+dde.getNodeIdentity().getName(), Labels.TOD+""+dde.getTod() };
+		Object[] event = { Labels.NODE+dde.getNodeIdentity().getCanonicalName(), Labels.TOD+""+dde.getTod() };
 		duccLogger.event_info(daemon, user, type, event);
 	}
 	
@@ -623,7 +623,7 @@ public class SystemEventsLogger {
 		String daemon = dde.getDaemon().getAbbrev();
 		String user = System.getProperty("user.name");
 		String type = dde.getEventType().name();
-		Object[] event = { Labels.NODE+dde.getNodeIdentity().getName(), Labels.TOD+""+dde.getTod() };
+		Object[] event = { Labels.NODE+dde.getNodeIdentity().getCanonicalName(), Labels.TOD+""+dde.getTod() };
 		duccLogger.event_warn(daemon, user, type, event);
 	}
 	

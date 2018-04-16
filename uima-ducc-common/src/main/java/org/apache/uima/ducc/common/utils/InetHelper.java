@@ -28,8 +28,8 @@ public class InetHelper {
 	private static DuccLogger duccLogger = DuccLogger.getLogger(InetHelper.class);
 	private static DuccId jobid = null;
 	
-	public static String getHostName() {
-		String methodName = "getHostName";
+	public static String getCanonicalHostName() {
+		String methodName = "getCanonicalHostName";
 		String hostname = "localhost";
 		try {
 			InetAddress inetAddress = InetAddress.getLocalHost();
@@ -39,6 +39,28 @@ public class InetHelper {
 			duccLogger.error(methodName, jobid, e);
 		}
 		return hostname;
+	}
+	
+	public static String getShortHostName() {
+		String methodName = "getShortHostName";
+		String hostname = "localhost";
+		try {
+			String canonicalHostName = getCanonicalHostName();
+			if(canonicalHostName != null) {
+				hostname = canonicalHostName;
+				if(canonicalHostName.contains(".")) {
+					hostname = canonicalHostName.split("\\.")[0];
+				}
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, jobid, e);
+		}
+		return hostname;
+	}
+	
+	public static String getHostName() {
+		return getShortHostName();
 	}
 
 }

@@ -3175,7 +3175,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			Iterator<MachineInfo> iterator = machines.keySet().iterator();
 			while(iterator.hasNext()) {
 				MachineInfo machineInfo = iterator.next();
-				Properties properties = DuccDaemonRuntimeProperties.getInstance().getAgent(machineInfo.getName());
+				Properties properties = DuccDaemonRuntimeProperties.getInstance().getAgent(machineInfo.getShortName());
 				if(first) {
 					first = false;
 				}

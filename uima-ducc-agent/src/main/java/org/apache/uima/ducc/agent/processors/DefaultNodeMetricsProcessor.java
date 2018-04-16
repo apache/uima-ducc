@@ -89,7 +89,7 @@ public class DefaultNodeMetricsProcessor extends BaseProcessor implements
 		if ( agent.getNodeInfo() == null ) {
 			agent.setNodeInfo(node);
 		}
-	    logger.info(methodName, null, "... Agent "+node.getNodeIdentity().getName()+" Posting Users:"+
+	    logger.info(methodName, null, "... Agent "+node.getNodeIdentity().getCanonicalName()+" Posting Users:"+
 	            node.getNodeMetrics().getNodeUsersMap().size());
 	    
 	    NodeMetricsUpdateDuccEvent event = new NodeMetricsUpdateDuccEvent(node,agent.getInventoryRef().size());

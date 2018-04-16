@@ -64,7 +64,7 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 		String retVal = null;
 		NodeIdentity nodeIdentity= getNodeIdentity();
 		if(nodeIdentity != null) {
-			retVal = nodeIdentity.getName();
+			retVal = nodeIdentity.getCanonicalName();
 		}
 		return retVal;
 	}
@@ -151,7 +151,7 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 				}
 			}
 			if(retVal != null) {
-				logger.info(location, jobIdentity, "driverId:"+driverIdentity+" "+"host: "+retVal.getName()+" "+"size: "+map.size());
+				logger.info(location, jobIdentity, "driverId:"+driverIdentity+" "+"host: "+retVal.getCanonicalName()+" "+"size: "+map.size());
 			}
 		}
 		return retVal;
@@ -169,7 +169,7 @@ public class JdReservation extends JdReservationBean implements IJdReservation {
 				}
 			}
 			if(retVal != null) {
-				logger.info(location, jobIdentity, "driverId:"+driverIdentity+" "+"host: "+retVal.getName()+" "+"size: "+map.size());
+				logger.info(location, jobIdentity, "driverId:"+driverIdentity+" "+"host: "+retVal.getCanonicalName()+" "+"size: "+map.size());
 			}
 		}
 		return retVal;

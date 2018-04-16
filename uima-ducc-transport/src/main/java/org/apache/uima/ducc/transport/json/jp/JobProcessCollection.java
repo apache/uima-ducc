@@ -91,7 +91,7 @@ public class JobProcessCollection {
 	private static String getHostName(IDuccWorkJob job, IDuccProcess process) {
 		String retVal = null;
 		try {
-			retVal = process.getNodeIdentity().getName();
+			retVal = process.getNodeIdentity().getCanonicalName();
 		}
 		catch(Exception e) {
 		}

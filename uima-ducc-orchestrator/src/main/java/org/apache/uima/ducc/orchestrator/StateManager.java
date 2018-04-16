@@ -1274,7 +1274,7 @@ public class StateManager {
 					logger.info(methodName, duccWorkJob.getDuccId(), messages.fetch("resource added")
 												+" "+messages.fetchLabel("process")+duccId.getFriendly()
 												+" "+messages.fetchLabel("unique")+duccId.getUnique()
-												+" "+messages.fetchLabel("name")+nodeId.getName()
+												+" "+messages.fetchLabel("name")+nodeId.getCanonicalName()
 												+" "+messages.fetchLabel("ip")+nodeId.getIp());
 					changes++;
 					// check on usefulness of recent allocation
@@ -1310,7 +1310,7 @@ public class StateManager {
 					logger.warn(methodName, duccWorkJob.getDuccId(), messages.fetch("resource exists")
 						+" "+messages.fetchLabel("process")+duccId.getFriendly()
 						+" "+messages.fetchLabel("unique")+duccId.getUnique()
-						+" "+messages.fetchLabel("name")+nodeId.getName()
+						+" "+messages.fetchLabel("name")+nodeId.getCanonicalName()
 						+" "+messages.fetchLabel("ip")+nodeId.getIp());
 				}
 			}
@@ -1337,7 +1337,7 @@ public class StateManager {
 				logger.info(methodName, duccWorkJob.getDuccId(), messages.fetch("resource processing")
 					+" "+messages.fetchLabel("process")+duccId.getFriendly()
 					+" "+messages.fetchLabel("unique")+duccId.getUnique()
-					+" "+messages.fetchLabel("name")+nodeId.getName()
+					+" "+messages.fetchLabel("name")+nodeId.getCanonicalName()
 					+" "+messages.fetchLabel("ip")+nodeId.getIp());
 				if(processMap.containsKey(duccId)) {
 					IDuccProcess process = processMap.get(duccId);
@@ -1350,7 +1350,7 @@ public class StateManager {
 						logger.info(methodName, duccWorkJob.getDuccId(), messages.fetch("resource deallocated")
 							+" "+messages.fetchLabel("process")+duccId.getFriendly()
 							+" "+messages.fetchLabel("unique")+duccId.getUnique()
-							+" "+messages.fetchLabel("name")+nodeId.getName()
+							+" "+messages.fetchLabel("name")+nodeId.getCanonicalName()
 							+" "+messages.fetchLabel("ip")+nodeId.getIp());
 						break;
 					}
@@ -1358,7 +1358,7 @@ public class StateManager {
 					if(process.isDefunct()) {
 						orchestratorCommonArea.getProcessAccounting().removeProcess(duccId);
 						processMap.removeProcess(duccId);
-						logger.info(methodName, duccId, messages.fetch("remove resource")+" "+messages.fetchLabel("name")+nodeId.getName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
+						logger.info(methodName, duccId, messages.fetch("remove resource")+" "+messages.fetchLabel("name")+nodeId.getCanonicalName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
 						changes++;
 					}
 					*/
@@ -1367,7 +1367,7 @@ public class StateManager {
 					logger.info(methodName, duccWorkJob.getDuccId(), messages.fetch("resource not found")
 						+" "+messages.fetchLabel("process")+duccId.getFriendly()
 						+" "+messages.fetchLabel("unique")+duccId.getUnique()
-						+" "+messages.fetchLabel("name")+nodeId.getName()
+						+" "+messages.fetchLabel("name")+nodeId.getCanonicalName()
 						+" "+messages.fetchLabel("ip")+nodeId.getIp());
 				}
 			}
@@ -1393,11 +1393,11 @@ public class StateManager {
 					long bytes = memoryGbPerProcess * SizeBytes.GB;
 					DuccReservation reservation = new DuccReservation(duccId, node, bytes);
 					reservationMap.addReservation(reservation);
-					logger.info(methodName, duccId, messages.fetch("add resource")+" "+messages.fetchLabel("name")+nodeId.getName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
+					logger.info(methodName, duccId, messages.fetch("add resource")+" "+messages.fetchLabel("name")+nodeId.getCanonicalName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
 					changes++;
 				}
 				else {
-					logger.debug(methodName, duccId, messages.fetch("duplicate resource")+" "+messages.fetchLabel("name")+nodeId.getName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
+					logger.debug(methodName, duccId, messages.fetch("duplicate resource")+" "+messages.fetchLabel("name")+nodeId.getCanonicalName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
 				}
 			}
 		}
@@ -1418,11 +1418,11 @@ public class StateManager {
 				NodeIdentity nodeId = node.getNodeIdentity();
 				if(reservationMap.containsKey(duccId)) {
 					reservationMap.removeReservation(duccId);
-					logger.info(methodName, duccId, messages.fetch("remove resource")+" "+messages.fetchLabel("name")+nodeId.getName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
+					logger.info(methodName, duccId, messages.fetch("remove resource")+" "+messages.fetchLabel("name")+nodeId.getCanonicalName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
 					changes++;
 				}
 				else {
-					logger.debug(methodName, duccId, messages.fetch("not found resource")+" "+messages.fetchLabel("name")+nodeId.getName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
+					logger.debug(methodName, duccId, messages.fetch("not found resource")+" "+messages.fetchLabel("name")+nodeId.getCanonicalName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
 				}
 			}
 		}
@@ -1702,7 +1702,7 @@ public class StateManager {
 						}
 						else {
 							StringBuffer sb = new StringBuffer();
-							sb.append("node:"+inventoryProcess.getNodeIdentity().getName());
+							sb.append("node:"+inventoryProcess.getNodeIdentity().getCanonicalName());
 							sb.append(" ");
 							sb.append("PID:"+inventoryProcess.getPID());
 							sb.append(" ");
@@ -1712,7 +1712,7 @@ public class StateManager {
 					}
 					else {
 						StringBuffer sb = new StringBuffer();
-						sb.append("node:"+inventoryProcess.getNodeIdentity().getName());
+						sb.append("node:"+inventoryProcess.getNodeIdentity().getCanonicalName());
 						sb.append(" ");
 						sb.append("PID:"+inventoryProcess.getPID());
 						sb.append(" ");
@@ -1723,7 +1723,7 @@ public class StateManager {
 				else {
 					DuccId jobId = null;
 					StringBuffer sb = new StringBuffer();
-					sb.append("node:"+inventoryProcess.getNodeIdentity().getName());
+					sb.append("node:"+inventoryProcess.getNodeIdentity().getCanonicalName());
 					sb.append(" ");
 					sb.append("PID:"+inventoryProcess.getPID());
 					sb.append(" ");

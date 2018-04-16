@@ -215,7 +215,7 @@ public class JobDriverStateExchanger extends Thread {
 				IDuccProcess p = entry.getValue();
 				ProcessState state = p.getProcessState();
 				NodeIdentity ni = p.getNodeIdentity();
-				String node = ni.getName();
+				String node = ni.getCanonicalName();
 				String ip = ni.getIp();
 				String pidName = p.getDuccId().getFriendly()+"";
 				String pid = p.getPID();

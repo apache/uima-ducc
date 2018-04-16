@@ -243,11 +243,11 @@ public class OrchestratorEventListener implements DuccEventDelegateListener {
 			switch(type) {
 			case SWITCH_TO_BACKUP:
 			case SWITCH_TO_MASTER:
-				logger.warn(methodName, null, daemonDuccEvent.getDaemon().getAbbrev(), daemonDuccEvent.getNodeIdentity().getName());
+				logger.warn(methodName, null, daemonDuccEvent.getDaemon().getAbbrev(), daemonDuccEvent.getNodeIdentity().getCanonicalName());
 				SystemEventsLogger.warn(daemonDuccEvent);
 				break;
 			default:
-				logger.info(methodName, null, daemonDuccEvent.getDaemon().getAbbrev(), daemonDuccEvent.getNodeIdentity().getName());
+				logger.info(methodName, null, daemonDuccEvent.getDaemon().getAbbrev(), daemonDuccEvent.getNodeIdentity().getCanonicalName());
 				SystemEventsLogger.info(daemonDuccEvent);
 				break;
 			}

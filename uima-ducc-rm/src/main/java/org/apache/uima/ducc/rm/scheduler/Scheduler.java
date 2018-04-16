@@ -825,7 +825,7 @@ public class Scheduler
                 Machine m = getMachine(n);
 
                 if ( m == null ) {
-                    logger.warn(methodName, null, "Cannot find any record of machine", n.getNodeIdentity().getName());
+                    logger.warn(methodName, null, "Cannot find any record of machine", n.getNodeIdentity().getCanonicalName());
                     continue;
                 }
 
@@ -1138,13 +1138,13 @@ public class Scheduler
     //
     NodePool getNodepoolByName(NodeIdentity ni)
     {
-        NodePool np = nodepoolsByNode.get( ni.getName() );
+        NodePool np = nodepoolsByNode.get( ni.getCanonicalName() );
         if ( np == null ) {
             np = nodepoolsByNode.get( ni.getIp() );
         }
         if ( np == null ) {
             np = nodepools[0];
-            updateNodepoolsByNode(ni.getName(), np);     // assign this guy to the default np
+            updateNodepoolsByNode(ni.getCanonicalName(), np);     // assign this guy to the default np
             // nodepoolsByNode.put( ni.getName(), np);          // assign this guy to the default np
         }
         return np;
@@ -1155,7 +1155,7 @@ public class Scheduler
     {        
         String methodName = "nodeArrives";
         if ( ! isInitialized() ) {
-            logger.info(methodName, null, "Waiting for (re)initialization; node = " + node.getNodeIdentity().getName());
+            logger.info(methodName, null, "Waiting for (re)initialization; node = " + node.getNodeIdentity().getCanonicalName());
             return;
         }
 

@@ -743,7 +743,7 @@ public class JdScheduler {
 					logger.debug(location, jobIdentity, "host: "+host+" "+"job: "+jobIdentity);
 					nodeIdentity = jdReservation.allocate(jobIdentity, driverIdentity);
 					if(nodeIdentity != null) {
-						host = nodeIdentity.getName();
+						host = nodeIdentity.getCanonicalName();
 						changes.set(true);
 						break;
 					}
@@ -771,7 +771,7 @@ public class JdScheduler {
 					logger.debug(location, jobIdentity, "host: "+host+" "+"job: "+jobIdentity);
 					nodeIdentity = jdReservation.deallocate(jobIdentity, driverIdentity);
 					if(nodeIdentity != null) {
-						host = nodeIdentity.getName();
+						host = nodeIdentity.getCanonicalName();
 						changes.set(true);
 						break;
 					}

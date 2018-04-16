@@ -171,7 +171,7 @@ public class DuccDataHelper {
 						IDuccProcess proc = map.get(procid);
 						if(!proc.isComplete()) {
 							NodeIdentity nodeIdentity = proc.getNodeIdentity();
-							String procNodeName = nodeIdentity.getName();
+							String procNodeName = nodeIdentity.getCanonicalName();
 							if(procNodeName != null) {
 								if(nodeName.equals(procNodeName)) {
 									JobProcessInfo jpi = new JobProcessInfo();

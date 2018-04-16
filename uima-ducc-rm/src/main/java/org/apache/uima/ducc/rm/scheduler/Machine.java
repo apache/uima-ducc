@@ -81,7 +81,7 @@ public class Machine
     {
         this.node = node;
         this.memory =  node.getNodeMetrics().getNodeMemory().getMemTotal();
-        this.id = node.getNodeIdentity().getName();
+        this.id = node.getNodeIdentity().getCanonicalName();
     }
 
 //    public Machine(String id, long memory)
@@ -505,7 +505,7 @@ public class Machine
      */
     public boolean matches(String s)
     {
-        String name = getNodeIdentity().getName();
+        String name = getNodeIdentity().getCanonicalName();
         if ( s.equals(name) ) return true;                 // try for a perfect match
         
         // see if s is qualified with the domain name

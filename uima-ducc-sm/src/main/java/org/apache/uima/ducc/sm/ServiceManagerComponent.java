@@ -97,7 +97,7 @@ public class ServiceManagerComponent
 	/**
 	 *
 	 */
-	private static DuccLogger logger = DuccLogger.getLogger(ServiceManagerComponent.class.getName(), COMPONENT_NAME);
+	private static DuccLogger logger = DuccLogger.getLogger(ServiceManagerComponent.class.getCanonicalName(), COMPONENT_NAME);
 	private static DuccId jobid = null;
 
 	private IDuccWorkMap localMap = null;
@@ -281,7 +281,7 @@ public class ServiceManagerComponent
     		NodeIdentity nodeIdentity = new NodeIdentity();
         	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
             eventDispatcher.dispatch(stateChangeEndpoint, ev, "");
-            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getCanonicalName());
         }
     	catch(Exception e) {
     		logger.error(methodName, null, e);
@@ -302,7 +302,7 @@ public class ServiceManagerComponent
         meta_ping_rate      = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.rate"          , meta_ping_rate);
         meta_ping_timeout   = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.timeout"       , meta_ping_timeout);
         meta_ping_stability = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.stability"     , meta_ping_stability);
-        default_ping_class  = SystemPropertyResolver.getStringProperty("ducc.sm.default.monitor.class", UimaAsPing.class.getName());
+        default_ping_class  = SystemPropertyResolver.getStringProperty("ducc.sm.default.monitor.class", UimaAsPing.class.getCanonicalName());
 
         String rm = SystemPropertyResolver.getStringProperty("ducc.runmode", "");
         if ( rm.equals("Test") ) testmode = true;
@@ -349,7 +349,7 @@ public class ServiceManagerComponent
 
         readAdministrators();
 
-        stateHandler = StateServicesFactory.getInstance(this.getClass().getName(), COMPONENT_NAME);
+        stateHandler = StateServicesFactory.getInstance(this.getClass().getCanonicalName(), COMPONENT_NAME);
 
         // // String dbname = System.getProperty("ducc.db.name");
         // String dburl  = System.getProperty("ducc.state.database.url"); // "remote:localhost:2424/DuccState"

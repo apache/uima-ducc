@@ -125,7 +125,7 @@ public class DuccWebUtil {
 				for(Entry<DuccId, IDuccProcess> entry : map.entrySet()) {
 					IDuccProcess proc = entry.getValue();
 					NodeIdentity nodeIdentity = proc.getNodeIdentity();
-					String host = nodeIdentity.getName();
+					String host = nodeIdentity.getCanonicalName();
 					if(host != null) {
 						String pid = proc.getPID();
 						if(pid != null) {

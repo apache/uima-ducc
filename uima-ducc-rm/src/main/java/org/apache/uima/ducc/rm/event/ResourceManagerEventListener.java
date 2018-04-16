@@ -108,7 +108,7 @@ public class ResourceManagerEventListener
     		NodeIdentity ni = duccEvent.getNodeIdentity();
     		LifecycleEvent lifecycleEvent = duccEvent.getLifecycleEvent();
     		StringBuffer sb = new StringBuffer();
-    		sb.append("node:"+ni.getName()+" ");
+    		sb.append("node:"+ni.getCanonicalName()+" ");
   		  	sb.append("id:"+process.getDuccId().toString()+" ");
   		  	sb.append("lifecycleEvent:"+lifecycleEvent.name()+" ");
   		  	String args = sb.toString().trim();

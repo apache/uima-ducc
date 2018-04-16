@@ -108,7 +108,7 @@ implements ProcessManager {
     		NodeIdentity nodeIdentity = new NodeIdentity();
         	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
             eventDispatcher.dispatch(stateChangeEndpoint, ev, "");
-            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getCanonicalName());
         }
     	catch(Exception e) {
     		logger.error(methodName, null, e);
@@ -291,7 +291,7 @@ implements ProcessManager {
 				process.getProcessState().toString(),
 				process.getResourceState().toString(),
 				process.getNodeIdentity().getIp(),
-				process.getNodeIdentity().getName(),
+				process.getNodeIdentity().getCanonicalName(),
 				process.getProcessDeallocationType().toString(),
 				(process.getProcessJmxUrl() == null ? "N/A" : process.getProcessJmxUrl() ));
 		

@@ -220,7 +220,7 @@ public class ResourceManagerComponent
     		NodeIdentity nodeIdentity = new NodeIdentity();
         	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
             eventDispatcher.dispatch(stateChangeEndpoint, ev, "");
-            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getCanonicalName());
         }
     	catch(Exception e) {
     		logger.error(methodName, null, e);
