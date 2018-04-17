@@ -583,6 +583,7 @@ class DuccUtil(DuccBase):
     
     # transform hostname into ip address
     def get_ip_address(self,hostname):
+        label = 'get_ip_address'
         result = None
         try:
             p = subprocess.Popen(['/usr/bin/nslookup', hostname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -602,7 +603,7 @@ class DuccUtil(DuccBase):
                         name = t1
         except Exception as e:
             print e
-        debug('ip_address: ', str(result))
+        debug(label, str(result))
         return result
     
     # get all possible hostnames & ip addresses for a head node
@@ -1192,6 +1193,46 @@ class DuccUtil(DuccBase):
             return False
         return True
 
+    keepalivd_conf = '/etc/keepalived/keepalived.conf'
+
+    # eligible when keepalived config comprises the ip
+    def is_reliable_eligible(self, ip):
+        retVal = False
+        if ( os.path.exists(self.keepalivd_conf) ):
+            with open(self.keepalivd_conf) as f:
+                for line in f:
+                    if ip in line:
+                        retVal = True
+                        break
+        return retVal
+        
+    # master when current node keepalived answers for head node ip
+    # backup when current node keepalived does not answer for head ip, but is capable in config
+    # unspecified otherwise
+    def get_reliable_state(self):
+        label = 'get_reliable_state'
+        result = 'unspecified'
+        try:
+            ducc_head = self.ducc_properties.get('ducc.head')
+            head_ip = self.get_ip_address(ducc_head)
+            if(self.is_reliable_eligible(head_ip)):
+                text = 'cmd: ', '/sbin/ip', 'addr', 'list'
+                debug(label, text)
+                p = subprocess.Popen(['/sbin/ip', 'addr', 'list'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                output, err = p.communicate()
+                text = "output: "+output
+                debug(label, text)
+                if(head_ip in output):
+                    result = 'master'
+                else:
+                    result = 'backup'
+        except Exception as e:
+            print e
+        return result
+    
+    def is_reliable_backup(self):
+        return self.get_reliable_state() == 'backup'
+    
     def __init__(self, merge=False):
         global use_threading
         DuccBase.__init__(self, merge)
@@ -1209,7 +1250,7 @@ class DuccUtil(DuccBase):
         if ( self.localhost == self.ducc_properties.get("ducc.head")):
             self.is_ducc_head = True
 
-        os.environ['DUCC_NODENAME'] = self.localhost    # to match java code's implicit propery so script and java match
+        os.environ['DUCC_NODENAME'] = self.localhost    # to match java code's implicit property so script and java match
 
         dbhost = self.ducc_properties.get('ducc.database.host')
         if ( dbhost == None ):
@@ -1225,7 +1266,8 @@ class DuccUtil(DuccBase):
         self.db_pidfile = dir_db_state+ '/cassandra.pid'
         self.db_logfile = dir_db_logs + '/cassandra.console'
         
-        self.pid_file  = self.DUCC_HOME + '/state/ducc.pids'
+        self.pid_file_agents  = self.DUCC_HOME + '/state/agents/ducc.pids'
+        self.pid_file_daemons  = self.DUCC_HOME + '/state/daemons/'+self.get_node_name()+'/ducc.pids'
         self.set_classpath()
         self.os_pagesize = self.get_os_pagesize()
         self.update_properties()

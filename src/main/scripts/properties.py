@@ -213,11 +213,22 @@ class Properties:
         if ( self.props.has_key(key) ):
             del self.props[key]
             self.keys.remove(key)
-
+        
+    #
+    # make directories, if need be
+    #
+    def _makedirs(self, path):
+        try:
+            dir_path = path.rsplit('/',1)[0]
+            os.makedirs(dir_path)
+        except:
+            pass
+        
     #
     # Write the has as a Java-like properties file
     #
     def write(self, propsfile):
+        self._makedirs(propsfile)
         f = open(propsfile, 'w')
         for k in self.keys:
             p = self.props[k]
