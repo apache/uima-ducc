@@ -606,8 +606,8 @@ class DuccUtil(DuccBase):
         debug(label, str(result))
         return result
     
-    # get all possible hostnames & ip addresses for a head node
-    def get_head_node_list_variations(self):
+    # get ducc.head.reliable.list
+    def get_head_node_list(self):
         head_node_list = []
         # add ducc.head.reliable.list node(s)
         ducc_head_list = self.ducc_properties.get("ducc.head.reliable.list")
@@ -620,6 +620,12 @@ class DuccUtil(DuccBase):
                 sys.exit(1);
             else:
                 head_node_list = ducc_head_nodes
+        return head_node_list
+    
+    # get all possible hostnames & ip addresses for a head node
+    def get_head_node_list_variations(self):
+        # start with ducc.head.reliable.list node(s)
+        head_node_list = self.get_head_node_list()
         # add ducc.head node
         ducc_head = self.ducc_properties.get("ducc.head")
         if(ducc_head == None):

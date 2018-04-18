@@ -383,6 +383,11 @@ class CheckDucc(DuccUtil):
     
                     checked[node] = node
                     self.threadpool.invoke(self.check_node, node)
+            # check backup head node(s)
+            for node in self.get_head_node_list():
+                if(not node in checked):
+                    checked[node] = node
+                    self.threadpool.invoke(self.check_node, node)
         except:
             self.threadpool.quit()
             print sys.exc_info()[0], "Exiting."
