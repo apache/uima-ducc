@@ -362,8 +362,7 @@ class StartDucc(DuccUtil):
             sys.exit(1)
 
         ducc = Ducc()
-
-        print "Starting", n_nodes, "agents"        
+    
         self.threadpool = ThreadPool(n_nodes + 5)      # a few more for the head processes
         self.pidlock = threading.Lock()
         
@@ -381,7 +380,10 @@ class StartDucc(DuccUtil):
                     # give 'or' a small head start
                     time.sleep(2)
         
-        if(not self.is_reliable_backup()):
+        if(self.is_reliable_backup()):
+            print '********** "backup" head node -> not starting agents'
+        else:
+            print "Starting", n_nodes, "agents"    
             for (nodefile, nodelist) in nodes.items():
                 print '********** Starting agents from file', nodefile
                 try:

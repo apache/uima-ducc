@@ -101,7 +101,6 @@ class StopDucc(DuccUtil):
             self.pids_daemons.delete(com)
             self.pids_daemons.delete(component)
 
-
     def quiesce_agents(self, components, nodes):
         allnodes = []
         for ( nf, nl ) in nodes.items():
@@ -124,9 +123,8 @@ class StopDucc(DuccUtil):
         # NOTE: quiesce does not actually cause agents to terminate so we don't update the PIDs file
         return
 
-    def stop_agents(self, node, force):
-        if(not self.is_reliable_backup()):
-            self.stop_component('agent@' + node.strip(), force)
+    def stop_agent(self, node, force):
+        self.stop_component('agent@' + node.strip(), force)
     
     def usage(self, msg):
         if ( msg != None ):
@@ -337,11 +335,17 @@ class StopDucc(DuccUtil):
             sys.exit(1)
 
         if ( quiesce ):
-            self.quiesce_agents(components, nodes)
+            if(self.is_reliable_backup()):
+                print '********** "backup" head node -> not quiescing agents'
+            else:
+                self.quiesce_agents(components, nodes)
         else:
-            for (nf, nl) in nodes.items():
-                for n in nl:
-                    self.stop_agents(n, force)       
+            if(self.is_reliable_backup()):
+                print '********** "backup" head node -> not stopping agents'
+            else:
+                for (nf, nl) in nodes.items():
+                    for n in nl:
+                        self.stop_agent(n, force)       
             host = self.localhost.split('.')[0]
             for c in components:
                 c = c.strip()
