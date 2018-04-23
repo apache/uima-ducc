@@ -35,7 +35,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 public class StateServices implements IStateServices {
 	
 	private DuccLogger logger = null;
-	
+	private AccessMode accessMode = AccessMode.RW;
 	StateServices() {
 	}
 
@@ -314,5 +314,15 @@ public class StateServices implements IStateServices {
     }
 
     public void shutdown() {}
+
+	@Override
+	public void setAccessMode(AccessMode accessMode) {
+		this.accessMode = accessMode;
+	}
+
+	@Override
+	public AccessMode getAccessMode() {
+		return accessMode;
+	}
 }
 

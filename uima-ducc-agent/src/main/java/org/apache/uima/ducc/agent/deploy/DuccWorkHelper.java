@@ -59,7 +59,7 @@ public class DuccWorkHelper {
 		String location = "getTargetUrl";
 		String targetUrl = null;
 		String server = getServer();
-		String host = DuccPropertiesResolver.get("ducc." + server + ".http.node");
+		String host = DuccPropertiesResolver.get("ducc.head");
 	    String port = DuccPropertiesResolver.get("ducc." + server + ".http.port");
         if ( host == null || port == null ) {
         	String message = "ducc." + server + ".http.node and/or .port not set in ducc.properties";

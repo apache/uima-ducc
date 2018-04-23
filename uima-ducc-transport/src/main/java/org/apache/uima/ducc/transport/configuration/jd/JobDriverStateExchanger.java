@@ -128,7 +128,7 @@ public class JobDriverStateExchanger extends Thread {
 	private String getTargetUrl() {
 		String targetUrl = null;
 		String server = getServer();
-		String host = DuccPropertiesResolver.get("ducc." + server + ".http.node");
+		String host = DuccPropertiesResolver.get("ducc.head");
 	    String port = DuccPropertiesResolver.get("ducc." + server + ".http.port");
         if ( host == null || port == null ) {
         	String message = "ducc." + server + ".http.node and/or .port not set in ducc.properties";
@@ -181,17 +181,22 @@ public class JobDriverStateExchanger extends Thread {
 	private void abortIfTold(JdReplyEvent jdReplyEvent) {
 		String location = "abortIfTold";
 		if(jdReplyEvent != null) {
-			String killDriverReason = jdReplyEvent.getKillDriverReason();
-			if(killDriverReason != null) {
-				int code = 255;
-				StringBuffer sb = new StringBuffer();
-				sb.append("System Exit");
-				sb.append(" ");
-				sb.append("code="+code);
-				sb.append(" ");
-				sb.append("reason="+killDriverReason);
-				logger.warn(location, jobid, sb.toString());
-				System.exit(code);
+			if(jdReplyEvent.isDuccHeadMaster()) {
+				String killDriverReason = jdReplyEvent.getKillDriverReason();
+				if(killDriverReason != null) {
+					int code = 255;
+					StringBuffer sb = new StringBuffer();
+					sb.append("System Exit");
+					sb.append(" ");
+					sb.append("code="+code);
+					sb.append(" ");
+					sb.append("reason="+killDriverReason);
+					logger.warn(location, jobid, sb.toString());
+					System.exit(code);
+				}
+			}
+			else {
+				logger.warn(location, jobid, "not master");
 			}
 		}
 	}
@@ -210,7 +215,7 @@ public class JobDriverStateExchanger extends Thread {
 				IDuccProcess p = entry.getValue();
 				ProcessState state = p.getProcessState();
 				NodeIdentity ni = p.getNodeIdentity();
-				String node = ni.getName();
+				String node = ni.getCanonicalName();
 				String ip = ni.getIp();
 				String pidName = p.getDuccId().getFriendly()+"";
 				String pid = p.getPID();

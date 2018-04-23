@@ -314,7 +314,7 @@ public class DuccService extends AbstractDuccComponent {
             if ( System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()) == null ) {
                 NodeIdentity ni = new NodeIdentity();
                 System.setProperty(IDuccUser.EnvironmentVariable.DUCC_IP.value(), ni.getIp());
-        		System.setProperty(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value(), ni.getName());
+        		System.setProperty(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value(), ni.getShortName());
 
             } else {
                 System.setProperty(IDuccUser.EnvironmentVariable.DUCC_IP.value(), System.getenv(IDuccUser.EnvironmentVariable.DUCC_IP.value()));

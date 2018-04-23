@@ -300,7 +300,7 @@ JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"
 if [ "x$LOCAL_JMX" = "x" ]; then
     LOCAL_JMX=yes
 fi
-
+LOCAL_JMX=no
 if [ "$LOCAL_JMX" = "yes" ]; then
   JVM_OPTS="$JVM_OPTS -Dcassandra.jmx.local.port=$JMX_PORT -XX:+DisableExplicitGC"
 else

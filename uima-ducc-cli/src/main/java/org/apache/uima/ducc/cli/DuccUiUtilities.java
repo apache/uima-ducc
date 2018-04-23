@@ -20,8 +20,6 @@ package org.apache.uima.ducc.cli;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -140,10 +138,10 @@ public class DuccUiUtilities {
   }
 
 	/*
-	 * Get URL for service handling request. Either "orchestrator" or "sm"
+	 * Get URL for service handling request. (server is always "orchestrator")
 	 */
 	public static String dispatchUrl(String server) {
-	    String host = DuccPropertiesResolver.get("ducc." + server + ".http.node");
+	    String host = DuccPropertiesResolver.get("ducc.head");
 	    String port = DuccPropertiesResolver.get("ducc." + server + ".http.port");
         if ( host == null || port == null) {
             throw new IllegalStateException("ducc." + server + ".http.node and/or .port not set in ducc.properties");

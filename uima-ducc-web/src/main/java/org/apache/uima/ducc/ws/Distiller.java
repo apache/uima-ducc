@@ -97,7 +97,7 @@ public class Distiller {
 										if(!process.isDeallocated()) {
 											NodeIdentity ni = process.getNodeIdentity();
 											if(ni != null) {
-												String name = ni.getName();
+												String name = ni.getCanonicalName();
 												if(name != null) {
 													add(map, name, bytes);
 													SizeBytes sb = new SizeBytes(Type.Bytes,bytes);
@@ -135,7 +135,7 @@ public class Distiller {
 								for(IDuccReservation reservation : reservationMap.values()) {
 									NodeIdentity ni = reservation.getNodeIdentity();
 									if(ni != null) {
-										String name = ni.getName();
+										String name = ni.getCanonicalName();
 										if(name != null) {
 											SizeBytes sb = new SizeBytes(SizeBytes.Type.Bytes, dw.getSchedulingInfo().getMemorySizeAllocatedInBytes());
 											long bytes = sb.getBytes();
@@ -180,7 +180,7 @@ public class Distiller {
 										if(!process.isDeallocated()) {
 											NodeIdentity ni = process.getNodeIdentity();
 											if(ni != null) {
-												String name = ni.getName();
+												String name = ni.getCanonicalName();
 												if(name != null) {
 													add(map, name, bytes);
 													SizeBytes sb = new SizeBytes(Type.Bytes,bytes);

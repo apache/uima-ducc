@@ -42,6 +42,13 @@
       Services Manager, and Web Server on the local node.
       \item Starts an agent process on every node named in the default node list. 
     \end{itemize}
+    
+    Exceptions:
+    \begin{itemize}
+      \item When running reliable DUCC, agents are not started from any backup node.
+      \item When ducc.broker.autostart = false, the ActiveMQ server will not be started.
+      \item When ducc.database.autostart = false, the database will not be started.
+    \end{itemize}
 
     \subsubsection{{\em Usage}}
 
@@ -144,13 +151,19 @@ start_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
     When {\em -a} is specified, the following actions are taken:
     \begin{itemize}
        \item Uses the ActiveMQ broker to broadcast a shutdown request to all
-        DUCC compoments, other than the ActiveMQ broker itself, and the database.
+        DUCC components, other than the ActiveMQ broker itself, and the database.
       \item Waits a bit, for all daemons to stop.
       \item Stops the database.
       \item Stops the ActiveMQ broker.
     \end{itemize}
 
-
+    Exceptions:
+    \begin{itemize}
+      \item When running reliable DUCC, agents are not stopped from any backup node.
+      \item When ducc.broker.autostart = false, the ActiveMQ server will not be stopped.
+      \item When ducc.database.autostart = false, the database will not be stopped.
+    \end{itemize}
+    
     \subsubsection{\em Usage:}
 
     \begin{description}
@@ -249,6 +262,13 @@ start_ducc -c rm
     Check\_ducc can also be used to clean up errant DUCC processes when stop\_ducc is unable 
     to do so. The difference is that stop\_ducc generally tries more gracefully stop processes. 
     check\_ducc is used as a last resort, or if a fast but graceless shutdown is desired. 
+    
+    Exceptions:
+    \begin{itemize}
+      \item When running reliable DUCC, agents are not killed from any backup node.
+      \item When ducc.broker.autostart = false, the ActiveMQ server will not be killed.
+      \item When ducc.database.autostart = false, the database will not be killed.
+    \end{itemize}
     
     \subsubsection{\em{Usage: }}
 
@@ -435,60 +455,6 @@ check_ducc -n nlist1 -n nlist2
 tar --no-anchored -zxf uima-ducc-2.1.0-bin.tar.gz ducc_update
 apache-uima-ducc-2.1.0/admin/ducc_update /home/ducc/ducc_runtime uima-ducc-2.1.0-bin.tar.gz 
 \end{verbatim}
-
-
-\subsection{move\_ducc}
-\label{subsec:admin.move-ducc}
-
-    \paragraph{Description:}
-        This command is used to move the DUCC head node from one node to another.
-        Run this command on the node which is to become the new DUCC head node.
-
-        It performs the following actions:
-        \begin{enumerate}
-          \item Checks that DUCC is not running.
-          \item Insures that the new DUCC head node is in the ducc.head.failover list.
-          \item Creates a backup of the site.ducc.properties file.
-          \item Updates the site.ducc.properties file with revised head and database entries.
-          \item Indicates that move operation is completed.
-        \end{enumerate}
-
-        Nominally, the manual steps to move the DUCC head node are:
-        \begin{enumerate}
-          \item Issue stop\_ducc command on the current DUCC head node.
-          \item Issue move\_ducc command on the new DUCC head node.
-          \item Issue start\_ducc command on the new DUUCC head node.
-        \end{enumerate}
-
-        Note that the stop\_ducc command can be issued with either the 
-        {\em --all}
-        or the 
-        {\em -c head}
-        options.
-        In the later case, existing work will continue to the extent possible.
-               
-        The move\_ducc command requires that:
-        \begin{enumerate}
-          \item The command itself must be issued on the new DUCC head node.
-          \item The old DUCC head node is up.
-          \item The old DUCC head node daemons are down.
-          \item The old DUCC head node and new DUCC head node are not the same.
-          \item The old DUCC head node and old DUCC database node match site.ducc.properties.
-          \item The new DUCC head node is in the ducc.head.failover list in site.ducc.properties.
-          \item If the old DUCC head node is down, then the --offline parameter must be specified.
-        \end{enumerate}
-       
-    \paragraph{Usage:}
-        This command nominally takes no parameters.
-        
-    \paragraph{Options:}
-    \begin{description}
-      	\item -h, --help     show this help message and exit
-      	\item -d, --debug    display debugging messages
-      	\item -o, --offline  indicate current DUCC head node is offline, Note: USE THIS OPTION WITH EXTREME CAUTION else risk corrupting database
-      	\item -q, --quiet    do not display informational messages
-    \end{description}
-
 
 \subsection{rm\_reconfigure}
 \label{subsec:admin.rm-reconfigure}

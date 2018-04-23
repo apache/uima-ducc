@@ -32,4 +32,14 @@ public class DuccPropertiesHelper {
 		}
 		return DuccPropertiesResolver.getInstance();
 	}
+	
+	private static String defaultDuccHead = "?";
+	
+	public static String getDuccHead() {
+		String key = DuccPropertiesResolver.ducc_head;
+		String value = DuccPropertiesResolver.get(key,defaultDuccHead);
+		String retVal = value;
+		return retVal;
+	}
+	
 }

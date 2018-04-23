@@ -41,7 +41,7 @@ class StartDucc(DuccUtil):
 
     def start_broker(self):
         
-        broker_host = self.ducc_properties.get('ducc.broker.hostname')
+        broker_host = self.localhost
         print 'Starting broker on', broker_host
         lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', "'")
         while 1:
@@ -52,7 +52,7 @@ class StartDucc(DuccUtil):
             if ( line.startswith('PID') ):
                 toks = line.split(' ')    # get the PID
                 print "Broker on", broker_host, 'PID', toks[1]
-                self.pids.put('broker@' + broker_host, toks[1])
+                self.pids_daemons.put('broker@' + broker_host, toks[1])
                 lines.close()
                 break
 
@@ -68,14 +68,13 @@ class StartDucc(DuccUtil):
         msgs = []
 
         node = self.ducc_properties.get('ducc.head')
+        
         com = component
         if ( com.find('@') >= 0 ):            
             com, node = com.split('@')
-
-        if ( ( com == 'ws' ) and ( node == 'local' ) and ( self.webserver_node != 'localhost' )):
-            if ( self.webserver_node != None ):
-                node = self.webserver_node
-                component = com + '@' + node
+            
+        if (com in self.local_components):
+			node = self.localhost
 
         if ((com in self.default_components) or ( com == 'agent')) :
             msgs.append((node, 'Starting', com))
@@ -104,7 +103,7 @@ class StartDucc(DuccUtil):
             if ( line.startswith('PID') ):
                 toks = line.split(' ')    # get the PID
                 msgs.append(('     PID', toks[1]))
-                self.pids.put(com + '@' + node, toks[1])
+                self.pids_daemons.put(com + '@' + node, toks[1])
                 lines.close()
                 break
             if ( line.startswith('WARN') ):
@@ -112,7 +111,7 @@ class StartDucc(DuccUtil):
             
         if ( com in self.default_components ):           # tracks where the management processes are
             self.pidlock.acquire()
-            self.pids.put(com, com + '@' + node)
+            self.pids_daemons.put(com, com + '@' + node)
             self.pidlock.release()
 
         return msgs
@@ -132,7 +131,7 @@ class StartDucc(DuccUtil):
                 toks = line.split(' ')
                 pid = toks[1]
                 self.pidlock.acquire()
-                self.pids.put('agent@' + host, pid)
+                self.pids_agents.put('agent@' + host, pid)
                 self.pidlock.release()
 
                 lines.close()
@@ -172,6 +171,11 @@ class StartDucc(DuccUtil):
         print "   start_ducc [options]"
         print "        If no options are given, all DUCC processes are started, using the default"
         print "        nodelist, DUCC_HOME/resources/ducc.nodes. "
+        print ""
+        print "        For reliable DUCC agents will not be started from backup head node. "
+        print ""
+        print "        Broker will not be started when ducc.broker.automanage = false. "
+        print "        Database will not be started when ducc.database.automanage = false. "
         print ""
         print "Options:"
         print "   -n --nodelist nodefile"
@@ -243,8 +247,11 @@ class StartDucc(DuccUtil):
         nodefiles = []
         components = []
         or_parms = self.ducc_properties.get('ducc.orchestrator.start.type')
-        self.pids = Properties()
-        self.pids.load_if_exists(self.pid_file)
+        if(not self.is_reliable_backup()):
+            self.pids_agents = Properties()
+            self.pids_agents.load_if_exists(self.pid_file_agents)
+        self.pids_daemons = Properties()
+        self.pids_daemons.load_if_exists(self.pid_file_daemons)
         
         try:
             opts, args = getopt.getopt(argv, 'c:mn:sh?v', ['component=', 'help', 'nodelist=', 'cold', 'warm', 'nothreading'])
@@ -328,7 +335,7 @@ class StartDucc(DuccUtil):
             sys.exit(1)
         
         # activeMQ needs to be started externally before starting any DUCC processes
-        if ( self.automanage and ('broker' in components) ):
+        if ( self.automanage_broker and ('broker' in components) ):
             if ( self.is_amq_active() ):
                 print 'ActiveMQ broker is already running on host and port:', self.broker_host + ':' + self.broker_port, 'NOT restarting'
             else:
@@ -338,7 +345,7 @@ class StartDucc(DuccUtil):
                     print sys.exc_info()[0], "DUCC may not be started correctly."
                     sys.exit(1)
 
-        if ( 'db' in components ):
+        if ( self.automanage_database and ('db' in components) ):
             try:
                 if ( not self.db_start() ):
                     print "Failed to start or connect to the database."
@@ -355,8 +362,7 @@ class StartDucc(DuccUtil):
             sys.exit(1)
 
         ducc = Ducc()
-
-        print "Starting", n_nodes, "agents"        
+    
         self.threadpool = ThreadPool(n_nodes + 5)      # a few more for the head processes
         self.pidlock = threading.Lock()
         
@@ -373,16 +379,20 @@ class StartDucc(DuccUtil):
                         sys.exit(1)
                     # give 'or' a small head start
                     time.sleep(2)
-                    
-        for (nodefile, nodelist) in nodes.items():
-            print '********** Starting agents from file', nodefile
-            try:
-                for node in nodelist:
-                    self.threadpool.invoke(self.start_one_agent, node)
-            except:
-                self.threadpool.quit()
-                print sys.exc_info()[0], "DUCC may not be started correctly."
-                sys.exit(1)
+        
+        if(self.is_reliable_backup()):
+            print '********** "backup" head node -> not starting agents'
+        else:
+            print "Starting", n_nodes, "agents"    
+            for (nodefile, nodelist) in nodes.items():
+                print '********** Starting agents from file', nodefile
+                try:
+                    for node in nodelist:
+                        self.threadpool.invoke(self.start_one_agent, node)
+                except:
+                    self.threadpool.quit()
+                    print sys.exc_info()[0], "DUCC may not be started correctly."
+                    sys.exit(1)
                     
         if ( len(components) != 0 ):
             print 'Starting', or_parms
@@ -401,8 +411,11 @@ class StartDucc(DuccUtil):
 
         self.threadpool.quit()
 
-        if ( len(self.pids) > 0 ):
-            self.pids.write(self.pid_file)
+        if(not self.is_reliable_backup()):
+            if ( len(self.pids_agents) > 0 ):
+                self.pids_agents.write(self.pid_file_agents)
+        if ( len(self.pids_daemons) > 0 ):
+            self.pids_daemons.write(self.pid_file_daemons)
         return
 
 if __name__ == "__main__":

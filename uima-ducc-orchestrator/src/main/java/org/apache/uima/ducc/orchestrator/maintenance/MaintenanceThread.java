@@ -39,7 +39,6 @@ public class MaintenanceThread extends Thread {
 	private static DuccId jobid = null;
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
-	private DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 	
 	private StateManager stateManager = StateManager.getInstance();
 	private HealthMonitor healthMonitor = HealthMonitor.getInstance();
@@ -98,6 +97,7 @@ public class MaintenanceThread extends Thread {
 		while(!die) {
 			try {
 				if(isTime()) {
+					DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 					stateManager.prune(workMap);
 					healthMonitor.ajudicate();
 				}

@@ -42,34 +42,40 @@ public class DuccData {
 	private static DuccLogger logger = DuccLogger.getLogger(DuccData.class);
 	private static DuccId jobid = null;
 	
-	private static IDuccWorkMap duccWorkMap = new DuccWorkMap();
-	private static IDuccWorkMap duccWorkLive = new DuccWorkMap();
-	
-	private static ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = new ConcurrentSkipListMap<JobInfo,JobInfo>();
-	private static ConcurrentSkipListMap<DuccId,JobInfo> keyMapJobs = new ConcurrentSkipListMap<DuccId,JobInfo>();
-	
-	private static ConcurrentSkipListMap<ReservationInfo,ReservationInfo> sortedReservations = new ConcurrentSkipListMap<ReservationInfo,ReservationInfo>();
-	private static ConcurrentSkipListMap<DuccId,ReservationInfo> keyMapReservations = new ConcurrentSkipListMap<DuccId,ReservationInfo>();
-	
-	private static ConcurrentSkipListMap<JobInfo,JobInfo> sortedServices = new ConcurrentSkipListMap<JobInfo,JobInfo>();
-	private static ConcurrentSkipListMap<DuccId,JobInfo> keyMapServices = new ConcurrentSkipListMap<DuccId,JobInfo>();
-	
-	private static ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = new ConcurrentSkipListMap<Info,Info>();
-	private static ConcurrentSkipListMap<DuccId,Info> keyMapCombinedReservations = new ConcurrentSkipListMap<DuccId,Info>();
-	
-	private static PagingObserver pagingObserver = PagingObserver.getInstance();
-	
-	private static DuccData duccData = new DuccData();
-	
-	private static long slack = 100;
+	private static DuccData instance = new DuccData();
+
+	public static void reset() {
+		String location = "reset";
+		logger.info(location, jobid, "");
+		instance = new DuccData();
+	}
 	
 	public static DuccData getInstance() {
-		return duccData;
+		return instance;
 	}
 	
 	private volatile String published = null;
 	
+	private long slack = 100;
+	
 	private IHistoryPersistenceManager hpm = HistoryFactory.getInstance(this.getClass().getName());
+	
+	private IDuccWorkMap duccWorkMap = new DuccWorkMap();
+	private IDuccWorkMap duccWorkLive = new DuccWorkMap();
+	
+	private ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = new ConcurrentSkipListMap<JobInfo,JobInfo>();
+	private ConcurrentSkipListMap<DuccId,JobInfo> keyMapJobs = new ConcurrentSkipListMap<DuccId,JobInfo>();
+	
+	private ConcurrentSkipListMap<ReservationInfo,ReservationInfo> sortedReservations = new ConcurrentSkipListMap<ReservationInfo,ReservationInfo>();
+	private ConcurrentSkipListMap<DuccId,ReservationInfo> keyMapReservations = new ConcurrentSkipListMap<DuccId,ReservationInfo>();
+	
+	private ConcurrentSkipListMap<JobInfo,JobInfo> sortedServices = new ConcurrentSkipListMap<JobInfo,JobInfo>();
+	private ConcurrentSkipListMap<DuccId,JobInfo> keyMapServices = new ConcurrentSkipListMap<DuccId,JobInfo>();
+	
+	private ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = new ConcurrentSkipListMap<Info,Info>();
+	private ConcurrentSkipListMap<DuccId,Info> keyMapCombinedReservations = new ConcurrentSkipListMap<DuccId,Info>();
+	
+	private PagingObserver pagingObserver = PagingObserver.getInstance();
 	
 	public boolean isPublished() {
 		return published != null;

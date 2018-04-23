@@ -123,7 +123,7 @@ public class NodeAccounting {
 				DuccId duccId = iterator.next();
 				IDuccProcess process = processMap.get(duccId);
 				NodeIdentity nodeIdentity = process.getNodeIdentity();
-				String nodeName = nodeIdentity.getName();
+				String nodeName = nodeIdentity.getCanonicalName();
 				heartbeat(nodeName);
 				break;
 			}

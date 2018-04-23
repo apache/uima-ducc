@@ -57,10 +57,11 @@ class StartSim(DuccUtil):
 
     def start_broker(self):
         
-        if ( not self.automanage ):
+        if ( not self.automanage_broker ):
             print "Broker is not automanaged, returning."
+            return
 
-        broker_host = self.ducc_properties.get('ducc.broker.hostname')
+        broker_host = self.localhost
         print 'broker host', broker_host
         lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', '--simtest', "'")
 
@@ -70,6 +71,19 @@ class StartSim(DuccUtil):
             print 'Waiting for broker', str(i)
             time.sleep(1)
 
+    def start_database(self):
+        
+        if ( not self.automanage_database ):
+            print "Database is not automanaged, returning."
+            return
+		
+        try:
+        	self.db_start()                
+        except Exception (e):
+            # print e
+            print sys.exc_info()[0], "Can't start the database."
+            sys.exit(1)
+		
     def run_local_agent(self, pnode, ip, memory ):
 
         if ( not self.verify_jvm() ):
@@ -398,12 +412,7 @@ class StartSim(DuccUtil):
                 print '-------- start database'
 
                 if ( components.get('db') != None ):
-                    try:
-                        self.db_start()                
-                    except Exception (e):
-                        # print e
-                        print sys.exc_info()[0], "Can't start the database."
-                        sys.exit(1)
+                	self.start_database()
                         
                 print '-------- specials_only', specials_only
                 if ( specials_only ):

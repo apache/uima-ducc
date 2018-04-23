@@ -28,6 +28,9 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.head.IDuccHead;
+import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadState;
+import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadTransition;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
@@ -68,7 +71,7 @@ implements ProcessManager {
 	private static String header;
 	private static String tbl=String.format("%1$-158s"," ").replace(" ", "-");
 	public static DuccLogger logger = new DuccLogger(ProcessManagerComponent.class, DuccComponent);
-	
+	private static DuccId jobid = null;
 	//	Dispatch component used to send messages to remote Agents
 	private DuccEventDispatcher eventDispatcher;
   private int shareQuantum;
@@ -76,6 +79,8 @@ implements ProcessManager {
   
   private String stateChangeEndpoint;
   
+	private IDuccHead dh = null;
+	
 	public ProcessManagerComponent(CamelContext context, DuccEventDispatcher eventDispatcher) {
 		super("ProcessManager",context);
 		this.eventDispatcher = eventDispatcher;
@@ -103,7 +108,7 @@ implements ProcessManager {
     		NodeIdentity nodeIdentity = new NodeIdentity();
         	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
             eventDispatcher.dispatch(stateChangeEndpoint, ev, "");
-            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getCanonicalName());
         }
     	catch(Exception e) {
     		logger.error(methodName, null, e);
@@ -229,6 +234,34 @@ implements ProcessManager {
       logger.debug(methodName, null , "---- PM Dispatching DuccJobsStateEvent request to Agent(s) - State Map Size:"+jobDeploymentList.size()+" Reservation List:"+reservationList.size());
       DuccJobsStateEvent ev =  new DuccJobsStateEvent(DuccEvent.EventType.PM_STATE, jobDeploymentList, reservationList);
       ev.setSequence(sequence);
+      
+      
+		DuccHeadTransition dh_transition = getDuccHead().transition();
+		logger.info(methodName, jobid, dh_transition);
+		switch(dh_transition) {
+		case master_to_backup:
+			stateChange(EventType.SWITCH_TO_BACKUP);
+			ev.setDuccHeadState(DuccHeadState.backup);
+			logger.warn(methodName, jobid, "ducc head -> backup");
+			break;
+		case backup_to_master:
+			stateChange(EventType.SWITCH_TO_MASTER);
+			ev.setDuccHeadState(DuccHeadState.master);
+			logger.warn(methodName, jobid, "ducc head -> master");
+			break;
+		case master_to_master:
+			ev.setDuccHeadState(DuccHeadState.master);
+			logger.debug(methodName, jobid, "ducc head == master");
+			break;
+		case backup_to_backup:
+			ev.setDuccHeadState(DuccHeadState.backup);;
+			logger.debug(methodName, jobid, "ducc head == backup");
+			break;
+		default:
+			logger.debug(methodName, jobid, "ducc head == unspecified");
+			break;
+		}
+
       //  Dispatch state update to agents
       eventDispatcher.dispatch(ev);
       logger.debug(methodName, null , "+++++ PM Dispatched State To Agent(s)");
@@ -236,6 +269,19 @@ implements ProcessManager {
       logger.error(methodName,null,t);
 	  }
 	}
+	
+	private IDuccHead getDuccHead() {
+    	if(dh == null) {
+    		dh = DuccHead.getInstance();
+    		if(dh.is_ducc_head_backup()) {
+    			stateChange(EventType.INIT_AS_BACKUP);
+    		}
+    		else {
+    			stateChange(EventType.INIT_AS_MASTER);
+    		}
+    	}
+    	return dh;
+    }
 	
 	private String formatProcess( IDuccProcess process ) {
 		return String.format(jobHeaderFormat,
@@ -245,7 +291,7 @@ implements ProcessManager {
 				process.getProcessState().toString(),
 				process.getResourceState().toString(),
 				process.getNodeIdentity().getIp(),
-				process.getNodeIdentity().getName(),
+				process.getNodeIdentity().getCanonicalName(),
 				process.getProcessDeallocationType().toString(),
 				(process.getProcessJmxUrl() == null ? "N/A" : process.getProcessJmxUrl() ));
 		

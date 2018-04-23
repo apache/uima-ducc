@@ -80,7 +80,6 @@ public class JobFactory implements IJobFactory {
 	}
 
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
-	private IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
 	private JdScheduler jdScheduler = orchestratorCommonArea.getJdScheduler();
 	private DuccIdFactory jdIdFactory = new DuccIdFactory();
 
@@ -437,6 +436,7 @@ public class JobFactory implements IJobFactory {
 	}
 
 	public DuccWorkJob createJob(JobRequestProperties jobRequestProperties) throws ResourceUnavailableForJobDriverException {
+		IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
 		DuccWorkJob job = new DuccWorkJob();
 		job.setDuccType(DuccType.Job);
 		job.setDuccId(duccIdFactory.next());
@@ -446,6 +446,7 @@ public class JobFactory implements IJobFactory {
 	}
 
 	public DuccWorkJob createService(JobRequestProperties jobRequestProperties) {
+		IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
 		DuccWorkJob job = new DuccWorkJob();
 		job.setDuccType(DuccType.Service);
 		job.setDuccId(duccIdFactory.next());

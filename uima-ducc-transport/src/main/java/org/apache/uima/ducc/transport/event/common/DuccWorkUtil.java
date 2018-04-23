@@ -34,7 +34,7 @@ public class DuccWorkUtil {
 	private static void put(List<String> list, NodeIdentity nodeIdentity) {
 		if(list != null) {
 			if(nodeIdentity != null) {
-				String name = nodeIdentity.getName();
+				String name = nodeIdentity.getCanonicalName();
 				if(name != null) {
 					if(!list.contains(name)) {
 						list.add(name);

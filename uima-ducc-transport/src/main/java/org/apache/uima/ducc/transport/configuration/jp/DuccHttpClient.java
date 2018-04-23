@@ -205,7 +205,7 @@ public class DuccHttpClient {
 		return ip;
 	}
 	private String getNodeName() {
-		String nn =nodeIdentity.getName();
+		String nn =nodeIdentity.getCanonicalName();
 		if ( System.getenv(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value()) != null) {
 			nn = System.getenv(IDuccUser.EnvironmentVariable.DUCC_NODENAME.value());
 		}

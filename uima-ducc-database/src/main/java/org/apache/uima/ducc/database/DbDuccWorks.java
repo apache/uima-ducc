@@ -70,12 +70,12 @@ public class DbDuccWorks implements IDbDuccWorks {
 	/*
 	 * connect to DB
 	 */
-	private boolean init(String dburl) throws Exception {
+	private boolean init(String[] dburls) throws Exception {
 		String methodName = "init";
 		boolean ret = false;
 		while (true) {
 			try {
-				dbManager = new DbManager(dburl, logger);
+				dbManager = new DbManager(dburls, logger);
 				dbManager.init();
 				ret = true;
 				break;
@@ -149,8 +149,9 @@ public class DbDuccWorks implements IDbDuccWorks {
 			 logger.debug(location, jobid, messageDbDisabled);
 			 return;
 		 }
-	     String dbUrl = System.getProperty(DbManager.URL_PROPERTY);
-	     init(dbUrl);
+	     String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
+	     String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+	     init(dbUrls);
 	}
 
 	/**

@@ -379,7 +379,7 @@ public class DuccMachinesData {
 			String ipString = ip.toString();
 			ipToNodeUsersInfoMap.put(ipString, map);
 		}
-		String machineName = nodeMetrics.getNodeIdentity().getName().trim();
+		String machineName = nodeMetrics.getNodeIdentity().getCanonicalName().trim();
 		NodeId nodeId = new NodeId(machineName);
 		ipToNameMap.put(ip,nodeId);
 		nameToIpMap.put(nodeId,ip);

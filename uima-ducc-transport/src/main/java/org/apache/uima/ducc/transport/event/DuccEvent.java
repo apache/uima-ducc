@@ -25,6 +25,11 @@ public interface DuccEvent extends Serializable { // extends Map<Object, Object>
 			BOOT, 
 			SHUTDOWN, 
 			//
+			INIT_AS_MASTER, 
+			INIT_AS_BACKUP,
+			SWITCH_TO_MASTER, 
+			SWITCH_TO_BACKUP, 
+			//
         	SUBMIT_JOB, 
             CANCEL_JOB, 
             MODIFY_JOB, 

@@ -27,7 +27,13 @@ under the License.
 <table>
 <tr>
 <td><b><span class="title">ducc-mon</span></b>
-<td><td><i>Version: <b><span class="version" id="version"></span></b></i>
+<td>
+<td><i>Version: <b><span class="version" id="version"></span></b></i>
+<td>
+<td><span>
+    <i><span id="reliable-label"></span></i>
+    <b><span id="reliable-status"></span></b>
+    </span>
 </table>
 <span class="title_acronym">D</span><span class="title">istributed</span>
 <span class="title_acronym">U</span><span class="title">IMA</span>

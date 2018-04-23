@@ -268,6 +268,16 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		return this.name;
 	}
 	
+	public String getShortName() {
+		String retVal = this.name;
+		if(retVal != null) {
+			if(retVal.contains(".")) {
+				retVal = retVal.split("\\.")[0];
+			}
+		}
+		return retVal;
+	}
+	
 	public void setMemTotal(String value) {
 		this.memTotal = value;
 	}

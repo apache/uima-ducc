@@ -25,12 +25,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.camel.CamelContext;
-import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
+import org.apache.uima.ducc.common.head.IDuccHead;
+import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadTransition;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -46,11 +47,13 @@ import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SmHeartbeatDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
+import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.self.message.WebServerStateDuccEvent;
 import org.apache.uima.ducc.ws.server.DuccListeners;
 import org.apache.uima.ducc.ws.server.DuccWebServer;
+import org.apache.uima.ducc.ws.server.DuccWebServerHelper;
 import org.apache.uima.ducc.ws.utils.DatedNodeMetricsUpdateDuccEvent;
 
 
@@ -77,6 +80,8 @@ implements IWebServer {
 	private DuccEventDispatcher eventDispatcher;
 	private String stateChangeEndpoint;
 
+	private IDuccHead dh = null;
+	
 	public WebServerComponent(CamelContext context, CommonConfiguration common) {
 		super("WebServer",context);
 		String methodName = "WebServerComponent";
@@ -109,7 +114,7 @@ implements IWebServer {
     		NodeIdentity nodeIdentity = new NodeIdentity();
         	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
             eventDispatcher.dispatch(stateChangeEndpoint, ev, "");
-            duccLogger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+            duccLogger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getCanonicalName());
         }
     	catch(Exception e) {
     		duccLogger.error(methodName, null, e);
@@ -161,17 +166,55 @@ implements IWebServer {
 	private void init() {
 		String methodName = "init";
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
-		File file = new File(IDuccEnv.DUCC_LOGS_WEBSERVER_DIR);
+		File file = new File(DuccWebServerHelper.getDuccWebLogsDir());
 		file.mkdirs();
 		webServerStart();
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
 	
+	private IDuccHead getDuccHead() {
+    	if(dh == null) {
+    		dh = DuccHead.getInstance();
+    		if(dh.is_ducc_head_backup()) {
+    			stateChange(EventType.INIT_AS_BACKUP);
+    		}
+    		else {
+    			stateChange(EventType.INIT_AS_MASTER);
+    		}
+    	}
+    	return dh;
+    }
 	
 	public void update(OrchestratorStateDuccEvent duccEvent) {
 		String methodName = "update";
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
 		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"OrchestratorStateDuccEvent");
+		
+		DuccHeadTransition transition = getDuccHead().transition();
+		switch(transition) {
+		case master_to_master:
+			duccLogger.debug(methodName, jobid, "ducc head == master");
+			break;
+		case master_to_backup:
+			DuccData.reset();
+			duccEvent.setWorkMap(new DuccWorkMap());	// ignore OR map
+			duccLogger.warn(methodName, jobid, "ducc head -> backup");
+			stateChange(EventType.SWITCH_TO_BACKUP);
+			break;
+		case backup_to_master:
+			duccLogger.warn(methodName, jobid, "ducc head -> master");
+			stateChange(EventType.SWITCH_TO_MASTER);
+			DuccBoot.boot();
+			break;
+		case backup_to_backup:
+			duccEvent.setWorkMap(new DuccWorkMap());	// ignore OR map
+			duccLogger.debug(methodName, jobid, "ducc head == backup");
+			break;
+		default:
+			duccLogger.debug(methodName, jobid, "ducc head == unspecified");
+			break;
+		}
+		
 		DuccDaemonsData.getInstance().put(duccEvent);
 		IDuccWorkMap wm = duccEvent.getWorkMap();
 		boolean change = false;

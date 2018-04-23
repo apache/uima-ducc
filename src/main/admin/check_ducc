@@ -99,6 +99,10 @@ class CheckDucc(DuccUtil):
 
                 signal = self.kill_signal
                 
+                if(self.is_reliable_backup()):
+                    if ( component == 'agent' ):
+                        continue
+                    
                 if ( component == 'orchestrator' ):
                     component = 'or'
                     
@@ -116,18 +120,21 @@ class CheckDucc(DuccUtil):
                     else:
                         messages.append((spacer, 'Killing (' +  signal + ')', process_id))
                         self.kill_process(node, proc, signal)
-                        self.pids.delete(pid)
+                        if ( component == 'agent' ):
+                            self.pids_agents.delete(pid)
+                        else:
+                            self.pids_daemons.delete(pid)
                         process_changes = True
 
                 else:
                     messages.append((spacer, 'Found', process_id))
                     full_name = component + '@' + node
                     if ( component == 'agent' ):
-                        self.pids.put(full_name, pid)
-
-                    if ( component in self.default_components ):
-                        self.pids.put(full_name, pid)
-                        self.pids.put(component, full_name)
+                        self.pids_agents.put(full_name, pid)
+                    else:
+                        if ( component in self.default_components ):
+                            self.pids_daemons.put(full_name, pid)
+                            self.pids_daemons.put(component, full_name)
         else:
             messages.append((spacer, 'no processes found.'))
 
@@ -172,6 +179,11 @@ class CheckDucc(DuccUtil):
         print ""
         print "      check_ducc -n ../resources/ducc.nodes"
         print ""
+        print "   For reliable DUCC agents will not be killed from backup head node. "
+        print ""
+        print "   Broker will not be killed when ducc.broker.automanage = false. "
+        print "   Database will not be killed when ducc.database.automanage = false. "
+        print ""
         print "Options:"
         print "    -n --nodelist nodefile"
         print "        Check for agents on the nodes in nodefile.  This option may be specified multiple time"
@@ -203,7 +215,7 @@ class CheckDucc(DuccUtil):
         print "       changes."
         print ""
         print "    -x localdate"
-        print "       Validate the local installation, called via ssh usually. The date is the dat on the calling machine."
+        print "       Validate the local installation, called via ssh usually. The date is the date on the calling machine."
         print ""
         print "    --nothreading"
         print "        Disable multithreaded operation if it would otherwise be used"
@@ -306,9 +318,12 @@ class CheckDucc(DuccUtil):
         self.verify_database() 
 
         # init the PID file
-        self.pids = Properties()
-        self.pids.load_if_exists(self.pid_file)
-
+        if(not self.is_reliable_backup()):
+        	self.pids_agents = Properties()
+        	self.pids_agents.load_if_exists(self.pid_file_agents)
+        self.pids_daemons = Properties()
+        self.pids_daemons.load_if_exists(self.pid_file_daemons)
+        
         # read the nodelists
         if ( len(nodefiles) == 0 ):
             nodefiles = self.default_nodefiles
@@ -348,11 +363,6 @@ class CheckDucc(DuccUtil):
             else:
                 print "NOTOK: Errors in class or node configuration."
 
-            if self.verify_head_failover_configuration():
-                print "OK: Failover configuration checked"
-            else:
-                print "NOTOK: Errors in failover configuration."
-
             return
 
         # checking starts here        
@@ -373,6 +383,11 @@ class CheckDucc(DuccUtil):
     
                     checked[node] = node
                     self.threadpool.invoke(self.check_node, node)
+            # check backup head node(s)
+            for node in self.get_head_node_list():
+                if(not node in checked):
+                    checked[node] = node
+                    self.threadpool.invoke(self.check_node, node)
         except:
             self.threadpool.quit()
             print sys.exc_info()[0], "Exiting."
@@ -381,17 +396,30 @@ class CheckDucc(DuccUtil):
         self.threadpool.quit()
 
         if ( self.kill_signal != None ):
-            print 'Stopping broker'
-            self.stop_broker()
-            print 'Stopping database'
-            self.db_stop()
-                
-        if ( len(self.pids) == 0):
-            if ( os.path.exists(self.pid_file) ):
-                os.remove(self.pid_file)
+            if(self.automanage_broker):
+                print 'Stopping broker'
+                self.stop_broker()
+            else:
+                print 'Not stopping broker - not automanaged'
+            if(self.automanage_database):
+                print 'Stopping database'
+                self.db_stop()
+            else:
+                print 'Not stopping database - not automanaged'
+            
+        if(not self.is_reliable_backup()):
+            if ( len(self.pids_agents) == 0):
+                if ( os.path.exists(self.pid_file_agents) ):
+                    os.remove(self.pid_file_agents)
+            elif (process_changes or redo_pids):
+                self.pids_agents.write(self.pid_file_agents)
+                    
+        if ( len(self.pids_daemons) == 0):
+            if ( os.path.exists(self.pid_file_daemons) ):
+                os.remove(self.pid_file_daemons)
         elif (process_changes or redo_pids):
-            self.pids.write(self.pid_file)
-    
+            self.pids_daemons.write(self.pid_file_daemons)
+            
 if __name__ == "__main__":
     checker = CheckDucc()
     checker.main(sys.argv[1:])

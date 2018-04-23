@@ -222,6 +222,80 @@
                     <delete file="target/site/duccbook-pdf/duccbook.toc" />
                     <delete file="target/site/duccbook-pdf/duccbook.cons" />
                     <echo message="Completed duccbook PDF" />
+                    
+                    
+                    
+                    
+                    <!-- Relaible DUCC Design -->
+                    
+                    
+                    <echo message="Building duccbook Reliable DUCC Design HTML" />
+                    <mkdir dir="target/site/duccbook-html" />
+                    <exec executable="htlatex" dir="src/site/tex/duccbook" failonerror="true" output="/dev/null">
+                      <arg value="reliable-ducc.tex" />
+                    </exec>
+                    <move todir="target/site/duccbook-html" overwrite="true">
+                      <fileset dir="src/site/tex/duccbook">
+                        <include name="reliable-ducc.html" />
+                        <include name="reliable-ducc.css" />
+                      </fileset>
+                    </move>
+                    <delete file="src/site/tex/duccbook/reliable-ducc.4ct" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc.4tc" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc.aux" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc.dvi" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc.idv" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc.lg" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc.log" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc.tmp" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc.xref" />
+                    <echo message="Completed reliable-ducc HTML" />
+
+                    <echo message="Building duccbook Reliable DUCC Design PDF" />
+                    <mkdir dir="target/site/duccbook-pdf" />
+                    <exec executable="pdflatex" dir="src/site/tex/duccbook" failonerror="true" output="/dev/null">
+                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="-interaction=errorstopmode" />
+                      <arg value="reliable-ducc.tex" />
+                    </exec>
+
+                    <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
+                    <!-- htlatex by default runs enough to get xrefs and TOC -->
+                    <exec executable="pdflatex" dir="src/site/tex/duccbook" output="/dev/null">
+                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="reliable-ducc.tex" />
+                    </exec>
+
+                    <echo message="Completed duccbook Reliable DUCC Design PDF" />
+
+                    <exec executable="latex" dir="src/site/tex/duccbook" output="/dev/null">
+                      <arg value="-output-directory=../../../../target/site/duccbook-install" />
+                      <arg value="reliable-ducc.tex" />
+                    </exec>
+                    <delete file="target/site/duccbook-pdf/reliable-ducc.aux" />
+                    <delete file="target/site/duccbook-pdf/reliable-ducc.log" />
+                    <delete file="target/site/duccbook-pdf/reliable-ducc.out" />
+                    <echo message="Completed duccbook Reliable DUCC Design PDF" />
+
+                    <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
+                    <!-- htlatex by default runs enough to get xrefs and TOC -->
+                    <exec executable="dvi2tty" dir="target/site/duccbook-install" output="/dev/null">
+                      <arg value="-oINSTALL" />
+                      <arg value="-w132" />
+                      <arg value="-l" />
+                      <arg value="reliable-ducc.dvi" />
+                    </exec>
+                    <delete file="target/site/duccbook-install/reliable-ducc.aux" />
+                    <delete file="target/site/duccbook-install/reliable-ducc.log" />
+                    <delete file="target/site/duccbook-install/reliable-ducc.out" />
+                    <delete file="target/site/duccbook-install/reliable-ducc.dvi" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc0x.png" />
+                    <delete file="src/site/tex/duccbook/reliable-ducc1x.png" />
+                    <echo message="Completed duccbook Reliable DUCC Design Text file as INSTALL" />
+                    
+                    <!-- /Relaible DUCC Design -->
+                    
+                    
                   </target>
                 </configuration>
               </execution>

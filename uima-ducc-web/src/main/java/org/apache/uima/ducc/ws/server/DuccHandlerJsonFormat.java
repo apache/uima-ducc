@@ -43,6 +43,7 @@ import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
+import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.ComponentHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -68,6 +69,7 @@ import org.apache.uima.ducc.transport.event.common.JdReservationBean;
 import org.apache.uima.ducc.ws.Distiller;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
+import org.apache.uima.ducc.ws.DuccHead;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.DuccMachinesDataHelper;
 import org.apache.uima.ducc.ws.Info;
@@ -117,6 +119,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private Gson gson = new Gson();
 	
 	private static JsonHelper jh = new JsonHelper();
+	
+	private static IDuccHead dh = DuccHead.getInstance();
 	
 	//private static PagingObserver pagingObserver = PagingObserver.getInstance();
 	
@@ -537,90 +541,96 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		return row;
 	}
 	
+	private void noJobs(JsonArray row, String reason) {
+		// Terminate
+		row.add(new JsonPrimitive(reason));
+		// Id
+		row.add(new JsonPrimitive(""));
+		// Start
+		row.add(new JsonPrimitive(""));
+		// Duration
+		row.add(new JsonPrimitive(""));
+		// User
+		row.add(new JsonPrimitive(""));
+		// Class
+		row.add(new JsonPrimitive(""));
+		// State
+		row.add(new JsonPrimitive(""));
+		// Reason
+		row.add(new JsonPrimitive(""));
+		// Services
+		row.add(new JsonPrimitive(""));
+		// Processes
+		row.add(new JsonPrimitive(""));
+		// Init Fails
+		row.add(new JsonPrimitive(""));
+		// Run Fails
+		row.add(new JsonPrimitive(""));
+		// Pgin
+		row.add(new JsonPrimitive(""));
+		// Swap
+		row.add(new JsonPrimitive(""));
+		// Size
+		row.add(new JsonPrimitive(""));			
+		// Total
+		row.add(new JsonPrimitive(""));
+		// Done
+		row.add(new JsonPrimitive(""));
+		// Error
+		row.add(new JsonPrimitive(""));
+		// Dispatch
+		row.add(new JsonPrimitive(""));
+		// Retry
+		row.add(new JsonPrimitive(""));
+		// Preempt
+		row.add(new JsonPrimitive(""));
+		// Description
+		row.add(new JsonPrimitive(""));
+	}
+	
 	private void handleServletJsonFormatJobsAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
 		String methodName = "handleServletJsonFormatJobsAaData";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
-		
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
-		
-		ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
-		
-		long now = System.currentTimeMillis();
-		
-		int maxRecords = getJobsMax(request);
-		ArrayList<String> users = getJobsUsers(request);
-		DuccData duccData = DuccData.getInstance();
-		ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = duccData.getSortedJobs();
-		if(sortedJobs.size()> 0) {
-			Iterator<Entry<JobInfo, JobInfo>> iterator = sortedJobs.entrySet().iterator();
-			int counter = 0;
-			while(iterator.hasNext()) {
-				JobInfo jobInfo = iterator.next().getValue();
-				DuccWorkJob job = jobInfo.getJob();
-				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, job);
-				if(list) {
-					counter++;
-					JsonArray row = buildJobRow(request, job, duccData, now, servicesRegistry);
-					data.add(row);
-				}
-			}
+		if(dh.is_ducc_head_backup()) {
+			JsonArray row = new JsonArray();
+			noJobs(row, "no data - not master");
+			data.add(row);
 		}
 		else {
-			JsonArray row = new JsonArray();
-			if(DuccData.getInstance().isPublished()) {
-				// Terminate
-				row.add(new JsonPrimitive("no jobs"));
+			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
+			long now = System.currentTimeMillis();
+			int maxRecords = getJobsMax(request);
+			ArrayList<String> users = getJobsUsers(request);
+			DuccData duccData = DuccData.getInstance();
+			ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = duccData.getSortedJobs();
+			if(sortedJobs.size()> 0) {
+				Iterator<Entry<JobInfo, JobInfo>> iterator = sortedJobs.entrySet().iterator();
+				int counter = 0;
+				while(iterator.hasNext()) {
+					JobInfo jobInfo = iterator.next().getValue();
+					DuccWorkJob job = jobInfo.getJob();
+					boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, job);
+					if(list) {
+						counter++;
+						JsonArray row = buildJobRow(request, job, duccData, now, servicesRegistry);
+						data.add(row);
+					}
+				}
 			}
 			else {
-				// Terminate
-				row.add(new JsonPrimitive("no data"));
+				JsonArray row = new JsonArray();
+				if(DuccData.getInstance().isPublished()) {
+					noJobs(row, "no jobs");
+				}
+				else {
+					noJobs(row, "no data");
+				}
+				data.add(row);
 			}
-			// Id
-			row.add(new JsonPrimitive(""));
-			// Start
-			row.add(new JsonPrimitive(""));
-			// Duration
-			row.add(new JsonPrimitive(""));
-			// User
-			row.add(new JsonPrimitive(""));
-			// Class
-			row.add(new JsonPrimitive(""));
-			// State
-			row.add(new JsonPrimitive(""));
-			// Reason
-			row.add(new JsonPrimitive(""));
-			// Services
-			row.add(new JsonPrimitive(""));
-			// Processes
-			row.add(new JsonPrimitive(""));
-			// Init Fails
-			row.add(new JsonPrimitive(""));
-			// Run Fails
-			row.add(new JsonPrimitive(""));
-			// Pgin
-			row.add(new JsonPrimitive(""));
-			// Swap
-			row.add(new JsonPrimitive(""));
-			// Size
-			row.add(new JsonPrimitive(""));			
-			// Total
-			row.add(new JsonPrimitive(""));
-			// Done
-			row.add(new JsonPrimitive(""));
-			// Error
-			row.add(new JsonPrimitive(""));
-			// Dispatch
-			row.add(new JsonPrimitive(""));
-			// Retry
-			row.add(new JsonPrimitive(""));
-			// Preempt
-			row.add(new JsonPrimitive(""));
-			// Description
-			row.add(new JsonPrimitive(""));
-			data.add(row);
 		}
 		
 		jsonResponse.add("aaData", data);
@@ -1073,7 +1083,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				IDuccReservationMap map = reservation.getReservationMap();
 				for (DuccId key : map.keySet()) { 
 					IDuccReservation value = reservation.getReservationMap().get(key);
-					String node = value.getNodeIdentity().getName();
+					String node = value.getNodeIdentity().getCanonicalName();
 					if(!nodeMap.containsKey(node)) {
 						nodeMap.put(node,new Integer(0));
 					}
@@ -1130,7 +1140,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = job.getProcessMap().get(processId);
-				String node = process.getNodeIdentity().getName();
+				String node = process.getNodeIdentity().getCanonicalName();
 				nodeMap.put(node, 1);
 			}
 		}
@@ -1301,6 +1311,37 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		return row;
 	}
 	
+	private void noReservations(JsonArray row, String reason) {
+		// Terminate
+		row.add(new JsonPrimitive(reason));
+		// Id
+		row.add(new JsonPrimitive(""));
+		// Start
+		row.add(new JsonPrimitive(""));
+		// End
+		row.add(new JsonPrimitive(""));
+		// User
+		row.add(new JsonPrimitive(""));
+		// Class
+		row.add(new JsonPrimitive(""));
+		// Type
+		row.add(new JsonPrimitive(""));
+		// State
+		row.add(new JsonPrimitive(""));
+		// Reason
+		row.add(new JsonPrimitive(""));
+		// Allocation
+		row.add(new JsonPrimitive(""));
+		// User Processes
+		row.add(new JsonPrimitive(""));
+		// Size
+		row.add(new JsonPrimitive(""));
+		// List
+		row.add(new JsonPrimitive(""));
+		// Description
+		row.add(new JsonPrimitive(""));
+	}
+	
 	private void handleServletJsonFormatReservationsAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1310,78 +1351,53 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
 
-		int maxRecords = getReservationsMax(request);
-		
-		DuccData duccData = DuccData.getInstance();
-		
-		ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = duccData.getSortedCombinedReservations();
-
-		ArrayList<String> users = getReservationsUsers(request);
-		
-		long now = System.currentTimeMillis();
-		
-		if((sortedCombinedReservations.size() > 0)) {
-			int counter = 0;
-			Iterator<Entry<Info, Info>> iR = sortedCombinedReservations.entrySet().iterator();
-			while(iR.hasNext()) {
-				Info info = iR.next().getValue();
-				IDuccWork dw = info.getDuccWork();
-				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, dw);
-				if(list) {
-					counter++;
-					if(dw instanceof DuccWorkReservation) {
-						DuccWorkReservation reservation = (DuccWorkReservation) dw;
-						JsonArray row = buildReservationRow(request, reservation, duccData, now);
-						data.add(row);
-					}
-					else if(dw instanceof DuccWorkJob) {
-						DuccWorkJob job = (DuccWorkJob) dw;
-						JsonArray row = buildReservationRow(request, job, duccData, now);
-						data.add(row);
-					}
-					else {
-						// huh?
+		if(dh.is_ducc_head_backup()) {
+			JsonArray row = new JsonArray();
+			noJobs(row, "no data - not master");
+			data.add(row);
+		}
+		else {
+			int maxRecords = getReservationsMax(request);
+			DuccData duccData = DuccData.getInstance();			
+			ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = duccData.getSortedCombinedReservations();
+			ArrayList<String> users = getReservationsUsers(request);			
+			long now = System.currentTimeMillis();			
+			if((sortedCombinedReservations.size() > 0)) {
+				int counter = 0;
+				Iterator<Entry<Info, Info>> iR = sortedCombinedReservations.entrySet().iterator();
+				while(iR.hasNext()) {
+					Info info = iR.next().getValue();
+					IDuccWork dw = info.getDuccWork();
+					boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, dw);
+					if(list) {
+						counter++;
+						if(dw instanceof DuccWorkReservation) {
+							DuccWorkReservation reservation = (DuccWorkReservation) dw;
+							JsonArray row = buildReservationRow(request, reservation, duccData, now);
+							data.add(row);
+						}
+						else if(dw instanceof DuccWorkJob) {
+							DuccWorkJob job = (DuccWorkJob) dw;
+							JsonArray row = buildReservationRow(request, job, duccData, now);
+							data.add(row);
+						}
+						else {
+							// huh?
+						}
 					}
 				}
 			}
-		}
-		else {
-			JsonArray row = new JsonArray();
-			if(DuccData.getInstance().isPublished()) {
-				// Terminate
-				row.add(new JsonPrimitive("no reservations"));
-			}
 			else {
-				// Terminate
-				row.add(new JsonPrimitive("no data"));
+				JsonArray row = new JsonArray();
+				if(DuccData.getInstance().isPublished()) {
+					noReservations(row,"no reservations");
+				}
+				else {
+					noReservations(row,"no data");
+				}
+				
+				data.add(row);
 			}
-			// Id
-			row.add(new JsonPrimitive(""));
-			// Start
-			row.add(new JsonPrimitive(""));
-			// End
-			row.add(new JsonPrimitive(""));
-			// User
-			row.add(new JsonPrimitive(""));
-			// Class
-			row.add(new JsonPrimitive(""));
-			// Type
-			row.add(new JsonPrimitive(""));
-			// State
-			row.add(new JsonPrimitive(""));
-			// Reason
-			row.add(new JsonPrimitive(""));
-			// Allocation
-			row.add(new JsonPrimitive(""));
-			// User Processes
-			row.add(new JsonPrimitive(""));
-			// Size
-			row.add(new JsonPrimitive(""));
-			// List
-			row.add(new JsonPrimitive(""));
-			// Description
-			row.add(new JsonPrimitive(""));
-			data.add(row);
 		}
 		
 		jsonResponse.add("aaData", data);
@@ -1394,6 +1410,47 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}	
 	
+	private void noServices(JsonArray row, String reason) {
+		// Start
+		row.add(new JsonPrimitive(reason));
+		// Stop
+		row.add(new JsonPrimitive(""));
+		// Id
+		row.add(new JsonPrimitive(""));
+		// Name
+		row.add(new JsonPrimitive(""));
+		// Type
+		row.add(new JsonPrimitive(""));
+		// State
+		row.add(new JsonPrimitive(""));
+		// Pinging
+		row.add(new JsonPrimitive(""));
+		// Health
+		row.add(new JsonPrimitive(""));
+		// Instances
+		row.add(new JsonPrimitive(""));
+		// Deployments
+		row.add(new JsonPrimitive(""));
+		// User
+		row.add(new JsonPrimitive(""));
+		// Class
+		row.add(new JsonPrimitive(""));
+		// Pgin
+		row.add(new JsonPrimitive(""));
+		// Swap
+		row.add(new JsonPrimitive(""));			
+		// Size
+		row.add(new JsonPrimitive(""));
+		// Jobs
+		row.add(new JsonPrimitive(""));
+		// Services
+		row.add(new JsonPrimitive(""));
+		// Reservations
+		row.add(new JsonPrimitive(""));
+		// Description
+		row.add(new JsonPrimitive(""));
+	}
+	
 	private void handleServletJsonFormatServicesAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1403,338 +1460,307 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
 
-		ServicesSortCache servicesSortCache = ServicesSortCache.getInstance();
-		Collection<IServiceAdapter> servicesSortedCollection = servicesSortCache.getSortedCollection();
-		if(!servicesSortedCollection.isEmpty()) {
-			StringBuffer col;
-			int maxRecords = getServicesMax(request);
-			ArrayList<String> users = getServicesUsers(request);
-			int counter = 0;
-			for(IServiceAdapter service : servicesSortedCollection) {
-				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, service);
-				if(!list) {
-					continue;
-				}
-				counter++;
-				JsonArray row = new JsonArray();
-				int sid = service.getId();
-				String user = service.getUser();
-				long deployments = service.getDeployments();
-				long instances = service.getInstances();
-				// Enable
-				col = new StringBuffer();
-				col.append("<span class=\"ducc-col-start\">");
-				if(service.isRegistered()) {
-					if(buttonsEnabled) {
-						if(service.isDisabled()) {
-							col.append("<input type=\"button\" onclick=\"ducc_confirm_service_enable("+sid+")\" value=\"Enable\" "+getDisabledWithHover(request,user)+"/>");
-						}
-					}
-				}
-				col.append("</span>");
-				row.add(new JsonPrimitive(col.toString()));
-				// Stop
-				col = new StringBuffer();
-				col.append("<span class=\"ducc-col-stop\">");
-				if(service.isRegistered()) {
-					if(buttonsEnabled) {
-						if(service.isPingOnly()) {
-							if(service.isPingActive()) {
-								col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
-							}
-						}
-						else {
-							if(deployments != 0) {
-								col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
-							}
-						}
-					}
-				}
-				col.append("</span>");
-				row.add(new JsonPrimitive(col.toString()));
-				// Id
-				col = new StringBuffer();
-				String name = service.getName();
-				col.append("<span>");
-				String id = "<a href=\"service.details.html?name="+name+"\">"+sid+"</a>";
-				col.append(""+id);
-				col.append("</span>");
-				row.add(new JsonPrimitive(col.toString()));
-				// Name
-				col = new StringBuffer();
-				col.append("<span>");
-				col.append(name);
-				col.append("</span>");
-				row.add(new JsonPrimitive(col.toString()));
-				// State
-				col = new StringBuffer();
-				String state = service.getState();
-				boolean alert = service.isAlert();
-				boolean available = service.isStateAvailable();
-				if(alert) {
-					state += "+Alert";
-				}
-				String style = "class=\"health_black\";";
-				if(alert) {
-					style = "class=\"health_red\"";
-				}
-				else if(available) {
-					style = "class=\"health_green\"";
-				}
-				String stateHover = ServicesHelper.getInstance().getStateHover(service);
-				if(stateHover.length() > 0) {
-					stateHover = "title="+"\""+stateHover+"\"";
-				}
-				col.append("<span "+style+" "+stateHover+">");
-				col.append(state);
-				col.append("</span>");
-				row.add(new JsonPrimitive(col.toString()));
-				// Last Use
-				col = new StringBuffer();
-				long lastUse = service.getLastUse();
-				if(lastUse > 0) {
-					col.append(getTimeStamp(request, jobid, ""+lastUse));
-				}
-				row.add(new JsonPrimitive(col.toString()));
-				// Instances
-				col = new StringBuffer();
-				col.append(""+instances);
-				row.add(new JsonPrimitive(col.toString()));
-				// Deployments
-				col = new StringBuffer();
-				col.append(""+deployments);
-				row.add(new JsonPrimitive(col.toString()));
-				// Start-Mode
-				col = new StringBuffer();
-				StartState startState = service.getStartState();
-				col.append("<span>");
-				col.append(startState.name());
-				if(service.isDisabled()) {
-					col.append("<br>");
-					String health = "class=\"health_red\"";
-					String reason = "title=\""+service.getDisableReason()+"\"";
-					col.append("<span "+health+" "+reason+">");
-					col.append("Disabled");
-					col.append("</span>");
-				}
-				col.append("</span>");
-				row.add(new JsonPrimitive(col.toString()));
-				// User
-				col = new StringBuffer();
-				col.append(""+user);
-				row.add(new JsonPrimitive(col.toString()));
-				// Class
-				col = new StringBuffer();
-				if(service.isPingOnly()) {
-					String schedulingClass = ""+service.getSchedulingClass();
-					col.append("<span title=\""+schedulingClass+"\">");
-					String serviceType = "ping-only";
-					col.append("<span>");
-					col.append(serviceType);
-				}
-				else {
-					String schedulingClass = service.getSchedulingClass();
-					col.append(""+schedulingClass);
-				}
-				row.add(new JsonPrimitive(col.toString()));
-				// Pgin
-				col = new StringBuffer();
-				col.append("<span>");
-				//
-				long faults = 0;
-				try {
-					faults = service.getPgIn();
-				}
-				catch(Exception e) {
-				}
-				int ifaults = (int)faults;
-				switch(ifaults) {
-				case -3: // (some do and some don't have cgroups) but retVal would have been > 0
-					col.append("<span title=\"incomplete\" class=\"health_red\""+">");
-					col.append(inc);
-					break;
-				case -2: // (some do and some don't have cgroups) but retVal would have been == 0
-					col.append("<span title=\"incomplete\" class=\"health_black\""+">");
-					col.append(inc);
-					break;
-				case -1: // (none have cgroups)
-					col.append("<span title=\"not available\" class=\"health_black\""+">");
-					col.append(notAvailable);
-					break;
-				default: // (all have cgroups)
-					double swapping = service.getSwap();
-					if((swapping * faults) > 0) {
-						col.append("<span class=\"health_red\""+">");
-					}
-					else {
-						col.append("<span class=\"health_black\""+">");
-					}
-					col.append(faults);
-					break;
-				}
-				col.append("</span>");
-				//
-				col.append("</span>");
-				row.add(new JsonPrimitive(col.toString()));
-				// Swap
-				col = new StringBuffer();
-				col.append("<span>");
-				//
-				String swapSizeDisplay = "";
-				String swapSizeHover = "";
-				String title = "";
-				double swap = service.getSwap();
-				int iswap = (int)swap;
-				switch(iswap) {
-				case -3: // (some do and some don't have cgroups) but retVal would have been > 0
-					col.append("<span title=\"incomplete\" class=\"health_red\""+">");
-					col.append(inc);
-					break;
-				case -2: // (some do and some don't have cgroups) but retVal would have been == 0
-					col.append("<span title=\"incomplete\" class=\"health_black\""+">");
-					col.append(inc);
-					break;
-				case -1: // (none have cgroups)
-					col.append("<span title=\"not available\" class=\"health_black\""+">");
-					col.append(notAvailable);
-					break;
-				default: // (all have cgroups)
-					double swapBytes = swap;
-					swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
-					swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
-					title = "title="+"\""+swapSizeHover+"\"";
-					if(swapBytes > 0) {
-						col.append("<span "+title+" "+"class=\"health_red\""+">");
-					}
-					else {
-						col.append("<span "+title+" "+"class=\"health_black\""+">");
-					}
-					col.append(swapSizeDisplay);
-					break;
-				}
-				col.append("</span>");
-				//
-				col.append("</span>");
-				row.add(new JsonPrimitive(col.toString()));
-				// Size
-				col = new StringBuffer();
-				long size = service.getSize();
-				if(size < 0) {
-					size = 0;
-				}
-				col.append(size);
-				row.add(new JsonPrimitive(col.toString()));
-				// Jobs
-				col = new StringBuffer();
-				ArrayList<String> dependentJobs = service.getDependentJobs();
-				int countDependentJobs = dependentJobs.size();
-				String titleJobs = "";
-				if(countDependentJobs > 0) {
-					StringBuffer idList = new StringBuffer();
-					for(String duccId : dependentJobs) {
-						if(idList.length() > 0) {
-							idList.append(",");
-						}
-						idList.append(duccId);
-					}
-					titleJobs = "dependent Job Id list: "+idList;
-				}
-				String jobs = "<span title=\""+titleJobs+"\">"+countDependentJobs+"</span>";
-				col.append(jobs);
-				row.add(new JsonPrimitive(col.toString()));
-				// Services
-				col = new StringBuffer();
-				ArrayList<String> dependentServices = service.getDependentServices();
-				int countDependentServices = dependentServices.size();
-				String titleServices = "";
-				if(countDependentServices > 0) {
-					StringBuffer idList = new StringBuffer();
-					for(String duccId : dependentServices) {
-						if(idList.length() > 0) {
-							idList.append(",");
-						}
-						idList.append(duccId);
-					}
-					titleServices = "dependent Service Name list: "+idList;
-				}
-				String services = "<span title=\""+titleServices+"\">"+countDependentServices+"</span>";
-				col.append(services);
-				row.add(new JsonPrimitive(col.toString()));
-				// Reservations
-				col = new StringBuffer();
-				ArrayList<String> dependentReservations = service.getDependentReservations();
-				int countDependentReservations = dependentReservations.size();
-				String titleReservations = "";
-				if(countDependentReservations > 0) {
-					StringBuffer idList = new StringBuffer();
-					for(String duccId : dependentReservations) {
-						if(idList.length() > 0) {
-							idList.append(",");
-						}
-						idList.append(duccId);
-					}
-					titleReservations = "dependent Reservation Id list: "+idList;
-				}
-				String reservations = "<span title=\""+titleReservations+"\">"+countDependentReservations+"</span>";
-				col.append(reservations);
-				row.add(new JsonPrimitive(col.toString()));
-				// Description
-				col = new StringBuffer();
-				String description = service.getDescription();
-				col.append(description);
-				row.add(new JsonPrimitive(col.toString()));
-				// Row
-				data.add(row);
-			}
+		if(dh.is_ducc_head_backup()) {
+			JsonArray row = new JsonArray();
+			noJobs(row, "no data - not master");
+			data.add(row);
 		}
 		else {
-			JsonArray row = new JsonArray();
-			// Start
-			String text = "";
-			if(DuccData.getInstance().isPublished()) {
-				text = messages.fetch("no services");
+			ServicesSortCache servicesSortCache = ServicesSortCache.getInstance();
+			Collection<IServiceAdapter> servicesSortedCollection = servicesSortCache.getSortedCollection();
+			
+			if(!servicesSortedCollection.isEmpty()) {
+				StringBuffer col;
+				int maxRecords = getServicesMax(request);
+				ArrayList<String> users = getServicesUsers(request);
+				int counter = 0;
+				for(IServiceAdapter service : servicesSortedCollection) {
+					boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, service);
+					if(!list) {
+						continue;
+					}
+					counter++;
+					JsonArray row = new JsonArray();
+					int sid = service.getId();
+					String user = service.getUser();
+					long deployments = service.getDeployments();
+					long instances = service.getInstances();
+					// Enable
+					col = new StringBuffer();
+					col.append("<span class=\"ducc-col-start\">");
+					if(service.isRegistered()) {
+						if(buttonsEnabled) {
+							if(service.isDisabled()) {
+								col.append("<input type=\"button\" onclick=\"ducc_confirm_service_enable("+sid+")\" value=\"Enable\" "+getDisabledWithHover(request,user)+"/>");
+							}
+						}
+					}
+					col.append("</span>");
+					row.add(new JsonPrimitive(col.toString()));
+					// Stop
+					col = new StringBuffer();
+					col.append("<span class=\"ducc-col-stop\">");
+					if(service.isRegistered()) {
+						if(buttonsEnabled) {
+							if(service.isPingOnly()) {
+								if(service.isPingActive()) {
+									col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+								}
+							}
+							else {
+								if(deployments != 0) {
+									col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+								}
+							}
+						}
+					}
+					col.append("</span>");
+					row.add(new JsonPrimitive(col.toString()));
+					// Id
+					col = new StringBuffer();
+					String name = service.getName();
+					col.append("<span>");
+					String id = "<a href=\"service.details.html?name="+name+"\">"+sid+"</a>";
+					col.append(""+id);
+					col.append("</span>");
+					row.add(new JsonPrimitive(col.toString()));
+					// Name
+					col = new StringBuffer();
+					col.append("<span>");
+					col.append(name);
+					col.append("</span>");
+					row.add(new JsonPrimitive(col.toString()));
+					// State
+					col = new StringBuffer();
+					String state = service.getState();
+					boolean alert = service.isAlert();
+					boolean available = service.isStateAvailable();
+					if(alert) {
+						state += "+Alert";
+					}
+					String style = "class=\"health_black\";";
+					if(alert) {
+						style = "class=\"health_red\"";
+					}
+					else if(available) {
+						style = "class=\"health_green\"";
+					}
+					String stateHover = ServicesHelper.getInstance().getStateHover(service);
+					if(stateHover.length() > 0) {
+						stateHover = "title="+"\""+stateHover+"\"";
+					}
+					col.append("<span "+style+" "+stateHover+">");
+					col.append(state);
+					col.append("</span>");
+					row.add(new JsonPrimitive(col.toString()));
+					// Last Use
+					col = new StringBuffer();
+					long lastUse = service.getLastUse();
+					if(lastUse > 0) {
+						col.append(getTimeStamp(request, jobid, ""+lastUse));
+					}
+					row.add(new JsonPrimitive(col.toString()));
+					// Instances
+					col = new StringBuffer();
+					col.append(""+instances);
+					row.add(new JsonPrimitive(col.toString()));
+					// Deployments
+					col = new StringBuffer();
+					col.append(""+deployments);
+					row.add(new JsonPrimitive(col.toString()));
+					// Start-Mode
+					col = new StringBuffer();
+					StartState startState = service.getStartState();
+					col.append("<span>");
+					col.append(startState.name());
+					if(service.isDisabled()) {
+						col.append("<br>");
+						String health = "class=\"health_red\"";
+						String reason = "title=\""+service.getDisableReason()+"\"";
+						col.append("<span "+health+" "+reason+">");
+						col.append("Disabled");
+						col.append("</span>");
+					}
+					col.append("</span>");
+					row.add(new JsonPrimitive(col.toString()));
+					// User
+					col = new StringBuffer();
+					col.append(""+user);
+					row.add(new JsonPrimitive(col.toString()));
+					// Class
+					col = new StringBuffer();
+					if(service.isPingOnly()) {
+						String schedulingClass = ""+service.getSchedulingClass();
+						col.append("<span title=\""+schedulingClass+"\">");
+						String serviceType = "ping-only";
+						col.append("<span>");
+						col.append(serviceType);
+					}
+					else {
+						String schedulingClass = service.getSchedulingClass();
+						col.append(""+schedulingClass);
+					}
+					row.add(new JsonPrimitive(col.toString()));
+					// Pgin
+					col = new StringBuffer();
+					col.append("<span>");
+					//
+					long faults = 0;
+					try {
+						faults = service.getPgIn();
+					}
+					catch(Exception e) {
+					}
+					int ifaults = (int)faults;
+					switch(ifaults) {
+					case -3: // (some do and some don't have cgroups) but retVal would have been > 0
+						col.append("<span title=\"incomplete\" class=\"health_red\""+">");
+						col.append(inc);
+						break;
+					case -2: // (some do and some don't have cgroups) but retVal would have been == 0
+						col.append("<span title=\"incomplete\" class=\"health_black\""+">");
+						col.append(inc);
+						break;
+					case -1: // (none have cgroups)
+						col.append("<span title=\"not available\" class=\"health_black\""+">");
+						col.append(notAvailable);
+						break;
+					default: // (all have cgroups)
+						double swapping = service.getSwap();
+						if((swapping * faults) > 0) {
+							col.append("<span class=\"health_red\""+">");
+						}
+						else {
+							col.append("<span class=\"health_black\""+">");
+						}
+						col.append(faults);
+						break;
+					}
+					col.append("</span>");
+					//
+					col.append("</span>");
+					row.add(new JsonPrimitive(col.toString()));
+					// Swap
+					col = new StringBuffer();
+					col.append("<span>");
+					//
+					String swapSizeDisplay = "";
+					String swapSizeHover = "";
+					String title = "";
+					double swap = service.getSwap();
+					int iswap = (int)swap;
+					switch(iswap) {
+					case -3: // (some do and some don't have cgroups) but retVal would have been > 0
+						col.append("<span title=\"incomplete\" class=\"health_red\""+">");
+						col.append(inc);
+						break;
+					case -2: // (some do and some don't have cgroups) but retVal would have been == 0
+						col.append("<span title=\"incomplete\" class=\"health_black\""+">");
+						col.append(inc);
+						break;
+					case -1: // (none have cgroups)
+						col.append("<span title=\"not available\" class=\"health_black\""+">");
+						col.append(notAvailable);
+						break;
+					default: // (all have cgroups)
+						double swapBytes = swap;
+						swapSizeDisplay = DuccHandlerUtils.getSwapSizeDisplay(swapBytes);
+						swapSizeHover = DuccHandlerUtils.getSwapSizeHover(swapBytes);
+						title = "title="+"\""+swapSizeHover+"\"";
+						if(swapBytes > 0) {
+							col.append("<span "+title+" "+"class=\"health_red\""+">");
+						}
+						else {
+							col.append("<span "+title+" "+"class=\"health_black\""+">");
+						}
+						col.append(swapSizeDisplay);
+						break;
+					}
+					col.append("</span>");
+					//
+					col.append("</span>");
+					row.add(new JsonPrimitive(col.toString()));
+					// Size
+					col = new StringBuffer();
+					long size = service.getSize();
+					if(size < 0) {
+						size = 0;
+					}
+					col.append(size);
+					row.add(new JsonPrimitive(col.toString()));
+					// Jobs
+					col = new StringBuffer();
+					ArrayList<String> dependentJobs = service.getDependentJobs();
+					int countDependentJobs = dependentJobs.size();
+					String titleJobs = "";
+					if(countDependentJobs > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(String duccId : dependentJobs) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						titleJobs = "dependent Job Id list: "+idList;
+					}
+					String jobs = "<span title=\""+titleJobs+"\">"+countDependentJobs+"</span>";
+					col.append(jobs);
+					row.add(new JsonPrimitive(col.toString()));
+					// Services
+					col = new StringBuffer();
+					ArrayList<String> dependentServices = service.getDependentServices();
+					int countDependentServices = dependentServices.size();
+					String titleServices = "";
+					if(countDependentServices > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(String duccId : dependentServices) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						titleServices = "dependent Service Name list: "+idList;
+					}
+					String services = "<span title=\""+titleServices+"\">"+countDependentServices+"</span>";
+					col.append(services);
+					row.add(new JsonPrimitive(col.toString()));
+					// Reservations
+					col = new StringBuffer();
+					ArrayList<String> dependentReservations = service.getDependentReservations();
+					int countDependentReservations = dependentReservations.size();
+					String titleReservations = "";
+					if(countDependentReservations > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(String duccId : dependentReservations) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						titleReservations = "dependent Reservation Id list: "+idList;
+					}
+					String reservations = "<span title=\""+titleReservations+"\">"+countDependentReservations+"</span>";
+					col.append(reservations);
+					row.add(new JsonPrimitive(col.toString()));
+					// Description
+					col = new StringBuffer();
+					String description = service.getDescription();
+					col.append(description);
+					row.add(new JsonPrimitive(col.toString()));
+					// Row
+					data.add(row);
+				}
 			}
 			else {
-				text = messages.fetch("no data");
+				JsonArray row = new JsonArray();
+				if(DuccData.getInstance().isPublished()) {
+					noServices(row,"no services");
+				}
+				else {
+					noServices(row,"no data");
+				}
+				data.add(row);
 			}
-			row.add(new JsonPrimitive(text));
-			// Stop
-			row.add(new JsonPrimitive(""));
-			// Id
-			row.add(new JsonPrimitive(""));
-			// Name
-			row.add(new JsonPrimitive(""));
-			// Type
-			row.add(new JsonPrimitive(""));
-			// State
-			row.add(new JsonPrimitive(""));
-			// Pinging
-			row.add(new JsonPrimitive(""));
-			// Health
-			row.add(new JsonPrimitive(""));
-			// Instances
-			row.add(new JsonPrimitive(""));
-			// Deployments
-			row.add(new JsonPrimitive(""));
-			// User
-			row.add(new JsonPrimitive(""));
-			// Class
-			row.add(new JsonPrimitive(""));
-			// Pgin
-			row.add(new JsonPrimitive(""));
-			// Swap
-			row.add(new JsonPrimitive(""));			
-			// Size
-			row.add(new JsonPrimitive(""));
-			// Jobs
-			row.add(new JsonPrimitive(""));
-			// Services
-			row.add(new JsonPrimitive(""));
-			// Reservations
-			row.add(new JsonPrimitive(""));
-			// Description
-			row.add(new JsonPrimitive(""));
-			data.add(row);
 		}
 		
 		jsonResponse.add("aaData", data);
@@ -1896,6 +1922,33 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		data.add(row);
 	}	
 	
+	private void noMachines(JsonArray row, String reason) {
+		// Status
+		row.add(new JsonPrimitive(reason));
+		// IP
+		row.add(new JsonPrimitive(""));
+		// Name
+		row.add(new JsonPrimitive(""));
+		// Nodepool
+		row.add(new JsonPrimitive(""));
+		// Memory: usable
+		row.add(new JsonPrimitive(""));
+		// Memory: free
+		row.add(new JsonPrimitive(""));
+		// CPU: load average
+		row.add(new JsonPrimitive(""));
+		// Swap: inuse
+		row.add(new JsonPrimitive(""));
+		// Swap: free
+		row.add(new JsonPrimitive(""));
+		// C-Groups
+		row.add(new JsonPrimitive(""));
+		// Alien PIDs
+		row.add(new JsonPrimitive(""));
+		// Heartbeat: last
+		row.add(new JsonPrimitive(""));
+	}
+	
 	private void handleServletJsonFormatMachinesAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1903,110 +1956,99 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
-		JsonArray individualMachines = new JsonArray();
-		int counter = 0;
-		long sumMemTotal = 0;	// Memory(GB):reported by Agent
-		long sumMemFree = 0;	// Memory(GB):free
-		long sumMemReserve = 0;	// Memory(GB):usable
-		long sumMemAllocated = 0;
-		double sumCPU = 0;
-		long sumMachines = 0;
-		long sumSwapInuse = 0;
-		long sumSwapFree = 0;
-		long sumAliens = 0;
-		String hover;
-		JsonArray row;
-		DuccMachinesData instance = DuccMachinesData.getInstance();
-		Map<MachineInfo, NodeId> machines = instance.getMachines();
-		if(!machines.isEmpty()) {
-			Map<String, Long> allocatedMap = Distiller.getMap();
-			for(Entry<MachineInfo, NodeId> entry : machines.entrySet()) {
-				MachineInfo machineInfo = entry.getKey();
-				SizeBytes sb = new SizeBytes(Type.Bytes, 0);
-				if(DuccMachinesDataHelper.isUp(machineInfo)) {
-					try {
-						sumMemTotal += ConvertSafely.String2Long(machineInfo.getMemTotal());
-						// Calculate total for Memory(GB):usable
-						sumMemReserve += ConvertSafely.String2Long(machineInfo.getMemReserve());
-						sumSwapInuse += ConvertSafely.String2Long(machineInfo.getSwapInuse());
-						sumSwapFree += ConvertSafely.String2Long(machineInfo.getSwapFree());
-						sumCPU += machineInfo.getCpu();
-						sumMachines += 1;
-						sumAliens += machineInfo.getAliens().size();
-						String machineName = machineInfo.getName();
-						long bytes = allocatedMap.get(machineName);
-						sumMemAllocated += bytes;
-						sb = new SizeBytes(Type.Bytes, bytes);
-						String text = "allocated "+machineName+"="+sb.getGBytes();
-						duccLogger.trace(methodName, jobid, text);
-					}
-					catch(Exception e) {
-						duccLogger.trace(methodName, jobid, e);
-					}
-				}
-				buildRowForIndividualMachine(individualMachines, counter, machineInfo, sb);
-				counter++;
-			}	
-			SizeBytes sbAllocated = new SizeBytes(Type.Bytes, sumMemAllocated);
-			sumMemFree = sumMemReserve - sbAllocated.getGBytes();
-			//
-			row = new JsonArray();
-			// Status
-			row.add(new JsonPrimitive("Total"));
-			// IP
-			row.add(new JsonPrimitive(""));
-			// Name
-			row.add(new JsonPrimitive(""));
-			// Nodepool
-			row.add(new JsonPrimitive(""));
-			// Memory: usable
-			hover = "title=\"total="+sumMemTotal+"\"";
-			String sumMemReserveWithHover = "<span "+hover+" >"+sumMemReserve+"</span>";
-			row.add(new JsonPrimitive(sumMemReserveWithHover));
-			// Memory: free
-			row.add(new JsonPrimitive(sumMemFree));
-			// CPU: load average
-			String cpuTotal = formatter1.format(sumCPU/sumMachines);
-			row.add(new JsonPrimitive(cpuTotal));
-			// Swap: inuse
-			row.add(new JsonPrimitive(sumSwapInuse));
-			// Swap: free
-			row.add(new JsonPrimitive(sumSwapFree));
-			// C-Groups
-			row.add(new JsonPrimitive(""));
-			// Alien PIDs
-			row.add(new JsonPrimitive(sumAliens));
-			// Heartbeat: last
-			row.add(new JsonPrimitive(""));
+		
+		if(dh.is_ducc_head_backup()) {
+			JsonArray row = new JsonArray();
+			noMachines(row, "no data - not master");
 			data.add(row);
 		}
 		else {
-			row = new JsonArray();
-			// Release
-			row.add(new JsonPrimitive(""));
-			// Status
-			row.add(new JsonPrimitive(""));
-			// IP
-			row.add(new JsonPrimitive(""));
-			// Name
-			row.add(new JsonPrimitive(""));
-			// Reserve
-			row.add(new JsonPrimitive(""));
-			// Memory: total
-			row.add(new JsonPrimitive(""));
-			// Swap: inuse
-			row.add(new JsonPrimitive(""));
-			// Alien PIDs
-			row.add(new JsonPrimitive(""));
-			// Shares: total
-			row.add(new JsonPrimitive(""));
-			// Shares:inuse
-			row.add(new JsonPrimitive(""));
-			// Heartbeat: last
-			row.add(new JsonPrimitive(""));
-			data.add(row);
+			
+			JsonArray individualMachines = new JsonArray();
+			int counter = 0;
+			long sumMemTotal = 0;	// Memory(GB):reported by Agent
+			long sumMemFree = 0;	// Memory(GB):free
+			long sumMemReserve = 0;	// Memory(GB):usable
+			long sumMemAllocated = 0;
+			double sumCPU = 0;
+			long sumMachines = 0;
+			long sumSwapInuse = 0;
+			long sumSwapFree = 0;
+			long sumAliens = 0;
+			String hover;
+			JsonArray row;
+			DuccMachinesData instance = DuccMachinesData.getInstance();
+			Map<MachineInfo, NodeId> machines = instance.getMachines();
+			if(!machines.isEmpty()) {
+				Map<String, Long> allocatedMap = Distiller.getMap();
+				for(Entry<MachineInfo, NodeId> entry : machines.entrySet()) {
+					MachineInfo machineInfo = entry.getKey();
+					SizeBytes sb = new SizeBytes(Type.Bytes, 0);
+					if(DuccMachinesDataHelper.isUp(machineInfo)) {
+						try {
+							sumMemTotal += ConvertSafely.String2Long(machineInfo.getMemTotal());
+							// Calculate total for Memory(GB):usable
+							sumMemReserve += ConvertSafely.String2Long(machineInfo.getMemReserve());
+							sumSwapInuse += ConvertSafely.String2Long(machineInfo.getSwapInuse());
+							sumSwapFree += ConvertSafely.String2Long(machineInfo.getSwapFree());
+							sumCPU += machineInfo.getCpu();
+							sumMachines += 1;
+							sumAliens += machineInfo.getAliens().size();
+							String machineName = machineInfo.getName();
+							long bytes = allocatedMap.get(machineName);
+							sumMemAllocated += bytes;
+							sb = new SizeBytes(Type.Bytes, bytes);
+							String text = "allocated "+machineName+"="+sb.getGBytes();
+							duccLogger.trace(methodName, jobid, text);
+						}
+						catch(Exception e) {
+							duccLogger.trace(methodName, jobid, e);
+						}
+					}
+					buildRowForIndividualMachine(individualMachines, counter, machineInfo, sb);
+					counter++;
+				}	
+				SizeBytes sbAllocated = new SizeBytes(Type.Bytes, sumMemAllocated);
+				sumMemFree = sumMemReserve - sbAllocated.getGBytes();
+				//
+				row = new JsonArray();
+				// Status
+				row.add(new JsonPrimitive("Total"));
+				// IP
+				row.add(new JsonPrimitive(""));
+				// Name
+				row.add(new JsonPrimitive(""));
+				// Nodepool
+				row.add(new JsonPrimitive(""));
+				// Memory: usable
+				hover = "title=\"total="+sumMemTotal+"\"";
+				String sumMemReserveWithHover = "<span "+hover+" >"+sumMemReserve+"</span>";
+				row.add(new JsonPrimitive(sumMemReserveWithHover));
+				// Memory: free
+				row.add(new JsonPrimitive(sumMemFree));
+				// CPU: load average
+				String cpuTotal = formatter1.format(sumCPU/sumMachines);
+				row.add(new JsonPrimitive(cpuTotal));
+				// Swap: inuse
+				row.add(new JsonPrimitive(sumSwapInuse));
+				// Swap: free
+				row.add(new JsonPrimitive(sumSwapFree));
+				// C-Groups
+				row.add(new JsonPrimitive(""));
+				// Alien PIDs
+				row.add(new JsonPrimitive(sumAliens));
+				// Heartbeat: last
+				row.add(new JsonPrimitive(""));
+				data.add(row);
+			}
+			else {
+				row = new JsonArray();
+				noMachines(row, "no machines");
+				data.add(row);
+			}
+			data.addAll(individualMachines);
 		}
-		data.addAll(individualMachines);
+
 		jsonResponse.add("aaData", data);
 		String json = jsonResponse.toString();
 		duccLogger.debug(methodName, jobid, json);
@@ -2172,6 +2214,33 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		handleServletJsonFormatDaemonsAaData(target, baseRequest, request, response, allDaemonsFlag);
 	}
 	
+	private void noAgents(JsonArray row, String reason) {
+		// Status
+		row.add(new JsonPrimitive(reason));
+		// Daemon Name
+		row.add(new JsonPrimitive(""));
+		// Boot Time
+		row.add(new JsonPrimitive(""));
+		// Host IP
+		row.add(new JsonPrimitive(""));
+		// Host Name
+		row.add(new JsonPrimitive(""));
+		// PID
+		row.add(new JsonPrimitive(""));
+		// Publication Size (last)
+		row.add(new JsonPrimitive(""));
+		// Publication Size (max)
+		row.add(new JsonPrimitive(""));
+		// Heartbeat (last)
+		row.add(new JsonPrimitive(""));
+		// Heartbeat (max)
+		row.add(new JsonPrimitive(""));
+		// Heartbeat (max) TOD
+		row.add(new JsonPrimitive(""));
+		// JConsole URL
+		row.add(new JsonPrimitive(""));
+	}
+	
 	private void handleServletJsonFormatDaemonsAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response, boolean allDaemonsFlag)
 	throws IOException, ServletException
 	{
@@ -2300,9 +2369,11 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 								status = DuccHandlerUtils.up();
 							}
 							if(daemonName.equals(DaemonName.Orchestrator)) {
-								boolean reqMet = DuccData.getInstance().getLive().isJobDriverMinimalAllocateRequirementMet();
-								if(!reqMet) {
-									status = DuccHandlerUtils.up_provisional(", pending JD allocation");
+								if(dh.is_ducc_head_virtual_master()) {
+									boolean reqMet = DuccData.getInstance().getLive().isJobDriverMinimalAllocateRequirementMet();
+									if(!reqMet) {
+										status = DuccHandlerUtils.up_provisional(", pending JD allocation");
+									}
 								}
 							}
 						}
@@ -2353,7 +2424,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 
 		// <Agents>
-		
 		boolean showAgents = allDaemonsFlag;
 		if(!showAgents) {
 			String cookie = DuccCookies.getCookie(request,DuccCookies.cookieAgents);
@@ -2362,97 +2432,102 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				showAgents = true;
 			}
 		}
-
 		if(showAgents) {
-			Map<MachineInfo,NodeId> machines = duccMachinesData.getMachines();
-			Iterator<MachineInfo> iterator = machines.keySet().iterator();
-			while(iterator.hasNext()) {
+			if(dh.is_ducc_head_backup()) {
 				row = new JsonArray();
-				MachineInfo machineInfo = iterator.next();
-				DuccDaemonRuntimeProperties drp = DuccDaemonRuntimeProperties.getInstance();
-				String machineName = machineInfo.getName();
-				if(machineName.startsWith("=")) {
-					continue;
-				}
-				Properties properties = drp.getAgent(machineName);
-				// Status
-				StringBuffer status = new StringBuffer();
-				if(brokerAlive) {
-					String machineStatus = machineInfo.getStatus();
-					if(machineStatus.equals("down")) {
-						//status.append("<span class=\"health_red\""+">");
-						status.append(DuccHandlerUtils.down());
-						//status.append("</span>");
+				noAgents(row, "no data - not master");
+				data.add(row);
+			}
+			else {
+				Map<MachineInfo,NodeId> machines = duccMachinesData.getMachines();
+				Iterator<MachineInfo> iterator = machines.keySet().iterator();
+				while(iterator.hasNext()) {
+					row = new JsonArray();
+					MachineInfo machineInfo = iterator.next();
+					DuccDaemonRuntimeProperties drp = DuccDaemonRuntimeProperties.getInstance();
+					String machineName = machineInfo.getShortName();
+					if(machineName.startsWith("=")) {
+						continue;
 					}
-					else if(machineStatus.equals("up")) {
-						//status.append("<span class=\"health_green\""+">");
-						status.append(DuccHandlerUtils.up());
-						//status.append("</span>");
+					Properties properties = drp.getAgent(machineName);
+					// Status
+					StringBuffer status = new StringBuffer();
+					if(brokerAlive) {
+						String machineStatus = machineInfo.getStatus();
+						if(machineStatus.equals("down")) {
+							//status.append("<span class=\"health_red\""+">");
+							status.append(DuccHandlerUtils.down());
+							//status.append("</span>");
+						}
+						else if(machineStatus.equals("up")) {
+							//status.append("<span class=\"health_green\""+">");
+							status.append(DuccHandlerUtils.up());
+							//status.append("</span>");
+						}
+						else {
+							status.append(DuccHandlerUtils.unknown());
+						}
 					}
 					else {
 						status.append(DuccHandlerUtils.unknown());
 					}
-				}
-				else {
-					status.append(DuccHandlerUtils.unknown());
-				}
-				row.add(new JsonPrimitive(status.toString()));
-				// Daemon Name
-				String daemonName = "Agent";
-				row.add(new JsonPrimitive(daemonName));
-				// Boot Time
-				String bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
-				row.add(new JsonPrimitive(bootTime));
-				// Host IP
-				String hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
-				row.add(new JsonPrimitive(hostIP));
-				// Host Name
-				String hostName = machineInfo.getName();
-				row.add(new JsonPrimitive(hostName));
-				// PID
-				String pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
-				row.add(new JsonPrimitive(pid));
-				// Publication Size (last)
-				String publicationSizeLast = machineInfo.getPublicationSizeLast();
-				row.add(new JsonPrimitive(publicationSizeLast));
-				// Publication Size (max)
-				String publicationSizeMax = machineInfo.getPublicationSizeMax();
-				row.add(new JsonPrimitive(publicationSizeMax));
-				// Heartbeat (last)
-				String heartbeatLast = machineInfo.getHeartbeatLast();
-				row.add(new JsonPrimitive(heartbeatLast));	
-				// Heartbeat (max)
-				long heartbeatMax = machineInfo.getHeartbeatMax();
-				if(heartbeatMax > 0) {
-					row.add(new JsonPrimitive(heartbeatMax));	
-				}
-				else {
-					row.add(new JsonPrimitive(""));
-				}
-				// Heartbeat (max) TOD
-				String fmtHeartbeatMaxTOD = "";
-				long heartbeatMaxTOD = machineInfo.getHeartbeatMaxTOD();
-				if(heartbeatMaxTOD > 0) {
-					fmtHeartbeatMaxTOD = TimeStamp.simpleFormat(""+heartbeatMaxTOD);
-					try {
-						fmtHeartbeatMaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),fmtHeartbeatMaxTOD);
+					row.add(new JsonPrimitive(status.toString()));
+					// Daemon Name
+					String daemonName = "Agent";
+					row.add(new JsonPrimitive(daemonName));
+					// Boot Time
+					String bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+					row.add(new JsonPrimitive(bootTime));
+					// Host IP
+					String hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
+					row.add(new JsonPrimitive(hostIP));
+					// Host Name
+					String hostName = machineInfo.getName();
+					row.add(new JsonPrimitive(hostName));
+					// PID
+					String pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
+					row.add(new JsonPrimitive(pid));
+					// Publication Size (last)
+					String publicationSizeLast = machineInfo.getPublicationSizeLast();
+					row.add(new JsonPrimitive(publicationSizeLast));
+					// Publication Size (max)
+					String publicationSizeMax = machineInfo.getPublicationSizeMax();
+					row.add(new JsonPrimitive(publicationSizeMax));
+					// Heartbeat (last)
+					String heartbeatLast = machineInfo.getHeartbeatLast();
+					row.add(new JsonPrimitive(heartbeatLast));	
+					// Heartbeat (max)
+					long heartbeatMax = machineInfo.getHeartbeatMax();
+					if(heartbeatMax > 0) {
+						row.add(new JsonPrimitive(heartbeatMax));	
 					}
-					catch(Exception e) {
+					else {
+						row.add(new JsonPrimitive(""));
 					}
+					// Heartbeat (max) TOD
+					String fmtHeartbeatMaxTOD = "";
+					long heartbeatMaxTOD = machineInfo.getHeartbeatMaxTOD();
+					if(heartbeatMaxTOD > 0) {
+						fmtHeartbeatMaxTOD = TimeStamp.simpleFormat(""+heartbeatMaxTOD);
+						try {
+							fmtHeartbeatMaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),fmtHeartbeatMaxTOD);
+						}
+						catch(Exception e) {
+						}
+					}
+					row.add(new JsonPrimitive(fmtHeartbeatMaxTOD));
+					// JConsole URL
+					String jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
+					String jmxUrlLink = "";
+					if(jmxUrl != null) {
+						jmxUrlLink = buildjConsoleLink(jmxUrl);
+					}
+					row.add(new JsonPrimitive(jmxUrlLink));
+					//
+					data.add(row);
 				}
-				row.add(new JsonPrimitive(fmtHeartbeatMaxTOD));
-				// JConsole URL
-				String jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
-				String jmxUrlLink = "";
-				if(jmxUrl != null) {
-					jmxUrlLink = buildjConsoleLink(jmxUrl);
-				}
-				row.add(new JsonPrimitive(jmxUrlLink));
-				//
-				data.add(row);
 			}
 		}
-
 		// </Agents>
 		
 		jsonResponse.add("aaData", data);

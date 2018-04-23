@@ -35,8 +35,11 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.crypto.Crypto;
+import org.apache.uima.ducc.common.head.IDuccHead;
+import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadTransition;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
+import org.apache.uima.ducc.common.persistence.services.IStateServices.AccessMode;
 import org.apache.uima.ducc.common.persistence.services.IStateServices.SvcMetaProps;
 import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
 import org.apache.uima.ducc.common.persistence.services.StateServicesFactory;
@@ -44,17 +47,18 @@ import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapDifference;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapValueDifference;
-import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents.Daemon;
 import org.apache.uima.ducc.common.utils.MissingPropertyException;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
+import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
+import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 import org.apache.uima.ducc.transport.event.ServiceDisableEvent;
 import org.apache.uima.ducc.transport.event.ServiceEnableEvent;
 import org.apache.uima.ducc.transport.event.ServiceIgnoreEvent;
@@ -68,7 +72,6 @@ import org.apache.uima.ducc.transport.event.ServiceStopEvent;
 import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
 import org.apache.uima.ducc.transport.event.SmHeartbeatDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
-import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
@@ -94,10 +97,10 @@ public class ServiceManagerComponent
 	/**
 	 *
 	 */
-	private static DuccLogger logger = DuccLogger.getLogger(ServiceManagerComponent.class.getName(), COMPONENT_NAME);
+	private static DuccLogger logger = DuccLogger.getLogger(ServiceManagerComponent.class.getCanonicalName(), COMPONENT_NAME);
 	private static DuccId jobid = null;
 
-	private DuccWorkMap localMap = null;
+	private IDuccWorkMap localMap = null;
 
     private DuccEventDispatcher eventDispatcher;
     private String stateEndpoint;
@@ -117,12 +120,7 @@ public class ServiceManagerComponent
     static int failure_max = 5;              // total in window
     static int failure_window = 30;          // window size in minutes
 
-    private String state_dir = null;
-    private String state_file = null;
-
-    private DuccProperties sm_props = null;
-    private String service_seqno = IStateServices.sequenceKey;
-    private DuccIdFactory idFactory = new DuccIdFactory();
+    private IDuccIdFactory idFactory = null;
 
     private boolean signature_required = true;
     private boolean initialized = false;
@@ -131,6 +129,8 @@ public class ServiceManagerComponent
 
     private Map<String, String> administrators = new HashMap<String, String>();
 
+    private IDuccHead dh = null;
+    
     // Local SM version
     //    1.1.0 - reworked SM
     //    1.1.3 - added shutdown hook, pinger last-use, pinger disable autostart
@@ -151,6 +151,37 @@ public class ServiceManagerComponent
 		return logger;
 	}
 
+    /*
+     * resume: this head node has become master
+     */
+	private void resume(IDuccWorkMap dwm) {
+		String methodName = "resume";
+		try {
+			logger.info(methodName, jobid, "");
+			handler.init();
+			init();
+			this.localMap = dwm;
+			handler.resume(this.localMap);
+		}
+		catch(Exception e) {
+			logger.error(methodName, jobid, e);
+		}
+	}
+	
+    /*
+     * quiesce: this head node has become backup
+     */
+	private void quiesce() {
+		String methodName = "quiesce";
+		try {
+			logger.info(methodName, jobid, "");
+			handler.quiesce();
+		}
+		catch(Exception e) {
+			logger.error(methodName, jobid, e);
+		}
+	}
+	
     /**
      * Initialization tasks:
      * - read all the service descriptors
@@ -196,65 +227,7 @@ public class ServiceManagerComponent
 
         }
 
-        // try {
-		// 	File histdir = new File(serviceHistoryLocation());
-		// 	if ( ! histdir.exists() ) {
-		// 		histdir.mkdirs();
-		// 	}
-
-        //     Map<Long, Properties> sprops = h.getPropertiesForType(DbVertex.Service);
-        //     Map<Long, Properties> mprops = h.getPropertiesForType(DbVertex.ServiceMeta);
-
-        //     for ( Long k : sprops.keySet() ) {
-        //         DuccProperties svcprops  = (DuccProperties) sprops.get(k);
-        //         DuccProperties metaprops = (DuccProperties) mprops.get(k);
-
-        //         String uuid = metaprops.getProperty("uuid");
-
-        //         DuccId id = new DuccId(k);
-        //         id.setUUID(UUID.fromString(uuid));
-        //         logger.debug(methodName, id, "Unique:", id.getUnique());
-
-        //         try {
-        //             handler.register(id, svcprops, metaprops, true);
-        //         } catch (IllegalStateException e ) {                 // happens on duplicate service
-        //             logger.error(methodName, id, e);  // message has all I need.
-        //         }
-        //     }
-
-		// } catch (Throwable e) {
-        //     // If we get here we aren't startable.
-		// 	logger.error(methodName, null, "Cannot initialize service manger: ", e);
-		// 	System.exit(1);
-		// } finally {
-        //     h.close();
-        // }
-
-        state_dir = System.getProperty("DUCC_HOME") + "/state";
-        state_file = state_dir + "/sm.properties";
-
-        sm_props = new DuccProperties();
-        File sf = new File(state_file);
-        int seq = 0;
-        FileInputStream fos;
-        if ( sf.exists() ) {
-            fos = new FileInputStream(state_file);
-            try {
-                sm_props.load(fos);
-                String s = sm_props.getProperty(service_seqno);
-                seq = Integer.parseInt(s) + 1;
-            } finally {
-                fos.close();
-            }
-        }
-
-        long dbSeqNo = ServiceManagerHelper.getLargestServiceSeqNo();
-        if(dbSeqNo > seq) {
-        	logger.warn(methodName, jobid, "file:"+seq+" "+"db:"+dbSeqNo);
-        	seq = (int) dbSeqNo;
-        }
-
-        idFactory = new DuccIdFactory(seq);
+        idFactory = ServiceManagerHelper.getDuccIdFactory();
 
         synchronized(this) {
             initialized = true;
@@ -308,7 +281,7 @@ public class ServiceManagerComponent
     		NodeIdentity nodeIdentity = new NodeIdentity();
         	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
             eventDispatcher.dispatch(stateChangeEndpoint, ev, "");
-            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+            logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getCanonicalName());
         }
     	catch(Exception e) {
     		logger.error(methodName, null, e);
@@ -329,7 +302,7 @@ public class ServiceManagerComponent
         meta_ping_rate      = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.rate"          , meta_ping_rate);
         meta_ping_timeout   = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.timeout"       , meta_ping_timeout);
         meta_ping_stability = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.stability"     , meta_ping_stability);
-        default_ping_class  = SystemPropertyResolver.getStringProperty("ducc.sm.default.monitor.class", UimaAsPing.class.getName());
+        default_ping_class  = SystemPropertyResolver.getStringProperty("ducc.sm.default.monitor.class", UimaAsPing.class.getCanonicalName());
 
         String rm = SystemPropertyResolver.getStringProperty("ducc.runmode", "");
         if ( rm.equals("Test") ) testmode = true;
@@ -376,7 +349,7 @@ public class ServiceManagerComponent
 
         readAdministrators();
 
-        stateHandler = StateServicesFactory.getInstance(this.getClass().getName(), COMPONENT_NAME);
+        stateHandler = StateServicesFactory.getInstance(this.getClass().getCanonicalName(), COMPONENT_NAME);
 
         // // String dbname = System.getProperty("ducc.db.name");
         // String dburl  = System.getProperty("ducc.state.database.url"); // "remote:localhost:2424/DuccState"
@@ -754,32 +727,75 @@ public class ServiceManagerComponent
 
         }
     }
-
+    
+    private IDuccHead getDuccHead() {
+    	if(dh == null) {
+    		dh = DuccHead.getInstance();
+    		if(dh.is_ducc_head_backup()) {
+    			stateChange(EventType.INIT_AS_BACKUP);
+    		}
+    		else {
+    			stateChange(EventType.INIT_AS_MASTER);
+    		}
+    	}
+    	return dh;
+    }
+    
     public synchronized void orchestratorStateArrives(IDuccWorkMap map)
     {
     	String methodName = "orchestratorStateArrives";
-        if ( ! initialized ) {
-            logger.info(methodName, null, "SM not initialized, ignoring Orchestrator state update.");
-            return;
-        }
-        else {
-        	logger.debug(methodName, null, "SM initialized.");
-        }
+    	try {
+        	DuccHeadTransition transition = getDuccHead().transition();
+    		switch(transition) {
+    		case master_to_master:
+    			logger.debug(methodName, jobid, "ducc head == master");
+    			break;
+    		case master_to_backup:
+    			logger.warn(methodName, jobid, "ducc head -> backup");
+    			stateChange(EventType.SWITCH_TO_BACKUP);
+    			handler.setAccessMode(AccessMode.RO);
+    			quiesce();
+    			break;
+    		case backup_to_master:
+    			logger.warn(methodName, jobid, "ducc head -> master");
+    			stateChange(EventType.SWITCH_TO_MASTER);
+    			handler.setAccessMode(AccessMode.RW);
+    			resume(map);
+    			break;
+    		case backup_to_backup:
+    			logger.debug(methodName, jobid, "ducc head == backup");
+    			break;
+    		default:
+    			logger.debug(methodName, jobid, "ducc head == unspecified");
+    			break;
+    		}
+    		
+            if ( ! initialized ) {
+                logger.info(methodName, null, "SM not initialized, ignoring Orchestrator state update.");
+                return;
+            }
+            else {
+            	logger.debug(methodName, null, "SM initialized.");
+            }
+            
+            if ( ! map.isJobDriverMinimalAllocateRequirementMet() ) {
+                logger.info(methodName, null, "Orchestrator JD node not assigned, ignoring Orchestrator state update.");
+                // send a heartbeat to anyone who cares
+                publish();
+                return;
+            }
+            else {
+            	logger.debug(methodName, null, "JD requirements met.");
+            }
 
-        if ( ! map.isJobDriverMinimalAllocateRequirementMet() ) {
-            logger.info(methodName, null, "Orchestrator JD node not assigned, ignoring Orchestrator state update.");
-            // send a heartbeat to anyone who cares (
-            publish();
-            return;
-        }
-        else {
-        	logger.debug(methodName, null, "JD requirements met.");
-        }
-
-        orchestrator_alive = true;
-        epochCounter++;
-        incomingMap = map;
-        notify();
+            orchestrator_alive = true;
+            epochCounter++;
+            incomingMap = map;
+            notify();
+    	}
+    	catch(Exception e) {
+    		logger.error(methodName, jobid, e);
+    	}
     }
 
     // @deprecated
@@ -800,6 +816,21 @@ public class ServiceManagerComponent
         return crypto.isValid(auth_block);
 	  }
 
+	private boolean validate_ducc_head(String action, AServiceRequest req) {
+		String methodName = "validate_ducc_head";
+		boolean retVal = true;
+		if(dh.is_ducc_head_virtual_master()) {
+			// all is well
+		}
+		else {
+			String reason = "not master node";
+			logger.warn(methodName, null, action + " rejected. " + reason);
+			req.setReply(makeResponse(false, reason, action, -1));
+			retVal = false;
+		}
+		return retVal;
+	}
+	  
     private boolean validate_user(String action, AServiceRequest req)
     {
     	String methodName = "validate_user";
@@ -854,6 +885,7 @@ public class ServiceManagerComponent
         long regdate = System.currentTimeMillis();
         String regdate_readable = (new Date(regdate)).toString();
 
+        if ( ! validate_ducc_head("Register", ev) ) return;
         if ( ! validate_user("Register", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Register", ev) ) return;
 
@@ -902,7 +934,8 @@ public class ServiceManagerComponent
 
     public synchronized void unregister(ServiceUnregisterEvent ev)
     {
-        if ( ! validate_user("Unregister", ev) ) return;   // necessary messages emitted in here
+    	if ( ! validate_ducc_head("Unregister", ev) ) return;
+    	if ( ! validate_user("Unregister", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Unregister", ev) ) return;
 
         ServiceReplyEvent reply = handler.unregister(ev);
@@ -913,6 +946,7 @@ public class ServiceManagerComponent
     {
         String methodName = "start";
 
+        if ( ! validate_ducc_head("Start", ev) ) return;
         if ( ! validate_user("Start", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Start", ev) ) return;
 
@@ -926,6 +960,7 @@ public class ServiceManagerComponent
     {
         String methodName = "stop";
 
+        if ( ! validate_ducc_head("Stop", ev) ) return;
         if ( ! validate_user("Stop", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Stop", ev) ) return;
 
@@ -939,6 +974,7 @@ public class ServiceManagerComponent
     {
         String methodName = "enable";
 
+        if ( ! validate_ducc_head("Enable", ev) ) return;
         if ( ! validate_user("Enable", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Enable", ev) ) return;
 
@@ -952,6 +988,7 @@ public class ServiceManagerComponent
     {
         String methodName = "disable";
 
+        if ( ! validate_ducc_head("Disable", ev) ) return;
         if ( ! validate_user("Disable", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Disable", ev) ) return;
 
@@ -964,7 +1001,8 @@ public class ServiceManagerComponent
     public synchronized void observe(ServiceObserveEvent ev)
     {
         String methodName = "observe";
-
+        
+        if ( ! validate_ducc_head("Observe", ev) ) return;
         if ( ! validate_user("Observe", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Observe", ev) ) return;
 
@@ -978,6 +1016,7 @@ public class ServiceManagerComponent
     {
         String methodName = "ignore";
 
+        if ( ! validate_ducc_head("Ignore", ev) ) return;
         if ( ! validate_user("Ignore", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Ignore", ev) ) return;
 
@@ -991,6 +1030,7 @@ public class ServiceManagerComponent
     {
         String methodName = "query";
 
+        if ( ! validate_ducc_head("Query", ev) ) return;
         if ( ! validate_user("Query", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Query", ev) ) return;
 
@@ -1004,6 +1044,7 @@ public class ServiceManagerComponent
     {
         String methodName = "modify";
 
+        if ( ! validate_ducc_head("Modify", ev) ) return;
         if ( ! validate_user("Modify", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Modify", ev) ) return;
 
@@ -1012,22 +1053,6 @@ public class ServiceManagerComponent
         ev.setReply(reply);
         //ev.setReply(ServiceCode.OK, "Service not implemented.", "no-endpoint", null);
     }
-
-    Object idSync = new Object();
-    public DuccId newId()
-        throws Exception
-    {
-    	DuccId id = null;
-        synchronized(idSync) {
-            id = idFactory.next();
-            sm_props.setProperty(service_seqno, id.toString());
-            FileOutputStream fos = new FileOutputStream(state_file);
-            sm_props.store(fos, "Service Manager Properties");
-            fos.close();
-        }
-        return id;
-    }
-
 
     static void deleteProperties(String id, String meta_filename, Properties meta_props, String props_filename, Properties job_props)
     {
@@ -1066,5 +1091,10 @@ public class ServiceManagerComponent
          }
          props_filename = null;
     }
+
+	@Override
+	public DuccId newId() throws Exception {
+		return idFactory.next();
+	}
 
 }

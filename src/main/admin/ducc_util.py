@@ -65,6 +65,12 @@ import db_util as dbu
 global use_threading
 use_threading = True
 
+ducc_util_debug_flag = False
+
+def debug(label,data):
+    if(ducc_util_debug_flag):
+        print label, data
+
 # The "ducc" userid is the user that installed DUCC and created this file.
 # If the admin dir's permissions were 700 then could assume the current user is the ducc user
 def find_ducc_uid():
@@ -138,6 +144,13 @@ class ThreadPool:
 
 class DuccUtil(DuccBase):
 
+    def makedirs(self,dir):
+        try:
+            os.makedirs(dir)
+            print 'make: '+dir
+        except:
+            pass
+        
     def update_properties(self):
 
         if ( self.ducc_properties == None ):
@@ -149,7 +162,7 @@ class DuccUtil(DuccBase):
         self.ducc_uid          = find_ducc_uid()
         # self.broker_url      = self.ducc_properties.get('ducc.broker.url')
         self.broker_protocol   = self.ducc_properties.get('ducc.broker.protocol')
-        self.broker_host       = self.ducc_properties.get('ducc.broker.hostname')
+        self.broker_host       = self.localhost
         self.broker_port       = self.ducc_properties.get('ducc.broker.port')
         self.broker_jmx_port   = self.ducc_properties.get('ducc.broker.jmx.port')
         self.broker_decoration = self.ducc_properties.get('ducc.broker.url.decoration')
@@ -204,12 +217,10 @@ class DuccUtil(DuccBase):
                 
     # does the database process exist?  
     def db_process_alive(self):
-        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
-
-        if ( not os.path.exists(pidfile) ):
+        if ( not os.path.exists(self.db_pidfile) ):
             return False
 
-        f = open(self.DUCC_HOME + '/state/cassandra.pid')
+        f = open(self.db_pidfile)
         pid = f.read();
         f.close()
         answer = []
@@ -239,8 +250,7 @@ class DuccUtil(DuccBase):
                 print 'No database location defined.'
             return False
 
-        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
-        if ( not os.path.exists(pidfile) ):
+        if ( not os.path.exists(self.db_pidfile) ):
             if(verbose):
                 print 'Database pid file does not exist.  Checking DB connectivity.'
 
@@ -306,17 +316,37 @@ class DuccUtil(DuccBase):
         return False
 
     def db_stop(self):
-
-        if ( self.db_bypass == True) :
-            print '   (Bypass database stop because ducc.database.host =', self.db_disabled + ')'
-            return True
-
-        pidfile = self.DUCC_HOME + '/state/cassandra.pid'
-        if ( os.path.exists(pidfile) ):
-            # for cassandra, just send it a terminate signal.  a pidfile is written on startup
-            CMD = ['kill', '-TERM', '`cat ' + pidfile + '`']
-            CMD = ' '.join(CMD)
-            os.system(CMD)
+        try:
+            if ( self.db_bypass == True) :
+                print '   (Bypass database stop because ducc.database.host =', self.db_disabled + ')'
+                return True
+            dbnode = self.ducc_properties.get('ducc.database.host')
+            dbnode = dbnode.strip()
+            pidfile = os.path.join(DUCC_HOME,'state','database',dbnode,'cassandra.pid')
+            cmd = [ 'less', '-FX', pidfile ]
+            cmd = ' '.join(cmd)
+            #print cmd
+            stdout = self.ssh(dbnode, True, cmd)
+            result = stdout.read().strip()
+            tokens = result.split()
+            if(len(tokens) == 1):
+                pid = tokens[0].strip()
+                #print pid
+                cmd = [ 'kill', '-15', pid ]
+                cmd = ' '.join(cmd)
+                #print cmd
+                stdout = self.ssh(dbnode, True, cmd)
+                result = stdout.read().strip()
+                #print result
+                print 'Database stopped.'
+                return True
+            else:
+                #print result
+                print 'Database not running.'
+                return True
+        except Exception,e:
+            print e
+            return False
 
     def find_netstat(self):
         # don't you wish people would get together on where stuff lives?
@@ -354,7 +384,7 @@ class DuccUtil(DuccBase):
 
     def stop_broker(self):
 
-        broker_host = self.ducc_properties.get('ducc.broker.hostname')
+        broker_host = self.localhost
         broker_home = self.ducc_properties.get('ducc.broker.home')
         broker_name = self.ducc_properties.get('ducc.broker.name')
         broker_jmx  = self.ducc_properties.get('ducc.broker.jmx.port')
@@ -384,10 +414,23 @@ class DuccUtil(DuccBase):
         if ( showpid ) :
             print 'PID', ducc.pid
 
+    def get_hostname(self):
+        hostname = '?'
+        cmd = '/bin/hostname'
+        resp = self.popen(cmd)
+        lines = resp.readlines()
+        if(len(lines)== 1):
+            line = lines[0]
+            line = line.strip();
+            hostname = line.split('.')[0]
+        return hostname
+    
     def ssh_operational(self, node):
         is_operational = False
         req = node.split('.')[0]
         cmd = '/bin/hostname'
+        if(node == 'localhost'):
+            req = self.get_hostname()
         ssh_cmd = 'ssh -q -o BatchMode=yes -o ConnectTimeout=10'+' '+node+" "+cmd
         resp = self.popen(ssh_cmd)
         lines = resp.readlines()
@@ -528,40 +571,127 @@ class DuccUtil(DuccBase):
             print 'NOTOK', CMD, 'returns', int(rc), '.  Must return rc 0.  Startup cannot continue.'
             return False
         return True
-
-    # inspect ducc.head.failover
-    def verify_head_failover(self, head):
-        key = "ducc.head.failover"
-        failover = self.ducc_properties.get(key)
-        # check for no failover
-        if(failover == None):
-            logger.debug(key+" not specified")
-        else:
-            # insure ducc.head listed in ducc.head.failover
-            if(not head in failover):
-                text = head+" not found in "+key
-                logger.error(text)
+    
+    # determine if string represent an integer
+    def is_int(self,string):
+        result = True
+        try:
+            number = int(string)
+        except:
+            result = False
+        return result
+    
+    # transform hostname into ip address
+    def get_ip_address(self,hostname):
+        label = 'get_ip_address'
+        result = None
+        try:
+            p = subprocess.Popen(['/usr/bin/nslookup', hostname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output, err = p.communicate()
+            #print hostname, output, err
+            name = None
+            for line in output.splitlines():
+                tokens = line.split()
+                if(len(tokens) == 2):
+                    t0 = tokens[0]
+                    t1 = tokens[1]
+                    if(t0 == 'Address:'):
+                        if(name != None):
+                            result = t1
+                            break
+                    elif(t0 == 'Name:'):
+                        name = t1
+        except Exception as e:
+            print e
+        debug(label, str(result))
+        return result
+    
+    # get ducc.head.reliable.list
+    def get_head_node_list(self):
+        head_node_list = []
+        # add ducc.head.reliable.list node(s)
+        ducc_head_list = self.ducc_properties.get("ducc.head.reliable.list")
+        if(ducc_head_list != None):
+            ducc_head_nodes = ducc_head_list.split()
+            if(len(ducc_head_nodes)== 0):
+                pass
+            elif(len(ducc_head_nodes)== 1):
+                print '>>> ERROR - "ducc.head.reliable.list" missing or invalid.'
                 sys.exit(1);
-            # test viability fo failover nodes
-            nodes = failover.replace(',',' ').split()
-            for node in nodes:
-                if(self.ssh_operational(node)):
-                    text = "ssh is operational to "+node
-                    logger.debug(text)
-                else:
-                    text = "ssh to specified failover node unsuccessful or otherwise problematic: "+node
-                    logger.warn(text)
+            else:
+                head_node_list = ducc_head_nodes
+        return head_node_list
+    
+    # get all possible hostnames & ip addresses for a head node
+    def get_head_node_list_variations(self):
+        # start with ducc.head.reliable.list node(s)
+        head_node_list = self.get_head_node_list()
+        # add ducc.head node
+        ducc_head = self.ducc_properties.get("ducc.head")
+        if(ducc_head == None):
+            print '>>> ERROR - "ducc.head" missing or invalid.'
+            sys.exit(1);
+        ducc_head_nodes = ducc_head.split()
+        if(len(ducc_head_nodes) != 1):
+            print '>>> ERROR - "ducc.head" missing or invalid.'
+            sys.exit(1);
+        head_node = ducc_head_nodes[0]
+        if(not head_node in head_node_list):
+            head_node_list.append(head_node)
+        # add short names
+        list = head_node_list
+        for node in list:
+            short_name = node.split('.')[0]
+            if(not self.is_int(short_name)):
+                if(not short_name in head_node_list):
+                    head_node_list.append(short_name)
+        # add ip addresses
+        list = head_node_list
+        for node in list:
+            ip = self.get_ip_address(node)
+            if(ip != None):
+                if(not ip in head_node_list):
+                    head_node_list.append(ip)
+        #
+        debug('head_node_list: ', head_node_list)
+        return head_node_list
+    
+    # drop domain and whitespace
+    def normalize(self,name):
+        result = name
+        if(name != None):
+            result = name
+            result = result.strip()
+            result = result.split('.')[0]
+        return result
+    
+    # get current host's name
+    def get_node_name(self):
+        node_name = 'unknown'
+        cmd = '/bin/hostname'
+        resp = self.popen(cmd)
+        lines = resp.readlines()
+        if(len(lines)== 1):
+            name = lines[0]
+            node_name = self.normalize(name)
+        debug('node_name: ', node_name)
+        return node_name
     
     # Exit if this is not the head node.  Ignore the domain as uname sometimes drops it.
     # Also check that ssh to this node works
     # Also restrict operations to the userid that installed ducc
     def verify_head(self):
-        head = self.ducc_properties.get("ducc.head").split('.')[0]
-        local = self.localhost.split('.')[0]
-        if local != head:
-            print ">>> ERROR - this script must be run from the head node"
-            sys.exit(1);
-        node = head
+        head_node_list = self.get_head_node_list_variations()
+        node = self.get_node_name()
+        if(node in head_node_list):
+            pass
+        else:
+            ip = self.get_ip_address(node)
+            if(ip in head_node_list):
+                pass
+            else:
+                print ">>> ERROR - "+node+" not configured as head node."
+                sys.exit(1);
         if(self.ssh_operational(node)):
             text = "ssh is operational to "+node
             #print text
@@ -573,8 +703,6 @@ class DuccUtil(DuccBase):
         if dir_stat.st_uid != os.getuid():
             print ">>> ERROR - this script must be run by the userid that installed DUCC"
             sys.exit(1);
-        self.verify_head_failover(head)
-
 
     #
     # Verify the viability of ducc_ling.
@@ -1060,33 +1188,6 @@ class DuccUtil(DuccBase):
         #print 'result: '+result
         #print 'status: '+str(status)
         return result
-    
-    def verify_head_failover_configuration(self):
-        rc = 0
-        failover_nodes = self.ducc_properties.get('ducc.head.failover')
-        message = "OK: Head node failover not configured."
-        if(failover_nodes != None):
-            failover_nodes = failover_nodes.strip()
-            if(len(failover_nodes) >= 0):
-                nodes = failover_nodes.split()
-                head_node = self.ducc_properties.get('ducc.head')
-                head_pool = self.get_nodepool(head_node,'<None>')
-                for node in nodes:
-                    node_pool = self.get_nodepool(node,'<None>')
-                    #print 'head:'+head_pool+' '+'node:'+node_pool
-                    if( head_pool != node_pool):
-                        if(rc == 0):
-                            message = 'OK: Head failover node '+head_node+' in node pool '+head_pool
-                            print message
-                        message = 'NOTOK: Head failover node '+node+' in node pool '+node_pool
-                        print message
-                        rc = 1
-                if (rc > 0):
-                    message = "NOTOK: Head failover nodepools incorrectly configured."
-                else:
-                    message = "OK: Head failover nodepools correctly configured."
-        print message
-        return (rc == 0)
         
     def disable_threading(self):
         global use_threading
@@ -1098,6 +1199,46 @@ class DuccUtil(DuccBase):
             return False
         return True
 
+    keepalivd_conf = '/etc/keepalived/keepalived.conf'
+
+    # eligible when keepalived config comprises the ip
+    def is_reliable_eligible(self, ip):
+        retVal = False
+        if ( os.path.exists(self.keepalivd_conf) ):
+            with open(self.keepalivd_conf) as f:
+                for line in f:
+                    if ip in line:
+                        retVal = True
+                        break
+        return retVal
+        
+    # master when current node keepalived answers for head node ip
+    # backup when current node keepalived does not answer for head ip, but is capable in config
+    # unspecified otherwise
+    def get_reliable_state(self):
+        label = 'get_reliable_state'
+        result = 'unspecified'
+        try:
+            ducc_head = self.ducc_properties.get('ducc.head')
+            head_ip = self.get_ip_address(ducc_head)
+            if(self.is_reliable_eligible(head_ip)):
+                text = 'cmd: ', '/sbin/ip', 'addr', 'list'
+                debug(label, text)
+                p = subprocess.Popen(['/sbin/ip', 'addr', 'list'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                output, err = p.communicate()
+                text = "output: "+output
+                debug(label, text)
+                if(head_ip in output):
+                    result = 'master'
+                else:
+                    result = 'backup'
+        except Exception as e:
+            print e
+        return result
+    
+    def is_reliable_backup(self):
+        return self.get_reliable_state() == 'backup'
+    
     def __init__(self, merge=False):
         global use_threading
         DuccBase.__init__(self, merge)
@@ -1109,25 +1250,45 @@ class DuccUtil(DuccBase):
         self.broker_host = 'localhost'
         self.broker_port = '61616'
         self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'db', 'broker']
+        self.local_components = ['rm', 'pm', 'sm', 'or', 'ws', 'broker']
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
 
         if ( self.localhost == self.ducc_properties.get("ducc.head")):
             self.is_ducc_head = True
 
-        os.environ['DUCC_NODENAME'] = self.localhost    # to match java code's implicit propery so script and java match
+        os.environ['DUCC_NODENAME'] = self.localhost    # to match java code's implicit property so script and java match
 
-        self.pid_file  = self.DUCC_HOME + '/state/ducc.pids'
+        dbhost = self.ducc_properties.get('ducc.database.host')
+        if ( dbhost == None ):
+            dbhost = self.ducc_properties.get('ducc.head')
+        if ( dbhost == None ):
+            dbhost = 'localhost'
+
+        dir_db_state = self.DUCC_HOME + '/state/database/'+dbhost
+        self.makedirs(dir_db_state)
+        dir_db_logs = self.DUCC_HOME + '/logs/database/'+dbhost
+        self.makedirs(dir_db_logs)
+
+        self.db_pidfile = dir_db_state+ '/cassandra.pid'
+        self.db_logfile = dir_db_logs + '/cassandra.console'
+        
+        self.pid_file_agents  = self.DUCC_HOME + '/state/agents/ducc.pids'
+        self.pid_file_daemons  = self.DUCC_HOME + '/state/daemons/'+self.get_node_name()+'/ducc.pids'
         self.set_classpath()
         self.os_pagesize = self.get_os_pagesize()
         self.update_properties()
 
         self.db_configure()
         
-
         manage_broker = self.ducc_properties.get('ducc.broker.automanage')
-        self.automanage = False
+        self.automanage_broker = False
         if (manage_broker in ('t', 'true', 'T', 'True')) :
-            self.automanage = True                    
+            self.automanage_broker = True                    
+
+        manage_database = self.ducc_properties.get('ducc.database.automanage')
+        self.automanage_database = False
+        if (manage_database in ('t', 'true', 'T', 'True')) :
+            self.automanage_database = True     
 
         py_version = platform.python_version().split('.')
         if ( int(py_version[0]) > 2 ):

@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -38,6 +39,9 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.crypto.CryptoException;
+import org.apache.uima.ducc.common.head.IDuccHead;
+import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadState;
+import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadTransition;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.main.DuccRmAdmin;
 import org.apache.uima.ducc.common.main.DuccService;
@@ -49,15 +53,18 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.database.DbDuccWorks;
 import org.apache.uima.ducc.orchestrator.OrchestratorConstants.StartType;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
+import org.apache.uima.ducc.orchestrator.ckpt.OrchestratorCheckpoint;
+import org.apache.uima.ducc.orchestrator.database.OrDbDuccWorks;
+import org.apache.uima.ducc.orchestrator.database.OrDbOrchestratorProperties;
 import org.apache.uima.ducc.orchestrator.exceptions.ResourceUnavailableForJobDriverException;
 import org.apache.uima.ducc.orchestrator.factory.IJobFactory;
 import org.apache.uima.ducc.orchestrator.factory.JobFactory;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdScheduler;
 import org.apache.uima.ducc.orchestrator.maintenance.MaintenanceThread;
 import org.apache.uima.ducc.orchestrator.maintenance.NodeAccounting;
+import org.apache.uima.ducc.orchestrator.state.OrchestratorState;
 import org.apache.uima.ducc.orchestrator.system.events.log.SystemEventsLogger;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.AgentProcessLifecycleReportDuccEvent;
@@ -118,7 +125,6 @@ implements Orchestrator {
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private Messages messages = orchestratorCommonArea.getSystemMessages();
-	private DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 	private StateManager stateManager = StateManager.getInstance();
 	//private HealthMonitor healthMonitor = HealthMonitor.getInstance();
 	//private MqReaper mqReaper = MqReaper.getInstance();
@@ -129,6 +135,8 @@ implements Orchestrator {
 	private DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 	
 	private IDbDuccWorks dbDuccWorks = null;
+	
+	private IDuccHead dh = null;
 	
 	public OrchestratorComponent(CamelContext context) {
 		super("Orchestrator", context);
@@ -141,12 +149,25 @@ implements Orchestrator {
 	private void init() {
 		String location = "init";
 		try {
-			dbDuccWorks = new DbDuccWorks(logger);
+			dbDuccWorks = new OrDbDuccWorks();
 			dbDuccWorks.dbInit();
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
 		}
+		OrDbOrchestratorProperties.getInstance();
+	}
+	
+	private boolean rejectNotMaster(Properties properties) {
+		String location = "rejectIfNotMaster";
+		boolean retVal = false;
+		if(!getDuccHead().is_ducc_head_virtual_master()) {
+			String error_message = messages.fetch(" type=ducchead error, text=not the master.");
+			logger.error(location, null, error_message);
+			submitError(properties, error_message);
+			retVal = true;
+		}
+		return retVal;
 	}
 	
 	public void onDuccAdminKillEvent(DuccAdminEvent event) throws Exception {
@@ -315,6 +336,7 @@ implements Orchestrator {
 		String methodName = "start";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		try {
+			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 			StartType startType = getStartType(args);
 			logger.info(methodName, null, "##### "+startType+" #####");
 			String key = "ducc.broker.url";
@@ -400,6 +422,7 @@ implements Orchestrator {
 	public void reconcileDwState(DuccWorkRequestEvent duccEvent) {
 		String methodName = "reconcileDwState";
 		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		if(duccEvent != null) {
 			DuccId duccId = duccEvent.getDuccId();
 			if(duccId != null) {
@@ -430,26 +453,35 @@ implements Orchestrator {
 	
 	public void reconcileJdState(JdRequestEvent duccEvent) {
 		String methodName = "reconcileJdState";
+		logger.trace(methodName, null, messages.fetch("enter"));
 		IDriverStatusReport dsr = duccEvent.getDriverStatusReport();
 		DuccId duccId = null;
 		if(dsr != null) {
 			duccId = dsr.getDuccId();
 		}
-		logger.trace(methodName, null, messages.fetch("enter"));
-		if(dsr != null) {
-			logger.info(methodName, duccId, dsr.getLogReport());
-			stateManager.reconcileState(dsr);
-			String sid = ""+duccId.getFriendly();
-			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.cloneDuccWork(workMap, sid, this, methodName);
-			if(duccWorkJob != null) {
-				IDuccProcessMap processMap = duccWorkJob.getProcessMap();
-				duccEvent.setProcessMap(new DuccProcessMap(processMap));
-				
-			}
-			else {
-				String text = "not found in map";
-				duccEvent.setKillDriverReason(text);
-				logger.warn(methodName, duccId, text);
+		boolean is_master = getDuccHead().is_ducc_head_virtual_master();
+		if(!is_master) {
+			duccEvent.setDuccHeadMaster(false);
+			logger.info(methodName, duccId, "not master");
+		}
+		else {
+			duccEvent.setDuccHeadMaster(true);
+			logger.info(methodName, duccId, "master");
+			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
+			if(dsr != null) {
+				logger.info(methodName, duccId, dsr.getLogReport());
+				stateManager.reconcileState(dsr);
+				String sid = ""+duccId.getFriendly();
+				DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.cloneDuccWork(workMap, sid, this, methodName);
+				if(duccWorkJob != null) {
+					IDuccProcessMap processMap = duccWorkJob.getProcessMap();
+					duccEvent.setProcessMap(new DuccProcessMap(processMap));
+				}
+				else {
+					String text = "not found in map";
+					duccEvent.setKillDriverReason(text);
+					logger.warn(methodName, duccId, text);
+				}
 			}
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
@@ -462,6 +494,7 @@ implements Orchestrator {
 	public void reconcileRmState(RmStateDuccEvent duccEvent) {
 		String methodName = "reconcileRmState";
 		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		Map<DuccId, IRmJobState> resourceMap = duccEvent.getJobState();
 		try {
 			stateManager.reconcileState(resourceMap);
@@ -492,6 +525,38 @@ implements Orchestrator {
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 
+	// true == accepting node inventory
+	// false == not accepting node inventory
+	private AtomicBoolean stateNodeInventory = new AtomicBoolean(true);
+	
+	private boolean isAcceptNodeInventory() {
+		String methodName = "isAcceptNodeInventory";
+		boolean retVal = true;
+		if(getDuccHead().is_ducc_head_virtual_master()) {
+			if(stateNodeInventory.get()) {
+				// no change
+			}
+			else {
+				// newly master
+				retVal = true;
+				stateNodeInventory.set(retVal);
+				logger.info(methodName, jobid, retVal);
+			}
+		}
+		else {
+			if(stateNodeInventory.get()) {
+				// newly backup
+				retVal = false;
+				stateNodeInventory.set(retVal);
+				logger.info(methodName, jobid, retVal);
+			}
+			else {
+				// no change
+			}
+		}
+		return retVal;
+	}
+	
 	/**
 	 * Node Inventory State Reconciliation
 	 */
@@ -499,10 +564,12 @@ implements Orchestrator {
 	public void reconcileNodeInventory(NodeInventoryUpdateDuccEvent duccEvent) {
 		String methodName = "reconcileNodeInventory";
 		logger.trace(methodName, null, messages.fetch("enter"));
-		HashMap<DuccId, IDuccProcess> processMap = duccEvent.getProcesses();
-		stateManager.reconcileState(processMap);
-		NodeAccounting.getInstance().heartbeat(processMap);
-		adjustPublicationSequenceNumber(duccEvent);
+		if(isAcceptNodeInventory()) {
+			HashMap<DuccId, IDuccProcess> processMap = duccEvent.getProcesses();
+			stateManager.reconcileState(processMap);
+			NodeAccounting.getInstance().heartbeat(processMap);
+			adjustPublicationSequenceNumber(duccEvent);
+		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
@@ -514,7 +581,7 @@ implements Orchestrator {
 	private void adjustPublicationSequenceNumber(NodeInventoryUpdateDuccEvent duccEvent) {
 		NodeIdentity nodeIdentity = duccEvent.getNodeIdentity();
 		long seqNo = duccEvent.getSequence();
-		OrchestratorState.getInstance().setNextSequenceNumberStateIfGreater(nodeIdentity, seqNo);
+		OrchestratorState.getInstance().setNextPublicationSequenceNumberIfGreater(seqNo, nodeIdentity);
 	}
 	
 	/*
@@ -524,7 +591,7 @@ implements Orchestrator {
 		String node = "?";
 		NodeIdentity nodeIdentity = duccEvent.getNodeIdentity();
 		if(nodeIdentity != null) {
-			node = nodeIdentity.getName();
+			node = nodeIdentity.getCanonicalName();
 		}
 		return node;
 	}
@@ -589,6 +656,7 @@ implements Orchestrator {
 		ProcessType processType = getProcessType(duccEvent);
 		IDuccProcess process = duccEvent.getProcess();
 		DuccId processDuccId = getProcessDuccId(duccEvent);
+		logger.debug(location, processDuccId, "process");
 		if(process == null) {
 			sb.append("process:"+process+" ");
 			sb.append("node:"+node+" ");
@@ -621,6 +689,7 @@ implements Orchestrator {
 			logger.error(location, jobid, sb.toString());
 		}
 		else {
+			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 			DuccId dwId = OrchestratorCommonArea.getInstance().getProcessAccounting().getJobId(processDuccId);
 			IDuccWork dw = workMap.findDuccWork(dwId);
 			DuccType dwType = dw.getDuccType();
@@ -635,6 +704,19 @@ implements Orchestrator {
 		}
 	}
 	
+	private IDuccHead getDuccHead() {
+    	if(dh == null) {
+    		dh = DuccHead.getInstance();
+    		if(dh.is_ducc_head_backup()) {
+    			SystemEventsLogger.warn(IDuccLoggerComponents.abbrv_orchestrator, EventType.INIT_AS_BACKUP.name(), "");
+    		}
+    		else {
+    			SystemEventsLogger.warn(IDuccLoggerComponents.abbrv_orchestrator, EventType.INIT_AS_MASTER.name(), "");
+    		}
+    	}
+    	return dh;
+    }
+	
 	/**
 	 * Publish Orchestrator State
 	 */
@@ -642,7 +724,39 @@ implements Orchestrator {
 	public OrchestratorStateDuccEvent getState() {
 		String methodName = "getState";
 		logger.trace(methodName, null, messages.fetch("enter"));
+		
 		OrchestratorStateDuccEvent orchestratorStateDuccEvent = new OrchestratorStateDuccEvent(logger);
+		
+		DuccHeadTransition dh_transition = getDuccHead().transition();
+		logger.debug(methodName, jobid, dh_transition);
+		switch(dh_transition) {
+		case master_to_backup:
+			OrchestratorCommonArea.getInstance().restart();
+			SystemEventsLogger.warn(IDuccLoggerComponents.abbrv_orchestrator, EventType.SWITCH_TO_BACKUP.name(), "");
+			orchestratorStateDuccEvent.setDuccHeadState(DuccHeadState.backup);
+			logger.warn(methodName, jobid, "ducc head -> backup");
+			break;
+		case backup_to_master:
+			OrchestratorCommonArea.getInstance().restart();
+			SystemEventsLogger.warn(IDuccLoggerComponents.abbrv_orchestrator, EventType.SWITCH_TO_MASTER.name(), "");
+			orchestratorStateDuccEvent.setDuccHeadState(DuccHeadState.master);
+			logger.warn(methodName, jobid, "ducc head -> master");
+			break;
+		case master_to_master:
+			orchestratorStateDuccEvent.setDuccHeadState(DuccHeadState.master);
+			logger.debug(methodName, jobid, "ducc head == master");
+			break;
+		case backup_to_backup:
+			orchestratorStateDuccEvent.setDuccHeadState(DuccHeadState.backup);
+			logger.debug(methodName, jobid, "ducc head == backup");
+			break;
+		default:
+			logger.debug(methodName, jobid, "ducc head == unspecified");
+			break;
+		}
+		
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
+		
 		try {
 			DuccWorkMap workMapCopy = WorkMapHelper.deepCopy(workMap, this, methodName);
 			int activeJobs = workMapCopy.getJobCount();
@@ -663,6 +777,7 @@ implements Orchestrator {
 			}
 			logger.debug(methodName, jobid, "isJobDriverMinimalAllocateRequirementMet="+workMapCopy.isJobDriverMinimalAllocateRequirementMet());
 			orchestratorStateDuccEvent.setWorkMap(workMapCopy);
+			
 			//stateManager.prune(workMapCopy);
 			//healthMonitor.cancelNonViableJobs();
 			//mqReaper.removeUnusedJdQueues(workMapCopy);
@@ -747,10 +862,14 @@ implements Orchestrator {
 	public void startJob(SubmitJobDuccEvent duccEvent) {
 		String methodName = "startJob";
 		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		try {
 			OrchestratorHelper.assignDefaults(duccEvent);
 			JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
-			if(!isSignatureValid(properties)) {
+			if(rejectNotMaster(properties)) {
+				// submit "Error"
+			}
+			else if(!isSignatureValid(properties)) {
 				String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 				logger.error(methodName, null, error_message);
 				submitError(properties, error_message);
@@ -820,8 +939,12 @@ implements Orchestrator {
 		String methodName = "stopJob";
 		DuccId dwid = null;
 		logger.trace(methodName, dwid, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		Properties properties = duccEvent.getProperties();
-		if(!isSignatureValid(properties)) {
+		if(rejectNotMaster(properties)) {
+			// submit "Error"
+		}
+		else if(!isSignatureValid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);
@@ -884,8 +1007,12 @@ implements Orchestrator {
 		String methodName = "stopJobProcess";
 		DuccId dwid = null;
 		logger.trace(methodName, dwid, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		Properties properties = duccEvent.getProperties();
-		if(!isSignatureValid(properties)) {
+		if(rejectNotMaster(properties)) {
+			// submit "Error"
+		}
+		else if(!isSignatureValid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);
@@ -977,10 +1104,14 @@ implements Orchestrator {
 	public void startReservation(SubmitReservationDuccEvent duccEvent) {
 		String methodName = "startReservation";
 		logger.trace(methodName, null, messages.fetch("enter"));	
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		try {
 			OrchestratorHelper.assignDefaults(duccEvent);
 			Properties properties = duccEvent.getProperties();
-			if(!isSignatureValid(properties)) {
+			if(rejectNotMaster(properties)) {
+				// submit "Error"
+			}
+			else if(!isSignatureValid(properties)) {
 				String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 				logger.error(methodName, null, error_message);
 				submitError(properties, error_message);
@@ -1024,7 +1155,7 @@ implements Orchestrator {
 					IDuccReservationMap map = duccWorkReservation.getReservationMap();
 					for (DuccId key : map.keySet()) { 
 						IDuccReservation value = duccWorkReservation.getReservationMap().get(key);
-						String node = value.getNodeIdentity().getName();
+						String node = value.getNodeIdentity().getCanonicalName();
 						sb.append(node);
 						sb.append(" ");
 					}
@@ -1050,8 +1181,12 @@ implements Orchestrator {
 		String methodName = "stopReservation";
 		DuccId dwid = null;
 		logger.trace(methodName, dwid, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		Properties properties = duccEvent.getProperties();
-		if(!isSignatureValid(properties)) {
+		if(rejectNotMaster(properties)) {
+			// submit "Error"
+		}
+		else if(!isSignatureValid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);
@@ -1124,10 +1259,14 @@ implements Orchestrator {
 	public void startService(SubmitServiceDuccEvent duccEvent) {
 		String methodName = "startService";
 		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		try {
 			OrchestratorHelper.assignDefaults(duccEvent);
 			JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
-			if(!isSignatureValid(properties)) {
+			if(rejectNotMaster(properties)) {
+				// submit "Error"
+			}
+			else if(!isSignatureValid(properties)) {
 				String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 				logger.error(methodName, null, error_message);
 				submitError(properties, error_message);
@@ -1218,8 +1357,12 @@ implements Orchestrator {
 		String methodName = "stopService";
 		DuccId dwid = null;
 		logger.trace(methodName, dwid, messages.fetch("enter"));
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		Properties properties = duccEvent.getProperties();
-		if(!isSignatureValid(properties)) {
+		if(rejectNotMaster(properties)) {
+			// submit "Error"
+		}
+		else if(!isSignatureValid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);

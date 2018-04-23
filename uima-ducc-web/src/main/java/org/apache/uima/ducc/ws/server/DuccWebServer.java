@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.jasper.servlet.JspServlet;
-import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -138,6 +137,12 @@ public class DuccWebServer {
 	 */
 	public String getClassDefinitionFile() {
 		return commonConfiguration.classDefinitionFile;
+	}
+	
+	public int getPort() {
+		String property = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port);
+        int portHttp = ConfigValue.PortHttp.getInt(property);
+        return portHttp;
 	}
 	
 	public int getPortSsl() {
@@ -304,7 +309,7 @@ public class DuccWebServer {
         if(requestLogRetainDays > 0) {
 			String requestLogTimeZone = "GMT";
 			String requestLogFmt = "yyyy_MM_dd";
-			String requestLogFile = IDuccEnv.DUCC_LOGS_WEBSERVER_DIR+requestLogFmt+".request.log";
+			String requestLogFile = DuccWebServerHelper.getDuccWebLogsDir()+requestLogFmt+".request.log";
 			NCSARequestLog requestLog = new NCSARequestLog();
 		    requestLog.setFilename(requestLogFile);
 		    requestLog.setFilenameDateFormat(requestLogFmt);

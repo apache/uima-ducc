@@ -39,6 +39,16 @@ public class DaemonDuccEvent extends AbstractDuccEvent {
 		return dde;
 	}
 	
+	public static DaemonDuccEvent createSwitchToMaster(Daemon daemon, NodeIdentity nodeIdentity) {
+		DaemonDuccEvent dde = new DaemonDuccEvent(daemon, EventType.SWITCH_TO_MASTER, nodeIdentity);
+		return dde;
+	}
+	
+	public static DaemonDuccEvent createSwitchToBackup(Daemon daemon, NodeIdentity nodeIdentity) {
+		DaemonDuccEvent dde = new DaemonDuccEvent(daemon, EventType.SWITCH_TO_BACKUP, nodeIdentity);
+		return dde;
+	}
+	
 	public static DaemonDuccEvent create(Daemon daemon, EventType eventType, NodeIdentity nodeIdentity) {
 		DaemonDuccEvent dde = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
 		return dde;

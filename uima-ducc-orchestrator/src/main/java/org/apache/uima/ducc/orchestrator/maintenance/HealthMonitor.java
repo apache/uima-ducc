@@ -27,11 +27,11 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.Constants;
 import org.apache.uima.ducc.orchestrator.OrUtil;
-import org.apache.uima.ducc.orchestrator.OrchestratorCheckpoint;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.OrchestratorHelper;
 import org.apache.uima.ducc.orchestrator.StateManager;
 import org.apache.uima.ducc.orchestrator.WorkMapHelper;
+import org.apache.uima.ducc.orchestrator.ckpt.OrchestratorCheckpoint;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
@@ -57,7 +57,6 @@ public class HealthMonitor {
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private Messages messages = orchestratorCommonArea.getSystemMessages();
-	private DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 
 	private boolean isCancelJobExcessiveInitializationFailures(IDuccWorkJob job) {
 		String methodName = "isCancelJobExcessiveInitializationFailures";
@@ -180,7 +179,7 @@ public class HealthMonitor {
 						}
 						else {
 							if(!process.isComplete()) {
-								String nodeName = process.getNodeIdentity().getName();
+								String nodeName = process.getNodeIdentity().getCanonicalName();
 								if(!NodeAccounting.getInstance().isAlive(nodeName)) {
 									process.advanceProcessState(ProcessState.Stopped);
 									logger.info(methodName, job.getDuccId(), process.getDuccId(), ProcessState.Stopped);
@@ -203,6 +202,7 @@ public class HealthMonitor {
 		String methodName = "ajudicateJobs";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		long t0 = System.currentTimeMillis();
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		try {
 			Set<DuccId> jobKeySet = workMap.getJobKeySet();
 			boolean ckpt = false;
@@ -256,6 +256,7 @@ public class HealthMonitor {
 		String methodName = "ajudicateServices";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		long t0 = System.currentTimeMillis();
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 		try {
 			Set<DuccId> serviceKeySet = workMap.getServiceKeySet();
 			boolean ckpt = false;

@@ -192,7 +192,7 @@ public class JobManagerConverter
             NodeIdentity ni = idr.getNodeIdentity();
             Machine m = scheduler.getMachine(ni);
             if ( m == null ) {                             // not known, huh? maybe next epoch it will have checked in
-                logger.warn(methodName, job.getDuccId(), "Problem whitelisting: cannot find machine", ni.getName());
+                logger.warn(methodName, job.getDuccId(), "Problem whitelisting: cannot find machine", ni.getCanonicalName());
             } else {
                 m.blacklist(job.getDuccId(), idr.getDuccId(), -1);
             }
@@ -246,7 +246,7 @@ public class JobManagerConverter
                     NodeIdentity ni = idp.getNodeIdentity();
                     Machine m = scheduler.getMachine(ni);
                     if ( m == null ) {                             // not known, huh? maybe next epoch it will have checked in
-                        logger.warn(methodName, job.getDuccId(), "Problem whitelisting: cannot find machine", ni.getName());
+                        logger.warn(methodName, job.getDuccId(), "Problem whitelisting: cannot find machine", ni.getCanonicalName());
                     } else {
                         m.whitelist(idp.getDuccId());
                     }
@@ -258,7 +258,7 @@ public class JobManagerConverter
                     NodeIdentity ni = idp.getNodeIdentity();
                     Machine m = scheduler.getMachine(ni);
                     if ( m == null ) {                             // not known, huh? maybe next epoch it will have checked in
-                        logger.warn(methodName, job.getDuccId(), "Problem whitelisting: cannot find machine", ni.getName());
+                        logger.warn(methodName, job.getDuccId(), "Problem whitelisting: cannot find machine", ni.getCanonicalName());
                     } else {
                         m.whitelist(idp.getDuccId());
                     }
@@ -426,13 +426,13 @@ public class JobManagerConverter
                 NodeIdentity ni = proc.getNodeIdentity();
 
                 if ( proc.isComplete() ) {
-                    logger.debug(methodName, j.getId(), "Skipping process", pid, "on", ni.getName(), "beacause state is", state);
+                    logger.debug(methodName, j.getId(), "Skipping process", pid, "on", ni.getCanonicalName(), "beacause state is", state);
                     continue;
                  }
 
                 Machine m = scheduler.getMachine(ni);
                 if ( m == null ) {                             // not known, huh? maybe next epoch it will have checked in
-                    refuse(j, "Cannot restore job because node " + ni.getName()  + " is unknown.");
+                    refuse(j, "Cannot restore job because node " + ni.getCanonicalName()  + " is unknown.");
                     return false;                              // so we don't add it to global tables
                 } else {
                     DuccId id = proc.getDuccId();
@@ -469,7 +469,7 @@ public class JobManagerConverter
                 NodeIdentity ni = res.getNodeIdentity();
                 Machine m = scheduler.getMachine(ni);
                 if ( m == null ) {                             // not known, huh? maybe next epoch it will have checked in
-                    refuse(j, "Cannot restore reservation because node " + ni.getName() + " is unknown.");
+                    refuse(j, "Cannot restore reservation because node " + ni.getCanonicalName() + " is unknown.");
                     return false;                              // so we don't add it to global tables
                 } else {
                     DuccId id = res.getDuccId();
@@ -1269,9 +1269,9 @@ public class JobManagerConverter
                                             "   Process[", pid, 
                                             "] state [", state, 
                                             "] is complete [", proc.isComplete(),
-                                            "] Node [", n.getNodeIdentity().getName() + "." + proc.getDuccId(),                                            
+                                            "] Node [", n.getNodeIdentity().getCanonicalName() + "." + proc.getDuccId(),                                            
                                             "] mem [", mem, "]");                    
-                                logger.info(methodName, w.getDuccId(), "      Recover node[", n.getNodeIdentity().getName());
+                                logger.info(methodName, w.getDuccId(), "      Recover node[", n.getNodeIdentity().getCanonicalName());
                                 // 
                                 // Note, not ignoring dead processes belonging to live jobs.  Is this best or should we be
                                 // more conservative and not use nodes that we don't know 100% for sure are ok?
@@ -1305,7 +1305,7 @@ public class JobManagerConverter
                             } else {
                                 long mem = n .getNodeMetrics().getNodeMemory().getMemTotal();
                                 logger.info(methodName, w.getDuccId(), 
-                                            "   Node[", n.getNodeIdentity().getName(),
+                                            "   Node[", n.getNodeIdentity().getCanonicalName(),
                                             "] mem[", mem, "]");
                                 nodes.put(n, n);
                             }

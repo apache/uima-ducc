@@ -1,0 +1,455 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+\documentclass[letterpaper]{article}
+
+\def\DUCCSTANDALONE{}
+
+% space between paragraphs
+\usepackage{parskip}
+
+\usepackage{hyperref}
+% Margins
+\usepackage[top=1in, bottom=.75in, left=.75in, right=.75in ]{geometry}
+
+\usepackage{xcolor}
+\usepackage{datetime}
+
+% turn off section numbering
+\setcounter{secnumdepth}{0}
+
+\title{Reliable DUCC - Design}
+\author{Written and maintained by the Apache \\
+UIMA\texttrademark Development Community}
+\date{}
+\begin{document}
+\maketitle
+\input{legal.tex}
+\newpage
+
+\input{common.tex}
+
+\section{Multiple DUCC head nodes}
+
+This first major section describes support for multiple active DUCC head nodes.
+
+\subsection{Introduction}
+    DUCC can be configured to run reliably by having multiple head nodes,
+    comprising one {\em master} and one or more {\em backup} head nodes.
+    DUCC exploits Linux {\em keepalived} virtual IP addressing to enable
+    this capability.
+    
+    The advantages are that if the {\em master} DUCC host becomes
+    unusable, the {\em backup} DUCC can take over seamlessly
+    such that active distributed Jobs, Reservations, Managed Reservations 
+    and Services continue uninterrupted.  Take over also facilitates
+    continued acceptance of new submissions and monitoring of new and
+    existing submissions without interruption.
+
+\subsection{Daemons}
+   Each head node, whether {\em master} or {\em backup}, runs a Broker,
+   Orchestrator, PM, RM, and SM.
+   
+   The Cassandra database is expected to be located on a node(s) separate from the head nodes.
+   
+   Likewise, the JD node(s) is separate from the head nodes.
+   
+   The Agents are distributed, as before.
+        
+\subsection{Configuring Host Machines}    
+    See {\em Configuring Simple Virtual IP Address Failover Using Keepalived} 
+    which can be found at this web address: 
+    \url{https://docs.oracle.com/cd/E37670_01/E41138/html/section_uxg_lzh_nr.html}.
+
+	Sample MASTER /etc/keepalived/keepalived.conf
+	
+	\begin{verbatim}
+    ! Configuration File for keepalived
+
+	vrrp_instance VI_1 {
+	    state MASTER
+	    interface eth0
+	    virtual_router_id 51
+	    priority 100
+	    advert_int 1
+	    authentication {
+	        auth_type PASS
+	        auth_pass 1111
+	    }
+	    virtual_ipaddress {
+	        192.168.6.253
+	    }
+	}
+   	\end{verbatim}
+
+	Sample BACKUP /etc/keepalived/keepalived.conf
+	
+	\begin{verbatim}
+    ! Configuration File for keepalived
+
+	vrrp_instance VI_1 {
+	    state BACKUP
+	    interface eth0
+	    virtual_router_id 51
+	    priority 100
+	    advert_int 1
+	    authentication {
+	        auth_type PASS
+	        auth_pass 1111
+	    }
+	    virtual_ipaddress {
+	        192.168.6.253
+	    }
+	}
+   	\end{verbatim}
+
+	Linux Commands
+	
+	Starting keepalived
+	
+    \begin{verbatim}
+    > sudo service keepalived start
+    Starting keepalived:                                       [  OK  ]
+   	\end{verbatim}
+   	
+   	Querying keepalived
+	
+    \begin{verbatim}
+    > /sbin/ip addr show dev eth0
+	2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP qlen 1000
+	    link/ether 00:21:5e:20:02:84 brd ff:ff:ff:ff:ff:ff
+	    inet 192.168.3.7/16 brd 192.168.255.255 scope global eth0
+	    inet 192.168.6.253/32 scope global eth0
+	    inet6 fe80::221:5eff:fe20:284/64 scope link 
+	       valid_lft forever preferred_lft forever
+   	\end{verbatim}
+
+	Stopping keepalived
+	
+    \begin{verbatim}
+    > sudo service keepalived stop
+    Stopping keepalived: 
+   	\end{verbatim}
+
+\subsection{Configuring DUCC}  
+    To configure DUCC to run reliable, one required property must
+    be configured in the {\em site.ducc.properties} file.  Example:
+    
+    \begin{verbatim}
+	ducc.head = 192.168.6.253
+   	\end{verbatim}
+    
+    Use the virtual IP address configured for your host machines keepalived. 
+    Use of the DNS name is also supported.  
+    
+\subsection{Webserver}
+
+	Webserver for Master
+
+	The {\em master} DUCC Webserver will display all pages normally with additional
+	information in the heading upper left:
+	
+	reliable: \textbf{master}
+	
+	Webserver for Backup
+	
+	The {\em backup} DUCC Webserver will display some pages normally with additional
+	information in the heading upper left:
+	
+	\underline{reliable}: \textbf{backup}
+   	
+   	Hovering over \underline{reliable} will yield the following information:
+   	{\em Click to visit master}
+   	
+   	Several pages will display the following information (or similar):
+   	
+   	\begin{verbatim}
+	no data - not master
+   	\end{verbatim}
+
+\section{Database}
+
+	Configure the database to be on a separate machine from the reliable DUCC head nodes.
+	In {\em site.ducc.properties} specify:
+	
+	\begin{verbatim}
+	# Database location
+    ducc.database.host = dbhost123
+    ducc.database.jmx.host = dbhost123
+    ducc.database.automanage = false
+   	\end{verbatim}
+	
+	Two new convenience commands are available for DUCC administrators.  
+	When issued by the DUCC administrator, these commands will start and stop the database 
+	on the database host machine regardless of the value specified for 
+	{\em ducc.database.automanage} in {\em site.ducc.properties}.
+	
+	\begin{verbatim}
+	admin/db\_start
+	afmin/db\_stop
+   	\end{verbatim}
+   	
+   	The existing administrator commands {\em start\_ducc} and {\em stop\_ducc} will
+   	honor the value specified for {\em ducc.database.automanage} in {\em site.ducc.properties}.
+
+\subsection{Code changes}
+
+The key changes include a new script (see ducc\_head\_mode.py) to 
+interact with Linux to determine virtual IP address status and 
+corresponding Java code (see common.head.ADuccHead.java)
+that interprets the status to make transitions between 
+{\em master} and {\em backup} states.
+
+\subsubsection{new scripts}
+
+\textbf{ducc\_head\_mode.py}
+
+This is a new script employed at runtime by the various daemons to
+determine the current mode of operation.  Status is determined 
+though invocation of this script upon receipt of each Orchestrator
+publication.
+
+   \begin{verbatim}
+    # purpose:    determine reliable ducc status
+    # input:      none
+    # output:     one of { unspecified, master, backup }
+    # operation:  look in ducc.properties for relevant keywords
+    #             and employ linux commands to determine if system
+    #             has matching configured virtual IP address
+   \end{verbatim}
+
+\subsubsection{existing and new scripts}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{ducc\_post\_install} - no need to create webserver request log directory
+  \item \textbf{ducc\_util.py} - incorporate host name into cassandra.pid, cassandra.console path; broker host must be local host; head node must be eligible with respect to keepalived.conf; head node local components are all daemons except Database and Agents; fix remote db stop; honor ducc.database.automanage flag in site.ducc.properties
+  \item \textbf{ducc.py} - incorporate host name into cassandra.pid, cassandra.console path
+  \item \textbf{start\_ducc.py} - head node local components must start on eligible local host
+  \item \textbf{db\_start} - (new) start DUCC database
+  \item \textbf{db\_stop} - (new) stop DUCC database
+  \item \textbf{start\_sim} - (example) honor database autostart flag in ducc.properties
+  item \textbf{stop\_sim} - (example) honor database autostart flag in ducc.properties
+\end{itemize}
+}
+
+\subsubsection{configuration files}
+
+\textbf{ducc.properties}  
+
+   \begin{verbatim}
+    # The name of the node where DUCC runs.
+    # This property declares the node where the DUCC administrative processes run (Orchestrator,
+    # Resource Manager, Process Manager, Service Manager).  This property is required and MUST be
+    # configured in new installation.  The installation script ducc_post_install initializes this 
+    # property to the node the script is executed on.
+    # Reliable DUCC: if running reliably, then this value must be the same as that specified
+    # for the virtual_ipaddress in /etc/keepalived/keepalived.conf.  DUCC CLI and Agents employ
+    # this value to connect to the current reliable DUCC head node.
+    ducc.head = <head-node>
+   \end{verbatim}
+
+Although not strictly true, the Orchestrator, RM, SM, PM, Webserver and Broker "must"
+all be configured on the head node.  Reliable DUCC may work with other configurations,
+but it has not been tested as such.
+
+	\begin{verbatim}
+	# If set to true, DUCC will start and stop the Cassandra database as part of its normal
+	# start/stop scripting.  
+	ducc.database.automanage = true
+	\end{verbatim}
+
+\textbf{log4j.xml}
+
+   \begin{verbatim}
+    Add DUCC\_NODENAME to log file name for OR, RM, PM, SM, and system-events.
+    This allows reliable DUCC head nodes to share the same ducc\_runtime directory
+    in the filesystem without collisions.
+   \end{verbatim}
+
+\subsubsection{agent}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{DuccWorkHelper} - use virtual IP address configured as ducc.head node
+  \item \textbf{AgentEventListener} - ignore any incoming publications from backup producer
+  \item \textbf{CGroupsTest} - employ changed DuccIdFactory signature
+  \item \textbf{ServiceTester} - broker must be on ducc.head node
+\end{itemize}
+}
+
+\subsubsection{cli}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{DuccMonitor} - use WS node or virtual IP address configured as ducc.head node
+  \item \textbf{DuccUiUtilities} - use virtual IP address configured as ducc.head node (to submit, cancel..)
+\end{itemize}
+}
+
+\subsubsection{common}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{AbstractDuccComponent} - remove commented-out code, remove print to console, head node local components are all daemons except Database and Agents
+  \item \textbf{ADuccHead} - abstract class with reliable DUCC share functionality
+  \item \textbf{IDuccHead} - reliable DUCC interface
+  \item \textbf{IDuccEnv} - remove DUCC\_LOGS\_WEBSERVER\_DIR, not used
+  \item \textbf{IStateServices} - database access control RW or RO
+  \item \textbf{NullStateServices} - database access control RW or RO
+  \item \textbf{StateServices} - database access control RW or RO
+  \item \textbf{DuccDaemonRuntimeProperties} - incorporate hostname into logs directory location
+  \item \textbf{InetHelper} - incorporate hostname into logs directory location
+  \item \textbf{DuccPropertiesHelper} - fetch virtual IP address configured as ducc.head node
+  \item \textbf{DuccPropertiesResolver} - Remove key ducc.broker.hostname, broker must be on ducc.head node
+  \item \textbf{IDuccLoggerComponents} - Missing PM abbreviation
+  \item \textbf{DuccIdFactory} - improved (generalized) to handle DB persisted sequence numbering
+\end{itemize}
+}
+
+\subsubsection{database}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{IDuccHead} - reliable DUCC interface
+  \item \textbf{DbOrchestratorProperties} - support for OR properties table
+  \item \textbf{IDbOrchestratorProperties} - interface of OR properties table
+  \item \textbf{IOrchestratorProperties} - interface for OR properties
+  \item \textbf{IOrchestratorProperties} - database access control RW or RO
+\end{itemize}
+}
+
+\subsubsection{orchestrator}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{DuccHead} - loggable wrapper around common.ADuccHead
+  \item \textbf{OrchestratorCommonArea} - add restart capability for transition to {\em master}
+  \item \textbf{OrchestratorComponent} - reject requests from CLI and JD and publications for Agents when not {\em master}, employ DB for Job and publication number persistence, use active workMap from common area, tag publication with node identity and producer state {\em master} or {\em backup}, make transitions between {\em master} and {\em backup} states
+  \item \textbf{OrchestratorRecovery} - employ changed DuccIdFactory initialization requirements
+  \item \textbf{ReservationFactory} - employ changed DuccIdFactory signature
+  \item \textbf{StateJobAccounting} - log job state changes
+  \item \textbf{StateManager} - use active workMap from common area
+  \item \textbf{WorkMapHelper} - adding logging 
+  \item \textbf{AOrchestratorCheckpoint} - refactor checkpointing, suspend when {\em backup} resume when {\em master}
+  \item \textbf{IOrchestratorCheckpoint} - refactor checkpointing
+  \item \textbf{OrchestratorCheckpoint} - refactor checkpointing
+  \item \textbf{OrchestratorCheckpointDb} - refactor checkpointing
+  \item \textbf{OrchestratorCheckpointFile} - refactor checkpointing
+  \item \textbf{OrchestratorConfiguration} - employ changed DuccIdFactory for publication sequence numbering
+  \item \textbf{OrDbDuccWorks} - specification to DB only when {\em master}
+  \item \textbf{OrDbDuccWorks} - orchestrator properties to DB only when {\em master}
+  \item \textbf{OrchestratorEventListener} - record to system events log daemon switches between {\em backup} and {\em master} 
+  \item \textbf{ReservationFactory} - employ changed DuccIdFactory for Job numbering\item \textbf{ReservationFactory} - employ changed DuccIdFactory signature
+  \item \textbf{JdScheduler} - suspend JD host management when {\em backup} resume when {\em master}
+  \item \textbf{HealthMonitor} - use active workMap from common area
+  \item \textbf{MaintenanceThread} - use active workMap from common area
+  \item \textbf{AOrchestratorState} - refactor orchestrator state managements from files to DB
+  \item \textbf{DuccWorkIdFactory} - refactor orchestrator state managements from files to DB
+  \item \textbf{IOrchestratorState} - refactor orchestrator state managements from files to DB
+  \item \textbf{OrchestratorState} - refactor orchestrator state managements from files to DB
+  \item \textbf{OrchestratorStateDb} - refactor orchestrator state managements from files to DB
+  \item \textbf{OrchestratorStateDbConversion} - refactor orchestrator state managements from files to DB
+  \item \textbf{OrchestratorStateFile} - refactor orchestrator state managements from files to DB
+  \item \textbf{AOrchestratorStateJson} - refactor orchestrator state managements from files to DB
+  \item \textbf{SystemEventsLogger} - record all CLI interactions in system events log
+  \item \textbf{TestSuite} - print whether {\em backup} or {\em master}
+\end{itemize}
+}
+
+\subsubsection{pm}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{DuccHead} - loggable wrapper around common.ADuccHead
+  \item \textbf{ProcessManagerComponent} - make transitions between {\em master} and {\em backup} states
+\end{itemize}
+}
+
+\subsubsection{sm}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{DuccHead} - loggable wrapper around common.ADuccHead
+  \item \textbf{ServiceHandler} - resume operations when state is {\em master}, quiesce operations when state is {\em backup}
+  \item \textbf{ServiceManagerComponent} - make transitions between {\em master} and {\em backup} states, reject requests when in {\em backup} state, employ changed DuccIdFactory signature 
+ \textbf{ServiceSet} - handle new state {\em Dispossessed}
+\end{itemize}
+}
+
+\subsubsection{transport}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{JobDriverStateExchanger} - use virtual IP address configured as ducc.head node
+  \item \textbf{AbstractDuccEvent} - tag publications with producer host identity and state {\em master} or {\em backup}
+  \item \textbf{DaemonDuccEvent} - switch to {\em master} or {\em backup} state for recording to system event log
+  \item \textbf{DuccEvent} - add events SWITCH\_TO\_MASTER and SWITCH\_TO\_BACKUP
+  \item \textbf{JdEvent} - interrogate publications producer state {\em master} or {\em backup}
+  \item \textbf{IService} - add service state Dispossessed, Service is not controlled by this Service Manager
+\end{itemize}
+}
+
+\subsubsection{webserver}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{BrokerHelper} - use local host name to find co-located broker
+  \item \textbf{DuccBoot} - make boot reusable for switch to {\em master}
+  \item \textbf{DuccData} - create reset function for switch to {\em master}
+  \item \textbf{DuccHead} - loggable wrapper around common.ADuccHead
+  \item \textbf{WebServerComponent} - make transitions between {\em master} and {\em backup} states; incorporate hostname info logs directory location
+  \item \textbf{WebServerConfiguration} - make boot reusable for switch to {\em master}
+  \item \textbf{DuccHandler} - servlet to produce reliable DUCC state {\em master} or {\em backup}
+  \item \textbf{DuccHandlerClassic} - servlets to produce \"no data - not master\" when appropriate
+  \item \textbf{DuccHandlerJsonFormat} - servlets to produce \"no data - not master\" when appropriate
+  \item \textbf{DuccWebServer} - add method getPort; use host as part of request log directory path; incorporate hostname info logs directory location
+   \item \textbf{DuccWebServerHelper} - incorporate hostname info logs directory location
+  \item \textbf{c4-ducc-mon.jsp} - web page header location for reliable DUCC state
+  \item \textbf{ducc.js} - web page header updating for reliable DUCC state
+\end{itemize}
+}
+
+\subsubsection{examples}
+
+{\renewcommand\labelitemi{}
+\begin{itemize}
+  \item \textbf{start\_sim} - broker must be on head node
+\end{itemize}
+}
+
+
+\section{Installing and Cloning}
+
+This second major section describes support for installation of head node master and backup(s).
+
+TBD
+
+\section{Autostart}
+
+This third major section describes support for autostart of head node and agent daemons.
+
+TBD
+
+\section{Monitoring and Switching}
+
+This fourth major section describes support monitoring of multiple head nodes and switching to an alternate when the primary is dysfunctional.
+
+TBD
+
+\end{document}

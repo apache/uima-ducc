@@ -65,10 +65,22 @@ public class NodeIdentity implements Serializable {
 		return nodeIdentities;
 	}
 
-	public String getName() {
+	public String getCanonicalName() {
 		return name;
 	}
 
+	public String getShortName() {
+		String canonicalHostName = name;
+		String hostName = canonicalHostName;
+		if(canonicalHostName != null) {
+			hostName = canonicalHostName;
+			if(canonicalHostName.contains(".")) {
+				hostName = canonicalHostName.split("\\.")[0];
+			}
+		}
+		return hostName;
+	}
+	
 	protected void setName(String name) {
 		this.name = name;
 	}

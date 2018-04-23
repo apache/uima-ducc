@@ -34,6 +34,7 @@ import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.DaemonDuccEvent;
+import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 import org.apache.uima.ducc.transport.event.DuccWorkRequestEvent;
 import org.apache.uima.ducc.transport.event.JdRequestEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
@@ -238,8 +239,18 @@ public class OrchestratorEventListener implements DuccEventDelegateListener {
 		String methodName = "onDaemonDuccEvent";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		try {
-			logger.info(methodName, null, daemonDuccEvent.getDaemon().getAbbrev(), daemonDuccEvent.getNodeIdentity().getName());
-			SystemEventsLogger.info(daemonDuccEvent);
+			EventType type = daemonDuccEvent.getEventType();
+			switch(type) {
+			case SWITCH_TO_BACKUP:
+			case SWITCH_TO_MASTER:
+				logger.warn(methodName, null, daemonDuccEvent.getDaemon().getAbbrev(), daemonDuccEvent.getNodeIdentity().getCanonicalName());
+				SystemEventsLogger.warn(daemonDuccEvent);
+				break;
+			default:
+				logger.info(methodName, null, daemonDuccEvent.getDaemon().getAbbrev(), daemonDuccEvent.getNodeIdentity().getCanonicalName());
+				SystemEventsLogger.info(daemonDuccEvent);
+				break;
+			}
 		}
 		catch(Throwable t) {
 			logger.error(methodName, null, t);

@@ -353,7 +353,7 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 			IDuccReservationMap map = getReservationMap();
 			for (DuccId key : map.keySet()) { 
 				IDuccReservation value = getReservationMap().get(key);
-				String node = value.getNodeIdentity().getName();
+				String node = value.getNodeIdentity().getCanonicalName();
 				if(unique) {
 					if(!list.contains(node)) {
 						list.add(node);

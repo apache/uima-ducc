@@ -31,14 +31,16 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.db.DbQuery;
 import org.apache.uima.ducc.common.db.IDbMachine;
+import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.orchestrator.OrchestratorCheckpoint;
+import org.apache.uima.ducc.orchestrator.DuccHead;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.ReservationFactory;
 import org.apache.uima.ducc.orchestrator.StateManager;
 import org.apache.uima.ducc.orchestrator.WorkMapHelper;
+import org.apache.uima.ducc.orchestrator.ckpt.OrchestratorCheckpoint;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -67,6 +69,8 @@ public class JdScheduler {
 	private static JdScheduler instance = new JdScheduler();
 	
 	private static OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
+	
+	private IDuccHead dh = DuccHead.getInstance();
 	
 	public static JdScheduler getInstance() {
 		return instance;
@@ -315,20 +319,48 @@ public class JdScheduler {
 		}
 	}
 	
+	private AtomicBoolean resumeAnnounced = new AtomicBoolean(true);
+	
+	private void resume() {
+		String location = "resume";
+		if(!resumeAnnounced.get()) {
+			logger.warn(location, jobid, "operations resumed - master mode");
+			resumeAnnounced.set(true);
+			suspendAnnounced.set(false);
+		}
+	}
+	
+	private AtomicBoolean suspendAnnounced = new AtomicBoolean(false);
+	
+	private void suspend() {
+		String location = "suspend";
+		if(!suspendAnnounced.get()) {
+			logger.warn(location, jobid, "operations suspended - backup mode");
+			suspendAnnounced.set(true);
+			resumeAnnounced.set(false);
+		}
+	}
+	
 	// Process an OR publication.
 	
 	public void handle(IDuccWorkMap dwm) {
 		String location = "handle";
 		try {
-			monitor();
-			if(dwm != null) {
-				JdHostProperties jdHostProperties = new JdHostProperties();
-				resourceAccounting(dwm, jdHostProperties);
-				resourceAdjustment(dwm, jdHostProperties);
-				ckpt();
+			if(dh.is_ducc_head_virtual_master()) {
+				resume();
+				monitor();
+				if(dwm != null) {
+					JdHostProperties jdHostProperties = new JdHostProperties();
+					resourceAccounting(dwm, jdHostProperties);
+					resourceAdjustment(dwm, jdHostProperties);
+					ckpt();
+				}
+				else {
+					logger.debug(location, jobid, "dwm: null");
+				}
 			}
 			else {
-				logger.debug(location, jobid, "dwm: null");
+				suspend();
 			}
 		}
 		catch(Exception e) {
@@ -711,7 +743,7 @@ public class JdScheduler {
 					logger.debug(location, jobIdentity, "host: "+host+" "+"job: "+jobIdentity);
 					nodeIdentity = jdReservation.allocate(jobIdentity, driverIdentity);
 					if(nodeIdentity != null) {
-						host = nodeIdentity.getName();
+						host = nodeIdentity.getCanonicalName();
 						changes.set(true);
 						break;
 					}
@@ -739,7 +771,7 @@ public class JdScheduler {
 					logger.debug(location, jobIdentity, "host: "+host+" "+"job: "+jobIdentity);
 					nodeIdentity = jdReservation.deallocate(jobIdentity, driverIdentity);
 					if(nodeIdentity != null) {
-						host = nodeIdentity.getName();
+						host = nodeIdentity.getCanonicalName();
 						changes.set(true);
 						break;
 					}

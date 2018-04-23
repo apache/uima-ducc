@@ -53,6 +53,8 @@ import org.apache.uima.ducc.common.exception.DuccConfigurationException;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccPropertiesHelper;
+import org.apache.uima.ducc.common.utils.InetHelper;
 import org.apache.uima.ducc.common.utils.JdkEvaluator;
 import org.apache.uima.ducc.common.utils.JdkEvaluator.JDKVendor;
 import org.apache.uima.ducc.common.utils.JdkEvaluator.Vendors;
@@ -131,11 +133,43 @@ public abstract class AbstractDuccComponent implements DuccComponent,
       public void process(Exchange exchange) throws Exception {
           // the caused by exception is stored in a property on the exchange
           Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
+          caused.printStackTrace();
           logger.error("ErrorProcessor.process()", null, caused);
           
       }
   }
 
+  private static String agent = "agent";
+  private static String ducc_deploy_components = "ducc.deploy.components";
+  private static String ducc_broker_hostname = "inet.hostname";
+  
+  /*
+   * Agents use virtual IP, other daemons use local host
+   */
+  private boolean is_virtual_ip_used() {
+	  String location = "is_virtual_ip_used";
+	  boolean retVal = false;
+	  String myType = System.getProperty(ducc_deploy_components);
+	  if(myType != null) {
+		  if(myType.equals(agent)) {
+			  retVal = true;
+			  logger.info(location, jobid, ducc_deploy_components+"="+myType);
+		  }
+	  }
+	  return retVal;
+  }
+  
+  private String getBrokerHostname() throws Exception {
+	  String location = "getBrokerHostname";
+	  String brokerHostname = InetHelper.getHostName();
+	  String retVal = brokerHostname;
+	  if(is_virtual_ip_used()) {
+		  retVal = DuccPropertiesHelper.getDuccHead();
+	  }
+	  logger.debug(location, jobid, ducc_broker_hostname+"="+brokerHostname);
+	  return retVal;
+  }
+  
   /**
    * Loads named property file
    * 
@@ -192,83 +226,15 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 
   private static String sepHost = "://";
   private static String sepPort = ":";
-  private static String sepBloc = ",";
   private static String sepDeco = "?";
   
   /**
-   * Override ducc.broker.url when ducc.head.failover is specified
-   */
-  private void composeBrokerFailoverUrl(String duccBrokerProtocol, String duccBrokerPort) {
-	  String location = "composeBrokerFailoverUrl";
-	  try {
-		  String key;
-		  String value;
-		  // fetch the failover specification
-		  key = "ducc.head.failover";
-		  value = System.getProperty(key);
-		  logger.debug(location, jobid, key+"="+value);
-		  if(value == null) {
-			  value = "";
-		  }
-		  // normalize stringified list of nodes (remove commas)
-		  value = value.replace(","," ");
-		  value = value.trim();
-		  // never mind if failover not specified
-		  if(value.length() > 0) {
-			  // transform string of nodes to array of nodes
-			  String[] tokens = value.split("\\s+");
-			  int count = tokens.length;
-			  logger.debug(location, jobid, tokens+"="+count);
-			  // no need to failover if not at least 2 nodes!
-			  if(count > 1) {
-				  // build the failover string (for property ducc.broker.url)
-				  StringBuffer sb = new StringBuffer();
-				  // add the prefix
-				  sb.append("failover");
-				  sb.append(":");
-				  sb.append("(");
-				  for(String host : tokens) {
-					  sb.append(duccBrokerProtocol);
-					  sb.append(sepHost);
-					  sb.append(host);
-					  sb.append(sepPort);
-					  sb.append(duccBrokerPort);
-					  sb.append(sepBloc);
-				  }
-				  // remove extra comma
-				  sb.setLength(sb.length()-1);
-				  // add the suffix
-				  sb.append(")");
-				  // add the decoration, if any
-				  key = "ducc.broker.url.decoration";
-				  value = System.getProperty(key);
-				  logger.debug(location, jobid, key+"="+value);
-				  if(value == null) {
-					  value = "";
-				  }
-				  value = value.trim();
-				  if(value.length() > 0) {
-					  sb.append(sepDeco);
-					  sb.append(value);
-				  }
-				  // set property and record to log
-				  key = "ducc.broker.url";
-				  value = sb.toString();
-				  System.setProperty(key, value);
-				  logger.debug(location, jobid, key+"="+value);
-			  }
-		  }
-	  }
-	  catch(Exception e) {
-		  logger.error(location, jobid, e);
-	  }
-	  return;
-  }
-  
-  /**
-   * ducc.properties provides broker URL in pieces as follows: - ducc.broker.protocol -
-   * ducc.broker.hostname - ducc.broker.port - ducc.broker.url.decoration Assemble the above into a
-   * complete URL
+   * ducc.properties provides broker URL in pieces as follows: 
+   * - ducc.broker.protocol 
+   * - ducc.broker.port
+   * - ducc.broker.url.decoration 
+   * Assemble the above with broker host (ducc.head for Agents, local host for other daemons)
+   * into a complete URL
    * 
    * @throws Exception
    */
@@ -287,9 +253,9 @@ public abstract class AbstractDuccComponent implements DuccComponent,
         duccBrokerProtocol = duccBrokerProtocol.substring(0, pos);
       }
     }
-    if ((duccBrokerHostname = System.getProperty("ducc.broker.hostname")) == null) {
+    if ((duccBrokerHostname = getBrokerHostname()) == null) {
       throw new DuccConfigurationException(
-              "Ducc Configuration Exception. Please add ducc.broker.hostname property to ducc.propeties");
+              "Ducc Configuration Exception. Please add ducc.head property to ducc.propeties");
     }
     if ((duccBrokerPort = System.getProperty("ducc.broker.port")) == null) {
       throw new DuccConfigurationException(
@@ -310,7 +276,6 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     System.setProperty("ducc.broker.url", burl.toString());
     // UIMA-4142 (remove annoying debug statement) 
     // logger.info("composeBrokerUrl", null, "Ducc Composed Broker URL:" + System.getProperty("ducc.broker.url"));
-    composeBrokerFailoverUrl(duccBrokerProtocol, duccBrokerPort);
   }
 
   // Jira 3943 - Adjust endpoints only on those in ducc.properties
@@ -562,6 +527,10 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             logger.info(methodName, null, "Component cleanup completed - terminating process");
 
         } catch (Exception e) {
+            // It's a sensitive time, let's emit twice just for luck
+            System.out.println("----------------------------------------------------------------------------------------------------");
+            e.printStackTrace();
+            System.out.println("----------------------------------------------------------------------------------------------------");
             logger.error(methodName, null, e);
         }
         
@@ -583,12 +552,11 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
 
   public void handleUncaughtException(Exception e) {
-    logger.error("handleUncaughtException", null,"Unexpected Java Exception");
-    logger.error("handleUncaughtException", null, e);
+    e.printStackTrace();
   }
   public void handleUncaughtException(Error e) {
-    logger.error("handleUncaughtException", null,"Unexpected Java Error - Terminating Process via Runtime halt");
-    logger.error("handleUncaughtException", null,e);
+    e.printStackTrace();
+   	System.out.println("Unexpected Java Error - Terminating Process via Runtime halt");
    	Runtime.getRuntime().halt(2);
   }
 
@@ -611,11 +579,19 @@ public abstract class AbstractDuccComponent implements DuccComponent,
           rmiRegistryPort = tmp;
         } catch (NumberFormatException nfe) {
           // default to 2099
-        	logger.error("startJmxAgent", null,nfe);
+        	nfe.printStackTrace();
         }
       }
       boolean done = false;
       JMXServiceURL url = null;
+      /*
+      String jmxAccess = "local";
+      String hostname = "localhost";
+      if ( (jmxAccess = System.getProperty("ducc.jmx.access") ) != null && jmxAccess.equals("remote") ) {
+         hostname = InetAddress.getLocalHost().getHostName();
+      }
+      RMIServerSocketFactory serverFactory = new RMIServerSocketFactoryImpl(InetAddress.getByName(hostname));
+      */
       // retry until a valid rmi port is found
       while (!done) {
         	try {
@@ -637,6 +613,15 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             String s = String.format("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname,
                     rmiRegistryPort);
             url = new JMXServiceURL(s);
+            /*
+            Map<String,Object> env = new HashMap<>();
+            env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, serverFactory);
+
+            RMIConnectorServer rmiServer = new RMIConnectorServer( new JMXServiceURL(url.toString()),
+               env, ManagementFactory.getPlatformMBeanServer() );
+
+            rmiServer.start();
+             */
             jmxConnector = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);
             jmxConnector.start();
         } catch (Exception e) {
@@ -651,11 +636,11 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   }
 
   public void cleanup(Throwable e) {
-    logger.error("cleanup", null, e);
+    e.printStackTrace();
   }
 
   public void uncaughtException(final Thread t, final Throwable e) {
-    logger.error("uncaughtException", null, "Unhandled Error Reported by Thread (ID):"+t.getId()+" Error:"+e);
+    e.printStackTrace();
     System.exit(1);
   }
 
@@ -718,7 +703,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             duccProcess.stop();
         }
       } catch (Exception e) {
-    	  logger.error("start", null, e);
+        e.printStackTrace();
       }
     }
   }
@@ -739,7 +724,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
         Runtime.getRuntime().halt(-1);
         
       } catch (Exception e) {
-    	  logger.error("KillerThreadTask.run()", null, e);
+        e.printStackTrace();
       }
     }
   }

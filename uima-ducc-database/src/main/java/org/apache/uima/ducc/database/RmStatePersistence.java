@@ -70,14 +70,14 @@ public class RmStatePersistence
     {
     }
 
-    private boolean init(String dburl)
+    private boolean init(String[] dburls)
         throws Exception
     {
     	String methodName = "init";
         boolean ret = false;
         while ( true ) {
             try {
-                dbManager = new DbManager(dburl, logger);
+                dbManager = new DbManager(dburls, logger);
                 dbManager.init();
                 ret = true;
                 break;
@@ -98,8 +98,9 @@ public class RmStatePersistence
     	throws Exception
     {
     	this.logger = logger;
-        String stateUrl = System.getProperty(DbManager.URL_PROPERTY);
-        init(stateUrl);
+    	String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
+        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+        init(dbUrls);
         DbHandle h = dbManager.open();
 
         // For creating a new share

@@ -86,7 +86,7 @@ public class Launcher {
     		throws Exception {
         //	Instantiate executor that will actually exec the process using java's ProcessBuilder
         DuccCommandExecutor executor = 
-            new DuccCommandExecutor(agent, commandLine, nodeIdentity.getName(),nodeIdentity.getIp(), managedProcess);
+            new DuccCommandExecutor(agent, commandLine, nodeIdentity.getCanonicalName(),nodeIdentity.getIp(), managedProcess);
         Future<?> future = executorService.submit(executor);
         //	if we are launching a process, save the future object returned from Executor above
     	managedProcess.setFuture(future);

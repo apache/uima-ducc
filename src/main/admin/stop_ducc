@@ -33,12 +33,11 @@ class StopDucc(DuccUtil):
 
     def stop_component(self, component, force):
 
-        if ( (component == 'broker') and self.automanage ):
+        if ( (component == 'broker') and self.automanage_broker ):
             print 'Stopping broker'
             self.stop_broker()
             return
-
-        if ( component == 'db' ):
+        if ( (component == 'db') and self.automanage_database ):
             print 'Stopping database'
             self.db_stop()
             return
@@ -47,11 +46,18 @@ class StopDucc(DuccUtil):
         # If it's an unqualified management component, we need to get it's qualified name
         #
         if ( component in self.default_components ):
-            if ( self.pids.has_key(component) ):
-                component = self.pids.get(component)
+            if( component == 'agent' ):
+                if ( self.pids_agents.has_key(component) ):
+                    component = self.pids_agents.get(component)
+                else:
+                    print 'Skipping', component, 'not in pids file.'
+                    return
             else:
-                print 'Skipping', component, 'not in pids file.'
-                return
+                if ( self.pids_daemons.has_key(component) ):
+                    component = self.pids_daemons.get(component)
+                else:
+                    print 'Skipping', component, 'not in pids file.'
+                    return
 
         #
         # If the name is not qualified we've got a problem, everything in the pids file is qualified
@@ -64,11 +70,19 @@ class StopDucc(DuccUtil):
         #
         # If despite all that we can't find the pid, we need to run check_ducc
         #        
-        if ( not self.pids.has_key(component) ):
-            print "Cannot find PID for component", component, ". Run check_ducc -p to refresh PIDS and then rerun stop_ducc."
-            return
-
-        pid = self.pids.get(component)
+        if( com == 'agent' ):
+            if ( not self.pids_agents.has_key(component) ):
+                print "Cannot find PID for component", component, ". Run check_ducc -p to refresh PIDS and then rerun stop_ducc."
+                return
+            else:
+                pid = self.pids_agents.get(component)
+        else:
+            if ( not self.pids_daemons.has_key(component) ):
+                print "Cannot find PID for component", component, ". Run check_ducc -p to refresh PIDS and then rerun stop_ducc."
+                return
+            else:
+                pid = self.pids_daemons.get(component)
+        
     
         if ( force ):
             print 'Stopping component', com, 'on node', target_node, 'with PID', pid, 'forcibly (kill -9)'
@@ -80,9 +94,12 @@ class StopDucc(DuccUtil):
             self.nohup(['ssh', target_node, 'kill', '-INT', pid], False)
 
         # clear the short name if it exists, and the long name
-        self.pids.delete(com)
-        self.pids.delete(component)
-
+        if( com == 'agent' ):
+            self.pids_agents.delete(com)
+            self.pids_agents.delete(component)
+        else:
+            self.pids_daemons.delete(com)
+            self.pids_daemons.delete(component)
 
     def quiesce_agents(self, components, nodes):
         allnodes = []
@@ -106,7 +123,7 @@ class StopDucc(DuccUtil):
         # NOTE: quiesce does not actually cause agents to terminate so we don't update the PIDs file
         return
 
-    def stop_agents(self, node, force):
+    def stop_agent(self, node, force):
         self.stop_component('agent@' + node.strip(), force)
     
     def usage(self, msg):
@@ -115,6 +132,11 @@ class StopDucc(DuccUtil):
 
         print 'stop_ducc [options]'
         print '    If no options are given, this help screen is shown.'
+        print ''
+        print '    For reliable DUCC agents will not be stopped from backup head node. '
+        print ''
+        print '    Broker will not be stopped when ducc.broker.automanage = false. '
+        print '    Database will not be stopped when ducc.database.automanage = false. '
         print ''
         print 'Options:'
         print '   -a --all'
@@ -253,34 +275,38 @@ class StopDucc(DuccUtil):
                 print "Waiting " + str(wait_time) + " seconds to broadcast agent shutdown."
                 time.sleep(wait_time)
 
-                if ( self.automanage ):
+                if ( self.automanage_broker ):
                     print "Stopping broker"
                     self.stop_broker()                
 
-                print "Stopping database"
-                self.db_stop()
+                if ( self.automanage_database ):
+                	print "Stopping database"
+                	self.db_stop()
 
-                if ( os.path.exists(self.pid_file) ):
-                    os.remove(self.pid_file)
+                if ( os.path.exists(self.pid_file_agents) ):
+                    os.remove(self.pid_file_agents)
+                if ( os.path.exists(self.pid_file_daemons) ):
+                    os.remove(self.pid_file_daemons)
                 return
             else:
                 if ( len(nodefiles) == 0 ):
                     nodefiles = self.default_nodefiles
 
 
-        self.pids = Properties()
+        self.pids_agents = Properties()
+        self.pids_daemons = Properties()
         sc = set(components)
         sb = set(['broker', 'db'])
         read_pids = True
         if ( sc.issubset(sb) ):
             read_pids = False
-    
 
         # The broker and db do not set the pid file
         if ( read_pids ):
             try:
-                self.pids.load(self.pid_file)
-                pass
+                if(not self.is_reliable_backup()):
+                    self.pids_agents.load(self.pid_file_agents)
+                self.pids_daemons.load(self.pid_file_daemons)
             except PropertiesException, (inst):
                 print inst.msg
                 print ''
@@ -309,11 +335,17 @@ class StopDucc(DuccUtil):
             sys.exit(1)
 
         if ( quiesce ):
-            self.quiesce_agents(components, nodes)
+            if(self.is_reliable_backup()):
+                print '********** "backup" head node -> not quiescing agents'
+            else:
+                self.quiesce_agents(components, nodes)
         else:
-            for (nf, nl) in nodes.items():
-                for n in nl:
-                    self.stop_agents(n, force)       
+            if(self.is_reliable_backup()):
+                print '********** "backup" head node -> not stopping agents'
+            else:
+                for (nf, nl) in nodes.items():
+                    for n in nl:
+                        self.stop_agent(n, force)       
             host = self.localhost.split('.')[0]
             for c in components:
                 c = c.strip()
@@ -333,10 +365,15 @@ class StopDucc(DuccUtil):
                     self.stop_component(c, force)         
 
         if ( read_pids ):
-            if ( len(self.pids) > 0 ):
-                self.pids.write(self.pid_file)
+            if(not self.is_reliable_backup()):
+                if ( len(self.pids_agents) > 0 ):
+                    self.pids_agents.write(self.pid_file_agents)
+                else:
+                    os.remove(self.pid_file_agents)
+            if ( len(self.pids_daemons) > 0 ):
+                self.pids_daemons.write(self.pid_file_daemons)
             else:
-                os.remove(self.pid_file)
+                os.remove(self.pid_file_daemons)
 
         return
 

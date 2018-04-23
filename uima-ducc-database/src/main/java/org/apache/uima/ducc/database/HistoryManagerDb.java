@@ -104,7 +104,7 @@ public class HistoryManagerDb
     }
     
     
-	private boolean init(String dburl, DbManager dbm)
+	private boolean init(String[] dburls, DbManager dbm)
         throws Exception
     {        
 		String methodName = "init";
@@ -115,7 +115,7 @@ public class HistoryManagerDb
                 if ( dbm != null ) {
                     this.dbManager = dbm;
                 } else {
-                    dbManager = new DbManager(dburl, logger);
+                    dbManager = new DbManager(dburls, logger);
                     dbManager.init();
                 }
                 
@@ -148,8 +148,9 @@ public class HistoryManagerDb
         throws Exception
     {
         this.logger = logger;
-        String historyUrl = System.getProperty(DbManager.URL_PROPERTY);
-        return init(historyUrl, null);
+        String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
+        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+        return init(dbUrls, null);
     }
 
     // package only, for the loader
@@ -157,8 +158,9 @@ public class HistoryManagerDb
     	throws Exception
     {
     	this.logger = logger;
-        String stateUrl = System.getProperty(DbManager.URL_PROPERTY);
-        return init(stateUrl, dbManager);
+        String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
+        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+        return init(dbUrls, dbManager);
     }
 
     /**
@@ -353,7 +355,7 @@ public class HistoryManagerDb
                     for ( IDuccProcess idp : map.values() ) {
                         long share_id = idp.getDuccId().getFriendly();
                         long pid = toInt(idp.getPID());
-                        String node = getString(idp.getNodeIdentity().getName());
+                        String node = getString(idp.getNodeIdentity().getCanonicalName());
                         String reason_agent = getString(idp.getReasonForStoppingProcess()); // called "reason" in duccprocess but not in ws
                         String extended_reason_agent = getString(idp.getExtendedReasonForStoppingProcess()); 
                         String reason_scheduler = getString(idp.getProcessDeallocationType().toString()); // called "processDeallocationType" in duccprocess but not in ws
@@ -406,7 +408,7 @@ public class HistoryManagerDb
                     for ( IDuccReservation idr : map.values() ) {
                         String node = "<none>";
                         if ( idr.getNode() != null ) {
-                            node = idr.getNode().getNodeIdentity().getName();
+                            node = idr.getNode().getNodeIdentity().getCanonicalName();
                         }
                     	try {
 							h.execute(reservationAllocPrepare, node, work_id,

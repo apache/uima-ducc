@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.orchestrator;
 
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
@@ -31,6 +32,9 @@ import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
  */
 public class WorkMapHelper {
 
+	private static final DuccLogger logger = DuccLogger.getLogger(WorkMapHelper.class);
+	private static DuccId jobid = null;
+	
 	public static void addDuccWork(DuccWorkMap workMap, IDuccWork dw, Object object, String methodName) {
 		TrackSync ts = TrackSync.await(workMap, object.getClass(), methodName);
 		synchronized(workMap) {
@@ -51,7 +55,9 @@ public class WorkMapHelper {
 	}
 	
 	public static IDuccWork cloneDuccWork(DuccWorkMap workMap, String duccId, Object object, String methodName) {
+		String location = "cloneDuccWork";
 		IDuccWork dwClone = null;
+		logger.trace(location, jobid, "enter", duccId);
 		TrackSync ts = TrackSync.await(workMap, object.getClass(), methodName);
 		synchronized(workMap) {
 			ts.using();
@@ -59,8 +65,21 @@ public class WorkMapHelper {
 			if(dw != null) {
 				dwClone = (IDuccWork)SerializationUtils.clone(dw);
 			}
+			else {
+				StringBuffer sb = new StringBuffer();
+				DuccId id = new DuccId(Long.parseLong(duccId));
+				sb.append("jobs:"+workMap.getJobKeySet().size());
+				sb.append(" ");
+				sb.append("reservations:"+workMap.getReservationKeySet().size());
+				sb.append(" ");
+				sb.append("managedReservations:"+workMap.getManagedReservationKeySet().size());
+				sb.append(" ");
+				sb.append("services:"+workMap.getServiceKeySet().size());
+				logger.warn(location, id, sb.toString());
+			}
 		}
 		ts.ended();
+		logger.trace(location, jobid, "exit", duccId, dwClone);
 		return dwClone;
 	}
 	

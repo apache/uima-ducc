@@ -45,5 +45,4 @@ public interface IDuccEnv {
 	public static final String DUCC_HISTORY_SVCREG_DIR = DUCC_HOME_DIR+"history"+File.separator+"services-registry"+File.separator;
 	
 	public static final String DUCC_LOGS_DIR = DUCC_HOME_DIR+"logs"+File.separator;
-	public static final String DUCC_LOGS_WEBSERVER_DIR = DUCC_HOME_DIR+"logs"+File.separator+"webserver"+File.separator;
 }

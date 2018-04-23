@@ -24,10 +24,10 @@ import java.util.Map;
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.persistence.rm.IDbShare;
-import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
-import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.rm.persistence.access.IPersistenceAccess;
+import org.apache.uima.ducc.rm.persistence.access.PersistenceAccess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
@@ -63,7 +63,7 @@ public class Share
     private long investment = 0;          // Current time for all ACTIVE work items in the process
 
     // note this returns a global static instance, no need to staticisze it here
-    private IRmPersistence persistence = null;
+    private IPersistenceAccess persistenceAccess = PersistenceAccess.getInstance();
 
      @SuppressWarnings("unused")
  	private long resident_memory = 0;
@@ -96,7 +96,6 @@ public class Share
         this.job = job;
         this.bljobid = null;        // UIMA-4142
         this.share_order = share_order;
-        this.persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
     }
 
     /**
@@ -111,7 +110,6 @@ public class Share
         this.job = null;
         this.bljobid = jobid;       // UIMA-4142
         this.share_order = share_order;
-        this.persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
     }
 
     /**
@@ -124,7 +122,6 @@ public class Share
         this.job = job;
         this.bljobid = null;        // UIMA-4142
         this.share_order = share_order;
-        this.persistence = RmPersistenceFactory.getInstance(this.getClass().getName(), "RM");
     }
 
 //     /**
@@ -290,7 +287,7 @@ public class Share
                 npid = Long.parseLong(pid);
             }
 
-			persistence.updateShare(getNode().getNodeIdentity().getName(), id, jobid, investment, state.toString(), getInitializationTime(), npid);
+			persistenceAccess.updateShare(getNode().getNodeIdentity().getCanonicalName(), id, jobid, investment, state.toString(), getInitializationTime(), npid);
 		} catch (Exception e) {
             logger.warn(methodName, job.getId(), "Cannot update share statistics in database for share", id, e);
 		}
@@ -364,7 +361,7 @@ public class Share
     	String methodName = "setFixed";
         fixed = true;
         try {
-			persistence.setFixed(getNode().getNodeIdentity().getName(), id, job.getId(), true);
+			persistenceAccess.setFixed(getNode().getNodeIdentity().getCanonicalName(), id, job.getId(), true);
 		} catch (Exception e) {
             logger.warn(methodName, job.getId(), "Cannot update 'fixed' in database for share", id, e);
 		}
@@ -380,7 +377,7 @@ public class Share
     	String methodName = "evicted";
         evicted = true;
         try {
-			persistence.setEvicted(getNode().getNodeIdentity().getName(), id, job.getId(), true);
+        	persistenceAccess.setEvicted(getNode().getNodeIdentity().getCanonicalName(), id, job.getId(), true);
 		} catch (Exception e) {
             logger.warn(methodName, job.getId(), "Cannot update 'evicted' in database for share", id, e);
 		}
@@ -396,7 +393,7 @@ public class Share
     	String methodName = "purge";
         purged = true;
         try {
-			persistence.setPurged(getNode().getNodeIdentity().getName(), id, job.getId(), true);
+        	persistenceAccess.setPurged(getNode().getNodeIdentity().getCanonicalName(), id, job.getId(), true);
 		} catch (Exception e) {
             logger.warn(methodName, job.getId(), "Cannot update 'purge bit' in database for share", id, e);
 		}

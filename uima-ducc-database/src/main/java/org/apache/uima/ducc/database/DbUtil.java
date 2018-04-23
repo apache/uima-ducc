@@ -319,5 +319,27 @@ class DbUtil
         }
         throw new IllegalArgumentException("Unrecognized type for schema: " + t);
     }
+    
+    static private String[] stringToArray(String input) {
+    	String[] output = null;
+    	if(input == null) {
+    		output = new String[0];
+    	}
+    	else {
+    		output = input.split("\\s+");
+    	}
+    	return output;
+    }
+    
+    // temporary limit??
+    static private int max_db_servers = 1;
+    
+    static String[] dbServersStringToArray(String input) throws Exception {
+    	String[] output = stringToArray(input);
+    	if(output.length > max_db_servers) {
+    		throw new Exception();
+    	}
+    	return output;
+    }
 
 }

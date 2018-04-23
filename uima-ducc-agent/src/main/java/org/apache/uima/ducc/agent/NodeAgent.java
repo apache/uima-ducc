@@ -242,7 +242,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   		NodeIdentity nodeIdentity = new NodeIdentity();
       	DaemonDuccEvent ev = new DaemonDuccEvent(daemon, eventType, nodeIdentity);
           ORDispatcher.dispatch(stateChangeEndpoint, ev, "");
-          logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getName());
+          logger.info(methodName, null, stateChangeEndpoint, eventType.name(), nodeIdentity.getCanonicalName());
       }
   	catch(Exception e) {
   		logger.error(methodName, null, e);
@@ -620,7 +620,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   public void start(DuccService service) throws Exception {
     super.start(service, null);
     String methodName = "start";
-    String name = nodeIdentity.getName();
+    String name = nodeIdentity.getShortName();
     String ip = nodeIdentity.getIp();
     String jmxUrl = getProcessJmxUrl();
     DuccDaemonRuntimeProperties.getInstance().bootAgent(name, ip, jmxUrl);
@@ -2233,10 +2233,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       BufferedReader br = new BufferedReader(new FileReader(exclusionFile));
       String line;
       NodeIdentity node = getIdentity();
-      String nodeName = node.getName();
-      if (nodeName.indexOf(".") > -1) {
-        nodeName = nodeName.substring(0, nodeName.indexOf("."));
-      }
+      String nodeName = node.getShortName();
 
       while ((line = br.readLine()) != null) {
         if (line.startsWith(nodeName)) {
@@ -2277,7 +2274,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       String[] nodes = ((DuccAdminEventStopMetrics) event).getTargetNodes().split(",");
       //  Check if this message applies to this node
       for (String targetNode : nodes) {
-        if (Utils.isMachineNameMatch(targetNode.trim(), getIdentity().getName())) {
+        if (Utils.isMachineNameMatch(targetNode.trim(), getIdentity().getCanonicalName())) {
           logger.info("handleAdminEvent", null,
                   "... Agent Received an Admin Request to Stop Metrics Collection and Publishing");
           //  Stop Camel route responsible for driving collection and publishing of metrics

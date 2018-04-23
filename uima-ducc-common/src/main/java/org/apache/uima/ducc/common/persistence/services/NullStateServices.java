@@ -46,5 +46,14 @@ public class NullStateServices implements IStateServices
     public boolean updateJobProperties(DuccId serviceId, Properties props)              throws Exception {return true;}
     public boolean updateMetaProperties(DuccId serviceId, Properties props)             throws Exception {return true;}
     public boolean moveToHistory(DuccId serviceId, Properties svc, Properties meta)     throws Exception {return true;}
+
+	@Override
+	public void setAccessMode(AccessMode accessMode) {
+	}
+
+	@Override
+	public AccessMode getAccessMode() {
+		return null;
+	}
    
 }

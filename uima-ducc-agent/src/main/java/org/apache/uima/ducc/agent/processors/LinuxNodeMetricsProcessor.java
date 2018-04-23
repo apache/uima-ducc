@@ -134,7 +134,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 //			Future<NodeCpuInfo> cpuFuture = pool.submit(cpuCollector);
 			NodeCpuInfo cpuInfo = new NodeCpuInfo(agent.numProcessors, String.valueOf(cpuCollector.call()));
 		    
-			e.getIn().setHeader("node", agent.getIdentity().getName());
+			e.getIn().setHeader("node", agent.getIdentity().getCanonicalName());
 			NodeMemory memInfo = nmiFuture.get();
 			TreeMap<String, NodeUsersInfo> users = null;
 			// begin collecting user processes and activate rogue process detector
@@ -166,7 +166,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 						
 			((DuccNode)node).duccLingExists(agent.duccLingExists());
 			((DuccNode)node).runWithDuccLing(agent.runWithDuccLing());
-			logger.info(methodName, null, "... Agent "+node.getNodeIdentity().getName()+
+			logger.info(methodName, null, "... Agent "+node.getNodeIdentity().getCanonicalName()+
                                         " OS Name:" + osname +
                                         " OS Version:" + osversion +
                                         " OS Arch:" + osarch +
@@ -180,7 +180,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 					" Low Swap Threshold Defined in ducc.properties (KB):"+swapThreshold +
 					" CPU Reporting Enabled:"+cpuReportingEnabled) ;
 			
-			logger.trace(methodName, null, "... Agent "+node.getNodeIdentity().getName()+" Posting Users:"+
+			logger.trace(methodName, null, "... Agent "+node.getNodeIdentity().getCanonicalName()+" Posting Users:"+
 					node.getNodeMetrics().getNodeUsersMap().size());
 			// Check if swap free is less than defined minimum threshold (check ducc.properties) 
 			if ( swapThreshold > 0 && ( node.getNodeMetrics().getNodeMemory().getSwapFree() < swapThreshold)) {
