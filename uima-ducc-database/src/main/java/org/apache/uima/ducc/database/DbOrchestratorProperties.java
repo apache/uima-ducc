@@ -51,12 +51,12 @@ public class DbOrchestratorProperties implements IDbOrchestratorProperties {
 	/*
 	 * connect to DB
 	 */
-	private boolean init(String dburl) throws Exception {
+	private boolean init(String[] dburls) throws Exception {
 		String methodName = "init";
 		boolean ret = false;
 		while (true) {
 			try {
-				dbManager = new DbManager(dburl, logger);
+				dbManager = new DbManager(dburls, logger);
 				dbManager.init();
 				ret = true;
 				break;
@@ -123,8 +123,9 @@ public class DbOrchestratorProperties implements IDbOrchestratorProperties {
 	@Override
 	public void init(DuccLogger duccLogger) throws Exception {
 		 this.logger = duccLogger;
-	     String dbUrl = System.getProperty(DbManager.URL_PROPERTY);
-	     init(dbUrl);
+		 String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
+	     String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+	     init(dbUrls);
 	}
 
 	/**

@@ -63,7 +63,7 @@ public class StateServicesDb
         }
     }
 
-    private boolean init(String dburl, DbManager dbm)
+    private boolean init(String[] dburls, DbManager dbm)
         throws Exception
     {
     	String methodName = "init";
@@ -76,7 +76,7 @@ public class StateServicesDb
         } else {
             while ( true ) {
                 try {
-                    dbManager = new DbManager(dburl, logger);
+                    dbManager = new DbManager(dburls, logger);
                     dbManager.init();
                     break;
                 } catch ( NoHostAvailableException e ) {
@@ -97,8 +97,9 @@ public class StateServicesDb
     	throws Exception
     {
     	this.logger = logger;
-        String stateUrl = System.getProperty(DbManager.URL_PROPERTY);
-        return init(stateUrl, null);
+        String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
+        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+        return init(dbUrls, null);
     }
 
     // package only, for the loader
@@ -106,8 +107,9 @@ public class StateServicesDb
     	throws Exception
     {
     	this.logger = logger;
-        String stateUrl = System.getProperty(DbManager.URL_PROPERTY);
-        return init(stateUrl, dbManager);
+    	String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
+        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+        return init(dbUrls, dbManager);
     }
 
     private Map<Long, DuccProperties> getProperties(String tableid, IDbProperty[] props, boolean active)

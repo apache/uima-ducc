@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
@@ -103,7 +102,7 @@ public class HistoryManagerDb
     }
     
     
-	private boolean init(String dburl, DbManager dbm)
+	private boolean init(String[] dburls, DbManager dbm)
         throws Exception
     {        
 		String methodName = "init";
@@ -114,7 +113,7 @@ public class HistoryManagerDb
                 if ( dbm != null ) {
                     this.dbManager = dbm;
                 } else {
-                    dbManager = new DbManager(dburl, logger);
+                    dbManager = new DbManager(dburls, logger);
                     dbManager.init();
                 }
                 
@@ -147,8 +146,9 @@ public class HistoryManagerDb
         throws Exception
     {
         this.logger = logger;
-        String historyUrl = System.getProperty(DbManager.URL_PROPERTY);
-        return init(historyUrl, null);
+        String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
+        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+        return init(dbUrls, null);
     }
 
     // package only, for the loader
@@ -156,8 +156,9 @@ public class HistoryManagerDb
     	throws Exception
     {
     	this.logger = logger;
-        String stateUrl = System.getProperty(DbManager.URL_PROPERTY);
-        return init(stateUrl, dbManager);
+        String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
+        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+        return init(dbUrls, dbManager);
     }
 
     /**

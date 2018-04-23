@@ -47,17 +47,17 @@ public class DbManager
     private static String db_id = null;
     private static String db_pw = null;
 
-    String dburl;
+    String[] dburls;
     DuccLogger logger;
 
     private Cluster cluster;            // only one
     private Session session;            // only one - it's thread safe and manages a connection pool
 
     
-    public DbManager(String dburl, DuccLogger logger)
+    public DbManager(String[] dburls, DuccLogger logger)
         throws Exception
     {
-        this.dburl = dburl;
+        this.dburls = dburls;
         this.logger = logger;
     }
     
@@ -102,7 +102,7 @@ public class DbManager
         ReconnectionPolicy rp = new ConstantReconnectionPolicy(10000);  // if we lose connection, keep trying every 10 seconds
         cluster = Cluster.builder()
             .withAuthProvider(auth)
-            .addContactPoint(dburl)
+            .addContactPoints(dburls)
             .withReconnectionPolicy(rp)
             .build();
 

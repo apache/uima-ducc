@@ -566,9 +566,11 @@ public class DbLoader
         long now = System.currentTimeMillis();
         boolean run_test = false;
 
+        String[] dbUrls = DbUtil.dbServersStringToArray(state_url);
+        
         if ( run_test ) {
             try {
-                dbManager = new DbManager(state_url, logger);
+                dbManager = new DbManager(dbUrls, logger);
                 dbManager.init();
                 
                 test();
@@ -580,7 +582,7 @@ public class DbLoader
 
         }
 
-        dbManager = new DbManager(state_url, logger);
+        dbManager = new DbManager(dbUrls, logger);
         dbManager.init();
 
         if ( true ) {
