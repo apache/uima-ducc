@@ -520,12 +520,20 @@ under the License.
 
     <fileSet>
       <!-- build up the verification scripting -->
+      <directory>uima-ducc-examples/src/main/bin</directory>
+      <outputDirectory>examples/bin</outputDirectory>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+
+    <fileSet>
+      <!-- build up the verification scripting -->
       <directory>uima-ducc-examples/src/main/scripts</directory>
       <outputDirectory>examples/systemtest</outputDirectory>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
-
+    
     <fileSet>
       <!-- build up the verification test jobs -->
       <directory>uima-ducc-examples/src/main/resources/org/apache/uima/ducc/test</directory>
