@@ -1,0 +1,122 @@
+
+*****************************************************
+Summary
+-------
+Generated at: 2018-03-14T14:11:27-04:00
+Notes: 5
+Binaries: 0
+Archives: 2
+Standards: 74
+
+Apache Licensed: 74
+Generated Documents: 0
+
+JavaDocs are generated and so license header is optional
+Generated files do not required license headers
+
+0 Unknown Licenses
+
+*******************************
+
+Unapproved licenses:
+
+
+*******************************
+
+Archives:
+
+ + src/main/cglib/com.springsource.net.sf.cglib-2.2.0.jar
+ 
+ + src/main/saxon/saxon8.jar
+ 
+*****************************************************
+  Files with Apache License headers will be marked AL
+  Binary files (which do not require AL headers) will be marked B
+  Compressed archives will be marked A
+  Notices, licenses etc will be marked N
+  N     LICENSE
+  AL    src/main/scripts/ducc_process_submit
+  AL    src/main/scripts/ducc_cancel
+  AL    src/main/scripts/ducc_status
+  AL    src/main/scripts/properties.py
+  AL    src/main/scripts/ducc_unreserve
+  AL    src/main/scripts/ducc_services
+  AL    src/main/scripts/ducc_watcher
+  AL    src/main/scripts/ducc_base.py
+  AL    src/main/scripts/ducc_reserve
+  AL    src/main/scripts/ducc_monitor
+  AL    src/main/scripts/ducc_process_cancel
+  AL    src/main/scripts/viaducc
+  AL    src/main/scripts/__init__.py
+  AL    src/main/scripts/ducc_logger.py
+  AL    src/main/scripts/ducc_submit
+  AL    src/main/scripts.prototype/ducc_qjob
+  AL    src/main/config/cassandra
+  AL    src/main/config/activemq-ducc-unsecure.xml
+  N     src/main/config/README.txt
+  AL    src/main/config/activemq-ducc.xml
+  AL    src/main/config/cassandra-env.sh
+  A     src/main/cglib/com.springsource.net.sf.cglib-2.2.0.jar
+  AL    src/main/admin/start_ducc
+  AL    src/main/admin/cron/db_tool.crontab.example
+  AL    src/main/admin/db_create
+  AL    src/main/admin/local_hooks.py
+  AL    src/main/admin/stop_ducc
+  AL    src/main/admin/ducc_util.py
+  AL    src/main/admin/ducc_reap_rogues.sh
+  AL    src/main/admin/ducc_disk_info
+  AL    src/main/admin/ducc_post_install
+  AL    src/main/admin/db_util.py
+  AL    src/main/admin/jconsole.xml
+  AL    src/main/admin/ducc_props_diff
+  AL    src/main/admin/ducc_gather_logs
+  AL    src/main/admin/ducc_update
+  AL    src/main/admin/build_duccling
+  AL    src/main/admin/db_tool
+  AL    src/main/admin/pam_test
+  AL    src/main/admin/vary_on
+  AL    src/main/admin/vary_off
+  AL    src/main/admin/ducc.py
+  AL    src/main/admin/check_ducc
+  AL    src/main/admin/sign_jconsole_jar
+  AL    src/main/admin/ducc_statedump
+  AL    src/main/admin/move_ducc
+  AL    src/main/admin/rm_qoccupancy
+  AL    src/main/admin/rm_reconfigure
+  AL    src/main/admin/ducc_props_manager
+  AL    src/main/admin/duccmon_pwgen.py
+  AL    src/main/admin/read_nodes.py
+  AL    src/main/admin/ducc_get_process_swap_usage.sh
+  AL    src/main/admin/db_loader
+  AL    src/main/admin.future/q_processes
+  AL    src/main/admin.future/rm_qload
+  N     src/main/legal/LICENSE
+  AL    src/main/legal/vetting.txt
+  N     src/main/legal/NOTICE
+  AL    src/main/scripts.legacy/ducc_web
+  AL    src/main/resources/private/ducc.private.properties
+  AL    src/main/resources/private/ducc-broker-credentials.properties
+  AL    src/main/resources/ducc_watcher.crontab.example
+  AL    src/main/resources/ducc.administrators
+  AL    src/main/resources/service_monitors/org.apache.uima.ducc.sm.UimaAsPing
+  AL    src/main/resources/service_monitors/org.apache.uima.ducc.sm.UimaAsPing.external
+  AL    src/main/resources/service_monitors/org.apache.uima.ducc.cli.UimaAsPing.external
+  AL    src/main/resources/service_monitors/org.apache.uima.ducc.cli.UimaAsPing
+  AL    src/main/resources/default.ducc.properties
+  AL    src/main/resources/log4j.xml
+  AL    src/main/resources/jobclasspath.properties
+  AL    src/main/resources/ducc.classes
+  AL    src/main/assembly/bin.xml
+  A     src/main/saxon/saxon8.jar
+  AL    src/main/test/runall.py
+  AL    src/main/test/reserve.py
+  AL    src/main/test/submit.py
+  AL    src/main/test/service.py
+  AL    src/main/test/managed_reserve.py
+  AL    pom.xml
+  N     NOTICE
+ 
+*****************************************************
+ Printing headers for files without AL header...
+ 
+ 

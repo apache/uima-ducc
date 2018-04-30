@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<javadocOptions>
+  <groups>
+    <group>
+      <title>Packages</title>
+      <packages>*</packages>
+    </group>
+  </groups>
+  <tags>
+    <tag>
+      <name>generated</name>
+    </tag>
+    <tag>
+      <name>ordered</name>
+    </tag>
+    <tag>
+      <name>modifiable</name>
+    </tag>
+    <tag>
+      <name>model</name>
+    </tag>
+    <tag>
+      <name>pre</name>
+    </tag>
+  </tags>
+  <docletArtifacts>
+    <docletArtifact />
+  </docletArtifacts>
+  <tagletArtifacts>
+    <tagletArtifact />
+  </tagletArtifacts>
+  <excludePackageNames>
+    <excludePackageName>org.apache.uima.ducc.cli.*</excludePackageName>
+    <excludePackageName>org.apache.uima.ducc.api.*</excludePackageName>
+    <excludePackageName>org.apache.uima.ducc.common.*</excludePackageName>
+    <excludePackageName>org.apache.uima.ducc.transport.*</excludePackageName>
+    <excludePackageName>org.apache.uima.ducc.agent.*</excludePackageName>
+    <excludePackageName>org.apache.uima.ducc.examples.*</excludePackageName>
+    <excludePackageName>org.apache.uima.ducc.orchestrator.*</excludePackageName>
+    <excludePackageName>org.apache.uima.ducc.pm.*</excludePackageName>
+    <excludePackageName>org.apache.uima.ducc.rm.*</excludePackageName>
+    <excludePackageName>org.apache.uima.ducc.sm.*</excludePackageName>
+  </excludePackageNames>
+  <javadocResourcesDirectory>src/main/javadoc</javadocResourcesDirectory>
+</javadocOptions>
