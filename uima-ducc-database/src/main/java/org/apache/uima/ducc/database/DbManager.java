@@ -43,7 +43,6 @@ import com.datastax.driver.core.policies.ReconnectionPolicy;
  */
 public class DbManager
 {
-    static final String URL_PROPERTY = "ducc.database.host";
     private static String db_id = null;
     private static String db_pw = null;
 

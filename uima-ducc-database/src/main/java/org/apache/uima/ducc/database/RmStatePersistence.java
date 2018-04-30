@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.persistence.rm.IDbJob;
 import org.apache.uima.ducc.common.persistence.rm.IDbShare;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
@@ -98,8 +99,7 @@ public class RmStatePersistence
     	throws Exception
     {
     	this.logger = logger;
-    	String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
-        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+        String[] dbUrls = DbHelper.getHostList();
         init(dbUrls);
         DbHandle h = dbManager.open();
 

@@ -21,8 +21,8 @@ package org.apache.uima.ducc.ws.helper;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.db.DbQuery;
 
@@ -38,7 +38,7 @@ public class DatabaseHelper extends JmxHelper {
 	}
 
 	protected boolean enabled = false;
-	protected String host = null;
+	protected String[] host_list = null;
 	
 	private DatabaseHelper() {
 		init();
@@ -47,34 +47,13 @@ public class DatabaseHelper extends JmxHelper {
 	private void init() {
 		String location = "init";
 		try {
-			DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
-			host = dpr.getProperty(DuccPropertiesResolver.ducc_database_host);
-			if(host != null) {
-				setHost(host);
-				if(!host.equalsIgnoreCase(DuccPropertiesResolver.ducc_database_disabled)) {
-					enabled = true;
-				}
-			}
+			host_list = DbHelper.getHostList();
+			enabled = DbHelper.isDbEnabled();
 			if(enabled) {
-				String jmxHost = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_host);
-				if(jmxHost != null) {
-					try {
-						setJmxHost(jmxHost);
-					}
-					catch(Exception e) {
-						logger.error(location, jobid, e);
-					}
-				}
-				setJmxPort(7199);  // default
-				String jmxPort = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_port);
-				if(jmxPort != null) {
-					try {
-						setJmxPort(Integer.parseInt(jmxPort));
-					}
-					catch(Exception e) {
-						logger.error(location, jobid, e);
-					}
-				}
+				String jmx_host = DbHelper.getJxmHostString();
+				setJmxHost(jmx_host);
+				Integer jmx_port = DbHelper.getJxmPortInteger();
+				setJmxPort(jmx_port); 
 				jmxConnect();
 			}
 		}
@@ -83,20 +62,22 @@ public class DatabaseHelper extends JmxHelper {
 		}
 	}
 	
+	public String getHostListString() {
+		StringBuffer sb = new StringBuffer();
+		for(String host : host_list) {
+			sb.append(host);
+			sb.append(" ");
+		}
+		String retVal = sb.toString().trim();
+		return retVal;
+	}
+	
 	public boolean isEnabled() {
 		return enabled;
 	}
 	
 	public boolean isDisabled() {
 		return !enabled;
-	}
-	
-	private void setHost(String value) {
-		host = value;
-	}
-	
-	public String getHost() {
-		return host;
 	}
 	
 	// Runtime Info //

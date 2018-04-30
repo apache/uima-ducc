@@ -141,15 +141,13 @@ def update_cassandra_config(DUCC_HOME, DUCC_HEAD):
                 os.system(ch_head)
         
 
-
-def configure_database(DUCC_HOME, DUCC_HEAD, java, db_pw):
+def configure_database(DUCC_HOME, DUCC_HEAD, java, db_autostart=True, db_host=None, db_user=None, db_pw=None ):
     # for cassandra:
     # in ducc_runtime/cassandra-server/conf we need to update cassandra.yaml to establish
     # the data directories and db connection addresses
 
     # Note this is a bootstrap routine and doesn't try to use common code that may depend on
     # things being initialized correctly.
-    
 
     if ( db_pw == None ):
         db_pw = raw_input("Enter database password OR 'bypass' to bypass database support:")
@@ -160,21 +158,28 @@ def configure_database(DUCC_HOME, DUCC_HEAD, java, db_pw):
     if ( db_pw == 'bypass' ):
         print 'Database support will be bypassed'
         return True
+
+    if(db_host == None):
+        db_host = DUCC_HEAD
+    
+    db_host = db_host.split()[0]
+    print "database host: "+str(db_host)
+    
+    if( db_autostart ):
+        if ( os.path.exists(DUCC_HOME + "/state/database/data") ):
+            print 'Database is already defined in', DUCC_HOME + '/database', '- but will try to rebuild.'
+        update_cassandra_config(DUCC_HOME, DUCC_HEAD)
+        here = os.getcwd()
+        os.chdir(DUCC_HOME + "/cassandra-server")
+        pidfile = DUCC_HOME + '/state/cassandra.pid'
+        print 'Starting the database.  This might take a few moments if it is the first time.'
+        CMD = "bin/cassandra -p "+  pidfile + " > /dev/null 2>&1";
+        os.system(CMD);
+        print "Database is started.  Waiting for initialization";
+        os.chdir(here) 
+    else:
+        print "Database is not auto-managed.";
         
-    if ( os.path.exists(DUCC_HOME + "/state/database/data") ):
-        print 'Database is already defined in', DUCC_HOME + '/database', '- but will try to rebuild.'
-
-    update_cassandra_config(DUCC_HOME, DUCC_HEAD)
-
-    here = os.getcwd()
-    os.chdir(DUCC_HOME + "/cassandra-server")
-    pidfile = DUCC_HOME + '/state/cassandra.pid'
-    print 'Starting the database.  This might take a few moments if it is the first time.'
-    CMD = "bin/cassandra -p "+  pidfile + " > /dev/null 2>&1";
-    os.system(CMD);
-    print "Database is started.  Waiting for initialization";
-    os.chdir(here) 
-
     # Now start the db and create the schema
     CLASSPATH = ''
     CLASSPATH = addToCp(CLASSPATH, DUCC_HOME + '/lib/cassandra/*')
@@ -186,13 +191,14 @@ def configure_database(DUCC_HOME, DUCC_HEAD, java, db_pw):
     print os.environ['CLASSPATH']
 
     ret = True
-    CMD = [java, '-DDUCC_HOME=' + DUCC_HOME, 'org.apache.uima.ducc.database.DbCreate', DUCC_HEAD, 'ducc', db_pw]
+    CMD = [java, '-DDUCC_HOME=' + DUCC_HOME, 'org.apache.uima.ducc.database.DbCreate', db_host, db_user, db_pw]
     CMD = ' '.join(CMD)
     if ( execute(CMD) == 0 ):
         print 'Database is initialized.'
     else:
-        print 'Database started but the schema could not be defined. DB logs are in', DUCC_HEAD + '/cassandra-server/logs.'
+        print 'Database schema could not be defined.'
         ret = False
 
-    stop_database(pidfile)
+    if( db_autostart ):
+        stop_database(pidfile)
     return ret

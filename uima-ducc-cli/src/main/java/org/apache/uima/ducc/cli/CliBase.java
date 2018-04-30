@@ -36,6 +36,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.uima.ducc.common.crypto.Crypto;
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
@@ -499,11 +500,7 @@ public abstract class CliBase
      * If DB is disabled, then save specification to filesystem
      */
     private boolean isDbDisabled() {
-    	boolean retVal = false;
-    	String dbHost = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_database_host, "?");
-    	if(dbHost.equals(DuccPropertiesResolver.ducc_database_disabled)) {
-    		retVal = true;
-    	}
+    	boolean retVal = DbHelper.isDbEnabled();
     	return retVal;
     }
     

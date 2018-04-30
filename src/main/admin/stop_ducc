@@ -193,6 +193,8 @@ class StopDucc(DuccUtil):
 
         self.verify_head()
 
+        self.check_properties()
+
         if ( len(argv) == 0 ):
             self.usage(None)
 
@@ -261,7 +263,7 @@ class StopDucc(DuccUtil):
 
 
 
-        # avaid confusion by insuring that if 'all', then nothing else is specified
+        # avoid confusion by insuring that if 'all', then nothing else is specified
         if ( all and ( do_components ) ):
             self.invalid("The --all option is mutually exclusive with --component")
         

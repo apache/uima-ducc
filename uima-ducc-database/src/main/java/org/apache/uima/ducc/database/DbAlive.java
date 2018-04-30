@@ -32,7 +32,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 
 public class DbAlive
 {
-    String dburl;
+    String db_host_list;
     String adminid = null;
     String adminpw = null;
 
@@ -65,9 +65,9 @@ public class DbAlive
     private Cluster cluster;
     //private Session session;
 
-    public DbAlive(String dburl, String adminid, String adminpw)
+    public DbAlive(String db_host_list, String adminid, String adminpw)
     {
-        this.dburl = dburl;
+        this.db_host_list = db_host_list;
         this.adminid = adminid;
         this.adminpw = adminpw;
     }
@@ -80,7 +80,7 @@ public class DbAlive
             PlainTextAuthProvider auth = new PlainTextAuthProvider(adminid, adminpw);
             cluster = Cluster.builder()
                 .withAuthProvider(auth)
-                .addContactPoint(dburl)
+                .addContactPoints(db_host_list.split("\\s+"))
                 .build();
 
             Metadata metadata = cluster.getMetadata();

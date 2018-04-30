@@ -63,6 +63,15 @@ class PostInstall():
         print "   [-j, --jvm] <path to java executable>"
         print "        This is the full path to java command to be used to start DUCC; e.g., /usr/bin/java"
         print ""
+        print "   [-a, --db-automanage] <True|False>"
+        print "        Specify False if DUCC should not start/stop database."
+        print ""
+        print "   [-o, --db-host-list] host1 <host2 host3...>"
+        print "        The database host(s)."
+        print ""
+        print "   [-u, --db-user] <root user for database>"
+        print "        This is the user DUCC uses to manage the database."
+        print ""
         print "   [-d, --db-password] <root password for database>"
         print "        This is the password DUCC uses to manage the database."
         print ""
@@ -140,15 +149,14 @@ class PostInstall():
         if (db_pw == None):
             db_pw = self.get_pw(self.database_pw)
 
-        if ( db_pw == 'bypass' ):
-            print 'Database support will be disabled'
-            self.update_property('ducc.database.host', '--disabled--', '# Database support is disabled')
-            return True;
-            
-        if ( dbu.configure_database(self.DUCC_HOME, self.ducc_head, self.path_to_java, db_pw) ):
+        #if ( db_pw == 'bypass' ):
+        #    print 'Database support will be disabled'
+        #    self.update_property('ducc.database.host', '--disabled--', '# Database support is disabled')
+        #    return True;
+        
+        if ( dbu.configure_database(self.DUCC_HOME, self.ducc_head, self.path_to_java, self.database_automanage, self.database_host_list, self.database_user, db_pw) ):
             print 'Configuring DUCC to use the database.'
 
-            self.update_property('ducc.database.host', self.ducc_head, '# Database location')
             self.update_property('ducc.service.persistence.impl', 'org.apache.uima.ducc.database.StateServicesDb', '# Service manager persistence')
             self.update_property('ducc.job.history.impl', 'org.apache.uima.ducc.database.HistoryManagerDb', '# History and checkpoint')
             self.update_property('ducc.rm.persistence.impl', 'org.apache.uima.ducc.database.RmStatePersistence', '# RM state persistence')
@@ -330,6 +338,21 @@ class PostInstall():
 
         print "Ducc head is configured as", self.ducc_head, '\n'        
 
+    def setup_ducc_database(self):
+        # ducc.database.automanage
+        if(self.database_automanage == True):
+            self.update_property('ducc.database.automanage', 'True', '# Database start/stop managed by DUCC')
+        else:
+            self.update_property('ducc.database.automanage', 'False', '# Database start/stop not managed by DUCC')
+        # ducc.database.host.list
+        if ( self.database_host_list == None ):
+            self.database_host_list = self.ducc_head
+        self.update_property('ducc.database.host.list', self.database_host_list, '# Database host list') 
+    	# ducc.database.user
+        if ( self.database_user == None ):
+            self.database_user = 'ducc'
+        self.update_property('ducc.database.user', self.database_user, '# Database user') 
+    
     def mkbackup(self, fn):
         if ( os.path.exists(fn) ):
             bak = fn + '.bak'
@@ -410,18 +433,29 @@ class PostInstall():
         self.ducc_uid = None
         self.ducc_head = None
         self.keystore_pw = None
+        self.database_automanage = False
+        self.database_host_list = None
+        self.database_user = None
         self.database_pw = None
         self.path_to_java = None
 
         try:
-            opts, args = getopt.getopt(argv, 'd:j:k:n:h?', ['db-password=', 'jvm=', 'keystore=', 'head-node=', 'help'])
+            opts, args = getopt.getopt(argv, 'a:o:u:d:j:k:n:h?', ['db-automanage=', 'db-host-list=', 'db-user=', 'db-password=', 'jvm=', 'keystore=', 'head-node=', 'help'])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
-
 
         for ( o, a ) in opts:
             if o in ('-n', '--head-node'):
                 self.ducc_head = a
+            if o in ('-a', '--db-automanage'):
+                if(o in [ 'True', 'T', 'true', 't']):
+                    self.database_automanage = True
+                else:
+                    self.database_automanage = False
+            if o in ('-o', '--db-host-list'):
+                self.database_host_list = a
+            if o in ('-u', '--db-user'):
+                self.database_user = a
             if o in ('-d', '--db-password'):
                 self.database_pw = a
             if o in ('-k', '--keystore'):
@@ -460,6 +494,7 @@ class PostInstall():
 
         self.setup_ducc_uid()
         self.setup_ducc_head()
+        self.setup_ducc_database()
         self.check_nodes()
 
         # insure java is configured and installed

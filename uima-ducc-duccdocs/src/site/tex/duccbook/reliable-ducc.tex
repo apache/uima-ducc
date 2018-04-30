@@ -193,16 +193,6 @@ This first major section describes support for multiple active DUCC head nodes.
     ducc.database.jmx.host = dbhost123
     ducc.database.automanage = false
    	\end{verbatim}
-	
-	Two new convenience commands are available for DUCC administrators.  
-	When issued by the DUCC administrator, these commands will start and stop the database 
-	on the database host machine regardless of the value specified for 
-	{\em ducc.database.automanage} in {\em site.ducc.properties}.
-	
-	\begin{verbatim}
-	admin/db\_start
-	afmin/db\_stop
-   	\end{verbatim}
    	
    	The existing administrator commands {\em start\_ducc} and {\em stop\_ducc} will
    	honor the value specified for {\em ducc.database.automanage} in {\em site.ducc.properties}.
@@ -240,9 +230,7 @@ publication.
   \item \textbf{ducc\_post\_install} - no need to create webserver request log directory
   \item \textbf{ducc\_util.py} - incorporate host name into cassandra.pid, cassandra.console path; broker host must be local host; head node must be eligible with respect to keepalived.conf; head node local components are all daemons except Database and Agents; fix remote db stop; honor ducc.database.automanage flag in site.ducc.properties
   \item \textbf{ducc.py} - incorporate host name into cassandra.pid, cassandra.console path
-  \item \textbf{start\_ducc.py} - head node local components must start on eligible local host
-  \item \textbf{db\_start} - (new) start DUCC database
-  \item \textbf{db\_stop} - (new) stop DUCC database
+  \item \textbf{start\_ducc.py} - head node local components must  on eligible local host
   \item \textbf{start\_sim} - (example) honor database autostart flag in ducc.properties
   item \textbf{stop\_sim} - (example) honor database autostart flag in ducc.properties
 \end{itemize}

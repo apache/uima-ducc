@@ -175,7 +175,7 @@ public class TestSuite {
 		}
 	}
 	
-	@Test
+	//Test
 	public void testJdSchedulerStatic() {
 		try {
 			IDuccHead dh = DuccHead.getInstance();
@@ -233,7 +233,7 @@ public class TestSuite {
 		}
 	}
 	
-	@Test
+	//Test
 	public void testJdSchedulerDynamic() {
 		try {
 			DuccId jobId = new DuccId(999);

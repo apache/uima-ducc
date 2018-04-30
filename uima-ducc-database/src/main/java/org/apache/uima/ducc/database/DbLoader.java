@@ -34,6 +34,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.common.Pair;
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.persistence.services.IStateServices.SvcMetaProps;
 import org.apache.uima.ducc.common.persistence.services.IStateServices.SvcRegProps;
@@ -140,8 +141,6 @@ public class DbLoader
         serviceRegistryHistory = from + serviceRegistryHistory;
         serviceRegistry        = from + serviceRegistry;
         checkpointFile         = from + checkpointFile;
-
-        System.setProperty(DbManager.URL_PROPERTY, state_url);
         
         this.nthreads = nthreads;
     }
@@ -566,7 +565,7 @@ public class DbLoader
         long now = System.currentTimeMillis();
         boolean run_test = false;
 
-        String[] dbUrls = DbUtil.dbServersStringToArray(state_url);
+        String[] dbUrls = DbHelper.getHostList();
         
         if ( run_test ) {
             try {

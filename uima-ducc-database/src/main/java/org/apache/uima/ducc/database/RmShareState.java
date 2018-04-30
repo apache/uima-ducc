@@ -105,8 +105,7 @@ public class RmShareState
             System.out.println("Usage: RmShareState <dburl>");
             System.exit(1);
         }
-        System.setProperty(DbManager.URL_PROPERTY, args[0]);
-
+        
         RmShareState rns = new RmShareState(args[0]);
         try {
             rns.run();

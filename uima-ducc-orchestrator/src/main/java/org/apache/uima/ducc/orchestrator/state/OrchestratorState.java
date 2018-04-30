@@ -18,8 +18,8 @@
 */
 package org.apache.uima.ducc.orchestrator.state;
 
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
@@ -43,13 +43,9 @@ public class OrchestratorState {
 	}
 	
 	private static String messageDbDisabled = "db disabled";
-	private static String dbHost = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_database_host, "?");
     
 	private static boolean isDbDisabled() {
-    	boolean retVal = false;
-    	if(dbHost.equals(DuccPropertiesResolver.ducc_database_disabled)) {
-    		retVal = true;
-    	}
+    	boolean retVal = DbHelper.isDbDisabled();
     	return retVal;
     }
 	

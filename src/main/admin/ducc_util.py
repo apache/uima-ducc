@@ -195,10 +195,47 @@ class DuccUtil(DuccBase):
         print 'Merging', base_props, 'with', site_props, 'into', run_props
         os.system(CMD)
 
-
+    def check_properties(self):
+        database_host_list = self.ducc_properties.get('ducc.database.host.list')
+        database_host = self.ducc_properties.get('ducc.database.host')
+        database_jmx_host = self.ducc_properties.get('ducc.database.jmx.host')
+        if(database_host_list != None):
+            if(database_host != None):
+                text = 'ducc.database.host_list and ducc.database.host both specified.'
+                print 'Error: '+text
+                sys.exit(1)
+            if(database_jmx_host != None):
+                if(database_jmx_host != 'localhost'):
+                    text = 'ducc.database.host_list and ducc.database.jmx.host both specified.'
+                    print 'Error: '+text
+                    sys.exit(1)
+    
+    def get_db_host_list(self):
+        result = []
+        slist = self.ducc_properties.get('ducc.database.host.list')
+        if(slist == None):
+            slist = self.ducc_properties.get('ducc.database.host')
+        if(slist != None):
+            result = slist.split()
+        return result
+    
+    def get_db_host(self):
+        result = None
+        host_list = self.get_db_host_list()
+        if(host_list != None):
+            if(len(host_list) > 0):
+                result = host_list[0]
+        return result
+    
+    def is_db_disabled(self):
+        result = False
+        dbhost = self.get_db_host()
+        if(dbhost == self.db_disabled):
+            result = True
+        return result
+    
     def db_configure(self):
-        dbhost = self.ducc_properties.get('ducc.database.host')
-        if ( dbhost == self.db_disabled ):
+        if(self.is_db_disabled()):
             self.db_bypass = True
             return;
         else:
@@ -244,8 +281,7 @@ class DuccUtil(DuccBase):
             return self.db_alive_check(retry,verbose)
         
     def db_alive_check(self, retry=10, verbose=True):
-        dbnode = self.ducc_properties.get('ducc.database.host')
-        if ( dbnode == None ):
+        if(self.is_db_disabled()):
             if(verbose):
                 print 'No database location defined.'
             return False
@@ -256,6 +292,8 @@ class DuccUtil(DuccBase):
 
         # get our log4j config into the path to shut up noisy logging
         os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ':' + self.DUCC_HOME + '/resources'
+        
+        dbnode = self.get_db_host()
         
         CMD = [self.java(), 'org.apache.uima.ducc.database.DbAlive', dbnode, 'ducc', self.db_password, str(retry)]
 
@@ -273,11 +311,18 @@ class DuccUtil(DuccBase):
 
         # bypass all of this for the initial delivery
         if ( self.db_bypass == True) :
-            print '   (Bypass database start because ducc.database.host =', self.db_disabled + ')'
+            print '   (Bypass database start)'
             return True
-
+        
+        if(dbnode == None):
+            print '   (Bypass database start - no database configured)'
+            return False
+        
+        if(len(dbnode) > 1):
+            print '   (Bypass database start - database list not supported)'
+            return False
+        
         print 'Starting database'
-        dbnode = self.ducc_properties.get('ducc.database.host')
         dbu.update_cassandra_config(self.DUCC_HOME, dbnode)
 
         max_attempts = 5
@@ -318,9 +363,15 @@ class DuccUtil(DuccBase):
     def db_stop(self):
         try:
             if ( self.db_bypass == True) :
-                print '   (Bypass database stop because ducc.database.host =', self.db_disabled + ')'
+                print '   (Bypass database stop)'
                 return True
-            dbnode = self.ducc_properties.get('ducc.database.host')
+            dbnode = self.get_db_host()
+            if(dbnode == None):
+                print '   (Bypass database stop - no database configured)'
+                return False
+            if(len(dbnode) > 1):
+                print '   (Bypass database stop - database list not supported)'
+                return False
             dbnode = dbnode.strip()
             pidfile = os.path.join(DUCC_HOME,'state','database',dbnode,'cassandra.pid')
             cmd = [ 'less', '-FX', pidfile ]
@@ -1258,7 +1309,7 @@ class DuccUtil(DuccBase):
 
         os.environ['DUCC_NODENAME'] = self.localhost    # to match java code's implicit property so script and java match
 
-        dbhost = self.ducc_properties.get('ducc.database.host')
+        dbhost = self.get_db_host()
         if ( dbhost == None ):
             dbhost = self.ducc_properties.get('ducc.head')
         if ( dbhost == None ):

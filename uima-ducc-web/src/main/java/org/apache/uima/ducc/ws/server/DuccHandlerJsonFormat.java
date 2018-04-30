@@ -48,8 +48,10 @@ import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.ComponentHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccPropertiesHelper;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
+import org.apache.uima.ducc.common.utils.InetHelper;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdReservation;
@@ -2306,10 +2308,31 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				else {
 					status = DuccHandlerUtils.down();
 				}
-				bootTime = getTimeStamp(DuccCookies.getDateStyle(request),databaseHelper.getStartTime());
-				hostName = useWS(wsHostName, databaseHelper.getHost());
-				hostIP = useWS(wsHostName, hostName, wsHostIP);
-				pid = ""+databaseHelper.getPID();
+				if(DuccPropertiesHelper.isDatabaseAutomanaged()) {
+					bootTime = getTimeStamp(DuccCookies.getDateStyle(request),databaseHelper.getStartTime());
+					hostName = useWS(wsHostName, databaseHelper.getHostListString());
+					hostIP = useWS(wsHostName, hostName, wsHostIP);
+					pid = ""+databaseHelper.getPID();
+				}
+				else {
+					bootTime = "-";
+					hostName = useWS(wsHostName, databaseHelper.getHostListString());
+					String[] hostList = hostName.split("\\s+");
+					String[] ipList = InetHelper.getIP(hostList);
+					StringBuffer sbuf = new StringBuffer();
+					if(ipList != null) {
+						for(String ip : ipList) {
+							sbuf.append(ip);
+							sbuf.append(" ");
+						}
+					}
+					hostIP = sbuf.toString();
+					pid = "-";
+				}
+				//
+				hostName = tableize(hostName);
+				hostIP = tableize(hostIP);
+				//
 				pubSizeLast = "-";
 				pubSizeMax = "-";
 				heartbeatLast = "";

@@ -108,7 +108,8 @@ public class DuccPropertiesResolver {
     public static final String ducc_broker_jmx_port = "ducc.broker.jmx.port";
     public static final String ducc_jms_provider = "ducc.jms.provider";
     
-    public static final String ducc_database_host = "ducc.database.host";
+    public static final String ducc_database_automanage = "ducc.database.automanage";
+    public static final String ducc_database_host_list = "ducc.database.host.list";
     public static final String ducc_database_disabled = "--disabled--";
     public static final String ducc_database_jmx_host = "ducc.database.jmx.host";
     public static final String ducc_database_jmx_port = "ducc.database.jmx.port";

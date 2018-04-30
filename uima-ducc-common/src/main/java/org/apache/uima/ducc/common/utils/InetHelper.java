@@ -19,6 +19,8 @@
 package org.apache.uima.ducc.common.utils;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -62,5 +64,35 @@ public class InetHelper {
 	public static String getHostName() {
 		return getShortHostName();
 	}
+	
+	/*
+	 * get list of corresponding IPs for given list of host names
+	 */
+	public static String[] getIP(String[] hostList) {
+		List<String> ipList = new ArrayList<String>();
+		try {
+			if(hostList != null) {
+				for(String hostName : hostList) {
+					InetAddress inetAddress = InetAddress.getByName(hostName);
+					StringBuffer sb = new StringBuffer();
+					byte[] byteAddress = inetAddress.getAddress();
+					if(byteAddress != null) {
+						for(int i=0; i<byteAddress.length; i++) {
+							if(i > 0) {
+								sb.append(".");
+							}
+							sb.append(byteAddress[i] & 0xFF);
+						}
+						ipList.add(sb.toString());
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			// Oh well...
+		}
+		return ipList.toArray(new String[0]);
+	}
+	
 
 }

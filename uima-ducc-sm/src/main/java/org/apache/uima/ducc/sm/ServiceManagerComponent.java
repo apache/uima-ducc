@@ -35,6 +35,7 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.crypto.Crypto;
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadTransition;
 import org.apache.uima.ducc.common.main.DuccService;
@@ -336,7 +337,7 @@ public class ServiceManagerComponent
         logger.info(methodName, null, "    Service ping stability  : ", meta_ping_stability);
         logger.info(methodName, null, "    Default ping class      : ", default_ping_class);
         logger.info(methodName, null, "");
-        logger.info(methodName, null, "    database enabled        : ", !System.getProperty("ducc.database.host").equals("--disabled--"));
+        logger.info(methodName, null, "    database enabled        : ", DbHelper.isDbEnabled());
         logger.info(methodName, null, "    database implementation : ", System.getProperty("ducc.service.persistence.impl"));
         logger.info(methodName, null, "");
         logger.info(methodName, null, "    Init Failure Max        : ", init_failure_max);

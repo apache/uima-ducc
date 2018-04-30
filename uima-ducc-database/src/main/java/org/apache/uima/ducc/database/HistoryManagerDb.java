@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.uima.ducc.common.Pair;
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -144,12 +145,17 @@ public class HistoryManagerDb
         return ret;
 	}
 
+	public boolean init(DuccLogger logger, String host) throws Exception {
+		this.logger = logger;
+		String[] dbUrls = { host };
+		return init(dbUrls, null);
+	}
+	
     public boolean init(DuccLogger logger)
         throws Exception
     {
         this.logger = logger;
-        String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
-        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+        String[] dbUrls = DbHelper.getHostList();
         return init(dbUrls, null);
     }
 
@@ -158,8 +164,7 @@ public class HistoryManagerDb
     	throws Exception
     {
     	this.logger = logger;
-        String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
-        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+    	String[] dbUrls = DbHelper.getHostList();
         return init(dbUrls, dbManager);
     }
 

@@ -25,8 +25,8 @@ import java.io.FileReader;
 import java.lang.reflect.Type;
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 
@@ -86,15 +86,10 @@ public class OrchestratorStateDbConversion {
 			logger.error(location, jobid, e);
 		}
 	}
-	
-	private static String dbHost = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_database_host, "?");
-    
+
 	private static boolean isDbDisabled() {
 		String location = "isDbDisabled";
-    	boolean retVal = false;
-    	if(dbHost.equals(DuccPropertiesResolver.ducc_database_disabled)) {
-    		retVal = true;
-    	}
+    	boolean retVal = DbHelper.isDbDisabled();
     	logger.info(location, jobid, retVal);
     	return retVal;
     }

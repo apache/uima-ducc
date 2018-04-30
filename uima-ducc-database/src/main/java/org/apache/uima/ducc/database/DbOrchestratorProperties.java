@@ -21,6 +21,7 @@ package org.apache.uima.ducc.database;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
@@ -123,8 +124,7 @@ public class DbOrchestratorProperties implements IDbOrchestratorProperties {
 	@Override
 	public void init(DuccLogger duccLogger) throws Exception {
 		 this.logger = duccLogger;
-		 String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
-	     String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+	     String[] dbUrls = DbHelper.getHostList();
 	     init(dbUrls);
 	}
 

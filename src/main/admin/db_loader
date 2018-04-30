@@ -92,9 +92,9 @@ class DbLoader(DuccUtil):
         if ( in_home == None ):
             self.usage("Missing input DUCC_HOME")
 
-        out_url = self.ducc_properties.get('ducc.database.host')
+        out_url = self.get_db_host()
         if ( out_url == None ):
-            self.usage("Cannot find 'ducc.database.host' in your properties file.");
+            self.usage("Database host not defined in ducc.properties file.");
 
         self.db_start()
 

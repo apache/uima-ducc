@@ -21,11 +21,11 @@ package org.apache.uima.ducc.database;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.persistence.or.IDbDuccWorks;
 import org.apache.uima.ducc.common.persistence.or.ITypedProperties;
 import org.apache.uima.ducc.common.persistence.or.TypedProperties;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 import com.datastax.driver.core.ResultSet;
@@ -57,13 +57,9 @@ public class DbDuccWorks implements IDbDuccWorks {
 	}
 	
 	private String messageDbDisabled = "db disabled";
-	private String dbHost = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_database_host, "?");
     
 	private boolean isDbDisabled() {
-    	boolean retVal = false;
-    	if(dbHost.equals(DuccPropertiesResolver.ducc_database_disabled)) {
-    		retVal = true;
-    	}
+    	boolean retVal = DbHelper.isDbDisabled();
     	return retVal;
     }
 	
@@ -149,8 +145,7 @@ public class DbDuccWorks implements IDbDuccWorks {
 			 logger.debug(location, jobid, messageDbDisabled);
 			 return;
 		 }
-	     String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
-	     String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+	     String[] dbUrls = DbHelper.getHostList();
 	     init(dbUrls);
 	}
 

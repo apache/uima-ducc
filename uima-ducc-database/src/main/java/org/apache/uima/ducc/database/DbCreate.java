@@ -19,7 +19,10 @@
 
 package org.apache.uima.ducc.database;
 
+import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -42,7 +45,7 @@ public class DbCreate
     int RETRY = 10;
 
     DuccLogger logger = null;
-    String dburl;
+    String db_host_list;
     String adminid = null;
     String adminpw = null;
     boolean useNewPw = false;
@@ -51,17 +54,17 @@ public class DbCreate
     private Session session = null;
 
 
-    DbCreate(String dburl, DuccLogger logger, String adminid, String adminpw)
+    DbCreate(String db_host_list, DuccLogger logger, String adminid, String adminpw)
     {
-        this.dburl = dburl;
+        this.db_host_list = db_host_list;
         this.logger = logger;
         this.adminid = adminid;
         this.adminpw = adminpw;
     }
 
-    DbCreate(String dburl, String adminid, String adminpw)
+    DbCreate(String db_host_list, String adminid, String adminpw)
     {
-        this.dburl = dburl;
+        this.db_host_list = db_host_list;
         this.adminid = adminid;
         this.adminpw = adminpw;
     }
@@ -73,6 +76,21 @@ public class DbCreate
         cluster = null;
     }
 
+    private void recommendation() {
+    	doLog("Check cassandra.yaml for the following entries:");
+    	doLog("> authenticator: PasswordAuthenticator");
+    	doLog("> authorizer: org.apache.cassandra.auth.CassandraAuthorizer");
+    }
+    
+    private void show(NoHostAvailableException e) {
+    	e.printStackTrace();
+        Map<InetSocketAddress, Throwable> map = e.getErrors();
+        for(Entry<InetSocketAddress, Throwable> entry : map.entrySet()) {
+        	Throwable t = entry.getValue();
+        	t.printStackTrace();
+        }
+    }
+    
     boolean connect()
         throws Exception
     {
@@ -84,7 +102,7 @@ public class DbCreate
         }
 
         // If we're here, we must first of all get rid of the cassandra su and set up our own
-
+        doLog("database location(s): "+db_host_list);
 
         for ( int i = 0; i < RETRY; i++ ) {
             try {
@@ -92,7 +110,7 @@ public class DbCreate
                 AuthProvider auth = new PlainTextAuthProvider("cassandra", "cassandra");
                 cluster = Cluster.builder()
                     .withAuthProvider(auth)
-                    .addContactPoint(dburl)
+                    .addContactPoints(db_host_list.split("\\s+"))
                     .build();
                     
                 session = cluster.connect();
@@ -103,7 +121,7 @@ public class DbCreate
                 auth = new PlainTextAuthProvider(adminid, adminpw);
                 cluster = Cluster.builder()
                     .withAuthProvider(auth)
-                    .addContactPoint(dburl)
+                    .addContactPoints(db_host_list.split("\\s+"))
                     .build();
                 session = cluster.connect();
                     
@@ -114,6 +132,7 @@ public class DbCreate
                 break;
             } catch ( NoHostAvailableException e ) {
                 doLog("Waiting for database to boot ...");
+                show(e);
                 session = null;
                 cluster = null;
             } catch ( AuthenticationException e ) {
@@ -124,7 +143,7 @@ public class DbCreate
                     AuthProvider auth = new PlainTextAuthProvider(adminid, adminpw);
                     cluster = Cluster.builder()
                         .withAuthProvider(auth)
-                        .addContactPoint(dburl)
+                        .addContactPoints(db_host_list.split("\\s+"))
                         .build();
                     session = cluster.connect();                    
                     // if this works we assume the DB user base is ok and continue
@@ -137,6 +156,7 @@ public class DbCreate
                 cluster = null;
             } catch ( Exception e ) {
                 doLog("Unknown problem contacting database.");
+                recommendation();
                 session = null;
                 cluster = null;
                 e.printStackTrace();
@@ -147,6 +167,7 @@ public class DbCreate
             
         if ( cluster == null ) {
             doLog(methodName, "Excessive retries.  Database may not be initialized.");
+            recommendation();
             return false;
         }
         Metadata metadata = cluster.getMetadata();

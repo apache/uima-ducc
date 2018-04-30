@@ -239,6 +239,8 @@ class StartDucc(DuccUtil):
 
         self.verify_head()
 
+        self.check_properties()
+
         if ( not self.verify_jvm() ):
             sys.exit(1);
 

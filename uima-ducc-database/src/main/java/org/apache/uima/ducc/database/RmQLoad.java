@@ -106,7 +106,6 @@ public class RmQLoad
             System.out.println("Usage: RmQLoad <dburl>");
             System.exit(1);
         }
-        System.setProperty(DbManager.URL_PROPERTY, args[0]);
 
         RmQLoad rns = new RmQLoad(args[0]);
         try {

@@ -27,7 +27,6 @@ import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DbQuery {
@@ -55,14 +54,7 @@ public class DbQuery {
 	
 	private DbQuery() {
 		createLogger(this);
-		DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
-		String value;
-		value = dpr.getProperty(DuccPropertiesResolver.ducc_database_host);
-		if(value != null) {
-			if(value.equalsIgnoreCase(DuccPropertiesResolver.ducc_database_disabled)) {
-				enabled = false;
-			}
-		}
+		enabled = DbHelper.isDbEnabled();
 		String component = (String) MDC.get("COMPONENT");
 		persistence = RmPersistenceFactory.getInstance(this.getClass().getName(),component);
 	}

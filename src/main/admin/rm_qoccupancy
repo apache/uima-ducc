@@ -120,7 +120,7 @@ class DuccRmQOccupancy(DuccUtil):
             sys.exit(1);
 
         DH = self.DUCC_HOME
-        dbn = self.ducc_properties.get('ducc.database.host')
+        dbn = self.get_db_host()
 
         guest_pw = self.db_password_guest
 

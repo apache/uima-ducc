@@ -23,10 +23,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.uima.ducc.common.Pair;
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
@@ -61,14 +61,7 @@ public class DbQuery {
 	}
 	
 	private DbQuery() {
-		DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
-		String value;
-		value = dpr.getProperty(DuccPropertiesResolver.ducc_database_host);
-		if(value != null) {
-			if(value.equalsIgnoreCase(DuccPropertiesResolver.ducc_database_disabled)) {
-				enabled = false;
-			}
-		}
+		enabled = DbHelper.isDbEnabled();
 		persistence = RmPersistenceFactory.getInstance(this.getClass().getName(),component);
 		history = HistoryFactory.getInstance(this.getClass().getName());
 	}

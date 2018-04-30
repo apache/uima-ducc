@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.persistence.IDbProperty;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
@@ -97,8 +98,7 @@ public class StateServicesDb
     	throws Exception
     {
     	this.logger = logger;
-        String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
-        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+        String[] dbUrls = DbHelper.getHostList();
         return init(dbUrls, null);
     }
 
@@ -107,8 +107,7 @@ public class StateServicesDb
     	throws Exception
     {
     	this.logger = logger;
-    	String dbUrlsString = System.getProperty(DbManager.URL_PROPERTY);
-        String[] dbUrls = DbUtil.dbServersStringToArray(dbUrlsString);
+    	String[] dbUrls = DbHelper.getHostList();
         return init(dbUrls, dbManager);
     }
 

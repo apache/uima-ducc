@@ -37,6 +37,7 @@ import org.apache.uima.ducc.common.admin.event.RmQueriedClass;
 import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
 import org.apache.uima.ducc.common.admin.event.RmQueriedNodepool;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -238,7 +239,7 @@ public class Scheduler
         logger.info(methodName, null, "                       class definition file   : ", class_definitions);
         logger.info(methodName, null, "                       default domain          : ", defaultDomain);      // UIMA-4142
         logger.info(methodName, null, "                       eviction policy         : ", evictionPolicy);
-        logger.info(methodName, null, "                       database enabled        : ", !System.getProperty("ducc.database.host").equals("--disabled--"));
+        logger.info(methodName, null, "                       database enabled        : ", DbHelper.isDbEnabled());
         logger.info(methodName, null, "                       database implementation : ", System.getProperty("ducc.rm.persistence.impl"));
         logger.info(methodName, null, "                       use prediction          : ", SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true));
         logger.info(methodName, null, "                       prediction fudge factor : ", SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 10000));

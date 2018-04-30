@@ -924,6 +924,31 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
         return sb.toString();
     }
 
+    public String tableize(String stringList) {
+    	String retVal = stringList;
+    	if(retVal != null) {
+    		String[] list = stringList.split("\\s+");
+    		retVal = tableize(list);
+    	}
+	    return retVal;
+    }
+    
+    public String tableize(String[] list) {
+    	StringBuffer sb = new StringBuffer();
+    	if(list != null) {
+    		sb.append("<table>");
+    		for(String item : list) {
+    			sb.append("<tr>");
+    			sb.append("<td>");
+    			sb.append(item);
+    			sb.append("</td>");
+    			sb.append("</tr>");
+    		}
+    		sb.append("</table>");
+    	}
+    	return sb.toString();
+    }
+    
 	protected String getMonitor(DuccId duccId, MonitorType monitorType) {
 		return getMonitor(duccId, monitorType, false);
 	}
