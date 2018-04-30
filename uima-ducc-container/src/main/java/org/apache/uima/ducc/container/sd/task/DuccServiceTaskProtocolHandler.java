@@ -31,20 +31,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
-import org.apache.uima.ducc.container.jd.fsm.wi.IMetaMetaCas;
-import org.apache.uima.ducc.container.jd.fsm.wi.MetaMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Hint;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
-import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
-import org.apache.uima.ducc.container.net.impl.MetaCas;
+
 import org.apache.uima.ducc.container.sd.DuccServiceDriver;
 import org.apache.uima.ducc.container.sd.iface.ServiceDriver;
 import org.apache.uima.ducc.container.sd.task.error.TaskProtocolException;
+import org.apache.uima.ducc.container.sd.task.iface.ITask;
 import org.apache.uima.ducc.container.sd.task.iface.TaskAllocatorCallbackListener;
 import org.apache.uima.ducc.container.sd.task.iface.TaskConsumer;
 import org.apache.uima.ducc.container.sd.task.iface.TaskProtocolHandler;
+import org.apache.uima.ducc.ps.net.iface.IMetaMetaTask;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Hint;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Type;
+import org.apache.uima.ducc.ps.net.impl.MetaMetaTask;
+import org.apache.uima.ducc.ps.net.impl.MetaTask;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
@@ -62,11 +63,11 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 	}
 
 	@Override
-	public void handle(IMetaCasTransaction wi) throws TaskProtocolException {
-		handleMetaCasTransation(wi);
+	public void handle(IMetaTaskTransaction wi) throws TaskProtocolException {
+		handleMetaTaskTransation(wi);
 		
 	}
-	private void handleMetaCasTransation(IMetaCasTransaction trans) {
+	private void handleMetaTaskTransation(IMetaTaskTransaction trans) {
 		try {
 			trans.setResponseHints(new ArrayList<Hint>());
 
@@ -80,15 +81,15 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 			switch(type) {
 			case Get:
 				logger.log(Level.FINE,"---- Driver handling GET Request - Requestor:"+taskConsumer.toString());
-				handleMetaCasTransationGet(trans, taskConsumer);
+				handleMetaTaskTransationGet(trans, taskConsumer);
 				break;
 			case Ack:
 				logger.log(Level.FINE,"---- Driver handling ACK Request - Requestor:"+taskConsumer.toString());
-				handleMetaCasTransationAck(trans, taskConsumer);
+				handleMetaTaskTransationAck(trans, taskConsumer);
 				break;
 			case End:
 				logger.log(Level.FINE,"---- Driver handling END Request - Requestor:"+taskConsumer.toString());
-				handleMetaCasTransationEnd(trans, taskConsumer);
+				handleMetaTaskTransationEnd(trans, taskConsumer);
 				break;
 			case InvestmentReset:
 			//	handleMetaCasTransationInvestmentReset(trans, rwt);
@@ -96,7 +97,7 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 			default:
 				break;
 			}
-			IMetaCas metaCas = trans.getMetaCas();
+			IMetaTask metaCas = trans.getMetaTask();
 			if(metaCas != null) {
 				metaCas.setPerformanceMetrics(null);
 				metaCas.setUserSpaceException(null);
@@ -120,31 +121,30 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 		// TODO Auto-generated method stub
 		
 	}
-	private void handleMetaCasTransationGet(IMetaCasTransaction trans, TaskConsumer taskConsumer) {
-		IMetaMetaCas mmc = getMetaMetaCas(taskConsumer);
-		trans.setMetaCas( mmc.getMetaCas());
+	private void handleMetaTaskTransationGet(IMetaTaskTransaction trans, TaskConsumer taskConsumer) {
+		IMetaMetaTask mmc = getMetaMetaTask(taskConsumer);
+		trans.setMetaTask( mmc.getMetaCas());
 	}
-	private IMetaCas getMetaCas(String serializedCas) {
+	private IMetaTask getMetaTask(String serializedCas) {
 		if ( serializedCas == null ) {
 			return null;
 		}
-		return new MetaCas(atomicCounter.incrementAndGet(), "", serializedCas);
+		return new MetaTask(atomicCounter.incrementAndGet(), "", serializedCas);
 	}
-	private synchronized IMetaMetaCas getMetaMetaCas(TaskConsumer taskConsumer) {
-		IMetaMetaCas mmc = new MetaMetaCas();
+	private synchronized IMetaMetaTask getMetaMetaTask(TaskConsumer taskConsumer) {
+		IMetaMetaTask mmc = new MetaMetaTask();
 		ServiceDriver sd = DuccServiceDriver.getInstance();
 		TaskAllocatorCallbackListener taskAllocator = 
 				sd.getTaskAllocator();
 				
-		String serializedCas =
-				taskAllocator.getSerializedCAS(taskConsumer);
-		IMetaCas metaCas = getMetaCas(serializedCas);
+		ITask task = taskAllocator.getTask(taskConsumer);
+		IMetaTask metaTask = getMetaTask(task.asString());
 		
-		mmc.setMetaCas(metaCas);
+		mmc.setMetaCas(metaTask);
 
 		return mmc;
 	}
-	private void handleMetaCasTransationAck(IMetaCasTransaction trans, TaskConsumer taskConsumer) {
+	private void handleMetaTaskTransationAck(IMetaTaskTransaction trans, TaskConsumer taskConsumer) {
 
 	}
 	private Throwable deserialize(Object byteArray) throws IOException, ClassNotFoundException {
@@ -153,13 +153,13 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 		Throwable t = (Throwable) ois.readObject();
 		return t;
 	}
-	private void handleMetaCasTransationEnd(IMetaCasTransaction trans, TaskConsumer taskConsumer) {
+	private void handleMetaTaskTransationEnd(IMetaTaskTransaction trans, TaskConsumer taskConsumer) {
 		ServiceDriver sd = DuccServiceDriver.getInstance();
 		TaskAllocatorCallbackListener taskAllocator = 
 				sd.getTaskAllocator();
-		if ( trans.getMetaCas().getUserSpaceException() != null ) {
+		if ( trans.getMetaTask().getUserSpaceException() != null ) {
 			Object serializedException = 
-					trans.getMetaCas().getUserSpaceException();
+					trans.getMetaTask().getUserSpaceException();
 			String exceptionAsString="";
 			try {
 				Throwable t = deserialize(serializedException);
@@ -169,13 +169,13 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 			} catch( Exception ee) {
 				logger.log(Level.WARNING,"Error",ee );
 			}
-			taskAllocator.onTaskFailure( taskConsumer, exceptionAsString );
+			taskAllocator.onTaskFailure( taskConsumer, trans.getMetaTask().getAppData(), exceptionAsString );
 			
 		} else {
-			IPerformanceMetrics m = 
-					trans.getMetaCas().getPerformanceMetrics();
+			String m = 
+					trans.getMetaTask().getPerformanceMetrics();
 			
-			taskAllocator.onTaskSuccess( taskConsumer, m );
+			taskAllocator.onTaskSuccess( taskConsumer,trans.getMetaTask().getAppData(), m );
 		}
 	}
 	

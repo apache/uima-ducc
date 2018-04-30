@@ -21,15 +21,15 @@ package org.apache.uima.ducc.container.sd.task.iface;
 
 import java.util.Properties;
 
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.sd.iface.Lifecycle;
 import org.apache.uima.ducc.container.sd.task.error.TaskProtocolException;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 
 public interface TaskProtocolHandler extends Lifecycle {
 	 public String  initialize(Properties props) throws TaskProtocolException;
 
      // The JP/Service sends IMetaCasTransaction object which includes  
      // the protocol state: GET, ACK, END
-     public void handle(IMetaCasTransaction wi) throws TaskProtocolException;
+     public void handle(IMetaTaskTransaction wi) throws TaskProtocolException;
 
 }

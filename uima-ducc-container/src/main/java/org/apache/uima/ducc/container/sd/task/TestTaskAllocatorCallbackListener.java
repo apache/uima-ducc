@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
+import org.apache.uima.ducc.container.sd.task.iface.ITask;
 import org.apache.uima.ducc.container.sd.task.iface.TaskAllocatorCallbackListener;
 import org.apache.uima.ducc.container.sd.task.iface.TaskConsumer;
 import org.apache.uima.ducc.user.common.DuccUimaSerializer;
@@ -59,7 +60,7 @@ public class TestTaskAllocatorCallbackListener implements
 		String serializedCas = uimaSerializer.serializeCasToXmi(cas);
 		return serializedCas;
 	}
-	public String getSerializedCAS(TaskConsumer taskConsumer) {
+	public ITask getTask(TaskConsumer taskConsumer) {
 		logger.log(Level.INFO,"getSerializedCAS() Call "+seqno.incrementAndGet()
 		        + " - from "+taskConsumer.getType()+":"+taskConsumer.getHostName()+"-"+taskConsumer.getPid()+"-"+taskConsumer.getThreadId() );
 		String serializedCas = null;
@@ -90,22 +91,22 @@ public class TestTaskAllocatorCallbackListener implements
 			logger.log(Level.WARNING,"Error",e);
 		}
 
-		return serializedCas;
+		return new SimpleTask(serializedCas);
 	}
 
-	public synchronized void onTaskSuccess(TaskConsumer taskConsumer, IPerformanceMetrics metrics) {
+	public synchronized void onTaskSuccess(TaskConsumer taskConsumer, String appdata, String processResult) {
 		logger.log(Level.INFO,"onTaskSuccess() Starting");
-		List<Properties> breakdown = metrics.get();
-
-		for( Properties p : breakdown ) {
-			StringBuffer sb = new StringBuffer();
-			sb.append("AE Name: ").append(p.get("uniqueName")).append(" Analysis Time: ").append(p.get("analysisTime"));
-			System.out.println("\tmetrics: "+taskConsumer.toString()+" -- "+sb.toString());
-		}
+		//List<Properties> breakdown = metrics.get();
+		System.out.println("\tmetrics: "+processResult);
+//		for( Properties p : breakdown ) {
+//			StringBuffer sb = new StringBuffer();
+//			sb.append("AE Name: ").append(p.get("uniqueName")).append(" Analysis Time: ").append(p.get("analysisTime"));
+//			System.out.println("\tmetrics: "+taskConsumer.toString()+" -- "+sb.toString());
+//		}
 		logger.log(Level.INFO,"onTaskSuccess() Completed");
 	}
 
-	public void onTaskFailure(TaskConsumer taskConsumer, String stringifiedException) {
+	public void onTaskFailure(TaskConsumer taskConsumer, String appdata, String processError) {
 		logger.log(Level.INFO,"onTaskFailure) Called");
 	}
 

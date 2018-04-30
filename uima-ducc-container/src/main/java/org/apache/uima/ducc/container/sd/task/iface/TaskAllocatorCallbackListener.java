@@ -19,10 +19,8 @@
 
 package org.apache.uima.ducc.container.sd.task.iface;
 
-import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
-
 public interface TaskAllocatorCallbackListener  {
-	public String getSerializedCAS(TaskConsumer taskConsumer);
-    public void onTaskSuccess(TaskConsumer taskConsumer, IPerformanceMetrics metrics);
-    public void onTaskFailure(TaskConsumer taskConsumer, String stringifiedException);
+	public ITask getTask(TaskConsumer taskConsumer);
+    public void onTaskSuccess(TaskConsumer taskConsumer, String appdata, String processResult);
+    public void onTaskFailure(TaskConsumer taskConsumer, String appdata, String processError);
 }

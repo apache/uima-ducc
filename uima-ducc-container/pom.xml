@@ -47,6 +47,11 @@
 				<artifactId>uima-ducc-user</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.apache.uima</groupId>
+				<artifactId>uima-ducc-pullservice</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -62,6 +67,13 @@
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-user</artifactId>
 		</dependency>
+		
+		<dependency>
+				<groupId>org.apache.uima</groupId>
+				<artifactId>uima-ducc-pullservice</artifactId>
+				
+			</dependency>
+			
 	</dependencies>
     <profiles>
 	<profile>

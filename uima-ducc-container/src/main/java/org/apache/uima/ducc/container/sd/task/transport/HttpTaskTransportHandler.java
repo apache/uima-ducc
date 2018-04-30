@@ -30,12 +30,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
+
 import org.apache.uima.ducc.container.sd.iface.ServiceDriver;
 import org.apache.uima.ducc.container.sd.task.error.TaskProtocolException;
 import org.apache.uima.ducc.container.sd.task.iface.TaskProtocolHandler;
 import org.apache.uima.ducc.container.sd.task.transport.iface.TaskTransportHandler;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Direction;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 import org.eclipse.jetty.server.Connector;
@@ -201,12 +202,12 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 				// logger.debug("doPost",jobid,
 				// "Http Request Body:::"+String.valueOf(content));
 
-				IMetaCasTransaction imt = null;
+				IMetaTaskTransaction imt = null;
 				// String t = String.valueOf(content);
 
 				// imt = (IMetaCasTransaction) XStreamUtils
 				// .unmarshall(t.trim());
-				imt = (IMetaCasTransaction) XStreamUtils.unmarshall(content);
+				imt = (IMetaTaskTransaction) XStreamUtils.unmarshall(content);
 				//MessageHandler.accumulateTimes("Unmarshall", post_stime);
 
 				// process service request

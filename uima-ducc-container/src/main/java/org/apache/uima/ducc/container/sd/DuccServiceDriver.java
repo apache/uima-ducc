@@ -23,10 +23,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.UIMAFramework;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
-import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
-import org.apache.uima.ducc.container.net.impl.TransactionId;
+
 import org.apache.uima.ducc.container.sd.iface.ServiceDriver;
 import org.apache.uima.ducc.container.sd.task.DuccServiceTaskProtocolHandler;
 import org.apache.uima.ducc.container.sd.task.TestTaskAllocatorCallbackListener;
@@ -37,6 +34,10 @@ import org.apache.uima.ducc.container.sd.task.transport.TaskTransportException;
 import org.apache.uima.ducc.container.sd.task.transport.Transports;
 import org.apache.uima.ducc.container.sd.task.transport.Transports.TransportType;
 import org.apache.uima.ducc.container.sd.task.transport.iface.TaskTransportHandler;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Type;
+import org.apache.uima.ducc.ps.net.impl.MetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.impl.TransactionId;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
@@ -115,7 +116,7 @@ public class DuccServiceDriver implements ServiceDriver {
 	public void test() throws Exception {
 		AtomicInteger IdGenerator =
 	    		new AtomicInteger();
-	    IMetaCasTransaction transaction = new MetaCasTransaction();
+	    IMetaTaskTransaction transaction = new MetaTaskTransaction();
 	
 		int major = IdGenerator.addAndGet(1);
 		int minor = 0;

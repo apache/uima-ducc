@@ -19,8 +19,8 @@
 
 package org.apache.uima.ducc.container.sd.task;
 
-import org.apache.uima.ducc.container.net.iface.IMetaCasRequester;
 import org.apache.uima.ducc.container.sd.task.iface.TaskConsumer;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskRequester;
 
 public class WiTaskConsumer implements TaskConsumer {
 
@@ -30,11 +30,11 @@ public class WiTaskConsumer implements TaskConsumer {
 	private String pid;
 	private String threadId;
 	
-	public WiTaskConsumer(IMetaCasRequester metaCasRequester) {
-		this.serviceType = metaCasRequester.getRequesterProcessName();
-		this.host = metaCasRequester.getRequesterNodeName();
-		this.pid = String.valueOf(metaCasRequester.getRequesterProcessId());
-		this.threadId = String.valueOf(metaCasRequester.getRequesterThreadId());
+	public WiTaskConsumer(IMetaTaskRequester metaTaskRequester) {
+		this.serviceType = metaTaskRequester.getRequesterProcessName();
+		this.host = metaTaskRequester.getRequesterNodeName();
+		this.pid = String.valueOf(metaTaskRequester.getRequesterProcessId());
+		this.threadId = String.valueOf(metaTaskRequester.getRequesterThreadId());
 	}
 
 	public String getType() {
