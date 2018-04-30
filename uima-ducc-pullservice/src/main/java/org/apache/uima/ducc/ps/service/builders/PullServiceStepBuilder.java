@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.ps.service.builders;
 
+import java.util.concurrent.ExecutionException;
+
 import org.apache.uima.ducc.ps.service.IService;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
@@ -130,11 +132,9 @@ public final class PullServiceStepBuilder {
 		try {
 			service.initialize();
 			service.start();
-		} catch(ServiceInitializationException e) {
+		} catch(ServiceInitializationException  | ServiceException | ExecutionException e) {
 			
-		} catch(ServiceException e)	{
-			
-		}
+		} 
 	}
 
 }

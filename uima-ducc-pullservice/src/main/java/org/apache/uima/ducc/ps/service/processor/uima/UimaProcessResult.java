@@ -20,11 +20,9 @@ package org.apache.uima.ducc.ps.service.processor.uima;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.List;
 
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler.Action;
 import org.apache.uima.ducc.ps.service.processor.IProcessResult;
-import org.apache.uima.ducc.ps.service.processor.uima.utils.PerformanceMetrics;
 
 public class UimaProcessResult implements IProcessResult{
 	private String metrics;

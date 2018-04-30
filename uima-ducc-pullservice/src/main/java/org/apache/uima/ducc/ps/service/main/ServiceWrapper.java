@@ -1,6 +1,7 @@
 package org.apache.uima.ducc.ps.service.main;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.service.IService;
@@ -67,7 +68,7 @@ public class ServiceWrapper {
 
 	}
 
-	public void start() throws ServiceException {
+	public void start() throws ServiceException, ExecutionException {
 		service.start();
 	}
 

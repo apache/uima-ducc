@@ -18,9 +18,11 @@
 */
 package org.apache.uima.ducc.ps.service;
 
+import java.util.concurrent.ExecutionException;
+
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
 
 public interface Lifecycle {
-	public void start() throws ServiceException;
+	public void start() throws ExecutionException, ServiceException;
 	public void stop();
 }

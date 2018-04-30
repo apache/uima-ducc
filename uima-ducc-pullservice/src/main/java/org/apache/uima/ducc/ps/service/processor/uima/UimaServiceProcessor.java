@@ -99,7 +99,7 @@ public class UimaServiceProcessor implements IServiceProcessor, IScaleable {
 		this.analysisEngineDescriptor = analysisEngineDescriptor;
 		this.resultSerializer = resultSerializer;
 		this.serviceConfiguration = serviceConfiguration;
-		// start a thread which will callect AE initialization state
+		// start a thread which will collect AE initialization state
 		launchStateInitializationCollector();
 	}
 	

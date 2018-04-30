@@ -31,6 +31,11 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 public class RemoteStateObserver implements IServiceMonitor {
+	private static final String SERVICE_JMS_PORT = "SERVICE_JMX_PORT=";
+	private static final String SERVICE_UNIQUE_ID= "DUCC_PROCESS_UNIQUEID=";
+	private static final String SERVICE_STATE = "DUCC_PROCESS_STATE=";
+	private static final String SERVICE_DATA = "SERVICE_DATA=";
+	private static final String SEPARATOR = ",";
 	private ServiceConfiguration serviceConfiguration;
 	private Logger logger;
 	private String currentState = IServiceState.State.Starting.toString();
@@ -73,21 +78,23 @@ public class RemoteStateObserver implements IServiceMonitor {
 				return;
 			}
 			String serviceData = "";
-			if ( additionalData != null && !additionalData.isEmpty() ) {
-				if ( serviceConfiguration.getAssignedJmxPort() != null && 
-						!serviceConfiguration.getAssignedJmxPort().trim().isEmpty()) {
-					additionalData.setProperty("SERVICE_JMX_PORT", serviceConfiguration.getAssignedJmxPort().trim());
-				}
-				serviceData = XStreamUtils.marshall(additionalData);
+			if ( additionalData == null ) {
+				additionalData = new Properties();
+			} 
+			if ( serviceConfiguration.getAssignedJmxPort() != null && 
+					!serviceConfiguration.getAssignedJmxPort().trim().isEmpty()) {
+				additionalData.setProperty(SERVICE_JMS_PORT, serviceConfiguration.getAssignedJmxPort().trim());
 			}
+			serviceData = XStreamUtils.marshall(additionalData);
+			
 			StringBuilder sb = new StringBuilder()
-			   .append("DUCC_PROCESS_UNIQUEID=")
+			   .append(SERVICE_UNIQUE_ID)
 			   .append(serviceConfiguration.getDuccProcessUniqueId())
-			   .append(",")
-			   .append("DUCC_PROCESS_STATE=")
+			   .append(SEPARATOR)
+			   .append(SERVICE_STATE)
 			   .append(state)
-			   .append(",")
-			   .append("SERVICE_DATA=")
+			   .append(SEPARATOR)
+			   .append(SERVICE_DATA)
 			   .append(serviceData);
 			out = new DataOutputStream(socket.getOutputStream());
 			out.writeUTF(sb.toString());

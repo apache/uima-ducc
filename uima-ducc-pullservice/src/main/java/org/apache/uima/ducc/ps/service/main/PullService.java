@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.ServiceThreadFactory;
 import org.apache.uima.ducc.ps.service.IScaleable;
 import org.apache.uima.ducc.ps.service.IService;
@@ -46,8 +47,11 @@ import org.apache.uima.ducc.ps.service.transport.IServiceTransport;
 import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 import org.apache.uima.ducc.ps.service.transport.http.HttpServiceTransport;
 import org.apache.uima.ducc.ps.service.transport.target.TargetURIFactory;
+import org.apache.uima.util.Level;
+import org.apache.uima.util.Logger;
 
 public class PullService implements IService {
+	Logger logger = UIMAFramework.getLogger(PullService.class);
 	// provide processing threads
 	private ScheduledThreadPoolExecutor threadPool ;
 	// how many processing threads
@@ -116,7 +120,7 @@ public class PullService implements IService {
 	public void setClientURL(String clientURL) {
 		this.clientURL = clientURL;
 	}
-	private void initializeDefaultRegistry() throws ServiceInitializationException {
+	private void initializeDefaultRegistryClient() throws ServiceInitializationException {
 		ITargetURI target;
 		if (clientURL == null || clientURL.isEmpty()) {
 			throw new ServiceInitializationException(
@@ -144,7 +148,7 @@ public class PullService implements IService {
 			// builtin registry which requires application provided client URL
 			if (registryClient == null) {
 				// the following will throw exception if client URL not specified
-				initializeDefaultRegistry();
+				initializeDefaultRegistryClient();
 			}
 
 			// add default transport
@@ -212,7 +216,7 @@ public class PullService implements IService {
 	}
 	
 	@Override
-	public void start() throws IllegalStateException {
+	public void start() throws IllegalStateException, ExecutionException, ServiceException {
 		if ( !initialized ) {
 			throw new IllegalStateException("Application must call initialize() before calling start()");
 		}
@@ -232,10 +236,9 @@ public class PullService implements IService {
 				// thread has been interrupted, force executor shutdown
 				threadPool.shutdownNow();
 			}
-		} catch( ExecutionException e) {
-			e.printStackTrace();
-		} catch( ServiceException e) {
-			e.printStackTrace();
+		} catch( ExecutionException | ServiceException e) {
+			logger.log(Level.WARNING,"",e);
+			throw e;
 		}
 	}
 	@Override
@@ -251,11 +254,14 @@ public class PullService implements IService {
 		stopMonitor();
 	}
 	private void waitForProcessThreads() throws InterruptedException, ExecutionException {
-		for(Future<String> future : threadHandleList){
-            //print the return value of Future, notice the output delay in console
-            // because Future.get() waits for task to get completed
-            System.out.println("Thread:"+Thread.currentThread().getName()+" Terminated "+new Date()+ "::"+future.get());
-        }
+		if ( logger.isLoggable(Level.INFO)) {
+			for(Future<String> future : threadHandleList){
+	            //print the return value of Future, notice the output delay in console
+	            // because Future.get() waits for task to get completed
+	            logger.log(Level.INFO, "Thread:"+Thread.currentThread().getName()+" Terminated "+new Date()+ "::"+future.get());
+	        }
+		}
+
 	}
 	private void initializeTransport() throws ServiceInitializationException {
 		try {
