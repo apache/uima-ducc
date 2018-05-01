@@ -23,14 +23,11 @@ import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 
 public interface IServiceProcessor extends IServiceComponent{
-	// for UIMA processor each thread calls initialize to pin AE instance. Same
-	// thread initializing AE will call its process().
+
 	public void initialize() throws ServiceInitializationException;
 	
 	// deserialize task, process and return result (performance metrics or Exception).
 	public IProcessResult process(String serializedTask);
-	
-	public void setErrorHandler(IServiceErrorHandler errorHandler);
 	
 	public void stop();
 }
