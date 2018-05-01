@@ -252,7 +252,7 @@ public class UimaServiceProcessor implements IServiceProcessor, IScaleable {
 		}
 	}
 
-	@Override
+	
 	public void setErrorHandler(IServiceErrorHandler errorHandler) {
 
 	}
