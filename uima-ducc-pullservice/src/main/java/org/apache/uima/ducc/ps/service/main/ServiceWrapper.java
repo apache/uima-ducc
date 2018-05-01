@@ -38,8 +38,10 @@ import org.apache.uima.util.Logger;
 public class ServiceWrapper {
 	private Logger logger = UIMAFramework.getLogger(ServiceWrapper.class);
 	private IService service = null;
+	// holds -D's and env variables needed at runtime
 	private ServiceConfiguration serviceConfiguration =
 			new ServiceConfiguration();
+	// jmx agent to configure rmi registry so that jconsole clients can connect
 	private JMXAgent jmxAgent;
 	
 	private void addShutdownHook() {
@@ -52,11 +54,20 @@ public class ServiceWrapper {
 		return jmxAgent.start(rmiRegistryPort);
 		
 	}
+	/**
+	 * Creates instance of IServiceProcessor. By default it creates built-in UimaServiceProcessor
+	 * but a custom processor is also supported via -Dducc.deploy.custom.processor.class=XX
+	 * 
+	 * @param analysisEngineDescriptorPath path to the AE descriptor
+	 * @return IServiceProcessor instance
+	 * @throws ServiceInitializationException
+	 */
 	private IServiceProcessor createProcessor(String analysisEngineDescriptorPath) 
 	throws ServiceInitializationException{
 		if ( serviceConfiguration.getCustomProcessorClass() != null ) {
 			try {
 			Class<?> clz = Class.forName(serviceConfiguration.getCustomProcessorClass());
+			// the custom processor must implement IServiceProcessor
 			if ( !IServiceProcessor.class.isAssignableFrom(clz) ) {
 				throw new ServiceInitializationException(serviceConfiguration.getCustomProcessorClass()+" Processor Class does not implement IServiceProcessor ");
 			}
@@ -74,7 +85,7 @@ public class ServiceWrapper {
 		serviceConfiguration.collectProperties(args);
 		serviceConfiguration.validateProperties();
 		addShutdownHook();
-		
+		// validateProperties() call above checked if a user provided AE descriptor path
 		String analysisEngineDescriptorPath = 
 				serviceConfiguration.getAnalysisEngineDescriptorPath();
 
