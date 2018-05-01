@@ -89,6 +89,9 @@ public class ServiceConfiguration {
 		if (clientURL == null) {
 			throw new ServiceInitializationException("Client URL not provided - terminating service");
 		}
+		if ( analysisEngineDescriptorPath == null ) {
+			throw new ServiceInitializationException("AE descriptor is missing - unable to launch the service");
+		}
 		if (threadCount == null) {
 			threadCount = "1";
 		}
