@@ -54,19 +54,7 @@ public class JunitTransportTestSuite {
     @Before
     public void startJetty() throws Exception
     {
-    	/*
-        // Create Server
-        server = new Server(8080);
-        ServletContextHandler context = new ServletContextHandler();
-        ServletHolder defaultServ = new ServletHolder("default", DefaultServlet.class);
-        defaultServ.setInitParameter("resourceBase",System.getProperty("user.dir"));
-        defaultServ.setInitParameter("dirAllowed","true");
-        context.addServlet(defaultServ,"/");
-        server.setHandler(context);
 
-        // Start Server
-        server.start();
-        */
         
 		QueuedThreadPool threadPool = new QueuedThreadPool();
 		if (maxThreads < threadPool.getMinThreads()) {

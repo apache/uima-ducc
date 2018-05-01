@@ -37,14 +37,12 @@ public class JunitPullServiceTestSuite extends Client {
 	@Test
 	public void testPullService() throws Exception {
 		int scaleout = 2;
-		//super.startJetty(false);  // don't block
-		String analysisEngineDescriptor = 
-		"/users/cwiklik/releases/builds/uima-as/trunk/target/checkout/target/apache-uima-as-2.10.3/examples/descriptors/analysis_engine/NamesAndGovernmentOfficials_TAE.xml";
+		super.startJetty(false);  // don't block
+		String analysisEngineDescriptor = "TestAAE";
 		IServiceProcessor processor = new 
 				UimaServiceProcessor(analysisEngineDescriptor);
 
-		String tasURL = "http://192.168.6.65:8088/test"; 
-				//"http://localhost:8080/test";
+		String tasURL = "http://localhost:8080/test";
 		
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
@@ -68,8 +66,7 @@ public class JunitPullServiceTestSuite extends Client {
 	public void testPullServiceTimeout() throws Exception {
 		super.startJetty(true);  // true=client blocks all POST requests
 		int scaleout = 12;
-		String analysisEngineDescriptor = 
-		"/users/cwiklik/releases/builds/uima-as/trunk/target/checkout/target/apache-uima-as-2.10.3/examples/descriptors/analysis_engine/NamesAndGovernmentOfficials_TAE.xml";
+		String analysisEngineDescriptor = "TestAAE";
 		IServiceProcessor processor = new 
 				UimaServiceProcessor(analysisEngineDescriptor);
 
@@ -95,13 +92,12 @@ public class JunitPullServiceTestSuite extends Client {
 			throw e;
 		}
 	}
-	
+	/*
 	@Test
 	public void testPullServiceBadClientURL() throws Exception {
 		int scaleout = 2;
 		super.startJetty(false);  // don't block
-		String analysisEngineDescriptor = 
-		"/users/cwiklik/releases/builds/uima-as/trunk/target/checkout/target/apache-uima-as-2.10.3/examples/descriptors/analysis_engine/NamesAndGovernmentOfficials_TAE.xml";
+		String analysisEngineDescriptor = "TestAAE";
 		IServiceProcessor processor = new 
 				UimaServiceProcessor(analysisEngineDescriptor);
 
@@ -122,6 +118,7 @@ public class JunitPullServiceTestSuite extends Client {
 			throw e;
 		}
 	}
+	*/
 	class MyTimerTask extends TimerTask {
 		final IService service;
 		final Timer fTimer;

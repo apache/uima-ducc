@@ -26,7 +26,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.uima.ducc.ph.Client;
 import org.apache.uima.ducc.ps.ServiceThreadFactory;
-import org.apache.uima.ducc.ps.net.iface.ITransport;
 import org.apache.uima.ducc.ps.service.IService;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
@@ -66,8 +65,7 @@ public class JunitProtocolHandlerTestSuite extends Client {
 		   
 		   IServiceTransport transport =
 				   initializeTransport();
-			String analysisEngineDescriptor = 
-					"/users/cwiklik/releases/builds/uima-as/trunk/target/checkout/target/apache-uima-as-2.10.3/examples/descriptors/analysis_engine/PersonTitleAnnotator.xml";
+			String analysisEngineDescriptor = "TestAAE";
 
 		   UimaServiceProcessor processor =
 				   new UimaServiceProcessor(analysisEngineDescriptor);
