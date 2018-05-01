@@ -54,6 +54,7 @@ import org.apache.uima.resource.ResourceSpecifier;
 import org.apache.uima.util.CasPool;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
+import org.apache.uima.util.XMLInputSource;
 
 public class UimaServiceProcessor implements IServiceProcessor, IScaleable {
 	public static final String IMPORT_BY_NAME_PREFIX = "*importByName:";
@@ -140,9 +141,13 @@ public class UimaServiceProcessor implements IServiceProcessor, IScaleable {
 	    paramsMap.put(AnalysisEngine.PARAM_MBEAN_SERVER, platformMBeanServer);
 
 		try {
+			
+			XMLInputSource is = 
+					UimaUtils.getXMLInputSource(analysisEngineDescriptor);
+			String aed = is.getURL().toString();
 			ResourceSpecifier rSpecifier =
-			    UimaUtils.getResourceSpecifier(analysisEngineDescriptor);
-
+			    UimaUtils.getResourceSpecifier(aed); //analysisEngineDescriptor);
+			
 			AnalysisEngine ae = UIMAFramework.produceAnalysisEngine(rSpecifier,
 					paramsMap);
 			// pin AE instance to this thread
