@@ -156,7 +156,7 @@ public class PullService implements IService {
 
 			// contract is that the service will block in this method until
 			// all process threads initialize. Use a latch to block until this
-			// happens. Each process thread will count this down after intialization
+			// happens. Each process thread will count this down after initialization
 			if ( threadsReady == null ) {
 				this.threadsReady = new CountDownLatch(scaleout);
 			}
@@ -180,7 +180,7 @@ public class PullService implements IService {
 					   
 			
 			// first initialize Processors. The ServiceThreadFactory creates 
-			// as many threads as needed
+			// as many threads as defined in 'scaleout'
 			threadPool = 
 					new ScheduledThreadPoolExecutor(scaleout, new ServiceThreadFactory());
 			

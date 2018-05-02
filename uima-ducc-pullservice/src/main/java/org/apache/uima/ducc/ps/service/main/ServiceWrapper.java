@@ -67,7 +67,7 @@ public class ServiceWrapper {
 		if ( serviceConfiguration.getCustomProcessorClass() != null ) {
 			try {
 			Class<?> clz = Class.forName(serviceConfiguration.getCustomProcessorClass());
-			// the custom processor must implement IServiceProcessor
+			// custom processor must implement IServiceProcessor
 			if ( !IServiceProcessor.class.isAssignableFrom(clz) ) {
 				throw new ServiceInitializationException(serviceConfiguration.getCustomProcessorClass()+" Processor Class does not implement IServiceProcessor ");
 			}
@@ -136,8 +136,6 @@ public class ServiceWrapper {
 
 		}
 		
-		// String tasURL = "http://localhost:8080/test";
-
 
 		service.initialize();
 
