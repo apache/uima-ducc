@@ -51,7 +51,8 @@ import org.apache.uima.util.Logger;
 
 public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 	Logger logger = UIMAFramework.getLogger(DuccServiceTaskProtocolHandler.class);
-
+	private volatile boolean running = true;;
+	private final long secondsToWait = 30;
 	private static AtomicInteger atomicCounter = 
 			new AtomicInteger(0);
 	public DuccServiceTaskProtocolHandler(TaskAllocatorCallbackListener taskAllocator) {
@@ -112,14 +113,13 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 
 	@Override
 	public String start() throws Exception {
-		// TODO Auto-generated method stub
+		running = true;
 		return null;
 	}
 
 	@Override
 	public void stop() throws Exception {
-		// TODO Auto-generated method stub
-		
+		running = false;
 	}
 	private void handleMetaTaskTransationGet(IMetaTaskTransaction trans, TaskConsumer taskConsumer) {
 		IMetaMetaTask mmc = getMetaMetaTask(taskConsumer);
@@ -136,11 +136,24 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 		ServiceDriver sd = DuccServiceDriver.getInstance();
 		TaskAllocatorCallbackListener taskAllocator = 
 				sd.getTaskAllocator();
-				
-		ITask task = taskAllocator.getTask(taskConsumer);
-		IMetaTask metaTask = getMetaTask(task.asString());
-		
-		mmc.setMetaCas(metaTask);
+		ITask task;
+		while( running ) {
+			task = taskAllocator.getTask(taskConsumer);
+			// allocation system does not return a task (or empty)
+			// block this thread and retry until a task becomes
+			// available
+			if ( task == null || task.isEmpty() ) {
+				try {
+					this.wait(secondsToWait*1000);
+				} catch(InterruptedException ee) {
+					Thread.currentThread().interrupt();
+				}
+			} else {
+				IMetaTask metaTask = getMetaTask(task.asString());
+				mmc.setMetaCas(metaTask);
+				break;
+			}
+		}
 
 		return mmc;
 	}
