@@ -137,11 +137,16 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 		TaskAllocatorCallbackListener taskAllocator = 
 				sd.getTaskAllocator();
 		ITask task;
-		while( running ) {
+		// The max time we are willing to wait for a task is 60 secs
+		// with 2 secs wait time between retries. With the above
+		// the max number of retries is 30. When we reach the max
+		// retry, we return no work to the service.
+		long retryCount = 60/secondsToWait;
+		while( retryCount > 0 ) {
 			task = taskAllocator.getTask(taskConsumer);
-			// allocation system does not return a task (or empty)
+			// if allocation system does not return a task (or empty)
 			// block this thread and retry until a task becomes
-			// available
+			// available or until max retry count is exhausted
 			if ( task == null || task.isEmpty() ) {
 				try {
 					this.wait(secondsToWait*1000);
@@ -153,6 +158,7 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 				mmc.setMetaCas(metaTask);
 				break;
 			}
+			retryCount--;
 		}
 
 		return mmc;
