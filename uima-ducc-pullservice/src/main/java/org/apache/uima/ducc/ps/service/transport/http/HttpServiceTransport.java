@@ -27,7 +27,6 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.http.HttpEntity;
@@ -46,6 +45,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.apache.uima.UIMAFramework;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler.Action;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
@@ -172,7 +172,26 @@ public class HttpServiceTransport implements IServiceTransport {
 			registryLookupLock.unlock();
 		}
 	}
+	public void addRequestorInfo(IMetaTaskTransaction transaction) {
+    	transaction.setRequesterAddress(nodeIP);
+    	transaction.setRequesterNodeName(nodeName);
+    	transaction.setRequesterProcessId(Integer.valueOf(pid));
+    	transaction.setRequesterThreadId((int)Thread.currentThread().getId());
+    	if ( logger.isLoggable(Level.FINE )) {
+        	logger.log(Level.FINE,"ip:"+transaction.getRequesterAddress());
+        	logger.log(Level.FINE, "nodeName:"+transaction.getRequesterNodeName());
+        	logger.log(Level.FINE, "processName:"+transaction.getRequesterProcessName());
+        	logger.log(Level.FINE,"processId:"+transaction.getRequesterProcessId());
+        	logger.log(Level.FINE, "threadId:"+transaction.getRequesterThreadId());
 
+    	}
+//
+// 		transaction.setRequesterNodeName(nodeName);
+// 		transaction.setRequesterProcessId(pid);
+// 		transaction.setRequesterProcessName(value);
+// 		transaction.setRequesterThreadId((int)Thread.currentThread().getId());
+ 		
+	}
 	public void initialize() throws ServiceInitializationException { 
 		
 		// use plugged in registry to lookup target to connect to.
@@ -286,6 +305,7 @@ public class HttpServiceTransport implements IServiceTransport {
 			throw new TransportException(
 					"Http Client Unable to Communicate with a remote client - Error:" + statusLine);
 		}
+		
 		stats.incrementSuccessCount();
 		return serializedResponse;
 	}
@@ -365,10 +385,10 @@ public class HttpServiceTransport implements IServiceTransport {
 		finally {
 			postMethod.releaseConnection();
 		}
-
 		return serializedResponse;
 		
 	}
+	
  	private Action handleConnectionError(Exception e) {
  		if ( e instanceof HttpHostConnectException || e instanceof  UnknownHostException  ) {
  			synchronized (httpClient) {

@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.ps.service.transport;
 
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 import org.apache.uima.ducc.ps.service.IServiceComponent;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 
@@ -29,5 +30,5 @@ public interface IServiceTransport extends IServiceComponent {
 	public void initialize() throws ServiceInitializationException; 
 	// stop transport
 	public void stop(); 
-	
+	public void addRequestorInfo(IMetaTaskTransaction transaction);
 }
