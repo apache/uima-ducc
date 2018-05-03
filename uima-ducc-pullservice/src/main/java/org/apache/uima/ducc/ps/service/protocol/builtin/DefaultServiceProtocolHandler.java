@@ -128,7 +128,8 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			// increment minor
 			tid.next();
 		}
-		transaction.setTransactionId(tid);
+    	transaction.setRequesterProcessName(service.getType());
+    	transport.addRequestorInfo(transaction);
 		Object o = null;
 		try {
 			String body = XStreamUtils.marshall(transaction);
@@ -206,6 +207,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			logger.log(Level.INFO, ".............. Thread "+Thread.currentThread().getId() + " ready to process");
 		}
 
+		
 		while (running) {
 
 			try {
