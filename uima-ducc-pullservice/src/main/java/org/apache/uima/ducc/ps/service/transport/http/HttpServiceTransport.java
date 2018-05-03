@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.http.HttpEntity;
@@ -66,6 +67,7 @@ public class HttpServiceTransport implements IServiceTransport {
 	private int clientMaxConnectionsPerRoute = 60;
 	private int clientMaxConnectionsPerHostPort = 0;
 	private ReentrantLock lock = new ReentrantLock();
+//	private CountDownLatch initLatch = new CountDownLatch(1);
 	private ReentrantLock registryLookupLock = new ReentrantLock();
     private long threadSleepTime=10000; // millis
     private final String nodeIP;
@@ -153,7 +155,7 @@ public class HttpServiceTransport implements IServiceTransport {
 				String newTarget = registryClient.lookUp(currentTargetUrl.asString());
 			//	logger.log(Level.INFO, "Registry lookup succesfull - current target URL:"+newTarget);
 				currentTargetUrl = TargetURIFactory.newTarget(newTarget);
-				return;
+				break;
 			} catch(  Exception e) {
 				synchronized (httpClient) {
 					
@@ -170,8 +172,9 @@ public class HttpServiceTransport implements IServiceTransport {
 			registryLookupLock.unlock();
 		}
 	}
-	public void initialize() throws ServiceInitializationException { 
 
+	public void initialize() throws ServiceInitializationException { 
+		
 		// use plugged in registry to lookup target to connect to.
 		// Sets global: currentTarget
 		lookupNewTarget();
@@ -208,6 +211,7 @@ public class HttpServiceTransport implements IServiceTransport {
 			logger.log(Level.INFO,"Cmgr SoTimeout="+cMgr.getDefaultSocketConfig().getSoTimeout());
 		}
 		running = true;
+
 	}
     private void addCommonHeaders( HttpPost method ) {
     	synchronized( HttpServiceTransport.class ) {
@@ -265,9 +269,10 @@ public class HttpServiceTransport implements IServiceTransport {
 		return response;
 		
 	}
-	private String doPost(HttpPost postMethod) throws URISyntaxException, IOException, TransportException {
+	private String doPost(HttpPost postMethod) throws URISyntaxException, NoHttpResponseException, IOException, TransportException {
 		postMethod.setURI(new URI(currentTargetUrl.asString()));
 		HttpResponse response = httpClient.execute(postMethod);
+		
 		if ( stopping ) {
 			throw new TransportException("Service stopping - rejecting request");
 		}
@@ -312,7 +317,7 @@ public class HttpServiceTransport implements IServiceTransport {
 			}
 
 			// timeout so try again
-			ex.printStackTrace();
+			//ex.printStackTrace();
 		} catch (HttpHostConnectException | UnknownHostException ex ) {
 			if ( stopping ) {
 				System.out.println("Process Thread:"+Thread.currentThread().getId()+" HttpHostConnectException ");
@@ -321,17 +326,15 @@ public class HttpServiceTransport implements IServiceTransport {
 			}
 
 			stats.incrementErrorCount();
-			//ex.printStackTrace();
 			Action action = handleConnectionError(ex);
 			if ( Action.CONTINUE.equals(action)) {
 				try {
-					//postMethod.setURI(new URI(currentTargetUrl.asString()));
 					// Lost connection to the Task Allocation App
 					// Block until connection is restored
 					if ( log ) {
 						log = false;
 
-						logger.log(Level.INFO, ">>>>>>>>>> Unable to connect to target:"+currentTargetUrl.asString()+" - retrying until successfull - with between retries "+threadSleepTime+" ms");
+						logger.log(Level.INFO, ">>>>>>>>>> Unable to connect to target:"+currentTargetUrl.asString()+" - retrying until successfull - with "+threadSleepTime/1000+" seconds wait between retries  ");
 					}
 					serializedResponse = retryUntilSuccessfull(serializedRequest, postMethod);
 					log = true;
@@ -349,8 +352,7 @@ public class HttpServiceTransport implements IServiceTransport {
 			
 		} catch (SocketException ex) {
 			if ( stopping ) {
-				System.out.println("Process Thread:"+Thread.currentThread().getId()+" SocketException ");
-				//ex.printStackTrace();
+				//System.out.println("Process Thread:"+Thread.currentThread().getId()+" SocketException ");
 				throw new TransportException(ex);
 			}
 			
@@ -383,8 +385,10 @@ public class HttpServiceTransport implements IServiceTransport {
  		
  	}
 	public void stop() {
+
 		stopping = true;
 		running = false;
+		//initLatch.countDown();
 		logger.log(Level.INFO,this.getClass().getName()+" stop() called");
 		if ( cMgr != null ) {
 			cMgr.shutdown();
