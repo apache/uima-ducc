@@ -77,7 +77,7 @@ public class RemoteStateObserver implements IServiceMonitor {
 			if ( socket == null ) {
 				return;
 			}
-			String serviceData = "";
+			//String serviceData = "";
 			if ( additionalData == null ) {
 				additionalData = new Properties();
 			} 
@@ -85,17 +85,17 @@ public class RemoteStateObserver implements IServiceMonitor {
 					!serviceConfiguration.getAssignedJmxPort().trim().isEmpty()) {
 				additionalData.setProperty(SERVICE_JMS_PORT, serviceConfiguration.getAssignedJmxPort().trim());
 			}
-			serviceData = XStreamUtils.marshall(additionalData);
+			//serviceData = XStreamUtils.marshall(additionalData);
 			
 			StringBuilder sb = new StringBuilder()
 			   .append(SERVICE_UNIQUE_ID)
 			   .append(serviceConfiguration.getDuccProcessUniqueId())
 			   .append(SEPARATOR)
 			   .append(SERVICE_STATE)
-			   .append(state)
-			   .append(SEPARATOR)
-			   .append(SERVICE_DATA)
-			   .append(serviceData);
+			   .append(state);
+//			   .append(SEPARATOR)
+//			   .append(SERVICE_DATA)
+//			   .append(serviceData);
 			out = new DataOutputStream(socket.getOutputStream());
 			out.writeUTF(sb.toString());
 			out.flush();
