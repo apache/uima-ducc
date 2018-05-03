@@ -79,6 +79,7 @@ public class UimaServiceProcessor implements IServiceProcessor, IScaleable {
 	private ServiceConfiguration serviceConfiguration;
 	private ScheduledThreadPoolExecutor executor = null;
 	private IServiceMonitor monitor;
+	private volatile boolean notifyOnRunning = true;
 	static {
 		// try to get platform MBean Server (Java 1.5 only)
 		try {
@@ -108,19 +109,19 @@ public class UimaServiceProcessor implements IServiceProcessor, IScaleable {
 		monitor =
 				new RemoteStateObserver(serviceConfiguration, logger);
 		
-		executor = new ScheduledThreadPoolExecutor(1);
-		executor.prestartAllCoreThreads();
+//		executor = new ScheduledThreadPoolExecutor(1);
+//		executor.prestartAllCoreThreads();
 		// Instantiate a UIMA AS jmx monitor to poll for status of the AE.
 		// This monitor checks if the AE is initializing or ready.
-		initStateMonitor = 
-				new JmxAEProcessInitMonitor(monitor, logger);
+//		initStateMonitor = 
+//				new JmxAEProcessInitMonitor(monitor, logger);
 		/*
 		 * This will run UimaAEJmxMonitor every 30
 		 * seconds with an initial delay of 20 seconds. This monitor polls
 		 * initialization status of AE.
 		 */
-		executor.scheduleAtFixedRate(initStateMonitor, 20, 30, TimeUnit.SECONDS);
-
+//		executor.scheduleAtFixedRate(initStateMonitor, 20, 30, TimeUnit.SECONDS);
+		monitor.onStateChange(IServiceState.State.Initializing.toString(), new Properties());
 	}
 	public void setScaleout(int howManyThreads) {
 		this.scaleout = howManyThreads;
@@ -192,12 +193,8 @@ public class UimaServiceProcessor implements IServiceProcessor, IScaleable {
 		// process is being called
 		try {
 			initStateShutdownLock.lockInterruptibly();
-			if ( !executor.isTerminating() && !executor.isTerminated() && !executor.isShutdown() ) {
-				// send final AE initialization report before we stop the collecting thread
-				initStateMonitor.updateAgentWhenRunning();
-				
-				executor.shutdown();
-				executor.awaitTermination(0, TimeUnit.SECONDS);
+			if ( notifyOnRunning ) {
+				notifyOnRunning = false;
 				monitor.onStateChange(IServiceState.State.Running.toString(), new Properties());
 			}
 
@@ -206,7 +203,23 @@ public class UimaServiceProcessor implements IServiceProcessor, IScaleable {
 		} finally {
 			initStateShutdownLock.unlock();
 		}
-		
+		/*
+		try {
+			initStateShutdownLock.lockInterruptibly();
+			if ( !executor.isTerminating() && !executor.isTerminated() && !executor.isShutdown() ) {
+				// send final AE initialization report before we stop the collecting thread
+				initStateMonitor.updateAgentWhenRunning();
+				executor.shutdown();
+				executor.awaitTermination(0, TimeUnit.SECONDS);
+		//monitor.onStateChange(IServiceState.State.Running.toString(), new Properties());
+			}
+
+		} catch( InterruptedException e) {
+			Thread.currentThread().interrupt();
+		} finally {
+			initStateShutdownLock.unlock();
+		}
+*/		
 		CAS cas = casPool.getCas();
 		IProcessResult result;
 		
