@@ -135,13 +135,12 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			String body = XStreamUtils.marshall(transaction);
 			String content = transport.dispatch(body);
 			if ( content == null ) {
-				throw new TransportException("Service stopping - rejecting request");
+				throw new TransportException("Received invalid content (null) in response from client - rejecting request");
 			}
 			o = XStreamUtils.unmarshall(content);
 			
 		} catch ( Exception e) {
 			if ( !running ) {
-				System.out.println("... Not Running - throwing TransporException");
 				throw new TransportException("Service stopping - rejecting request");
 			}
 			throw e;
@@ -150,7 +149,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			return (MetaTaskTransaction) o;
 		} else {
 			throw new InvalidClassException(
-					"Expected IMetaCasTransaction - Instead Received " + o.getClass().getName());
+					"Expected IMetaTaskTransaction - Instead Received " + o.getClass().getName());
 		}
 	}
 
