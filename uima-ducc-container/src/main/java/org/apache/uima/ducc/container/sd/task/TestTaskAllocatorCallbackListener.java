@@ -97,7 +97,8 @@ public class TestTaskAllocatorCallbackListener implements
 	public synchronized void onTaskSuccess(TaskConsumer taskConsumer, String appdata, String processResult) {
 		logger.log(Level.INFO,"onTaskSuccess() Starting");
 		//List<Properties> breakdown = metrics.get();
-		System.out.println("\tmetrics: "+processResult);
+		//System.out.println("\tmetrics: "+processResult);
+		System.out.println("----------appdata: "+appdata);
 //		for( Properties p : breakdown ) {
 //			StringBuffer sb = new StringBuffer();
 //			sb.append("AE Name: ").append(p.get("uniqueName")).append(" Analysis Time: ").append(p.get("analysisTime"));

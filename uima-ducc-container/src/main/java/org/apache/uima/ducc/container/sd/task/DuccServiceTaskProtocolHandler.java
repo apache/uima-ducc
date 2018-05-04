@@ -81,15 +81,21 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 			Type type = trans.getType();
 			switch(type) {
 			case Get:
-				logger.log(Level.FINE,"---- Driver handling GET Request - Requestor:"+taskConsumer.toString());
+			    if ( logger.isLoggable(Level.FINE)) {
+					logger.log(Level.FINE,"---- Driver handling GET Request - Requestor:"+taskConsumer.toString());
+			    }
 				handleMetaTaskTransationGet(trans, taskConsumer);
 				break;
 			case Ack:
-				logger.log(Level.FINE,"---- Driver handling ACK Request - Requestor:"+taskConsumer.toString());
+			    if ( logger.isLoggable(Level.FINE)) {
+					logger.log(Level.FINE,"---- Driver handling ACK Request - Requestor:"+taskConsumer.toString());
+			    }
 				handleMetaTaskTransationAck(trans, taskConsumer);
 				break;
 			case End:
-				logger.log(Level.FINE,"---- Driver handling END Request - Requestor:"+taskConsumer.toString());
+			    if ( logger.isLoggable(Level.FINE)) {
+					logger.log(Level.FINE,"---- Driver handling END Request - Requestor:"+taskConsumer.toString());
+			    }
 				handleMetaTaskTransationEnd(trans, taskConsumer);
 				break;
 			case InvestmentReset:
@@ -140,7 +146,7 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 		// The max time we are willing to wait for a task is 60 secs
 		// with 2 secs wait time between retries. With the above
 		// the max number of retries is 30. When we reach the max
-		// retry, we return no work to the service.
+		// retry, we return empty task to the service.
 		long retryCount = 60/secondsToWait;
 		while( retryCount > 0 ) {
 			task = taskAllocator.getTask(taskConsumer);
@@ -156,6 +162,10 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 			} else {
 				IMetaTask metaTask = getMetaTask(task.asString());
 				mmc.setMetaCas(metaTask);
+			    if ( logger.isLoggable(Level.FINE)) {
+				   logger.log(Level.FINE,"Returning TASK with appdata:"+task.getMetadata()+" to the service");
+			    }
+				mmc.getMetaCas().setAppData(task.getMetadata());
 				break;
 			}
 			retryCount--;
@@ -193,7 +203,9 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 		} else {
 			String m = 
 					trans.getMetaTask().getPerformanceMetrics();
-			
+		    if ( logger.isLoggable(Level.FINE)) {
+		    	logger.log(Level.FINE,"handleMetaTaskTransationEnd()........... appdata:"+trans.getMetaTask().getAppData());
+		    }
 			taskAllocator.onTaskSuccess( taskConsumer,trans.getMetaTask().getAppData(), m );
 		}
 	}
