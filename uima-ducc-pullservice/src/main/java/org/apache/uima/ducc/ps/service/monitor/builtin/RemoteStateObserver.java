@@ -26,7 +26,6 @@ import java.util.Properties;
 import org.apache.uima.ducc.ps.service.IServiceState;
 import org.apache.uima.ducc.ps.service.ServiceConfiguration;
 import org.apache.uima.ducc.ps.service.monitor.IServiceMonitor;
-import org.apache.uima.ducc.ps.service.transport.XStreamUtils;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
@@ -86,7 +85,9 @@ public class RemoteStateObserver implements IServiceMonitor {
 				additionalData.setProperty(SERVICE_JMS_PORT, serviceConfiguration.getAssignedJmxPort().trim());
 			}
 			//serviceData = XStreamUtils.marshall(additionalData);
-			
+			// Agent needs process unique ID to identify it within inventory.
+			// The unique id was added as an env var by an agent before this
+			// process was launched.
 			StringBuilder sb = new StringBuilder()
 			   .append(SERVICE_UNIQUE_ID)
 			   .append(serviceConfiguration.getDuccProcessUniqueId())
