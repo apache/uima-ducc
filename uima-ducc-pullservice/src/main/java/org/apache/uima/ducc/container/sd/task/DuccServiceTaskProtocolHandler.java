@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.UIMAFramework;
+
 import org.apache.uima.ducc.container.sd.DuccServiceDriver;
 import org.apache.uima.ducc.container.sd.iface.ServiceDriver;
 import org.apache.uima.ducc.container.sd.task.error.TaskProtocolException;
