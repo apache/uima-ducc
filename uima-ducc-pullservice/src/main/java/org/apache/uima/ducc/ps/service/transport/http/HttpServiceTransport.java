@@ -226,9 +226,6 @@ public class HttpServiceTransport implements IServiceTransport {
     //    		setDefaultRequestConfig(requestConfig).build();
         
 		httpClient = HttpClients.custom().setConnectionManager(cMgr).build();
-		if ( logger.isLoggable(Level.INFO)) {
-			logger.log(Level.INFO,"Cmgr SoTimeout="+cMgr.getDefaultSocketConfig().getSoTimeout());
-		}
 		running = true;
 
 	}
