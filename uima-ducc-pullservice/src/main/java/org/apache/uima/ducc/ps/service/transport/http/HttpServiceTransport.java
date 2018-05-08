@@ -213,17 +213,17 @@ public class HttpServiceTransport implements IServiceTransport {
 		}
 		
 		int timeout = 30;
-		SocketConfig socketConfig = SocketConfig.custom().setSoTimeout(timeout*1000).build();
+//		SocketConfig socketConfig = SocketConfig.custom().setSoTimeout(timeout*1000).build();
  //       RequestConfig requestConfig = RequestConfig.custom()
    //     		  .setConnectTimeout(timeout * 1000)
      //   		  .setConnectionRequestTimeout(timeout * 1000)
        // 		  .setSocketTimeout(0).build();
-        cMgr.setDefaultSocketConfig(socketConfig);
+  //      cMgr.setDefaultSocketConfig(socketConfig);
         
 //        System.out.println("HttpTransport Max Connections:"+cMgr.getMaxTotal());
 //        httpClient = HttpClients.custom().
-//        		setConnectionManager(cMgr).
-//        		setDefaultRequestConfig(requestConfig).build();
+  //      		setConnectionManager(cMgr).
+    //    		setDefaultRequestConfig(requestConfig).build();
         
 		httpClient = HttpClients.custom().setConnectionManager(cMgr).build();
 		if ( logger.isLoggable(Level.INFO)) {
