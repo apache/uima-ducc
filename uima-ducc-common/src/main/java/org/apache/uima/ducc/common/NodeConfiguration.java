@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -70,6 +71,9 @@ public class NodeConfiguration
     Map<String, DuccProperties> poolsByNodefile = new HashMap<String, DuccProperties>();   // nodepool node file -> nodepool props
     Map<String, DuccProperties> poolsByNodeName = new HashMap<String, DuccProperties>();   // Nodepools, by node
 
+    List<String> listRules = new ArrayList<String>();  // ordered list of rules 
+    Map<String, DuccProperties> mapRules = new HashMap<String, DuccProperties>(); 
+    
     Map<String, String> allImports = new HashMap<String, String>();                        // map nodefile -> importer, map for dup checking
     Map<String, String> referrers  = new HashMap<String, String>();                        // map nodefile -> referring nodepool, for dup checking
 
@@ -86,6 +90,9 @@ public class NodeConfiguration
     DuccProperties reserveDefault   = null;
     String ducc_home = null;
 
+    String dot_regex = ".regex";
+    String key_regex = "regex";
+    
     public NodeConfiguration(String config_file_name, String ducc_nodes, String ducc_users, DuccLogger logger)
     {
         this.config_file_name = config_file_name;
@@ -744,11 +751,75 @@ public class NodeConfiguration
 
         }        
     }
-
+    
+    public String findNodePoolByRule(String node) {
+    	String retVal = null;
+    	for(String regex : listRules) {
+    		if(node.matches(regex)) {
+    			DuccProperties dp = mapRules.get(regex);
+    			String key = "name";
+    			retVal = dp.getProperty(key);
+    		}
+    	}
+    	return retVal;
+    }
+    
+    void readNodepoolRegex(String nodefile, DuccProperties np)
+    		throws IllegalConfigurationException
+    {    	
+    	BufferedReader br = null;
+    	try {
+    		if(nodefile == null) {
+    			throw new IllegalConfigurationException("Missing parameter \"nodefile\".");
+    		}
+    		String fn = resolve(nodefile);
+    		if(fn == null) {
+    			throw new IllegalConfigurationException("Missing file \""+nodefile+"\".");
+    		}
+    		br = new BufferedReader(new FileReader(fn));
+    		String line = null;
+    		StringBuffer sb = new StringBuffer();
+    		while ( (line = br.readLine()) != null ) {
+    			sb.append(line.trim());
+    		}
+    		String regex = sb.toString().toString();
+    		if(regex.isEmpty()) {
+    			throw new IllegalConfigurationException("Missing regex in "+nodefile);
+    		}
+    		if(mapRules.containsKey(regex)) {
+    			throw new IllegalConfigurationException("Duplicate regex in "+nodefile);
+			}
+    		try {
+    			Pattern.compile(regex);
+    			listRules.add(regex);
+    			mapRules.put(regex, np);
+    		}
+    		catch(Exception e) {
+    			throw new IllegalConfigurationException("Illegal regex in "+nodefile);
+    		}
+    		np.put(key_regex, regex);
+    	}
+    	catch (FileNotFoundException e) {
+            throw new IllegalConfigurationException("File not found: "+nodefile);
+        } 
+    	catch (IOException e) {
+            throw new IllegalConfigurationException("File I/O error: "+nodefile);
+        } 
+    	catch ( Exception e ) {
+    		e.printStackTrace();
+    		throw new IllegalConfigurationException(e);
+        } 
+    	finally {
+            if ( br != null ) {
+                try { br.close(); } catch (IOException e) { }
+            }
+        }     
+    }
+    
     void readNodepoolNodes(String nodefile, DuccProperties p, String domain)
     		throws IllegalConfigurationException
     {    	
-    	String methodName = "readnodepoolFiles";
+    	String methodName = "readNodepoolNodes";
         @SuppressWarnings("unchecked")
         Map<String, String> nodes = (Map<String, String>) p.get("nodes");
         if ( nodes == null ) {
@@ -986,7 +1057,14 @@ public class NodeConfiguration
             
         // if we get here without crash the node pool files are not inconsistent
         for ( String k : poolsByNodefile.keySet() ) {
-            readNodepoolNodes(k, (DuccProperties) poolsByNodefile.get(k), domain);
+        	DuccProperties dp = (DuccProperties) poolsByNodefile.get(k);
+        	String nodefile = dp.getProperty("nodefile");
+        	if(nodefile.endsWith(dot_regex)) {
+        		readNodepoolRegex(k, dp);
+        	}
+        	else {
+        		readNodepoolNodes(k, dp, domain);
+        	}
         }
         // TODO: Test above procedures
         //       Assign ducc.nodes to the one allowable top level np with no pool file
@@ -1215,9 +1293,16 @@ public class NodeConfiguration
         String nodefile = p.getProperty("nodefile");
         String nfheader = "   Node File: ";
         logInfo(methodName, indent + nfheader + (nodefile == null ? "None" : nodefile));
-        @SuppressWarnings("unchecked")
-        Map<String, String> nodes = (Map<String, String>) p.get("nodes");
-        logInfo(methodName, formatNodes(nodes, indent.length() + nfheader.length()));
+        
+        String regex = p.getProperty(key_regex);
+        if(regex != null) {
+        	logInfo(methodName, indent + "   Node Rule: " + regex );
+        }
+        else {
+        	@SuppressWarnings("unchecked")
+            Map<String, String> nodes = (Map<String, String>) p.get("nodes");
+            logInfo(methodName, formatNodes(nodes, indent.length() + nfheader.length()));
+        }
         
         @SuppressWarnings("unchecked")
         List<DuccProperties> class_set = (List<DuccProperties>) p.get("classes");

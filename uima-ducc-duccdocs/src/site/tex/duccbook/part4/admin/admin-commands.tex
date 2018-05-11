@@ -104,6 +104,8 @@ start_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
       To start only agents, run start\_ducc specifying a nodelist explicitly. Note that the broker
       must have already been started.
       
+      Files in the nodelist ending with suffix .regex are skipped.
+      
       To start a specific management process, run start\_ducc with the -c component parameter, 
       specify the component that should be started. 
       
@@ -249,7 +251,7 @@ start_ducc -c rm
    existance of DUCC processes in the cluster, to forcibly ({\em kill -9}) terminate them, and to
    more gracefully terminate them ({\em kill -INT}).
           
-
+      Files in the nodelist ending with suffix .regex are skipped.
 
 \subsection{check\_ducc}
 \label{subsec:admin.check-ducc}
@@ -331,7 +333,9 @@ check_ducc -n nlist1 -n nlist2
 
            \end{description}               
 
-
+   \subsubsection{{\em Notes:}}
+   
+      Files in the nodelist ending with suffix .regex are skipped.
             
 \subsection{build\_duccling}
 \label{subsec:admin.build-duccling}

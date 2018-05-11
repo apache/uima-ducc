@@ -118,6 +118,12 @@ public class DuccSchedulerClasses {
   		if(nodepool != null) {
   			retVal = nodepool;
   		}
+  		else {
+  			nodepool = nc.findNodePoolByRule(node);
+  			if(nodepool != null) {
+  	  			retVal = nodepool;
+  	  		}
+  		}
   		return retVal;
   	}
 	/**

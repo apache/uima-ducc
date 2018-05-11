@@ -159,6 +159,9 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
 
       \item[nodefile] This is the name of a file containing the names of the nodes
         which are members of this nodepool.
+        If the file name ends with suffix {\em .regex} then the content is instead
+        expected to be a regular expression which is employed to match nodes comprising
+        the members of the nodepool.
 
       \item[parent] This is used to indicate which nodepool is the logical parent.
         Any nodepool without a {\em parent} is considered a top-level nodepool.
@@ -197,7 +200,31 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
 
     \end{figure}    
 
+    The following example shows an entry utilizing the {\em .regex} feature, followed
+    by the content of the specifed file comprising a regular expression. 
 
+    \begin{figure}[H]
+    
+\begin{verbatim}
+    Nodepool jobdriver    { nodefile jobdriver.nodes.regex }
+\end{verbatim}
+      \caption{Sample Nodepool regex specification}
+      \label{fig:nodepool.regex.specifiecation}
+
+    \end{figure}    
+    
+    
+    \begin{figure}[H]
+    
+\begin{verbatim}
+    hostA|hostB|hostC
+\end{verbatim}
+      \caption{Sample file contents for jobdriver.nodes.regex }
+      \label{fig:nodepool.regex}
+
+    \end{figure}    
+    
+    
     \subsection{Class Definitions}
     \label{subsubsec:class.configuration}
 

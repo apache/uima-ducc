@@ -18,13 +18,19 @@
 */
 package org.apache.uima.ducc.rm.scheduler;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
+import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.NodeIdentity;
@@ -41,6 +47,7 @@ import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -63,7 +70,8 @@ public class Scheduler
 {
     IJobManager jobManager;
     static DuccLogger     logger = DuccLogger.getLogger(Scheduler.class, COMPONENT_NAME);
-
+    static DuccId jobid = null;
+    String dot_regex = ".regex";
     boolean done = false;
     // Boolean force_epoch = false;
     String ducc_home;
@@ -75,6 +83,8 @@ public class Scheduler
     boolean needRecovery = false;                                         // UIMA-4142 tell outer layer that recovery is required
     AbstractDuccComponent baseComponent;                                  // UIMA-4142, pass in the base for reconfig - reread ducc.properties
     NodePool[] nodepools;                                                 // top-level nodepools
+    List<String> listRules = new ArrayList<String>();  // ordered list of rules 
+    Map<String,NodePool> mapRules = new HashMap<String,NodePool>();
     int max_order = 0;
 
     //
@@ -306,6 +316,8 @@ public class Scheduler
         this.configuration = null;
         this.defaultDomain = null;
         this.nodepools = null;
+        this.mapRules.clear();
+        this.listRules.clear();
         this.max_order = 0;
         this.busyShares.clear();
         this.vacatedShares.clear();
@@ -482,6 +494,87 @@ public class Scheduler
             updateNodepoolsByNode(s, pool);        // maps from both the fully-qualified name and th shortnmae
         }
     }
+    
+    String readNodepoolRegex(String nodefile)
+    		throws IllegalConfigurationException
+    {    	
+    	String location = "readNodepoolRegex";
+    	String regex = null;
+    	BufferedReader br = null;
+    	try {
+    		if(nodefile == null) {
+    			throw new IllegalConfigurationException("Missing parameter \"nodefile\".");
+    		}
+    		String fn = IDuccEnv.DUCC_HOME+"/resources/"+nodefile;
+    		br = new BufferedReader(new FileReader(fn));
+    		String line = null;
+    		StringBuffer sb = new StringBuffer();
+    		while ( (line = br.readLine()) != null ) {
+    			sb.append(line.trim());
+    		}
+    		regex = sb.toString().toString();
+    		if(regex.isEmpty()) {
+    			throw new IllegalConfigurationException("Missing regex in "+nodefile);
+    		}
+    		try {
+    			Pattern.compile(regex);
+    			String text = nodefile+":"+regex;
+    			logger.info(location, jobid, text);
+    		}
+    		catch(Exception e) {
+    			throw new IllegalConfigurationException("Illegal regex in "+nodefile);
+    		}
+    	}
+    	catch (FileNotFoundException e) {
+            throw new IllegalConfigurationException("File not found: "+nodefile);
+        } 
+    	catch (IOException e) {
+            throw new IllegalConfigurationException("File I/O error: "+nodefile);
+        } 
+    	catch ( Exception e ) {
+    		e.printStackTrace();
+    		throw new IllegalConfigurationException(e);
+        } 
+    	finally {
+            if ( br != null ) {
+                try { br.close(); } catch (IOException e) { }
+            }
+        }     
+    	return regex;
+    }
+    
+    void mapNodeRule(DuccProperties dp, NodePool nodepool) {
+    	String location = "mapNodeRule";
+    	try {
+        	String nodefile = dp.getProperty("nodefile");
+        	if(nodefile != null) {
+        		if(nodefile.endsWith(dot_regex)) {
+            		String noderule = readNodepoolRegex(nodefile);
+            		addRule(noderule, nodepool);
+            	}
+        	}
+        }
+        catch(Exception e) {
+        	logger.error(location, jobid, e);
+        }
+    }
+        
+    /*
+     * only add rule if it is unique (first one seen wins)
+     */
+    private void addRule(String noderule, NodePool np) {
+    	String location = "addRule";
+    	if(noderule != null) {
+    		if(mapRules.containsKey(noderule)) {
+        		logger.warn(location, jobid, "duplicate ignored: ", noderule, np.getId());
+        	}
+        	else {
+        		listRules.add(noderule);
+        		mapRules.put(noderule, np);
+        		logger.info(location, jobid, noderule, np.getId());
+        	}
+    	}
+    }
 
     /**
      * (Recursively) build up the heirarchy under the parent nodepool.
@@ -497,7 +590,7 @@ public class Scheduler
             int search_order = dp.getIntProperty("search-order", 100);
             NodePool child = parent.createSubpool(id, nodes, search_order);
             mapNodesToNodepool(nodes, child);
-
+            mapNodeRule(dp, child);
             @SuppressWarnings("unchecked")
 			List<DuccProperties> grandkids = (List<DuccProperties>) dp.get("children");
             createSubpools(child, grandkids);            
@@ -600,7 +693,7 @@ public class Scheduler
 
             mapNodesToNodepool(nodes, nodepools[i]);
             logger.info(methodName, null, "Created top-level nodepool", id);
-
+            mapNodeRule(np, nodepools[i]);
             @SuppressWarnings("unchecked")
 			List<DuccProperties> children = (List<DuccProperties>) np.get("children");
             createSubpools(nodepools[i], children);
@@ -1132,14 +1225,68 @@ public class Scheduler
             logger.info(methodName, null, "Map", shortname, "to", np.getId());
         }
     }
-
+    
+    /*
+     * find nodepool by rule, which is a regular expression
+     */
+    private NodePool findNodepoolByRule(NodeIdentity ni) {
+    	String location = "findNodepoolByRule";
+    	NodePool np = null;
+    	try {
+    		String name1 = ni.getCanonicalName();
+    		String name2 = ni.getShortName();
+        	String ip = ni.getIp();
+        	logger.info(location, jobid, mapRules.size(), name1, name2, ip);
+        	for(String noderule : listRules) {
+        		np = mapRules.get(noderule);
+        		// match name with domain
+        		if(name1.matches(noderule)) {
+        			logger.info(location, jobid, "match by name: ", noderule, name1, np.getId());
+        			break;
+        		}
+        		else {
+        			logger.debug(location, jobid, "no match by name: ", noderule, name1);
+        		}
+        		// match name without domain
+        		if(name2.matches(noderule)) {
+        			logger.info(location, jobid, "match by name: ", noderule, name2, np.getId());
+        			break;
+        		}
+        		else {
+        			logger.debug(location, jobid, "no match by name: ", noderule, name2);
+        		}
+        		// match ip
+        		if(ip.matches(noderule)) {
+        			logger.info(location, jobid, "match by ip: ", noderule, ip,  np.getId());
+        			break;
+        		}
+        		else {
+        			logger.debug(location, jobid, "no match by ip: ", noderule, ip);
+        		}
+        	}
+    	}
+    	catch(Exception e) {
+    		logger.error(location, jobid, e);
+    	}
+    	return np;
+    }
+    
     //
     // Return a nodepool by Node.  If the node can't be associated with a nodepool, return the
     // default nodepool, which is always the first one defined in the config file.
     //
     NodePool getNodepoolByName(NodeIdentity ni)
     {
-        NodePool np = nodepoolsByNode.get( ni.getCanonicalName() );
+    	String location = "getNodepoolByName";
+    	NodePool np = findNodepoolByRule(ni);
+    	if(np != null) {
+    		String text = "node:"+ni.getShortName()+" "+np.getId()+" "+"add by rule.";
+    		logger.info(location, jobid, text);
+    		updateNodepoolsByNode(ni.getCanonicalName(), np);
+    	}
+    	if(np == null) {
+    		np = nodepoolsByNode.get( ni.getCanonicalName() );
+    	}
         if ( np == null ) {
             np = nodepoolsByNode.get( ni.getIp() );
         }

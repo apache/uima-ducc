@@ -1106,11 +1106,14 @@ class DuccUtil(DuccBase):
     #
     # Read the nodefile, recursing into 'imports' if needed, returning a
     # map.  The map is keyed on filename, with each entry a list of the nodes.
+    # Skip file with suffix ".regex".
     #
     def read_nodefile(self, nodefile, ret):
         #print 'READ_NODEFILE:', nodefile, ret
         n_nodes = 0
-        if ( os.path.exists(nodefile) ):
+        if(nodefile.endswith('.regex')):
+            pass
+        elif ( os.path.exists(nodefile) ):
             nodes = []
             f = open(nodefile)
             for node in f:
