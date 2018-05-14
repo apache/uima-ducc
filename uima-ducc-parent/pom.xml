@@ -456,6 +456,11 @@ ${uimaDUCCNoticeText}
 
 			<dependency>
 				<groupId>org.apache.uima</groupId>
+				<artifactId>uimaj-examples</artifactId>
+				<version>${org.apache.uima.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.uima</groupId>
 				<artifactId>uimaj-as-core</artifactId>
 				<version>${org.apache.uima.as.version}</version>
 			</dependency>
