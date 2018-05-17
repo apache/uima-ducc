@@ -318,6 +318,8 @@ public class StateManager {
 							changes ++;
 						}
 						break;
+					default:
+						break;
 					}
 					if(isCompleting(duccWorkJob) && allProcessesTerminated(duccWorkJob)) {
 						stateJobAccounting.stateChange(duccWorkJob, JobState.Completed);
@@ -1500,6 +1502,8 @@ public class StateManager {
 							break;
 						case Undefined:
 							logger.warn(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
+							break;
+						default:
 							break;
 						}
 						break;

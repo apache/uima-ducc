@@ -635,6 +635,8 @@ public class ProcessAccounting {
 				twr.setEndLong(time);
 			}
 			break;
+		default:
+			break;
 		}
 	}
 	// </uima-3351>
