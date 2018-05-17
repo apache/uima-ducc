@@ -314,11 +314,14 @@ class DuccUtil(DuccBase):
             print '   (Bypass database start)'
             return True
         
+        dbnode = self.get_db_host()
+        
         if(dbnode == None):
             print '   (Bypass database start - no database configured)'
             return False
         
-        if(len(dbnode) > 1):
+        dblist = self.get_db_host_list()
+        if(len(dblist) > 1):
             print '   (Bypass database start - database list not supported)'
             return False
         
@@ -369,7 +372,8 @@ class DuccUtil(DuccBase):
             if(dbnode == None):
                 print '   (Bypass database stop - no database configured)'
                 return False
-            if(len(dbnode) > 1):
+            dblist = self.get_db_host_list()
+            if(len(dblist) > 1):
                 print '   (Bypass database stop - database list not supported)'
                 return False
             dbnode = dbnode.strip()

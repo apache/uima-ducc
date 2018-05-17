@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 import com.datastax.driver.core.AuthProvider;
 import com.datastax.driver.core.Cluster;
@@ -45,7 +46,7 @@ public class DbCreate
     int RETRY = 10;
 
     DuccLogger logger = null;
-    String db_host_list;
+    String[] db_host_list;
     String adminid = null;
     String adminpw = null;
     boolean useNewPw = false;
@@ -56,7 +57,7 @@ public class DbCreate
 
     DbCreate(String db_host_list, DuccLogger logger, String adminid, String adminpw)
     {
-        this.db_host_list = db_host_list;
+        this.db_host_list = toArray(db_host_list);
         this.logger = logger;
         this.adminid = adminid;
         this.adminpw = adminpw;
@@ -64,11 +65,39 @@ public class DbCreate
 
     DbCreate(String db_host_list, String adminid, String adminpw)
     {
-        this.db_host_list = db_host_list;
+        this.db_host_list = toArray(db_host_list);
         this.adminid = adminid;
         this.adminpw = adminpw;
     }
 
+    private String toString(String[] array) {
+    	StringBuffer sb = new StringBuffer();
+    	if(array != null) {
+    		for(String item : array) {
+    			sb.append(item);
+    			sb.append(" ");
+    		}
+    	}
+    	return sb.toString().trim();
+    }
+    
+    private String[] toArray(String stringList) {
+    	String methodName = "toArray";
+    	String[] retVal = null;
+    	if(stringList != null) {
+    		retVal = stringList.split("\\s+");
+        	debug(methodName, "list size =  " + retVal.length);  
+            for(String item : retVal) {
+            	debug(methodName, item);
+            }
+    	}
+    	else {
+    		debug(methodName, "null");
+    	}
+    	
+    	return retVal;
+    }
+    
     void close()
     {
         if ( cluster != null ) cluster.close();
@@ -83,12 +112,16 @@ public class DbCreate
     }
     
     private void show(NoHostAvailableException e) {
-    	e.printStackTrace();
-        Map<InetSocketAddress, Throwable> map = e.getErrors();
-        for(Entry<InetSocketAddress, Throwable> entry : map.entrySet()) {
-        	Throwable t = entry.getValue();
-        	t.printStackTrace();
-        }
+    	String location = "show";
+    	DuccId jobid = null;
+    	if(logger != null) {
+    		logger.debug(location, jobid, e);
+    		Map<InetSocketAddress, Throwable> map = e.getErrors();
+            for(Entry<InetSocketAddress, Throwable> entry : map.entrySet()) {
+            	Throwable t = entry.getValue();
+            	logger.debug(location, jobid, t);
+            }
+    	}
     }
     
     boolean connect()
@@ -102,7 +135,7 @@ public class DbCreate
         }
 
         // If we're here, we must first of all get rid of the cassandra su and set up our own
-        doLog("database location(s): "+db_host_list);
+        doLog("database location(s): "+toString(db_host_list));
 
         for ( int i = 0; i < RETRY; i++ ) {
             try {
@@ -110,7 +143,7 @@ public class DbCreate
                 AuthProvider auth = new PlainTextAuthProvider("cassandra", "cassandra");
                 cluster = Cluster.builder()
                     .withAuthProvider(auth)
-                    .addContactPoints(db_host_list.split("\\s+"))
+                    .addContactPoints(db_host_list)
                     .build();
                     
                 session = cluster.connect();
@@ -121,7 +154,7 @@ public class DbCreate
                 auth = new PlainTextAuthProvider(adminid, adminpw);
                 cluster = Cluster.builder()
                     .withAuthProvider(auth)
-                    .addContactPoints(db_host_list.split("\\s+"))
+                    .addContactPoints(db_host_list)
                     .build();
                 session = cluster.connect();
                     
@@ -143,7 +176,7 @@ public class DbCreate
                     AuthProvider auth = new PlainTextAuthProvider(adminid, adminpw);
                     cluster = Cluster.builder()
                         .withAuthProvider(auth)
-                        .addContactPoints(db_host_list.split("\\s+"))
+                        .addContactPoints(db_host_list)
                         .build();
                     session = cluster.connect();                    
                     // if this works we assume the DB user base is ok and continue
@@ -179,6 +212,14 @@ public class DbCreate
         return true;
     }
 
+    private boolean flag_debug = false;
+    
+    void debug(String methodName, Object ... msg) {
+    	if(flag_debug) {
+    		doLog(methodName, msg);
+    	}
+    }
+    
     void doLog(String methodName, Object ... msg)
     {        
         if ( logger == null ) {

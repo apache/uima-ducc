@@ -433,7 +433,7 @@ class PostInstall():
         self.ducc_uid = None
         self.ducc_head = None
         self.keystore_pw = None
-        self.database_automanage = False
+        self.database_automanage = True
         self.database_host_list = None
         self.database_user = None
         self.database_pw = None

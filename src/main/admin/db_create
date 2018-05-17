@@ -72,7 +72,7 @@ class DbCreate(DuccUtil):
                                     
     def main(self, argv):     
                    
-		self.database_automanage = False
+		self.database_automanage = True
         self.database_host_list = None
         self.database_user = None
         self.database_pw = None
