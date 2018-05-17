@@ -206,7 +206,7 @@ public class HandlersHelper {
 	/**
 	 * Check if user is a ducc administrator
 	 */
-	private static boolean isDuccAdministrator(String reqUser, Properties meta) {
+	protected static boolean isDuccAdministrator(String reqUser, Properties meta) {
 		String location = "isDuccAdministrator";
 		boolean retVal = false;
 		if(reqUser != null) {
