@@ -12,11 +12,18 @@ public class ServiceConfiguration {
 	private String monitorPort;
 	private String analysisEngineDescriptorPath;
 	private String serviceType;
+	private String jpType;
 	private String assignedJmxPort;
 	private String customRegistryClass;
 	private String customProcessorClass;
 	private String serviceJmxConnectURL;
 	
+	public String getJpType() {
+		return jpType;
+	}
+	public void setJpType(String type) {
+		jpType = type;
+	}
 	public String getServiceJmxConnectURL() {
 		return serviceJmxConnectURL;
 	}
@@ -104,6 +111,7 @@ public class ServiceConfiguration {
 		clientURL = System.getProperty("ducc.deploy.JdURL");
 		threadCount = System.getProperty("ducc.deploy.JpThreadCount");
 		serviceType = System.getProperty("ducc.deploy.service.type");
+		jpType = System.getProperty("ducc.deploy.JpType");
 		assignedJmxPort = System.getProperty("ducc.jmx.port");
 		customRegistryClass = System.getProperty("ducc.deploy.registry.class");
 		customProcessorClass = System.getProperty("ducc.deploy.custom.processor.class");
