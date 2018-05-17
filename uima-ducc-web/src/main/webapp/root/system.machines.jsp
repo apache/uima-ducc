@@ -39,7 +39,6 @@ under the License.
 			"sAjaxSource": "ducc-servlet/json-format-aaData-machines",
 			aaSorting: [],
 			"fnRowCallback" : function(nRow,aData,iDisplayIndex) {
-                            $('td:eq(4)' , nRow).css( "text-align", "right" );
                             $('td:eq(5)' , nRow).css( "text-align", "right" );
                             $('td:eq(6)' , nRow).css( "text-align", "right" );
                             $('td:eq(7)' , nRow).css( "text-align", "right" );
@@ -47,6 +46,7 @@ under the License.
 							$('td:eq(9)' , nRow).css( "text-align", "right" ); 
 							$('td:eq(10)' , nRow).css( "text-align", "right" );
 							$('td:eq(11)' , nRow).css( "text-align", "right" );
+							$('td:eq(12)' , nRow).css( "text-align", "right" );
                             return nRow;
 			},
 		} );
@@ -106,7 +106,8 @@ if (table_style.equals("scroll")) {
 	<table id="machines-table" width="100%">
 	<thead>
 	<tr class="ducc-header">
-	<th align="left" title="The current status">Status</th>
+	<th align="left" title="The heartbeat status, as reported to ducc-mon">Status</th>
+	<th align="left" title="The online status, as determined by resource manager">Online</th>
 	<th align="left" title="The host IP">IP</th>
 	<th align="left" title="The host name">Name</th>
 	<th align="left" title="The host node pool">Nodepool</th>
@@ -136,7 +137,8 @@ if (table_style.equals("classic")) {
       <table class="sortable">
 		<thead>
 		<tr class="ducc-head">
-		<th align="left" class="none"              title="The current status">Status</th>
+		<th align="left" class="none"              title="The heartbeat status, as reported to ducc-mon">Status</th>
+		<th align="left" class="none"              title="The online status, as determined by resource manager">Online</th>
 		<th align="left" class="none"              title="The host IP">IP</th>
 		<th align="left" class="none"              title="The host name">Name</th>
 		<th align="left" class="none"              title="The host node pool">Nodepool</th>

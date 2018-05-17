@@ -95,6 +95,8 @@ import org.apache.uima.ducc.ws.server.DuccCookies.DisplayStyle;
 import org.apache.uima.ducc.ws.server.Helper.AllocationType;
 import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.apache.uima.ducc.ws.server.JsonHelper.JobProcessList;
+import org.apache.uima.ducc.ws.state.monitoring.INodeState;
+import org.apache.uima.ducc.ws.state.monitoring.NodeState;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
@@ -121,6 +123,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private Gson gson = new Gson();
 	
 	private static JsonHelper jh = new JsonHelper();
+	
+	private static INodeState nodeState = NodeState.getInstance();
 	
 	private static IDuccHead dh = DuccHead.getInstance();
 	
@@ -1796,6 +1800,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			sb.append(status);
 		}
 		row.add(new JsonPrimitive(sb.toString()));
+		// Online
+		row.add(new JsonPrimitive(nodeState.getOnline(machineInfo.getName(), "-")));
 		// IP
 		row.add(new JsonPrimitive(machineInfo.getIp()));
 		// Name
@@ -1927,6 +1933,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private void noMachines(JsonArray row, String reason) {
 		// Status
 		row.add(new JsonPrimitive(reason));
+		// Online
+		row.add(new JsonPrimitive(""));
 		// IP
 		row.add(new JsonPrimitive(""));
 		// Name
@@ -2016,6 +2024,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row = new JsonArray();
 				// Status
 				row.add(new JsonPrimitive("Total"));
+				// Online
+				row.add(new JsonPrimitive(""));
 				// IP
 				row.add(new JsonPrimitive(""));
 				// Name

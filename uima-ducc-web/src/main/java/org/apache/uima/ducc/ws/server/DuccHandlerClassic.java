@@ -86,6 +86,8 @@ import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.apache.uima.ducc.ws.server.DuccCookies.DisplayStyle;
 import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
+import org.apache.uima.ducc.ws.state.monitoring.INodeState;
+import org.apache.uima.ducc.ws.state.monitoring.NodeState;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
@@ -100,6 +102,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	
 	private static BrokerHelper brokerHelper = BrokerHelper.getInstance();
 	private static DatabaseHelper databaseHelper = DatabaseHelper.getInstance();
+	
+	private static INodeState nodeState = NodeState.getInstance();
 	
 	private static IDuccHead dh = DuccHead.getInstance();
 	
@@ -1809,6 +1813,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		row.append("<td>");
 		row.append(sb);
 		row.append("</td>");
+		// Online
+		row.append("<td>");
+		row.append(nodeState.getOnline(machineInfo.getName(), "-"));
+		row.append("</td>");
 		// IP
 		row.append("<td>");
 		row.append(machineInfo.getIp());
@@ -2019,6 +2027,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append("<td>");
 				row.append(""+"Total");
 				row.append("</td>");
+				// Online
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
 				// IP
 				row.append("<td>");
 				row.append("");
@@ -2078,6 +2090,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append("");
 				row.append("</td>");
 				// Status
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Online
 				row.append("<td>");
 				row.append("");
 				row.append("</td>");
