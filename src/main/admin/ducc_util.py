@@ -323,7 +323,7 @@ class DuccUtil(DuccBase):
         dblist = self.get_db_host_list()
         if(len(dblist) > 1):
             print '   (Bypass database start - database list not supported)'
-            return False
+            return True
         
         print 'Starting database'
         dbu.update_cassandra_config(self.DUCC_HOME, dbnode)
@@ -375,7 +375,7 @@ class DuccUtil(DuccBase):
             dblist = self.get_db_host_list()
             if(len(dblist) > 1):
                 print '   (Bypass database stop - database list not supported)'
-                return False
+                return True
             dbnode = dbnode.strip()
             pidfile = os.path.join(DUCC_HOME,'state','database',dbnode,'cassandra.pid')
             cmd = [ 'less', '-FX', pidfile ]
