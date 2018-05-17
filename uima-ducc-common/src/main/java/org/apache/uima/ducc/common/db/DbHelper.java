@@ -19,9 +19,7 @@
 
 package org.apache.uima.ducc.common.db;
 
-import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.apache.uima.ducc.common.utils.id.DuccId;
 
 /*
  * Class to help utilize database entries from ducc.properties file
@@ -30,8 +28,11 @@ public class DbHelper {
 
 	public static final String ducc_database_host = "ducc.database.host";
 	
-	private static DuccLogger logger = DuccLogger.getLogger(DbHelper.class);
-	private static DuccId jobid = null;
+	// Note: comment out logging to prevent CLI console error messages,
+	// due to requirement that log4j is needed in classpath.
+	
+	//private static DuccLogger logger = DuccLogger.getLogger(DbHelper.class);
+	//private static DuccId jobid = null;
 	
 	private static final DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 	
@@ -83,14 +84,14 @@ public class DbHelper {
 	}
 	
 	public static Integer getJxmPortInteger() {
-		String location = "getJxmPortInteger";
+		//String location = "getJxmPortInteger";
 		Integer retVal = new Integer(7199);
 		String jmx_port = dpr.getProperty(DuccPropertiesResolver.ducc_database_jmx_port);
 		try {
 			retVal = Integer.parseInt(jmx_port);
 		}
 		catch(Exception e) {
-			logger.error(location, jobid, e);
+			//logger.error(location, jobid, e);
 		}
 		return retVal;
 	}
