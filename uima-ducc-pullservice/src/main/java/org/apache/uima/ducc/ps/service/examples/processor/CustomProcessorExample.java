@@ -44,5 +44,11 @@ public class CustomProcessorExample implements IServiceProcessor{
 		logger.log(Level.INFO,"... stop() called");
 
 	}
-
+	public void setScaleout(int howManyThreads) {
+		logger.log(Level.INFO,"... setScaleout() called");
+	}
+	public int getScaleout() {
+		logger.log(Level.INFO,"... getScaleout() called");
+		return 1;
+	}
 }

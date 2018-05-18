@@ -30,4 +30,8 @@ public interface IServiceProcessor extends IServiceComponent{
 	public IProcessResult process(String serializedTask);
 	
 	public void stop();
+	
+	public void setScaleout(int scaleout);
+	
+	public int getScaleout();
 }
