@@ -93,7 +93,7 @@ public abstract class ADuccHead implements IDuccHead {
 		String retVal = null;
 		try {
 			String command = getCommand();
-			logger.info(location, jobid, command);
+			logger.debug(location, jobid, command);
 			String[] pb_command = { command };
 			ProcessBuilder pb = new ProcessBuilder( pb_command );
 			Process p = pb.start();
@@ -104,11 +104,11 @@ public abstract class ADuccHead implements IDuccHead {
 	        StringBuffer sb = new StringBuffer();
 	        while ((line = br.readLine()) != null) {
 	        	sb.append(line);
-	        	logger.info(location, jobid, line);
+	        	logger.debug(location, jobid, line);
 	        }
 	        retVal = sb.toString();
 	        int rc = p.waitFor();
-	        logger.info(location, jobid, rc);
+	        logger.debug(location, jobid, rc);
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
