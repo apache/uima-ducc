@@ -77,6 +77,7 @@ log_file = None
 state_file = None
 
 flag_agents = False
+flag_verbose = False
 
 mail_host = 'localhost'
 email_list = None
@@ -190,6 +191,12 @@ def validate_agents(options):
     if(options.flag_agents):
         flag_agents = True
 
+# don't reduce noise
+def validate_verbose(options):
+    global flag_verbose
+    if(options.flag_verbose):
+        flag_verbose = True
+
 # ignore job driver allocation
 # unless --job-driver-allocation is specified
 def validate_job_driver_allocation(options):
@@ -293,7 +300,9 @@ def parse_cmdline():
                                help='path to directory where log and state information are written, default is /tmp'+'/'+get_user())
     parser.add_option('-t','--target', action='store', dest='target', default=None,
                                help='[REQUIRED] <host> with default port of '+port+' or <host>:<port>')
-
+    parser.add_option('-v','--verbose', action='store_true', dest='flag_verbose', default=False, 
+                               help='do not reduce noise (in log file)')
+    
     (options, args) = parser.parse_args()
     #
     debug(str(options))
@@ -313,6 +322,8 @@ def parse_cmdline():
     setup_state_file(options)
     # -a
     validate_agents(options)
+    # -v
+    validate_verbose(options)
     # -j
     validate_job_driver_allocation(options)
     
@@ -340,19 +351,31 @@ def is_key(key):
     return retVal
     
 # get rid of noise. remove if
-# 1. state is unknown
-# 2. if is agent and agents are not wanted
+# 1. state unknown
+# 2. if agent and 'up' and not verbose mode
+# 3. if agent and agents are not wanted
 def filter_state(state_dict):
     global flag_agents
+    global flag_verbose
     retVal = {}
     for key in state_dict:
-        if(state_dict[key] == 'unknown'):
+        value = state_dict[key]
+        head = is_key(key)
+        agent = not head
+        if(value == 'unknown'):
+            #print 'remove', key ,value
+            pass
+        elif(agent and (value == 'up') and (not flag_verbose)):
+            #print 'remove', key ,value
             pass
         else:
-            if(is_key(key)):
-                retVal[key] = state_dict[key]
+            if(head):
+                retVal[key] = value
             elif(flag_agents):
-                retVal[key] = state_dict[key]
+                retVal[key] = value
+            else:
+                #print 'remove', key ,value
+                pass
     return retVal
 
 # read previous daemons state
@@ -711,13 +734,36 @@ def email_state_changes():
             debug('not reportable')
     else:
         debug('no state change')
+
+# assemble console display info comprising problems + rc
+def eval():
+    global state_dict_current
+    global head_daemons
+    problems = {}
+    rc = 0
+    #print state_dict_current
+    for key, value in state_dict_current.items():
+        if(is_jda(key)):
+            pass
+        elif(value == 'up'):
+            pass
+        else:
+            if key in head_daemons:
+                if(rc < 2):
+                    rc = 2
+            else:
+                if(rc < 1):
+                    rc = 1
+            problems[key] = value
+    return rc, problems
         
 # check for DUCC daemon status changes
 def main(argv):
     global logger
     try:
         logger = logging.getLogger('logger')
-        handler = logging.StreamHandler(sys.stdout)
+        #handler = logging.StreamHandler(sys.stdout)
+        handler = logging.FileHandler('/dev/null')
         logger.addHandler(handler)
         parse_cmdline()
         init_state_previous()
@@ -726,9 +772,17 @@ def main(argv):
         summarize() 
         write_state_current()
         email_state_changes()
+        rc, problems = eval()
+        ts = get_timestamp()
+        for daemon, status in problems.iteritems():
+            print ts, daemon, status
+        print ts, 'rc='+str(rc)
+        sys.exit(rc)
     except Exception as e:
         error('exception in main')
         exception(e)
-             
+        rc = -1
+    sys.exit(rc)
+        
 if __name__ == '__main__':
     main(sys.argv[1:])
