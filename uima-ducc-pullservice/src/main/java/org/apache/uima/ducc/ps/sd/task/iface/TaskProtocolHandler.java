@@ -16,21 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ps.service.processor;
 
-import org.apache.uima.ducc.ps.service.IServiceComponent;
-import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
+package org.apache.uima.ducc.ps.sd.task.iface;
 
-public interface IServiceProcessor extends IServiceComponent{
+import java.util.Properties;
 
-	public void initialize() throws ServiceInitializationException;
-	
-	// deserialize task, process and return result (performance metrics or Exception).
-	public IProcessResult process(String serializedTask);
-	
-	public void stop();
-	
-	public void setScaleout(int scaleout);
-	
-	public int getScaleout();
+import org.apache.uima.ducc.ps.sd.iface.Lifecycle;
+import org.apache.uima.ducc.ps.sd.task.error.TaskProtocolException;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+
+public interface TaskProtocolHandler extends Lifecycle {
+	 public String  initialize(Properties props) throws TaskProtocolException;
+
+    // The JP/Service sends IMetaCasTransaction object which includes  
+    // the protocol state: GET, ACK, END
+    public void handle(IMetaTaskTransaction wi) throws TaskProtocolException;
+
 }

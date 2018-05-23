@@ -16,21 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ps.service.processor;
 
-import org.apache.uima.ducc.ps.service.IServiceComponent;
-import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
+package org.apache.uima.ducc.ps.sd;
 
-public interface IServiceProcessor extends IServiceComponent{
+public class DriverException extends Exception {
 
-	public void initialize() throws ServiceInitializationException;
-	
-	// deserialize task, process and return result (performance metrics or Exception).
-	public IProcessResult process(String serializedTask);
-	
-	public void stop();
-	
-	public void setScaleout(int scaleout);
-	
-	public int getScaleout();
+	private static final long serialVersionUID = 1L;
+
+	public DriverException() {
+	}
+
+	public DriverException(String message) {
+		super(message);
+	}
+
+	public DriverException(Throwable cause) {
+		super(cause);
+	}
+
+	public DriverException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public DriverException(String message, Throwable cause,
+			boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
+
 }

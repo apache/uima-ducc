@@ -16,21 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ps.service.processor;
+package org.apache.uima.ducc.ps.sd.task;
 
-import org.apache.uima.ducc.ps.service.IServiceComponent;
-import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
+public class MessageBuffer {
 
-public interface IServiceProcessor extends IServiceComponent{
-
-	public void initialize() throws ServiceInitializationException;
+	private StringBuffer sb = new StringBuffer();
 	
-	// deserialize task, process and return result (performance metrics or Exception).
-	public IProcessResult process(String serializedTask);
+	public void append(String text) {
+		if(sb.length() > 0) {
+			sb.append(" ");
+		}
+		sb.append(text);
+	}
 	
-	public void stop();
-	
-	public void setScaleout(int scaleout);
-	
-	public int getScaleout();
+	@Override
+	public String toString() {
+		return sb.toString();
+	}
 }

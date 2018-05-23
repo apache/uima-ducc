@@ -16,21 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ps.service.processor;
+package org.apache.uima.ducc.ps.sd.task;
 
-import org.apache.uima.ducc.ps.service.IServiceComponent;
-import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
+import java.util.UUID;
 
-public interface IServiceProcessor extends IServiceComponent{
+import org.apache.uima.ducc.ps.sd.task.iface.ITask;
 
-	public void initialize() throws ServiceInitializationException;
+public class SimpleTask implements ITask {
+	private String task;
 	
-	// deserialize task, process and return result (performance metrics or Exception).
-	public IProcessResult process(String serializedTask);
+	SimpleTask(String serializedTask) {
+		task = serializedTask;
+	}
 	
-	public void stop();
-	
-	public void setScaleout(int scaleout);
-	
-	public int getScaleout();
+	public boolean isEmpty() {
+		return task == null;
+	}
+
+	@Override
+	public String asString() {
+		return task;
+	}
+
+	@Override
+	public String getMetadata() {
+		return UUID.randomUUID().toString();
+	}
+
 }

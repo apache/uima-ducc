@@ -16,21 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ps.service.processor;
 
-import org.apache.uima.ducc.ps.service.IServiceComponent;
-import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 
-public interface IServiceProcessor extends IServiceComponent{
+package org.apache.uima.ducc.ps.sd.iface;
 
-	public void initialize() throws ServiceInitializationException;
-	
-	// deserialize task, process and return result (performance metrics or Exception).
-	public IProcessResult process(String serializedTask);
-	
-	public void stop();
-	
-	public void setScaleout(int scaleout);
-	
-	public int getScaleout();
+import java.util.Properties;
+
+import org.apache.uima.ducc.ps.sd.DriverException;
+import org.apache.uima.ducc.ps.sd.task.iface.TaskAllocatorCallbackListener;
+
+public interface ServiceDriver extends Lifecycle {
+	public static String Application = "driver.application.name";
+	public static String Port = "driver.server.port";
+	public static String MaxThreads = "driver.server.max.threads";
+
+	public String initialize(Properties props) throws DriverException;
+	public TaskAllocatorCallbackListener getTaskAllocator();
+	public void setTaskAllocator(TaskAllocatorCallbackListener taskAllocator);
 }

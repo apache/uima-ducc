@@ -36,7 +36,6 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.ContentType;

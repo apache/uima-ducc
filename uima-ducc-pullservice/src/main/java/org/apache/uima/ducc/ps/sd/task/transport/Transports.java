@@ -16,21 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ps.service.processor;
 
-import org.apache.uima.ducc.ps.service.IServiceComponent;
-import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
+package org.apache.uima.ducc.ps.sd.task.transport;
 
-public interface IServiceProcessor extends IServiceComponent{
+import org.apache.uima.ducc.ps.sd.task.transport.iface.TaskTransportHandler;
 
-	public void initialize() throws ServiceInitializationException;
-	
-	// deserialize task, process and return result (performance metrics or Exception).
-	public IProcessResult process(String serializedTask);
-	
-	public void stop();
-	
-	public void setScaleout(int scaleout);
-	
-	public int getScaleout();
+public class Transports {
+	public enum TransportType {HTTP}; //, JMS, JAVA};
+
+	public static TaskTransportHandler newHttpTransport() {
+		return new HttpTaskTransportHandler();
+	}
+
 }

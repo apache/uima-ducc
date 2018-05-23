@@ -32,7 +32,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.ServiceThreadFactory;
-import org.apache.uima.ducc.ps.service.IScaleable;
 import org.apache.uima.ducc.ps.service.IService;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;

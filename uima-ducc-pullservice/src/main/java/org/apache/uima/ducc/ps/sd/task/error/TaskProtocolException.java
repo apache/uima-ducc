@@ -16,21 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ps.service.processor;
 
-import org.apache.uima.ducc.ps.service.IServiceComponent;
-import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 
-public interface IServiceProcessor extends IServiceComponent{
+package org.apache.uima.ducc.ps.sd.task.error;
 
-	public void initialize() throws ServiceInitializationException;
-	
-	// deserialize task, process and return result (performance metrics or Exception).
-	public IProcessResult process(String serializedTask);
-	
-	public void stop();
-	
-	public void setScaleout(int scaleout);
-	
-	public int getScaleout();
+public class TaskProtocolException extends Exception {
+
+	private static final long serialVersionUID = 1L;
+
+	public TaskProtocolException(String cause) {
+		super(cause);
+	}
+	public TaskProtocolException(Exception cause) {
+		super(cause);
+	}
 }

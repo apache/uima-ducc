@@ -16,21 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ps.service.processor;
 
-import org.apache.uima.ducc.ps.service.IServiceComponent;
-import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
+package org.apache.uima.ducc.ps.sd.task.iface;
 
-public interface IServiceProcessor extends IServiceComponent{
-
-	public void initialize() throws ServiceInitializationException;
-	
-	// deserialize task, process and return result (performance metrics or Exception).
-	public IProcessResult process(String serializedTask);
-	
-	public void stop();
-	
-	public void setScaleout(int scaleout);
-	
-	public int getScaleout();
+public interface TaskAllocatorCallbackListener  {
+	public ITask getTask(TaskConsumer taskConsumer);
+    public void onTaskSuccess(TaskConsumer taskConsumer, String appdata, String processResult);
+    public void onTaskFailure(TaskConsumer taskConsumer, String appdata, String processError);
 }
