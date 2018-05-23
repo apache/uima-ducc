@@ -66,9 +66,6 @@ public abstract class JmxHelper {
 	}
 	
 	protected void jmxConnect() throws IOException {
-		String location = "jmxConnect";
-		String urlString = getJmxUrl();
-		logger.info(location, jobid, urlString);
 		url = new JMXServiceURL(getJmxUrl());
 		jmxc = JMXConnectorFactory.connect(url, null);
 		mbsc = jmxc.getMBeanServerConnection();
