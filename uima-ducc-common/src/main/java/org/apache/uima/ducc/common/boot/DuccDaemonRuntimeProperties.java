@@ -94,6 +94,7 @@ public class DuccDaemonRuntimeProperties {
 			FileInputStream fis;
 			fis = new FileInputStream(file);
 			properties.load(fis);
+			fis.close();
 			
 		} 
 		catch (FileNotFoundException e) {
@@ -115,6 +116,7 @@ public class DuccDaemonRuntimeProperties {
 			FileOutputStream fos;
 			fos = new FileOutputStream(file);
 			properties.store(fos,"");
+			fos.close();
 		} 
 		catch (IOException e) {
 			System.out.println("Error writing file: "+fileName);
@@ -159,7 +161,7 @@ public class DuccDaemonRuntimeProperties {
 			FileInputStream fis;
 			fis = new FileInputStream(file);
 			properties.load(fis);
-			
+			fis.close();
 		} 
 		catch (FileNotFoundException e) {
 			System.out.println("File not found: "+fileName);
@@ -177,6 +179,7 @@ public class DuccDaemonRuntimeProperties {
 			FileOutputStream fos;
 			fos = new FileOutputStream(file);
 			properties.store(fos,"");
+			fos.close();
 		} 
 		catch (IOException e) {
 			System.out.println("Error writing file: "+fileName);

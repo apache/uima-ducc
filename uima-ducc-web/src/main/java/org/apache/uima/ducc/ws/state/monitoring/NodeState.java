@@ -123,8 +123,22 @@ public class NodeState implements INodeState {
 		private long sleep_seconds = 60;
 		private long sleep_millis = sleep_seconds*1000;
 		
+		private IRmPersistence persistence = null;
+		
 		public Monitor() {
-			up();
+			initialize();
+		}
+		
+		private void initialize() {
+			String location = "initialize";
+			try {
+				up();
+				persistence = configure();
+			}
+			catch(Exception e) {
+				down();
+				logger.error(location, jobid, e);
+			}
 		}
 		
 		// fetch new results from datastore every interval
@@ -176,8 +190,9 @@ public class NodeState implements INodeState {
 			String location = "fetch";
 			Map<String, Map<String, Object>> retVal = map_empty;
 			try {
-				IRmPersistence persistence = configure();
-			    retVal = persistence.getAllMachines();
+				if(persistence != null) {
+					retVal = persistence.getAllMachines();
+				}
 				logger.debug(location, jobid, "map:"+retVal.size());
 			}
 			catch(Exception e) {
