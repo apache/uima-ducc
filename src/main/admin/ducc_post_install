@@ -340,10 +340,17 @@ class PostInstall():
 
     def setup_ducc_database(self):
         # ducc.database.automanage
-        if(self.database_automanage == True):
-            self.update_property('ducc.database.automanage', 'True', '# Database start/stop managed by DUCC')
-        else:
+        if(self.database_automanage == None):
+            if ( self.database_host_list == None ):
+                # db automanage default to T when db host list not specified
+                self.database_automanage = True
+            else:
+                # db automanage default to F when db host list specified
+                self.database_automanage = False
+        if(self.database_automanage == False):
             self.update_property('ducc.database.automanage', 'False', '# Database start/stop not managed by DUCC')
+        else:
+            self.update_property('ducc.database.automanage', 'True', '# Database start/stop managed by DUCC')
         # ducc.database.host.list
         if ( self.database_host_list == None ):
             self.database_host_list = self.ducc_head
@@ -433,7 +440,7 @@ class PostInstall():
         self.ducc_uid = None
         self.ducc_head = None
         self.keystore_pw = None
-        self.database_automanage = True
+        self.database_automanage = None
         self.database_host_list = None
         self.database_user = None
         self.database_pw = None

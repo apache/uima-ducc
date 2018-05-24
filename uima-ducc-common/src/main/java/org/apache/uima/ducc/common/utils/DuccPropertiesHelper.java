@@ -45,7 +45,7 @@ public class DuccPropertiesHelper {
 	public static boolean isDatabaseAutomanaged() {
 		boolean retVal = true;
 		String key = DuccPropertiesResolver.ducc_database_automanage;
-		String value = DuccPropertiesResolver.get(key,defaultDuccHead);
+		String value = DuccPropertiesResolver.get(key);
 		if(value != null) {
 			Boolean bool = new Boolean(value);
 			retVal = bool.booleanValue();
