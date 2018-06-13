@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -56,19 +56,18 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 import org.apache.uima.util.XMLInputSource;
 
-public class UimaServiceProcessor implements IServiceProcessor { 
+public class UimaServiceProcessor implements IServiceProcessor {
 	public static final String IMPORT_BY_NAME_PREFIX = "*importByName:";
 	Logger logger = UIMAFramework.getLogger(UimaServiceProcessor.class);
    // Map to store DuccUimaSerializer instances. Each has affinity to a thread
-	private Map<Long, UimaSerializer> serializerMap =
-				new HashMap<>();
+	private Map<Long, UimaSerializer> serializerMap;
 	private IServiceResultSerializer resultSerializer;
 	// stores AE instance pinned to a thread
-	private ThreadLocal<AnalysisEngine> threadLocal = 
+	private ThreadLocal<AnalysisEngine> threadLocal =
 			new ThreadLocal<> ();
     private ReentrantLock initStateLock = new ReentrantLock();
     private boolean sendInitializingState = true;
-	private ResourceManager rm = 
+	private ResourceManager rm =
 			UIMAFramework.newDefaultResourceManager();;
     private CasPool casPool = null;
 	private int scaleout=1;
@@ -79,7 +78,7 @@ public class UimaServiceProcessor implements IServiceProcessor {
 	private ServiceConfiguration serviceConfiguration;
 	private IServiceMonitor monitor;
 	private AtomicInteger numberOfInitializedThreads = new AtomicInteger();
-	
+
 	static {
 		// try to get platform MBean Server (Java 1.5 only)
 		try {
@@ -89,8 +88,8 @@ public class UimaServiceProcessor implements IServiceProcessor {
 		} catch (Exception e) {
 			platformMBeanServer = null;
 		}
-	}	
-	
+	}
+
 	public UimaServiceProcessor(String analysisEngineDescriptor) {
 		this(analysisEngineDescriptor,  new UimaResultDefaultSerializer(), new ServiceConfiguration());
 	}
@@ -103,8 +102,11 @@ public class UimaServiceProcessor implements IServiceProcessor {
 		this.serviceConfiguration = serviceConfiguration;
 		// start a thread which will collect AE initialization state
 		launchStateInitializationCollector();
+		if (serviceConfiguration.getJpType() != null) {
+		  serializerMap = new HashMap<>();
+		}
 	}
-	
+
 	private void launchStateInitializationCollector() {
 		monitor =
 				new RemoteStateObserver(serviceConfiguration, logger);
@@ -120,7 +122,7 @@ public class UimaServiceProcessor implements IServiceProcessor {
 	public void initialize() {
 		if ( logger.isLoggable(Level.FINE)) {
 			logger.log(Level.FINE, "Process Thread:"+ Thread.currentThread().getName()+" Initializing AE");
-			
+
 		}
 		try {
 			// multiple threads may call this method. Send initializing state once
@@ -130,7 +132,7 @@ public class UimaServiceProcessor implements IServiceProcessor {
 				monitor.onStateChange(IServiceState.State.Initializing.toString(), new Properties());
 			}
 		} catch( Exception e) {
-			
+
 		} finally {
 			initStateLock.unlock();
 		}
@@ -141,35 +143,37 @@ public class UimaServiceProcessor implements IServiceProcessor {
 	    paramsMap.put(AnalysisEngine.PARAM_MBEAN_SERVER, platformMBeanServer);
 
 		try {
-			
-			XMLInputSource is = 
+
+			XMLInputSource is =
 					UimaUtils.getXMLInputSource(analysisEngineDescriptor);
 			String aed = is.getURL().toString();
 			ResourceSpecifier rSpecifier =
 			    UimaUtils.getResourceSpecifier(aed);
-			
+
 			AnalysisEngine ae = UIMAFramework.produceAnalysisEngine(rSpecifier,
 					paramsMap);
 			// pin AE instance to this thread
 			threadLocal.set(ae);
-			
+
 			synchronized(UimaServiceProcessor.class) {
 		    	if ( casPool == null ) {
 		    		initializeCasPool(ae.getAnalysisEngineMetaData());
 		    	}
 			}
-			
+
 			// every process thread has its own uima deserializer
-			serializerMap.put(Thread.currentThread().getId(), new UimaSerializer());
+			if (serviceConfiguration.getJpType() != null) {
+			  serializerMap.put(Thread.currentThread().getId(), new UimaSerializer());
+			}
 
 		} catch (Exception e) {
 			monitor.onStateChange(IServiceState.State.FailedInitialization.toString(), new Properties());
 			throw new RuntimeException(e);
 
-		} 
+		}
 		if ( logger.isLoggable(Level.INFO)) {
 			logger.log(Level.INFO, "Process Thread:"+ Thread.currentThread().getName()+" Done Initializing AE");
-			
+
 		}
 		if ( numberOfInitializedThreads.incrementAndGet() == scaleout ) {
 			monitor.onStateChange(IServiceState.State.Running.toString(), new Properties());
@@ -185,49 +189,54 @@ public class UimaServiceProcessor implements IServiceProcessor {
 	}
 
 	private UimaSerializer getUimaSerializer() {
-		
 	   	return serializerMap.get(Thread.currentThread().getId());
 	}
+
 	@Override
 	public IProcessResult process(String serializedTask) {
 		AnalysisEngine ae = null;
 
 		CAS cas = casPool.getCas();
 		IProcessResult result;
-		
+
 		try {
-			// deserialize the task into the CAS
-			getUimaSerializer().deserializeCasFromXmi(serializedTask, cas);
+		  // DUCC JP  services are given a serialized CAS ... others just the doc-text for a CAS
+			if (serviceConfiguration.getJpType() != null) {
+			  getUimaSerializer().deserializeCasFromXmi(serializedTask, cas);
+			} else {
+			  cas.setDocumentText(serializedTask);
+			  cas.setDocumentLanguage("en");
+			}
 
 			// check out AE instance pinned to this thread
 			ae = threadLocal.get();
 			// get AE metrics before calling process(). Needed for
 			// computing a delta
-			List<PerformanceMetrics> beforeAnalysis = 
+			List<PerformanceMetrics> beforeAnalysis =
 					UimaMetricsGenerator.get(ae);
-			
+
 			// *****************************************************
 			// PROCESS
 			// *****************************************************
 			ae.process(cas);
-			
+
 			// *****************************************************
-			// No exception in process() , fetch metrics 
+			// No exception in process() , fetch metrics
 			// *****************************************************
-			List<PerformanceMetrics> afterAnalysis = 
+			List<PerformanceMetrics> afterAnalysis =
 					UimaMetricsGenerator.get(ae);
 
 			// get the delta
-			List<PerformanceMetrics> casMetrics = 
+			List<PerformanceMetrics> casMetrics =
 					UimaMetricsGenerator.getDelta( afterAnalysis, beforeAnalysis);
 
 //			StringBuilder sb = new StringBuilder("{");
-//			
+//
 //			for (AnalysisEnginePerformanceMetrics metrics : casMetrics) {
 //				sb.append(resultSerializer.serialize(metrics)).append("}");
 //			}
 //			sb.append("}");
-			
+
 			return new UimaProcessResult(resultSerializer.serialize(casMetrics));
 		} catch( Exception e ) {
 			logger.log(Level.WARNING,"",e);
@@ -235,14 +244,14 @@ public class UimaServiceProcessor implements IServiceProcessor {
 			return result;
  		}
 		finally {
-			
+
 			if (cas != null) {
 				casPool.releaseCas(cas);
 			}
 		}
 	}
 
-	
+
 	public void setErrorHandler(IServiceErrorHandler errorHandler) {
 
 	}
@@ -257,7 +266,7 @@ public class UimaServiceProcessor implements IServiceProcessor {
 			}
 		} catch( Exception e) {
 			logger.log(Level.WARNING, "stop", e);
-		} 
+		}
 	}
 	/*
 	  // Build just an AE from parts and return the filename
