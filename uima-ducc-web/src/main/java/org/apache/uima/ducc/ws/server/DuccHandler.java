@@ -933,7 +933,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			// Time:min
 			index++; // jp.20
 			cbList[index].append("<td align=\"right\">");
-			String timeMin = Helper.getWiTimeMax(job, process, sType);
+			String timeMin = Helper.getWiTimeMin(job, process, sType);
 			cbList[index].append(timeMin);
 			logAppend(index,"timeMin",timeMin);
 			cbList[index].append("</td>");
