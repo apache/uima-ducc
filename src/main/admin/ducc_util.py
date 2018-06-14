@@ -205,7 +205,11 @@ class DuccUtil(DuccBase):
                 print 'Error: '+text
                 sys.exit(1)
             if(database_jmx_host != None):
-                if(database_jmx_host != 'localhost'):
+                if(database_jmx_host == 'localhost'):
+                    pass
+                elif(database_jmx_host in database_host_list.split()):
+                    pass
+                else:
                     text = 'ducc.database.host_list and ducc.database.jmx.host both specified.'
                     print 'Error: '+text
                     sys.exit(1)
