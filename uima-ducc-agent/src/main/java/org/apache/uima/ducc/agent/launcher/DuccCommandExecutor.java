@@ -291,7 +291,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 
 			}
 			return managedProcess;
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			if (((ManagedProcess) super.managedProcess).getDuccProcess() != null) {
 				DuccId duccId = ((ManagedProcess) super.managedProcess)
 						.getDuccId();
@@ -300,6 +300,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 								.getDuccProcess().getDuccId(), e,
 						new Object[] {});
 			}
+			logger.error(methodName, null, e);
 			throw e;
 		}
 	}
@@ -311,6 +312,8 @@ public class DuccCommandExecutor extends CommandExecutor {
 				.equals(ProcessState.Initializing) ||
 				((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
 				.equals(ProcessState.Starting) ||
+				((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
+				.equals(ProcessState.Stopping) ||
 				((ManagedProcess) managedProcess).getDuccProcess().getProcessState()
 				.equals(ProcessState.Started)
 				);
@@ -746,6 +749,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					} else {
 					  cmdLine.addOption("-Dducc.deploy.components=uima-as");
 					  ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccService");
+					  // ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.ps.service.main.ServiceWrapper");
 					}
 					break;
 				}

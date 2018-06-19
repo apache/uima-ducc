@@ -58,7 +58,8 @@ public class DefunctProcessDetector implements Runnable {
 				// process is a zombie
 				zombie = (line.indexOf("defunct") > 0);
 				if ( zombie ) {
-					break;
+   				   logger.info("DefunctProcessDetector.isDefunctProcess", null, "Process with PID:"+pid+" Is Defunct - OS reports:"+line);
+				    break;
 				}
 			}
 		} catch (Exception e) {

@@ -90,6 +90,8 @@ public abstract class CommandExecutor implements Callable<Process> {
 				if ( !((ManagedProcess) managedProcess).getDuccProcess()
 				.getProcessState().equals(ProcessState.Stopped) ||
 				!((ManagedProcess) managedProcess).getDuccProcess()
+				.getProcessState().equals(ProcessState.Stopping) ||
+				!((ManagedProcess) managedProcess).getDuccProcess()
 				.getProcessState().equals(ProcessState.Failed) ||
 				!((ManagedProcess) managedProcess).getDuccProcess()
 				.getProcessState().equals(ProcessState.FailedInitialization)
@@ -101,12 +103,7 @@ public abstract class CommandExecutor implements Callable<Process> {
 				((ManagedProcess) managedProcess).setPid(String.valueOf(pid));
 				((ManagedProcess) managedProcess)
 				     .getDuccProcess().setPID(String.valueOf(pid));
-				logger.info(methodName, null,
-						">>>>>>>>> PID:"
-								+ String.valueOf(pid)
-								+ " Process State:"
-								+ ((ManagedProcess) managedProcess)
-										.getDuccProcess().getProcessState());
+
 				try {
 					synchronized (this) {
 						// wait for 5 seconds before starting the camel route
@@ -115,6 +112,22 @@ public abstract class CommandExecutor implements Callable<Process> {
 						// enough time for the process to start.
 						wait(5000);
 					}
+				        logger.info(methodName, null,
+						">>>>>>>>> PID:"
+								+ String.valueOf(pid)
+								+ " Process State:"
+								+ ((ManagedProcess) managedProcess)
+										.getDuccProcess().getProcessState());
+
+				if ( !((ManagedProcess) managedProcess).getDuccProcess()
+				       .getProcessState().equals(ProcessState.Stopped) &&
+				     !((ManagedProcess) managedProcess).getDuccProcess()
+				       .getProcessState().equals(ProcessState.Stopping) &&
+				     !((ManagedProcess) managedProcess).getDuccProcess()
+				       .getProcessState().equals(ProcessState.Failed) &&
+				     !((ManagedProcess) managedProcess).getDuccProcess()
+				       .getProcessState().equals(ProcessState.FailedInitialization)
+						) {
 					RouteBuilder rb = agent.new ProcessMemoryUsageRoute(agent,
 							((ManagedProcess) managedProcess).getDuccProcess(),
 							(ManagedProcess) managedProcess);
@@ -135,6 +148,30 @@ public abstract class CommandExecutor implements Callable<Process> {
 							"Started Process Metric Gathering Thread For PID:"
 									+ String.valueOf(pid));
 
+
+				}
+
+				/*
+					RouteBuilder rb = agent.new ProcessMemoryUsageRoute(agent,
+							((ManagedProcess) managedProcess).getDuccProcess(),
+							(ManagedProcess) managedProcess);
+					agent.getContext().addRoutes(rb);
+					agent.getContext().startRoute(String.valueOf(pid));
+					logger.info(methodName, null,
+							"Started Process Metric Gathering Thread For PID:"
+									+ String.valueOf(pid));
+
+					StringBuffer sb = new StringBuffer();
+					for (Route route : agent.getContext().getRoutes()) {
+						sb.append("Camel Context - RouteId:" + route.getId()
+								+ "\n");
+					}
+					logger.info(methodName, null, sb.toString());
+
+					logger.info(methodName, null,
+							"Started Process Metric Gathering Thread For PID:"
+									+ String.valueOf(pid));
+				*/
 				} catch (Exception e) {
 					logger.error("postExecStep", null, e);
 				}
