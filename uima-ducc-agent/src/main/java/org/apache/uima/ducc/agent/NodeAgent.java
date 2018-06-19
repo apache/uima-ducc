@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Processor;
 import org.apache.camel.Route;
+import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.uima.ducc.agent.config.AgentConfiguration;
@@ -1331,12 +1332,22 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     ReasonForStoppingProcess.FailedInitialization.toString());
       	      deployedProcess.getDuccProcess().setProcessState(ProcessState.Stopping);
               deployedProcess.setStopping();
-/*
+
             deployedProcess.kill();
             logger.info(methodName, null, ">>>> Agent Handling Process FailedInitialization. PID:"
                     + duccEvent.getPid() + " Killing Process");
             try {
                super.getContext().stopRoute(duccEvent.getPid());
+	       super.getContext().removeRoute(duccEvent.getPid());
+
+	       for( RouteDefinition rt : super.getContext().getRouteDefinitions()) {
+		   logger.info(methodName, null, "..... Active Route Id:"+rt.getId());
+		   if ( rt.getId().equals(duccEvent.getPid() ) ) {
+		       logger.info(methodName, null, "..... Stopping Route Id:"+rt.getId());
+		       rt.stop();
+		   }
+	       }
+
            } catch( Exception e) {
         	   logger.error(methodName, null, "Unable to stop Camel route for PID:"+duccEvent.getPid());
            }
@@ -1344,7 +1355,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     "----------- Agent Stopped ProcessMemoryUsagePollingRouter for Process:"
                             + duccEvent.getPid() + ". Process Failed Initialization");
             undeployProcess(processEntry.getValue());
-            */
+
           } else if (duccEvent.getState().equals(ProcessState.InitializationTimeout)) {
             deployedProcess.getDuccProcess().setReasonForStoppingProcess(
                     ReasonForStoppingProcess.InitializationTimeout.toString());
@@ -1580,6 +1591,39 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     	  }
 
       }
+
+    private void killIt(IDuccProcess process, ManagedProcess deployedProcess ) {
+	String methodName = "killIt";
+	//          logger.info(methodName, null, "....Undeploying Process - DuccId:" + process.getDuccId()
+	//        + " PID:" + pid);
+	//if (pid != null) {
+            // Mark the process as stopping. When the process exits,
+            // the agent can determine
+            // if the process died on its own (due to say, user code
+            // problem) or if it died
+            // due to Agent initiated stop.
+            deployedProcess.setStopping();
+            // Agent will first send a stop request (via JMS) to the
+            // process.
+            // If the process doesnt stop within alloted window the
+            // agent
+            // will kill it hard
+            ICommandLine cmdLine;
+            try {
+              if (Utils.isWindows()) {
+                cmdLine = new NonJavaCommandLine("taskkill");
+                cmdLine.addArgument("/PID");
+              } else {
+                cmdLine = new NonJavaCommandLine("/bin/kill");
+                cmdLine.addArgument("-9");
+              }
+              cmdLine.addArgument(deployedProcess.getDuccProcess().getPID());
+              launcher.launchProcess(this, getIdentity(), process, cmdLine, this, deployedProcess);
+            } catch (Exception e) {
+              logger.error(methodName, null, e);
+            }
+	    //}
+    }
   /**
    * Kills a given process
    *
@@ -1603,14 +1647,27 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             	// Next inventory publication will include this new state and the OR
             	// can terminate a job.
             	defunctDetectorExecutor.execute(new DefunctProcessDetector(deployedProcess, logger));
-            }
-            logger.debug(methodName, null, "....Process Already Stopping PID:" + process.getPID()+" Returning");
+            } else if ( pid != null && deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopping ) ) {
+                logger.info(methodName, null, "....Undeploying Process - DuccId:" + process.getDuccId()
+                   + " PID:" + pid);
+
+		killIt(process, deployedProcess);
+	    }
+		//logger.debug(methodName, null, "....Process Already Stopping PID:" + process.getPID()+" Returning");
             
             break; // this process is already in stopping state
           }
-          logger.info(methodName, null, "....Undeploying Process - DuccId:" + process.getDuccId()
-                  + " PID:" + pid);
+	  
+
+	            
+	      //logger.info(methodName, null, "....Undeploying Process - DuccId:" + process.getDuccId()
+              //    + " PID:" + pid);
           if (pid != null) {
+              logger.info(methodName, null, "....Undeploying Process - DuccId:" + process.getDuccId()
+                   + " PID:" + pid);
+
+              killIt(process, deployedProcess);
+	      /*
 //        	try {
 //          	  // stop collecting process stats from /proc/<pid>/statm
 //                super.getContext().stopRoute(pid);
@@ -1642,7 +1699,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
               launcher.launchProcess(this, getIdentity(), process, cmdLine, this, deployedProcess);
             } catch (Exception e) {
               logger.error(methodName, null, e);
-            }
+	      } */
           } else if (!deployedProcess.getDuccProcess().getProcessState()
                   .equals(ProcessState.Stopped)) { // process
             // not
