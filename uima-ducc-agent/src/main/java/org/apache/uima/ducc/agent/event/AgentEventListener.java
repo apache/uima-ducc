@@ -110,7 +110,10 @@ public class AgentEventListener implements DuccEventDelegateListener {
 			*/
   	      }
   	    }
-  	    logger.info("reportIncomingStateForThisNode",null,sb.toString());
+            if ( sb.length() > 0 ) {
+   	       logger.info("reportIncomingStateForThisNode",null,sb.toString());    
+	    }
+
 	}
 	public boolean forceInvotoryUpdate() {
 		return forceInventoryUpdateDueToSequence;
