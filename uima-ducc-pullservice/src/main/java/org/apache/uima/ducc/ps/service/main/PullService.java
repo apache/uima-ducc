@@ -255,16 +255,16 @@ public class PullService implements IService {
         // monitor should be stopped last to keep posting updates to observer		
 		stopMonitor();
 	}
-	private void waitForProcessThreads() throws InterruptedException, ExecutionException {
-		if ( logger.isLoggable(Level.INFO)) {
-			for(Future<String> future : threadHandleList){
-	            //print the return value of Future, notice the output delay in console
-	            // because Future.get() waits for task to get completed
-	            logger.log(Level.INFO, "Thread:"+Thread.currentThread().getName()+" Terminated "+new Date()+ "::"+future.get());
-	        }
-		}
 
+	private void waitForProcessThreads() throws InterruptedException, ExecutionException {
+		for (Future<String> future : threadHandleList) {
+			// print the return value of Future, notice the output delay in console
+			// because Future.get() waits for task to get completed
+			logger.log(Level.INFO,
+					"Thread:" + Thread.currentThread().getName() + " Terminated " + new Date() + "::" + future.get());
+		}
 	}
+
 	private void initializeTransport() throws ServiceInitializationException {
 		try {
 			transport.initialize();
