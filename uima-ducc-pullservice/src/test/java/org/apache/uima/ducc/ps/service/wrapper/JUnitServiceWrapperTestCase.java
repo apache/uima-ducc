@@ -65,6 +65,46 @@ public class JUnitServiceWrapperTestCase extends Client  {
 
 		}
 	}
+	
+	@Test
+	public void testPullServiceWrapperWithProcessFailure() throws Exception {
+		//int scaleout = 2;
+		StateMonitor monitor = new StateMonitor();
+		monitor.start();
+		System.out.println("........... Monitor Port:"+System.getProperty("DUCC_STATE_UPDATE_PORT"));
+		super.startJetty(false);  // don't block
+		String analysisEngineDescriptor = "NoOpAE";
+
+		String tasURL = "http://localhost:8080/test";
+		try {
+			// Force process failure
+			System.setProperty("ProcessFail","true");
+			 
+			System.setProperty("ducc.deploy.JdURL", tasURL);
+			System.setProperty("ducc.deploy.JpThreadCount","4");
+			System.setProperty("ducc.deploy.service.type", "NotesService");
+			System.getProperty("ducc.deploy.JpType", "uima");
+
+			ServiceWrapper service = new ServiceWrapper();
+
+			Timer fTimer = new Timer("testPullService Timer");
+			// after 5secs stop the pull service
+			fTimer.schedule(new MyTimerTask(service, fTimer), 5000);
+				
+			service.initialize(new String[] {analysisEngineDescriptor});
+
+			service.start();
+
+
+		} catch (ServiceInitializationException e) {
+			throw e;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			monitor.stop();
+			System.getProperties().remove("ProcessFail");
+		}
+	}
 	class MyTimerTask extends TimerTask {
 		final ServiceWrapper service;
 		final Timer fTimer;
