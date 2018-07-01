@@ -92,6 +92,39 @@ public class JunitPullServiceTestCase extends Client {
 			throw e;
 		}
 	}
+	
+	@Test
+	public void testPullServiceWithProcessFailure() throws Exception {
+		int scaleout = 2;
+		super.startJetty(false);  // don't block
+		String analysisEngineDescriptor = "NoOpAE";
+		IServiceProcessor processor = new 
+				UimaServiceProcessor(analysisEngineDescriptor);
+
+		String tasURL = "http://localhost:8080/test";
+		
+		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
+				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
+				.withOptionalsDone().build();
+
+		try {
+			 System.setProperty("ProcessFail","true");
+			service.initialize();
+			Timer fTimer = new Timer("testPullService Timer");
+			// after 5secs stop the pull service
+			fTimer.schedule(new MyTimerTask(service, fTimer), 5000);
+			
+			service.start();
+
+		} catch (ServiceInitializationException e) {
+			throw e;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			System.getProperties().remove("ProcessFail");
+		}
+	}
+	
 	/*
 	@Test
 	public void testPullServiceBadClientURL() throws Exception {
