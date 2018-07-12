@@ -21,6 +21,7 @@ package org.apache.uima.ducc.ps.sd.task.transport;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
@@ -119,12 +120,33 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 		return server;
 	}
 
+	public int findFreePort() {
+	    ServerSocket socket = null;
+	    int port = 0;
+	    try {
+	      //  by passing 0 as an arg, let ServerSocket choose an arbitrary
+	      //  port that is available.
+	      socket = new ServerSocket(0);
+	      port = socket.getLocalPort();
+	    } catch (IOException e) {
+	    } finally { 
+	      try {
+	        // Clean up
+	        if (socket != null) {
+	          socket.close(); 
+	        } 
+	      } catch( Exception ex) {
+	    	  ex.printStackTrace();
+	      }
+	    }
+	    return port;
+	  }
 	@Override
 	public String initialize(Properties properties) throws TaskTransportException {
 		// TODO Auto-generated method stub
 		// Max cores
     int cores = Runtime.getRuntime().availableProcessors();
-    String portString = (String) properties.get(ServiceDriver.Port);
+//    String portString = (String) properties.get(ServiceDriver.Port);
     String maxThreadsString = (String) properties.get(ServiceDriver.MaxThreads);
     String appName = (String) properties.get(ServiceDriver.Application);
 
@@ -142,14 +164,16 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 			// "Invalid value for jetty MaxThreads("+threadPool.getMaxThreads()+") - it should be greater or equal to "+cores+". Defaulting to Number of CPU Cores="+cores);
 			maxThreads = cores;
 		}
-		if (portString != null) {
-			try {
-				httpPort = Integer.parseInt(portString.trim());
-			} catch (NumberFormatException e) {
-				logger.log(Level.WARNING,"Error",e);
-				throw new TaskTransportException("Unable to start Server using provided port:"+httpPort);
-			}
-		}
+//		if (portString != null) {
+//			try {
+//				httpPort = Integer.parseInt(portString.trim());
+//			} catch (NumberFormatException e) {
+//				logger.log(Level.WARNING,"Error",e);
+//				throw new TaskTransportException("Unable to start Server using provided port:"+httpPort);
+//			}
+//		}
+		// get ephemeral port for Jetty
+		httpPort = findFreePort();
 		if (appName == null) {
 		  appName = "test";
 		  logger.log(Level.WARNING, "The "+ServiceDriver.Application+" property is not specified - using "+appName);
@@ -167,7 +191,7 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
       taskUrl = taskUrl.substring(0, taskUrl.length() - 1);
     }
     taskUrl += ":" + httpPort + "/" + appName;
-    logger.log(Level.INFO, "Service Driver URL: " + taskUrl); // e.g. http://localhost:8888/test");
+    logger.log(Level.INFO, "Service Driver URL: " + taskUrl); 
     
     return taskUrl;
 	}
