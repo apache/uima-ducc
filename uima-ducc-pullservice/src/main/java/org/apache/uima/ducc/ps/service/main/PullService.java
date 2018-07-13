@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -67,10 +67,10 @@ public class PullService implements IService {
 	private String clientURL;
 	private IRegistryClient registryClient;
 	// ******************************************
-	
+
 	// internal error handler
 	private IServiceErrorHandler errorHandler=null;
-	// 
+	//
 	private IServiceMonitor serviceMonitor=null;
 	// internal transport to communicate with remote client
 	private IServiceTransport transport=null;
@@ -84,12 +84,12 @@ public class PullService implements IService {
 	// holds Future to every process thread
 	private List<Future<String>> threadHandleList =
 			new ArrayList<>();
-	
+
 	private Lock initLock = new ReentrantLock();
-	
-	public PullService(String type) { 
+
+	public PullService(String type) {
 		this.type = type;
-		
+
 	}
 	public String getType() {
 		return type;
@@ -134,12 +134,12 @@ public class PullService implements IService {
 		registryClient = new DefaultRegistryClient(target);
 
 	}
-	
+
 	@Override
 	public void initialize() throws ServiceInitializationException {
 		// only one thread can call this method
 		initLock.lock();
-		
+
 		try {
 			if ( initialized ) {
 				// Already initialized
@@ -179,13 +179,13 @@ public class PullService implements IService {
 					   .withDoneLatch(stopLatch)
 					   .withInitCompleteLatch(threadsReady)
 					   .build();
-					   
-			
-			// first initialize Processors. The ServiceThreadFactory creates 
+
+
+			// first initialize Processors. The ServiceThreadFactory creates
 			// as many threads as defined in 'scaleout'
-			threadPool = 
+			threadPool =
 					new ScheduledThreadPoolExecutor(scaleout, new ServiceThreadFactory());
-			
+
 	    	// Create and start worker threads that pull Work Items from a client.
 			// Each worker thread calls processor.initialize() and counts down the
 			// 'threadsReady' latch. When all threads finish initializing they all
@@ -198,10 +198,10 @@ public class PullService implements IService {
 
 			initializeMonitor();
 			initializeTransport();
-			
+
 			initialized = true;
-			
-			
+
+
 		} catch( ServiceInitializationException e) {
 			throw e;
 		} catch( InterruptedException e) {
@@ -210,13 +210,13 @@ public class PullService implements IService {
 			throw new ServiceInitializationException("Service interrupted during initialization - shutting down process threads");
 		} catch( Exception e) {
 			throw new ServiceInitializationException("",e);
-		}  
+		}
 		finally {
 			initLock.unlock();
 		}
 
 	}
-	
+
 	@Override
 	public void start() throws IllegalStateException, ExecutionException, ServiceException {
 		if ( !initialized ) {
@@ -252,7 +252,7 @@ public class PullService implements IService {
 		stopTransport();
 		stopProtocolHandler();
 		stopServiceProcessor();
-        // monitor should be stopped last to keep posting updates to observer		
+        // monitor should be stopped last to keep posting updates to observer
 		stopMonitor();
 	}
 
@@ -260,8 +260,8 @@ public class PullService implements IService {
 		for (Future<String> future : threadHandleList) {
 			// print the return value of Future, notice the output delay in console
 			// because Future.get() waits for task to get completed
-			logger.log(Level.INFO,
-					"Thread:" + Thread.currentThread().getName() + " Terminated " + new Date() + "::" + future.get());
+			String result = future.get();
+			logger.log(Level.INFO, "Thread:" + Thread.currentThread().getName() + " Terminated " + new Date() + "::" + result);
 		}
 	}
 
@@ -307,7 +307,7 @@ public class PullService implements IService {
 		}
 	}
 	private void stopProtocolHandler() {
-		
+
 	}
 	private void stopTransport() {
 		transport.stop();
