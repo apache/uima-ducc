@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,24 +19,11 @@
 
 package org.apache.uima.ducc.ps.sd.task;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.UIMAFramework;
-
-import org.apache.uima.ducc.ps.sd.DuccServiceDriver;
-import org.apache.uima.ducc.ps.sd.iface.ServiceDriver;
-import org.apache.uima.ducc.ps.sd.task.error.TaskProtocolException;
-import org.apache.uima.ducc.ps.sd.task.iface.ITask;
-import org.apache.uima.ducc.ps.sd.task.iface.TaskAllocatorCallbackListener;
-import org.apache.uima.ducc.ps.sd.task.iface.TaskConsumer;
-import org.apache.uima.ducc.ps.sd.task.iface.TaskProtocolHandler;
 import org.apache.uima.ducc.ps.net.iface.IMetaMetaTask;
 import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
@@ -44,6 +31,13 @@ import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Hint;
 import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Type;
 import org.apache.uima.ducc.ps.net.impl.MetaMetaTask;
 import org.apache.uima.ducc.ps.net.impl.MetaTask;
+import org.apache.uima.ducc.ps.sd.DuccServiceDriver;
+import org.apache.uima.ducc.ps.sd.iface.ServiceDriver;
+import org.apache.uima.ducc.ps.sd.task.error.TaskProtocolException;
+import org.apache.uima.ducc.ps.sd.task.iface.ITask;
+import org.apache.uima.ducc.ps.sd.task.iface.TaskAllocatorCallbackListener;
+import org.apache.uima.ducc.ps.sd.task.iface.TaskConsumer;
+import org.apache.uima.ducc.ps.sd.task.iface.TaskProtocolHandler;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
@@ -51,7 +45,7 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 	Logger logger = UIMAFramework.getLogger(DuccServiceTaskProtocolHandler.class);
 	private volatile boolean running = true;;
 	private final long secondsToWait = 30;
-	private static AtomicInteger atomicCounter = 
+	private static AtomicInteger atomicCounter =
 			new AtomicInteger(0);
 	public DuccServiceTaskProtocolHandler(TaskAllocatorCallbackListener taskAllocator) {
 	}
@@ -64,13 +58,13 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 	@Override
 	public void handle(IMetaTaskTransaction wi) throws TaskProtocolException {
 		handleMetaTaskTransation(wi);
-		
+
 	}
 	private void handleMetaTaskTransation(IMetaTaskTransaction trans) {
 		try {
 			trans.setResponseHints(new ArrayList<Hint>());
 
-			TaskConsumer taskConsumer = 
+			TaskConsumer taskConsumer =
 					new WiTaskConsumer(trans);
 
 			MessageBuffer mb = new MessageBuffer();
@@ -138,7 +132,7 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 	private synchronized IMetaMetaTask getMetaMetaTask(TaskConsumer taskConsumer) {
 		IMetaMetaTask mmc = new MetaMetaTask();
 		ServiceDriver sd = DuccServiceDriver.getInstance();
-		TaskAllocatorCallbackListener taskAllocator = 
+		TaskAllocatorCallbackListener taskAllocator =
 				sd.getTaskAllocator();
 		ITask task;
 		// The max time we are willing to wait for a task is 60 secs
@@ -174,32 +168,18 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 	private void handleMetaTaskTransationAck(IMetaTaskTransaction trans, TaskConsumer taskConsumer) {
 
 	}
-	private Throwable deserialize(Object byteArray) throws IOException, ClassNotFoundException {
-		ByteArrayInputStream bis = new ByteArrayInputStream((byte[]) byteArray);
-		ObjectInputStream ois = new ObjectInputStream(bis);
-		Throwable t = (Throwable) ois.readObject();
-		return t;
-	}
+
 	private void handleMetaTaskTransationEnd(IMetaTaskTransaction trans, TaskConsumer taskConsumer) {
 		ServiceDriver sd = DuccServiceDriver.getInstance();
-		TaskAllocatorCallbackListener taskAllocator = 
+		TaskAllocatorCallbackListener taskAllocator =
 				sd.getTaskAllocator();
 		if ( trans.getMetaTask().getUserSpaceException() != null ) {
-			Object serializedException = 
-					trans.getMetaTask().getUserSpaceException();
-			String exceptionAsString="";
-			try {
-				Throwable t = deserialize(serializedException);
-				StringWriter sw = new StringWriter();
-				t.printStackTrace(new PrintWriter(sw));
-				exceptionAsString = sw.toString();
-			} catch( Exception ee) {
-				logger.log(Level.WARNING,"Error",ee );
-			}
+		  // The service returns a stringified stacktrace ... not an Exception
+			String exceptionAsString = (String) trans.getMetaTask().getUserSpaceException();
 			taskAllocator.onTaskFailure( taskConsumer, trans.getMetaTask().getAppData(), exceptionAsString );
-			
+
 		} else {
-			String m = 
+			String m =
 					trans.getMetaTask().getPerformanceMetrics();
 		    if ( logger.isLoggable(Level.FINE)) {
 		    	logger.log(Level.FINE,"handleMetaTaskTransationEnd()........... appdata:"+trans.getMetaTask().getAppData());
@@ -207,7 +187,7 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 			taskAllocator.onTaskSuccess( taskConsumer,trans.getMetaTask().getAppData(), m );
 		}
 	}
-	
+
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
