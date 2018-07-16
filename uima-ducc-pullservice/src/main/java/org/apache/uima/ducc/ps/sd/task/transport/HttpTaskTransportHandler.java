@@ -144,12 +144,12 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 	@Override
 	public String initialize(Properties properties) throws TaskTransportException {
 		// Max cores
-       int cores = Runtime.getRuntime().availableProcessors();
-       String maxThreadsString = (String) properties.get(ServiceDriver.MaxThreads);
-       String appName = (String) properties.get(ServiceDriver.Application);
+    int cores = Runtime.getRuntime().availableProcessors();
+    String maxThreadsString = (String) properties.get(ServiceDriver.MaxThreads);
+    String appName = (String) properties.get(ServiceDriver.Application);
 
 		int maxThreads = cores;
-		int httpPort = -1;
+		int httpPort = 0;
 		if (maxThreadsString != null) {
 			try {
 				maxThreads = Integer.parseInt(maxThreadsString.trim());
@@ -170,10 +170,9 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 				throw new TaskTransportException("Unable to start Server using provided port:"+httpPort);
 			}
 		} 
-        if ( httpPort == 0 ) {
-			// get ephemeral port for Jetty
-			httpPort = findFreePort();
-		}
+    if (httpPort == 0) {     // Use any free port if none or 0 specified 
+      httpPort = findFreePort();
+    }
 		if (appName == null) {
 		  appName = "test";
 		  logger.log(Level.WARNING, "The "+ServiceDriver.Application+" property is not specified - using "+appName);
