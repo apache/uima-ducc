@@ -143,12 +143,10 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 	  }
 	@Override
 	public String initialize(Properties properties) throws TaskTransportException {
-		// TODO Auto-generated method stub
 		// Max cores
-    int cores = Runtime.getRuntime().availableProcessors();
-//    String portString = (String) properties.get(ServiceDriver.Port);
-    String maxThreadsString = (String) properties.get(ServiceDriver.MaxThreads);
-    String appName = (String) properties.get(ServiceDriver.Application);
+       int cores = Runtime.getRuntime().availableProcessors();
+       String maxThreadsString = (String) properties.get(ServiceDriver.MaxThreads);
+       String appName = (String) properties.get(ServiceDriver.Application);
 
 		int maxThreads = cores;
 		int httpPort = -1;
@@ -160,20 +158,22 @@ public class HttpTaskTransportHandler implements TaskTransportHandler {
 			}
 		}
 		if (cores > maxThreads) {
-			// logger.warn("JobDriver", jobid,
-			// "Invalid value for jetty MaxThreads("+threadPool.getMaxThreads()+") - it should be greater or equal to "+cores+". Defaulting to Number of CPU Cores="+cores);
 			maxThreads = cores;
+		}       
+		
+		String portString = (String) properties.get(ServiceDriver.Port);
+		if (portString != null) {
+			try {
+				httpPort = Integer.parseInt(portString.trim());
+			} catch (NumberFormatException e) {
+				logger.log(Level.WARNING,"Error",e);
+				throw new TaskTransportException("Unable to start Server using provided port:"+httpPort);
+			}
+		} 
+        if ( httpPort == 0 ) {
+			// get ephemeral port for Jetty
+			httpPort = findFreePort();
 		}
-//		if (portString != null) {
-//			try {
-//				httpPort = Integer.parseInt(portString.trim());
-//			} catch (NumberFormatException e) {
-//				logger.log(Level.WARNING,"Error",e);
-//				throw new TaskTransportException("Unable to start Server using provided port:"+httpPort);
-//			}
-//		}
-		// get ephemeral port for Jetty
-		httpPort = findFreePort();
 		if (appName == null) {
 		  appName = "test";
 		  logger.log(Level.WARNING, "The "+ServiceDriver.Application+" property is not specified - using "+appName);
