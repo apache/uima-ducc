@@ -76,7 +76,7 @@ public class JunitPullServiceTestCase extends Client {
 			throw e;
 		}
 	}
-	/*
+	
 	@Test
 	public void testPullServiceWithProcessFailure() throws Exception {
 		int scaleout = 2;
@@ -109,7 +109,7 @@ public class JunitPullServiceTestCase extends Client {
 		}
 	}
 	
-	
+	/*
 	@Test
 	public void testPullServiceBadClientURL() throws Exception {
 		int scaleout = 2;
