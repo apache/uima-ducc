@@ -33,7 +33,7 @@ import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
 
 public class JobDriverComponent extends AbstractDuccComponent
@@ -126,7 +126,7 @@ implements IJobDriverComponent {
 		return logger;
 	}
 	
-	public void handleJpRequest(IMetaCasTransaction metaCasTransaction) throws Exception {
+	public void handleJpRequest(IMetaTaskTransaction metaCasTransaction) throws Exception {
 		String location = "handleJpRequest";
 		try {
 			IMessageHandler mh = JobDriver.getInstance().getMessageHandler();

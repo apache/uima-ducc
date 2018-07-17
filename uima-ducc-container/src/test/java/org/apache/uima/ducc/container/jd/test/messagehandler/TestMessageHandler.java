@@ -22,18 +22,19 @@ import static org.junit.Assert.assertTrue;
 
 import org.apache.uima.ducc.container.jd.mh.MessageHandler;
 import org.apache.uima.ducc.container.jd.test.TestBase;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
-import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
-import org.apache.uima.ducc.container.net.impl.TransactionId;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Type;
+import org.apache.uima.ducc.ps.net.impl.MetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.impl.TransactionId;
+
 
 public class TestMessageHandler extends TestBase {
 	
 	protected boolean enforce = true;
 	protected boolean skipAll = true;
 	
-	private MetaCasTransaction create(String node, int pid, int tid, Type type) {
-		MetaCasTransaction mct = new MetaCasTransaction();
+	private MetaTaskTransaction create(String node, int pid, int tid, Type type) {
+		MetaTaskTransaction mct = new MetaTaskTransaction();
 		mct.setRequesterNodeName(node);
 		mct.setRequesterProcessName(pid+"");
 		mct.setRequesterProcessId(pid);
@@ -42,9 +43,9 @@ public class TestMessageHandler extends TestBase {
 		return mct;
 	}
 	
-	private IMetaCas transCommon(MessageHandler messageHandler, MetaCasTransaction trans, int reqNo) {
+	private IMetaTask transCommon(MessageHandler messageHandler, MetaTaskTransaction trans, int reqNo) {
 		messageHandler.handleMetaCasTransation(trans);
-		IMetaCas metaCas = trans.getMetaCas();
+		IMetaTask metaCas = trans.getMetaTask();
 		if(metaCas != null) {
 			if(reqNo > 0) {
 				String seqNo = ""+reqNo;
@@ -66,22 +67,22 @@ public class TestMessageHandler extends TestBase {
 		return metaCas;
 	}
 	
-	protected MetaCasTransaction transGet(MessageHandler messageHandler, String node, int pid, int tid, int reqNo) {
+	protected MetaTaskTransaction transGet(MessageHandler messageHandler, String node, int pid, int tid, int reqNo) {
 		debug("Get");
-		MetaCasTransaction trans = create(node, pid, tid, Type.Get);
+		MetaTaskTransaction trans = create(node, pid, tid, Type.Get);
 		trans.setTransactionId(new TransactionId(reqNo,0));
 		transCommon(messageHandler, trans, reqNo);
 		return trans;
 	}
 	
-	protected void transAck(MessageHandler messageHandler, MetaCasTransaction trans, int reqNo) {
+	protected void transAck(MessageHandler messageHandler, MetaTaskTransaction trans, int reqNo) {
 		debug("Ack");
 		trans.setType(Type.Ack);
 		trans.setTransactionId(new TransactionId(reqNo,1));
 		transCommon(messageHandler, trans, reqNo);
 	}
 	
-	protected void transEnd(MessageHandler messageHandler, MetaCasTransaction trans, int reqNo) {
+	protected void transEnd(MessageHandler messageHandler, MetaTaskTransaction trans, int reqNo) {
 		debug("End");
 		trans.setType(Type.End);
 		trans.setTransactionId(new TransactionId(reqNo,2));

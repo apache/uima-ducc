@@ -36,8 +36,8 @@ import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfoFactory;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.impl.MetaTaskTransaction;
 import org.junit.Test;
 
 public class TestMessageHandler03 extends TestMessageHandler {
@@ -88,9 +88,9 @@ public class TestMessageHandler03 extends TestMessageHandler {
 			ThreadInfo ti = tif.getRandom();
 			debug("random:"+ti.toKey());
 			int casNo = -1;
-			IMetaCas metaCasPrevious = null;
-			MetaCasTransaction trans = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
-			IMetaCas metaCas = trans.getMetaCas();
+			IMetaTask metaCasPrevious = null;
+			MetaTaskTransaction trans = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+			IMetaTask metaCas = trans.getMetaTask();
 			assertTrue(metaCas != null);
 			while(metaCas != null) {
 				randomPreemptTest03(messageHandler,ti);
@@ -110,7 +110,7 @@ public class TestMessageHandler03 extends TestMessageHandler {
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
 				trans = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
-				metaCas = trans.getMetaCas();
+				metaCas = trans.getMetaTask();
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");

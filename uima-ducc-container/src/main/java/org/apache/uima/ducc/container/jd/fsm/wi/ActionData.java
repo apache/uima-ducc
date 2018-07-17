@@ -20,15 +20,15 @@ package org.apache.uima.ducc.container.jd.fsm.wi;
 
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 
 public class ActionData implements IActionData {
 	
 	private IWorkItem workItem = null;
 	private IRemoteWorkerThread remoteWorkerThread = null;
-	private IMetaCasTransaction metaCasTransaction = null;
+	private IMetaTaskTransaction metaCasTransaction = null;
 	
-	public ActionData(IWorkItem workItem, IRemoteWorkerThread remoteWorkerThread, IMetaCasTransaction metaCasTransaction) {
+	public ActionData(IWorkItem workItem, IRemoteWorkerThread remoteWorkerThread, IMetaTaskTransaction metaCasTransaction) {
 		setWorkItem(workItem);
 		setRemoteWorkerThread(remoteWorkerThread);
 		setMetaCasTransaction(metaCasTransaction);
@@ -53,11 +53,11 @@ public class ActionData implements IActionData {
 	}
 	
 	@Override
-	public IMetaCasTransaction getMetaCasTransaction() {
+	public IMetaTaskTransaction getMetaCasTransaction() {
 		return metaCasTransaction;
 	}
 	
-	private void setMetaCasTransaction(IMetaCasTransaction value) {
+	private void setMetaCasTransaction(IMetaTaskTransaction value) {
 		metaCasTransaction = value;
 	}
 }

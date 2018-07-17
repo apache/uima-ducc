@@ -44,15 +44,15 @@ import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
-import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
-import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
-import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
-import org.apache.uima.ducc.container.net.impl.TransactionId;
 import org.apache.uima.ducc.container.sd.ServiceRegistry;
 import org.apache.uima.ducc.container.sd.ServiceRegistry_impl;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Direction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Type;
+import org.apache.uima.ducc.ps.net.iface.IPerformanceMetrics;
+import org.apache.uima.ducc.ps.net.impl.MetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.impl.PerformanceMetrics;
+import org.apache.uima.ducc.ps.net.impl.TransactionId;
 
 public class DuccHttpClient {
   private final static String REGISTERED_DRIVER = "ducc.deploy.registered.driver";
@@ -219,7 +219,7 @@ public class DuccHttpClient {
 		return pn;
 	}
 	
-    private void addCommonHeaders( IMetaCasTransaction transaction ) {
+    private void addCommonHeaders( IMetaTaskTransaction transaction ) {
     	String location = "addCommonHeaders";
     	transaction.setRequesterAddress(getIP());
     	transaction.setRequesterNodeName(getNodeName());
@@ -246,9 +246,9 @@ public class DuccHttpClient {
 		
     }
 
-	public IMetaCasTransaction execute( IMetaCasTransaction transaction, HttpPost postMethod ) throws Exception {
+	public IMetaTaskTransaction execute( IMetaTaskTransaction transaction, HttpPost postMethod ) throws Exception {
 		Exception lastError = null;
-		IMetaCasTransaction reply=null;
+		IMetaTaskTransaction reply=null;
 
 		addCommonHeaders(transaction);
 		transaction.setDirection(Direction.Request);
@@ -302,8 +302,8 @@ public class DuccHttpClient {
 					logger.error("execute", null, "Thread:"+Thread.currentThread().getId()+" ERRR::Content causing error:"+content,ex);
 					throw ex;
 				}
-				if ( o instanceof IMetaCasTransaction) {
-					reply = (MetaCasTransaction)o;
+				if ( o instanceof IMetaTaskTransaction) {
+					reply = (MetaTaskTransaction)o;
 				} else {
 					throw new InvalidClassException("Expected IMetaCasTransaction - Instead Received "+o.getClass().getName());
 				}
@@ -325,7 +325,7 @@ public class DuccHttpClient {
 		} 
 	}
 
-	private HttpResponse retryUntilSuccessfull(IMetaCasTransaction transaction, HttpPost postMethod) throws Exception {
+	private HttpResponse retryUntilSuccessfull(IMetaTaskTransaction transaction, HttpPost postMethod) throws Exception {
         HttpResponse response=null;
 		// Only one thread attempts recovery. Other threads will block here
 		// until connection to the remote is restored. 
@@ -370,7 +370,7 @@ public class DuccHttpClient {
 			//client.setTimeout(30000);
 			client.initialize(args[0]);
 			int minor = 0;
-			IMetaCasTransaction transaction = new MetaCasTransaction();
+			IMetaTaskTransaction transaction = new MetaTaskTransaction();
 			AtomicInteger seq = new AtomicInteger(0);
 			TransactionId tid = new TransactionId(seq.incrementAndGet(), minor);
 			transaction.setTransactionId(tid);
@@ -382,7 +382,7 @@ public class DuccHttpClient {
 			// send a request to JD and wait for a reply
 	    	transaction = client.execute(transaction, postMethod);
 	        // The JD may not provide a Work Item to process.
-	    	if ( transaction.getMetaCas()!= null) {
+	    	if ( transaction.getMetaTask()!= null) {
 	    		// Confirm receipt of the CAS. 
 				transaction.setType(Type.Ack);
 				//command = Type.Ack.name();
@@ -395,11 +395,11 @@ public class DuccHttpClient {
 			//command = Type.End.name();
 			tid = new TransactionId(seq.incrementAndGet(), minor++);
 			transaction.setTransactionId(tid);
-			IPerformanceMetrics metricsWrapper =
-					new PerformanceMetrics();
+		//	IPerformanceMetrics metricsWrapper =
+		//			new PerformanceMetrics();
 			
-			metricsWrapper.set(Arrays.asList(new Properties()));
-			transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
+			//metricsWrapper.set(Arrays.asList(new Properties()));
+			//transaction.getMetaTask().setPerformanceMetrics(metricsWrapper);
 			
 			transaction = client.execute(transaction, postMethod); 
 

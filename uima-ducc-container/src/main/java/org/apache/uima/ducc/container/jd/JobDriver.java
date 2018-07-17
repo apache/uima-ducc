@@ -48,7 +48,7 @@ import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.WorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceSummaryKeeper;
 import org.apache.uima.ducc.container.jd.wi.perf.WorkItemPerformanceSummaryKeeper;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.JdState;
 
 public class JobDriver {
 

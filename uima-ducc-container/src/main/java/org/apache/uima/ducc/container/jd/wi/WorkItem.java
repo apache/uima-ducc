@@ -25,13 +25,13 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 public class WorkItem implements IWorkItem {
 
 	private static Logger logger = Logger.getLogger(WorkItem.class, IComponent.Id.JD.name());
 	
-	private IMetaCas metaCas = null;
+	private IMetaTask metaCas = null;
 	private IFsm fsm = null;
 	
 	private Tod todGet = new Tod();
@@ -40,18 +40,18 @@ public class WorkItem implements IWorkItem {
 	
 	private Tod todInvestment = new Tod();
 	
-	public WorkItem(IMetaCas metaCas, IFsm fsm) {
+	public WorkItem(IMetaTask metaCas, IFsm fsm) {
 		setMetaCas(metaCas);
 		setFsm(fsm);
 	}
 	
 	@Override
-	public void setMetaCas(IMetaCas value) {
+	public void setMetaCas(IMetaTask value) {
 		metaCas = value;
 	}
 	
 	@Override
-	public IMetaCas getMetaCas() {
+	public IMetaTask getMetaCas() {
 		return metaCas;
 	}
 	

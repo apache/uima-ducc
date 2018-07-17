@@ -28,7 +28,7 @@ import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
-import org.apache.uima.ducc.container.net.impl.MetaCas;
+import org.apache.uima.ducc.ps.net.impl.MetaTask;
 
 public class TestSuite extends TestBase {
 
@@ -134,11 +134,11 @@ public class TestSuite extends TestBase {
 		try {
 			config();
 			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
-			MetaCas mc = pjdcr.getMetaCas();
+			MetaTask mc = pjdcr.getMetaCas();
 			int seqNo = mc.getSeqNo();
 			asExpected("seqNo = "+seqNo);
 			assertTrue(seqNo == 1);
-			String serializedCas = (String)mc.getSerializedCas();
+			String serializedCas = (String)mc.getSerializedTask();
 			checkCas(serializedCas);
 			asExpected("cas = "+serializedCas);
 			String documentText = mc.getDocumentText();
@@ -153,11 +153,11 @@ public class TestSuite extends TestBase {
 
 	private void getMetaCases(ProxyJobDriverCollectionReader pjdcr, int total) throws ProxyException {
 		for(int c=1; c <= total; c++) {
-			MetaCas mc = pjdcr.getMetaCas();
+			MetaTask mc = pjdcr.getMetaCas();
 			int seqNo = mc.getSeqNo();
 			asExpected("seqNo = "+seqNo);
 			assertTrue(seqNo == c);
-			String serializedCas = (String)mc.getSerializedCas();
+			String serializedCas = (String)mc.getSerializedTask();
 			checkCas(serializedCas);
 			asExpected("cas = "+serializedCas);
 			String documentText = mc.getDocumentText();
@@ -174,7 +174,7 @@ public class TestSuite extends TestBase {
 			getMetaCases(pjdcr, total);
 			if(extra > 0) {
 				for(int j=0; j<extra; j++) {
-					MetaCas mc = pjdcr.getMetaCas();
+					MetaTask mc = pjdcr.getMetaCas();
 					assertTrue(mc == null);
 				}
 			}

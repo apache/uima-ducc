@@ -56,13 +56,13 @@ import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.RunningWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceSummaryKeeper;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Hint;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
-import org.apache.uima.ducc.container.net.impl.MetaCas;
-import org.apache.uima.ducc.container.net.impl.TransactionHelper;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Hint;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.JdState;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Type;
+import org.apache.uima.ducc.ps.net.impl.MetaTask;
+import org.apache.uima.ducc.ps.net.impl.TransactionHelper;
 
 public class MessageHandler implements IMessageHandler {
 
@@ -481,7 +481,7 @@ public class MessageHandler implements IMessageHandler {
 	}
 	
 	@Override
-	public void handleMetaCasTransation(IMetaCasTransaction trans) {
+	public void handleMetaCasTransation(IMetaTaskTransaction trans) {
 		String location = "handleMetaCasTransation";
 		RemoteWorkerThread rwt = null;
 		try {
@@ -513,7 +513,7 @@ public class MessageHandler implements IMessageHandler {
 			accumulateTimes(type.name(), stime);
 			JdState jdState = JobDriver.getInstance().getJdState();
 			trans.setJdState(jdState);
-			IMetaCas metaCas = trans.getMetaCas();
+			IMetaTask metaCas = trans.getMetaTask();
 			if(metaCas != null) {
 				metaCas.setPerformanceMetrics(null);
 				metaCas.setUserSpaceException(null);
@@ -527,9 +527,9 @@ public class MessageHandler implements IMessageHandler {
 		}
 	}
 	
-	private void update(IWorkItem wi, IMetaCas metaCas) {
-		IMetaCas local = wi.getMetaCas();
-		IMetaCas remote = metaCas;
+	private void update(IWorkItem wi, IMetaTask metaCas) {
+		IMetaTask local = wi.getMetaCas();
+		IMetaTask remote = metaCas;
 		if(local != null) {
 			if(remote != null) {
 				local.setPerformanceMetrics(remote.getPerformanceMetrics());
@@ -538,7 +538,7 @@ public class MessageHandler implements IMessageHandler {
 		}
 	}
 	
-	private void handleMetaCasTransationGet(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
+	private void handleMetaCasTransationGet(IMetaTaskTransaction trans, IRemoteWorkerThread rwt) {
 		WiTracker tracker = WiTracker.getInstance();
 		IWorkItem wi = tracker.link(rwt);
 		IFsm fsm = wi.getFsm();
@@ -547,10 +547,10 @@ public class MessageHandler implements IMessageHandler {
 		fsm.transition(event, actionData);
 	}
 
-	private void handleMetaCasTransationAck(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
+	private void handleMetaCasTransationAck(IMetaTaskTransaction trans, IRemoteWorkerThread rwt) {
 		String location = "handleMetaCasTransationAck";
 		WiTracker tracker = WiTracker.getInstance();
-		MetaCas metaCas = (MetaCas) trans.getMetaCas();
+		MetaTask metaCas = (MetaTask) trans.getMetaTask();
 		if(tracker.isRecognized(rwt, metaCas)) {
 			IWorkItem wi = tracker.find(rwt);
 			update(wi, metaCas);
@@ -563,15 +563,15 @@ public class MessageHandler implements IMessageHandler {
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		else {
-			trans.setMetaCas(null);
+			trans.setMetaTask(null);
 			TransactionHelper.addResponseHint(trans, Hint.Rejected);
 		}
 	}
 	
-	private void handleMetaCasTransationEnd(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
+	private void handleMetaCasTransationEnd(IMetaTaskTransaction trans, IRemoteWorkerThread rwt) {
 		String location = "handleMetaCasTransationEnd";
 		WiTracker tracker = WiTracker.getInstance();
-		MetaCas metaCas = (MetaCas) trans.getMetaCas();
+		MetaTask metaCas = (MetaTask) trans.getMetaTask();
 		if(tracker.isRecognized(rwt, metaCas)) {
 			IWorkItem wi = tracker.find(rwt);
 			update(wi, metaCas);
@@ -584,15 +584,15 @@ public class MessageHandler implements IMessageHandler {
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		else {
-			trans.setMetaCas(null);
+			trans.setMetaTask(null);
 			TransactionHelper.addResponseHint(trans, Hint.Rejected);
 		}
 	}
 	
-	private void handleMetaCasTransationInvestmentReset(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
+	private void handleMetaCasTransationInvestmentReset(IMetaTaskTransaction trans, IRemoteWorkerThread rwt) {
 		String location = "handleMetaCasTransationInvestmentReset";
 		WiTracker tracker = WiTracker.getInstance();
-		MetaCas metaCas = (MetaCas) trans.getMetaCas();
+		MetaTask metaCas = (MetaTask) trans.getMetaTask();
 		if(tracker.isRecognized(rwt, metaCas)) {
 			IWorkItem wi = tracker.find(rwt);
 			update(wi, metaCas);
@@ -606,7 +606,7 @@ public class MessageHandler implements IMessageHandler {
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		else {
-			trans.setMetaCas(null);
+			trans.setMetaTask(null);
 			TransactionHelper.addResponseHint(trans, Hint.Rejected);
 		}
 	}

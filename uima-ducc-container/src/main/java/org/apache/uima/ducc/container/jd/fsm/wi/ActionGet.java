@@ -45,11 +45,11 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Hint;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
-import org.apache.uima.ducc.container.net.impl.TransactionHelper;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Hint;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.JdState;
+import org.apache.uima.ducc.ps.net.impl.TransactionHelper;
 
 public class ActionGet implements IAction {
 
@@ -92,7 +92,7 @@ public class ActionGet implements IAction {
 		logger.error(location, ILogger.null_id, e);
 		if(isKillWorkItem(e)) {
 			logger.info(location, ILogger.null_id, "killWorkItem");
-			IMetaCas metaCas = getEmptyMetaCas();
+			IMetaTask metaCas = getEmptyMetaCas();
 			JobDriver jd = JobDriver.getInstance();
 			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
@@ -115,8 +115,8 @@ public class ActionGet implements IAction {
 		}
 	}
 	
-	private IMetaCas getEmptyMetaCas() throws JobDriverException {
-		IMetaCas metaCas = null;
+	private IMetaTask getEmptyMetaCas() throws JobDriverException {
+		IMetaTask metaCas = null;
 		JobDriver jd = JobDriver.getInstance();
 		CasManager cm = jd.getCasManager();
 		try {
@@ -172,13 +172,13 @@ public class ActionGet implements IAction {
 				WiTracker tracker = WiTracker.getInstance();
 				IWorkItem wi = tracker.find(rwt);
 				IFsm fsm = wi.getFsm();
-				IMetaCasTransaction trans = actionData.getMetaCasTransaction();
+				IMetaTaskTransaction trans = actionData.getMetaCasTransaction();
 				IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
 				//
 				JobDriver jd = JobDriver.getInstance();
 				JobDriverHelper jdh = JobDriverHelper.getInstance();
 				jd.advanceJdState(JdState.Active);
-				IMetaCas metaCas = null;
+				IMetaTask metaCas = null;
 				JobProcessBlacklist jobProcessBlacklist = JobProcessBlacklist.getInstance();
 				IMetaMetaCas mmc = getMetaMetaCas(actionData);
 				if(mmc.isExhausted()) {
@@ -231,7 +231,7 @@ public class ActionGet implements IAction {
 					metaCas = mmc.getMetaCas();
 				}
 				wi.setMetaCas(metaCas);
-				trans.setMetaCas(metaCas);
+				trans.setMetaTask(metaCas);
 				IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 				MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
 				IProcessStatistics pStats = jdh.getProcessStatistics(rwp);

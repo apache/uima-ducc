@@ -35,8 +35,8 @@ import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.impl.MetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.impl.MetaTask;
 
 public class WiTracker {
 	
@@ -61,7 +61,7 @@ public class WiTracker {
 		if(rwt != null) {
 			wi = find(rwt);
 			if(wi == null) {
-				IMetaCas metaCas = null;
+				IMetaTask metaCas = null;
 				IFsm fsm = new WiFsm();
 				wi = new WorkItem(metaCas, fsm);
 				map.put(rwt, wi);
@@ -75,7 +75,7 @@ public class WiTracker {
 		IWorkItem wi = null;
 		if(rwt != null) {
 			wi = find(rwt);
-			IMetaCas metaCas = wi.getMetaCas();
+			IMetaTask metaCas = wi.getMetaCas();
 			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
 			int seqNo = metaCasHelper.getSystemKey();
 			MessageBuffer mb = new MessageBuffer();
@@ -93,7 +93,7 @@ public class WiTracker {
 		IRemoteWorkerThread rwt = find(wi);
 		if(rwt != null) {
 			wi = find(rwt);
-			IMetaCas metaCas = wi.getMetaCas();
+			IMetaTask metaCas = wi.getMetaCas();
 			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
 			int seqNo = metaCasHelper.getSystemKey();
 			MessageBuffer mb = new MessageBuffer();
@@ -113,7 +113,7 @@ public class WiTracker {
 			wi = map.get(rwt);
 		}
 		if(wi != null) {
-			IMetaCas metaCas = wi.getMetaCas();
+			IMetaTask metaCas = wi.getMetaCas();
 			if(metaCas != null) {
 				
 			}
@@ -174,7 +174,7 @@ public class WiTracker {
 		return submap;
 	}
 	
-	public boolean isRecognized(IRemoteWorkerThread rwt, MetaCas metaCas) {
+	public boolean isRecognized(IRemoteWorkerThread rwt, MetaTask metaCas) {
 		String location = "isRecognized";
 		boolean retVal = true;
 		IWorkItem wi = find(rwt);

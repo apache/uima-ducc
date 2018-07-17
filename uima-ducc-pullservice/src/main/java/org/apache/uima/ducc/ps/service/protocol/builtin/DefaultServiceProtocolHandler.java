@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -44,8 +44,8 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 /**
- *
- * This protocol handler is a Runnable
+ * 
+ * This protocol handler is a Runnable 
  *
  */
 public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
@@ -66,13 +66,13 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	private IService service;
 	// forces process threads to initialize serially
 	private ReentrantLock initLock = new ReentrantLock();
-
+	
 	private static AtomicInteger idGenerator = new AtomicInteger();
 
-
-	private DefaultServiceProtocolHandler(Builder builder) {
-		this.initLatch = builder.initLatch;
-		this.stopLatch = builder.stopLatch;
+	
+	private DefaultServiceProtocolHandler(Builder builder) { 
+		this.initLatch = builder.initLatch; 
+		this.stopLatch = builder.stopLatch; 
 		this.service = builder.service;
 		this.transport = builder.transport;
 		this.processor = builder.processor;
@@ -100,11 +100,12 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			// use a lock to serialize initialization one thread at a time
 			initLock.lock();
 			processor.initialize();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			initError = true;
 			running = false;
+			logger.log(Level.WARNING, "ProtocolHandler initialize() failed -",e);
 			throw new ServiceInitializationException(
-					"Thread:" + Thread.currentThread().getName() + " Failed initialization", e);
+					"Thread:" + Thread.currentThread().getName() + " Failed initialization");
 		} finally {
 
 			initLatch.countDown();
@@ -138,7 +139,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 				throw new TransportException("Received invalid content (null) in response from client - rejecting request");
 			}
 			o = XStreamUtils.unmarshall(content);
-
+			
 		} catch ( Exception e) {
 			if ( !running ) {
 				throw new TransportException("Service stopping - rejecting request");
@@ -171,7 +172,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	}
 
 	private IMetaTaskTransaction callGet(IMetaTaskTransaction transaction) throws Exception {
-		transaction.setType(Type.Get);
+		transaction.setType(Type.Get); 
 		if ( logger.isLoggable(Level.FINE)) {
 			logger.log(Level.FINE, "ProtocolHandler calling GET");
 		}
@@ -179,7 +180,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	}
 	/**
 	 * Block until service start() is called
-	 *
+	 * 
 	 * @throws ServiceInitializationException
 	 */
 	private void awaitStart() throws ServiceInitializationException {
@@ -194,25 +195,19 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 		// we may fail in initialize() in which case the ServiceInitializationException
 		// is thrown
 		initialize();
-
+		
 		// now wait for application to call start
 		awaitStart();
-
+		
 		// all threads intialized, enter running state
 
 		IMetaTaskTransaction transaction = null;
-
+		
 		if ( logger.isLoggable(Level.INFO)) {
 			logger.log(Level.INFO, ".............. Thread "+Thread.currentThread().getId() + " ready to process");
 		}
 
-		logger.log(Level.INFO, "Wait for the initialized state to propagate to the SM " +
-		          "so any processing errors are not treates as initialization failures");
-		try {
-			Thread.sleep(30000);
-		} catch (InterruptedException e1) {
-		};
-
+		
 		while (running) {
 
 			try {
@@ -224,13 +219,13 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 					break;
 				}
 				if (transaction.getMetaTask() == null || transaction.getMetaTask().getUserSpaceTask() == null ) {
-					// the client has no tasks to give.
+					// the client has no tasks to give. 
 					noTaskStrategy.handleNoTaskSupplied();
 					continue;
 				}
 				Object task = transaction.getMetaTask().getUserSpaceTask();
-
-				// send ACK
+				
+				// send ACK 
 				transaction = callAck(transaction);
 				if (!running) {
 					break;
@@ -265,8 +260,8 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 					}).start();
 					running = false;
 				}
-
-
+					
+				
 
 			} catch( IllegalStateException e) {
 				break;
@@ -275,14 +270,17 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			}
 			catch (Exception e) {
 				logger.log(Level.WARNING,"",e);
-			}
+			} 		
 		}
 		stopLatch.countDown();
+		if ( processor != null ) {
+			processor.stop();
+		}
 		logger.log(Level.INFO,"ProtocolHandler terminated");
 		return String.valueOf(Thread.currentThread().getId());
 	}
 
-
+	
 	private void delegateStop() {
 		service.stop();
 	}
@@ -308,8 +306,8 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	public void setTransport(IServiceTransport transport) {
 		this.transport = transport;
 	}
-
-
+	
+	
 	 public static class Builder {
 			private IServiceTransport transport;
 			private IServiceProcessor processor;
@@ -326,15 +324,15 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			public Builder withProcessor(IServiceProcessor processor) {
 				this.processor = processor;
 				return this;
-			}
+			}			
 			public Builder withInitCompleteLatch(CountDownLatch initLatch) {
 				this.initLatch = initLatch;
 				return this;
-			}
+			}			
 			public Builder withDoneLatch(CountDownLatch stopLatch) {
 				this.stopLatch = stopLatch;
 				return this;
-			}
+			}			
 			public Builder withNoTaskStrategy(INoTaskAvailableStrategy strategy) {
 				this.strategy = strategy;
 				return this;

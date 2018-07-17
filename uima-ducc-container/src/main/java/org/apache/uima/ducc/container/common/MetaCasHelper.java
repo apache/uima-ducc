@@ -21,19 +21,19 @@ package org.apache.uima.ducc.container.common;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 public class MetaCasHelper {
 
 	private static Logger logger = Logger.getLogger(MetaCasHelper.class, IComponent.Id.JD.name());
 	
-	private IMetaCas metaCas = null;
+	private IMetaTask metaCas = null;
 	
-	public MetaCasHelper(IMetaCas metaCas) {
+	public MetaCasHelper(IMetaTask metaCas) {
 		setMetaCas(metaCas);
 	}
 	
-	private void setMetaCas(IMetaCas value) {
+	private void setMetaCas(IMetaTask value) {
 		metaCas = value;
 	}
 	

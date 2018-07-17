@@ -745,11 +745,14 @@ public class DuccCommandExecutor extends CommandExecutor {
 						if (!isDucc20ServiceProcess) {
 						  cmdLine.addOption("-Dducc.deploy.components=job-process");
 						}
+						// add port where an agent listens for process state update events
+						processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty("AGENT_AP_STATE_UPDATE_PORT") );
 						((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.user.common.main.DuccJobService");
+						//((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.ps.service.main.ServiceWrapper");
 					} else {
 					  cmdLine.addOption("-Dducc.deploy.components=uima-as");
-					  ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccService");
-					  // ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.ps.service.main.ServiceWrapper");
+					  processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort));
+					   ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccService");
 					}
 					break;
 				}
@@ -862,18 +865,23 @@ public class DuccCommandExecutor extends CommandExecutor {
 							" This process will report state update to Camel-Mina listener running on port:" +
 							System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort)
 							);
-					processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort));
+//					processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort));
 				}
 			}
 
 			// Replace the reserved DUCC variable with the architecture of this node (ppc64 or amd64 or ...)
 			// (could have been done in getCommandLine if that did return the full cmd line!)
 			String osArch = System.getProperty("os.arch");
-            for (int i = 0; i < cmd.length; ++i) {
+            StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < cmd.length; ++i) {
                 if (cmd[i].contains("${DUCC_OS_ARCH}")) {
                     cmd[i] = cmd[i].replace("${DUCC_OS_ARCH}", osArch);
                 }
+                sb.append(cmd[i]).append(" ");
             }
+            logger.info("getDeployableCommandLine --------------- ",
+                    null, sb.toString());
+            
 			return cmd;
 
 		} catch (Exception ex) {

@@ -38,8 +38,8 @@ import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 
 public abstract class ActionEndAbstract extends Action implements IAction {
 	
@@ -65,9 +65,9 @@ public abstract class ActionEndAbstract extends Action implements IAction {
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		IWorkItem wi = actionData.getWorkItem();
-		IMetaCasTransaction trans = actionData.getMetaCasTransaction();
+		IMetaTaskTransaction trans = actionData.getMetaCasTransaction();
 		IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
-		IMetaCas metaCas = wi.getMetaCas();
+		IMetaTask metaCas = wi.getMetaCas();
 		JobDriver jd = JobDriver.getInstance();
 		JobDriverHelper jdh = JobDriverHelper.getInstance();
 		CasManager cm = jd.getCasManager();
@@ -98,7 +98,7 @@ public abstract class ActionEndAbstract extends Action implements IAction {
 		//
 		ProxyJobDriverDirective pjdd = null;
 		try {
-			String serializedCas = (String) metaCas.getUserSpaceCas();
+			String serializedCas = (String) metaCas.getUserSpaceTask();
 			ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
 			pjdd = pjdeh.handle(serializedCas, userException);
 		}

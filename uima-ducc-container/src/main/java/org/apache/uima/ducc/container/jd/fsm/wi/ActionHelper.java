@@ -35,8 +35,8 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.JdState;
 
 public class ActionHelper {
 	
@@ -87,7 +87,7 @@ public class ActionHelper {
 		}
 	}
 	
-	protected static void retryWorkItem(Logger logger, IActionData actionData, CasManager cm, IMetaCas metaCas) {
+	protected static void retryWorkItem(Logger logger, IActionData actionData, CasManager cm, IMetaTask metaCas) {
 		String location = "retryWorkItem";
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
@@ -111,7 +111,7 @@ public class ActionHelper {
 	// restarted from scratch.
 	
 	
-	protected static void killProcess(Logger logger, IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi, DeallocateReason deallocateReason) {
+	protected static void killProcess(Logger logger, IActionData actionData, CasManager cm, IMetaTask metaCas, IWorkItem wi, DeallocateReason deallocateReason) {
 		String location = "killProcess";
 		WiTracker tracker = WiTracker.getInstance();
 		IRemoteWorkerProcess rwp = tracker.getRemoteWorkerProcess(wi);

@@ -37,9 +37,9 @@ import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.jd.mh.MessageHandler;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
-import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Direction;
+import org.apache.uima.ducc.ps.net.impl.MetaTaskTransaction;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
 import org.apache.uima.ducc.transport.dispatcher.ProcessStateDispatcher;
@@ -154,8 +154,8 @@ import org.springframework.context.annotation.Import;
 			}
 		    public void process(Exchange exchange) throws Exception {
 		        // Get the transaction object sent by the JP
-		    	IMetaCasTransaction imt = 
-		        		exchange.getIn().getBody(MetaCasTransaction.class);
+		    	IMetaTaskTransaction imt = 
+		        		exchange.getIn().getBody(MetaTaskTransaction.class);
 		        
 		    	// process JP's request
 		    	jdc.handleJpRequest(imt);
@@ -259,12 +259,12 @@ import org.springframework.context.annotation.Import;
 					//request.getReader().read(content);
 					logger.debug("doPost",jobid, "Http Request Body:::"+String.valueOf(content));
 					
-					IMetaCasTransaction imt=null;
+					IMetaTaskTransaction imt=null;
 					//String t = String.valueOf(content);
 						
 //					imt = (IMetaCasTransaction) XStreamUtils
 //									.unmarshall(t.trim());
-					imt = (IMetaCasTransaction) XStreamUtils
+					imt = (IMetaTaskTransaction) XStreamUtils
 							.unmarshall(content);
 					MessageHandler.accumulateTimes("Unmarshall", post_stime);
 			        

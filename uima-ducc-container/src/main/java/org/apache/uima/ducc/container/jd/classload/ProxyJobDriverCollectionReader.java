@@ -34,7 +34,7 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.mh.MessageHandler;
-import org.apache.uima.ducc.container.net.impl.MetaCas;
+import org.apache.uima.ducc.ps.net.impl.MetaTask;
 import org.apache.uima.ducc.user.common.PrivateClassLoader;
 
 public class ProxyJobDriverCollectionReader {
@@ -135,8 +135,8 @@ public class ProxyJobDriverCollectionReader {
 	}
 	
 	
-	public MetaCas getEmptyMetaCas() throws ProxyException {
-		MetaCas retVal = null;
+	public MetaTask getEmptyMetaCas() throws ProxyException {
+		MetaTask retVal = null;
 		try {
 			method_getJdUserEmptyMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserEmptyMetaCas, nullClassArray);
 			long stime = System.nanoTime();
@@ -151,7 +151,7 @@ public class ProxyJobDriverCollectionReader {
 				Method method_getDocumentText = class_JdUserMetaCas.getMethod(name_getDocumentText, nullClassArray);
 				String rawDocId = (String)ContextSwitch.call(urlClassLoader, method_getDocumentText, instance_metaCas, nullObjectArray);
 				String docId = normalizeDocId(seqNo, rawDocId);
-				retVal = new MetaCas(seqNo, docId, serializedCas);
+				retVal = new MetaTask(seqNo, docId, serializedCas);
 			}
 		} 
 		catch(Exception e) {
@@ -163,8 +163,8 @@ public class ProxyJobDriverCollectionReader {
 	}
 	
 	
-	public MetaCas getMetaCas() throws ProxyException {
-		MetaCas retVal = null;
+	public MetaTask getMetaCas() throws ProxyException {
+		MetaTask retVal = null;
 		try {
 			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
 			long stime = System.nanoTime();
@@ -179,7 +179,7 @@ public class ProxyJobDriverCollectionReader {
 				Method method_getDocumentText = class_JdUserMetaCas.getMethod(name_getDocumentText, nullClassArray);
 				String rawDocId = (String)ContextSwitch.call(urlClassLoader, method_getDocumentText, instance_metaCas, nullObjectArray);
 				String docId = normalizeDocId(seqNo, rawDocId);
-				retVal = new MetaCas(seqNo, docId, serializedCas);
+				retVal = new MetaTask(seqNo, docId, serializedCas);
 			}
 		} 
 		catch(Exception e) {

@@ -18,18 +18,22 @@
 */
 package org.apache.uima.ducc.ps.service.main;
 
+
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.service.IService;
 import org.apache.uima.ducc.ps.service.ServiceConfiguration;
 import org.apache.uima.ducc.ps.service.builders.PullServiceStepBuilder;
+import org.apache.uima.ducc.ps.service.dgen.DeployableGeneration;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 import org.apache.uima.ducc.ps.service.jmx.JMXAgent;
 import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
+import org.apache.uima.ducc.ps.service.processor.uima.UimaAsServiceProcessor;
 import org.apache.uima.ducc.ps.service.processor.uima.UimaServiceProcessor;
 import org.apache.uima.ducc.ps.service.registry.IRegistryClient;
 import org.apache.uima.util.Level;
@@ -43,7 +47,7 @@ public class ServiceWrapper {
 			new ServiceConfiguration();
 	// jmx agent to configure rmi registry so that jconsole clients can connect
 	private JMXAgent jmxAgent;
-	
+
 	private void addShutdownHook() {
 		ServiceShutdownHook shutdownHook = new ServiceShutdownHook(this, logger);
 	    Runtime.getRuntime().addShutdownHook(shutdownHook);
@@ -54,15 +58,19 @@ public class ServiceWrapper {
 		return jmxAgent.start(rmiRegistryPort);
 		
 	}
+
 	/**
-	 * Creates instance of IServiceProcessor. By default it creates built-in UimaServiceProcessor
-	 * but a custom processor is also supported via -Dducc.deploy.custom.processor.class=XX
+	 * Creates instance of IServiceProcessor. It checks -Dducc.deploy.JpType to determine which
+	 * service type is being deployed. For 'uima' type, the method instantiates and returns
+	 * UimaServiceProcessor and for 'uima-as' it returns UimaAsServiceProcessor. If none of
+	 * the above is specified and -Dducc.deploy.custom.processor.class=XX is defined, the code
+	 * instatiates user provided ServiceProcessor.
 	 * 
 	 * @param analysisEngineDescriptorPath path to the AE descriptor
 	 * @return IServiceProcessor instance
 	 * @throws ServiceInitializationException
 	 */
-	private IServiceProcessor createProcessor(String analysisEngineDescriptorPath) 
+	private IServiceProcessor createProcessor(String analysisEngineDescriptorPath, String[] args) 
 	throws ServiceInitializationException{
 		if ( serviceConfiguration.getCustomProcessorClass() != null ) {
 			try {
@@ -77,27 +85,79 @@ public class ServiceWrapper {
 				throw new ServiceInitializationException("Unable to instantiate Custom Processor from class:"+serviceConfiguration.getCustomProcessorClass());
 			}
 		} else {
-			return new UimaServiceProcessor(analysisEngineDescriptorPath, serviceConfiguration);
-		}
+			if  ( "uima".equals(serviceConfiguration.getJpType() ) ){
+				return new UimaServiceProcessor(analysisEngineDescriptorPath, serviceConfiguration);
+			} else if ( "uima-as".equals(serviceConfiguration.getJpType()) ) {
+				return new UimaAsServiceProcessor(args, serviceConfiguration);
+			} else {
+				throw new RuntimeException("Invalid deployment. Set either -Dducc.deploy.JpType=[uima,uima-as] or provide -Dducc.deploy.custom.processor.class=XX where XX implements IServiceProcessor ");
+			}
+		} 
 	}
-	public void initialize(String[] args) throws ServiceInitializationException, ServiceException {
+	/**
+	 * Check if AE descriptor is provided or we need to create it from parts
+	 * 
+	 * @param serviceConfiguration
+	 * @return
+	 */
+	private boolean isPiecesParts(ServiceConfiguration serviceConfiguration ) {
+		return ( "uima".equals(serviceConfiguration.getJpType()) && serviceConfiguration.getAnalysisEngineDescriptorPath() == null);
+	}
+	public void initialize(String[] args ) throws ServiceInitializationException, ServiceException {
 		// collect -Ds and env vars
 		serviceConfiguration.collectProperties(args);
 		serviceConfiguration.validateProperties();
 		addShutdownHook();
 		// validateProperties() call above checked if a user provided AE descriptor path
-		String analysisEngineDescriptorPath = 
-				serviceConfiguration.getAnalysisEngineDescriptorPath();
+		String analysisEngineDescriptorPath; 
 
 		// create JMX agent
 		String serviceJmxConnectString = startJmxAgent();
 		
 		serviceConfiguration.setServiceJmxConnectURL(serviceJmxConnectString);
+		IServiceProcessor processor;
+		if ( isPiecesParts(serviceConfiguration)) {
+			DeployableGeneration dg = new DeployableGeneration(serviceConfiguration);
+			try {
+				analysisEngineDescriptorPath = dg.generate(true);
+				logger.log(Level.INFO, "Deploying UIMA based service using generated (pieces-parts) AE descriptor "+analysisEngineDescriptorPath);
+			} catch( Exception e) {
+				throw new ServiceException("Unable to generate AE descriptor from parts");
+			}
+		} else {
+			analysisEngineDescriptorPath = serviceConfiguration.getAnalysisEngineDescriptorPath();
+			if ( analysisEngineDescriptorPath != null ) {
+				logger.log(Level.INFO, "Deploying UIMA based service using provided descriptor "+analysisEngineDescriptorPath);
+			}
+		}
+		processor = createProcessor(analysisEngineDescriptorPath, args);
+
+		Objects.requireNonNull(processor, "Unable to instantiate IServiceProcessor");
 		
-		IServiceProcessor processor = 
-				createProcessor(analysisEngineDescriptorPath);
+		if ( serviceConfiguration.getCustomRegistryClass() != null ) {
+			service = PullServiceStepBuilder.newBuilder()
+					.withProcessor(processor)
+					.withRegistry(getRegistryClient())
+					.withType(serviceConfiguration.getServiceType())
+					.withScaleout(Integer.valueOf(serviceConfiguration.getThreadCount()))
+					.withOptionalsDone().build();
+
+		} else {
+			service = PullServiceStepBuilder.newBuilder()
+					.withProcessor(processor)
+					.withClientURL(serviceConfiguration.getClientURL())
+					.withType(serviceConfiguration.getServiceType())
+					.withScaleout(Integer.valueOf(serviceConfiguration.getThreadCount()))
+					.withOptionalsDone().build();
+
+		}
+		
+
+		service.initialize();
+
+	}
+	private IRegistryClient getRegistryClient() throws ServiceInitializationException {
 		IRegistryClient registryClient= null;
-		
 		if ( serviceConfiguration.getCustomRegistryClass() != null ) {
 			try {
 				Class<?> clz = Class.forName(serviceConfiguration.getCustomRegistryClass()) ;
@@ -117,30 +177,10 @@ public class ServiceWrapper {
 			} catch( Exception e) {
 				logger.log(Level.WARNING,"",e);
 				throw new ServiceInitializationException("Unable to instantiate Custom Registry Client from class:"+serviceConfiguration.getCustomRegistryClass());
-				
 			}
-			service = PullServiceStepBuilder.newBuilder()
-					.withProcessor(processor)
-					.withRegistry(registryClient)
-					.withType(serviceConfiguration.getServiceType())
-					.withScaleout(Integer.valueOf(serviceConfiguration.getThreadCount()))
-					.withOptionalsDone().build();
-
-		} else {
-			service = PullServiceStepBuilder.newBuilder()
-					.withProcessor(processor)
-					.withClientURL(serviceConfiguration.getClientURL())
-					.withType(serviceConfiguration.getServiceType())
-					.withScaleout(Integer.valueOf(serviceConfiguration.getThreadCount()))
-					.withOptionalsDone().build();
-
 		}
-		
-
-		service.initialize();
-
+		return registryClient;
 	}
-
 	public void start() throws ServiceException, ExecutionException {
 		service.start();
 	}
@@ -156,14 +196,16 @@ public class ServiceWrapper {
 	}
 
 	public static void main(String[] args) {
-		ServiceWrapper wrapper = new ServiceWrapper();
+		ServiceWrapper wrapper = null;
 		try {
-			
+			wrapper = new ServiceWrapper();
 			wrapper.initialize(args);
 			wrapper.start();
 		} catch( Exception e) {
 			UIMAFramework.getLogger().log(Level.WARNING, "", e);
-			wrapper.stop();
+			if ( wrapper != null ) {
+				wrapper.stop();
+			}
 		}
 	}
 	 static class ServiceShutdownHook extends Thread {
@@ -174,7 +216,7 @@ public class ServiceWrapper {
 		      this.serviceWrapper = serviceWrapper;
 		      this.logger = logger;
 		    }
-
+		    @Override
 		    public void run() {
 		      try {
 		          logger.log(Level.INFO, "Pull Service Caught SIGTERM Signal - Stopping ...");
@@ -187,3 +229,4 @@ public class ServiceWrapper {
 		    }
 		  }
 }
+

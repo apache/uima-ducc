@@ -29,7 +29,7 @@ import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 public class CasManager {
 
@@ -37,7 +37,7 @@ public class CasManager {
 	
 	private ProxyJobDriverCollectionReader pjdcr = null;
 	
-	private LinkedBlockingQueue<IMetaCas> cacheQueue = new LinkedBlockingQueue<IMetaCas>();
+	private LinkedBlockingQueue<IMetaTask> cacheQueue = new LinkedBlockingQueue<IMetaTask>();
 	
 	private CasManagerStats casManagerStats = new CasManagerStats();
 
@@ -57,8 +57,8 @@ public class CasManager {
 		}
 	}
 	
-	public IMetaCas getEmptyMetaCas() throws ProxyException  {
-		IMetaCas retVal = null;
+	public IMetaTask getEmptyMetaCas() throws ProxyException  {
+		IMetaTask retVal = null;
 		if(retVal == null) {
 			retVal = pjdcr.getEmptyMetaCas();
 			if(retVal != null) {
@@ -68,8 +68,8 @@ public class CasManager {
 		return retVal;
 	}
 	
-	public IMetaCas getMetaCas() throws ProxyException, JobDriverException {
-		IMetaCas retVal = dequeueMetaCas();
+	public IMetaTask getMetaCas() throws ProxyException, JobDriverException {
+		IMetaTask retVal = dequeueMetaCas();
 		if(retVal == null) {
 			retVal = pjdcr.getMetaCas();
 			if(retVal != null) {
@@ -82,9 +82,9 @@ public class CasManager {
 		return retVal;
 	}
 
-	private IMetaCas dequeueMetaCas() throws JobDriverException {
+	private IMetaTask dequeueMetaCas() throws JobDriverException {
 		String location = "dequeueMetaCas";
-		IMetaCas metaCas = cacheQueue.poll();
+		IMetaTask metaCas = cacheQueue.poll();
 		if(metaCas != null) {
 			casManagerStats.incRetryQueueGets();
 			MessageBuffer mb = new MessageBuffer();
@@ -96,11 +96,11 @@ public class CasManager {
 		return metaCas;
 	}
 	
-	public void putMetaCas(IMetaCas metaCas, RetryReason retryReason) {
+	public void putMetaCas(IMetaTask metaCas, RetryReason retryReason) {
 		queueMetaCas(metaCas, retryReason);
 	}
 	
-	private void queueMetaCas(IMetaCas metaCas, RetryReason retryReason) {
+	private void queueMetaCas(IMetaTask metaCas, RetryReason retryReason) {
 		String location = "queueMetaCas";
 		cacheQueue.add(metaCas);
 		casManagerStats.incRetryQueuePuts();

@@ -28,14 +28,14 @@ import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Hint;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Hint;
 
 public class TransactionHelper {
 
 	private static Logger logger = Logger.getLogger(TransactionHelper.class, IComponent.Id.JD.name());
 	
-	public static void addResponseHint(IMetaCasTransaction trans, Hint hint) {
+	public static void addResponseHint(IMetaTaskTransaction trans, Hint hint) {
 		String location = "addResponseHint";
 		if(trans != null) {
 			if(hint != null) {

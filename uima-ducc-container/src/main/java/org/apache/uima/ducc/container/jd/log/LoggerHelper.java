@@ -27,8 +27,8 @@ import org.apache.uima.ducc.container.jd.fsm.wi.IActionData;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 
 public class LoggerHelper {
 
@@ -37,7 +37,7 @@ public class LoggerHelper {
 	public static String getTransNo(IActionData actionData) {
 		String retVal = "?";
 		try {
-			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
+			IMetaTaskTransaction trans = actionData.getMetaCasTransaction();
 			retVal = trans.getTransactionId().toString();
 		}
 		catch(Exception e) {
@@ -61,7 +61,7 @@ public class LoggerHelper {
 	public static String getSeqNo(IWorkItem wi) {
 		String retVal = "?";
 		try {
-			IMetaCas metaCas = wi.getMetaCas();
+			IMetaTask metaCas = wi.getMetaCas();
 			retVal = metaCas.getSystemKey();
 		}
 		catch(Exception e) {
@@ -73,7 +73,7 @@ public class LoggerHelper {
 	public static String getId(IWorkItem wi) {
 		String retVal = "?";
 		try {
-			IMetaCas metaCas = wi.getMetaCas();
+			IMetaTask metaCas = wi.getMetaCas();
 			retVal = metaCas.getUserKey();
 		}
 		catch(Exception e) {
@@ -85,7 +85,7 @@ public class LoggerHelper {
 	public static String getRemote(IActionData actionData) {
 		String retVal = "?";
 		try {
-			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
+			IMetaTaskTransaction trans = actionData.getMetaCasTransaction();
 			IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
 			retVal = rwt.toString();
 		}
@@ -126,7 +126,7 @@ public class LoggerHelper {
 		return mb;
 	}
 	
-	public static MessageBuffer getMessageBuffer(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
+	public static MessageBuffer getMessageBuffer(IMetaTaskTransaction trans, IRemoteWorkerThread rwt) {
 		String location = "getMessageBuffer";
 		MessageBuffer mb = new MessageBuffer();
 		try {

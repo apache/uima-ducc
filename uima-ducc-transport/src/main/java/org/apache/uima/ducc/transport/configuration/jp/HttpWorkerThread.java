@@ -24,6 +24,7 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -33,12 +34,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.http.client.methods.HttpPost;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
-import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
-import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
-import org.apache.uima.ducc.container.net.impl.TransactionId;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Type;
+import org.apache.uima.ducc.ps.net.impl.MetaTaskTransaction;
+
+import org.apache.uima.ducc.ps.net.impl.TransactionId;
+import org.apache.uima.ducc.ps.service.processor.IServiceResultSerializer;
+import org.apache.uima.ducc.ps.service.processor.uima.utils.PerformanceMetrics;
+import org.apache.uima.ducc.ps.service.processor.uima.utils.UimaResultDefaultSerializer;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
@@ -52,8 +56,8 @@ public class HttpWorkerThread implements Runnable {
 	private Object processorInstance = null;
     private static AtomicInteger IdGenerator =
     		new AtomicInteger();
-    private Map<String, IMetaCasTransaction> transactionMap =
-    		new ConcurrentHashMap<String, IMetaCasTransaction>();
+    private Map<String, IMetaTaskTransaction> transactionMap =
+    		new ConcurrentHashMap<String, IMetaTaskTransaction>();
     static AtomicInteger maxFrameworkFailures;
     private int maxFrameworkErrors = 2;   // default
     // define what happens to this jvm when process() method fails.
@@ -63,7 +67,7 @@ public class HttpWorkerThread implements Runnable {
     
 	public HttpWorkerThread(JobProcessComponent component, DuccHttpClient httpClient,
 			Object processorInstance, CountDownLatch workerThreadCount,
-			CountDownLatch threadReadyCount, Map<String, IMetaCasTransaction> transactionMap,
+			CountDownLatch threadReadyCount, Map<String, IMetaTaskTransaction> transactionMap,
 			AtomicInteger maxFrameworkFailures ) {
 		this.duccComponent = component;
 		this.httpClient = httpClient;
@@ -85,10 +89,10 @@ public class HttpWorkerThread implements Runnable {
 		}
 	}   
 
-	public IMetaCasTransaction getWork(HttpPost postMethod, int major, int minor) throws Exception {
+	public IMetaTaskTransaction getWork(HttpPost postMethod, int major, int minor) throws Exception {
 		String command="";
 
-		IMetaCasTransaction transaction = new MetaCasTransaction();
+		IMetaTaskTransaction transaction = new MetaTaskTransaction();
 		try {
 			TransactionId tid = new TransactionId(major, minor);
 			transaction.setTransactionId(tid);
@@ -102,16 +106,16 @@ public class HttpWorkerThread implements Runnable {
 	    	transaction = httpClient.execute(transaction, postMethod);
 	    	//httpClient.testConnection();
 	        // The JD may not provide a Work Item to process.
-	    	if ( transaction != null && transaction.getMetaCas()!= null) {
-				logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaCas().getSystemKey());
+	    	if ( transaction != null && transaction.getMetaTask()!= null) {
+				logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaTask().getSystemKey());
 				// Confirm receipt of the CAS. 
 				transaction.setType(Type.Ack);
 				command = Type.Ack.name();
 				tid = new TransactionId(major, minor++);
 				transaction.setTransactionId(tid);
-				logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Sending ACK request - WI:"+transaction.getMetaCas().getSystemKey());
+				logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Sending ACK request - WI:"+transaction.getMetaTask().getSystemKey());
 				transaction = httpClient.execute(transaction, postMethod); 
-				if ( transaction.getMetaCas() == null) {
+				if ( transaction.getMetaTask() == null) {
 					// this can be the case when a JD receives ACK late 
 					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" ACK reply recv'd, however there is no MetaCas. The JD Cancelled the transaction");
 				} else {
@@ -179,7 +183,7 @@ public class HttpWorkerThread implements Runnable {
 	   			// allow agent some time to process FailedInitialization event 
 	   			Thread.sleep(2000);
 	   		} catch( Exception e) {}
-	   		System.exit(1);
+	//   		System.exit(1);
 			/* *****************************************/
 			/* *****************************************/
 			/* *****************************************/
@@ -211,7 +215,7 @@ public class HttpWorkerThread implements Runnable {
 			
 	   	logger.info("HttpWorkerThread.run()", null, "Begin Processing Work Items - Thread Id:"+Thread.currentThread().getId());
 		try {
-			IMetaCasTransaction transaction=null;
+			IMetaTaskTransaction transaction=null;
 			int major = 0;
 			int minor = 0;
 			// Enter process loop. Stop this thread on the first process error.
@@ -239,7 +243,7 @@ public class HttpWorkerThread implements Runnable {
 					// done. In such case, reduce frequency of Get requests
 					// by sleeping in between Get's. Eventually the OR will 
 					// deallocate this process and the thread will exit
-					if ( transaction.getMetaCas() == null || transaction.getMetaCas().getUserSpaceCas() == null) {
+					if ( transaction.getMetaTask() == null || transaction.getMetaTask().getUserSpaceTask() == null) {
 					  logger.info("run", null, "Client is out of work - will retry quietly every",duccComponent.getThreadSleepTime()/1000,"secs.");
     					
     			  // Retry at the start of this block as another thread may have just exited with work
@@ -247,7 +251,7 @@ public class HttpWorkerThread implements Runnable {
  						synchronized (HttpWorkerThread.class) {
 							while(duccComponent.isRunning() ) {
 							  transaction = getWork(postMethod, major, ++minor);
-							  if ( transaction.getMetaCas() != null && transaction.getMetaCas().getUserSpaceCas() != null ) {
+							  if ( transaction.getMetaTask() != null && transaction.getMetaTask().getUserSpaceTask() != null ) {
 							    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" work flow has restarted");
 							    break;
 							  }
@@ -273,7 +277,7 @@ public class HttpWorkerThread implements Runnable {
 							// that key to allow us to look up original transaction so that
 							// we can send reset request to the JD.
 							String key = (String)
-									getKeyMethod.invoke(processorInstance, transaction.getMetaCas().getUserSpaceCas());
+									getKeyMethod.invoke(processorInstance, transaction.getMetaTask().getUserSpaceTask());
 							if ( key != null ) {
 								// add transaction under th
 								transactionMap.put(key, transaction);
@@ -286,7 +290,7 @@ public class HttpWorkerThread implements Runnable {
 							// using java reflection, call process to analyze the CAS. While 
 							// we are blocking, user code may issue investment reset asynchronously.
 							 List<Properties> metrics = (List<Properties>)processMethod.
-							   invoke(processorInstance, transaction.getMetaCas().getUserSpaceCas());
+							   invoke(processorInstance, transaction.getMetaTask().getUserSpaceTask());
 							//    ***********************************
 							if ( key != null ) {
                                 // process ended we no longer expect investment reset from user
@@ -295,10 +299,29 @@ public class HttpWorkerThread implements Runnable {
 							}
 							
 		                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
-							PerformanceMetrics metricsWrapper =
-									new PerformanceMetrics();
-							metricsWrapper.set(metrics);
-							transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
+							//PerformanceMetrics metricsWrapper =
+							//		new PerformanceMetrics();
+						//	metricsWrapper.set(metrics);
+							IServiceResultSerializer deserializer =
+									new UimaResultDefaultSerializer();
+							
+							/*
+							 				p.setProperty("name", metrics.getName());
+				p.setProperty("uniqueName", metrics.getUniqueName());
+				p.setProperty("analysisTime",
+						String.valueOf(metrics.getAnalysisTime()));
+				p.setProperty("numProcessed",
+						String.valueOf(metrics.getNumProcessed()));
+
+							 */
+							List<PerformanceMetrics> pmList = new ArrayList<PerformanceMetrics>();
+							for( Properties p : metrics) {
+								PerformanceMetrics pm = 
+										new PerformanceMetrics(p.getProperty("name"), p.getProperty("uniqueName"), Long.parseLong(p.getProperty("analysisTime")));
+								pmList.add(pm);
+							}
+							
+							transaction.getMetaTask().setPerformanceMetrics(deserializer.serialize(pmList));
 							
 						}  catch( InvocationTargetException ee) {
 							
@@ -315,7 +338,7 @@ public class HttpWorkerThread implements Runnable {
 							if ( !duccComponent.isRunning() ) {
 								break;
 							}
-							IMetaCas mc = transaction.getMetaCas();
+							IMetaTask mc = transaction.getMetaTask();
 							//byte[] serializedException = null;
 							Method getLastSerializedErrorMethod = processorInstance.getClass().getDeclaredMethod("getLastSerializedError");
 							byte[] serializedException =
@@ -342,10 +365,10 @@ public class HttpWorkerThread implements Runnable {
 							transaction.getMetaCas().setUserSpaceException(baos.toByteArray());
 						    */
 							logger.error("run", null, ee);
-							transaction.getMetaCas().setUserSpaceException(serializedException);								
+							transaction.getMetaTask().setUserSpaceException(serializedException);								
 						}
 						// Dont return serialized CAS to reduce the msg size
-						transaction.getMetaCas().setUserSpaceCas(null);
+						transaction.getMetaTask().setUserSpaceTask(null);
 						transaction.setType(Type.End);
 						//String command = Type.End.name();
 						
@@ -369,7 +392,7 @@ public class HttpWorkerThread implements Runnable {
 
 						String wid = null;
                     	try {
-                    		wid = transaction.getMetaCas().getSystemKey();
+                    		wid = transaction.getMetaTask().getSystemKey();
                     	} catch( Exception e) {
                     		
                     	}

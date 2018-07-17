@@ -35,7 +35,7 @@ import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 public class ActionProcessPreempt extends Action implements IAction {
 
@@ -46,7 +46,7 @@ public class ActionProcessPreempt extends Action implements IAction {
 		return ActionProcessPreempt.class.getName();
 	}
 	
-	private void recallWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas, IWorkItem wi) {
+	private void recallWorkItem(IActionData actionData, CasManager cm, IMetaTask metaCas, IWorkItem wi) {
 		String location = "recallWorkItem";
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
@@ -64,7 +64,7 @@ public class ActionProcessPreempt extends Action implements IAction {
 		try {
 			if(actionData != null) {
 				IWorkItem wi = actionData.getWorkItem();
-				IMetaCas metaCas = wi.getMetaCas();
+				IMetaTask metaCas = wi.getMetaCas();
 				JobDriver jd = JobDriver.getInstance();
 				CasManager cm = jd.getCasManager();
 				WiTracker tracker = WiTracker.getInstance();

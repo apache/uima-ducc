@@ -46,9 +46,11 @@ import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceIndividualKeeper;
 import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceSummaryKeeper;
 import org.apache.uima.ducc.container.jd.wi.perf.WorkItemPerformanceIndividualKeeper;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.service.processor.IServiceResultSerializer;
+import org.apache.uima.ducc.ps.service.processor.uima.utils.PerformanceMetrics;
+import org.apache.uima.ducc.ps.service.processor.uima.utils.UimaResultDefaultSerializer;
 
 public class ActionEnd extends ActionEndAbstract implements IAction {
 
@@ -121,15 +123,25 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 	private void updatePerformanceMetrics(IActionData actionData, IWorkItem wi) {
 		String location = "updatePerformanceMetrics";
 		if(wi != null) {
-			IMetaCas metaCas = wi.getMetaCas();
+			IMetaTask metaCas = wi.getMetaCas();
 			if(metaCas != null) {
-				IPerformanceMetrics performanceMetrics = metaCas.getPerformanceMetrics();
-				if(performanceMetrics != null) {
-					List<Properties> list = performanceMetrics.get();
-					if(list != null) {
+				IServiceResultSerializer deserializer =
+						new UimaResultDefaultSerializer();
+				List<PerformanceMetrics> performanceMetrics = null; 
+				String serializedPerformance = metaCas.getPerformanceMetrics();
+				try {
+					performanceMetrics = deserializer.deserialize(serializedPerformance);
+				} catch( Exception e) {
+					logger.error(location, ILogger.null_id, e);
+				}
+				
+				if(performanceMetrics != null && !performanceMetrics.isEmpty()) {
+					//List<Properties> list = performanceMetrics.get();
+					//if(list != null) {
 						int size = 0;
-						if(list !=  null) {
-							size = list.size();
+						//if(list !=  null) {
+							//size = list.size();
+						size = performanceMetrics.size();
 							JobDriver jd = JobDriver.getInstance();
 							String logdir = jd.getLogDir();
 							String seqNo = ""+wi.getSeqNo();
@@ -137,42 +149,62 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 							IWorkItemPerformanceSummaryKeeper wipsk = jd.getWorkItemPerformanceSummaryKeeper();
 							wipsk.count();
 							long total_time = 0;
-							for(Properties properties : list) {
+							//for(Properties properties : list) {
+							for( PerformanceMetrics pm : performanceMetrics) {
+								/*
 								String name = properties.getProperty(keyName);
 								String uniqueName = normalizeUniqueName(properties.getProperty(keyUniqueName));
 								String analysisTime = properties.getProperty(keyAnalysisTime);
-								long time = 0;
+								*/
+								String name = pm.getName();
+								String uniqueName = normalizeUniqueName(pm.getUniqueName());
+								long time = pm.getAnalysisTime();
+								//long time = 0;
+								/*
 								try {
 									time = Long.parseLong(analysisTime);
 								}
 								catch(Exception e) {
 									logger.error(location, ILogger.null_id, e);
 								}
+								*/
 								if(time < 0) {
-									String text = "seqNo="+seqNo+" "+"time="+time+" "+"analysisTime="+analysisTime+" "+"uniqueName="+uniqueName;
+//									String text = "seqNo="+seqNo+" "+"time="+time+" "+"analysisTime="+analysisTime+" "+"uniqueName="+uniqueName;
+									String text = "seqNo="+seqNo+" "+"time="+time+" "+"analysisTime="+time+" "+"uniqueName="+uniqueName;
 									logger.warn(location, ILogger.null_id, text);
 								}
 								wipik.dataAdd(name, uniqueName, time);
 								wipsk.dataAdd(name, uniqueName, time);
-								for(Entry<Object, Object> entry : properties.entrySet()) {
-									String key = (String) entry.getKey();
-									String value = (String) entry.getValue();
+								//for(Entry<Object, Object> entry : properties.entrySet()) {
+									//String key = (String) entry.getKey();
+									//String value = (String) entry.getValue();
 									MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+/*									
 									mb.append(Standardize.Label.key.get()+key);
 									mb.append(Standardize.Label.value.get()+value);
+*/
+									mb.append(Standardize.Label.key.get()+"name");
+									mb.append(Standardize.Label.value.get()+name);
+									
+									mb.append(Standardize.Label.key.get()+"uniqueName");
+									mb.append(Standardize.Label.value.get()+uniqueName);
+
+									mb.append(Standardize.Label.key.get()+"analysisTime");
+									mb.append(Standardize.Label.value.get()+time);
+
 									logger.debug(location, ILogger.null_id, mb.toString());
-								}
+								//}
 								total_time += time;
 							}
 							wipik.publish();
 							// Add the aggregate values as if a no-name delegate
 							wipsk.dataAdd("TOTALS", "", total_time);
-						}
+						//}
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						mb.append(Standardize.Label.size.get()+size);
 						logger.debug(location, ILogger.null_id, mb.toString());
 					}
-				}
+				//}
 			}
 		}
 	}
@@ -185,9 +217,9 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 		try {
 			if(actionData != null) {
 				IWorkItem wi = actionData.getWorkItem();
-				IMetaCasTransaction trans = actionData.getMetaCasTransaction();
+				IMetaTaskTransaction trans = actionData.getMetaCasTransaction();
 				IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
-				IMetaCas metaCas = wi.getMetaCas();
+				IMetaTask metaCas = wi.getMetaCas();
 				JobDriver jd = JobDriver.getInstance();
 				JobDriverHelper jdh = JobDriverHelper.getInstance();
 				CasManager cm = jd.getCasManager();

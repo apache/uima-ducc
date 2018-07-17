@@ -35,7 +35,7 @@ import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo.CompletionType;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.JdState;
 import org.apache.uima.ducc.transport.event.common.DuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.DuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;

@@ -38,7 +38,7 @@ import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 public class ActionProcessFailure extends Action implements IAction {
 
@@ -53,7 +53,7 @@ public class ActionProcessFailure extends Action implements IAction {
 		return ActionProcessFailure.class.getName();
 	}
 	
-	private void retryWorkItem(IActionData actionData, CasManager cm, IWorkItem wi, IMetaCas metaCas, IRemoteWorkerProcess rwp) {
+	private void retryWorkItem(IActionData actionData, CasManager cm, IWorkItem wi, IMetaTask metaCas, IRemoteWorkerProcess rwp) {
 		String location = "retryWorkItem";
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
@@ -72,11 +72,11 @@ public class ActionProcessFailure extends Action implements IAction {
 		pStats.retry(wi);
 	}
 	
-	private void killWorkItem(CasManager cm, IWorkItem wi, IMetaCas metaCas, IRemoteWorkerProcess rwp) {
+	private void killWorkItem(CasManager cm, IWorkItem wi, IMetaTask metaCas, IRemoteWorkerProcess rwp) {
 		//TODO
 	}
 	
-	private void killJob(CasManager cm, IWorkItem wi, IMetaCas metaCas, IRemoteWorkerProcess rwp) {
+	private void killJob(CasManager cm, IWorkItem wi, IMetaTask metaCas, IRemoteWorkerProcess rwp) {
 		//TODO
 	}
 	
@@ -88,7 +88,7 @@ public class ActionProcessFailure extends Action implements IAction {
 		try {
 			if(actionData != null) {
 				IWorkItem wi = actionData.getWorkItem();
-				IMetaCas metaCas = wi.getMetaCas();
+				IMetaTask metaCas = wi.getMetaCas();
 				JobDriver jd = JobDriver.getInstance();
 				CasManager cm = jd.getCasManager();
 				WiTracker tracker = WiTracker.getInstance();
@@ -97,7 +97,7 @@ public class ActionProcessFailure extends Action implements IAction {
 				if(rwp != null) {
 					IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 					if(metaCas != null) {
-						String serializedCas = (String) metaCas.getUserSpaceCas();
+						String serializedCas = (String) metaCas.getUserSpaceTask();
 						ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
 						ProxyJobDriverDirective pjdd = pjdeh.handle(serializedCas);
 						if(pjdd != null) {

@@ -31,8 +31,8 @@ import org.apache.uima.ducc.container.jd.test.TestBase;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.jd.wi.WorkItem;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.impl.MetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.impl.MetaTask;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,17 +53,17 @@ public class TestWiTracker extends TestBase  {
 		return fsm;
 	}
 	
-	private IMetaCas getMetaCas(int seqNo) {
-		IMetaCas metaCas = null;
+	private IMetaTask getMetaCas(int seqNo) {
+		IMetaTask metaCas = null;
 		String text = ""+seqNo;
 		Object cas = null;
-		metaCas = new MetaCas(seqNo, text, cas);
+		metaCas = new MetaTask(seqNo, text, cas);
 		return metaCas;
 	}
 	
 	private IWorkItem getWi(int seqNo) {
 		IWorkItem wi = null;
-		IMetaCas metaCas = getMetaCas(seqNo);
+		IMetaTask metaCas = getMetaCas(seqNo);
 		IFsm fsm = getFsm();
 		wi = new WorkItem(metaCas, fsm);
 		return wi;
@@ -90,7 +90,7 @@ public class TestWiTracker extends TestBase  {
 		IRemoteWorkerThread rwt01A = getRemoteWorkerThread();
 		IWorkItem wi01A = tracker.link(rwt01A);
 		tracker.assign(rwt01A);
-		IMetaCas metaCas = getMetaCas(1);
+		IMetaTask metaCas = getMetaCas(1);
 		wi01A.setMetaCas(metaCas);
 		//
 		assertTrue(tracker.getSize() == 1);

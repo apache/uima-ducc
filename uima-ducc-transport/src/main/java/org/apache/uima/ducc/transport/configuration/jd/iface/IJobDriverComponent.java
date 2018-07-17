@@ -19,8 +19,8 @@
 
 package org.apache.uima.ducc.transport.configuration.jd.iface;
 
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 
 public interface IJobDriverComponent {
-	public void handleJpRequest(IMetaCasTransaction metaCasTransaction) throws Exception;
+	public void handleJpRequest(IMetaTaskTransaction metaCasTransaction) throws Exception;
 }

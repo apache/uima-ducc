@@ -24,7 +24,7 @@ import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteNode;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
-import org.apache.uima.ducc.container.net.iface.IMetaCasRequester;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskRequester;
 
 public class RemoteWorkerThread implements IRemoteWorkerThread {
 
@@ -41,7 +41,7 @@ public class RemoteWorkerThread implements IRemoteWorkerThread {
 	private int pid = 0;
 	private int tid = 0;
 	
-	public RemoteWorkerThread(IMetaCasRequester metaCasRequester) {
+	public RemoteWorkerThread(IMetaTaskRequester metaCasRequester) {
 		setNodeName(metaCasRequester.getRequesterNodeName());
 		setNodeAddress(metaCasRequester.getRequesterAddress());
 		setPidName(metaCasRequester.getRequesterProcessName());

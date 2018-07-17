@@ -76,7 +76,6 @@ public class RemoteStateObserver implements IServiceMonitor {
 			if ( socket == null ) {
 				return;
 			}
-			//String serviceData = "";
 			if ( additionalData == null ) {
 				additionalData = new Properties();
 			} 
@@ -84,7 +83,6 @@ public class RemoteStateObserver implements IServiceMonitor {
 					!serviceConfiguration.getAssignedJmxPort().trim().isEmpty()) {
 				additionalData.setProperty(SERVICE_JMS_PORT, serviceConfiguration.getAssignedJmxPort().trim());
 			}
-			//serviceData = XStreamUtils.marshall(additionalData);
 			// Agent needs process unique ID to identify it within inventory.
 			// The unique id was added as an env var by an agent before this
 			// process was launched.
@@ -94,15 +92,9 @@ public class RemoteStateObserver implements IServiceMonitor {
 			   .append(SEPARATOR)
 			   .append(SERVICE_STATE)
 			   .append(state);
-//			   .append(SEPARATOR)
-//			   .append(SERVICE_DATA)
-//			   .append(serviceData);
 			out = new DataOutputStream(socket.getOutputStream());
 			out.writeUTF(sb.toString());
 			out.flush();
-//			if (logger.isLoggable(Level.FINE)) {
-//				logger.log(Level.FINE, "Sent new State:" + state);
-//			}
 		} catch (Exception e) {
 			
 		} finally {

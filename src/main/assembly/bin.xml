@@ -64,6 +64,7 @@ under the License.
         <include>org.apache.uima:uima-ducc-agent</include>
         <include>org.apache.uima:uima-ducc-cli</include>
         <include>org.apache.uima:uima-ducc-pm</include>
+        <include>org.apache.uima:uima-ducc-pullservice</include>
         <include>org.apache.uima:uima-ducc-rm</include>
         <include>org.apache.uima:uima-ducc-sm</include>
         <include>org.apache.uima:uima-ducc-orchestrator</include>
@@ -96,6 +97,7 @@ under the License.
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.uima:uima-ducc-user</include>
+         <!--include>org.apache.uima:uima-ducc-pullservice</include-->
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
       <outputDirectory>lib/uima-ducc/user</outputDirectory>

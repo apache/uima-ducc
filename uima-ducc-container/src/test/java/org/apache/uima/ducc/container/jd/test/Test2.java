@@ -32,6 +32,7 @@ import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.impl.WorkItemInfo;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,7 +53,7 @@ public class Test2 extends TestSuite {
 			CasManager cm = new CasManager();
 			int total = cm.getCasManagerStats().getCrTotal();
 			assertTrue(total == 100);
-			IMetaCas metaCas = cm.getMetaCas();
+			IMetaTask metaCas = cm.getMetaCas();
 			int retrys = 3;
 			while(metaCas != null) {
 				if(cm.getCasManagerStats().getRetryQueuePuts() < retrys) {

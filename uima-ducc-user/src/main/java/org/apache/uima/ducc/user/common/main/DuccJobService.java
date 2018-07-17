@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.user.common.main;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -29,7 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.uima.ducc.user.common.investment.Investment;
-import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 
 /**
  * Main program that is used to launch Job Process(JP).
@@ -38,10 +38,9 @@ import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 public class DuccJobService {
 	boolean DEBUG = false;
 	private Investment investment = null;
-	private Method stopMethod;
-	private Object duccContainerInstance;
 	private Logger logger = Logger.getLogger(DuccJobService.class.getName());
-	
+	private IServiceWrapper service = null;
+	 
 	public static URLClassLoader create(String classPath)
 			throws MalformedURLException {
 		return create(classPath.split(":"));
@@ -88,94 +87,88 @@ public class DuccJobService {
 			}
 		}
 	}
-
+	private void addUrlsToSystemLoader(URL[] urls) throws IOException {
+		URLClassLoader systemClassLoader = (URLClassLoader) ClassLoader
+				.getSystemClassLoader();
+		try {
+			Method method = URLClassLoader.class.getDeclaredMethod("addURL",
+					new Class[] { URL.class });
+			method.setAccessible(true); // is normally "protected"
+			for (URL url : urls) {
+				method.invoke(systemClassLoader, new Object[] { url });
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw new IOException(
+					"Error, could not add URL to system classloader");
+		}
+	}
+	private URL[] getUrlsFromDuccClasspath(String[] duccClassPath)
+			throws MalformedURLException {
+		ArrayList<URL> urlList = new ArrayList<URL>(duccClassPath.length);
+		for (String element : duccClassPath) {
+			if (element.endsWith("*")) {
+				File dir = new File(element.substring(0, element.length() - 1));
+				File[] files = dir.listFiles(); // Will be null if missing or
+												// not a dir
+				if (files != null) {
+					for (File f : files) {
+						if (f.getName().endsWith(".jar")) {
+							urlList.add(f.toURI().toURL());
+						}
+					}
+				}
+			} else {
+				File f = new File(element);
+				if (f.exists()) {
+					urlList.add(f.toURI().toURL());
+				}
+			}
+		}
+		URL[] urls = new URL[urlList.size()];
+		return urlList.toArray(urls);
+	}
 	public void start(String[] args) throws Exception {
 		try {
 	        investment = new Investment();
-            
-	        // cache current context classloader
-			ClassLoader sysCL = Thread.currentThread().getContextClassLoader();
 
 			// Fetch a classpath for the fenced Ducc container
 			String duccContainerClasspath = System.getProperty("ducc.deploy.DuccClasspath");
-			URLClassLoader ucl = create(duccContainerClasspath);
+			if ( duccContainerClasspath != null ) {
+				URL[] urls = getUrlsFromDuccClasspath(duccContainerClasspath.split(":"));
+				addUrlsToSystemLoader(urls);
+			}
 			if (System.getProperty("ducc.debug") != null) {
 				DEBUG = true;
 			}
 			if (DEBUG) {
-				dump(ucl, 4);
+				dump((URLClassLoader) ClassLoader
+						.getSystemClassLoader(), 4);
 			}
-
-			// Load the DuccService class and find its methods of interest
-			Class<?> duccServiceClass = ucl.loadClass("org.apache.uima.ducc.common.main.DuccService");
-			Method bootMethod = duccServiceClass.getMethod("boot", String[].class);
-			Method setProcessorMethod = duccServiceClass.getMethod("setProcessor", Object.class, String[].class);
-			Method registerInvestmentInstanceMethod = duccServiceClass.getMethod("registerInvestmentInstance", Object.class);
-			Method startMethod = duccServiceClass.getMethod("start");
-			stopMethod = duccServiceClass.getMethod("stop");
-
-			// Establish user's logger early to prevent the DUCC code from accidentally doing so
-			logger.log(Level.INFO, ">>>>>>>>> Booting Ducc Container");
-
-			HashMap<String, String> savedPropsMap = hideLoggingProperties();  // Ensure DUCC doesn't try to use the user's logging setup
-			
-			// Construct & initialize Ducc fenced container. 
-			// It calls component's Configuration class
-			Thread.currentThread().setContextClassLoader(ucl);
-			duccContainerInstance = duccServiceClass.newInstance();
-			bootMethod.invoke(duccContainerInstance, (Object) args);
-
-			logger.log(Level.INFO, "<<<<<<<< Ducc Container booted");
-			restoreLoggingProperties(savedPropsMap);  // May not be necessary as user's logger has been established
-			
-			// below property is set by component's Configuration class. It can also
-			// be provided on the command line in case a custom processor is needed.
-			String processorClass = System.getProperty("ducc.deploy.JpProcessorClass");
-
-			// Instantiate process container where the actual analysis will be done.
-			// Currently there are three containers:
-			// 1 - UimaProcessContainer - used for pieces parts (UIMA only)
-			// 2 - UimaASProcessContainer - used for DD jobs
-			// 3 - UimaASServiceContainer - used for UIMA-AS based services
-			//
-			// NOTE: the container class is loaded by the main System classloader
-			//       and requires uima-ducc-user jar to be in the System classpath.
-			// --------------------------------------------------------------------
-			// load the process container class using the initial system class loader
-			Class<?> processorClz = sysCL.loadClass(processorClass);
-			IProcessContainer pc = (IProcessContainer) processorClz.newInstance();
-
-			logger.log(Level.INFO, ">>>>>>>>> Running Ducc Container");
- 
-			// Call DuccService.setProcessor() to hand-off instance of the 
-			// process container to the component along with this process args
-			setProcessorMethod.invoke(duccContainerInstance, pc, args);
-
-			// Hand-off investment object
-			registerInvestmentInstanceMethod.invoke(duccContainerInstance, investment);
-			
-	        // Call DuccService.start() to initialize the process and begin processing
-			startMethod.invoke(duccContainerInstance);
+	        service = ServiceFactory.newService();
+	        service.initialize(args);
+	        service.start();
+	        
+//			HashMap<String, String> savedPropsMap = hideLoggingProperties();  // Ensure DUCC doesn't try to use the user's logging setup
+//			restoreLoggingProperties(savedPropsMap);  // May not be necessary as user's logger has been established
 
 			logger.log(Level.INFO, "<<<<<<<< Ducc Container ended");
 			
 		} catch( Throwable t) {
-			t.printStackTrace();
-			System.out.println("Exiting Process Due to Unrecoverable Error");
+			logger.log(Level.SEVERE, "<<<<<<<< Exiting Process Due to Unrecoverable Error:", t);
 			Runtime.getRuntime().halt(99);   // User Error
 		}
 
 	}
 	
 	/*
-	 * Terminate the service connection
+	 * Terminate service connection
 	 */
 	public void stop() {
 		try {
-			stopMethod.invoke(duccContainerInstance);
+			service.stop();
 		} catch( Throwable t) {
 			logger.log(Level.SEVERE, "Stop failed");
-			t.printStackTrace();
 		}
 	}
 
@@ -211,5 +204,7 @@ public class DuccJobService {
 			e.printStackTrace();
 		}
 	}
+	
+	
 
 }

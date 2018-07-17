@@ -35,8 +35,8 @@ import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfoFactory;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.impl.MetaTaskTransaction;
 import org.junit.Test;
 
 public class TestMessageHandler02b extends TestMessageHandler {
@@ -88,9 +88,9 @@ public class TestMessageHandler02b extends TestMessageHandler {
 			ThreadInfo ti = tif.getUnique();
 			debug("random:"+ti.toKey());
 			int casNo = 1;
-			IMetaCas metaCasPrevious = null;
-			MetaCasTransaction trans = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
-			IMetaCas metaCas = trans.getMetaCas();
+			IMetaTask metaCasPrevious = null;
+			MetaTaskTransaction trans = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+			IMetaTask metaCas = trans.getMetaTask();
 			assertTrue(metaCas != null);
 			IOperatingInfo oi = messageHandler.handleGetOperatingInfo();
 			while(oi.getWorkItemCrFetches() < 100) {
@@ -104,7 +104,7 @@ public class TestMessageHandler02b extends TestMessageHandler {
 				ti = tif.getUnique();
 				debug("random:"+ti.toKey());
 				trans = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
-				metaCas = trans.getMetaCas();
+				metaCas = trans.getMetaTask();
 				oi = messageHandler.handleGetOperatingInfo();
 				ArrayList<IWorkItemInfo> list = oi.getActiveWorkItemInfo();
 				debug("list:"+list.size());

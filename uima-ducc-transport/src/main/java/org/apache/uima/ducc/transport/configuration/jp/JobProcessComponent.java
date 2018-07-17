@@ -43,8 +43,8 @@ import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Type;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class JobProcessComponent extends AbstractDuccComponent 
@@ -67,8 +67,8 @@ implements IJobProcessor{
 	Lock stateLock = new ReentrantLock();
 	
     private volatile boolean uimaASJob=false;
-    Map<String, IMetaCasTransaction> transactionMap =
-    		new ConcurrentHashMap<String, IMetaCasTransaction>();
+    Map<String, IMetaTaskTransaction> transactionMap =
+    		new ConcurrentHashMap<String, IMetaTaskTransaction>();
     
     final static Lock lock = new ReentrantLock();;
     
@@ -164,10 +164,10 @@ implements IJobProcessor{
 	public void resetInvestment(String key) throws Exception {
 		if ( httpClient != null && transactionMap.containsKey(key) ) {
 			// Fetch a transaction object associated with a WI id (key)
-			IMetaCasTransaction transaction = transactionMap.get(key);
+			IMetaTaskTransaction transaction = transactionMap.get(key);
 			HttpPost postMethod = new HttpPost(httpClient.getJdUrl());
 			// Dont return serialized CAS to reduce the msg size
-			transaction.getMetaCas().setUserSpaceCas(null);
+			transaction.getMetaTask().setUserSpaceTask(null);
 			transaction.setType(Type.InvestmentReset);
 			
 			// Set request timeout
@@ -177,13 +177,13 @@ implements IJobProcessor{
 			// loaded into the user container from which this call originated.
 			while( isRunning() ) {
     			try {
-    				logger.info("resetInvestment", null, "User Requested Investment Reset - sending request to JD - WI:"+transaction.getMetaCas().getSystemKey()+" user key:"+key);
+    				logger.info("resetInvestment", null, "User Requested Investment Reset - sending request to JD - WI:"+transaction.getMetaTask().getSystemKey()+" user key:"+key);
         			httpClient.execute(transaction, postMethod);
         			break;
     			} catch(SocketTimeoutException  e) {
-    				logger.info("resetInvestment", null, "Timeout while waiting for Investment Reset response from JD - retrying - WI:"+transaction.getMetaCas().getSystemKey());
+    				logger.info("resetInvestment", null, "Timeout while waiting for Investment Reset response from JD - retrying - WI:"+transaction.getMetaTask().getSystemKey());
     			} catch(Exception e) {
-    				logger.info("resetInvestment", null, "Error while trying send Investment Reset request to JD. Returning to the caller (no retries) WI:"+transaction.getMetaCas().getSystemKey());
+    				logger.info("resetInvestment", null, "Error while trying send Investment Reset request to JD. Returning to the caller (no retries) WI:"+transaction.getMetaTask().getSystemKey());
     				logger.info("resetInvestment", null, e);
     				throw new RuntimeException("Unable to deliver Investment Reset request to JD due to "+e.getCause().getMessage());
     			}

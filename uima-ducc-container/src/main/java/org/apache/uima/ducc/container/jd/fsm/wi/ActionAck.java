@@ -29,7 +29,8 @@ import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+
 
 public class ActionAck implements IAction {
 
@@ -48,7 +49,7 @@ public class ActionAck implements IAction {
 		try {
 			if(actionData != null) {
 				IWorkItem wi = actionData.getWorkItem();
-				IMetaCas metaCas = wi.getMetaCas();
+				IMetaTask metaCas = wi.getMetaCas();
 				JobDriver jd = JobDriver.getInstance();
 				IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 				MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);

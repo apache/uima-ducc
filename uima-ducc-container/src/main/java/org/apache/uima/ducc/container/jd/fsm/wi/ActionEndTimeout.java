@@ -29,7 +29,7 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 public class ActionEndTimeout extends ActionEndAbstract implements IAction {
 
@@ -56,7 +56,7 @@ public class ActionEndTimeout extends ActionEndAbstract implements IAction {
 		try {
 			if(actionData != null) {
 				IWorkItem wi = actionData.getWorkItem();
-				IMetaCas metaCas = wi.getMetaCas();
+				IMetaTask metaCas = wi.getMetaCas();
 				WiTracker tracker = WiTracker.getInstance();
 				IRemoteWorkerProcess rwp = tracker.getRemoteWorkerProcess(wi);
 				JobDriverHelper jdh = JobDriverHelper.getInstance();

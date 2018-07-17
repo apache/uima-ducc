@@ -19,12 +19,12 @@
 package org.apache.uima.ducc.container.jd.wi;
 
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 public interface IWorkItem extends Comparable<Object> {
 	
-	public void setMetaCas(IMetaCas value);
-	public IMetaCas getMetaCas();
+	public void setMetaCas(IMetaTask value);
+	public IMetaTask getMetaCas();
 	
 	public void setFsm(IFsm value);
 	public IFsm getFsm();

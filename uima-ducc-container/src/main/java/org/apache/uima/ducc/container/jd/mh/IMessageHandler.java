@@ -21,7 +21,7 @@ package org.apache.uima.ducc.container.jd.mh;
 import org.apache.uima.ducc.container.jd.mh.iface.INodeInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 
 public interface IMessageHandler {
 	
@@ -34,7 +34,7 @@ public interface IMessageHandler {
 	public void handleProcessVolunteered(IProcessInfo processInfo);
 	public void handleProcessFailedInitialization(IProcessInfo processInfo);
 	
-	public void handleMetaCasTransation(IMetaCasTransaction trans);
+	public void handleMetaCasTransation(IMetaTaskTransaction trans);
 	
 	public void incGets();
 	public void incAcks();

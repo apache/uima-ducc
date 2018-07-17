@@ -36,7 +36,100 @@ public class ServiceConfiguration {
 	private String customRegistryClass;
 	private String customProcessorClass;
 	private String serviceJmxConnectURL;
-	
+	private String jobDirectory;
+	private String aeDescriptor;
+	private String ccDescriptor;
+	private String cmDescriptor;
+	private String jpFlowController;
+	private String ccOverrides;
+	private String cmOverrides;
+	private String aeOverrides;
+	private ClassLoader sysCL=null;
+
+	public ClassLoader getSysCL() {
+		return sysCL;
+	}
+	public void setSysCL(ClassLoader sysCL) {
+		this.sysCL = sysCL;
+	}
+	public String getJobDirectory() {
+		return jobDirectory;
+	}
+	public void setJobDirectory(String jobDirectory) {
+		this.jobDirectory = jobDirectory;
+	}
+	public String getAeDescriptor() {
+		return aeDescriptor;
+	}
+	public void setAeDescriptor(String aeDescriptor) {
+		this.aeDescriptor = aeDescriptor;
+	}
+	public String getCcDescriptor() {
+		return ccDescriptor;
+	}
+	public void setCcDescriptor(String ccDescriptor) {
+		this.ccDescriptor = ccDescriptor;
+	}
+	public String getCmDescriptor() {
+		return cmDescriptor;
+	}
+	public void setCmDescriptor(String cmDescriptor) {
+		this.cmDescriptor = cmDescriptor;
+	}
+	public String getJpFlowController() {
+		return jpFlowController;
+	}
+	public void setJpFlowController(String jpFlowController) {
+		this.jpFlowController = jpFlowController;
+	}
+	public String getCcOverrides() {
+		return ccOverrides;
+	}
+	public void setCcOverrides(String ccOverrides) {
+		this.ccOverrides = ccOverrides;
+	}
+	public String getCmOverrides() {
+		return cmOverrides;
+	}
+	public void setCmOverrides(String cmOverrides) {
+		this.cmOverrides = cmOverrides;
+	}
+	public String getAeOverrides() {
+		return aeOverrides;
+	}
+	public void setAeOverrides(String aeOverrides) {
+		this.aeOverrides = aeOverrides;
+	}
+	public void setClientURL(String clientURL) {
+		this.clientURL = clientURL;
+	}
+	public void setDuccHome(String duccHome) {
+		this.duccHome = duccHome;
+	}
+	public void setJobId(String jobId) {
+		this.jobId = jobId;
+	}
+	public void setDuccProcessId(String duccProcessId) {
+		this.duccProcessId = duccProcessId;
+	}
+	public void setDuccProcessUniqueId(String duccProcessUniqueId) {
+		this.duccProcessUniqueId = duccProcessUniqueId;
+	}
+	public void setMonitorPort(String monitorPort) {
+		this.monitorPort = monitorPort;
+	}
+	public void setAnalysisEngineDescriptorPath(String analysisEngineDescriptorPath) {
+		this.analysisEngineDescriptorPath = analysisEngineDescriptorPath;
+	}
+	public void setAssignedJmxPort(String assignedJmxPort) {
+		this.assignedJmxPort = assignedJmxPort;
+	}
+	public void setCustomRegistryClass(String customRegistryClass) {
+		this.customRegistryClass = customRegistryClass;
+	}
+	public void setCustomProcessorClass(String customProcessorClass) {
+		this.customProcessorClass = customProcessorClass;
+	}
 	public String getJpType() {
 		return jpType;
 	}
@@ -138,3 +231,4 @@ public class ServiceConfiguration {
 		analysisEngineDescriptorPath = args[0];
 	}
 }
+

@@ -20,11 +20,11 @@ package org.apache.uima.ducc.container.jd.fsm.wi;
 
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 
 public interface IActionData {
 
 	public IWorkItem getWorkItem();
 	public IRemoteWorkerThread getRemoteWorkerThread();
-	public IMetaCasTransaction getMetaCasTransaction();
+	public IMetaTaskTransaction getMetaCasTransaction();
 }

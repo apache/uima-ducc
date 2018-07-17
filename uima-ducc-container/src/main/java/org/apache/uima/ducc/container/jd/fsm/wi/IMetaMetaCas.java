@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 /**
  * An interface for storing MetaCAS 
@@ -35,6 +35,6 @@ public interface IMetaMetaCas {
 	public boolean isKillJob();
 	public void setKillJob(boolean value);
 	
-	public IMetaCas getMetaCas();
-	public void setMetaCas(IMetaCas value);
+	public IMetaTask getMetaCas();
+	public void setMetaCas(IMetaTask value);
 }

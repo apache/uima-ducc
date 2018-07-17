@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 /**
  * An implementation for storing MetaCAS 
@@ -31,7 +32,7 @@ public class MetaMetaCas implements IMetaMetaCas {
 	private boolean premature;
 	private boolean killJob;
 	
-	private IMetaCas metaCas;
+	private IMetaTask metaCas;
 	
 	public MetaMetaCas() {
 	}
@@ -67,12 +68,12 @@ public class MetaMetaCas implements IMetaMetaCas {
 	}
 
 	@Override
-	public IMetaCas getMetaCas() {
+	public IMetaTask getMetaCas() {
 		return metaCas;
 	}
 
 	@Override
-	public void setMetaCas(IMetaCas value) {
+	public void setMetaCas(IMetaTask value) {
 		metaCas = value;
 	}
 

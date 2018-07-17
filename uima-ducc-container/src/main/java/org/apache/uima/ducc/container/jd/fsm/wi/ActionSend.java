@@ -28,8 +28,9 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+
 
 public class ActionSend implements IAction {
 
@@ -50,8 +51,8 @@ public class ActionSend implements IAction {
 				IRemoteWorkerThread rwt = actionData.getRemoteWorkerThread();
 				WiTracker tracker = WiTracker.getInstance();
 				IWorkItem wi = tracker.assign(rwt);
-				IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-				IMetaCas metaCas = trans.getMetaCas();
+				IMetaTaskTransaction trans = actionData.getMetaCasTransaction();
+				IMetaTask metaCas = trans.getMetaTask();
 				wi.setMetaCas(metaCas);
 				//
 				TimeoutManager toMgr = TimeoutManager.getInstance();

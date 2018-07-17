@@ -29,7 +29,7 @@ import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 public class ActionGetRedux implements IAction {
 
@@ -52,13 +52,13 @@ public class ActionGetRedux implements IAction {
 				IWorkItem wi = tracker.find(rwt);
 				if(wi != null) {
 					IEvent event = WiFsm.CAS_Unavailable;
-					IMetaCas metaCas = wi.getMetaCas();
+					IMetaTask metaCas = wi.getMetaCas();
 					if(metaCas != null) {
 						event = WiFsm.CAS_Available;
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						logger.debug(location, ILogger.null_id, mb.toString());
 						actionData.getWorkItem().setMetaCas(metaCas);
-						actionData.getMetaCasTransaction().setMetaCas(metaCas);
+						actionData.getMetaCasTransaction().setMetaTask(metaCas);
 					}
 					else {
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
