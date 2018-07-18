@@ -31,12 +31,10 @@ import com.datastax.driver.core.Row;
 
 /**
  * Static common helper methods.
- *
- * Not public at this point, would prefer to encapsulate all this entirely in DB.
  */
-class DbUtil
+public class DbUtil
 {
-    static String mkSchema(IDbProperty[] props)
+    public static String mkSchema(IDbProperty[] props)
         throws Exception
     {
         List<String> parts = new ArrayList<String>();
@@ -87,7 +85,7 @@ class DbUtil
         return ret;
     }
 
-    static List<String> mkIndices(IDbProperty[] props, String tablename)
+    public static List<String> mkIndices(IDbProperty[] props, String tablename)
     {
         List<String> ret = new ArrayList<String>();
         for ( IDbProperty p : props ) {

@@ -40,7 +40,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 
 public class DbCreate
 {
-    static final String DUCC_KEYSPACE = "ducc";
+    public static final String DUCC_KEYSPACE = "ducc";
     static final String PASSWORD_KEY  = "db_password";
     static final String PASSWORD_FILE = "ducc.private.properties";
     int RETRY = 10;

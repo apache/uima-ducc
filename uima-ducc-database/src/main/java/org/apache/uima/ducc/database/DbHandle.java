@@ -65,7 +65,7 @@ public class DbHandle
         return manager.execute(s);
     }
 
-    ResultSet execute(PreparedStatement ps, Object ... fields)
+    public ResultSet execute(PreparedStatement ps, Object ... fields)
         throws Exception
     {
         String methodName = "execute";        
@@ -259,7 +259,7 @@ public class DbHandle
     }
 
 
-    PreparedStatement prepare(String cql)
+    public PreparedStatement prepare(String cql)
     {
         //String methodName = "prepare";
         return manager.prepare(cql);
