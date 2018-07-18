@@ -66,6 +66,9 @@ class PostInstall():
         print "   [-a, --db-automanage] <True|False>"
         print "        Specify False if DUCC should not start/stop database."
         print ""
+        print "   [-m, --db-home] <path>"
+        print "        The location of the database home directory, only specify when db-automanage is False and the default database directory should not be used."
+        print ""
         print "   [-o, --db-host-list] host1 <host2 host3...>"
         print "        The database host(s)."
         print ""
@@ -359,7 +362,13 @@ class PostInstall():
         if ( self.database_user == None ):
             self.database_user = 'ducc'
         self.update_property('ducc.database.user', self.database_user, '# Database user') 
-    
+        # ducc.database.home
+        if ( self.database_home != None ):
+            if(self.database_automanage == False):
+                self.update_property('ducc.database.home', self.database_home, '# Database home')
+            else:
+                print "db-home ignored", self.database_home, '\n'  
+            
     def mkbackup(self, fn):
         if ( os.path.exists(fn) ):
             bak = fn + '.bak'
@@ -441,13 +450,14 @@ class PostInstall():
         self.ducc_head = None
         self.keystore_pw = None
         self.database_automanage = None
+        self.database_home = None
         self.database_host_list = None
         self.database_user = None
         self.database_pw = None
         self.path_to_java = None
 
         try:
-            opts, args = getopt.getopt(argv, 'a:o:u:d:j:k:n:h?', ['db-automanage=', 'db-host-list=', 'db-user=', 'db-password=', 'jvm=', 'keystore=', 'head-node=', 'help'])
+            opts, args = getopt.getopt(argv, 'a:m:o:u:d:j:k:n:h?', ['db-automanage=', 'db-home=', 'db-host-list=', 'db-user=', 'db-password=', 'jvm=', 'keystore=', 'head-node=', 'help'])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
 
@@ -459,6 +469,8 @@ class PostInstall():
                     self.database_automanage = True
                 else:
                     self.database_automanage = False
+            if o in ('-m', '--db-home'):
+                self.database_home = a
             if o in ('-o', '--db-host-list'):
                 self.database_host_list = a
             if o in ('-u', '--db-user'):
