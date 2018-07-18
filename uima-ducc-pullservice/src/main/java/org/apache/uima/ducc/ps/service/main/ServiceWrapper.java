@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.ps.service.main;
 
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -186,15 +185,25 @@ public class ServiceWrapper {
 	}
 
 	public void stop() {
-		service.stop();
 		try {
+			service.stop();
 			jmxAgent.stop();
-		} catch( IOException e ) {
-			
+		} catch( Exception e ) {
+			logger.log(Level.WARNING,"",e);
+
 		}
 		
 	}
+	public void quiesceAndStop() {
+		try {
+			service.quiesceAndStop();
+			jmxAgent.stop();
+		} catch( Exception e ) {
+			logger.log(Level.WARNING,"",e);
 
+		}
+		
+	}
 	public static void main(String[] args) {
 		ServiceWrapper wrapper = null;
 		try {
@@ -219,9 +228,9 @@ public class ServiceWrapper {
 		    @Override
 		    public void run() {
 		      try {
-		          logger.log(Level.INFO, "Pull Service Caught SIGTERM Signal - Stopping ...");
+		          logger.log(Level.INFO, "Pull Service Caught SIGTERM Signal - Stopping (Quiescing) ...");
 
-		        serviceWrapper.stop();
+		        serviceWrapper.quiesceAndStop();
 
 		      } catch (Exception e) {
 		    	  logger.log(Level.WARNING,"", e);

@@ -125,30 +125,35 @@ public class JunitProtocolHandlerTestCase extends Client {
 			transport.stop();
 			processor.stop();
 		}
-
+		@Override
+		public void quiesceAndStop() {
+			protocolHandler.quiesceAndStop();
+			threadPool.shutdown();
+			transport.stop();
+			processor.stop();
+		}
 		@Override
 		public void initialize() throws ServiceInitializationException {
-			
-				List<Future<String>> threadHandleList =
-						new ArrayList<Future<String>>();
-				threadPool = 
-						new ScheduledThreadPoolExecutor(scaleout, new ServiceThreadFactory());
-				
-				
-		    	// Create and start worker threads that pull Work Items from a client
-				for (int j = 0; j < scaleout; j++) {
-					threadHandleList.add( threadPool.submit(protocolHandler));
-				}
-				try {
-					// wait until all process threads initialize
-					threadsReady.await();
-					
-				} catch( InterruptedException e) {
-					Thread.currentThread().interrupt();
-					threadPool.shutdownNow();
-					throw new ServiceInitializationException("Service interrupted during initialization - shutting down process threads");
-				}
+
+			List<Future<String>> threadHandleList = new ArrayList<Future<String>>();
+			threadPool = new ScheduledThreadPoolExecutor(scaleout, new ServiceThreadFactory());
+
+			// Create and start worker threads that pull Work Items from a client
+			for (int j = 0; j < scaleout; j++) {
+				threadHandleList.add(threadPool.submit(protocolHandler));
+			}
+			try {
+				// wait until all process threads initialize
+				threadsReady.await();
+
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				threadPool.shutdownNow();
+				throw new ServiceInitializationException(
+						"Service interrupted during initialization - shutting down process threads");
+			}
 		}
+
 		@Override
 		public String getType() {
 			// TODO Auto-generated method stub

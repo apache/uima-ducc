@@ -31,6 +31,8 @@ public class JUnitServiceWrapperTestCase extends Client  {
 
 	@Test
 	public void testPullServiceWrapper() throws Exception {
+		System.out.println("-------------------------- testPullServiceWrapper ----------------------");;
+
 		//int scaleout = 2;
 		StateMonitor monitor = new StateMonitor();
 		monitor.start();
@@ -44,7 +46,7 @@ public class JUnitServiceWrapperTestCase extends Client  {
 			System.setProperty("ducc.deploy.JdURL", tasURL);
 			System.setProperty("ducc.deploy.JpThreadCount","4");
 			System.setProperty("ducc.deploy.service.type", "NotesService");
-			System.getProperty("ducc.deploy.JpType", "uima");
+			System.setProperty("ducc.deploy.JpType", "uima");
 
 			ServiceWrapper service = new ServiceWrapper();
 
@@ -69,6 +71,7 @@ public class JUnitServiceWrapperTestCase extends Client  {
 	
 	@Test
 	public void testPullServiceWrapperWithProcessFailure() throws Exception {
+		System.out.println("-------------------------- testPullServiceWrapperWithProcessFailure ----------------------");;
 		//int scaleout = 2;
 		StateMonitor monitor = new StateMonitor();
 		monitor.start();
@@ -84,7 +87,7 @@ public class JUnitServiceWrapperTestCase extends Client  {
 			System.setProperty("ducc.deploy.JdURL", tasURL);
 			System.setProperty("ducc.deploy.JpThreadCount","4");
 			System.setProperty("ducc.deploy.service.type", "NotesService");
-			System.getProperty("ducc.deploy.JpType", "uima");
+			System.setProperty("ducc.deploy.JpType", "uima");
 
 			ServiceWrapper service = new ServiceWrapper();
 

@@ -66,7 +66,6 @@ public class HttpServiceTransport implements IServiceTransport {
 	private int clientMaxConnectionsPerRoute = 60;
 	private int clientMaxConnectionsPerHostPort = 0;
 	private ReentrantLock lock = new ReentrantLock();
-//	private CountDownLatch initLatch = new CountDownLatch(1);
 	private ReentrantLock registryLookupLock = new ReentrantLock();
     private long threadSleepTime=10000; // millis
     private final String nodeIP;
@@ -82,30 +81,7 @@ public class HttpServiceTransport implements IServiceTransport {
     private volatile boolean stopping = false;
 	private volatile boolean running = false;
 	private volatile boolean log = true;
- /*  
-	public HttpServiceTransport(IRegistryClient registryClient, int scaleout) { 
-		// create instance of HttpServiceTransport with RegistryClient. The assumption
-		// is that the implementation of the client has been fully configured with
-		// registry URI and target id. We just pass in a NoOpTarget instead of null.
-		// The initialize() will use registry to lookup the client TargetURI and will
-		// create correct instance of ITargetURI based on what registry returns
-//		this(new NoOpTargetURI(), registryClient, scaleout);
-		this(new NoOpTargetURI(), registryClient, scaleout);
-		
-	}
-	*/
-//	private HttpServiceTransport(ITargetURI targetUrl, IRegistryClient registryClient, int scaleout) {
-	public HttpServiceTransport(IRegistryClient registryClient, int scaleout) throws ServiceException {
-		//TargetURIFactory.newTarget(registryClient.lookUp(new NoOpTargetURI().asString()));
-		/*
-		if ( registryClient == null ) {  
-			// the default client just returns the same targetUrl
-			// No lookups
-			this.registryClient = new DefaultRegistryClient(targetUrl);
-		} else {
-			this.registryClient = registryClient;
-		}
-		*/
+ 	public HttpServiceTransport(IRegistryClient registryClient, int scaleout) throws ServiceException {
 		this.registryClient = registryClient;
 		clientMaxConnections = scaleout;
 
@@ -152,7 +128,6 @@ public class HttpServiceTransport implements IServiceTransport {
 		while( !stopping ) {
 			try {
 				String newTarget = registryClient.lookUp(currentTargetUrl.asString());
-			//	logger.log(Level.INFO, "Registry lookup succesfull - current target URL:"+newTarget);
 				currentTargetUrl = TargetURIFactory.newTarget(newTarget);
 				break;
 			} catch(  Exception e) {
@@ -184,11 +159,6 @@ public class HttpServiceTransport implements IServiceTransport {
         	logger.log(Level.FINE, "threadId:"+transaction.getRequesterThreadId());
 
     	}
-//
-// 		transaction.setRequesterNodeName(nodeName);
-// 		transaction.setRequesterProcessId(pid);
-// 		transaction.setRequesterProcessName(value);
-// 		transaction.setRequesterThreadId((int)Thread.currentThread().getId());
  		
 	}
 	public void initialize() throws ServiceInitializationException { 
@@ -211,19 +181,6 @@ public class HttpServiceTransport implements IServiceTransport {
 			cMgr.setMaxPerRoute(new HttpRoute(httpHost), clientMaxConnectionsPerHostPort);
 		}
 		
-		int timeout = 30;
-//		SocketConfig socketConfig = SocketConfig.custom().setSoTimeout(timeout*1000).build();
- //       RequestConfig requestConfig = RequestConfig.custom()
-   //     		  .setConnectTimeout(timeout * 1000)
-     //   		  .setConnectionRequestTimeout(timeout * 1000)
-       // 		  .setSocketTimeout(0).build();
-  //      cMgr.setDefaultSocketConfig(socketConfig);
-        
-//        System.out.println("HttpTransport Max Connections:"+cMgr.getMaxTotal());
-//        httpClient = HttpClients.custom().
-  //      		setConnectionManager(cMgr).
-    //    		setDefaultRequestConfig(requestConfig).build();
-        
 		httpClient = HttpClients.custom().setConnectionManager(cMgr).build();
 		running = true;
 
@@ -258,7 +215,6 @@ public class HttpServiceTransport implements IServiceTransport {
 		// retry until service is stopped
 		while (isRunning()) {
 			try {
-				//response = dispatch(request);
 				response =  doPost(postMethod);
 				// success, so release the lock so that other waiting threads
 				// can retry command
@@ -307,7 +263,6 @@ public class HttpServiceTransport implements IServiceTransport {
 	}
 	@Override
 	public String dispatch(String serializedRequest) throws TransportException  {
-//		System.out.println(".... in dispatch()...stopping="+stopping);
 		if ( stopping ) {
 			throw new IllegalStateException("Service transport has been stopped, unable to dispatch request");
 		}
@@ -326,14 +281,11 @@ public class HttpServiceTransport implements IServiceTransport {
 		} catch ( NoHttpResponseException ex ) {
 			if ( stopping ) {
 				System.out.println("Process Thread:"+Thread.currentThread().getId()+" NoHttpResponseException ");
-				//ex.printStackTrace();
 				throw new TransportException(ex);
 			} else {
 				serializedResponse = retryUntilSuccessfull(serializedRequest, postMethod);
 			}
 
-			// timeout so try again
-			//ex.printStackTrace();
 		} catch (HttpHostConnectException | UnknownHostException ex ) {
 			if ( stopping ) {
 				System.out.println("Process Thread:"+Thread.currentThread().getId()+" HttpHostConnectException ");
@@ -368,7 +320,6 @@ public class HttpServiceTransport implements IServiceTransport {
 			
 		} catch (SocketException ex) {
 			if ( stopping ) {
-				//System.out.println("Process Thread:"+Thread.currentThread().getId()+" SocketException ");
 				throw new TransportException(ex);
 			}
 			
@@ -404,7 +355,6 @@ public class HttpServiceTransport implements IServiceTransport {
 
 		stopping = true;
 		running = false;
-		//initLatch.countDown();
 		logger.log(Level.INFO,this.getClass().getName()+" stop() called");
 		if ( cMgr != null ) {
 			cMgr.shutdown();

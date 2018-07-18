@@ -250,12 +250,21 @@ public class PullService implements IService {
 		stopProcessThreads();
 		// close connection to remote client and cleanup
 		stopTransport();
-		stopProtocolHandler();
+		stopProtocolHandler(false);
+		stopServiceProcessor();
+	    // monitor should be stopped last to keep posting updates to observer
+		stopMonitor();
+	}
+    public void quiesceAndStop() {
+		// when quiescing, let the process threads finish processing 
+    	stopProtocolHandler(true);
+		
+		// close connection to remote client and cleanup
+		stopTransport();
 		stopServiceProcessor();
         // monitor should be stopped last to keep posting updates to observer
 		stopMonitor();
-	}
-
+    }
 	private void waitForProcessThreads() throws InterruptedException, ExecutionException {
 		for (Future<String> future : threadHandleList) {
 			// print the return value of Future, notice the output delay in console
@@ -306,8 +315,12 @@ public class PullService implements IService {
 			serviceProcessor.stop();
 		}
 	}
-	private void stopProtocolHandler() {
-
+	private void stopProtocolHandler(boolean quiesce) {
+		if ( quiesce ) {
+			protocolHandler.quiesceAndStop();
+		} else {
+			protocolHandler.stop();
+		}
 	}
 	private void stopTransport() {
 		transport.stop();

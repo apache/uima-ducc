@@ -52,6 +52,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	Logger logger = UIMAFramework.getLogger(DefaultServiceProtocolHandler.class);
 	private volatile boolean initError = false;
 	private volatile boolean running = false;
+	private volatile boolean quiescing = false;
 	private IServiceTransport transport;
 	private IServiceProcessor processor;
 	private INoTaskAvailableStrategy noTaskStrategy;
@@ -214,8 +215,10 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 				// send GET Request
 				transaction = callGet(new MetaTaskTransaction());
 				// the code may have blocked in callGet for awhile, so check
-				// if service is still running
-				if ( !running ) {
+				// if service is still running. If this service is in quiescing
+				// mode, finish processing current task. The while-loop will
+				// terminate when the task is finished.
+				if ( !running && !quiescing  ) {
 					break;
 				}
 				if (transaction.getMetaTask() == null || transaction.getMetaTask().getUserSpaceTask() == null ) {
@@ -227,7 +230,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 				
 				// send ACK 
 				transaction = callAck(transaction);
-				if (!running) {
+				if (!running  && !quiescing ) {
 					break;
 				}
 				IProcessResult processResult = processor.process((String) task);
@@ -241,7 +244,6 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 					mc.setUserSpaceException(errorAsString);
 				} else {
 					// success
-					// System.out.println("Performance Metrics:"+processResult.getResult());
 					transaction.getMetaTask().setPerformanceMetrics(processResult.getResult());
 				}
 				// send END Request
@@ -282,13 +284,28 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 
 	
 	private void delegateStop() {
-		service.stop();
+		service.stop(); // dont quiesce
 	}
 	@Override
 	public void stop() {
+		quiescing = false;
 		running = false;
 		if ( logger.isLoggable(Level.INFO)) {
 			logger.log(Level.INFO, this.getClass().getName()+" stop() called");
+		}
+	}
+	@Override
+	public void quiesceAndStop() {
+		quiescing = true;
+		running = false;
+		if ( logger.isLoggable(Level.INFO)) {
+			logger.log(Level.INFO, this.getClass().getName()+" quiesceAndStop() called");
+		}
+		try {
+			// wait for process threads to terminate
+			stopLatch.await();
+			logger.log(Level.INFO, this.getClass().getName()+" All process threads completed quiesce");
+		} catch( Exception e ) {
 		}
 	}
 	@Override
