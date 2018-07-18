@@ -31,4 +31,5 @@ public interface IServiceProtocolHandler extends Callable<String>, IServiceCompo
 	public void setServiceProcessor(IServiceProcessor processor);
 	
 	public void setTransport(IServiceTransport transport);
+	
 }
