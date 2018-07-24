@@ -33,4 +33,6 @@ public interface IServiceProcessor extends IServiceComponent{
 	public void setScaleout(int scaleout);
 	
 	public int getScaleout();
+	
+	public void setErrorHandlerWindow(int maxErrors, int windowSize);
 }

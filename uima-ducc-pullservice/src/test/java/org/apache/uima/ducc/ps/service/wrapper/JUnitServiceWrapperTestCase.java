@@ -28,6 +28,12 @@ import org.apache.uima.ducc.ps.service.main.ServiceWrapper;
 import org.junit.Test;
 
 public class JUnitServiceWrapperTestCase extends Client  {
+	private static final long  DELAY=5000;
+	{
+		// static initializer sets amount of time the service delays
+		// sending READY to a monitor
+		System.setProperty("ducc.service.init.delay", "3000");
+	}
 
 	@Test
 	public void testPullServiceWrapper() throws Exception {
@@ -52,7 +58,7 @@ public class JUnitServiceWrapperTestCase extends Client  {
 
 			Timer fTimer = new Timer("testPullService Timer");
 			// after 5secs stop the pull service
-			fTimer.schedule(new MyTimerTask(service, fTimer), 35000);
+			fTimer.schedule(new MyTimerTask(service, fTimer), 5000);
 				
 			service.initialize(new String[] {analysisEngineDescriptor});
 
@@ -81,19 +87,19 @@ public class JUnitServiceWrapperTestCase extends Client  {
 
 		String tasURL = "http://localhost:8080/test";
 		try {
-			// Force process failure
-			System.setProperty("ProcessFail","true");
+			// Force process failure of the first task
+			System.setProperty("ProcessFail","1");
 			 
 			System.setProperty("ducc.deploy.JdURL", tasURL);
 			System.setProperty("ducc.deploy.JpThreadCount","4");
 			System.setProperty("ducc.deploy.service.type", "NotesService");
 			System.setProperty("ducc.deploy.JpType", "uima");
-
+			// use default error window (1,1)
 			ServiceWrapper service = new ServiceWrapper();
 
 			Timer fTimer = new Timer("testPullService Timer");
 			// after 5secs stop the pull service
-			fTimer.schedule(new MyTimerTask(service, fTimer), 35000);
+			fTimer.schedule(new MyTimerTask(service, fTimer), 10000);
 				
 			service.initialize(new String[] {analysisEngineDescriptor});
 
@@ -113,24 +119,23 @@ public class JUnitServiceWrapperTestCase extends Client  {
 	class MyTimerTask extends TimerTask {
 		final ServiceWrapper service;
 		final Timer fTimer;
+
 		MyTimerTask(ServiceWrapper service, Timer fTimer) {
 			this.service = service;
 			this.fTimer = fTimer;
 		}
-		
-		        @Override
-		
-		        public void run() {
-		        	this.cancel();
-		        	fTimer.purge();
-		        	fTimer.cancel();
-		        	System.out.println("Timmer popped - stopping service");
-		        	service.stop();
-		        	
-		        }
-		
-		 
-		
-		    }
+
+		@Override
+
+		public void run() {
+			this.cancel();
+			fTimer.purge();
+			fTimer.cancel();
+			System.out.println("Timmer popped - stopping service");
+			service.stop();
+
+		}
+
+	}
 
 }

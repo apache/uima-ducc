@@ -44,8 +44,23 @@ public class ServiceConfiguration {
 	private String ccOverrides;
 	private String cmOverrides;
 	private String aeOverrides;
+	private String maxErrors;
+	private String errorWindowSize;
 	private ClassLoader sysCL=null;
 
+	public String getMaxErrors() {
+		return maxErrors;
+	}
+	public void setMaxErrors(String maxErrors) {
+		this.maxErrors = maxErrors;
+	}
+
+	public String getErrorWindowSize() {
+		return errorWindowSize;
+	}
+	public void setErrorWindowSize(String errorWindowSize) {
+		this.errorWindowSize = errorWindowSize;
+	}
 	public ClassLoader getSysCL() {
 		return sysCL;
 	}
@@ -217,6 +232,9 @@ public class ServiceConfiguration {
 		clientURL = System.getProperty("ducc.deploy.JdURL");
 		threadCount = System.getProperty("ducc.deploy.JpThreadCount");
 		serviceType = System.getProperty("ducc.deploy.service.type");
+	    maxErrors = System.getProperty("ducc.deploy.service.error.threshold");
+	    errorWindowSize = System.getProperty("ducc.deploy.service.error.window");
+		
 		jpType = System.getProperty("ducc.deploy.JpType");
 		assignedJmxPort = System.getProperty("ducc.jmx.port");
 		customRegistryClass = System.getProperty("ducc.deploy.registry.class");

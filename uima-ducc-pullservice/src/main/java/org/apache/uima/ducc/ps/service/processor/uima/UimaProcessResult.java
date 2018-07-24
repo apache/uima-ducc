@@ -20,6 +20,7 @@ package org.apache.uima.ducc.ps.service.processor.uima;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Objects;
 
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler.Action;
 import org.apache.uima.ducc.ps.service.processor.IProcessResult;
@@ -47,6 +48,9 @@ public class UimaProcessResult implements IProcessResult{
 	}
 	@Override
 	public String getError() {
+		if ( Objects.isNull(exception)) {
+			return null;
+		}
 		StringWriter sw = new StringWriter();
 		exception.printStackTrace(new PrintWriter(sw));
 		return sw.toString();

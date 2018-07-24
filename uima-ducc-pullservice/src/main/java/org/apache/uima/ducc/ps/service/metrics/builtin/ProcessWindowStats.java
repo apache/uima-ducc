@@ -1,3 +1,4 @@
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,23 +17,34 @@
  * specific language governing permissions and limitations
  * under the License.
 */
+package org.apache.uima.ducc.ps.service.metrics.builtin;
 
-package org.apache.uima.ducc.ps.service.errors.builtin;
-
-import org.apache.uima.ducc.ps.service.IServiceComponent;
-import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.metrics.IWindowStats;
 
-
-public class DefaultErrorHandler implements IServiceErrorHandler {
+public class ProcessWindowStats implements IWindowStats {
+	private final long errorCount;
+	private final long successCount;
+	private final long errorsSinceLastSuccess;
 	
-	@Override
-	public Action handleProcessError(Exception e, IServiceComponent source, IWindowStats stats) {
-		return Action.TERMINATE;
+	public ProcessWindowStats(long errorCount, long successCount, long errorsSinceLastSuccess)  {
+		this.errorCount = errorCount;
+		this.successCount = successCount;
+		this.errorsSinceLastSuccess = errorsSinceLastSuccess;
 	}
+
 	@Override
-	public Action handle(Exception e, IServiceComponent source) {
-		return Action.TERMINATE;	
-	 }
-	
+	public long getErrorCount() {
+		return errorCount;
+	}
+
+	@Override
+	public long getSuccessCount() {
+		return successCount;
+	}
+
+	@Override
+	public long getErrorCountSinceLastSuccess() {
+		return errorsSinceLastSuccess;
+	}
+
 }

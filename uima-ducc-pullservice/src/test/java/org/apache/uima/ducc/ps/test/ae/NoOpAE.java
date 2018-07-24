@@ -23,6 +23,9 @@ import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.UimaContext;
@@ -39,12 +42,18 @@ public class NoOpAE extends CasAnnotator_ImplBase
     Logger logger;
     static boolean initComplete = false;
     String AE_Identifier = "*^^^^^^^^^ AE ";
-
+    private static AtomicLong processCount = new AtomicLong();
+	String errorSequence;
 
     @Override
     public void initialize(UimaContext uimaContext) throws ResourceInitializationException 
     {
+    	processCount.set(0);
         super.initialize(uimaContext);
+    	errorSequence = System.getProperty("ProcessFail");
+    	if ( Objects.isNull(errorSequence)) {
+    		errorSequence="";
+    	}
 
         long tid = Thread.currentThread().getId();
 
@@ -103,10 +112,18 @@ public class NoOpAE extends CasAnnotator_ImplBase
     @Override
     public void process(CAS cas) throws AnalysisEngineProcessException 
     {
-    	String data = cas.getSofaDataString();
-    	if ( System.getProperty("ProcessFail") != null ) {
-    		throw new AnalysisEngineProcessException(new RuntimeException("Simulated Exception"));
-    	}
+    	long val = processCount.incrementAndGet();
+    	//String data = cas.getSofaDataString();
+   		String[] errors = errorSequence.split(",");
+   		synchronized(NoOpAE.class) {
+   			for( String inx : errors) {
+   				long errorSeq = Long.parseLong(inx.trim());
+   				if ( errorSeq == val ) {
+   					System.out.println(">>>> Error: errorSeq:"+errorSeq+" processCount:"+val);
+   		    		throw new AnalysisEngineProcessException(new RuntimeException("Simulated Exception"));
+   				}
+   			}
+   		}
     }
 
  

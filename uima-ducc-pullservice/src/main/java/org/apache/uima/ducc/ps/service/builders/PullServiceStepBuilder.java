@@ -103,7 +103,6 @@ public final class PullServiceStepBuilder {
 	public interface OptionalsStep {
 		public OptionalsStep withScaleout(int scaleout);
 		public OptionalsStep withType(String type);
-		
 		public BuildStep withOptionalsDone();
 	}
 	public interface BuildStep {

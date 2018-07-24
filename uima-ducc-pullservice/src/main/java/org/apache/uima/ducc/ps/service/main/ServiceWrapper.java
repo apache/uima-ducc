@@ -28,8 +28,11 @@ import org.apache.uima.ducc.ps.service.IService;
 import org.apache.uima.ducc.ps.service.ServiceConfiguration;
 import org.apache.uima.ducc.ps.service.builders.PullServiceStepBuilder;
 import org.apache.uima.ducc.ps.service.dgen.DeployableGeneration;
+import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
+import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler.Action;
+import org.apache.uima.ducc.ps.service.errors.builtin.WindowBasedErrorHandler;
 import org.apache.uima.ducc.ps.service.jmx.JMXAgent;
 import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
 import org.apache.uima.ducc.ps.service.processor.uima.UimaAsServiceProcessor;
@@ -71,6 +74,7 @@ public class ServiceWrapper {
 	 */
 	private IServiceProcessor createProcessor(String analysisEngineDescriptorPath, String[] args) 
 	throws ServiceInitializationException{
+		IServiceProcessor serviceProcessor=null;
 		if ( serviceConfiguration.getCustomProcessorClass() != null ) {
 			try {
 			Class<?> clz = Class.forName(serviceConfiguration.getCustomProcessorClass());
@@ -78,20 +82,48 @@ public class ServiceWrapper {
 			if ( !IServiceProcessor.class.isAssignableFrom(clz) ) {
 				throw new ServiceInitializationException(serviceConfiguration.getCustomProcessorClass()+" Processor Class does not implement IServiceProcessor ");
 			}
-			return (IServiceProcessor) clz.newInstance();
+			serviceProcessor = (IServiceProcessor) clz.newInstance();
+			int maxErrors = 0;
+			int windowSize = 0;
+			if ( serviceConfiguration.getMaxErrors() != null ) {
+				maxErrors = Integer.parseInt(serviceConfiguration.getMaxErrors());
+			}
+			if ( serviceConfiguration.getMaxErrors() != null ) {
+				windowSize = Integer.parseInt(serviceConfiguration.getErrorWindowSize());
+			}
+			serviceProcessor.setErrorHandlerWindow(maxErrors, windowSize);
+
 			} catch( Exception e) {
 				logger.log(Level.WARNING,"",e);
 				throw new ServiceInitializationException("Unable to instantiate Custom Processor from class:"+serviceConfiguration.getCustomProcessorClass());
 			}
 		} else {
-			if  ( "uima".equals(serviceConfiguration.getJpType() ) ){
-				return new UimaServiceProcessor(analysisEngineDescriptorPath, serviceConfiguration);
+			if  ( "uima".equals(serviceConfiguration.getJpType() ) ) {
+				serviceProcessor = new UimaServiceProcessor(analysisEngineDescriptorPath, serviceConfiguration);
+			
 			} else if ( "uima-as".equals(serviceConfiguration.getJpType()) ) {
-				return new UimaAsServiceProcessor(args, serviceConfiguration);
+				serviceProcessor = new UimaAsServiceProcessor(args, serviceConfiguration);
+			
 			} else {
 				throw new RuntimeException("Invalid deployment. Set either -Dducc.deploy.JpType=[uima,uima-as] or provide -Dducc.deploy.custom.processor.class=XX where XX implements IServiceProcessor ");
 			}
 		} 
+		return serviceProcessor;
+	}
+	private IServiceErrorHandler getErrorHandler() {
+		int maxErrors = 1;
+		int windowSize = 1;
+		
+		if ( serviceConfiguration.getMaxErrors() != null ) {
+			maxErrors = Integer.parseInt(serviceConfiguration.getMaxErrors());
+		}
+		if ( serviceConfiguration.getErrorWindowSize() != null ) {
+			windowSize = Integer.parseInt(serviceConfiguration.getErrorWindowSize());
+		}
+		// Error handler which terminates service on the 1st error 
+		return	new WindowBasedErrorHandler()
+				.withMaxFrameworkErrors(maxErrors)
+				.withProcessErrorWindow(windowSize).build();
 	}
 	/**
 	 * Check if AE descriptor is provided or we need to create it from parts

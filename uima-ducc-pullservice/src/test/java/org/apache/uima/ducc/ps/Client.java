@@ -21,6 +21,7 @@ package org.apache.uima.ducc.ps;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -49,6 +50,7 @@ import org.junit.After;
 public class Client {
 	private Server server;
 	private boolean block = false;
+	private AtomicLong errorCount = new AtomicLong();
 	private final static String app="test";
 	private int httpPort = 8080;
 	private int maxThreads = 50;
@@ -162,6 +164,9 @@ public class Client {
 					case End:
 						System.out.println("---- Driver handling END Request - "+imt.getMetaTask().getAppData());
 						//handleMetaCasTransationEnd(trans, taskConsumer);
+						if ( imt.getMetaTask().getUserSpaceException() != null ) {
+							System.out.println("Client received error#"+errorCount.incrementAndGet());
+						}
 						break;
 					case InvestmentReset:
 					//	handleMetaCasTransationInvestmentReset(trans, rwt);
@@ -202,6 +207,9 @@ public class Client {
 				}
 			}
 
+		}
+		public long getErrorCount() {
+			return errorCount.get();
 		}
 		private IMetaTask getMetaCas(String serializedCas) {
 			if ( serializedCas == null ) {

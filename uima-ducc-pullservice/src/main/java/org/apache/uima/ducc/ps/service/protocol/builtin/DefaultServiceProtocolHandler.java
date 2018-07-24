@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.ps.service.protocol.builtin;
 
 import java.io.InvalidClassException;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -237,15 +238,20 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 
 				// assume success
 				Action action = Action.CONTINUE;
+				// check if process error occurred.  
+				String errorAsString = processResult.getError();
+
 				if (processResult.terminateProcess()) {
 					action = Action.TERMINATE;
-					String errorAsString = processResult.getError();
+				} else if ( Objects.isNull(errorAsString)){
+					// success 
+					transaction.getMetaTask().setPerformanceMetrics(processResult.getResult());
+				} 
+				if ( Objects.nonNull(errorAsString ) ) {
 					IMetaTask mc = transaction.getMetaTask();
 					mc.setUserSpaceException(errorAsString);
-				} else {
-					// success
-					transaction.getMetaTask().setPerformanceMetrics(processResult.getResult());
 				}
+				
 				// send END Request
 				callEnd(transaction);
 				if (running && Action.TERMINATE.equals(action)) {
@@ -275,16 +281,19 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			} 		
 		}
 		stopLatch.countDown();
+		logger.log(Level.INFO,"ProtocolHandler stopped requesting new tasks - Stopping processor");
+
 		if ( processor != null ) {
 			processor.stop();
 		}
-		logger.log(Level.INFO,"ProtocolHandler terminated");
 		return String.valueOf(Thread.currentThread().getId());
 	}
 
 	
 	private void delegateStop() {
-		service.stop(); // dont quiesce
+       service.stop(); // dont quiesce
+		
+		//service.quiesceAndStop();
 	}
 	@Override
 	public void stop() {
@@ -298,15 +307,14 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	public void quiesceAndStop() {
 		quiescing = true;
 		running = false;
-		if ( logger.isLoggable(Level.INFO)) {
-			logger.log(Level.INFO, this.getClass().getName()+" quiesceAndStop() called");
-		}
+		logger.log(Level.INFO, this.getClass().getName()+" quiesceAndStop() called");
 		try {
 			// wait for process threads to terminate
 			stopLatch.await();
-			logger.log(Level.INFO, this.getClass().getName()+" All process threads completed quiesce");
 		} catch( Exception e ) {
+
 		}
+		logger.log(Level.INFO, this.getClass().getName()+" All process threads completed quiesce");
 	}
 	@Override
 	public void start() {

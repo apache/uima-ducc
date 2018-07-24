@@ -166,9 +166,6 @@ public class PullService implements IService {
 			// this down just before thread dies.
 			CountDownLatch stopLatch = new CountDownLatch(scaleout);
 			serviceProcessor.setScaleout(scaleout);
-//			if ( serviceProcessor instanceof IScaleable ) {
-//				((IScaleable) serviceProcessor).setScaleout(scaleout);
-//			}
 			// add default protocol handler
 	        protocolHandler =
 					   new DefaultServiceProtocolHandler.Builder()

@@ -21,7 +21,6 @@ package org.apache.uima.ducc.ps.service.processor.uima;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 //import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,6 +35,8 @@ import org.apache.uima.ducc.ps.service.ServiceConfiguration;
 //import org.apache.uima.ducc.ps.service.dgen.DeployableGeneration;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler.Action;
+import org.apache.uima.ducc.ps.service.metrics.IWindowStats;
+import org.apache.uima.ducc.ps.service.metrics.builtin.ProcessWindowStats;
 //import org.apache.uima.ducc.ps.service.jmx.JmxAEProcessInitMonitor;
 import org.apache.uima.ducc.ps.service.monitor.IServiceMonitor;
 import org.apache.uima.ducc.ps.service.monitor.builtin.RemoteStateObserver;
@@ -77,6 +78,7 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 	private ServiceConfiguration serviceConfiguration;
 	private IServiceMonitor monitor;
 	private AtomicInteger numberOfInitializedThreads = new AtomicInteger();
+	private IServiceErrorHandler errorHandler;
 	
 	static {
 		// try to get platform MBean Server (Java 1.5 only)
@@ -104,8 +106,25 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 		if (serviceConfiguration.getJpType() != null) {
 		  serializerMap = new HashMap<>();
 		}
+		// check if error window override has been set via -D
+		if ( serviceConfiguration.getMaxErrors() != null ) {
+			this.maxErrors = Integer.parseInt(serviceConfiguration.getMaxErrors());
+		}
+		// check if error window override has been set via -D
+		if ( serviceConfiguration.getErrorWindowSize() != null ) {
+			this.windowSize = Integer.parseInt(serviceConfiguration.getErrorWindowSize());
+		}
 	}
-	
+	/*
+	 * Defines error handling parameters
+	 * 
+	 * @param maxErrors - maximum error threshold within an error window
+	 * @param windowSize - error window size
+	 */
+	public void setErrorHandlerWindow(int maxErrors, int windowSize) {
+		this.maxErrors = maxErrors;
+		this.windowSize = windowSize;
+	}
 	private void launchStateInitializationCollector() {
 		monitor =
 				new RemoteStateObserver(serviceConfiguration, logger);
@@ -124,6 +143,8 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 			logger.log(Level.FINE, "Process Thread:"+ Thread.currentThread().getName()+" Initializing AE");
 			
 		}
+		errorHandler = getErrorHandler();
+		
 		try {
 			// multiple threads may call this method. Send initializing state once
 			initStateLock.lockInterruptibly();
@@ -176,7 +197,7 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 			
 		}
 		if ( numberOfInitializedThreads.incrementAndGet() == scaleout ) {
-			super.delay(logger, 30000);
+			super.delay(logger, DEFAULT_INIT_DELAY);
 			monitor.onStateChange(IServiceState.State.Running.toString(), new Properties());
 		}
 	}
@@ -189,10 +210,6 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 		casPool = new CasPool(scaleout, analysisEngineMetadata, rm);
 	}
 
-//	private UimaSerializer getUimaSerializer() {
-//		
-//	   	return serializerMap.get(Thread.currentThread().getId());
-//	}
 	@Override
 	public IProcessResult process(String serializedTask) {
 		AnalysisEngine ae = null;
@@ -229,13 +246,22 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 			// get the delta
 			List<PerformanceMetrics> casMetrics = 
 					UimaMetricsGenerator.getDelta( afterAnalysis, beforeAnalysis);
+			
+			successCount.incrementAndGet();
+			errorCountSinceLastSuccess.set(0);
 			return new UimaProcessResult(resultSerializer.serialize(casMetrics));
 		} catch( Exception e ) {
 			logger.log(Level.WARNING,"",e);
-			result = new UimaProcessResult(e, Action.TERMINATE);
+			IWindowStats stats = 
+					new ProcessWindowStats(errorCount.incrementAndGet(), 
+							successCount.get(), 
+							errorCountSinceLastSuccess.incrementAndGet());
+			Action action = 
+					errorHandler.handleProcessError(e, this, stats);
+
+			result = new UimaProcessResult(e, action);
 			return result;
- 		}
-		finally {
+ 		} finally {
 			
 			if (cas != null) {
 				casPool.releaseCas(cas);
@@ -245,7 +271,7 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 
 	
 	public void setErrorHandler(IServiceErrorHandler errorHandler) {
-
+		this.errorHandler = errorHandler;
 	}
 
 	@Override

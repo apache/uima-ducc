@@ -51,4 +51,10 @@ public class CustomProcessorExample implements IServiceProcessor{
 		logger.log(Level.INFO,"... getScaleout() called");
 		return 1;
 	}
+
+	@Override
+	public void setErrorHandlerWindow(int maxErrors, int windowSize) {
+		logger.log(Level.INFO,"... setErrorHandlerWindow() called");
+
+	}
 }
