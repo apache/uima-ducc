@@ -291,9 +291,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 
 	
 	private void delegateStop() {
-       service.stop(); // dont quiesce
-		
-		//service.quiesceAndStop();
+	   service.quiesceAndStop();
 	}
 	@Override
 	public void stop() {
