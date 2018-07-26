@@ -55,7 +55,7 @@ public class ServiceWrapper {
 	    Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
 	private String startJmxAgent() throws ServiceInitializationException {
-		jmxAgent = new JMXAgent(serviceConfiguration.getAssignedJmxPort(), logger);
+		jmxAgent = new JMXAgent(serviceConfiguration.getServiceJmxConnectURL(), logger);
 		int rmiRegistryPort = jmxAgent.initialize();
 		return jmxAgent.start(rmiRegistryPort);
 		
@@ -144,7 +144,7 @@ public class ServiceWrapper {
 
 		// create JMX agent
 		String serviceJmxConnectString = startJmxAgent();
-		
+		logger.log(Level.INFO, "Deploying service with JMX enabled - clients can connect using jmx URL:"+serviceJmxConnectString);
 		serviceConfiguration.setServiceJmxConnectURL(serviceJmxConnectString);
 		IServiceProcessor processor;
 		if ( isPiecesParts(serviceConfiguration)) {

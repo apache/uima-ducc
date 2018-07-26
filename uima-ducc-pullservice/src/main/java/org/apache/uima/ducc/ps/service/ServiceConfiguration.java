@@ -32,7 +32,7 @@ public class ServiceConfiguration {
 	private String analysisEngineDescriptorPath;
 	private String serviceType;
 	private String jpType;
-	private String assignedJmxPort;
+//	private String assignedJmxPort;
 	private String customRegistryClass;
 	private String customProcessorClass;
 	private String serviceJmxConnectURL;
@@ -136,9 +136,9 @@ public class ServiceConfiguration {
 	public void setAnalysisEngineDescriptorPath(String analysisEngineDescriptorPath) {
 		this.analysisEngineDescriptorPath = analysisEngineDescriptorPath;
 	}
-	public void setAssignedJmxPort(String assignedJmxPort) {
-		this.assignedJmxPort = assignedJmxPort;
-	}
+//	public void setAssignedJmxPort(String assignedJmxPort) {
+//		this.assignedJmxPort = assignedJmxPort;
+//	}
 	public void setCustomRegistryClass(String customRegistryClass) {
 		this.customRegistryClass = customRegistryClass;
 	}
@@ -203,9 +203,9 @@ public class ServiceConfiguration {
 		this.serviceType = serviceType;
 	}
 	
-	public String getAssignedJmxPort() {
-		return assignedJmxPort;
-	}
+//	public String getAssignedJmxPort() {
+//		return assignedJmxPort;
+//	}
 
 	public String getCustomRegistryClass() {
 		return customRegistryClass;
@@ -232,11 +232,12 @@ public class ServiceConfiguration {
 		clientURL = System.getProperty("ducc.deploy.JdURL");
 		threadCount = System.getProperty("ducc.deploy.JpThreadCount");
 		serviceType = System.getProperty("ducc.deploy.service.type");
-	    maxErrors = System.getProperty("ducc.deploy.service.error.threshold");
-	    errorWindowSize = System.getProperty("ducc.deploy.service.error.window");
+	    maxErrors = System.getProperty("ducc.deploy.JpErrorThreshold");
+	    errorWindowSize = System.getProperty("ducc.deploy.JpErrorWindowSize");
 		
 		jpType = System.getProperty("ducc.deploy.JpType");
-		assignedJmxPort = System.getProperty("ducc.jmx.port");
+//		assignedJmxPort = System.getProperty("ducc.jmx.port");
+		serviceJmxConnectURL = System.getProperty("ducc.jmx.port");
 		customRegistryClass = System.getProperty("ducc.deploy.registry.class");
 		customProcessorClass = System.getProperty("ducc.deploy.custom.processor.class");
 

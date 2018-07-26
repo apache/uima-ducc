@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.agent.event;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -376,11 +377,12 @@ public class AgentEventListener implements DuccEventDelegateListener {
 		agent.updateProcessStatus(duccEvent);
 	}
 	public void onProcessStateUpdate(@Body String serviceUpdate) throws Exception {
-		logger.info(">>> onProcessStateUpdate", null,"Recv'd Process Update from Custom Service");
+		logger.info(">>> onProcessStateUpdate", null,"Recv'd Process Update >>> ");
 		String[] stateUpdateProperties = serviceUpdate.split(",");
 		
 		String duccProcessId = null;
 		String duccProcessState = null;
+		String jmxUrl = null;
 		ProcessState state = null;
 		for( String prop : stateUpdateProperties ) {
 			String[] nv = prop.split("=");
@@ -395,16 +397,22 @@ public class AgentEventListener implements DuccEventDelegateListener {
 				} catch( IllegalArgumentException e) {
 					// invalid state
 				}
-			} 
-		}
+			} else if ( nv[0].equals("SERVICE_JMX_PORT")) { 
+				jmxUrl = nv[1];
+			}
+		} 
 		if ( state == null ) {
 			logger.info(">>> onProcessStateUpdate", null,"... Agent Received Invalid State Update event - Unsupported Process State:"+duccProcessState+" Process ID:"+duccProcessId);
 		} else if ( duccProcessId == null ) {
 			logger.info(">>> onProcessStateUpdate", null,"... Agent Received Invalid State Update event - Process State:"+duccProcessState+" Missing Process ID");
 		} else {
-			ProcessStateUpdate update = new ProcessStateUpdate(state, duccProcessId);
+			ProcessStateUpdate update = new ProcessStateUpdate(state, null, duccProcessId, jmxUrl);
 			ProcessStateUpdateDuccEvent duccEvent = new ProcessStateUpdateDuccEvent(update);
-			logger.info(">>> onProcessStateUpdate", null,"... Agent Received ProcessStateUpdateDuccEvent - Process State:"+duccEvent.getState()+" Process ID:"+duccEvent.getDuccProcessId());
+			String jmxInfo = "";
+			if ( Objects.nonNull(jmxUrl)) {
+				jmxInfo = " Service JMX connect url:"+jmxUrl;
+			}
+			logger.info(">>> onProcessStateUpdate", null,"... Agent Received ProcessStateUpdateDuccEvent - Process State:"+duccEvent.getState()+" Process ID:"+duccEvent.getDuccProcessId()+jmxInfo);
 			agent.updateProcessStatus(duccEvent);
 		}
 	}

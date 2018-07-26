@@ -30,7 +30,7 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 public class RemoteStateObserver implements IServiceMonitor {
-	private static final String SERVICE_JMS_PORT = "SERVICE_JMX_PORT=";
+	private static final String SERVICE_JMX_PORT = "SERVICE_JMX_PORT=";
 	private static final String SERVICE_UNIQUE_ID= "DUCC_PROCESS_UNIQUEID=";
 	private static final String SERVICE_STATE = "DUCC_PROCESS_STATE=";
 	private static final String SERVICE_DATA = "SERVICE_DATA=";
@@ -79,10 +79,6 @@ public class RemoteStateObserver implements IServiceMonitor {
 			if ( additionalData == null ) {
 				additionalData = new Properties();
 			} 
-			if ( serviceConfiguration.getAssignedJmxPort() != null && 
-					!serviceConfiguration.getAssignedJmxPort().trim().isEmpty()) {
-				additionalData.setProperty(SERVICE_JMS_PORT, serviceConfiguration.getAssignedJmxPort().trim());
-			}
 			// Agent needs process unique ID to identify it within inventory.
 			// The unique id was added as an env var by an agent before this
 			// process was launched.
@@ -92,6 +88,12 @@ public class RemoteStateObserver implements IServiceMonitor {
 			   .append(SEPARATOR)
 			   .append(SERVICE_STATE)
 			   .append(state);
+			if ( serviceConfiguration.getServiceJmxConnectURL() != null && 
+					!serviceConfiguration.getServiceJmxConnectURL().trim().isEmpty()) {
+				sb.append(SEPARATOR).
+				append(SERVICE_JMX_PORT).
+                append(serviceConfiguration.getServiceJmxConnectURL().trim());
+			}
 			out = new DataOutputStream(socket.getOutputStream());
 			out.writeUTF(sb.toString());
 			out.flush();
