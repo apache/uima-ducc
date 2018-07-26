@@ -77,7 +77,7 @@ class DuccServiceDeploymentsTabHTMLParser(HTMLParser):
         elif(column == 2):
             job_spec_key = data
         else:
-            job_spec_value = job_spec_value+data
+            job_spec_value = job_spec_value+' '+data
         #print("Encountered some data  :", str(row), str(column), data)
 
 class DuccServiceStatus():
