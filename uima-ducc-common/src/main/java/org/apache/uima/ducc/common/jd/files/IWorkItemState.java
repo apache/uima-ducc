@@ -58,11 +58,9 @@ public interface IWorkItemState extends Serializable, Comparable<IWorkItemState>
 	public void investmentReset();
 	
 	public long getMillisAtStart();
-	public long getMillisOverhead();
 	public long getMillisProcessing();
-	public long getMillisInvestment();
 	
-	public long getMillisOverhead(long now);
-	public long getMillisProcessing(long now);
-	public long getMillisInvestment(long now);
+	public long getMillisOverhead(long refTime);
+	public long getMillisProcessing(long refTime);
+	public long getMillisInvestment(long refTime);
 }

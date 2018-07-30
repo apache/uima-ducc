@@ -1299,6 +1299,18 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return adjustedTime;
 	}
+	
+	private long getReferenceTime(IDuccWorkJob job) {
+		long time = System.currentTimeMillis();
+		if(job != null) {
+			if(job.isCompleted()) {
+				IDuccStandardInfo stdInfo = job.getStandardInfo();
+				time = stdInfo.getDateOfCompletionMillis();
+			}
+		}
+		return time;
+	}
+	
 	private void handleDuccServletJobWorkitemsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
@@ -1309,7 +1321,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
-				long now = System.currentTimeMillis();
+				long refTime = getReferenceTime(job);
 				String directory = job.getLogDirectory()+jobNo;
 				EffectiveUser eu = EffectiveUser.create(request);
 				long wiVersion = job.getWiVersion();
@@ -1410,12 +1422,12 @@ public class DuccHandler extends DuccAbstractHandler {
 						row.append("<td align=\"right\">");
 						row.append(fmt_startTime);
 						// Queuing Time (sec)
-						time = getAdjustedTime(wis.getMillisOverhead(), job);
+						time = getAdjustedTime(wis.getMillisOverhead(refTime), job);
 						time = time/1000;
 						row.append("<td align=\"right\">");
 						row.append(formatter.format(time));
 						// Processing Time (sec)
-						time = getAdjustedTime(wis.getMillisProcessing(now), job);
+						time = getAdjustedTime(wis.getMillisProcessing(refTime), job);
 						time = time/1000;
 						ptime = formatter.format(time);
 						row.append("<td align=\"right\">");
@@ -1432,7 +1444,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						row.append(ptime);
 						row.append("</span>");
 						// Investment Time (sec)
-						time = getAdjustedTime(wis.getMillisInvestment(now), job);
+						time = getAdjustedTime(wis.getMillisInvestment(refTime), job);
 						time = time/1000;
 						itime = formatter.format(time);
 						row.append("<td align=\"right\">");

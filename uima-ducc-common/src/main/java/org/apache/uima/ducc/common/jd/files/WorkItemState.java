@@ -180,11 +180,7 @@ public class WorkItemState implements IWorkItemState {
 		return millisAtStart;
 	}
 	
-	public long getMillisOverhead() {
-		return getMillisOverhead(System.currentTimeMillis());
-	}
-	
-	public long getMillisOverhead(long now) {
+	public long getMillisOverhead(long refTime) {
 		long retVal = 0;
 		if(millisAtStart > 0) {
 			if(millisAtQueued > 0) {
@@ -194,7 +190,9 @@ public class WorkItemState implements IWorkItemState {
 				retVal = millisAtOperating - millisAtStart;
 			}
 			else {
-				retVal = now - millisAtStart;
+				if(refTime > millisAtStart) {
+					retVal = refTime - millisAtStart;
+				}
 			}
 		}
 		return retVal;
@@ -204,31 +202,31 @@ public class WorkItemState implements IWorkItemState {
 		return getMillisProcessing(System.currentTimeMillis());
 	}
 	
-	public long getMillisProcessing(long now) {
+	public long getMillisProcessing(long refTime) {
 		long retVal = 0;
 		if(millisAtOperating > 0) {
 			if(millisAtFinish > 0) {
 				retVal = millisAtFinish - millisAtOperating;
 			}
 			else {
-				retVal =  now - millisAtOperating;
+				if(refTime > millisAtOperating) {
+					retVal =  refTime - millisAtOperating;
+				}
 			}
 		}
 		return retVal;
 	}
 	
-	public long getMillisInvestment() {
-		return getMillisInvestment(System.currentTimeMillis());
-	}
-	
-	public long getMillisInvestment(long now) {
+	public long getMillisInvestment(long refTime) {
 		long retVal = 0;
 		if(millisAtFinish < 0) {
 			if(millisAtInvestment > 0) {
-				retVal = now - millisAtInvestment;
+				if(refTime > millisAtInvestment) {
+					retVal = refTime - millisAtInvestment;
+				}
 			}
 			else {
-				retVal = getMillisProcessing();
+				retVal = getMillisProcessing(refTime);
 			}
 		}
 		return retVal;
