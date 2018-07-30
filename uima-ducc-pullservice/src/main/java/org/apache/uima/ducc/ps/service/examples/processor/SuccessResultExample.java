@@ -50,5 +50,9 @@ public class SuccessResultExample implements IProcessResult{
 		exception.printStackTrace(new PrintWriter(stackTraceBuffer));		
 		return stackTraceBuffer.toString();
 	}
+	@Override
+	public Exception getExceptionObject() {
+		return exception;
+	}
 
 }
