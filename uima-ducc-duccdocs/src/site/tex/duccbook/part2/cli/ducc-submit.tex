@@ -296,6 +296,21 @@
      --process_per_item_time_max 60
              \end{verbatim}
              
+           \item[$--$process\_error\_window\_threshold {[integer]} ] This specifies an upper bound for number 
+             of process errors a JP can tolerate. When this threshold is reached, the JP will terminate. If 
+             not specified, the default is 1 which means terminate on first process error. Example:
+             \begin{verbatim}
+     --process_error_window_threshold 2
+             \end{verbatim}  
+             
+           \item[$--$process\_error\_window\_size {[integer]} ] This specifies a window the JP error handler 
+             uses to determine if it should terminate on process error. When a defined number of errors 
+             in a given window is reached, the JP will terminate. If not specified, the default is 1 which means 
+             terminate on first process error. This property is used together with {\em $--$process\_error\_window\_threshold}. Example:
+             \begin{verbatim}
+     --process_error_window_size 10
+             \end{verbatim}   
+             
            \item[$--$process\_pipeline\_count {[integer]} ] This specifies the number of pipelines per
              process to be deployed, i.e. the number of work-items each JP will process simultaneously. 
              It is used by the Resource Manager to determine how many
