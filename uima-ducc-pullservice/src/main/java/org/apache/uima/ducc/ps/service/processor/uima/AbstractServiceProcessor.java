@@ -37,8 +37,10 @@ public class AbstractServiceProcessor {
 	protected int maxErrors=1;  // default is to fail on 1st error
 	protected int windowSize=1;
     protected int DEFAULT_INIT_DELAY=30000;
-    
-	protected IServiceErrorHandler getErrorHandler() {
+
+
+	protected IServiceErrorHandler getErrorHandler(Logger logger) {
+		logger.log(Level.INFO, "Error Handler Configuration: threshold="+maxErrors+" windowSize="+windowSize);
 		// concrete implementation of this abstract class should
 		// provide a way to set maxErrors and windowSize. The IServiceProcessor
 		// provides a setter method for overriding default values 
@@ -66,4 +68,7 @@ public class AbstractServiceProcessor {
 	   	return serializerMap.get(Thread.currentThread().getId());
 	}
 
+	protected void stop() throws Exception {
+	
+	}
 }

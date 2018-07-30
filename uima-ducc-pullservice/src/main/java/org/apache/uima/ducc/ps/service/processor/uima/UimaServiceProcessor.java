@@ -143,7 +143,7 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 			logger.log(Level.FINE, "Process Thread:"+ Thread.currentThread().getName()+" Initializing AE");
 			
 		}
-		errorHandler = getErrorHandler();
+		errorHandler = getErrorHandler(logger);
 		
 		try {
 			// multiple threads may call this method. Send initializing state once
@@ -282,6 +282,8 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 			if ( ae != null ) {
 				ae.destroy();
 			}
+			super.stop();
+
 		} catch( Exception e) {
 			logger.log(Level.WARNING, "stop", e);
 		} 

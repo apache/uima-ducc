@@ -517,7 +517,20 @@ public interface IUiOptions
             public String description() { return "Number of pipelines per process (i.e. simultaneously processed work-items)."; }
             public String argname()     { return "integer"; }
             public String deflt()       { return "4"; }
-        },            
+        },   
+        ProcessErrorWindowThreshold { 
+            public String pname()       { return JobSpecificationProperties.key_process_error_threshold; }
+            public String description() { return "Maximum number of process errors per process."; }
+            public String argname()     { return "integer"; }
+            public String deflt()       { return "1"; }
+        },  
+
+        ProcessErrorWindowSize { 
+            public String pname()       { return JobSpecificationProperties.key_process_error_window; }
+            public String description() { return "Size of error window used in conjuntion with maximum number of process errors."; }
+            public String argname()     { return "integer"; }
+            public String deflt()       { return "1"; }
+        },  
 
         ProcessPerItemTimeMax { 
             public String pname()       { return JobSpecificationProperties.key_process_per_item_time_max; }

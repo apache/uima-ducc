@@ -80,6 +80,8 @@ public class DuccJobSubmit
         UiOption.ProcessInitializationFailuresCap,
         UiOption.ProcessFailuresLimit,
         UiOption.ProcessPipelineCount,
+        UiOption.ProcessErrorWindowThreshold,
+        UiOption.ProcessErrorWindowSize,
         UiOption.ProcessPerItemTimeMax,
         UiOption.ProcessInitializationTimeMax,
 
@@ -163,6 +165,7 @@ public class DuccJobSubmit
     {
         init (this.getClass().getName(), opts, args, jobRequestProperties, consoleCb);
         check_descriptor_options();
+        check_error_window_definition();
         if (isAllInOne()) {
             allInOneLauncher = new AllInOneLauncher(userSpecifiedProperties, consoleCb);  // Pass the already fixed-up user properties
         }
@@ -182,12 +185,43 @@ public class DuccJobSubmit
         throws Exception
     {
         init (this.getClass().getName(), opts, props, jobRequestProperties, consoleCb);
+        
         check_descriptor_options();
+        check_error_window_definition();
         if (isAllInOne()) {
             allInOneLauncher = new AllInOneLauncher(userSpecifiedProperties, consoleCb);  // Pass the already fixed-up user properties
         }
     }
+    private void check_error_window_definition() throws IllegalArgumentException {
+    	int windowSize=0;
+    	int maxThreshold=0;
+    	
+		boolean errorWindowSizeDefined = jobRequestProperties.containsKey(UiOption.ProcessErrorWindowSize.pname());
+		boolean errorWindowThresholdDefined = jobRequestProperties.containsKey(UiOption.ProcessErrorWindowThreshold.pname());
 
+		if ( errorWindowSizeDefined ) {
+			try {
+				windowSize = jobRequestProperties.getIntProperty(UiOption.ProcessErrorWindowSize.pname());
+			} catch( NumberFormatException e) {
+				throw new IllegalArgumentException("process_error_window_size must be a postive number - you've provided:"+
+						jobRequestProperties.getIntProperty(UiOption.ProcessErrorWindowSize.pname()));
+			} 
+		}
+		if ( errorWindowThresholdDefined ) {
+			try {
+				maxThreshold = jobRequestProperties.getIntProperty(UiOption.ProcessErrorWindowThreshold.pname());
+			} catch( NumberFormatException e) {
+				throw new IllegalArgumentException("process_error_window_threshold must be a postive number - you've provided:"+
+						jobRequestProperties.getIntProperty(UiOption.ProcessErrorWindowThreshold.pname()));
+			}
+		}
+		if ( maxThreshold > windowSize   ) {
+			throw new IllegalArgumentException("process_error_window_threshold must be smaller/equal than/to process_error_window_size - you've provided:"+
+					" process_error_window_threshold="+jobRequestProperties.getIntProperty(UiOption.ProcessErrorWindowThreshold.pname()) +
+					" process_error_window_size="+jobRequestProperties.getIntProperty(UiOption.ProcessErrorWindowSize.pname()));
+			
+		}
+    }
     /*
      * If preemptable change to a non-preemptable scheduling class.
      * If none provided use the default fixed class

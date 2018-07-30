@@ -48,6 +48,8 @@ public class FlagsHelper {
 		JpCmOverrides,
 		JpDd,
 		JpThreadCount,
+		JpErrorThreshold,
+		JpErrorWindowSize,
 		JpType,						// { uima, uima-as }
 		JpProcessorClass("processor.class"),
 		UserClasspath,				// path1.class:path2.jar:path3/*:...

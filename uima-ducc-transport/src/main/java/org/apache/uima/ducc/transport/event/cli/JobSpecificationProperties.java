@@ -65,6 +65,8 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 	public static String key_process_initialization_failures_cap = "process_initialization_failures_cap";
 	public static String key_process_failures_limit = "process_failures_limit";
 	public static String key_process_pipeline_count = "process_pipeline_count";
+	public static String key_process_error_threshold = "process_error_window_threshold";
+	public static String key_process_error_window = "process_error_window_size";
 	
 	/*
 	public static String key_process_get_meta_time_max = "process_get_meta_time_max";

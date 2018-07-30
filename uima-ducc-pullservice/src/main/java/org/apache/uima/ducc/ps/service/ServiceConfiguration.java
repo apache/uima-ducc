@@ -20,6 +20,7 @@
 package org.apache.uima.ducc.ps.service;
 
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
+import org.apache.uima.ducc.ps.service.jmx.JMXAgent;
 
 public class ServiceConfiguration {
 	private String clientURL;
@@ -47,7 +48,14 @@ public class ServiceConfiguration {
 	private String maxErrors;
 	private String errorWindowSize;
 	private ClassLoader sysCL=null;
-
+    private String processType;
+    
+	public String getProcessType() {
+		return processType;
+	}
+	public void setProcessType(String processType) {
+		this.processType = processType;
+	}
 	public String getMaxErrors() {
 		return maxErrors;
 	}
@@ -240,7 +248,7 @@ public class ServiceConfiguration {
 		serviceJmxConnectURL = System.getProperty("ducc.jmx.port");
 		customRegistryClass = System.getProperty("ducc.deploy.registry.class");
 		customProcessorClass = System.getProperty("ducc.deploy.custom.processor.class");
-
+		processType = System.getProperty("ducc.deploy.components");//=job-process
 		duccHome = System.getenv("DUCC_HOME");
 		jobId = System.getenv("DUCC_JOBID");
 		duccProcessId = System.getenv("DUCC_PROCESSID");

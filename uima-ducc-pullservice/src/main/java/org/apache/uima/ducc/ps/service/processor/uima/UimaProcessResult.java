@@ -55,5 +55,9 @@ public class UimaProcessResult implements IProcessResult{
 		exception.printStackTrace(new PrintWriter(sw));
 		return sw.toString();
 	}
+	@Override
+	public Exception getExceptionObject() {
+		return exception;
+	}
 
 }

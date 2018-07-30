@@ -641,6 +641,15 @@ public class JobFactory implements IJobFactory {
 				// </flags for JP to build Aggregate>
 			}
 
+			String process_error_threshold = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_error_threshold);
+			if(process_error_threshold != null) {
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpErrorThreshold, process_error_threshold);
+			}
+			String process_error_window = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_error_window);
+			if(process_error_window != null) {
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpErrorWindowSize, process_error_window);
+			}
+			
 			String process_thread_count = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_pipeline_count);
 			if(process_thread_count != null) {
 				addDashD(pipelineCommandLine, FlagsHelper.Name.JpThreadCount, process_thread_count);
