@@ -24,4 +24,5 @@ public interface IProcessResult {
 	public boolean terminateProcess();     // if true then terminate the process after returning the error to the client
 	public String   getResult();                  // serialized result object if task successful
 	public String    getError();                    // serialized error object if task fails
+	public Exception getExceptionObject();   // JD needs Java Exception as an oject
 }
