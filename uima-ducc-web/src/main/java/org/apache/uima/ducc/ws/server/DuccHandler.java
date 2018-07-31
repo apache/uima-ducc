@@ -1300,17 +1300,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		return adjustedTime;
 	}
 	
-	private long getReferenceTime(IDuccWorkJob job) {
-		long time = System.currentTimeMillis();
-		if(job != null) {
-			if(job.isCompleted()) {
-				IDuccStandardInfo stdInfo = job.getStandardInfo();
-				time = stdInfo.getDateOfCompletionMillis();
-			}
-		}
-		return time;
-	}
-	
 	private void handleDuccServletJobWorkitemsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
@@ -1321,7 +1310,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
-				long refTime = getReferenceTime(job);
 				String directory = job.getLogDirectory()+jobNo;
 				EffectiveUser eu = EffectiveUser.create(request);
 				long wiVersion = job.getWiVersion();
@@ -1382,6 +1370,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			    			duccLogger.warn(methodName, job.getDuccId(), "work items display max:"+DuccConstants.workItemsDisplayMax);
 			    			break;
 			    		}
+			    		long refTime = DuccHandlerUtils.getReferenceTime(job,wis.getNode(),wis.getPid());
 			    		// SeqNo
 						row.append("<td align=\"right\">");
 						row.append(wis.getSeqNo());

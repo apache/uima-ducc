@@ -19,9 +19,23 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.text.DecimalFormat;
+import java.util.Map.Entry;
+
+import org.apache.uima.ducc.common.Node;
+import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 
 public class DuccHandlerUtils {
 
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccHandlerUtils.class);
+	private static DuccId jobid = null;
+	
 	public static String warn(String text) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("<span class=\"health_red\""+">");
@@ -103,8 +117,78 @@ public class DuccHandlerUtils {
 		return retVal;
 	}
 	
-	
-	
-	
+	public static boolean safeCompare(String s1, String s2) {
+		boolean retVal = false;
+		if (s1 != null) {
+			if (s2 != null) {
+				retVal = s1.equals(s2);
+			}
+		}
+		return retVal;
+	}
+
+	public static String getNode(IDuccProcess p) {
+		String retVal = null;
+		Node node = p.getNode();
+		NodeIdentity ni = node.getNodeIdentity();
+		String name = ni.getIp();
+		retVal = name;
+		return retVal;
+	}
+
+	public static String getPid(IDuccProcess p) {
+		String retVal = p.getPID();
+		return retVal;
+	}
+
+	public static IDuccProcess getJobProcess(IDuccWorkJob job, String node, String pid) {
+		String location = "getJobProcess";
+		IDuccProcess retVal = null;
+		try {
+			IDuccProcessMap map = job.getProcessMap();
+			for (Entry<DuccId, IDuccProcess> entry : map.entrySet()) {
+				IDuccProcess p = entry.getValue();
+				String pnode = getNode(p);
+				String ppid = getPid(p);
+				duccLogger.debug(location, jobid, node, pid, pnode, ppid);
+				if (safeCompare(node, pnode)) {
+					if (safeCompare(pid, ppid)) {
+						retVal = p;
+						break;
+					}
+				}
+			}
+		} catch (Exception e) {
+			// no worries
+		}
+		return retVal;
+	}
+
+	public static long getReferenceTime(IDuccWorkJob job, String node, String pid) {
+		String location = "getReferenceTime";
+		long retVal = System.currentTimeMillis();
+		if (job != null) {
+			if (job.isCompleted()) {
+				IDuccStandardInfo stdInfo = job.getStandardInfo();
+				long time = stdInfo.getDateOfCompletionMillis();
+				if(time > 0) {
+					duccLogger.debug(location, jobid, "job: "+time);
+					retVal = time;
+				}
+			}
+			IDuccProcess p = getJobProcess(job, node, pid);
+			if (p != null) {
+				ITimeWindow tw = p.getTimeWindowRun();
+				if (tw != null) {
+					long time = tw.getEndLong();
+					if (time > 0) {
+						duccLogger.debug(location, jobid, "process: "+time);
+						retVal = time;
+					}
+				}
+			}
+		}
+		return retVal;
+	}
 	
 }
