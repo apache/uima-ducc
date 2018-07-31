@@ -18,11 +18,13 @@
 */
 package org.apache.uima.ducc.ps.service.builders;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.uima.ducc.ps.service.IService;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
+import org.apache.uima.ducc.ps.service.main.Application;
 import org.apache.uima.ducc.ps.service.main.PullService;
 import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
 import org.apache.uima.ducc.ps.service.processor.uima.UimaServiceProcessor;
@@ -30,8 +32,12 @@ import org.apache.uima.ducc.ps.service.registry.IRegistryClient;
 
 public final class PullServiceStepBuilder {
 	private PullServiceStepBuilder() {}
-
+	private static Application app;
 	public static ServiceProcessorStep newBuilder() {
+		return newBuilder(null);
+	}
+	public static ServiceProcessorStep newBuilder(Application application) {
+		app = application;
 		return new ServiceSteps();
 	}
 	private static class ServiceSteps implements ServiceProcessorStep, RegistryStep, OptionalsStep, BuildStep {
@@ -47,8 +53,13 @@ public final class PullServiceStepBuilder {
 		
 		@Override
 		public IService build() {
-			
-			PullService service = new PullService(serviceType);
+			PullService service = null;
+			if ( Objects.nonNull(app)) {
+				service = new PullService(serviceType, app);
+			} else {
+				service = new PullService(serviceType);
+			}
+			 
 			service.setScaleout(scaleout);
 			if ( registryClient == null ) {
 				service.setClientURL(clientURL);	

@@ -22,6 +22,7 @@ package org.apache.uima.ducc.ps.service.main;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -33,6 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.ServiceThreadFactory;
 import org.apache.uima.ducc.ps.service.IService;
+//import org.apache.uima.ducc.ps.service.ServiceConfiguration;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
@@ -87,10 +89,20 @@ public class PullService implements IService {
 
 	private Lock initLock = new ReentrantLock();
 
+	private Application application=null;
+	
+	
 	public PullService(String type) {
-		this.type = type;
+		this(type,null);
 
 	}
+
+	public PullService(String type, Application  application ) {
+		this.type = type;
+
+		this.application = application;
+	}
+	
 	public String getType() {
 		return type;
 	}
@@ -244,7 +256,7 @@ public class PullService implements IService {
 	public void stop() {
 		// process threads should stop first to avoid trying to pull new
 		// work while threads are running
-		stopProcessThreads();
+		stopProcessThreadPool();
 		// close connection to remote client and cleanup
 		stopTransport();
 		stopProtocolHandler(false);
@@ -269,8 +281,13 @@ public class PullService implements IService {
 			String result = future.get();
 			logger.log(Level.INFO, "Thread:" + Thread.currentThread().getName() + " Terminated " + new Date() + "::" + result);
 		}
+		stopProcessThreadPool();
+		if ( Objects.nonNull(application) ) {
+			application.onServiceStop();
+		}
 	}
 
+	
 	private void initializeTransport() throws ServiceInitializationException {
 		try {
 			transport.initialize();
@@ -289,11 +306,16 @@ public class PullService implements IService {
 		}
 	}
 
-	private void stopProcessThreads() {
-		if (threadPool != null && !threadPool.isShutdown() && !threadPool.isTerminating() && !threadPool.isTerminated()) {
+	private void stopProcessThreadPool() {
+//		if (threadPool != null && !threadPool.isShutdown() && !threadPool.isTerminating() && !threadPool.isTerminated()) {
+		if (threadPool != null ) {
+
 			try {
+				logger.log(Level.INFO, "Stopping Process Thread Pool");
 				threadPool.shutdownNow();
 				threadPool.awaitTermination(0, TimeUnit.MILLISECONDS);
+				logger.log(Level.INFO, "Process Thread Pool Stopped");
+
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}

@@ -41,7 +41,7 @@ import org.apache.uima.ducc.ps.service.registry.IRegistryClient;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
-public class ServiceWrapper {
+public class ServiceWrapper implements Application {
 	private Logger logger = UIMAFramework.getLogger(ServiceWrapper.class);
 	private IService service = null;
 	// holds -D's and env variables needed at runtime
@@ -166,7 +166,7 @@ public class ServiceWrapper {
 		Objects.requireNonNull(processor, "Unable to instantiate IServiceProcessor");
 		
 		if ( serviceConfiguration.getCustomRegistryClass() != null ) {
-			service = PullServiceStepBuilder.newBuilder()
+			service = PullServiceStepBuilder.newBuilder(this)
 					.withProcessor(processor)
 					.withRegistry(getRegistryClient())
 					.withType(serviceConfiguration.getServiceType())
@@ -174,7 +174,7 @@ public class ServiceWrapper {
 					.withOptionalsDone().build();
 
 		} else {
-			service = PullServiceStepBuilder.newBuilder()
+			service = PullServiceStepBuilder.newBuilder(this)
 					.withProcessor(processor)
 					.withClientURL(serviceConfiguration.getClientURL())
 					.withType(serviceConfiguration.getServiceType())
@@ -215,7 +215,15 @@ public class ServiceWrapper {
 	public void start() throws ServiceException, ExecutionException {
 		service.start();
 	}
-
+    public void stopJmx() {
+    	try {
+    		if ( Objects.nonNull(jmxAgent)) {
+    			jmxAgent.stop();
+    		}
+    	} catch( Exception e) {
+    		
+    	}
+    }
 	public void stop() {
 		try {
 			service.stop();
@@ -228,8 +236,10 @@ public class ServiceWrapper {
 	}
 	public void quiesceAndStop() {
 		try {
-			service.quiesceAndStop();
+			logger.log(Level.INFO,"Stoppng JMX Agent");
 			jmxAgent.stop();
+
+			service.quiesceAndStop();
 		} catch( Exception e ) {
 			logger.log(Level.WARNING,"",e);
 
@@ -269,5 +279,10 @@ public class ServiceWrapper {
 		      }
 		    }
 		  }
+	@Override
+	public void onServiceStop() {
+		stopJmx();
+		
+	}
 }
 
