@@ -18,7 +18,9 @@
 */
 package org.apache.uima.ducc.ps.service.protocol.builtin;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InvalidClassException;
+import java.io.ObjectOutputStream;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -249,7 +251,19 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 				} 
 				if ( Objects.nonNull(errorAsString ) ) {
 					IMetaTask mc = transaction.getMetaTask();
-					mc.setUserSpaceException(errorAsString);
+					// the ducc.deploy.JpType is only present for jobs. If not specified
+					// we return stringified exception to the client. The JD expects
+					// Java Exception object for its error handling
+					if ( Objects.isNull(System.getProperty("ducc.deploy.JpType")) ) {
+						
+						mc.setUserSpaceException(errorAsString);
+					} else {
+						logger.log(Level.INFO, "Sending Exception to JD:\n" +
+								((Exception)processResult.getExceptionObject()));
+						// JD expects serialized exception as byte[]
+						mc.setUserSpaceException(serializeError(processResult.getExceptionObject()));
+					}
+
 				}
 				
 				// send END Request
@@ -289,7 +303,24 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 		return String.valueOf(Thread.currentThread().getId());
 	}
 
-	
+    private byte[] serializeError(Throwable t) throws Exception {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(baos);
+
+		try {
+			oos.writeObject(t);
+		} catch (Exception e) {
+			try {
+				logger.log(Level.WARNING, "Unable to Serialize "+t.getClass().getName()+" - Will Stringify It Instead");
+				
+			} catch( Exception ee) {}
+			throw e;
+		} finally {
+			oos.close();
+		}
+		
+		return baos.toByteArray();
+	}
 	private void delegateStop() {
 	   service.quiesceAndStop();
 	}
