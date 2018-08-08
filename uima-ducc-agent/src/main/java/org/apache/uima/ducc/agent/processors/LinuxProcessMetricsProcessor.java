@@ -353,7 +353,18 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 		// if process is stopping or already dead dont collect metrics. The
 		// Camel route has just been stopped.
 		if (closed || !processIsActive()) {
- 		    logger.info("LinuxProcessMetricsProcessor.process",	null,"Process with PID:"+process.getPID() +" not in Running or Initializing state. Returning");	
+ 		    logger.info("LinuxProcessMetricsProcessor.process",	null,"Process with PID:"+process.getPID() +" not in Running or Initializing state. Terminating Process Metrics Collector");	
+ 		    // Spin a thread to terminate Camel route which called this processor.
+ 		    // This thread will stop the route since the process for which metrics
+ 		    // collection was started is no longer running. This is a defensive
+ 		    // measure in cases when a route is not stopped as part of process 
+ 		    // deallocation. 
+ 		    Thread t = new Thread( new Runnable() {
+ 		    	public void run() {
+ 		    		agent.onProcessExit(process);
+ 		    	}
+ 		    });
+ 		    t.start();
  		    return;
 		}
 		try {
