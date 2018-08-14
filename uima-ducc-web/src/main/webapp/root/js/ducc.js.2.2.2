@@ -51,10 +51,6 @@ $(window).resize(function() {
     }
 });
 
-function textify(input) {
-    return $('<span>').text(input).html();
-}
-
 function ducc_console_warn(text) {
     var date = new Date();
     console.warn(date.toLocaleString() + " " + text);
@@ -158,68 +154,6 @@ function ducc_identity() {
         });
     } catch (err) {
         wip_identity = false;
-        ducc_error(fname, err);
-    }
-}
-
-var wip_reliable = false;
-
-function ducc_reliable() {
-    var fname = "ducc_reliable";
-    var data = null;
-    if(wip_reliable) {
-        ducc_console_warn(fname+" already in progress...")
-        return;
-    }
-    wip_reliable = true;
-    try {
-        var servlet = "/ducc-servlet/cluster-reliable-label";
-        var tomsecs = ms_timeout;
-        $.ajax({
-            url: servlet,
-            timeout: tomsecs
-        }).done(function(data) {
-            wip_reliable = false;
-            if(data != null) {
-            	tdata = data.trim();
-            	if(tdata.length > 0) {
-            		title = tdata
-            		$("#reliable-label").html(tdata);
-            	}
-            }
-            data = null;
-            ducc_console_success(fname);
-        }).fail(function(jqXHR, textStatus) {
-            wip_reliable = false;
-            ducc_console_fail(fname, textStatus);
-        });
-    } catch (err) {
-        wip_reliable = false;
-        ducc_error(fname, err);
-    }
-    wip_reliable = true;
-    try {
-        var servlet = "/ducc-servlet/cluster-reliable-status";
-        var tomsecs = ms_timeout;
-        $.ajax({
-            url: servlet,
-            timeout: tomsecs
-        }).done(function(data) {
-            wip_reliable = false;
-            if(data != null) {
-            	tdata = data.trim();
-            	if(tdata.length > 0) {
-            		$("#reliable-status").html(tdata);
-            	}
-            }
-            data = null;
-            ducc_console_success(fname);
-        }).fail(function(jqXHR, textStatus) {
-            wip_reliable = false;
-            ducc_console_fail(fname, textStatus);
-        });
-    } catch (err) {
-        wip_reliable = false;
         ducc_error(fname, err);
     }
 }
@@ -573,7 +507,7 @@ function ducc_update_uid() {
 	var fname = "ducc_update_uid";
 	try {
 		var uid = ducc_appl("uid");
-		var d_value = textify(document.getElementById('userid').value)
+		var d_value = document.getElementById('userid').value
 		//alert("d_value:"+d_value)
 		if (d_value != null) {
 			if (d_value != "") {
@@ -639,7 +573,6 @@ function ducc_load_common() {
         ducc_authentication();
         ducc_utilization();
         ducc_links();
-        ducc_reliable();
     } catch (err) {
         ducc_error(fname, err);
     }
@@ -2935,7 +2868,7 @@ function ducc_jobs_max_records() {
         var jobsmax = ducc_appl("jobsmax");
         //
         var c_value = ducc_get_cookie(jobsmax);
-        var r_value = textify(document.form_selectors.maxrecs_input.value);
+        var r_value = document.form_selectors.maxrecs_input.value;
         if (c_value == null) {
             c_value = d_value;
             ducc_put_cookie(jobsmax, c_value);
@@ -2986,7 +2919,7 @@ function ducc_jobs_users() {
         var jobsusers = ducc_appl("jobsusers");
         var d_value = "";
         var c_value = ducc_get_cookie(jobsusers);
-        var r_value = textify(document.form_selectors.users_input.value);
+        var r_value = document.form_selectors.users_input.value;
         if (c_value == null) {
             c_value = d_value;
             ducc_put_cookie(jobsusers, c_value);
@@ -3019,7 +2952,7 @@ function ducc_services_max_records() {
         var servicesmax = ducc_appl("servicesmax");
         //
         var c_value = ducc_get_cookie(servicesmax);
-        var r_value = textify(document.form_selectors.maxrecs_input.value);
+        var r_value = document.form_selectors.maxrecs_input.value;
         if (c_value == null) {
             c_value = d_value;
             ducc_put_cookie(servicesmax, c_value);
@@ -3070,7 +3003,7 @@ function ducc_services_users() {
         var servicesusers = ducc_appl("servicesusers");
         var d_value = "";
         var c_value = ducc_get_cookie(servicesusers);
-        var r_value = textify(document.form_selectors.users_input.value);
+        var r_value = document.form_selectors.users_input.value;
         if (c_value == null) {
             c_value = d_value;
             ducc_put_cookie(servicesusers, c_value);
@@ -3103,7 +3036,7 @@ function ducc_reservations_max_records() {
         var reservationsmax = ducc_appl("reservationsmax");
         //
         var c_value = ducc_get_cookie(reservationsmax);
-        var r_value = textify(document.form_selectors.maxrecs_input.value);
+        var r_value = document.form_selectors.maxrecs_input.value;
         if (c_value == null) {
             c_value = d_value;
             ducc_put_cookie(reservationsmax, c_value);
@@ -3154,7 +3087,7 @@ function ducc_reservations_users() {
         var reservationsusers = ducc_appl("reservationsusers");
         var d_value = "";
         var c_value = ducc_get_cookie(reservationsusers);
-        var r_value = textify(document.form_selectors.users_input.value);
+        var r_value = document.form_selectors.users_input.value;
         if (c_value == null) {
             c_value = d_value;
             ducc_put_cookie(reservationsusers, c_value);
@@ -3723,7 +3656,7 @@ function ducc_submit_login() {
     var fname = "ducc_submit_login";
     try {
         var url = document.forms[1].action;
-        var userid = textify(document.forms[1].userid.value)
+        var userid = document.forms[1].userid.value
         ducc_update_uid()
         var password = document.forms[1].password.value
         $.jGrowl(" Pending login...");
@@ -3785,15 +3718,15 @@ function ducc_submit_reservation() {
     var fname = "ducc_submit_reservation";
     try {
         var e = document.getElementById("scheduling_class");
-        var scheduling_class = textify(e.options[e.selectedIndex].value);
+        var scheduling_class = e.options[e.selectedIndex].value;
         var e = document.getElementById("memory_size");
-        var memory_size = textify(e.value);
+        var memory_size = e.value;
         var e = document.getElementById("memory_units");
-        var memory_units = textify(e.options[e.selectedIndex].value);
+        var memory_units = e.options[e.selectedIndex].value;
         var e = document.getElementById("description");
-        var description = textify(e.value);
+        var description = e.value;
         var e = document.getElementById("wait_for_result_yes");
-        var wait_for_result = textify(e.checked);
+        var wait_for_result = e.checked;
         if (wait_for_result) {
             document.getElementById("working_area").style.display = 'block';
             document.getElementById("submit_button").disabled = 'disabled';
@@ -3856,9 +3789,9 @@ function ducc_update_service(name) {
     var fname = "ducc_update_service";
     try {
         var e = document.getElementById("autostart");
-        var autostart = textify(e.options[e.selectedIndex].value);
+        var autostart = e.options[e.selectedIndex].value;
         var e = document.getElementById("instances");
-        var instances = textify(e.value);
+        var instances = e.value;
         document.getElementById("update_button").disabled = 'disabled';
         $.ajax({
             type: 'POST',

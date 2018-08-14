@@ -162,68 +162,6 @@ function ducc_identity() {
     }
 }
 
-var wip_reliable = false;
-
-function ducc_reliable() {
-    var fname = "ducc_reliable";
-    var data = null;
-    if(wip_reliable) {
-        ducc_console_warn(fname+" already in progress...")
-        return;
-    }
-    wip_reliable = true;
-    try {
-        var servlet = "/ducc-servlet/cluster-reliable-label";
-        var tomsecs = ms_timeout;
-        $.ajax({
-            url: servlet,
-            timeout: tomsecs
-        }).done(function(data) {
-            wip_reliable = false;
-            if(data != null) {
-            	tdata = data.trim();
-            	if(tdata.length > 0) {
-            		title = tdata
-            		$("#reliable-label").html(tdata);
-            	}
-            }
-            data = null;
-            ducc_console_success(fname);
-        }).fail(function(jqXHR, textStatus) {
-            wip_reliable = false;
-            ducc_console_fail(fname, textStatus);
-        });
-    } catch (err) {
-        wip_reliable = false;
-        ducc_error(fname, err);
-    }
-    wip_reliable = true;
-    try {
-        var servlet = "/ducc-servlet/cluster-reliable-status";
-        var tomsecs = ms_timeout;
-        $.ajax({
-            url: servlet,
-            timeout: tomsecs
-        }).done(function(data) {
-            wip_reliable = false;
-            if(data != null) {
-            	tdata = data.trim();
-            	if(tdata.length > 0) {
-            		$("#reliable-status").html(tdata);
-            	}
-            }
-            data = null;
-            ducc_console_success(fname);
-        }).fail(function(jqXHR, textStatus) {
-            wip_reliable = false;
-            ducc_console_fail(fname, textStatus);
-        });
-    } catch (err) {
-        wip_reliable = false;
-        ducc_error(fname, err);
-    }
-}
-
 var wip_version = false;
 
 function ducc_version() {
@@ -639,7 +577,6 @@ function ducc_load_common() {
         ducc_authentication();
         ducc_utilization();
         ducc_links();
-        ducc_reliable();
     } catch (err) {
         ducc_error(fname, err);
     }
