@@ -302,9 +302,11 @@ public class JdScheduler {
 		try {
 			Map<String, IDbMachine> qMap = DbQuery.getInstance().getMapMachines();
 			for(Entry<String, IDbMachine> entry : qMap.entrySet()) {
+				String name = entry.getValue().getName();
 				Boolean responsive = entry.getValue().getResponsive();
+				String text = "name:"+name+" "+"responsive:"+responsive;
+				logger.debug(location, jobid, text);
 				if(!responsive.booleanValue()) {
-					String name = entry.getValue().getName();
 					List<JdReservation> list = getJdReservationsByName(name);
 					if(list != null) {
 						for(JdReservation jdReservation : list) {
