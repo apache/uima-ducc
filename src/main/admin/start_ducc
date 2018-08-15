@@ -343,6 +343,16 @@ class StartDucc(DuccUtil):
             print "Limits too low to run DUCC"
             sys.exit(1)
         
+        if ( self.automanage_database and ('db' in components) ):
+            try:
+                if ( not self.db_start() ):
+                    print "Failed to start or connect to the database."
+                    sys.exit(1)
+            except Exception (e):
+                # print e
+                print sys.exc_info()[0], "Can't start the database."
+                sys.exit(1)
+
         # activeMQ needs to be started externally before starting any DUCC processes
         if ( self.automanage_broker and ('broker' in components) ):
             if ( self.is_amq_active() ):
@@ -353,16 +363,6 @@ class StartDucc(DuccUtil):
                 except:
                     print sys.exc_info()[0], "DUCC may not be started correctly."
                     sys.exit(1)
-
-        if ( self.automanage_database and ('db' in components) ):
-            try:
-                if ( not self.db_start() ):
-                    print "Failed to start or connect to the database."
-                    sys.exit(1)
-            except Exception (e):
-                # print e
-                print sys.exc_info()[0], "Can't start the database."
-                sys.exit(1)
 
         if ( self.is_amq_active() ):
             print 'ActiveMQ broker is found on configured host and port:', self.broker_host + ':' + self.broker_port
