@@ -128,13 +128,13 @@ class CheckDucc(DuccUtil):
 
                 else:
                     messages.append((spacer, 'Found', process_id))
-                    #full_name = component + '@' + node
-                    #if ( component == 'agent' ):
-                    #    self.pids_agents.put(full_name, pid)
-                    #else:
-                    #    if ( component in self.default_components ):
-                    #        self.pids_daemons.put(full_name, pid)
-                    #        self.pids_daemons.put(component, full_name)
+                    full_name = component + '@' + node
+                    if ( component == 'agent' ):
+                        self.pids_agents.put(full_name, pid)
+                    else:
+                        if ( component in self.default_components ):
+                            self.pids_daemons.put(full_name, pid)
+                            self.pids_daemons.put(component, full_name)
         else:
             messages.append((spacer, 'no processes found.'))
 
@@ -179,11 +179,11 @@ class CheckDucc(DuccUtil):
         print ""
         print "      check_ducc -n ../resources/ducc.nodes"
         print ""
-        #print "   For reliable DUCC agents will not be killed from backup head node. "
-        #print ""
-        #print "   Broker will not be killed when ducc.broker.automanage = false. "
-        #print "   Database will not be killed when ducc.database.automanage = false. "
-        #print ""
+        print "   For reliable DUCC agents will not be killed from backup head node. "
+        print ""
+        print "   Broker will not be killed when ducc.broker.automanage = false. "
+        print "   Database will not be killed when ducc.database.automanage = false. "
+        print ""
         print "Options:"
         print "    -n --nodelist nodefile"
         print "        Check for agents on the nodes in nodefile.  This option may be specified multiple time"
@@ -193,27 +193,27 @@ class CheckDucc(DuccUtil):
         print "        Do basic sanity checking on the configuration only.  Note that configuration checking is always"
         print "        performed with most options.  The [-c, --configuration] option does ONLY configuration checking."
         print ""
-        #print "    -k --kill"
-        #print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
-        #print "       uses kill -KILL (-9) for all daemons, except database which uses -QUIT (3),"
-        #print "       and only kills processes owned by the invoking user."
-        #print ""
-        #print "    --db-9"
-        #print "       Use signal -KILL (-9) to kill database, rather than the default -QUIT (-3)"
-        #print "" 
-        #print "    -i --int"
-        #print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
-        #print "       uses kill -INT (-2) and only kills processes owned by the invoking user."
-        #print "" 
-        #print "    -q --quit"
-        #print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
-        #print "       uses kill -QUIT (-3) and only kills processes owned by the invoking user."
-        #print "" 
-        #print "    -p --pids"
-        #print "       Rewrite the PID file. The PID file is always rewritten if any changes to processes are made.  Sometimes"
-        #print "       the PID file needs rebuilding.  This option causes the file to be rebuilt regardless of"
-        #print "       changes."
-        #print ""
+        print "    -k --kill"
+        print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
+        print "       uses kill -KILL (-9) for all daemons, except database which uses -QUIT (3),"
+        print "       and only kills processes owned by the invoking user."
+        print ""
+        print "    --db-9"
+        print "       Use signal -KILL (-9) to kill database, rather than the default -QUIT (-3)"
+        print "" 
+        print "    -i --int"
+        print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
+        print "       uses kill -INT (-2) and only kills processes owned by the invoking user."
+        print "" 
+        print "    -q --quit"
+        print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
+        print "       uses kill -QUIT (-3) and only kills processes owned by the invoking user."
+        print "" 
+        print "    -p --pids"
+        print "       Rewrite the PID file. The PID file is always rewritten if any changes to processes are made.  Sometimes"
+        print "       the PID file needs rebuilding.  This option causes the file to be rebuilt regardless of"
+        print "       changes."
+        print ""
         print "    -x localdate"
         print "       Validate the local installation, called via ssh usually. The date is the date on the calling machine."
         print ""
@@ -229,8 +229,7 @@ class CheckDucc(DuccUtil):
     def main(self, argv):
 
         try:
-            opts, args = getopt.getopt(argv, 'cn:x:h?v', ['configuration', 'nodelist=', 'verbose', 'nothreading', ])
-            #opts, args = getopt.getopt(argv, 'cikn:opqx:h?v', ['configuration', 'nodelist=', 'int', 'quit', 'kill', 'db-9', 'pids', 'verbose', 'nothreading', ])
+            opts, args = getopt.getopt(argv, 'cikn:opqx:h?v', ['configuration', 'nodelist=', 'int', 'quit', 'kill', 'db-9', 'pids', 'verbose', 'nothreading', ])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
     
@@ -250,27 +249,27 @@ class CheckDucc(DuccUtil):
                 config_only = True
             elif o in ('-n', '--nodelist'):
                 nodefiles.append(a)
-            #elif o in ('-i', '--int'):
-            #    if ( self.kill_signal != None ):
-            #        print 'Conflicting kill signals: -INT and', self.kill_signal
-            #        return
-            #    self.kill_signal = '-INT'
-            #elif o in ('-q', '--quit'):
-            #    if ( self.kill_signal != None ):
-            #        print 'Conflicting kill signals: -QUIT and', self.kill_signal
-            #        return
-            #    self.kill_signal = '-QUIT'
-            #elif o in ('-k', '--kill'):
-            #    if ( self.kill_signal != None ):
-            #        print 'Conflicting kill signals: -KILL and', self.kill_signal
-            #        return
-            #    self.kill_signal = '-KILL'
-            #elif o in ('--db-9'):
-            #    self.kill_db9 = True
+            elif o in ('-i', '--int'):
+                if ( self.kill_signal != None ):
+                    print 'Conflicting kill signals: -INT and', self.kill_signal
+                    return
+                self.kill_signal = '-INT'
+            elif o in ('-q', '--quit'):
+                if ( self.kill_signal != None ):
+                    print 'Conflicting kill signals: -QUIT and', self.kill_signal
+                    return
+                self.kill_signal = '-QUIT'
+            elif o in ('-k', '--kill'):
+                if ( self.kill_signal != None ):
+                    print 'Conflicting kill signals: -KILL and', self.kill_signal
+                    return
+                self.kill_signal = '-KILL'
+            elif o in ('--db-9'):
+                self.kill_db9 = True
             elif o in ( '--nothreading' ):
                 self.disable_threading()
-            #elif o in ('-p', '--pids'):
-            #    redo_pids = True
+            elif o in ('-p', '--pids'):
+                redo_pids = True
             elif o in ('-x'):
                 # intended to be called recursively from check_ducc, NOT from the command line
                 do_validate = True
@@ -321,11 +320,11 @@ class CheckDucc(DuccUtil):
         self.verify_database() 
 
         # init the PID file
-        #if(not self.is_reliable_backup()):
-        #	self.pids_agents = Properties()
-        #	self.pids_agents.load_if_exists(self.pid_file_agents)
-        #self.pids_daemons = Properties()
-        #self.pids_daemons.load_if_exists(self.pid_file_daemons)
+        if(not self.is_reliable_backup()):
+        	self.pids_agents = Properties()
+        	self.pids_agents.load_if_exists(self.pid_file_agents)
+        self.pids_daemons = Properties()
+        self.pids_daemons.load_if_exists(self.pid_file_daemons)
         
         # read the nodelists
         if ( len(nodefiles) == 0 ):
@@ -398,30 +397,30 @@ class CheckDucc(DuccUtil):
 
         self.threadpool.quit()
 
-        #if ( self.kill_signal != None ):
-        #    if(self.automanage_broker):
-        #        print 'Stopping broker'
-        #        self.stop_broker()
-        #    else:
-        #        print 'Not stopping broker - not automanaged'
-        #    if(self.automanage_database):
-        #        print 'Stopping database'
-        #        self.db_stop()
-        #    else:
-        #        print 'Not stopping database - not automanaged'
+        if ( self.kill_signal != None ):
+            if(self.automanage_broker):
+                print 'Stopping broker'
+                self.stop_broker()
+            else:
+                print 'Not stopping broker - not automanaged'
+            if(self.automanage_database):
+                print 'Stopping database'
+                self.db_stop()
+            else:
+                print 'Not stopping database - not automanaged'
             
-        #if(not self.is_reliable_backup()):
-        #    if ( len(self.pids_agents) == 0):
-        #        if ( os.path.exists(self.pid_file_agents) ):
-        #            os.remove(self.pid_file_agents)
-        #    elif (process_changes or redo_pids):
-        #        self.pids_agents.write(self.pid_file_agents)
+        if(not self.is_reliable_backup()):
+            if ( len(self.pids_agents) == 0):
+                if ( os.path.exists(self.pid_file_agents) ):
+                    os.remove(self.pid_file_agents)
+            elif (process_changes or redo_pids):
+                self.pids_agents.write(self.pid_file_agents)
                     
-        #if ( len(self.pids_daemons) == 0):
-        #    if ( os.path.exists(self.pid_file_daemons) ):
-        #        os.remove(self.pid_file_daemons)
-        #elif (process_changes or redo_pids):
-        #    self.pids_daemons.write(self.pid_file_daemons)
+        if ( len(self.pids_daemons) == 0):
+            if ( os.path.exists(self.pid_file_daemons) ):
+                os.remove(self.pid_file_daemons)
+        elif (process_changes or redo_pids):
+            self.pids_daemons.write(self.pid_file_daemons)
             
 if __name__ == "__main__":
     checker = CheckDucc()

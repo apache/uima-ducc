@@ -43,9 +43,6 @@ class StartDucc(DuccUtil):
         
         broker_host = self.localhost
         print 'Starting broker on', broker_host
-        node = broker_host
-        com = 'broker'
-        self.db_acct_start(node,com)
         lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', "'")
         while 1:
             line = lines.readline().strip()
@@ -55,7 +52,7 @@ class StartDucc(DuccUtil):
             if ( line.startswith('PID') ):
                 toks = line.split(' ')    # get the PID
                 print "Broker on", broker_host, 'PID', toks[1]
-                #self.pids_daemons.put('broker@' + broker_host, toks[1])
+                self.pids_daemons.put('broker@' + broker_host, toks[1])
                 lines.close()
                 break
 
@@ -77,7 +74,7 @@ class StartDucc(DuccUtil):
             com, node = com.split('@')
             
         if (com in self.local_components):
-            node = self.localhost
+			node = self.localhost
 
         if ((com in self.default_components) or ( com == 'agent')) :
             msgs.append((node, 'Starting', com))
@@ -106,19 +103,17 @@ class StartDucc(DuccUtil):
             if ( line.startswith('PID') ):
                 toks = line.split(' ')    # get the PID
                 msgs.append(('     PID', toks[1]))
-                #self.pids_daemons.put(com + '@' + node, toks[1])
+                self.pids_daemons.put(com + '@' + node, toks[1])
                 lines.close()
                 break
             if ( line.startswith('WARN') ):
                 msgs.append(('    ', line))
             
-        #if ( com in self.default_components ):           # tracks where the management processes are
-        #    self.pidlock.acquire()
-        #    self.pids_daemons.put(com, com + '@' + node)
-        #    self.pidlock.release()
+        if ( com in self.default_components ):           # tracks where the management processes are
+            self.pidlock.acquire()
+            self.pids_daemons.put(com, com + '@' + node)
+            self.pidlock.release()
 
-        self.db_acct_start(node,com)
-        
         return msgs
 
     def start_one_agent(self, args):
@@ -135,9 +130,9 @@ class StartDucc(DuccUtil):
             if ( line.startswith('PID') ):
                 toks = line.split(' ')
                 pid = toks[1]
-                #self.pidlock.acquire()
-                #self.pids_agents.put('agent@' + host, pid)
-                #self.pidlock.release()
+                self.pidlock.acquire()
+                self.pids_agents.put('agent@' + host, pid)
+                self.pidlock.release()
 
                 lines.close()
                 msgs.append((spacer, 'DUCC Agent started PID', pid))
@@ -159,8 +154,6 @@ class StartDucc(DuccUtil):
             else:
                 msgs.append((spacer, line))
 
-        self.db_acct_start(host,'agent')
-        
         return msgs
       
     def verify_required_directories(self):        
@@ -256,11 +249,11 @@ class StartDucc(DuccUtil):
         nodefiles = []
         components = []
         or_parms = self.ducc_properties.get('ducc.orchestrator.start.type')
-        #if(not self.is_reliable_backup()):
-        #    self.pids_agents = Properties()
-        #    self.pids_agents.load_if_exists(self.pid_file_agents)
-        #self.pids_daemons = Properties()
-        #self.pids_daemons.load_if_exists(self.pid_file_daemons)
+        if(not self.is_reliable_backup()):
+            self.pids_agents = Properties()
+            self.pids_agents.load_if_exists(self.pid_file_agents)
+        self.pids_daemons = Properties()
+        self.pids_daemons.load_if_exists(self.pid_file_daemons)
         
         try:
             opts, args = getopt.getopt(argv, 'c:mn:sh?v', ['component=', 'help', 'nodelist=', 'cold', 'warm', 'nothreading'])
@@ -273,15 +266,15 @@ class StartDucc(DuccUtil):
         for ( o, a ) in opts:
             if o in ( '-c', '--component' ): 
                 if (a.strip() == 'head'):
-                    components.append('or')
-                    components.append('pm')
-                    components.append('rm')
-                    components.append('sm')
-                    components.append('ws')
-                    components.append('db')
-                    components.append('broker')
-                else:
-                    components.append(a)
+            		components.append('or')
+            		components.append('pm')
+            		components.append('rm')
+            		components.append('sm')
+            		components.append('ws')
+            		components.append('db')
+            		components.append('broker')
+            	else:
+                	components.append(a)
             elif o in ( '-n', '--nodelist' ):
                 nodefiles.append(a)
             elif o in ( '--nothreading' ):
@@ -373,7 +366,7 @@ class StartDucc(DuccUtil):
         ducc = Ducc()
     
         self.threadpool = ThreadPool(n_nodes + 5)      # a few more for the head processes
-        #self.pidlock = threading.Lock()
+        self.pidlock = threading.Lock()
         
         #start 'or' first to field system log requests
         if ( len(components) != 0 ):
@@ -420,11 +413,11 @@ class StartDucc(DuccUtil):
 
         self.threadpool.quit()
 
-        #if(not self.is_reliable_backup()):
-        #    if ( len(self.pids_agents) > 0 ):
-        #        self.pids_agents.write(self.pid_file_agents)
-        #if ( len(self.pids_daemons) > 0 ):
-        #    self.pids_daemons.write(self.pid_file_daemons)
+        if(not self.is_reliable_backup()):
+            if ( len(self.pids_agents) > 0 ):
+                self.pids_agents.write(self.pid_file_agents)
+        if ( len(self.pids_daemons) > 0 ):
+            self.pids_daemons.write(self.pid_file_daemons)
         return
 
 if __name__ == "__main__":

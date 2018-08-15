@@ -1,4 +1,4 @@
-% 
+ 
 % Licensed to the Apache Software Foundation (ASF) under one
 % or more contributor license agreements.  See the NOTICE file
 % distributed with this work for additional information
@@ -27,6 +27,83 @@
    system, the threading may not work right, in which case the scripts detect this and run
    single-threaded.  As well, all these commands support a ``--nothreading'' option to manually
    disable the threading.
+
+\subsection{autostart.py}
+\label{subsec:admin.autostart}
+
+    \subsubsection{{\em Description}}
+    The command \ducchome/admin/autostart.py is used to monitor and start DUCC daemons. 
+    It is run individually by each node on the cluster, nominally invoked via crontab.
+    It takes the following actions:
+    \begin{itemize}
+      \item Queries the database autostart table for a list of DUCC daemons that should be running on this node.
+      \item Queries the system for the actual DUCC daemons that are running on this node.
+      \item Starts any DUCC daemon(s) found in the database not already running on this node.
+    \end{itemize}
+
+   Notes:
+    \begin{itemize}
+      \item The command start\_ducc puts or updates entries for each host and DUCC daemon in the database autostart table with state {\em Start}.
+      \item The command stop\_ducc puts or updates entries for each host and DUCC daemon in the database autostart table with state {\em Stop}.
+    \end{itemize}
+
+\subsubsection{{\em Example crontab entry: }}
+
+\begin{verbatim}
+10 * * * * /share/Python-2.7.8/bin/python2.7 /home/ducc/ducc_runtime/admin/autostart.py 2>&1
+\end{verbatim}   
+
+\subsection{db\_autostart\_delete.py}
+\label{subsec:admin.autostart.delete}
+
+ \subsubsection{{\em Description}}
+    The command \ducchome/admin/db\_autostart\_delete.py is used to remove entries from the autostart database table. 
+
+  \subsubsection{{\em Usage}}
+
+    \begin{description}
+      \item[db\_autostart\_delete.py {[options]}] \hfill \\ 
+        Specify host and name, both required. 
+        If a corresponding entry is found in the autostart database table then it is deleted.
+      \end{description}
+
+  \subsubsection{{\em Options: }}
+      \begin{description}
+       \item[--host {[HOST]}] \hfill \\
+          The HOST identifying the DUCC daemon entry to be deleted.
+       \item[--name {[ag,br,or,pm,rm,sm,ws]}] \hfill \\
+          The NAME identifying the DUCC daemon entry to be deleted.
+      \end{description}
+      
+  \subsubsection{{\em Example: }}
+  
+\begin{verbatim}
+> db_autostart_delete.py --host host601 --name ag
+> deleted
+\end{verbatim}      
+      
+\subsection{db\_autostart\_query.py}
+\label{subsec:admin.autostart.query}
+
+ \subsubsection{{\em Description}}
+    The command \ducchome/admin/db\_autostart\_query.py is used to list entries in the autostart database table. 
+      
+  \subsubsection{{\em Example: }}
+  
+\begin{verbatim}
+> db_autostart_query.py
+> host603.br=Start
+> host603.or=Start
+> host603.pm=Start
+> host603.rm=Start
+> host603.sm=Start
+> host603.ws=Start
+> host428.ag=Start
+> host439.ag=Start
+> host430.ag=Start
+> host340.ag=Start
+> host679.ag=Start
+\end{verbatim}   
 
 \subsection{start\_ducc}
 \label{subsec:admin.start-ducc}
@@ -144,114 +221,103 @@ start_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
 \end{verbatim}
       and examine the output.  Use {\em CTL-C} to stop the component when done.
       
-
 \subsection{stop\_ducc}
 \label{subsec:admin.stop-ducc}
 
     \subsubsection{{\em Description:}}
-    Stop\_ducc is used to stop DUCC processes. At least one parameter is required.
-    When {\em -a} is specified, the following actions are taken:
-    \begin{itemize}
-       \item Uses the ActiveMQ broker to broadcast a shutdown request to all
-        DUCC components, other than the ActiveMQ broker itself, and the database.
-      \item Waits a bit, for all daemons to stop.
-      \item Stops the database.
-      \item Stops the ActiveMQ broker.
-    \end{itemize}
-
-    Exceptions:
-    \begin{itemize}
-      \item When running reliable DUCC, agents are not stopped from any backup node.
-      \item When ducc.broker.autostart = false, the ActiveMQ server will not be stopped.
-      \item When ducc.database.autostart = false, the database will not be stopped.
-    \end{itemize}
+    Stop one or more DUCC daemons.
     
     \subsubsection{\em Usage:}
-
-    \begin{description}
-      \item[stop\_ducc {[options]}] \hfill \\ 
-        If no options are given, help text is presented. At least one option is required, to avoid 
-        accidental cluster shutdown. 
-      \end{description}
     
+\begin{verbatim}
+     stop_ducc [-h]
+               (--all | --head | --agents | --nodelist NODELIST | --component COMPONENT)
+               (--kill | --stop [STOP] | --quiesce-then-stop)
+               [--maxthreads MAXTHREADS] [--debug]
+\end{verbatim}
 
       \subsubsection{Options:}
-        \begin{description}
-
-          \item[-a --all] \hfill \\
-            Stop all the DUCC processes, including agents and management processes. This 
-            broadcasts a "shutdown" command to all DUCC processes. Shutdown is normally 
-            performed gracefully with all processes given time to save state. 
-            All user processes, both jobs and services, are sent shutdown signals. Job and service 
-            processes which do not shutdown within a designated grace period are then forcibly 
-            terminated with kill -9. 
-            
-          \item[-n, --nodelist {[nodefile]}] \hfill \\
-            Only the DUCC agents in the designated nodelists are shutdown. The processes are sent 
-            kill -INT signals which triggers the Java shutdown hooks and enables graceful shutdown. 
-            All user processes on the indicated nodes, both jobs and services, are sent "shutdown" 
-            signals and are given a minute to shutdown gracefully. Job and service processes which do 
-            not shutdown within a designated grace period are then forcibly terminated with kill -9. 
-            
+        
 \begin{verbatim}
-stop_ducc -n foo.nodes -n bar.nodes -n baz.nodes 
+  -h, --help            show this help message and exit
+  --all                 Stop all DUCC management and agent processes by using
+                        database entries recorded by start_ducc. Only allowed
+                        if --kill option is also specified.
+  --head                Stop the DUCC management processes on the present head
+                        node by using database entries recorded by start_ducc.
+  --agents              Stop the DUCC agents processes on all nodes by using
+                        database entries recorded by start_ducc.
+  --nodelist NODELIST, -n NODELIST
+                        Stop agents on the nodes in the nodefile. Multiple
+                        nodefiles may be specified.
+  --component COMPONENT, -c COMPONENT
+                        Stop a specific component. The component may be
+                        qualified with the node name using the @ symbol:
+                        component@node. If node is not specified, then the
+                        localhost is presumed. Multiple components may be
+                        specified. components = ['agent', 'pm', 'rm', 'sm',
+                        'or', 'ws', 'broker', 'database']. Specification of a
+                        head node component other than on the present head
+                        node is disallowed unless --kill option is also
+                        specified. Specification of broker or database is
+                        disallowed unless that component is automanaged by
+                        DUCC.
+  --kill, -k            Stop the component(s) forcibly and immediately using
+                        ssh with kill -9. Use this only if a normal stop does
+                        not work (e.g. the process may be hung).
+  --stop [STOP], -s [STOP]
+                        Stop the component(s) gracefully using broadcast.
+                        Agents allow children specified time (in seconds) to
+                        exit. Default is 60. Broadcast is not used for broker
+                        and database, instead a direct kill -15 is employed.
+  --quiesce-then-stop, -q
+                        Stop the component(s) gracefully using broadcast.
+                        Agents exit only when no children exist. Children are
+                        given infinite time to exit.
+  --maxthreads MAXTHREADS, -m MAXTHREADS
+                        Maximum concurrent threads. Default = 10.
+  --debug, -d           Display debugging messages.
 \end{verbatim}
 
-          \item[-c, --component {[component]}] \hfill \\
-            Stop a specific DUCC component. 
-
-            This may be used to stop an errant management component and subsequently restart it 
-            (with start\_ducc). 
-            
-            This may also be used to stop a specific agent and the job and services processes it is
-            managing, without the need to specify a nodelist.  
-            
-            Examples: 
-
-            Stop agents on nodes n1 and n2:
+      \subsubsection{Notes:}
 \begin{verbatim}
-stop_ducc -c agent@n1 -c agent@n2 
+N1. stop_ducc is limited to running on a head node.
+N2. stop_ducc updates database autostart table with "stop" status.
+N3. stop_ducc --kill option employs ssh with kill -9.
+N4. stop_ducc --stop and --quiesce-then-stop options employ broadcast via broker.
+    The broker and database are exceptions, whereby ssh with kill -15 is employed.
 \end{verbatim}
-            
-            Stop and restart the rm: 
+
+      \subsubsection{Examples:}
 \begin{verbatim}
-stop_ducc -c rm 
-start_ducc -c rm
+E1. kill all daemons that were started, as recorded in the database autostart table
+> stop_ducc --all --kill
+
+E2. stop all head node daemons on the present node
+> stop_ducc --head --stop
+
+E3. stop all agents via broadcast, each will issue kill -15 to children
+    then exit after a maximum of 60 seconds, by default
+> stop_ducc --agents --stop
+
+E4. quiesce all agents, each will issue kill -15 to children then exit only
+    after all children have exited
+> stop_ducc --agents --quiesce-then-stop
+
+E5. quiesce agents listed in groupA.nodes and groupB.nodes, each will issue kill -15
+    to children then exit only after all children have exited
+> stop_ducc --nodelist groupA.nodes --nodelist groupB.nodes --quiesce-then-stop
+
+E6. stop agents on nodes nodeC8 and nodeD5, each will issue kill -15
+    to children then exit after a maximum of 90 seconds.
+> stop_ducc --component agent@nodeC8 --component agent@nodeD5 --stop 90
+
+E7. stop orchestrator
+> stop_ducc --component or --stop
+
+E8. kill orchestrator on alternate head node nodeX3
+> stop_ducc --component or@nodeX3 --kill
 \end{verbatim}
-            
-            Components include: 
-            \begin{description}
-              \item[rm] The Resource Manager.                 
-              \item[or] The Orchestrator.                 
-              \item[pm] The Process Manager.                 
-              \item[sm] The Service Manager.                 
-              \item[ws] The Web Server.                 
-              \item[db] The database.
-              \item[broker] The ActiveMQ broker (only if the broker is auto-managed).
-              \item[agent@node] Node Agent on the specified node.
-              \item[head] All of the above, except Node Agents
-              \end{description}
-
-          \item[-w, --wait {[time in seconds]}] If given, this signals the time to wait
-            after broadcasting the shutdown signal, and before stopping the ActiveMQ broker itself.
-            If not specified, the default is 60 seconds.  
-
-            NOTE: In production systems, it is generally wise to use the default of 60 seconds.  For
-            test systems a shorter wait speeds cycle time.  Be sure to use {\em check\_ducc -k} after
-            {\em stop\_ducc} if you change the wait time to insure all processes are actually stopped.
-
-          \item[--nothreading] If specified, the command does not run in multi-threaded mode
-            even if it is supported on the local platform.
-              
-       \end{description}
-            
-   \subsubsection{{\em Notes:}}
-   Sometimes problems in the network or elsewhere prevent the DUCC components from stopping properly.  The
-   {\em check\_ducc} command, described in the following section, contains options to query the
-   existance of DUCC processes in the cluster, to forcibly ({\em kill -9}) terminate them, and to
-   more gracefully terminate them ({\em kill -INT}).
-          
-      Files in the nodelist ending with suffix .regex are skipped.
 
 \subsection{check\_ducc}
 \label{subsec:admin.check-ducc}
@@ -260,17 +326,6 @@ start_ducc -c rm
     Check\_ducc is used to verify the integrity of the DUCC installation and to find and report on
     DUCC processes. It identifies processes owned by ducc (management processes, agents,
     and job processes), and processes started by DUCC on behalf of users.
-    
-    Check\_ducc can also be used to clean up errant DUCC processes when stop\_ducc is unable 
-    to do so. The difference is that stop\_ducc generally tries more gracefully stop processes. 
-    check\_ducc is used as a last resort, or if a fast but graceless shutdown is desired. 
-    
-    Exceptions:
-    \begin{itemize}
-      \item When running reliable DUCC, agents are not killed from any backup node.
-      \item When ducc.broker.autostart = false, the ActiveMQ server will not be killed.
-      \item When ducc.database.autostart = false, the database will not be killed.
-    \end{itemize}
     
     \subsubsection{\em{Usage: }}
 
@@ -297,40 +352,15 @@ check_ducc -n nlist1 -n nlist2
            \item[-c --configuration]
              Verify the \hyperref[sec:ducc.classes]{Resource Manager configuration}.
 
-           \item[-p --pids]               
-               Rewrite the PID file. The PID file contains the process ids of all known DUCC 
-               management and agent processes. The PID file is normally managed by start\_ducc and 
-               stop\_ducc and is stored in the file {\em ducc.pids} in directory {\em ducc\_runtime/state}.
-               
-               Occasionally the PID file can become partially or fully corrupted; for example, if a DUCC 
-               process dies spontaneously. Use check\_ducc -p to search the cluster for processes and 
-               refresh the PID file. 
-               
-            \item[-i, --int] \hfill \\
-              Use this to send a shutdown signal ({\em kill -INT}) to all the DUCC processes.  The DUCC processes
-              catch this signal, close their resources and exit.  Some resources take some time to close, or in
-              case of problems, are unable to close, in which case the DUCC processes will unconditionally exit.
-
-              Sometimes problems in the network or elsewhere prevent {\em check\_ducc -i} from terminating
-              the DUCC processes.  In this case, use {\em check\_ducc -k}, described below.
-
-            \item[-k, --kill] \hfill \\
-              Use this to forcibly kill a component using kill -9. This should only be used if {\em stop\_ducc}
-              or {\em check\_ducc -i} does not work.  Note that the database will be issued kill -3, unless
-              the --db-9 option is specified (see below).
-
-    		\item[--db-9] \hfill \\
-              Use this to forcibly kill the database using kill -9. This should be used in conjunction with the
-              --kill option (see above).
-
             \item[--nothreading] If specified, the command does not run in multi-threaded mode
               even if it is supported on the local platform.
+
+ 			\item[-x localdate] Validate the local installation, called via ssh usually. The date is the date on the calling machine.
 
             \item[-v, --verbose] \hfill \\
               When specified with {\em -c} to check the configuration, this emits a formatted version
               of the node list showing the full structure of the scheduling classes.
               
-
            \end{description}               
 
    \subsubsection{{\em Notes:}}

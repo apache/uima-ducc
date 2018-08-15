@@ -80,6 +80,10 @@ def find_ducc_uid():
     pwdinfo = pwd.getpwuid(my_uid)
     return pwdinfo.pw_name
 
+def base_dir():
+        fpath = __file__.rsplit('/',2)[0]
+        return fpath
+
 class ThreadWorker(Thread):
     def __init__(self, queue, outlock):
         Thread.__init__(self)
@@ -484,7 +488,7 @@ class DuccUtil(DuccBase):
             hostname = line.split('.')[0]
         return hostname
     
-    def ssh_operational(self, node):
+    def ssh_operational(self, node, verbosity=True):
         is_operational = False
         req = node.split('.')[0]
         cmd = '/bin/hostname'
@@ -500,10 +504,11 @@ class DuccUtil(DuccBase):
             if(req == rsp):
                 is_operational = True;
         if(not is_operational):
-            print 'ssh not operational - unexpected results'
-            print ssh_cmd
-            for line in lines:
-                print line
+            if(verbosity):
+                print 'ssh not operational - unexpected results'
+                print ssh_cmd
+                for line in lines:
+                    print line
         return is_operational
 
     # like popen, only it spawns via ssh
@@ -735,6 +740,14 @@ class DuccUtil(DuccBase):
             node_name = self.normalize(name)
         debug('node_name: ', node_name)
         return node_name
+    
+    def is_head_node(self):
+        retVal = False
+        head_node_list = self.get_head_node_list_variations()
+        node = self.get_node_name()
+        if(node in head_node_list):
+            retVal = True
+        return retVal
     
     # Exit if this is not the head node.  Ignore the domain as uname sometimes drops it.
     # Also check that ssh to this node works
@@ -1053,6 +1066,15 @@ class DuccUtil(DuccBase):
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
         self.spawn(self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccAdmin', '--killAll')
 
+    def ducc_admin(self,option,target):
+        DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
+        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDUCC_HOME=' + self.DUCC_HOME
+        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
+        java_class = 'org.apache.uima.ducc.common.main.DuccAdmin'
+        cmd = self.java()+' '+DUCC_JVM_OPTS+' '+java_class+' '+option+' '+target
+        print cmd
+        self.spawn(self.java(), DUCC_JVM_OPTS, java_class, option, target)
+        
     def get_os_pagesize(self):
         lines = self.popen('/usr/bin/getconf', 'PAGESIZE')
         return lines.readline().strip()
@@ -1116,9 +1138,14 @@ class DuccUtil(DuccBase):
     # map.  The map is keyed on filename, with each entry a list of the nodes.
     # Skip file with suffix ".regex".
     #
-    def read_nodefile(self, nodefile, ret):
+    def read_nodefile(self, rnodefile, ret):
         #print 'READ_NODEFILE:', nodefile, ret
         n_nodes = 0
+        if(rnodefile.startswith('/')):
+            nodefile = rnodefile
+        else:
+            nodefile = os.path.join(base_dir(),'resources',rnodefile)
+        #print nodefile
         if(nodefile.endswith('.regex')):
             pass
         elif ( os.path.exists(nodefile) ):
@@ -1141,6 +1168,7 @@ class DuccUtil(DuccBase):
                 n_nodes = n_nodes + 1
             ret[nodefile] = nodes
         else:
+            n_nodes = -1
             print 'Cannot read nodefile', nodefile
             ret[nodefile] = None
 
@@ -1301,6 +1329,89 @@ class DuccUtil(DuccBase):
     def is_reliable_backup(self):
         return self.get_reliable_state() == 'backup'
     
+    def db_normalize_component(self,component):
+        com = component
+        if(component != None):
+            if('agent'.startswith(component.lower())):
+                com = 'Ag'
+            elif('orchestrator'.startswith(component.lower())):
+                com = 'Or'
+            elif('pm'.startswith(component.lower())):
+                com = 'Pm'
+            elif('rm'.startswith(component.lower())):
+                com = 'Rm'
+            elif('sm'.startswith(component.lower())):
+                com = 'Sm'
+            elif('ws'.startswith(component.lower())):
+                com = 'Ws'
+            elif('broker'.startswith(component.lower())):
+                com = 'Br'
+            elif('db'.startswith(component.lower())):
+                com = 'Db'
+            elif('database'.startswith(component.lower())):
+                com = 'Db'
+        #print 'db_normalize_component', component, '-->', com
+        return com
+    
+    def db_acct_start(self,node,com):
+        label = 'db_acct_start'
+        component = self.db_normalize_component(com)
+        CMD = [self.java(), '-DDUCC_HOME='+self.DUCC_HOME, 'org.apache.uima.ducc.database.lifetime.DbDaemonLifetimeUI', '--start', node, component]
+        text = ' '.join(CMD)
+        debug(label,text)
+        p = subprocess.Popen(CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        text = out
+        debug(label,text)
+        
+    def db_acct_stop(self,node=None,com=None):
+        label = 'db_acct_stop'
+        component = self.db_normalize_component(com)
+        if((node == None) and (component == None)):
+            CMD = [self.java(), '-DDUCC_HOME='+self.DUCC_HOME, 'org.apache.uima.ducc.database.lifetime.DbDaemonLifetimeUI', '--stop']
+        elif(component == None):
+            CMD = [self.java(), '-DDUCC_HOME='+self.DUCC_HOME, 'org.apache.uima.ducc.database.lifetime.DbDaemonLifetimeUI', '--stop', node]
+        else:
+            CMD = [self.java(), '-DDUCC_HOME='+self.DUCC_HOME, 'org.apache.uima.ducc.database.lifetime.DbDaemonLifetimeUI', '--stop', node, component]
+        text = ' '.join(CMD)
+        debug(label,text)
+        p = subprocess.Popen(CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        text = out
+        debug(label,text)
+    
+    def _db_get_tuple(self,line):
+        retVal = None
+        try:
+            if(len(line.split()) == 1):
+                lhs = line.split('=')[0]
+                rhs = line.split('=')[1]
+                host = lhs.split('.')[0]
+                daemon = lhs.split('.')[1]
+                state = rhs
+                tuple = [ host, daemon, state ]
+                retVal = tuple
+        except:
+            pass
+        return retVal
+    
+    def db_acct_query(self):
+        list = []
+        label = 'db_acct_query'
+        CMD = [self.java(), '-DDUCC_HOME='+self.DUCC_HOME, 'org.apache.uima.ducc.database.lifetime.DbDaemonLifetimeUI', '--query']
+        text = ' '.join(CMD)
+        debug(label,text)
+        p = subprocess.Popen(CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        text = out
+        debug(label,text)
+        lines = out.split('\n')
+        for line in lines:
+            tuple = self._db_get_tuple(line)
+            if(tuple != None):
+                list.append(tuple)
+        return list
+        
     def __init__(self, merge=False):
         global use_threading
         DuccBase.__init__(self, merge)
