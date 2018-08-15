@@ -60,6 +60,9 @@ class DuccBase:
         self.ducc_properties.load(self.propsfile)
 
         self.webserver_node = self.ducc_properties.get('ducc.ws.node')
+        if ( self.webserver_node == None ):
+            self.webserver_node = self.ducc_properties.get('ducc.head')
+            
         self.jvm            = self.ducc_properties.get('ducc.jvm')
 
     def java(self):

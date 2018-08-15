@@ -27,6 +27,8 @@ import urllib2
 from optparse import OptionParser
 from HTMLParser import HTMLParser
 
+from ducc_base import DuccBase
+
 row = 0
 column = 0
 
@@ -62,14 +64,14 @@ class DuccServiceDeploymentsTabHTMLParser(HTMLParser):
             pass
         #print("Encountered some data  :", str(row), str(column), data)
 
-class DuccServiceStatus():
+class DuccServiceStatus(DuccBase):
     
     # parse command line
     def parse_cmdline(self):
         global options
         parser = OptionParser()
         parser.add_option('--scheme', action='store', dest='scheme', default='http', help='default = http')
-        parser.add_option('--host', action='store', dest='host', default=None, help='required (no default)')
+        parser.add_option('--host', action='store', dest='host', default=self.webserver_node, help='default = '+self.webserver_node)
         parser.add_option('--port', action='store', dest='port', default='42133', help='default = 42133')
         parser.add_option('--name', action='store', dest='name', default=None, help='required (no default)')
         (options, args) = parser.parse_args()
