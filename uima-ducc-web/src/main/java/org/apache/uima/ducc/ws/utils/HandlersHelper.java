@@ -18,7 +18,11 @@
 */
 package org.apache.uima.ducc.ws.utils;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -237,6 +241,8 @@ public class HandlersHelper {
 		return retVal;
 	}
 	
+	private static File devNull = new File("/dev/null");
+	
 	/**
 	 * Look in service owner's security home for db.access file
 	 * and use it's permissions to determine of logged-in user
@@ -245,26 +251,46 @@ public class HandlersHelper {
 	 */
 	private static boolean isServiceFileAccessForRead(String reqUser, Properties meta) {
 		String location = "isServiceFileAccessForRead";
-		boolean retVal = false;
-		if(reqUser == null) {
-			reqUser = System.getProperty("user.name");
+		boolean retVal= false;
+		String DUCC_HOME = System.getProperty("DUCC_HOME");
+		String duccmon_pwgen = DUCC_HOME+"/admin/db_access_check.py";
+		String owner = meta.getProperty(IServicesRegistry.user);
+		String looker = reqUser;
+		if(looker == null) {
+			duccLogger.debug(location, null, "looker not specified");
 		}
-		if(reqUser != null) {
-			if(meta != null) {
-				String svcOwner = meta.getProperty(IServicesRegistry.user);
-				if(svcOwner != null) {
-					String home = getSecurityHome(svcOwner.trim());
-					if(home != null) {
-						if(!home.endsWith(File.separator)) {
-							home = home+File.separator;
-						}
-						String path = home+".ducc"+File.separator+"db.access";
-						retVal = isFileReadable(reqUser, path);
-						if(retVal) {
-							duccLogger.debug(location, getDuccId(meta), "user="+reqUser+" "+retVal);
-						}
+		else {
+			List<String> cmd = new ArrayList<String>();
+			cmd.add(duccmon_pwgen);
+			cmd.add("--owner");
+			cmd.add(owner);
+			cmd.add("--looker");
+			cmd.add(looker);
+			String cmdline = String.join(" ", cmd);
+			duccLogger.debug(location, null, "cmdline: "+cmdline);
+			ProcessBuilder pb = new ProcessBuilder(cmd);
+			String authorizedCode = "1";
+			try {
+				pb = pb.redirectError(devNull);
+				Process process = pb.start();
+				String line;
+				BufferedReader bri = new BufferedReader(new InputStreamReader(process.getInputStream()));
+				duccLogger.trace(location, null, "read stdout: start");
+				while ((line = bri.readLine()) != null) {
+					duccLogger.debug(location, null, "stdout: "+line);
+					if(line.startsWith(authorizedCode)) {
+						duccLogger.trace(location, null, "authorized!");
+						retVal = true;
 					}
 				}
+				bri.close();
+				duccLogger.trace(location, null, "read stdout: end");
+				duccLogger.trace(location, null, "process waitfor: start");
+				process.waitFor();
+				duccLogger.trace(location, null, "process waitfor: end");
+			}
+			catch(Exception e) {
+				duccLogger.error(location, null, e);
 			}
 		}
 		return retVal;
