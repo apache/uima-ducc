@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -278,6 +279,11 @@ public class DuccHandlerHttpRequestFilter extends DuccAbstractHandler {
 					String reqUri = request.getRequestURI();
 					if(isRestrictedUri(reqUri)) {
 						String url = request.getRequestURL().toString();
+						String encodedQS = request.getQueryString();
+						if(encodedQS != null) {
+							String qs = URLDecoder.decode(encodedQS, "UTF-8");
+							url = url+"?"+qs;
+						}
 				        String portHttps = ""+ConfigValue.PortHttps.getInt(DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port_ssl));
 				        String portHttp = ""+ConfigValue.PortHttp.getInt(DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_ws_port));
 				        String s1Before = "http"+":";
