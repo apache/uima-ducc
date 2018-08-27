@@ -122,14 +122,14 @@ public class JunitProtocolHandlerTestCase extends Client {
 		public void stop() {
 			threadPool.shutdown();
 			protocolHandler.stop();
-			transport.stop();
+			transport.stop(false);
 			processor.stop();
 		}
 		@Override
 		public void quiesceAndStop() {
 			protocolHandler.quiesceAndStop();
 			threadPool.shutdown();
-			transport.stop();
+			transport.stop(true);
 			processor.stop();
 		}
 		@Override
