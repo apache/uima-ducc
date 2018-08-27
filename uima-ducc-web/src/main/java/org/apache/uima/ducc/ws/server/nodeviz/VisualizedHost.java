@@ -27,6 +27,7 @@ import java.util.List;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.ws.MachineInfo;
+import org.apache.uima.ducc.ws.utils.BasicsHelper;
 
 class VisualizedHost
 {
@@ -53,8 +54,8 @@ class VisualizedHost
         this.quantum = quantum;
         this.name = NodeViz.strip(info.getName());
         this.ip = info.getIp();
-        this.mem_total = Integer.parseInt(info.getMemTotal());
-        this.mem_reserve = Integer.parseInt(info.getMemReserve());
+        this.mem_total = BasicsHelper.safeString2Int(info.getMemTotal());
+        this.mem_reserve = BasicsHelper.safeString2Int(info.getMemReserve());
         this.shares_reserve = (mem_reserve / quantum);
         this.shares_free = shares_reserve;    
     }
