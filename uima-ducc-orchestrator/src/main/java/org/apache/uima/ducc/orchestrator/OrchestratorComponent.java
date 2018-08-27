@@ -657,6 +657,7 @@ implements Orchestrator {
 		IDuccProcess process = duccEvent.getProcess();
 		DuccId processDuccId = getProcessDuccId(duccEvent);
 		logger.debug(location, processDuccId, "process");
+		DuccId dwId = OrchestratorCommonArea.getInstance().getProcessAccounting().getJobId(processDuccId);
 		if(process == null) {
 			sb.append("process:"+process+" ");
 			sb.append("node:"+node+" ");
@@ -688,9 +689,16 @@ implements Orchestrator {
 			sb.append("processType:"+processType+" ");
 			logger.error(location, jobid, sb.toString());
 		}
+		else if(dwId == null) {
+			sb.append("id:"+id+" ");
+			sb.append("node:"+node+" ");
+			sb.append("lifefcycleEvent:"+lifecycleEvent.name()+" ");
+			sb.append("processType:"+processType+" ");
+			sb.append("dwId:"+dwId+" ");
+			logger.error(location, jobid, sb.toString());
+		}
 		else {
 			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
-			DuccId dwId = OrchestratorCommonArea.getInstance().getProcessAccounting().getJobId(processDuccId);
 			IDuccWork dw = workMap.findDuccWork(dwId);
 			DuccType dwType = dw.getDuccType();
 			sb.append("dwId:"+dwId+" ");
