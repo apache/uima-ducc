@@ -55,6 +55,7 @@ import org.apache.uima.ducc.ps.service.transport.TransportException;
 import org.apache.uima.ducc.ps.service.transport.TransportStats;
 import org.apache.uima.ducc.ps.service.transport.target.NoOpTargetURI;
 import org.apache.uima.ducc.ps.service.transport.target.TargetURIFactory;
+import org.apache.uima.ducc.ps.service.utils.Utils;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
@@ -288,7 +289,7 @@ public class HttpServiceTransport implements IServiceTransport {
 
 		} catch (HttpHostConnectException | UnknownHostException ex ) {
 			if ( stopping ) {
-				System.out.println("Process Thread:"+Thread.currentThread().getId()+" HttpHostConnectException ");
+				System.out.println(this.getClass().getName()+".dispatch() Process Thread:"+Thread.currentThread().getId()+" HttpHostConnectException ");
 				
 				throw new TransportException(ex);
 			}
@@ -302,6 +303,7 @@ public class HttpServiceTransport implements IServiceTransport {
 					if ( log ) {
 						log = false;
 
+						System.out.println( this.getClass().getName()+".dispatch() >>>>>>>>>> Unable to connect to target:"+currentTargetUrl.asString()+" - retrying until successfull - with "+threadSleepTime/1000+" seconds wait between retries  ");
 						logger.log(Level.INFO, ">>>>>>>>>> Unable to connect to target:"+currentTargetUrl.asString()+" - retrying until successfull - with "+threadSleepTime/1000+" seconds wait between retries  ");
 					}
 					serializedResponse = retryUntilSuccessfull(serializedRequest, postMethod);
@@ -351,15 +353,19 @@ public class HttpServiceTransport implements IServiceTransport {
  		}
  		
  	}
-	public void stop() {
+	public void stop(boolean quiesce) {
 
 		stopping = true;
 		running = false;
+		// Use System.out since the logger's ShutdownHook may have closed streams
+		System.out.println(Utils.getTimestamp()+">>>>>>> "+Utils.getShortClassname(this.getClass())+" stop() called - mode:"+(quiesce==true?"quiesce":"stop"));
 		logger.log(Level.INFO,this.getClass().getName()+" stop() called");
-		if ( cMgr != null ) {
+		if ( !quiesce && cMgr != null ) {
 			cMgr.shutdown();
+			System.out.println(Utils.getTimestamp()+">>>>>>> "+Utils.getShortClassname(this.getClass())+" stopped connection mgr");
+			logger.log(Level.INFO,this.getClass().getName()+" stopped connection mgr");
+
 		}
-		logger.log(Level.INFO,this.getClass().getName()+" stopped connection mgr");
 	}
 	public static void main(String[] args) {
 

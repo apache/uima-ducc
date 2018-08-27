@@ -23,13 +23,24 @@ import java.lang.management.ManagementFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
+	
+	public static String getTimestamp() {
+		Date now = new Date();
+		return DateFormat.getDateTimeInstance().format(now);
+	}
+	
+	public static String getShortClassname(Class clz) {
+		return clz.getName().substring(clz.getName().lastIndexOf(".")+1);
+	}
 	   /**
      * Create an array of parameters from a whitespace-delimited list (e.g. JVM args or environment assignments.)
      * Values containing whitespace must be single- or double-quoted:

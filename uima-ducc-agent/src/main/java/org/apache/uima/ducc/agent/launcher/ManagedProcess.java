@@ -140,6 +140,8 @@ public class ManagedProcess implements Process {
 
 	private long initializationTimeout;
 
+	private volatile boolean isUimaAs;
+	
 	public ManagedProcess(IDuccProcess process, ICommandLine commandLine) {
 		this(process, commandLine, null, null, new ProcessMemoryAssignment());
 	}
@@ -790,5 +792,13 @@ public class ManagedProcess implements Process {
 
 	public boolean isJd() {
 		return isJD;
+	}
+	
+	public void setUimaAs() {
+		isUimaAs = true;
+	}
+
+	public boolean isUimaAs() {
+		return isUimaAs;
 	}
 }

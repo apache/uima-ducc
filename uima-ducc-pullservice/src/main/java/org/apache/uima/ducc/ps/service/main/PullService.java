@@ -49,6 +49,7 @@ import org.apache.uima.ducc.ps.service.transport.IServiceTransport;
 import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 import org.apache.uima.ducc.ps.service.transport.http.HttpServiceTransport;
 import org.apache.uima.ducc.ps.service.transport.target.TargetURIFactory;
+import org.apache.uima.ducc.ps.service.utils.Utils;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
@@ -236,7 +237,7 @@ public class PullService implements IService {
 			// tasks.
 			protocolHandler.start();
 			// wait until all process threads terminate
-			threadPool.awaitTermination(0, TimeUnit.MILLISECONDS);
+			//threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 			waitForProcessThreads();
 
 		} catch(InterruptedException e) {
@@ -256,23 +257,32 @@ public class PullService implements IService {
 	public void stop() {
 		// process threads should stop first to avoid trying to pull new
 		// work while threads are running
-		stopProcessThreadPool();
+		//stopProcessThreadPool();
+		logger.log(Level.INFO, "Stopping Process Thread Pool");
+		threadPool.shutdownNow();
 		// close connection to remote client and cleanup
 		stopTransport();
+		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .quiesceAndStop()-transport stopped");
 		stopProtocolHandler(false);
+		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .quiesceAndStop()-protocol handler stopped");
 		stopServiceProcessor();
+		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .stop()-processor stopped");
 	    // monitor should be stopped last to keep posting updates to observer
 		stopMonitor();
+		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .dtop()-monitor stopped");
 	}
     public void quiesceAndStop() {
 		// when quiescing, let the process threads finish processing 
-    	stopProtocolHandler(true);
-		
+    	stopProtocolHandler(true);  // true = quiesce
+		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .quiesceAndStop()-protocol handler stopped");
 		// close connection to remote client and cleanup
 		stopTransport();
+		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .quiesceAndStop()-transport stopped");
 		stopServiceProcessor();
+		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .quiesceAndStop()-processor stopped");
         // monitor should be stopped last to keep posting updates to observer
 		stopMonitor();
+		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .quiesceAndStop()-monitor stopped");
     }
 	private void waitForProcessThreads() throws InterruptedException, ExecutionException {
 		for (Future<String> future : threadHandleList) {
@@ -313,7 +323,9 @@ public class PullService implements IService {
 			try {
 				logger.log(Level.INFO, "Stopping Process Thread Pool");
 				threadPool.shutdownNow();
-				threadPool.awaitTermination(0, TimeUnit.MILLISECONDS);
+				
+				// below probably not needed since this is done in start()
+				threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
 				logger.log(Level.INFO, "Process Thread Pool Stopped");
 
 			} catch (InterruptedException e) {
@@ -342,7 +354,7 @@ public class PullService implements IService {
 		}
 	}
 	private void stopTransport() {
-		transport.stop();
+		transport.stop(false);   // !quiesce
 	}
 	public static void main(String[] args) {
 

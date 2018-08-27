@@ -43,6 +43,7 @@ import org.apache.uima.ducc.ps.service.protocol.IServiceProtocolHandler;
 import org.apache.uima.ducc.ps.service.transport.IServiceTransport;
 import org.apache.uima.ducc.ps.service.transport.TransportException;
 import org.apache.uima.ducc.ps.service.transport.XStreamUtils;
+import org.apache.uima.ducc.ps.service.utils.Utils;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
@@ -291,10 +292,12 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 				break;
 			}
 			catch (Exception e) {
+				
 				logger.log(Level.WARNING,"",e);
 			} 		
 		}
 		stopLatch.countDown();
+		System.out.println(Utils.getTimestamp()+">>>>>>> "+Utils.getShortClassname(this.getClass())+".call() >>>>>>>>>> Thread ["+Thread.currentThread().getId()+"] "+ " ProtocolHandler stopped requesting new tasks - Stopping processor");
 		logger.log(Level.INFO,"ProtocolHandler stopped requesting new tasks - Stopping processor");
 
 		if ( processor != null ) {
@@ -334,15 +337,23 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	}
 	@Override
 	public void quiesceAndStop() {
+		// Use System.out since the logger's ShutdownHook may have closed streams
+		System.out.println(Utils.getTimestamp()+">>>>>>> "+Utils.getShortClassname(this.getClass())+".queisceAndStop()");
+		logger.log(Level.INFO, this.getClass().getName()+" quiesceAndStop() called");
+		// change state of transport to not running but keep connection open
+		// so that other threads can quiesce (send results)
+		transport.stop(true);
+		
 		quiescing = true;
 		running = false;
-		logger.log(Level.INFO, this.getClass().getName()+" quiesceAndStop() called");
 		try {
 			// wait for process threads to terminate
 			stopLatch.await();
 		} catch( Exception e ) {
 
 		}
+		// Use System.out since the logger's ShutdownHook may have closed streams
+		System.out.println(Utils.getTimestamp()+">>>>>>> "+Utils.getShortClassname(this.getClass())+".queisceAndStop() All process threads completed quiesce");
 		logger.log(Level.INFO, this.getClass().getName()+" All process threads completed quiesce");
 	}
 	@Override

@@ -88,27 +88,10 @@ public class AgentEventListener implements DuccEventDelegateListener {
   	        IDuccProcess process = jobDeployment.getJdProcess();
   	        sb.append("\nJD--> JobId:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
   	      }
-  	      /*
-  	      else {
-  	    	IDuccProcess process = jobDeployment.getJdProcess();
-  	    	String ip1 = process.getNodeIdentity().getIp();
-  	    	String ip2 = agent.getIdentity().getIp();
-  	    	sb.append("\nREJECTED: processIP="+ip1+" "+"agentIP="+ip2);
-  	    	sb.append("\nREJECTED: JD--> JobId:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
-  	      }
-		  */
   	      for( IDuccProcess process : jobDeployment.getJpProcessList() ) {
   	        if ( isTargetNodeForProcess(process) ) {
   	          sb.append("\n\tJob ID:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
   	        }
-  	        /*
-  	        else {
-  	          String ip1 = process.getNodeIdentity().getIp();
-  	  	      String ip2 = agent.getIdentity().getIp();
-  	  	      sb.append("\nREJECTED: processIP="+ip1+" "+"agentIP="+ip2);
-  	          sb.append("\n\tREJECTED: Job ID:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
-  	        }
-			*/
   	      }
   	    }
             if ( sb.length() > 0 ) {

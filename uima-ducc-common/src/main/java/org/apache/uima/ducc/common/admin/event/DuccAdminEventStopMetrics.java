@@ -18,23 +18,12 @@
 */
 package org.apache.uima.ducc.common.admin.event;
 
-public class DuccAdminEventStopMetrics extends DuccAdminEvent  {
+public class DuccAdminEventStopMetrics extends TargetableDuccAdminEvent  {
 	private static final long serialVersionUID = 6499822168988392919L;
-	// comma separated list of nodes that are target for this message
-	private String targetNodes = new String();
-
 	
 	public DuccAdminEventStopMetrics(String nodes, String user, byte[] auth) 
 	{
-		super(user, auth);
-		this.targetNodes = nodes;
-	}
-	/**
-	 * Returns comma separated list of target nodes for this message
-	 * @return
-	 */
-	public String getTargetNodes() {
-		return this.targetNodes;
+		super(nodes, user, auth);
 	}
 
 }

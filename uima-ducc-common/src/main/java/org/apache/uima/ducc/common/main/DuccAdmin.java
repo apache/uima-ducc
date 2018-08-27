@@ -46,6 +46,8 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
+import org.apache.uima.ducc.common.admin.event.DuccAdminEventQuiesceAndStop;
+import org.apache.uima.ducc.common.admin.event.DuccAdminEventStop;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventStopMetrics;
 import org.apache.uima.ducc.common.authentication.BrokerCredentials;
 import org.apache.uima.ducc.common.authentication.BrokerCredentials.Credentials;
@@ -74,7 +76,7 @@ public class DuccAdmin extends AbstractDuccComponent implements
 			.getProperty("file.separator");
 
 	public static enum DuccCommands {
-		killAll, startAgents, quiesceAgents
+		killAll, startAgents, quiesceAgents, stop, quiesce
 	};
 
 	private String brokerUrl;
@@ -177,25 +179,28 @@ public class DuccAdmin extends AbstractDuccComponent implements
 
 	public Options getPosixOptions() {
 		final Options posixOptions = new Options();
-		posixOptions.addOption(DuccCommands.killAll.name(), false,
-				"Kill All Ducc Processes");
+		posixOptions.addOption(DuccCommands.killAll.name(), false, "Kill All Ducc Processes");
 
 		@SuppressWarnings("static-access")
-		Option startAgentsOption = OptionBuilder
-				.hasArgs(2)
-				.withDescription(
-						"starting agents defined in arg1 using command defined in arg2")
-				.create("startAgents");
+		Option startAgentsOption = OptionBuilder.hasArgs(2)
+				.withDescription("starting agents defined in arg1 using command defined in arg2").create("startAgents");
 		posixOptions.addOption(startAgentsOption);
 
 		@SuppressWarnings("static-access")
-    Option quiesceAgentsOption = OptionBuilder
-        .hasArgs(1)
-        .withDescription(
-            "quiescing agents defined in arg1")
-        .create("quiesceAgents");
-    posixOptions.addOption(quiesceAgentsOption);
-    
+		Option quiesceAgentsOption = OptionBuilder.hasArgs(1).withDescription("quiescing agents defined in arg1")
+				.create("quiesceAgents");
+		posixOptions.addOption(quiesceAgentsOption);
+
+		@SuppressWarnings("static-access")
+		Option quiesceOption = OptionBuilder.hasArgs(1).withDescription("quiescing targets defined in arg1")
+				.create("quiesce");
+		posixOptions.addOption(quiesceOption);
+
+		@SuppressWarnings("static-access")
+		Option stopOption = OptionBuilder.hasArgs(2).withDescription("stopping targets defined in arg2")
+				.create("stop");
+		posixOptions.addOption(stopOption);
+		
 		return posixOptions;
 	}
 
@@ -230,14 +235,31 @@ public class DuccAdmin extends AbstractDuccComponent implements
 		System.out.println("DuccAdmin sent Kill to all Ducc processes ...");
 	}
 
+	
 	private void quiesceAgents(String nodes) throws Exception {
-	  String user = System.getProperty("user.name");
-    Crypto crypto = new Crypto(user, true);
-    byte[] cypheredMessage = crypto.getSignature();
+		String user = System.getProperty("user.name");
+		Crypto crypto = new Crypto(user, true);
+		byte[] cypheredMessage = crypto.getSignature();
 
-    dispatch(serializeAdminEvent(new DuccAdminEventStopMetrics(nodes, user, cypheredMessage)));
-    System.out.println("DuccAdmin sent Quiesce request to Ducc Agents ...");
+		dispatch(serializeAdminEvent(new DuccAdminEventStopMetrics(nodes, user, cypheredMessage)));
 	}
+	
+	public void quiesceAndStop(String nodes) throws Exception {
+		String user = System.getProperty("user.name");
+		Crypto crypto = new Crypto(user, true);
+		byte[] cypheredMessage = crypto.getSignature();
+
+		dispatch(serializeAdminEvent(new DuccAdminEventQuiesceAndStop(nodes, user, cypheredMessage)));
+	}
+
+	public void stop(String nodes, long waitTimeInSecs) throws Exception {
+		String user = System.getProperty("user.name");
+		Crypto crypto = new Crypto(user, true);
+		byte[] cypheredMessage = crypto.getSignature();
+		//System.out.println(">>>>>>>>>>> waitTime:"+waitTimeInSecs+" Targets:"+nodes);
+		dispatch(serializeAdminEvent(new DuccAdminEventStop(nodes, waitTimeInSecs, user, cypheredMessage)));
+	}
+	
 	/**
 	 * Return contents of the provided command file.
 	 * 
@@ -324,15 +346,26 @@ public class DuccAdmin extends AbstractDuccComponent implements
 			killAll();
 		} else if (commandLine.hasOption(DuccCommands.startAgents.name())) {
 			System.out.println("---------- Starting Agents");
-			String[] args = commandLine
-					.getOptionValues(DuccCommands.startAgents.name());
+			String[] args = commandLine.getOptionValues(DuccCommands.startAgents.name());
 			startAgents(args[0], args[1]);
 		} else if (commandLine.hasOption(DuccCommands.quiesceAgents.name())) {
-      System.out.println("---------- Quiescing Agents");
-      String[] args = commandLine
-          .getOptionValues(DuccCommands.quiesceAgents.name());
-      quiesceAgents(args[0]);
-    }
+			System.out.println("---------- Quiescing Agents");
+			String[] args = commandLine.getOptionValues(DuccCommands.quiesceAgents.name());
+			quiesceAgents(args[0]);
+		} else if (commandLine.hasOption(DuccCommands.quiesce.name())) {
+			System.out.println("---------- Quiescing Targets");
+			String[] args = commandLine.getOptionValues(DuccCommands.quiesce.name());
+			quiesceAndStop(args[0]);
+		} else if (commandLine.hasOption(DuccCommands.stop.name())) {
+			String[] args = commandLine.getOptionValues(DuccCommands.stop.name());
+			if ( args.length == 2) {
+				System.out.println("---------- Stopping Targets");
+				stop(args[1], Long.parseLong(args[0]) );
+			} else if ( args.length == 1) {
+				System.out.println("---------- Stopping Targets");
+				stop(args[0], 0);
+			}
+		}
 
 	}
 

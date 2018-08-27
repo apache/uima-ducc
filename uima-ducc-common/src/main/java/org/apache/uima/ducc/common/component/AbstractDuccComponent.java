@@ -45,8 +45,10 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.RouteDefinition;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
+import org.apache.uima.ducc.common.admin.event.DuccAdminEventQuiesceAndStop;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
 import org.apache.uima.ducc.common.exception.DuccConfigurationException;
@@ -404,14 +406,6 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 	    
 	    dumpArgs(args);
 	    dumpProps();
-	    /*
-	    if (System.getProperty("ducc.deploy.components") != null
-	            && !System.getProperty("ducc.deploy.components").equals("uima-as")
-	            && !System.getProperty("ducc.deploy.components").equals("job-process")
-	            && !System.getProperty("ducc.deploy.components").equals("service")
-	            && !System.getProperty("ducc.deploy.components").equals("jd")
-	            && (endpoint = System.getProperty("ducc.admin.endpoint")) != null) {
-	    	*/
 	    if ( daemonProcess() && ( endpoint = System.getProperty("ducc.admin.endpoint")) != null  ) {  
 	        logger.info("start", null, ".....Starting Admin Channel on endpoint:" + endpoint);
             startAdminChannel(endpoint, this);
@@ -472,7 +466,17 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   protected String getProcessJmxUrl() {
     return processJmxUrl;
   }
-
+  
+  /**
+   * This method should be overriden if a component supports quiesce. By 
+   * default (method not overriden), the quiesce works exactly like stop. 
+   * Currently only agent overrides this method.
+   * @throws Exception
+   */
+  public void quiesceAndStop() throws Exception {
+   	  // default is stop
+	  stop();
+   }
     public void stop() 
         throws Exception 
     {
@@ -487,8 +491,10 @@ public abstract class AbstractDuccComponent implements DuccComponent,
         logger.info(methodName, null, "----------stop() called");
  
         try {
-        	logger.info(methodName, null, "Stopping Camel Routes");
             List<Route> routes = context.getRoutes();
+            if ( !routes.isEmpty()) {
+            	logger.info(methodName, null, "Stopping Camel Routes");
+            }
             for (Route route : routes) {
                 if ( !route.getId().startsWith("mina")) {
                     logger.info(methodName, null, "Stopping Route:"+route.getId());
@@ -496,17 +502,11 @@ public abstract class AbstractDuccComponent implements DuccComponent,
                     route.getEndpoint().stop();
                 }
             }
-
+            logger.info(methodName, null, "Stopping AMQ Consumers");
             ActiveMQComponent amqc = (ActiveMQComponent) context.getComponent("activemq");
             amqc.stop();
             amqc.shutdown();
-            /*
-            if (!"Uima Process".equals(componentName)) {
-              logger.info(methodName, null, "Stopping Camel Context");
-              context.stop();
-              logger.info(methodName, null, "Camel Context Stopped");
-            }
-            */
+            logger.info(methodName, null, "AMQ Consumers Stopped");
 
             ObjectName name = new ObjectName(
                                              "org.apache.uima.ducc.service.admin.jmx:type=DuccComponentMBean,name="
@@ -527,10 +527,6 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             logger.info(methodName, null, "Component cleanup completed - terminating process");
 
         } catch (Exception e) {
-            // It's a sensitive time, let's emit twice just for luck
-            System.out.println("----------------------------------------------------------------------------------------------------");
-            e.printStackTrace();
-            System.out.println("----------------------------------------------------------------------------------------------------");
             logger.error(methodName, null, e);
         }
         
@@ -548,17 +544,9 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             }
 	   
         }
-        //  System.exit(0);
     }
 
-  public void handleUncaughtException(Exception e) {
-    e.printStackTrace();
-  }
-  public void handleUncaughtException(Error e) {
-    e.printStackTrace();
-   	System.out.println("Unexpected Java Error - Terminating Process via Runtime halt");
-   	Runtime.getRuntime().halt(2);
-  }
+
 
   /** 
    * Start RMI registry so the JMX clients can connect to the JVM via JMX.
@@ -568,7 +556,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
    */
   public String startJmxAgent() throws Exception {
 	  String location = "startJmxAgent";
-	  DuccId jobid = null;
+	  //DuccId jobid = null;
 	  String key = "com.sun.management.jmxremote.authenticate";
 	  String value = System.getProperty(key);
 	  logger.info(location, jobid, key+"="+value);
@@ -584,18 +572,9 @@ public abstract class AbstractDuccComponent implements DuccComponent,
       }
       boolean done = false;
       JMXServiceURL url = null;
-      /*
-      String jmxAccess = "local";
-      String hostname = "localhost";
-      if ( (jmxAccess = System.getProperty("ducc.jmx.access") ) != null && jmxAccess.equals("remote") ) {
-         hostname = InetAddress.getLocalHost().getHostName();
-      }
-      RMIServerSocketFactory serverFactory = new RMIServerSocketFactoryImpl(InetAddress.getByName(hostname));
-      */
       // retry until a valid rmi port is found
       while (!done) {
         	try {
-        //		LocateRegistry.createRegistry(rmiRegistryPort, null, serverFactory);
                 LocateRegistry.createRegistry(rmiRegistryPort);
                 done = true;
                 // Got a valid port
@@ -613,15 +592,6 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             String s = String.format("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname,
                     rmiRegistryPort);
             url = new JMXServiceURL(s);
-            /*
-            Map<String,Object> env = new HashMap<>();
-            env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, serverFactory);
-
-            RMIConnectorServer rmiServer = new RMIConnectorServer( new JMXServiceURL(url.toString()),
-               env, ManagementFactory.getPlatformMBeanServer() );
-
-            rmiServer.start();
-             */
             jmxConnector = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);
             jmxConnector.start();
         } catch (Exception e) {
@@ -637,10 +607,21 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 
   public void cleanup(Throwable e) {
     e.printStackTrace();
+    logger.error("handleUncaughtException", null, e);
   }
-
+  public void handleUncaughtException(Exception e) {
+	e.printStackTrace();
+	logger.error("handleUncaughtException", null, e);
+  }
+  public void handleUncaughtException(Error e) {
+    e.printStackTrace();
+    logger.error("handleUncaughtException", null, e);
+   	System.out.println("Unexpected Java Error - Terminating Process via Runtime halt");
+   	Runtime.getRuntime().halt(2);
+  }
   public void uncaughtException(final Thread t, final Throwable e) {
     e.printStackTrace();
+    logger.error("uncaughtException", null, e);
     System.exit(1);
   }
 
@@ -654,7 +635,33 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     public void process(final Exchange exchange) throws Exception {
         logger.info("AdminEventProcessor.process()", null, "Received Admin Message of Type:"
                     + exchange.getIn().getBody().getClass().getName());
-        
+        if ( !"agent".equals(System.getProperty("ducc.deploy.components"))) {
+            if (exchange.getIn().getBody() instanceof DuccAdminEventKill) {
+                // start a new thread to process the admin kill event. Need to do this
+                // so that Camel thread associated with admin channel can go back to
+                // its pool. Otherwise, we will not be able to stop the admin channel.
+                Thread th = new Thread(new Runnable() {
+                   public void run() {
+                      try {
+                        delegate.onDuccAdminKillEvent((DuccAdminEventKill) exchange.getIn().getBody());
+                      } catch (Exception e) {
+
+                      }
+                   }
+                 });
+                 th.start();
+            } else {
+                handleAdminEvent((DuccAdminEvent) exchange.getIn().getBody());
+            }  	
+        } else {
+        	// agent
+//        	String targets = "agent@bluejws65,agent@bluejbb";
+//        	DuccAdminEvent e =(DuccAdminEvent) exchange.getIn().getBody();
+//        	DuccAdminEventQuiesceAndStop event = 
+//        			new DuccAdminEventQuiesceAndStop(targets,e.getUser(), e.getAuthBlock());
+            handleAdminEvent((DuccAdminEvent) exchange.getIn().getBody());
+        }
+        /*
         if (exchange.getIn().getBody() instanceof DuccAdminEventKill) {
             // start a new thread to process the admin kill event. Need to do this
         // so that Camel thread associated with admin channel can go back to
@@ -672,6 +679,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
       } else {
         handleAdminEvent((DuccAdminEvent) exchange.getIn().getBody());
       }
+      */
     }
   }
 

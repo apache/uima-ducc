@@ -36,6 +36,7 @@ public interface IProcessState extends Serializable {
 		Killed,         		// Agent forcefully killed the process
 		KillProcess,        	// UIMA-AS Ducc Service Wrapper requesting agent to kill the process
 		Abandoned,				// Process abandoned
+		Rejected,	            // Agent is quiescing, rejects new process start request
 		Undefined,				// None of the above
 	};
 	

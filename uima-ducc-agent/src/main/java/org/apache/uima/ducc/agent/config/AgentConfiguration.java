@@ -22,6 +22,7 @@ import java.io.DataInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -417,7 +418,8 @@ public class AgentConfiguration {
   	// spin a server thread which will handle AP state update messages
   	serverThread = new Thread( new Runnable() {
   		public void run() {
-  			while(true) {
+  			
+  			while(!agent.isStopping()) {
   		  		try {
   		  			Socket client = serviceStateUpdateServer.accept();
   		  			// AP connected, get its status report. Handling of the status
@@ -432,7 +434,8 @@ public class AgentConfiguration {
   		  		} finally {
   		  		}
   		  		
-  		  	}	
+  		  	}
+  			logger.info("startAPServiceStateUpdateSocketServer", null, "State Update Server Stopped");
   		}
   	});
   	serverThread.start();
@@ -507,8 +510,15 @@ public class AgentConfiguration {
   }
   public void stopRoutes() throws Exception {
 	  serviceStateUpdateServer.close();
-	  camelContext.stop();
-	  logger.info("AgentConfigureation.stopRoutes", null,"Camel Context stopped");
+	  List<RouteDefinition> routes = 
+			  camelContext.getRouteDefinitions();
+	  for( RouteDefinition rd : routes ) {
+		  logger.info("AgentConfigureation.stopRoutes", null,"Stopping route:"+rd.getLabel()+" : "+rd.getId());
+		  rd.stop();
+		  logger.info("AgentConfigureation.stopRoutes", null,"Stopped route:"+rd.getLabel()+" : "+rd.getId());
+	  }
+	//  camelContext.stop();
+	//  logger.info("AgentConfigureation.stopRoutes", null,"Camel Context stopped");
 
   }
   @Bean
@@ -570,7 +580,14 @@ public class AgentConfiguration {
 	      logger.error(methodName, null, e);
 	    }
 	  }
-
+  public void stop() {
+	  try {
+		  serviceStateUpdateServer.close();
+		  
+	  } catch( Exception e) {
+		  
+	  }
+  }
   private class DuccNodeFilter implements Predicate {
     private NodeAgent agent = null;
 

@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -63,7 +64,7 @@ public class CGroupsManager {
 	// legacy means that the cgonfig points to <cgroup location>/ducc
 	private boolean legacyCgConfig = false;
 	
-	
+	private Object waitForLockObject = new Object();
 	
 	enum CGroupCommand {
    	 CGSET("cgset"),
@@ -453,6 +454,128 @@ public class CGroupsManager {
 							// for cgroup accounting. These processes will never terminate. The idea
 							// is not to enter into an infinite loop due to zombies
 							if ( pids == null || pids.length == 0 || (zombieCount == pids.length)) {
+								break;
+							} else {
+								try {
+									synchronized(this) {
+										// log every ~30 minutes (10000 * 200), where 200 is a wait time in ms between tries
+										if ( logCount  % 10000 == 0) {
+											agentLogger.info("cleanupOnStartup", null,
+													"--- CGroup:" + cgroupFolder+ " procs file still showing processes running. Wait until CGroups updates acccounting");
+										}
+										logCount++;
+										wait(200);
+										
+									}
+								} catch( InterruptedException ee) {
+									break;
+								}
+							}
+						}
+					}
+					// Don't remove CGroups if there are zombie processes there. Otherwise, attempt
+					// to remove the CGroup may hang a thread.
+					if ( zombieCount == 0 )  {  // no zombies in the container
+	 					destroyContainer(cgroupFolder, SYSTEM, NodeAgent.SIGTERM);
+						agentLogger.info("cleanupOnStartup", null,
+								"--- Agent Removed Empty CGroup:" + cgroupFolder);
+					} else {
+						agentLogger.info("cleanupOnStartup", null,"CGroup "+cgroupFolder+" Contains Zombie Processing. Not Removing the Container");
+					}
+				} catch (FileNotFoundException e) {
+					// noop. Cgroup may have been removed already
+				} catch (Exception e) {
+					agentLogger.error("cleanupOnStartup", null, e);
+				}
+			}
+		}
+	}
+	private boolean isTargetForKill(Set<String> targets, String pid) {
+		Iterator<String> it = targets.iterator();
+		while( it.hasNext() ) {
+			if (pid.equals(it.next())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	/**
+	 * Finds all stale CGroups and cleans them up. The code only 
+	 * cleans up cgroups folders with names that follow
+	 * ducc's cgroup naming convention: <id>.<id>.<id>.
+	 * First, each cgroup is checked for still running processes in the
+	 * cgroup by looking at /<cgroup base dir>/<id>/cgroup.proc file which
+	 * includes PIDs of processes associated with the cgroups. If 
+	 * processes are found, each one is killed via -9 and the cgroup
+	 * is removed.
+	 * 
+	 * @throws Exception
+	 */
+	public void cleanupPids(Set<String> pidsToKill) throws Exception {
+
+		Set<NodeProcessInfo> processes = getProcessesOnNode();
+		// Match any folder under /cgroup/ducc that has syntax
+		// <number>.<number>.<number>
+		// This syntax is assigned by ducc to each cgroup
+		Pattern p = Pattern.compile("((\\d+)\\.(\\d+)\\.(\\d+))");
+
+		File cgroupsFolder = new File(getCGroupLocation(CGDuccMemoryPath));
+		String[] files = cgroupsFolder.list();
+		if ( files == null || files.length == 0 ) {
+			return;
+		}
+
+		for (String cgroupFolder : files) {
+			Matcher m = p.matcher(cgroupFolder);
+			//	only look at ducc's cgroups
+			if (m.find()) {
+				try {
+					// open proc file which may include PIDs if processes are 
+					// still running
+					File f = new File(getCGroupLocation(CGDuccMemoryPath) + cgroupFolder+ CGProcsFile);
+					//	collect all pids
+					String[] pids = readPids(f);
+
+					if ( pids != null && pids.length > 0 ) {
+						agentLogger.info("cleanupOnStartup", null,"Agent found "+pids.length+" cgroup proceses still active. Proceeding to remove running processes");
+					}
+
+					int zombieCount=0;
+					// kill each runnig process via -9
+					if (pids != null && pids.length > 0) {
+						for (String pid : pids) {
+							if ( !isTargetForKill(pidsToKill, pid)) {
+								continue;
+							}
+							// Got cgroup processes still running. Kill them
+							for (NodeProcessInfo proc : processes) {
+								// Dont kill zombie process as it is already dead. Just increment how many of them we have
+								if ( proc.isZombie() ) {
+									zombieCount++;
+								} else	if (proc.getPid().equals(pid)) {
+									// kill process hard via -9
+									System.out.println(">>>>>> Killing target process "+proc.getPid());
+									kill( proc.getUserid(), proc.getPid(), NodeAgent.SIGKILL);
+								}
+							}
+						}
+						long logCount = 0;
+						// it may take some time for the cgroups to udate accounting. Just cycle until
+						// the procs file becomes empty under a given cgroup
+						while( true ) {
+							boolean found = false;
+							pids = readPids(f);
+							for ( String pid : pids ) {
+								if ( isTargetForKill(pidsToKill, pid)) {
+									found = true;
+									break;  // at least one process from the target list is still running
+								}
+							}
+							
+							// if the cgroup contains no pids or there are only zombie processes dont wait 
+							// for cgroup accounting. These processes will never terminate. The idea
+							// is not to enter into an infinite loop due to zombies
+							if ( !found ||  pids == null || pids.length == 0 || (zombieCount == pids.length)) {
 								break;
 							} else {
 								try {
@@ -977,9 +1100,11 @@ public class CGroupsManager {
 							killChildProcesses(containerId, userId, NodeAgent.SIGTERM);
 					if ( childProcessCount > 0 ) {
 						agentLogger.info("destroyContainer", null, "Killed "+childProcessCount+"Child Processes with kill -15");
-						try {
-							this.wait(maxTimeToWaitForProcessToStop);
-						} catch( InterruptedException ie) {
+						synchronized( waitForLockObject) {
+							try {
+								waitForLockObject.wait(maxTimeToWaitForProcessToStop);
+							} catch( InterruptedException ie) {
+							}
 						}
 					}
 				}
@@ -998,7 +1123,7 @@ public class CGroupsManager {
 					return true;
 				}
 			}
-			return true; // nothing to do, cgroup does not exist
+		  	return true; // nothing to do, cgroup does not exist
 		} catch (Exception e) {
 			agentLogger.info("destroyContainer", null, e);
 			return false;

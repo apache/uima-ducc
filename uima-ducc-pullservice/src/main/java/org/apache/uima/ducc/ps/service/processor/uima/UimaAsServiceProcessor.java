@@ -451,18 +451,20 @@ public class UimaAsServiceProcessor extends AbstractServiceProcessor implements 
 	public void stop() {
 		synchronized (UimaAsServiceProcessor.class) {
 			if (brokerRunning) {
-				logger.log(Level.INFO, "Stopping UIMA_AS Client");
+				logger.log(Level.INFO, "Stopping UIMA-AS Client");
+				System.out.println("Stopping UIMA-AS Client");
 				try {
 					// Prevent UIMA-AS from exiting
 					System.setProperty("dontKill", "true");
 					uimaASClient.stop();
-
+					System.out.println("UIMA-AS Client Stopped");
 					Method brokerStopMethod = classToLaunch.getMethod("stop");
 					brokerStopMethod.invoke(brokerInstance);
 
 					Method waitMethod = classToLaunch.getMethod("waitUntilStopped");
 					waitMethod.invoke(brokerInstance);
 					brokerRunning = false;
+					System.out.println("Internal Broker Stopped");
 					super.stop();
 
 				} catch (Exception e) {

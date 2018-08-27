@@ -227,6 +227,7 @@ public class ServiceWrapper implements Application {
 	public void stop() {
 		try {
 			service.stop();
+			System.out.println(">>>>>> ServiceWrapper stopping JMX Agent");
 			jmxAgent.stop();
 		} catch( Exception e ) {
 			logger.log(Level.WARNING,"",e);
@@ -236,10 +237,11 @@ public class ServiceWrapper implements Application {
 	}
 	public void quiesceAndStop() {
 		try {
+
+			service.quiesceAndStop();
 			logger.log(Level.INFO,"Stoppng JMX Agent");
 			jmxAgent.stop();
 
-			service.quiesceAndStop();
 		} catch( Exception e ) {
 			logger.log(Level.WARNING,"",e);
 
@@ -270,8 +272,10 @@ public class ServiceWrapper implements Application {
 		    @Override
 		    public void run() {
 		      try {
-		          logger.log(Level.INFO, "Pull Service Caught SIGTERM Signal - Stopping (Quiescing) ...");
-
+		    	// Use System.out here since the logger may have already closed
+		    	// its streams. Logger's shutdown hook could have run by now.  
+		    	System.out.println("Pull Service Caught SIGTERM Signal - Stopping (Quiescing) ...");  
+		    	//logger.log(Level.INFO, "Pull Service Caught SIGTERM Signal - Stopping (Quiescing) ...");
 		        serviceWrapper.quiesceAndStop();
 
 		      } catch (Exception e) {

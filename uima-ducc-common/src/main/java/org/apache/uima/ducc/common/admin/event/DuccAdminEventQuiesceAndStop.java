@@ -16,19 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ps.service.transport;
+package org.apache.uima.ducc.common.admin.event;
 
-import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
-import org.apache.uima.ducc.ps.service.IServiceComponent;
-import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
+public class DuccAdminEventQuiesceAndStop extends TargetableDuccAdminEvent {
+	
+	private static final long serialVersionUID = 7550350057109505396L;
 
-public interface IServiceTransport extends IServiceComponent {
-	// called by Protocal Handler. Any errors will be handled
-	// by instance of IServiceErrorHandler
-	public String dispatch(String request) throws TransportException;
-	// initialize transport
-	public void initialize() throws ServiceInitializationException; 
-	// stop transport
-	public void stop(boolean quiesce); 
-	public void addRequestorInfo(IMetaTaskTransaction transaction);
+	public DuccAdminEventQuiesceAndStop(String nodes, String user, byte[] auth_block) {
+		super(nodes, user, auth_block);
+	}
+
+
+
 }

@@ -733,10 +733,12 @@ public class DuccCommandExecutor extends CommandExecutor {
 							isDucc20ServiceProcess = true;
 						}
 						//break;
-					    if (option.startsWith("-Dducc.deploy.JpType=uima")) {
+					    if (option.trim().equals("-Dducc.deploy.JpType=uima")) {
 						   // this is an AP with JP-based "nature". Meaning its using
 						   // a JP process configuration and its pull based model.
 						   uimaBasedAP = true;
+					    } else  if (option.trim().equals("-Dducc.deploy.JpType=uima-as")) {
+					    	((ManagedProcess) super.managedProcess).setUimaAs();
 					    }
 					}
 
@@ -750,6 +752,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 						((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.user.common.main.DuccJobService");
 						//((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.ps.service.main.ServiceWrapper");
 					} else {
+						((ManagedProcess) super.managedProcess).setUimaAs();
 					  cmdLine.addOption("-Dducc.deploy.components=uima-as");
 					  processEnv.put(IDuccUser.EnvironmentVariable.DUCC_UPDATE_PORT.value(), System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort));
 					   ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccService");
