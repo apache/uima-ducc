@@ -26,6 +26,8 @@ import org.apache.uima.ducc.common.agent.metrics.memory.NodeMemory;
 
 
 public class NodeMetrics implements Serializable {
+  public enum NodeStatus {Available, UnAvailable};
+  
   private static final long serialVersionUID = 4646364817769237774L;
   private NodeLoadAverage nodeLoadAverage;
   private NodeMemory nodeMemory;
@@ -33,6 +35,7 @@ public class NodeMetrics implements Serializable {
   private NodeIdentity nodeIdentity;
   TreeMap<String,NodeUsersInfo> nodeUsersMap;
   private boolean cpuReportingEnabled = false;
+  private NodeStatus nodeStatus = NodeStatus.Available;
   
   public NodeMetrics(NodeIdentity nodeIdentity, NodeMemory nodeMemory, NodeLoadAverage nodeLoadAverage , NodeCpuInfo nodeCpu, TreeMap<String,NodeUsersInfo> userProcessMap, boolean cpuReportingEnabled) {
     this.nodeIdentity = nodeIdentity;
@@ -48,6 +51,12 @@ public class NodeMetrics implements Serializable {
   }
   public boolean isCpuReportingEnabled() {
 	  return cpuReportingEnabled;
+  }
+  public NodeStatus getNodeStatus() {
+	  return nodeStatus;
+  }
+  public void disableNode() {
+	  nodeStatus = NodeStatus.UnAvailable;
   }
    public NodeIdentity getNodeIdentity() {
 	  return nodeIdentity;
