@@ -2089,7 +2089,11 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 
 		Map<String, Map<String, String>> topicAttributes = brokerHelper.getEntityAttributes();
 		
-		if(topicAttributes.size() > 0) {
+		int taSize = 0;
+		if(topicAttributes != null) {
+			taSize = topicAttributes.size();
+		}
+		if(taSize > 0) {
 			for(Entry<String, Map<String, String>> entry : topicAttributes.entrySet()) {
 				String topic = entry.getKey();
 				String attrValue;
