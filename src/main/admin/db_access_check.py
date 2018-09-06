@@ -103,6 +103,32 @@ class AccessCheck(DuccUtil):
 		text = value
 		debug(self._mn(),text)
 	
+	# Access: (0644/-rw-r--r--)  Uid: ( 2077/watson)   Gid: ( 2001/limited)
+	def get_permissions(self,line):
+		normalized_line = line
+		normalized_line = normalized_line.replace('(',' ')
+		normalized_line = normalized_line.replace(')',' ')
+		tokens = normalized_line.split()
+		permissions = tokens[1]
+		permissions = permissions.replace('/',' ')
+		permissions = permissions.strip()
+		permissions = permissions.split()[1]
+        # -rw-r--r--
+		return permissions
+	
+	# Access: (0644/-rw-r--r--)  Uid: ( 2077/watson)   Gid: ( 2001/limited)
+	def get_group(self,line):
+		normalized_line = line
+		normalized_line = normalized_line.replace('(',' ')
+		normalized_line = normalized_line.replace(')',' ')
+		tokens = normalized_line.split()
+		group = tokens[5]
+		group = group.replace('/',' ')
+		group = group.strip()
+		group = group.split()[1]
+        # limited
+		return group
+	
 	# get db.access file info, comprising file permissions and file group
 	def get_owner_access_data(self):
 		permissions = '----------'
@@ -123,11 +149,12 @@ class AccessCheck(DuccUtil):
 		lines = self.popen(ducc_ling,p0,p1,p2,p3,p4)
 		for line in lines:
 			line = line.strip()
-			if('Gid' in line):
-				tokens = line.split()
-				permissions = tokens[1].strip('(').strip(')').split('/')[1]
-				group = tokens[8].strip('(').strip(')').split('/')[1]
+			if(('Access:' in line) and ('Gid:' in line)):
+				permissions = self.get_permissions(line)
+				group = self.get_group(line)
 				text = 'permissions:'+permissions+' '+'group:'+group
+				debug(self._mn(),text)
+				break;
 		return permissions, group
 	
 	# get looker's groups
