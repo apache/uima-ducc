@@ -312,5 +312,15 @@ public class DuccProcessWorkItemsV1 implements IDuccProcessWorkItemsV1 {
 		//V2
 		return 0;
 	}
+
+	@Override
+	public boolean isActiveWork() {
+		boolean retVal = true;
+		if((getCountDispatch() == 0) 
+		) {
+			retVal = false;
+		}
+		return retVal;
+	}
 	
 }

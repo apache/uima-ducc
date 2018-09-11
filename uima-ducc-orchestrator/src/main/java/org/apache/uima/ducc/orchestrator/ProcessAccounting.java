@@ -564,107 +564,6 @@ public class ProcessAccounting {
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
 	}
 
-	private ITimeWindow makeTimeWindow(String ts) {
-		ITimeWindow tw = new TimeWindow();
-		tw.setStart(ts);
-		tw.setEnd(ts);
-		return tw;
-	}
-
-	private void initStop(IDuccWorkJob job, IDuccProcess process) {
-		String ts = TimeStamp.getCurrentMillis();
-		ITimeWindow twi = process.getTimeWindowInit();
-		if(twi == null) {
-			twi = makeTimeWindow(ts);
-			process.setTimeWindowInit(twi);
-		}
-		else {
-			long i0 = twi.getStartLong();
-			long i1 = twi.getEndLong();
-			if(i0 != i1) {
-				if(i1 < i0) {
-					twi.setEnd(ts);
-				}
-			}
-		}
-	}
-
-	private void runStart(IDuccWorkJob job, IDuccProcess process) {
-		ITimeWindow twi = process.getTimeWindowInit();
-		ITimeWindow twr = makeTimeWindow(twi.getEnd());
-		process.setTimeWindowRun(twr);
-	}
-
-	private void runStop(IDuccWorkJob job, IDuccProcess process) {
-		String ts = TimeStamp.getCurrentMillis();
-		ITimeWindow twi = process.getTimeWindowInit();
-		if(twi == null) {
-			twi = makeTimeWindow(ts);
-			process.setTimeWindowRun(twi);
-		}
-		ITimeWindow twr = process.getTimeWindowRun();
-		if(twr == null) {
-			twr = makeTimeWindow(twi.getEnd());
-			process.setTimeWindowRun(twr);
-		}
-		else {
-			long r0 = twr.getStartLong();
-			long r1 = twr.getEndLong();
-			if(r0 != r1) {
-				if(r1 < r0) {
-					twr.setEnd(ts);
-				}
-			}
-		}
-		adjustWindows(job, process);
-		adjustRunTime(job, process);
-	}
-
-	// <uima-3351>
-	private void adjustRunTime(IDuccWorkJob job, IDuccProcess process) {
-		switch(job.getDuccType()) {
-		case Job:
-			if(!process.isAssignedWork()) {
-				ITimeWindow twr = process.getTimeWindowRun();
-				if(twr == null) {
-					twr = new TimeWindow();
-					process.setTimeWindowRun(twr);
-				}
-				long time = 0;
-				twr.setStartLong(time);
-				twr.setEndLong(time);
-			}
-			break;
-		default:
-			break;
-		}
-	}
-	// </uima-3351>
-
-	private void adjustWindows(IDuccWorkJob job, IDuccProcess process) {
-		String methodName = "adjustWindows";
-		ITimeWindow twi = process.getTimeWindowInit();
-		long i0 = twi.getStartLong();
-		long i1 = twi.getEndLong();
-		ITimeWindow twr = process.getTimeWindowRun();
-		long r0 = twr.getStartLong();
-		long r1 = twr.getEndLong();
-		if(i0 != i1) {
-			if(r0 != r1) {
-				if(r0 < i1) {
-					logger.warn(methodName, job.getDuccId(), process.getDuccId(), "run-start: "+r0+" -> "+i1);
-					r0 = i1;
-					twr.setStartLong(r0);
-					if(r1 < r0) {
-						logger.warn(methodName, job.getDuccId(), process.getDuccId(), "run-end: "+r1+" -> "+r0);
-						r1 = r0;
-						twr.setEndLong(r1);
-					}
-				}
-			}
-		}
-	}
-
 	private void updateProcessInitilization(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		switch(inventoryProcess.getProcessState()) {
 		case Started:
@@ -689,10 +588,127 @@ public class ProcessAccounting {
 			break;
 		}
 	}
-
+	
+	private boolean isInitializing(ProcessState ps) {
+		boolean retVal = false;
+		if(ps != null) {
+			switch(ps) {
+			case Starting:              // Process Manager sent request to start the Process
+			case Started:               // Process PID is available
+			case Initializing:			// Process Agent is initializing process
+				retVal = true;
+				break;
+			default:
+				break;
+			}
+		}
+		return retVal;
+	}
+	
+	private boolean isRunning(ProcessState ps) {
+		boolean retVal = false;
+		if(ps != null) {
+			switch(ps) {
+			case Running:				// Process Agent is processing work items
+				retVal = true;
+				break;
+			default:
+				break;
+			}
+		}
+		return retVal;
+	}
+	
+	
+	private boolean isCompleted(ProcessState ps) {
+		boolean retVal = false;
+		if(ps != null) {
+			switch(ps) {
+			case LaunchFailed:			// Process Agent reports process launch failed
+			case Stopped:				// Process Agent reports process stopped
+			case Failed:				// Process Agent reports process failed
+			case FailedInitialization:	// Process Agent reports process failed initialization
+			case InitializationTimeout: // Process Agent reports process initialization timeout
+			case Killed:
+				retVal = true;
+				break;
+			default:
+				break;
+			}
+		}
+		return retVal;
+	}
+	
+	/*
+	 * Agent reports initialization time, but not run time so make adjustment accordingly
+	 */
+	private void adjustProcessTime(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
+		String methodName = "adjustProcessTime";
+		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
+		long ts = System.currentTimeMillis();
+		DuccId jobId = job.getDuccId();
+		DuccId prcId = process.getDuccId();
+		// orchestrator process state
+		ProcessState ops = process.getProcessState();
+		if(ops == null) {
+			ops = ProcessState.Undefined;
+			process.setProcessState(ops);
+		}
+		// inventory process state
+		ProcessState ips = inventoryProcess.getProcessState();
+		if(ips == null) {
+			ips = ProcessState.Undefined;
+			inventoryProcess.setProcessState(ips);
+		}
+		ITimeWindow twi = inventoryProcess.getTimeWindowInit();
+		if(twi == null) {
+			twi = new TimeWindow();
+			inventoryProcess.setTimeWindowInit(twi);
+		}
+		long twis = twi.getStartLong();
+		long twie = twi.getEndLong();
+		ITimeWindow twr = inventoryProcess.getTimeWindowRun();
+		if(twr == null) {
+			twr = new TimeWindow();
+			inventoryProcess.setTimeWindowRun(twr);
+		}
+		long twrs = twr.getStartLong();
+		long twre = twr.getEndLong();
+		logger.debug(methodName, jobId, prcId, "raw", ips, ops, twis, twie, twrs, twre);
+		if(isInitializing(ips)) {
+			// no adjustment
+		}
+		else if(isRunning(ips)) {
+			if(twrs < 0) {
+				twr.setStartLong(twie);
+				twrs = twr.getStartLong();
+			}
+		}
+		else if(isCompleted(ips)) {
+			if(twrs < 0) {
+				twr.setStartLong(twie);
+				twrs = twr.getStartLong();
+			}
+			if(isCompleted(ops)) {
+				ITimeWindow tw = process.getTimeWindowRun();
+				twre = tw.getEndLong();
+				twr.setEndLong(twre);
+			}
+			else {
+				if(twre < 0) {
+					twr.setEndLong(ts);
+					twre = twr.getEndLong();
+				}
+			}
+		}
+		logger.debug(methodName, jobId, prcId, "adj", ips, ops, twis, twie, twrs, twre);
+		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
+	}
+	
 	private void updateProcessTime(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "updateProcessTime";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
+		adjustProcessTime(job,inventoryProcess,process);
 		switch(inventoryProcess.getProcessState()) {
 		case Starting:              // Process Manager sent request to start the Process
 		case Started:               // Process PID is available
@@ -701,8 +717,6 @@ public class ProcessAccounting {
 			break;
 		case Running:				// Process Agent is processing work items
 			copyTimeInit(inventoryProcess, process);
-			initStop(job, process);
-			runStart(job, process);
 			copyTimeRun(inventoryProcess, process);
 			break;
 		case LaunchFailed:			// Process Agent reports process launch failed
@@ -713,8 +727,6 @@ public class ProcessAccounting {
 		case Killed:				// Agent forcefully killed the process
 			copyTimeInit(inventoryProcess, process);
 			copyTimeRun(inventoryProcess, process);
-			initStop(job, process);
-			runStop(job, process);
 			break;
 		case Undefined:
 			break;
@@ -779,6 +791,8 @@ public class ProcessAccounting {
 									}
 									else {
 										logger.trace(methodName, jobId, process.getDuccId(), "active");
+										// Process Init & Run times (first, with respect to previous process state if any)
+										updateProcessTime(job, inventoryProcess, process);
 										// PID
 										copyInventoryPID(job, inventoryProcess, process);
 										// Scheduler State
@@ -789,8 +803,6 @@ public class ProcessAccounting {
 										copyReasonForStoppingProcess(job, inventoryProcess, process);
 										// Process Exit code
 										copyProcessExitCode(job, inventoryProcess, process);
-										// Process Init & Run times
-										updateProcessTime(job, inventoryProcess, process);
 										// Process Initialization State
 										updateProcessInitilization(job, inventoryProcess, process);
 										// Process Pipeline Components State

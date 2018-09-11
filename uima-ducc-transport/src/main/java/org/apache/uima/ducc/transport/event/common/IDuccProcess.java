@@ -77,6 +77,7 @@ public interface IDuccProcess extends Serializable {
 	public boolean isVolunteered();
 	public boolean isComplete();
 
+	public boolean isActiveWork();
 	public boolean isAssignedWork();
 	
 	public boolean isDeallocated();

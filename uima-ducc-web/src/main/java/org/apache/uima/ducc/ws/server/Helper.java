@@ -48,10 +48,10 @@ import org.apache.uima.ducc.ws.DuccMachinesDataHelper;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
-import org.apache.uima.ducc.ws.utils.UrlHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.LinuxSignals;
 import org.apache.uima.ducc.ws.utils.LinuxSignals.Signal;
+import org.apache.uima.ducc.ws.utils.UrlHelper;
 import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 import org.apache.uima.ducc.ws.utils.alien.FileInfo;
 import org.apache.uima.ducc.ws.utils.alien.OsProxy;
@@ -470,56 +470,30 @@ public class Helper {
 	public static String getTimeRun(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
 		String location = "getTimeRun";
 		StringBuffer sb = new StringBuffer();
-		if(process != null) {
-			String runTime = "00";
-			// <UIMA-3351>
-			boolean useTimeRun = true;
-			switch(type) {
-			case SPC:
-				break;
-			case SPU:
-				break;
-			case MR:
-				break;
-			case JD:
-				break;
-			case UIMA:
-				if(!process.isAssignedWork()) {
-					useTimeRun = false;
+		String runTime = "00";
+		try {
+			if(process != null) {
+				long now = System.currentTimeMillis();
+				TimeWindow t = (TimeWindow) process.getTimeWindowRun();
+				String tS = t.getStart(""+now);
+				String tE = t.getEnd(""+now);
+				if(isTimeRunEstimated(job,process,type)) {
+					tE = ""+now;
 				}
-				break;
-			default:
-				break;
+				runTime = Helper.getDuration(jobid,tE,tS,Precision.Whole);
 			}
-			// </UIMA-3351>
-			if(useTimeRun) {
-				try {
-					TimeWindow t = (TimeWindow) process.getTimeWindowRun();
-					if(t != null) {
-						long now = System.currentTimeMillis();
-						String tS = t.getStart(""+now);
-						String tE = t.getEnd(""+now);
-						runTime = Helper.getDuration(jobid,tE,tS,Precision.Whole);
-					}
-				}
-				catch(Exception e) {
-					duccLogger.trace(location, jobid, "no worries", e);
-				}
-				catch(Throwable t) {
-					duccLogger.trace(location, jobid, "no worries", t);
-				}
-			}
-			sb.append(runTime);
 		}
+		catch(Exception e) {
+			duccLogger.trace(location, jobid, "no worries", e);
+		}
+		sb.append(runTime);
 		return sb.toString();
 	}
 
-	public static boolean isTimeRunEstimated(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
-		String location = "isTimeRunEstimated";
+	public static boolean isIdleJobProcess(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
+		String location = "isIdleJobProcess";
 		boolean retVal = false;
 		if(process != null) {
-			// <UIMA-3351>
-			boolean useTimeRun = true;
 			switch(type) {
 			case SPC:
 				break;
@@ -530,30 +504,29 @@ public class Helper {
 			case JD:
 				break;
 			case UIMA:
-				if(!process.isAssignedWork()) {
-					useTimeRun = false;
+				switch(process.getProcessState()) {
+				case Running:
+					boolean busy = process.isActiveWork();
+					duccLogger.debug(location, job.getDuccId(), process.getDuccId(), process.getProcessState(), !busy);
+					if(!busy) {
+						retVal = true;
+					}
+					break;
+				default:
+					break;
 				}
 				break;
 			default:
 				break;
 			}
-			// </UIMA-3351>
-			if(useTimeRun) {
-				try {
-					TimeWindow t = (TimeWindow) process.getTimeWindowRun();
-					if(t != null) {
-						if(t.isEstimated()) {
-							retVal = true;
-						}
-					}
-				}
-				catch(Exception e) {
-					duccLogger.trace(location, jobid, "no worries", e);
-				}
-				catch(Throwable t) {
-					duccLogger.trace(location, jobid, "no worries", t);
-				}
-			}
+		}
+		return retVal;
+	}
+	
+	public static boolean isTimeRunEstimated(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
+		boolean retVal = true;
+		if(process.isComplete()) {
+			retVal = false;
 		}
 		return retVal;
 	}

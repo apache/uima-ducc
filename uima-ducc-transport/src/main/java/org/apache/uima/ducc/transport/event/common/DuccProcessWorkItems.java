@@ -50,6 +50,7 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 		doneMillisMin.set(pi.getMin());
 	}
 	
+	@Override
 	public boolean isAssignedWork() {
 		boolean retVal = true;
 		if((getCountDispatch() == 0) 
@@ -62,7 +63,17 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 		}
 		return retVal;
 	}
-
+	
+	@Override
+	public boolean isActiveWork() {
+		boolean retVal = true;
+		if((getCountDispatch() == 0) 
+		) {
+			retVal = false;
+		}
+		return retVal;
+	}
+	
 	@Override
 	public void setCountDispatch(long value) {
 		dispatch.set(value);

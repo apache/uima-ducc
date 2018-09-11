@@ -442,6 +442,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		return Helper.getSchedulerReason(job, process);
 	}
 
+
+	private boolean isIdleJobProcess(IDuccWorkJob job, IDuccProcess process, AllocationType type) {
+		return Helper.isIdleJobProcess(job, process, type);
+	}
+	
 	private String getStateAgent(IDuccWorkJob job, IDuccProcess process) {
 		return Helper.getAgentState(job, process);
 	}
@@ -806,6 +811,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		index++; // jp.08
 		cbList[index].append("<td>");
 		String stateAgent = getStateAgent(job,process);
+		if(isIdleJobProcess(job,process,sType)) {
+			stateAgent = process.getProcessState()+":Idle";
+		}
 		cbList[index].append(stateAgent);
 		logAppend(index,"stateAgent",stateAgent);
 		cbList[index].append("</td>");

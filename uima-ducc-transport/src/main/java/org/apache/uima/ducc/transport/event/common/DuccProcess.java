@@ -337,6 +337,18 @@ public class DuccProcess implements IDuccProcess {
 	}
 	
 	
+	public boolean isActiveWork() {
+		boolean retVal = true;
+		IDuccProcessWorkItems pwi = getProcessWorkItems();
+		if(pwi == null) {
+			retVal = false;
+		}
+		else {
+			retVal = pwi.isActiveWork();
+		}
+		return retVal;
+	}
+	
 	public boolean isActive() {
 		boolean retVal = false;
 		switch(processState) {

@@ -22,6 +22,7 @@ import java.io.Serializable;
 
 public interface IDuccProcessWorkItems extends Serializable {
 
+	public boolean isActiveWork();
 	public boolean isAssignedWork();
 	
 	public void setCountDispatch(long value);
