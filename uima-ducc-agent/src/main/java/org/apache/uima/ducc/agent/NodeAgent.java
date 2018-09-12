@@ -1395,7 +1395,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             logger.info(methodName, null,
                     "----------- Agent Stopped ProcessMemoryUsagePollingRouter for Process:"
                             + duccEvent.getPid() + ". Process Failed Initialization");
-            undeployProcess(processEntry.getValue());
+            //undeployProcess(processEntry.getValue());
+            sigKill(deployedProcess);
 
           } else if (duccEvent.getState().equals(ProcessState.InitializationTimeout)) {
             deployedProcess.getDuccProcess().setReasonForStoppingProcess(
@@ -1409,8 +1410,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             logger.info(methodName, null, ">>>> Agent Handling Process InitializationTimeout. PID:"
                     + duccEvent.getPid() + " Killing Process");
 
-            undeployProcess(processEntry.getValue());
-
+            //undeployProcess(processEntry.getValue());
+            sigKill(deployedProcess);
           }
           else if (duccEvent.getState().equals(ProcessState.Stopping)) {
         	  if ( duccEvent.getMessage() != null && duccEvent.getMessage().equals(ReasonForStoppingProcess.ExceededErrorThreshold.toString())) {
@@ -1674,8 +1675,32 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     	  }
 
       }
-
-	private void killIt(IDuccProcess process, ManagedProcess deployedProcess) {
+      
+      private void sigKill(ManagedProcess deployedProcess) {
+    	  String methodName = "sigKill";
+    	  String[] cmdLine = { "/bin/kill", "-9", deployedProcess.getDuccProcess().getPID() };
+    	  
+    	  try {
+    		  ProcessBuilder pb = new ProcessBuilder(cmdLine);
+    		  Process process = pb.start();
+    		  InputStream is = process.getInputStream();
+    		  InputStreamReader streamReader = new InputStreamReader(is);
+    		  BufferedReader br = new BufferedReader(streamReader);
+    		  String line;
+    		  while ((line = br.readLine()) != null) {
+    			  System.out.println(line);
+    		  }
+    		  try {
+    			  process.waitFor();
+    		  } catch (InterruptedException ie) {
+    			  logger.error(methodName, null, ie);
+    		  }
+    	  } catch (Exception e) {
+    		  logger.error(methodName, null, e);
+    	  }
+    	  
+      }
+	private void sigTermThanSigKill(IDuccProcess process, ManagedProcess deployedProcess) {
 		String methodName = "killIt";
 		// Mark the process as stopping. When the process exits,
 		// the agent can determine
@@ -1742,7 +1767,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 logger.info(methodName, null, ">>>> Undeploying Process - DuccId:" + process.getDuccId()
                    + " PID:" + pid);
 
-		        killIt(process, deployedProcess);
+                sigTermThanSigKill(process, deployedProcess);
 	        }
             break; // this process is already in stopping state
           }
@@ -1750,7 +1775,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
               logger.info(methodName, null, "....Undeploying Process - DuccId:" + process.getDuccId()
                    + " PID:" + pid);
 
-              killIt(process, deployedProcess);
+              sigTermThanSigKill(process, deployedProcess);
 
           } else if (!deployedProcess.getDuccProcess().getProcessState()
                   .equals(ProcessState.Stopped)) { // process
