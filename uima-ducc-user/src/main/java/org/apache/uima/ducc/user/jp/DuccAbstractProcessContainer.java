@@ -47,6 +47,12 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 public abstract class DuccAbstractProcessContainer implements IProcessContainer{
+	private static final String SERVICE_JMX_PORT = "SERVICE_JMX_PORT=";
+	private static final String SERVICE_UNIQUE_ID= "DUCC_PROCESS_UNIQUEID=";
+	private static final String SERVICE_STATE = "DUCC_PROCESS_STATE=";
+	private static final String SERVICE_DATA = "SERVICE_DATA=";
+	private static final String SEPARATOR = ",";
+
 	// Container implementation must implement the following methods
     protected abstract void doDeploy() throws Exception;
     protected abstract int doInitialize(Properties p, String[] arg) throws Exception;
@@ -270,17 +276,25 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     	}
     	try {
 
+			StringBuilder sb = new StringBuilder()
+					   .append(SERVICE_UNIQUE_ID)
+					   .append(System.getenv("DUCC_PROCESS_UNIQUEID"))
+					   .append(SEPARATOR)
+					   .append(SERVICE_STATE)
+					   .append(state);
+/*    		
     		StringBuilder sb =
             		new StringBuilder();
             
             sb.append("DUCC_PROCESS_UNIQUEID=").append(System.getenv("DUCC_PROCESS_UNIQUEID")).append(",");
             sb.append("DUCC_PROCESS_STATE=").append(state);
+  */
             socket = connectWithAgent();
             out = new DataOutputStream(socket.getOutputStream());
             out.writeUTF(sb.toString());
             out.flush();
- 			if (logger.isLoggable(Level.FINE)) {
- 				logger.log(Level.FINE,"Sent new State:"+state);
+ 			if (logger.isLoggable(Level.INFO)) {
+ 				logger.log(Level.INFO,"Sent new State:"+state);
  			}
     	} catch( Exception e) {
     		throw e;

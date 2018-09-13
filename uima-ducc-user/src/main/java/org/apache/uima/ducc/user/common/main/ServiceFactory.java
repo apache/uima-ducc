@@ -30,6 +30,8 @@ public class ServiceFactory {
 		if ( ( serviceClassName = System.getProperty("ducc.service.class")) != null ) {
 			serviceClass = Thread.currentThread().getContextClassLoader().loadClass(serviceClassName);
 			return (IServiceWrapper)serviceClass.newInstance();
+		} else if( "service".equals(System.getProperty("ducc.deploy.components"))) {
+			return new UimaAsServiceWrapper();
 		} else {
 			// use default
 			return new PullServiceWrapper();
