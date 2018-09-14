@@ -26,7 +26,6 @@ import java.net.Socket;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -36,9 +35,7 @@ import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.transport.configuration.jp.AgentSession;
-import org.apache.uima.ducc.transport.configuration.jp.JmxAEProcessInitMonitor;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
-import org.apache.uima.util.Level;
 
 public class ServiceComponent extends AbstractDuccComponent implements
 		IJobProcessor {
@@ -102,7 +99,7 @@ public class ServiceComponent extends AbstractDuccComponent implements
 		} catch (NumberFormatException nfe) {
 			return null; 
 		}
-	    logger.info("connect",null, "Service Connecting Socket to localhost Monitor on port:" + statusUpdatePort);
+	    logger.info("connect",null, "Service Connecting Socket to localhost Monitor on port:" + statusUpdatePort+" service jmx url:"+super.getProcessJmxUrl());
 		String localhost = null;
 		// establish socket connection to an agent where this process will report its
 		// state
@@ -133,11 +130,11 @@ public class ServiceComponent extends AbstractDuccComponent implements
 			   .append(SEPARATOR)
 			   .append(SERVICE_STATE)
 			   .append(state);
-			if ( jmxConnectString != null && 
-					!jmxConnectString.trim().isEmpty()) {
+			if ( super.getProcessJmxUrl() != null && 
+					!super.getProcessJmxUrl().trim().isEmpty()) {
 				sb.append(SEPARATOR).
 				append(SERVICE_JMX_PORT).
-                append(jmxConnectString.trim());
+                append(super.getProcessJmxUrl().trim());
 			}
 			out = new DataOutputStream(socket.getOutputStream());
 			out.writeUTF(sb.toString());

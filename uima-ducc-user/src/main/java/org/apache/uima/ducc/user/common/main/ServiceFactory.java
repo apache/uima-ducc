@@ -31,9 +31,10 @@ public class ServiceFactory {
 			serviceClass = Thread.currentThread().getContextClassLoader().loadClass(serviceClassName);
 			return (IServiceWrapper)serviceClass.newInstance();
 		} else if( "service".equals(System.getProperty("ducc.deploy.components"))) {
+			// this service wrapper is meant for uima-as based services only
 			return new UimaAsServiceWrapper();
 		} else {
-			// use default
+			// use pullservice wrapper for jobs 
 			return new PullServiceWrapper();
 		}
 	}
