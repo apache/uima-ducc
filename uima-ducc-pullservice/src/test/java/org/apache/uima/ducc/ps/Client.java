@@ -59,7 +59,9 @@ public class Client {
 			new AtomicInteger(0);
 	private AtomicInteger atomicCounter =
 			new AtomicInteger(1);
-	
+	private AtomicInteger atomicErrorCounter =
+			new AtomicInteger(10);
+	private volatile boolean noMoreErrors = false;
 	protected String getApp() {
 		return app;
 	}
@@ -154,10 +156,13 @@ public class Client {
 						System.out.println("---- Driver handling GET Request -- Thread:"+Thread.currentThread().getId());
 						imt.setMetaTask(getMetaMetaCas());
 						imt.getMetaTask().setAppData("CorrelationID-"+correlationIdCounter.incrementAndGet());
-						if ( System.getProperty("simulate.no.work") == null) {
+						if ( System.getProperty("simulate.no.work") == null || noMoreErrors) {
 							imt.getMetaTask().setUserSpaceTask(getSerializedCAS());
 						} else {
 							imt.getMetaTask().setUserSpaceTask(null);
+							if ( atomicErrorCounter.decrementAndGet() == 0 ) {
+								noMoreErrors = true;
+							}
 						}
 					//	handleMetaCasTransationGet(trans, taskConsumer);
 						break;

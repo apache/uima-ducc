@@ -26,6 +26,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
@@ -73,7 +75,8 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	private ReentrantLock initLock = new ReentrantLock();
 	
 	private static AtomicInteger idGenerator = new AtomicInteger();
-
+	
+	private static ReentrantLock retryLock = new ReentrantLock();
 	
 	private DefaultServiceProtocolHandler(Builder builder) { 
 		this.initLatch = builder.initLatch; 
@@ -196,6 +199,40 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			throw new ServiceInitializationException("Thread interrupted while awaiting start()");
 		}
 	}
+
+	private IMetaTaskTransaction retryUntilSuccessfull() throws Exception {
+		retryLock.lock();
+		IMetaTaskTransaction transaction = null;
+		try {
+			while (running) {
+
+				// send GET Request
+				transaction = 
+						callGet(new MetaTaskTransaction());
+				// the code may have blocked in callGet for awhile, so check
+				// if service is still running. If this service is in quiescing
+				// mode, finish processing current task. The while-loop will
+				// terminate when the task is finished.
+				if (!running && !quiescing) {
+					break;
+				}
+				if (transaction.getMetaTask() != null && transaction.getMetaTask().getUserSpaceTask() != null) {
+					break;
+				} 
+				System.out.println("Thread:"+Thread.currentThread().getId()+" ------------- No Task -------------- Retrying GET until success");
+				// the client has no tasks to give.
+				noTaskStrategy.handleNoTaskSupplied();
+
+			}
+		} finally {
+			// success, so release the lock so that other waiting threads
+			// can retry command
+			if (retryLock.isHeldByCurrentThread()) {
+				retryLock.unlock();
+			}
+		}
+		return transaction;
+	}
 	public String call() throws ServiceInitializationException, ServiceException {
 		// we may fail in initialize() in which case the ServiceInitializationException
 		// is thrown
@@ -226,11 +263,16 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 					break;
 				}
 				if (transaction.getMetaTask() == null || transaction.getMetaTask().getUserSpaceTask() == null ) {
-					System.out.println("------------- No Task --------------");
-					// the client has no tasks to give. 
-					noTaskStrategy.handleNoTaskSupplied();
-					continue;
+					// synchronize retry. Allow single thread to test if client has
+					// more tasks to give. If so, unblock other threads and proceed
+					// to normal processing.
+					transaction = retryUntilSuccessfull();
 				}
+				if (!running  && !quiescing ) {
+					break;
+				}
+				logger.log(Level.INFO, ".............. Thread "+Thread.currentThread().getId() + " processing new task");
+
 				Object task = transaction.getMetaTask().getUserSpaceTask();
 				
 				// send ACK 
