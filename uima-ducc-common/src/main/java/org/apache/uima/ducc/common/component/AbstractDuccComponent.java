@@ -49,6 +49,7 @@ import org.apache.camel.model.RouteDefinition;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventQuiesceAndStop;
+import org.apache.uima.ducc.common.admin.event.DuccAdminEventStop;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
 import org.apache.uima.ducc.common.exception.DuccConfigurationException;
@@ -632,18 +633,22 @@ public abstract class AbstractDuccComponent implements DuccComponent,
       this.delegate = delegate;
     }
 
+    private boolean killOrStopEvent(Object event) {
+    	return event instanceof DuccAdminEventKill ||
+    		   event instanceof DuccAdminEventStop;
+    }
     public void process(final Exchange exchange) throws Exception {
         logger.info("AdminEventProcessor.process()", null, "Received Admin Message of Type:"
                     + exchange.getIn().getBody().getClass().getName());
         if ( !"agent".equals(System.getProperty("ducc.deploy.components"))) {
-            if (exchange.getIn().getBody() instanceof DuccAdminEventKill) {
+            if (killOrStopEvent(exchange.getIn().getBody() ) ) { 
                 // start a new thread to process the admin kill event. Need to do this
                 // so that Camel thread associated with admin channel can go back to
                 // its pool. Otherwise, we will not be able to stop the admin channel.
                 Thread th = new Thread(new Runnable() {
                    public void run() {
                       try {
-                        delegate.onDuccAdminKillEvent((DuccAdminEventKill) exchange.getIn().getBody());
+                        delegate.onDuccAdminKillEvent((DuccAdminEvent) exchange.getIn().getBody());
                       } catch (Exception e) {
 
                       }
@@ -655,31 +660,8 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             }  	
         } else {
         	// agent
-//        	String targets = "agent@bluejws65,agent@bluejbb";
-//        	DuccAdminEvent e =(DuccAdminEvent) exchange.getIn().getBody();
-//        	DuccAdminEventQuiesceAndStop event = 
-//        			new DuccAdminEventQuiesceAndStop(targets,e.getUser(), e.getAuthBlock());
             handleAdminEvent((DuccAdminEvent) exchange.getIn().getBody());
         }
-        /*
-        if (exchange.getIn().getBody() instanceof DuccAdminEventKill) {
-            // start a new thread to process the admin kill event. Need to do this
-        // so that Camel thread associated with admin channel can go back to
-        // its pool. Otherwise, we will not be able to stop the admin channel.
-        Thread th = new Thread(new Runnable() {
-          public void run() {
-            try {
-              delegate.onDuccAdminKillEvent((DuccAdminEventKill) exchange.getIn().getBody());
-            } catch (Exception e) {
-
-            }
-          }
-        });
-        th.start();
-      } else {
-        handleAdminEvent((DuccAdminEvent) exchange.getIn().getBody());
-      }
-      */
     }
   }
 
