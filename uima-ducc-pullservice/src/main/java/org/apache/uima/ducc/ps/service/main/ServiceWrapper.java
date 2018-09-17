@@ -171,6 +171,7 @@ public class ServiceWrapper implements Application {
 					.withRegistry(getRegistryClient())
 					.withType(serviceConfiguration.getServiceType())
 					.withScaleout(Integer.valueOf(serviceConfiguration.getThreadCount()))
+					.withWaitOnNoTask(serviceConfiguration.getWaitTime())
 					.withOptionalsDone().build();
 
 		} else {
@@ -179,6 +180,7 @@ public class ServiceWrapper implements Application {
 					.withClientURL(serviceConfiguration.getClientURL())
 					.withType(serviceConfiguration.getServiceType())
 					.withScaleout(Integer.valueOf(serviceConfiguration.getThreadCount()))
+					.withWaitOnNoTask(serviceConfiguration.getWaitTime())
 					.withOptionalsDone().build();
 
 		}

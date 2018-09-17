@@ -34,6 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.ServiceThreadFactory;
 import org.apache.uima.ducc.ps.service.IService;
+import org.apache.uima.ducc.ps.service.builders.PullServiceStepBuilder.OptionalsStep;
 //import org.apache.uima.ducc.ps.service.ServiceConfiguration;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
@@ -41,6 +42,7 @@ import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 import org.apache.uima.ducc.ps.service.monitor.IServiceMonitor;
 import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
 import org.apache.uima.ducc.ps.service.protocol.IServiceProtocolHandler;
+import org.apache.uima.ducc.ps.service.protocol.builtin.DefaultNoTaskAvailableStrategy;
 import org.apache.uima.ducc.ps.service.protocol.builtin.DefaultServiceProtocolHandler;
 import org.apache.uima.ducc.ps.service.protocol.builtin.NoWaitStrategy;
 import org.apache.uima.ducc.ps.service.registry.DefaultRegistryClient;
@@ -59,7 +61,9 @@ public class PullService implements IService {
 	private ScheduledThreadPoolExecutor threadPool ;
 	// how many processing threads
 	private int scaleout=1;
-
+	// amount of time to wait when client has no tasks to give
+	private int waitTimeInMillis=0;  
+	
 	// application assigned service label
 	private String type;
 	private volatile boolean initialized = false;
@@ -106,6 +110,9 @@ public class PullService implements IService {
 	
 	public String getType() {
 		return type;
+	}
+	public void setWaitTime(int waitTimeInMillis) {
+		this.waitTimeInMillis = waitTimeInMillis;
 	}
 	public void setScaleout(int scaleout) {
 		this.scaleout = scaleout;
@@ -183,7 +190,7 @@ public class PullService implements IService {
 	        protocolHandler =
 					   new DefaultServiceProtocolHandler.Builder()
 					   .withProcessor(serviceProcessor)
-					   .withNoTaskStrategy(new NoWaitStrategy())
+					   .withNoTaskStrategy(new DefaultNoTaskAvailableStrategy(waitTimeInMillis))
 					   .withService(this)
 					   .withTransport(transport)
 					   .withDoneLatch(stopLatch)

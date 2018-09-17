@@ -50,6 +50,7 @@ public final class PullServiceStepBuilder {
 		private int scaleout = 1;
 		private String serviceType;
 		private String clientURL;
+		private int waitTimeInMillis;
 		
 		@Override
 		public IService build() {
@@ -61,6 +62,7 @@ public final class PullServiceStepBuilder {
 			}
 			 
 			service.setScaleout(scaleout);
+			service.setWaitTime(waitTimeInMillis);
 			if ( registryClient == null ) {
 				service.setClientURL(clientURL);	
 			} else {
@@ -80,6 +82,11 @@ public final class PullServiceStepBuilder {
 		@Override
 		public OptionalsStep withType(String type) {
 			this.serviceType = type;
+			return this;
+		}
+		@Override
+		public OptionalsStep withWaitOnNoTask(int waitTimeInMillis) {
+			this.waitTimeInMillis = waitTimeInMillis;
 			return this;
 		}
 		@Override
@@ -114,6 +121,7 @@ public final class PullServiceStepBuilder {
 	public interface OptionalsStep {
 		public OptionalsStep withScaleout(int scaleout);
 		public OptionalsStep withType(String type);
+		public OptionalsStep withWaitOnNoTask(int waitTimeInMillis);
 		public BuildStep withOptionalsDone();
 	}
 	public interface BuildStep {

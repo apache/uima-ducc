@@ -33,7 +33,6 @@ public class ServiceConfiguration {
 	private String analysisEngineDescriptorPath;
 	private String serviceType;
 	private String jpType;
-//	private String assignedJmxPort;
 	private String customRegistryClass;
 	private String customProcessorClass;
 	private String serviceJmxConnectURL;
@@ -47,6 +46,7 @@ public class ServiceConfiguration {
 	private String aeOverrides;
 	private String maxErrors;
 	private String errorWindowSize;
+	private int waitTimeWhenNoTaskGiven = 0;
 	private ClassLoader sysCL=null;
     private String processType;
     
@@ -55,6 +55,9 @@ public class ServiceConfiguration {
 	}
 	public void setProcessType(String processType) {
 		this.processType = processType;
+	}
+	public int getWaitTime() {
+		return this.waitTimeWhenNoTaskGiven;
 	}
 	public String getMaxErrors() {
 		return maxErrors;
@@ -242,9 +245,11 @@ public class ServiceConfiguration {
 		serviceType = System.getProperty("ducc.deploy.service.type");
 	    maxErrors = System.getProperty("ducc.deploy.JpErrorThreshold");
 	    errorWindowSize = System.getProperty("ducc.deploy.JpErrorWindowSize");
-		
+	    if ( System.getProperty("ducc.process.thread.sleep.time") != null ) {
+	    	waitTimeWhenNoTaskGiven =
+	    			Integer.valueOf(System.getProperty("ducc.process.thread.sleep.time"));
+	    }
 		jpType = System.getProperty("ducc.deploy.JpType");
-//		assignedJmxPort = System.getProperty("ducc.jmx.port");
 		serviceJmxConnectURL = System.getProperty("ducc.jmx.port");
 		customRegistryClass = System.getProperty("ducc.deploy.registry.class");
 		customProcessorClass = System.getProperty("ducc.deploy.custom.processor.class");

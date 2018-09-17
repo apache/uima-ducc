@@ -226,6 +226,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 					break;
 				}
 				if (transaction.getMetaTask() == null || transaction.getMetaTask().getUserSpaceTask() == null ) {
+					System.out.println("------------- No Task --------------");
 					// the client has no tasks to give. 
 					noTaskStrategy.handleNoTaskSupplied();
 					continue;

@@ -154,7 +154,11 @@ public class Client {
 						System.out.println("---- Driver handling GET Request -- Thread:"+Thread.currentThread().getId());
 						imt.setMetaTask(getMetaMetaCas());
 						imt.getMetaTask().setAppData("CorrelationID-"+correlationIdCounter.incrementAndGet());
-						imt.getMetaTask().setUserSpaceTask(getSerializedCAS());
+						if ( System.getProperty("simulate.no.work") == null) {
+							imt.getMetaTask().setUserSpaceTask(getSerializedCAS());
+						} else {
+							imt.getMetaTask().setUserSpaceTask(null);
+						}
 					//	handleMetaCasTransationGet(trans, taskConsumer);
 						break;
 					case Ack:
