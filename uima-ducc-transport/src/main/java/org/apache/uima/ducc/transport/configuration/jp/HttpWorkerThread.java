@@ -317,7 +317,7 @@ public class HttpWorkerThread implements Runnable {
 							List<PerformanceMetrics> pmList = new ArrayList<PerformanceMetrics>();
 							for( Properties p : metrics) {
 								PerformanceMetrics pm = 
-										new PerformanceMetrics(p.getProperty("name"), p.getProperty("uniqueName"), Long.parseLong(p.getProperty("analysisTime")));
+										new PerformanceMetrics(p.getProperty("name"), p.getProperty("uniqueName"), Long.parseLong(p.getProperty("analysisTime")),0);
 								pmList.add(pm);
 							}
 							

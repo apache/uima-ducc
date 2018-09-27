@@ -291,14 +291,15 @@ public class UimaAsServiceProcessor extends AbstractServiceProcessor implements 
 					String uniqueName = (String) uniqueNameMethod.invoke(metrics);
 					Method analysisTimeMethod = metrics.getClass().getDeclaredMethod("getAnalysisTime");
 					long analysisTime = (long) analysisTimeMethod.invoke(metrics);
-
+					Method currentTaskCountMethod = metrics.getClass().getDeclaredMethod("getNumProcessed");
+					long currentTaskCount = (long)currentTaskCountMethod.invoke(metrics);
 					boolean aggregate = uniqueName.startsWith("/" + name);
 					int pos = uniqueName.indexOf("/", 1);
 					if (pos > -1 && scaleout > 1 && name != null && aggregate) {
 						String st = uniqueName.substring(pos);
 						uniqueName = "/" + name + st;
 					}
-					PerformanceMetrics pm = new PerformanceMetrics(name, uniqueName, analysisTime);
+					PerformanceMetrics pm = new PerformanceMetrics(name, uniqueName, analysisTime, currentTaskCount);
 					casMetrics.add(pm);
 				}
 			} else {
@@ -323,7 +324,7 @@ public class UimaAsServiceProcessor extends AbstractServiceProcessor implements 
 				}                                                                                
 				PerformanceMetrics pm = new PerformanceMetrics(
 						"Performance Metrics Not Supported For DD Jobs and UIMA-AS <= v2.6.0",
-						"Performance Metrics Not Supported For DD Jobs and UIMA-AS <= v2.6.0 ", 0);
+						"Performance Metrics Not Supported For DD Jobs and UIMA-AS <= v2.6.0 ", 0, 0);
 				casMetrics.add(pm);
 
 			}

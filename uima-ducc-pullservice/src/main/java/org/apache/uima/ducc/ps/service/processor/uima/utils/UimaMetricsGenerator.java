@@ -204,7 +204,7 @@ public class UimaMetricsGenerator {
 			}
 			*/
 			return new PerformanceMetrics(aem.getName(),
-					uimaFullyQualifiedAEContext, aem.getAnalysisTime());
+					uimaFullyQualifiedAEContext, aem.getAnalysisTime(), aem.getNumberOfCASesProcessed());
 			
 		
 	}
@@ -228,7 +228,8 @@ public class UimaMetricsGenerator {
 					}
 					PerformanceMetrics metrics = new PerformanceMetrics(
 							after.getName(), uniqueName,
-							after.getAnalysisTime() - before.getAnalysisTime());
+							after.getAnalysisTime() - before.getAnalysisTime(),
+							after.getNumberOfTasksProcessed() - before.getNumberOfTasksProcessed());
 					performanceList.add(metrics);
 					break;
 				}

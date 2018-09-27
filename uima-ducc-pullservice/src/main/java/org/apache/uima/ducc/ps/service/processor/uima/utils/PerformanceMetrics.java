@@ -24,15 +24,17 @@ public class PerformanceMetrics {
 	private String name;
 	private String uniqueName;
 	private long analysisTime;
-
+	private long numberOfTasksProcessed;;
+	
 	/**
 	 * Creates a performance metrics instance
 	 * 
 	 */
-	public PerformanceMetrics(String name, String uimaContextPath, long analysisTime) {
+	public PerformanceMetrics(String name, String uimaContextPath, long analysisTime, long taskCount) {
 		this.name = name;
 		this.uniqueName = uimaContextPath;
 		this.analysisTime = analysisTime;
+		this.numberOfTasksProcessed = taskCount;
 	}
 
 	/**
@@ -70,4 +72,12 @@ public class PerformanceMetrics {
 		return analysisTime;
 	}
 
+	/**
+	 * Gets how many tasks have been processed so far
+	 * 
+	 * @return number of tasks processed so far
+	 */
+	public long getNumberOfTasksProcessed() {
+		return numberOfTasksProcessed;
+	}
 }
