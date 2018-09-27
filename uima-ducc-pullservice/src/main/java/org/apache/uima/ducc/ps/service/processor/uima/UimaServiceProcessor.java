@@ -216,7 +216,7 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 
 		CAS cas = casPool.getCas();
 		IProcessResult result;
-		logger.log(Level.INFO,this.getClass().getName(),"???????????? in process() ???????");
+		
 		try {
 		  // DUCC JP  services are given a serialized CAS ... others just the doc-text for a CAS
 			if (serviceConfiguration.getJpType() != null) {
@@ -236,7 +236,6 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 			// PROCESS
 			// *****************************************************
 			ae.process(cas);
-			System.out.println("???????????? AFTER process() ???????");
 			
 			// *****************************************************
 			// No exception in process() , fetch metrics 
@@ -247,10 +246,9 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 			// get the delta
 			List<PerformanceMetrics> casMetrics = 
 					UimaMetricsGenerator.getDelta( afterAnalysis, beforeAnalysis);
-			//System.out.println("---------- Performance Metrics List Size:"+casMetrics.size());
+			
 			successCount.incrementAndGet();
 			errorCountSinceLastSuccess.set(0);
-			//System.out.println("---------- Serialized Metrics >>>>>"+resultSerializer.serialize(casMetrics));
 			return new UimaProcessResult(resultSerializer.serialize(casMetrics));
 		} catch( Exception e ) {
 			logger.log(Level.WARNING,"",e);
