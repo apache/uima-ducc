@@ -40,7 +40,7 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 	DuccLogger logger = new DuccLogger(this.getClass(), "AGENT");
 	boolean inventoryChanged = true;
 	private NodeAgent agent;
-	private HashMap<DuccId, IDuccProcess> previousInventory;
+	private Map<DuccId, IDuccProcess> previousInventory;
 	private int forceInventoryUpdateMaxThreshold = 0;
 	private long counter = 0;
 
@@ -61,7 +61,7 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 	/**
 	 * Get a copy of agent {@code Process} inventory
 	 */
-	public HashMap<DuccId, IDuccProcess> getInventory() {
+	public Map<DuccId, IDuccProcess> getInventory() {
 		return agent.getInventoryCopy();
 	}
 
@@ -71,7 +71,7 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 	public void process(Exchange outgoingMessage) throws Exception {
 		String methodName = "process";
 		// Get a deep copy of agent's inventory
-		HashMap<DuccId, IDuccProcess> inventory = getInventory();
+		Map<DuccId, IDuccProcess> inventory = getInventory();
 		// Determine if the inventory changed since the last publishing was done
 		// First check if the inventory expanded or shrunk. If the same in size,
 		// compare process states and PID. If either of the two changed for any

@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.agent.processors;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.camel.Processor;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -26,5 +26,5 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 
 
 public interface NodeInventoryProcessor extends Processor {
-	public HashMap<DuccId, IDuccProcess> getInventory();
+	public Map<DuccId, IDuccProcess> getInventory();
 }
