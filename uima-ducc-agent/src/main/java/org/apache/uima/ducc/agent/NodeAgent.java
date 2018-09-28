@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -120,7 +121,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   public static String cgroupFailureReason;
   // Map of known processes this agent is managing. This map is published
   // at regular intervals as part of agent's inventory update.
-  private HashMap<DuccId, IDuccProcess> inventory = new HashMap<DuccId, IDuccProcess>();
+  private Map<DuccId, IDuccProcess> inventory = 
+		  new ConcurrentHashMap<>();
 
   // Semaphore controlling access to inventory Map
   private Semaphore inventorySemaphore = new Semaphore(1);
@@ -663,23 +665,23 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
    * Returns deep copy (by way of java serialization) of the Agents inventory.
    */
   @SuppressWarnings("unchecked")
-  public HashMap<DuccId, IDuccProcess> getInventoryCopy() {
+  public Map<DuccId, IDuccProcess> getInventoryCopy() {
     Object deepCopy = null;
     try {
       inventorySemaphore.acquire();
-      deepCopy = SerializationUtils.clone((HashMap<DuccId, IDuccProcess>) inventory);
+      deepCopy = SerializationUtils.clone((ConcurrentHashMap<DuccId, IDuccProcess>) inventory);
     } catch (InterruptedException e) {
     } finally {
       inventorySemaphore.release();
     }
-    return (HashMap<DuccId, IDuccProcess>) deepCopy;
+    return (Map<DuccId, IDuccProcess>)deepCopy;
   }
 
   /**
    * Returns shallow copy of the Agent's inventory
    */
-  public HashMap<DuccId, IDuccProcess> getInventoryRef() {
-    return (HashMap<DuccId, IDuccProcess>) inventory;
+  public Map<DuccId, IDuccProcess> getInventoryRef() {
+    return inventory;
   }
 
   /*
@@ -777,6 +779,69 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     }
   }
 
+	private void stopProcessIfAlive(IDuccProcess process, ProcessLifecycleController lifecycleController) {
+		String methodName = "stopProcessIfAlive";
+		if (isAlive(process)) {
+			logger.error(methodName, null,
+					"<<<<<<<<< Stopping Process with no Job Assignement (Ghost Process) - DuccId:" + process.getDuccId()
+							+ " PID:" + process.getPID());
+			process.setReasonForStoppingProcess(ReasonForStoppingProcess.JPHasNoActiveJob.toString());
+			lifecycleController.stopProcess(process);
+		} else {
+			logger.error(methodName, null, "XXXXXXXXXX Purging Process:" + process.getDuccId() + " Process State:"
+					+ process.getProcessState() + " Process Resource State:" + process.getResourceState());
+
+			getInventoryRef().remove(process.getDuccId());
+		}
+	}
+
+	/*
+	 * Valid process exists in agent inventory and in an incoming OR state. If
+	 * process exists in agent inventory but not in OR state than such process is
+	 * invalid
+	 */
+	private boolean validProcess(IDuccProcess process, List<IDuccJobDeployment> jobDeploymentList) {
+		// iterate over all jobs
+		for (IDuccJobDeployment job : jobDeploymentList) {
+			// check if current process is a JD
+			if ((job.getJdProcess() != null && process.getDuccId().equals(job.getJdProcess().getDuccId()))) {
+				return true;
+			} else {
+				// check if current process is a JP
+				for (IDuccProcess jProcess : job.getJpProcessList()) {
+					if (process.getDuccId().equals(jProcess.getDuccId())) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	public void takeDownProcessWithNoJobV2(ProcessLifecycleController lifecycleController,
+			List<IDuccJobDeployment> jobDeploymentList) {
+		String methodName = "takeDownProcessWithNoJobV2";
+		try {
+			inventorySemaphore.acquire();
+
+			// iterate over all processes in agent inventory
+			for (Entry<DuccId, IDuccProcess> processEntry : getInventoryRef().entrySet()) {
+				// if OR deployment list is empty, take down all agent processes that
+				// are in the inventory
+				if (jobDeploymentList.isEmpty() || !validProcess(processEntry.getValue(), jobDeploymentList)) {
+					logger.info(methodName, null,
+							"...Agent Process:" + processEntry.getValue().getDuccId() + " Not in OR JobDeploymentList");
+					stopProcessIfAlive(processEntry.getValue(), lifecycleController);
+				}
+			}
+		} catch (Exception e) {
+			logger.error(methodName, null, e);
+		} finally {
+			inventorySemaphore.release();
+		}
+	}  
+  
+  
   /**
    * Reconciles agent inventory with job processes sent by PM
    *

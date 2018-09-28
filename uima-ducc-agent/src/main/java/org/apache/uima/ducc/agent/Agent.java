@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.agent;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -35,8 +35,8 @@ public interface Agent extends ProcessLifecycleController {
 	
 	public NodeIdentity getIdentity();
 	
-	public HashMap<DuccId, IDuccProcess> getInventoryCopy();
-	public HashMap<DuccId,IDuccProcess> getInventoryRef();
+	public Map<DuccId, IDuccProcess> getInventoryCopy();
+	public Map<DuccId,IDuccProcess> getInventoryRef();
 	public boolean isRogueProcess(String uid, Set<NodeUsersCollector.ProcessInfo> processList, NodeUsersCollector.ProcessInfo cpi ) throws Exception;	
 	public void copyAllUserReservations(TreeMap<String,NodeUsersInfo> map);
 	public RogueProcessReaper getRogueProcessReaper();

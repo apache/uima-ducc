@@ -290,7 +290,7 @@ public class AgentEventListener implements DuccEventDelegateListener {
 				// Stop any process that is in this Agent's inventory but not
 				// associated with any
 				// of the jobs we just received
-				agent.takeDownProcessWithNoJob(agent, duccEvent.getJobList());
+				agent.takeDownProcessWithNoJobV2(agent, duccEvent.getJobList());
 				Map<DuccId, IDuccProcess> processes = agent.getInventoryCopy();
 				// iterate over all jobs and reconcile those processes that are
 				// assigned to this agent. First,
