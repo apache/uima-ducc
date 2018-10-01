@@ -451,8 +451,8 @@ class StopDucc(DuccUtil):
         pfx = 'kill'+' '+'daemon='+str(count)+' '+'thread='+str(tid)+' '+'node='+node+' '+'component='+component+' '
         msg = pfx+state
         output(msg)
+        process=''
         if(ssh):
-            process=''
             state='state=success'
             status, tuples = self.find_ducc_process(node)
             if(status):
