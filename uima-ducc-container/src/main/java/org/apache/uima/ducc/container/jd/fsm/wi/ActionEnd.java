@@ -19,8 +19,6 @@
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Properties;
 
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
@@ -104,6 +102,7 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 	private String keyName = "name";
 	private String keyUniqueName = "uniqueName";
 	private String keyAnalysisTime = "analysisTime";
+	private String keyAnalysisTasks = "analysisTasks";
 	
 	private boolean oldFormat = false;
 	
@@ -131,80 +130,60 @@ public class ActionEnd extends ActionEndAbstract implements IAction {
 				String serializedPerformance = metaCas.getPerformanceMetrics();
 				try {
 					performanceMetrics = deserializer.deserialize(serializedPerformance);
+					if(performanceMetrics == null) {
+						logger.debug(location,  ILogger.null_id, "seqNo=", wi.getSeqNo(), "performanceMetrics=", performanceMetrics); // null
+					}
+					else if(performanceMetrics.isEmpty()) {
+						logger.debug(location,  ILogger.null_id, "seqNo=", wi.getSeqNo(), "performanceMetrics=", performanceMetrics); // empty
+					}
 				} catch( Exception e) {
 					logger.error(location, ILogger.null_id, e);
 				}
-				
 				if(performanceMetrics != null && !performanceMetrics.isEmpty()) {
-					//List<Properties> list = performanceMetrics.get();
-					//if(list != null) {
-						int size = 0;
-						//if(list !=  null) {
-							//size = list.size();
-						size = performanceMetrics.size();
-							JobDriver jd = JobDriver.getInstance();
-							String logdir = jd.getLogDir();
-							String seqNo = ""+wi.getSeqNo();
-							IWorkItemPerformanceIndividualKeeper wipik = new WorkItemPerformanceIndividualKeeper(logdir, seqNo);
-							IWorkItemPerformanceSummaryKeeper wipsk = jd.getWorkItemPerformanceSummaryKeeper();
-							wipsk.count();
-							long total_time = 0;
-							//for(Properties properties : list) {
-							for( PerformanceMetrics pm : performanceMetrics) {
-								/*
-								String name = properties.getProperty(keyName);
-								String uniqueName = normalizeUniqueName(properties.getProperty(keyUniqueName));
-								String analysisTime = properties.getProperty(keyAnalysisTime);
-								*/
-								String name = pm.getName();
-								String uniqueName = normalizeUniqueName(pm.getUniqueName());
-								long time = pm.getAnalysisTime();
-								//long time = 0;
-								/*
-								try {
-									time = Long.parseLong(analysisTime);
-								}
-								catch(Exception e) {
-									logger.error(location, ILogger.null_id, e);
-								}
-								*/
-								if(time < 0) {
-//									String text = "seqNo="+seqNo+" "+"time="+time+" "+"analysisTime="+analysisTime+" "+"uniqueName="+uniqueName;
-									String text = "seqNo="+seqNo+" "+"time="+time+" "+"analysisTime="+time+" "+"uniqueName="+uniqueName;
-									logger.warn(location, ILogger.null_id, text);
-								}
-								wipik.dataAdd(name, uniqueName, time);
-								wipsk.dataAdd(name, uniqueName, time);
-								//for(Entry<Object, Object> entry : properties.entrySet()) {
-									//String key = (String) entry.getKey();
-									//String value = (String) entry.getValue();
-									MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-/*									
-									mb.append(Standardize.Label.key.get()+key);
-									mb.append(Standardize.Label.value.get()+value);
-*/
-									mb.append(Standardize.Label.key.get()+"name");
-									mb.append(Standardize.Label.value.get()+name);
-									
-									mb.append(Standardize.Label.key.get()+"uniqueName");
-									mb.append(Standardize.Label.value.get()+uniqueName);
-
-									mb.append(Standardize.Label.key.get()+"analysisTime");
-									mb.append(Standardize.Label.value.get()+time);
-
-									logger.debug(location, ILogger.null_id, mb.toString());
-								//}
-								total_time += time;
-							}
-							wipik.publish();
-							// Add the aggregate values as if a no-name delegate
-							wipsk.dataAdd("TOTALS", "", total_time);
-						//}
+					int size = 0;
+					size = performanceMetrics.size();
+					logger.debug(location,  ILogger.null_id, "seqNo=", wi.getSeqNo(), "performanceMetrics.size=", size);
+					JobDriver jd = JobDriver.getInstance();
+					String logdir = jd.getLogDir();
+					String seqNo = ""+wi.getSeqNo();
+					IWorkItemPerformanceIndividualKeeper wipik = new WorkItemPerformanceIndividualKeeper(logdir, seqNo);
+					IWorkItemPerformanceSummaryKeeper wipsk = jd.getWorkItemPerformanceSummaryKeeper();
+					wipsk.count();
+					long total_time = 0;
+					long total_tasks = 0;
+					//for(Properties properties : list) {
+					for(PerformanceMetrics pm : performanceMetrics) {	
+						String name = pm.getName();
+						String uniqueName = normalizeUniqueName(pm.getUniqueName());
+						long time = pm.getAnalysisTime();
+						long tasks = pm.getNumberOfTasksProcessed();
+						logger.debug(location, ILogger.null_id, "seqNo=", seqNo, "name=", name, "uniqueName=", uniqueName, "time=", time, "tasks=", tasks);
+						if(time < 0) {
+							String text = "seqNo="+seqNo+" "+"time="+time+" "+"analysisTime="+time+" "+"uniqueName="+uniqueName;
+							logger.warn(location, ILogger.null_id, text);
+						}
+						wipik.dataAdd(name, uniqueName, time, tasks);
+						wipsk.dataAdd(name, uniqueName, time, tasks);
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-						mb.append(Standardize.Label.size.get()+size);
+						mb.append(Standardize.Label.key.get()+keyName);
+						mb.append(Standardize.Label.value.get()+name);				
+						mb.append(Standardize.Label.key.get()+keyUniqueName);
+						mb.append(Standardize.Label.value.get()+uniqueName);
+						mb.append(Standardize.Label.key.get()+keyAnalysisTime);
+						mb.append(Standardize.Label.value.get()+time);
+						mb.append(Standardize.Label.key.get()+keyAnalysisTasks);
+						mb.append(Standardize.Label.value.get()+tasks);
 						logger.debug(location, ILogger.null_id, mb.toString());
+						total_time += time;
+						total_tasks += tasks;
 					}
-				//}
+					wipik.publish();
+					// Add the aggregate values as if a no-name delegate
+					wipsk.dataAdd("TOTALS", "", total_time, total_tasks);
+					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+					mb.append(Standardize.Label.size.get()+size);
+					logger.debug(location, ILogger.null_id, mb.toString());
+				}
 			}
 		}
 	}

@@ -23,4 +23,5 @@ public interface IWorkItemPerformanceIndividualInfo {
 	public String getName();
 	public String getUniqueName();
 	public double getTime();
+	public double getTasks();
 }

@@ -47,7 +47,15 @@ public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSum
 	private AtomicLong count = new AtomicLong(0);
 	private AtomicLong total = new AtomicLong(0);
 	
-	private ConcurrentHashMap<PerfKey, SynchronizedStats> map = new ConcurrentHashMap<PerfKey, SynchronizedStats>();
+	private class PerfStats {
+		SynchronizedStats ss = null;
+		long tasks = 0;
+		public PerfStats() {
+			ss = new SynchronizedStats();
+		}
+	}
+	
+	private ConcurrentHashMap<PerfKey, PerfStats> map = new ConcurrentHashMap<PerfKey, PerfStats>();
 
 	public WorkItemPerformanceSummaryKeeper(String logDir) {
 		setLogDir(logDir);
@@ -60,10 +68,11 @@ public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSum
 	@Override
 	public List<IWorkItemPerformanceSummaryInfo> dataGet() {
 		List<IWorkItemPerformanceSummaryInfo> list = new ArrayList<IWorkItemPerformanceSummaryInfo>();
-		for(Entry<PerfKey, SynchronizedStats> entry : map.entrySet()) {
+		for(Entry<PerfKey, PerfStats> entry : map.entrySet()) {
 			String name = entry.getKey().getName();
 			String uniqueName = entry.getKey().getUniqueName();
-			SynchronizedStats stats = entry.getValue();
+			PerfStats perfStats = entry.getValue();
+			SynchronizedStats stats = perfStats.ss;
 			double count = stats.getNum();
 			double time = stats.getSum();
 			double pctOfTime = 0;
@@ -73,6 +82,7 @@ public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSum
 			double avg = stats.getMean();
 			double min = stats.getMin();
 			double max = stats.getMax();
+			long tasks = perfStats.tasks;
 			IWorkItemPerformanceSummaryInfo item = new WorkItemPerformanceSummaryInfo(
 					name,
 					uniqueName,
@@ -81,7 +91,8 @@ public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSum
 					pctOfTime,
 					avg,
 					min,
-					max
+					max,
+					tasks
 					);
 			list.add(item);
 		}
@@ -94,16 +105,17 @@ public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSum
 	}
 	
 	@Override
-	public void dataAdd(String name, String uniqueName, long time) {
+	public void dataAdd(String name, String uniqueName, long time, long tasks) {
 		String location = "dataAdd";
 		try {
 			// name
 			PerfKey perfKey = new PerfKey(name, uniqueName);
 			if(!map.containsKey(perfKey)) {
-				map.putIfAbsent(perfKey, new SynchronizedStats());
+				map.putIfAbsent(perfKey, new PerfStats());
 			}
+			PerfStats perfStats = map.get(perfKey);
 			// stats
-			SynchronizedStats stats = map.get(perfKey);
+			SynchronizedStats stats = perfStats.ss;
 			stats.addValue(time);
 			total.addAndGet(time);
 			// sum
@@ -118,6 +130,8 @@ public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSum
 			// max
 			long lTimeMax = (long)stats.getMax();
 			String timeMax = FormatHelper.duration(lTimeMax,Precision.Tenths);
+			// tasks
+			perfStats.tasks += tasks;
 			// log
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.name.get()+name);
@@ -127,6 +141,7 @@ public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSum
 			mb.append(Standardize.Label.max.get()+timeMax);
 			mb.append(Standardize.Label.count.get()+count.get());
 			mb.append(Standardize.Label.total.get()+total.get());
+			mb.append(Standardize.Label.tasks.get()+perfStats.tasks);
 			if((lTimeSum < 0)||(lTimeAvg < 0)||(lTimeMin < 0)||(lTimeMax < 0)) {
 				logger.warn(location, ILogger.null_id, mb.toString());
 			}
@@ -146,7 +161,8 @@ public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSum
 				(long)wipsi.getTime(),
 				(long)wipsi.getCount(),
 				(long)wipsi.getMin(),
-				(long)wipsi.getMax()
+				(long)wipsi.getMax(),
+				(long)wipsi.getTasks()
 				);
 		return retVal;
 	}
@@ -159,6 +175,7 @@ public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSum
 			for(IWorkItemPerformanceSummaryInfo wipsi : list) {
 				PerformanceMetricsSummaryItem item = create(wipsi);
 				JobPerformanceSummary jps = new JobPerformanceSummary();
+				jps.setAnalysisTasks(item.getAnalysisTasks());
 				jps.setAnalysisTime(item.getAnalysisTime());
 				jps.setAnalysisTimeMax(item.getAnalysisTimeMax());
 				jps.setAnalysisTimeMin(item.getAnalysisTimeMin());
@@ -166,6 +183,14 @@ public class WorkItemPerformanceSummaryKeeper implements IWorkItemPerformanceSum
 				jps.setName(item.getName());
 				jps.setUniqueName(item.getUniqueName());
 				map.put(jps.getUniqueName(), jps);
+				// log
+				MessageBuffer mb = new MessageBuffer();
+				mb.append(Standardize.Label.name.get()+item.getName());
+				mb.append(Standardize.Label.sum.get()+item.getAnalysisTime());
+				mb.append(Standardize.Label.min.get()+item.getAnalysisTimeMin());
+				mb.append(Standardize.Label.max.get()+item.getAnalysisTimeMax());
+				mb.append(Standardize.Label.tasks.get()+item.getAnalysisTasks());
+				logger.debug(location, ILogger.null_id, mb.toString());
 			}
 			Integer casCount = new Integer((int)count.get());
 			JobPerformanceSummaryData data = new JobPerformanceSummaryData(map,casCount);

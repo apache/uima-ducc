@@ -1494,6 +1494,25 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
+	private void dumpMap(PerformanceMetricsSummaryMap map) {
+		String location = "dumpMap";
+		if(map != null) {
+			if(map.size() == 0) {
+				duccLogger.debug(location, jobid, "map=empty");
+			}
+			else {
+				duccLogger.debug(location, jobid, "map.size="+map.size());
+				for (Entry<String, PerformanceMetricsSummaryItem> entry : map.entrySet()) {
+					PerformanceMetricsSummaryItem item = entry.getValue();
+					duccLogger.debug(location, jobid, "displayName=", item.getDisplayName(), "analysisTime=", item.getAnalysisTime(), "analysisTimeMin=", item.getAnalysisTimeMin(), "analysisTimeMax=", item.getAnalysisTimeMax(), "NumProcessed=", item.getNumProcessed());
+				}
+			}
+		}
+		else {
+			duccLogger.debug(location, jobid, "map=null");
+		}
+	}
+	
 	private void handleDuccServletJobPerformanceData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
@@ -1507,6 +1526,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				EffectiveUser eu = EffectiveUser.create(request);
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
 			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(eu.get());
+			    dumpMap(performanceMetricsSummaryMap);
 			    if (performanceMetricsSummaryMap == null) {
 			    	sb.append(eu.isLoggedin() ? "(data missing or unreadable)" : "(not visible - try logging in)");
 			    } else if (performanceMetricsSummaryMap.size() == 0) {
@@ -1529,8 +1549,9 @@ public class DuccHandler extends DuccAbstractHandler {
 				    	long anTime = item.getAnalysisTime();
 				    	long anMinTime = item.getAnalysisTimeMin();
 				    	long anMaxTime = item.getAnalysisTimeMax();
+				    	long anTasks = item.getNumProcessed();
 				    	analysisTime += anTime;
-				    	UimaStatistic stat = new UimaStatistic(shortname, entry.getKey(), anTime, anMinTime, anMaxTime);
+				    	UimaStatistic stat = new UimaStatistic(shortname, entry.getKey(), anTime, anMinTime, anMaxTime, anTasks);
 				    	uimaStats.add(stat);
 				    }
 				    Collections.sort(uimaStats);
@@ -1581,6 +1602,11 @@ public class DuccHandler extends DuccAbstractHandler {
 					}
 					sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 					sb.append("</span>");
+					// Tasks
+					sb.append("<td align=\"right\">");
+					sb.append("<span class=\"health_purple\" title=\"number of tasks per completed work item\">");
+					sb.append(""+"N/A");
+					sb.append("</span>");
 				    // pass 2
 				    for (int i = 0; i < numstats; ++i) {
 				    	sb.append(trGet(counter++));
@@ -1612,6 +1638,10 @@ public class DuccHandler extends DuccAbstractHandler {
 						time = uimaStats.get(i).getAnalysisMaxTime();
 						ltime = (long)time;
 						sb.append(FormatHelper.duration(ltime,Precision.Tenths));
+						// Tasks
+						sb.append("<td align=\"right\">");
+						long lnumTasks = (long)(uimaStats.get(i).getAnalysisTasks());
+						sb.append(""+lnumTasks);
 					}
 			    }
 			}

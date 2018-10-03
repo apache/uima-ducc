@@ -49,7 +49,15 @@ public class WorkItemPerformanceIndividualKeeper implements IWorkItemPerformance
 	private String logFolder = null;
 	private String wiNo = null;
 	
-	private ConcurrentHashMap<PerfKey, SynchronizedStats> map = new ConcurrentHashMap<PerfKey, SynchronizedStats>();
+	private class PerfStats {
+		SynchronizedStats ss = null;
+		long tasks = 0;
+		public PerfStats() {
+			ss = new SynchronizedStats();
+		}
+	}
+	
+	private ConcurrentHashMap<PerfKey, PerfStats> map = new ConcurrentHashMap<PerfKey, PerfStats>();
 
 	public WorkItemPerformanceIndividualKeeper(String logDir, String wiNo) {
 		if(isIndividualWorkItemPerformance) {
@@ -72,15 +80,18 @@ public class WorkItemPerformanceIndividualKeeper implements IWorkItemPerformance
 	public List<IWorkItemPerformanceIndividualInfo> dataGet() {
 		List<IWorkItemPerformanceIndividualInfo> list = new ArrayList<IWorkItemPerformanceIndividualInfo>();
 		if(isIndividualWorkItemPerformance) {
-			for(Entry<PerfKey, SynchronizedStats> entry : map.entrySet()) {
+			for(Entry<PerfKey, PerfStats> entry : map.entrySet()) {
 				String name = entry.getKey().getName();
 				String uniqueName = entry.getKey().getUniqueName();
-				SynchronizedStats stats = entry.getValue();
+				PerfStats perfStats = entry.getValue();
+				SynchronizedStats stats = perfStats.ss;
+				long tasks = perfStats.tasks;
 				double time = stats.getSum();
 				IWorkItemPerformanceIndividualInfo item = new WorkItemPerformanceIndividualInfo(
 						name,
 						uniqueName,
-						time
+						time,
+						tasks
 						);
 				list.add(item);
 			}
@@ -89,25 +100,29 @@ public class WorkItemPerformanceIndividualKeeper implements IWorkItemPerformance
 	}
 	
 	@Override
-	public void dataAdd(String name, String uniqueName, long time) {
+	public void dataAdd(String name, String uniqueName, long time, long tasks) {
 		String location = "dataAdd";
 		if(isIndividualWorkItemPerformance) {
 			try {
 				// name
 				PerfKey perfKey = new PerfKey(name, uniqueName);
 				if(!map.containsKey(perfKey)) {
-					map.putIfAbsent(perfKey, new SynchronizedStats());
+					map.putIfAbsent(perfKey, new PerfStats());
 				}
+				PerfStats perfStats = map.get(perfKey);
 				// stats
-				SynchronizedStats stats = map.get(perfKey);
+				SynchronizedStats stats = perfStats.ss;
 				stats.addValue(time);
 				// sum
 				long lTimeSum = (long)stats.getSum();
 				String timeSum = FormatHelper.duration(lTimeSum,Precision.Tenths);
+				// tasks
+				perfStats.tasks = tasks;
 				// log
 				MessageBuffer mb = new MessageBuffer();
 				mb.append(Standardize.Label.name.get()+name);
 				mb.append(Standardize.Label.sum.get()+timeSum);
+				mb.append(Standardize.Label.tasks.get()+tasks);
 				if(lTimeSum < 0) {
 					logger.warn(location, ILogger.null_id, mb.toString());
 				}

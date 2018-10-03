@@ -25,14 +25,16 @@ public class UimaStatistic implements Comparable<UimaStatistic> {
 	  private long analysisTime;
 	  private long analysisMinTime;
 	  private long analysisMaxTime;
+	  private long analysisTasks;
 	  private String longName;
 
-	  public UimaStatistic (String shortName, String longName, long analysisTime, long anMinTime, long anMaxTime) {
+	  public UimaStatistic (String shortName, String longName, long analysisTime, long anMinTime, long anMaxTime, long anTasks) {
 	    this.shortName = shortName;
 	    this.analysisTime = analysisTime;
 	    this.longName = longName;
 	    this.analysisMinTime = anMinTime;
 	    this.analysisMaxTime = anMaxTime;
+	    this.analysisTasks = anTasks;
 	  }
 
 	  
@@ -63,6 +65,10 @@ public class UimaStatistic implements Comparable<UimaStatistic> {
 	    return analysisMaxTime;
 	  }
 
+	  public long getAnalysisTasks() {
+	    return analysisTasks;
+	  }
+	  
 	  public String getLongName() {
 	    return longName;
 	  }

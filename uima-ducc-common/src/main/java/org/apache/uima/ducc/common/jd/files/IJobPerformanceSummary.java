@@ -35,6 +35,9 @@ public interface IJobPerformanceSummary {
 	public long getAnalysisTimeMax();
 	public void setAnalysisTimeMax(long value);
 	
+	public long getAnalysisTasks();
+	public void setAnalysisTasks(long value);
+	
 	public long getNumProcessed();
 	public void setNumProcessed(long value);
 }

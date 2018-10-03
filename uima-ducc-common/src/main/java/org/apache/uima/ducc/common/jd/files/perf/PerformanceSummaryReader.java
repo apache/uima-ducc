@@ -46,7 +46,7 @@ public class PerformanceSummaryReader extends PerformanceSummaryBase {
 		for(Entry<String, JobPerformanceSummary> entry : entries) {
 			String key = entry.getKey();
 			IJobPerformanceSummary jps = entry.getValue();
-			PerformanceMetricsSummaryItem value = new PerformanceMetricsSummaryItem(jps.getName(),jps.getUniqueName(),jps.getAnalysisTime(),jps.getNumProcessed(),jps.getAnalysisTimeMin(),jps.getAnalysisTimeMax());
+			PerformanceMetricsSummaryItem value = new PerformanceMetricsSummaryItem(jps.getName(),jps.getUniqueName(),jps.getAnalysisTime(),jps.getNumProcessed(),jps.getAnalysisTimeMin(),jps.getAnalysisTimeMax(),jps.getAnalysisTasks());
 			map.putItem(key, value);
 		}
 		return map;
@@ -71,7 +71,7 @@ public class PerformanceSummaryReader extends PerformanceSummaryBase {
             String key = entry.getKey();
             IJobPerformanceSummary jps = entry.getValue();
             PerformanceMetricsSummaryItem value = new PerformanceMetricsSummaryItem(jps.getName(), jps.getUniqueName(),
-                    jps.getAnalysisTime(), jps.getNumProcessed(), jps.getAnalysisTimeMin(), jps.getAnalysisTimeMax());
+                    jps.getAnalysisTime(), jps.getNumProcessed(), jps.getAnalysisTimeMin(), jps.getAnalysisTimeMax(), jps.getAnalysisTasks());
             map.putItem(key, value);
         }
         return map;

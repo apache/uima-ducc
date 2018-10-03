@@ -30,7 +30,8 @@ public class JobPerformanceSummary implements IJobPerformanceSummary {
 	
 	private AtomicLong analysisTimeMin = new AtomicLong(-1);
 	private AtomicLong analysisTimeMax = new AtomicLong(-1);
-
+	
+	private AtomicLong analysisTasks = new AtomicLong(0);
 
 	public String getName() {
 		return name;
@@ -78,7 +79,17 @@ public class JobPerformanceSummary implements IJobPerformanceSummary {
 	public void setAnalysisTimeMax(long value) {
 		analysisTimeMax.set(value);
 	}
+	
+	
+	public long getAnalysisTasks() {
+		return analysisTasks.get();
+	}
 
+
+	public void setAnalysisTasks(long value) {
+		analysisTasks.set(value);
+	}
+	
 
 	public long getNumProcessed() {
 		return numProcessed.get();

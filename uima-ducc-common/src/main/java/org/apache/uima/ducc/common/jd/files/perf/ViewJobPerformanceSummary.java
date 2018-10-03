@@ -50,11 +50,12 @@ public class ViewJobPerformanceSummary {
         long anTime = entry.getValue().getAnalysisTime();
         long anMinTime = entry.getValue().getAnalysisTimeMin();
         long anMaxTime = entry.getValue().getAnalysisTimeMax();
+        long anTasks = entry.getValue().getAnalysisTasks();
         analysisTime += anTime;
         if (posName > 0) {
           String shortname = key.substring(posName+1);
           UimaStatistic stat = new UimaStatistic(shortname,
-              entry.getKey(), anTime, anMinTime, anMaxTime);
+              entry.getKey(), anTime, anMinTime, anMaxTime, anTasks);
           uimaStats.add(stat);
         }
       }

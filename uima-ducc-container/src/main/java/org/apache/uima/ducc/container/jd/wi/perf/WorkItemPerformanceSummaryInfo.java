@@ -28,6 +28,7 @@ public class WorkItemPerformanceSummaryInfo implements IWorkItemPerformanceSumma
 	double avg = 0;
 	double min = 0;
 	double max = 0;
+	double tasks = 0;
 	
 	public WorkItemPerformanceSummaryInfo(
 			String name,
@@ -37,7 +38,8 @@ public class WorkItemPerformanceSummaryInfo implements IWorkItemPerformanceSumma
 			double pctOfTime,
 			double avg,
 			double min,
-			double max
+			double max,
+			double tasks
 			) 
 	{
 		setName(name);
@@ -48,6 +50,7 @@ public class WorkItemPerformanceSummaryInfo implements IWorkItemPerformanceSumma
 		setAvg(avg);
 		setMin(min);
 		setMax(max);
+		setTasks(tasks);
 	}
 	
 	private void setName(String value) {
@@ -121,5 +124,13 @@ public class WorkItemPerformanceSummaryInfo implements IWorkItemPerformanceSumma
 	public double getMax() {
 		return max;
 	}
+	
+	private void setTasks(double value) {
+		tasks = value;
+	}
 
+	@Override
+	public double getTasks() {
+		return tasks;
+	}
 }

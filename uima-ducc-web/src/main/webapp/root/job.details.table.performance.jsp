@@ -31,6 +31,7 @@ under the License.
 	<th class="none"              title="the average time spent in the annotater">Avg<br><small>hh:mm:ss/workitem</small></th>
 	<th class="none"              title="the minimum time spent in the annotater">Min<br><small>hh:mm:ss/workitem</small></th>
 	<th class="none"              title="the maximum time spent in the annotater">Max<br><small>hh:mm:ss/workitem</small></th>
+	<th class="sorttable_numeric" title="the number of tasks processed">Tasks</th>
 	</tr>
 	</thead>
 	<tbody id="performance_data_area">

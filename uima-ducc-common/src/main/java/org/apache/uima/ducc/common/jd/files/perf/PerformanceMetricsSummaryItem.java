@@ -36,6 +36,8 @@ public class PerformanceMetricsSummaryItem implements Serializable {
 	private AtomicLong analysisTimeMin = new AtomicLong(-1);
 	private AtomicLong analysisTimeMax = new AtomicLong(-1);
 	
+	private AtomicLong analysisTasks = new AtomicLong(0);
+	
 	public PerformanceMetricsSummaryItem(String name, String uniqueName) {
 		this.name = name;
 		this.uniqueName = uniqueName;
@@ -46,7 +48,8 @@ public class PerformanceMetricsSummaryItem implements Serializable {
 										 long analysisTime,
 										 long numProcessed,
 										 long analysisTimeMin,
-										 long analysisTimeMax
+										 long analysisTimeMax,
+										 long analysisTasks
 										 ) 
 	{
 		this.name = name;
@@ -55,6 +58,7 @@ public class PerformanceMetricsSummaryItem implements Serializable {
 		this.numProcessed.set(numProcessed);
 		this.analysisTimeMin.set(analysisTimeMin);
 		this.analysisTimeMax.set(analysisTimeMax);
+		this.analysisTasks.set(analysisTasks);
 	}
 	
 	public String getName() {
@@ -99,6 +103,10 @@ public class PerformanceMetricsSummaryItem implements Serializable {
 		return analysisTimeMax.get();
 	}
 	
+	public long getAnalysisTasks() {
+		return analysisTasks.get();
+	}
+	
 	public long getNumProcessed() {
 		return numProcessed.get();
 	}
@@ -133,6 +141,10 @@ public class PerformanceMetricsSummaryItem implements Serializable {
 		updateAnalysisTimeMin(delta);
 		updateAnalysisTimeMax(delta);
 		return analysisTime.addAndGet(delta);
+	}
+	
+	public long addAndGetAnalysisTasks(long delta) {
+		return analysisTasks.addAndGet(delta);
 	}
 	
 	public long addAndGetNumProcessed(long delta) {

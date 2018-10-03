@@ -24,16 +24,19 @@ public class WorkItemPerformanceIndividualInfo implements IWorkItemPerformanceIn
 	String uniqueName = null;
 	double count = 0;
 	double time = 0;
+	double tasks = 0;
 	
 	public WorkItemPerformanceIndividualInfo(
 			String name,
 			String uniquename,
-			double time
+			double time,
+			double tasks
 			) 
 	{
 		setName(name);
 		setUniqueName(uniquename);
 		setTime(time);
+		setTasks(tasks);
 	}
 	
 	private void setName(String value) {
@@ -62,5 +65,13 @@ public class WorkItemPerformanceIndividualInfo implements IWorkItemPerformanceIn
 	public double getTime() {
 		return time;
 	}
-
+	
+	private void setTasks(double value) {
+		tasks = value;
+	}
+	
+	@Override
+	public double getTasks() {
+		return tasks;
+	}
 }

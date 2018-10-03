@@ -24,6 +24,6 @@ public interface IWorkItemPerformanceSummaryKeeper {
 
 	public List<IWorkItemPerformanceSummaryInfo> dataGet();
 	public void count();
-	public void dataAdd(String name, String uniqueName, long millis);
+	public void dataAdd(String name, String uniqueName, long millis, long tasks);
 	public void publish();
 }

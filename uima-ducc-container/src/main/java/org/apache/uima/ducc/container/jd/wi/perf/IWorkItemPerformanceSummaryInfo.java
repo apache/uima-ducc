@@ -28,4 +28,5 @@ public interface IWorkItemPerformanceSummaryInfo {
 	public double getAvg();
 	public double getMin();
 	public double getMax();
+	public double getTasks();
 }
