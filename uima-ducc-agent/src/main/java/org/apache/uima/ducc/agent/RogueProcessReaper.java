@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -322,10 +323,14 @@ public class RogueProcessReaper {
           }
           is = shellProcess.getInputStream();
           reader = new BufferedReader(new InputStreamReader(is));
-
+          String scriptOutput = "";
           // read the next line from stdout and stderr
-          while (reader.readLine() != null) {
-            // dont care about the output, just drain the buffers
+          while ( (scriptOutput = reader.readLine()) != null) {
+        	  if ( Objects.nonNull(logger)) {
+            	  logger.info(methodName, null,scriptOutput);
+        	  } else {
+        		  System.out.println(">>>>"+scriptOutput);
+        	  }
           }
          
           sb.setLength(0);
