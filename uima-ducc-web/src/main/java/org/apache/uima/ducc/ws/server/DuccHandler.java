@@ -1504,7 +1504,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				duccLogger.debug(location, jobid, "map.size="+map.size());
 				for (Entry<String, PerformanceMetricsSummaryItem> entry : map.entrySet()) {
 					PerformanceMetricsSummaryItem item = entry.getValue();
-					duccLogger.debug(location, jobid, "displayName=", item.getDisplayName(), "analysisTime=", item.getAnalysisTime(), "analysisTimeMin=", item.getAnalysisTimeMin(), "analysisTimeMax=", item.getAnalysisTimeMax(), "NumProcessed=", item.getNumProcessed());
+					duccLogger.debug(location, jobid, "displayName=", item.getDisplayName(), "analysisTime=", item.getAnalysisTime(), "analysisTimeMin=", item.getAnalysisTimeMin(), "analysisTimeMax=", item.getAnalysisTimeMax(), "analysisTasks=", item.getAnalysisTasks());
 				}
 			}
 		}
@@ -1549,7 +1549,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				    	long anTime = item.getAnalysisTime();
 				    	long anMinTime = item.getAnalysisTimeMin();
 				    	long anMaxTime = item.getAnalysisTimeMax();
-				    	long anTasks = item.getNumProcessed();
+				    	long anTasks = item.getAnalysisTasks();
 				    	analysisTime += anTime;
 				    	UimaStatistic stat = new UimaStatistic(shortname, entry.getKey(), anTime, anMinTime, anMaxTime, anTasks);
 				    	uimaStats.add(stat);
