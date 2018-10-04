@@ -26,8 +26,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
@@ -98,15 +96,15 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 
 	private void initialize() throws ServiceInitializationException {
 
-		if (initError) {
-			return;
-		}
 		// this latch blocks all process threads after initialization
 		// until application calls start()
 		startLatch = new CountDownLatch(1);
 		try {
 			// use a lock to serialize initialization one thread at a time
 			initLock.lock();
+			if (initError) {
+				return;
+			}
 			processor.initialize();
 		} catch (Throwable e) {
 			initError = true;
@@ -453,4 +451,10 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	            return new DefaultServiceProtocolHandler(this);
 	        }
 	 }
+
+
+	@Override
+	public boolean initialized() {
+		return ( initError==false );
+	}
 }
