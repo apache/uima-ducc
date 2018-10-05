@@ -220,7 +220,7 @@ public class ServiceWrapper implements Application {
     public void stopJmx() {
     	try {
     		if ( Objects.nonNull(jmxAgent)) {
-    			jmxAgent.stop();
+     			jmxAgent.stop();
     		}
     	} catch( Exception e) {
     		
@@ -242,8 +242,8 @@ public class ServiceWrapper implements Application {
 
 			service.quiesceAndStop();
 			logger.log(Level.INFO,"Stoppng JMX Agent");
+			System.out.println("Stopping JMX Agent");
 			jmxAgent.stop();
-
 		} catch( Exception e ) {
 			logger.log(Level.WARNING,"",e);
 
@@ -256,11 +256,12 @@ public class ServiceWrapper implements Application {
 			wrapper = new ServiceWrapper();
 			wrapper.initialize(args);
 			wrapper.start();
-		} catch( Exception e) {
+		} catch( Throwable e) {
 			UIMAFramework.getLogger().log(Level.WARNING, "", e);
 			if ( wrapper != null ) {
 				wrapper.stop();
 			}
+			System.exit(-1);
 		}
 	}
 	 static class ServiceShutdownHook extends Thread {

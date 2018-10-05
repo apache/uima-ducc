@@ -34,6 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.ServiceThreadFactory;
 import org.apache.uima.ducc.ps.service.IService;
+import org.apache.uima.ducc.ps.service.builders.PullServiceStepBuilder.OptionalsStep;
 //import org.apache.uima.ducc.ps.service.ServiceConfiguration;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
@@ -43,6 +44,7 @@ import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
 import org.apache.uima.ducc.ps.service.protocol.IServiceProtocolHandler;
 import org.apache.uima.ducc.ps.service.protocol.builtin.DefaultNoTaskAvailableStrategy;
 import org.apache.uima.ducc.ps.service.protocol.builtin.DefaultServiceProtocolHandler;
+import org.apache.uima.ducc.ps.service.protocol.builtin.NoWaitStrategy;
 import org.apache.uima.ducc.ps.service.registry.DefaultRegistryClient;
 import org.apache.uima.ducc.ps.service.registry.IRegistryClient;
 import org.apache.uima.ducc.ps.service.transport.IServiceTransport;
@@ -210,20 +212,26 @@ public class PullService implements IService {
 			}
 			// wait until all process threads initialize
 			threadsReady.await();
+			if ( protocolHandler.initialized() ) {
+				logger.log(Level.INFO,"Service Initialized ...........");
+				initializeMonitor();
+				initializeTransport();
+				initialized = true;
 
-			initializeMonitor();
-			initializeTransport();
-
-			initialized = true;
-
+			} else {
+				logger.log(Level.INFO, "Protocol Handler Failed Initialization ...........");
+				throw new ServiceInitializationException("Service Protocol Handler Failed Initialization");
+			}
 
 		} catch( ServiceInitializationException e) {
+			System.out.println(">>>>>>>>>>>>>> ServiceInitializationException in Pullservice.initialize()");
 			throw e;
 		} catch( InterruptedException e) {
 			Thread.currentThread().interrupt();
 			threadPool.shutdownNow();
 			throw new ServiceInitializationException("Service interrupted during initialization - shutting down process threads");
 		} catch( Exception e) {
+			System.out.println(">>>>>>>>>>>>>> Error in Pullservice.initialize()");
 			throw new ServiceInitializationException("",e);
 		}
 		finally {
@@ -233,7 +241,7 @@ public class PullService implements IService {
 	}
 
 	@Override
-	public void start() throws IllegalStateException, ExecutionException, ServiceException {
+	public void start() throws ExecutionException, ServiceException {
 		if ( !initialized ) {
 			throw new IllegalStateException("Application must call initialize() before calling start()");
 		}
@@ -252,14 +260,8 @@ public class PullService implements IService {
 				// thread has been interrupted, force executor shutdown
 				threadPool.shutdownNow();
 			}
-		} catch( ExecutionException | ServiceException e) {
-			logger.log(Level.WARNING,"",e);
-			throw e;
-		} catch( Throwable t) {
-			logger.log(Level.WARNING,"",t);
-			logger.log(Level.WARNING,"","Service is terminating due to failure to start");
-			stop();
-		}
+		} 
+
 	}
 	@Override
 	public void stop() {
