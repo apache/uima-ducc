@@ -70,11 +70,13 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	// reference to a service so that stop() can be called
 	private IService service;
 	// forces process threads to initialize serially
-	private ReentrantLock initLock = new ReentrantLock();
+	private static ReentrantLock initLock = new ReentrantLock();
 	
 	private static AtomicInteger idGenerator = new AtomicInteger();
 	
 	private static ReentrantLock retryLock = new ReentrantLock();
+	
+	private Thread retryThread = null;
 	
 	private DefaultServiceProtocolHandler(Builder builder) { 
 		this.initLatch = builder.initLatch; 
@@ -95,7 +97,6 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	}
 
 	private void initialize() throws ServiceInitializationException {
-
 		// this latch blocks all process threads after initialization
 		// until application calls start()
 		startLatch = new CountDownLatch(1);
@@ -122,7 +123,9 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			}
 		}
 	}
-
+	public boolean initialized() {
+		return ( initError==false );
+	}
 	private IMetaTaskTransaction send(IMetaTaskTransaction transaction) throws Exception {
 		TransactionId tid;
 		if (Type.Get.equals(transaction.getType())) {
@@ -135,6 +138,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			// increment minor
 			tid.next();
 		}
+		
     	transaction.setRequesterProcessName(service.getType());
     	transport.addRequestorInfo(transaction);
 		Object o = null;
@@ -217,6 +221,8 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 				if (transaction.getMetaTask() != null && transaction.getMetaTask().getUserSpaceTask() != null) {
 					break;
 				} 
+				retryThread = Thread.currentThread();
+				
 				System.out.println("Thread:"+Thread.currentThread().getId()+" ------------- No Task -------------- Retrying GET until success");
 				// the client has no tasks to give.
 				noTaskStrategy.handleNoTaskSupplied();
@@ -228,6 +234,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 			if (retryLock.isHeldByCurrentThread()) {
 				retryLock.unlock();
 			}
+			retryThread = null;
 		}
 		return transaction;
 	}
@@ -266,7 +273,9 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 					// to normal processing.
 					transaction = retryUntilSuccessfull();
 				}
-				if (!running  && !quiescing ) {
+				// transaction may be null if retryUntilSuccessfull was interrupted
+				// due to stop
+				if (Objects.isNull(transaction) || (!running  && !quiescing)) {
 					break;
 				}
 				logger.log(Level.INFO, ".............. Thread "+Thread.currentThread().getId() + " processing new task");
@@ -372,12 +381,23 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	public void stop() {
 		quiescing = false;
 		running = false;
+		try {
+			// use try catch to handle a possible race condition
+			// when retryThread is not null, but it becomes null
+			// before we call interrupt causing NPE. All this would
+			// mean is that retryUntilSuccess() succeeded.
+			if ( retryThread != null ) {
+				retryThread.interrupt();
+			}
+		} catch( Exception ee) {
+		}		//noTaskStrategy.interrupt();
 		if ( logger.isLoggable(Level.INFO)) {
 			logger.log(Level.INFO, this.getClass().getName()+" stop() called");
 		}
 	}
 	@Override
 	public void quiesceAndStop() {
+
 		// Use System.out since the logger's ShutdownHook may have closed streams
 		System.out.println(Utils.getTimestamp()+">>>>>>> "+Utils.getShortClassname(this.getClass())+".queisceAndStop()");
 		logger.log(Level.INFO, this.getClass().getName()+" quiesceAndStop() called");
@@ -387,6 +407,16 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 		
 		quiescing = true;
 		running = false;
+		try {
+			// use try catch to handle a possible race condition
+			// when retryThread is not null, but it becomes null
+			// before we call interrupt causing NPE. All this would
+			// mean is that retryUntilSuccess() succeeded.
+			if ( retryThread != null ) {
+				retryThread.interrupt();
+			}
+		} catch( Exception ee) {
+		}
 		try {
 			// wait for process threads to terminate
 			stopLatch.await();
@@ -451,10 +481,4 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	            return new DefaultServiceProtocolHandler(this);
 	        }
 	 }
-
-
-	@Override
-	public boolean initialized() {
-		return ( initError==false );
-	}
 }

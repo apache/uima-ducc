@@ -28,4 +28,8 @@ public class NoWaitStrategy implements INoTaskAvailableStrategy {
 		// No Op
 	}
 
+	@Override
+	public void interrupt() {
+	}
+
 }

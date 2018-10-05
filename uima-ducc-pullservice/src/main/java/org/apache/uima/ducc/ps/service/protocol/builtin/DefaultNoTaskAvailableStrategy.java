@@ -19,11 +19,16 @@
 
 package org.apache.uima.ducc.ps.service.protocol.builtin;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.uima.ducc.ps.service.protocol.INoTaskAvailableStrategy;
 
 public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy {
 	private int waitTime = 60000;   // default
-	private static final Object monitor = new Object();
+	private final ReentrantLock lock = new ReentrantLock();
+	private final Object monitor = new Object();
 	
 	public DefaultNoTaskAvailableStrategy(int waitTime) {
 		// if wait time not specified use default
@@ -31,17 +36,30 @@ public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy 
 			this.waitTime = waitTime;
 		}
 	}
+	
+	public void interrupt() {
+		System.out.println("DefaultNoTaskAvailableStrategy.interrupt()"+" Thread:"+Thread.currentThread().getId()+" - Unlocking the lock");
+		lock.unlock();
+	}
+	
 	@Override
 	public void handleNoTaskSupplied() {
-		synchronized(monitor) {
+		Condition waitAwhileCondition = lock.newCondition();
+		try {
+			lock.lock();
 			// wait only it wait time > 0. No indefinite wait supported
 			if ( waitTime > 0 ) {
 				try {
-					System.out.println("DefaultNoTaskAvailableStrategy.handleNoTaskSupplied() waiting for:"+waitTime);
-					monitor.wait(waitTime);
+					System.out.println("DefaultNoTaskAvailableStrategy.handleNoTaskSupplied() waiting for:"+waitTime+" Thread:"+Thread.currentThread().getId());
+					waitAwhileCondition.await(waitTime, TimeUnit.SECONDS);
 				} catch( InterruptedException e) {
+					System.out.println("DefaultNoTaskAvailableStrategy.handleNoTaskSupplied() - Waiting interrupted "+" Thread:"+Thread.currentThread().getId());
 				}
 			}
+		} finally {
+			lock.unlock();
+			System.out.println("DefaultNoTaskAvailableStrategy.handleNoTaskSupplied() - Unlocked Lock "+" Thread:"+Thread.currentThread().getId());
+
 		}
 	}
 }
