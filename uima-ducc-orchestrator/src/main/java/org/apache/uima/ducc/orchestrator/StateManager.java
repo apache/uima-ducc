@@ -618,6 +618,7 @@ public class StateManager {
 				copyProcessWorkItemsReport(duccWorkJob, jdStatusReport);
 				copyDriverWorkItemsReport(duccWorkJob, jdStatusReport);
 				//
+				logger.debug(methodName, duccId, duccWorkJob.getJobState(), "total="+jdStatusReport.getWorkItemsTotal(), "completed="+jdStatusReport.getWorkItemsProcessingCompleted(), "error="+jdStatusReport.getWorkItemsProcessingError());
 				switch(duccWorkJob.getJobState()) {
 				case Completed:
 					break;

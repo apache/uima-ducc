@@ -37,6 +37,7 @@ import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.JobDriverHelper;
 import org.apache.uima.ducc.container.jd.blacklist.JobProcessBlacklist;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
+import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo.CompletionType;
@@ -161,6 +162,25 @@ public class ActionGet implements IAction {
 		return mmc;
 	}
 	
+	private synchronized void ungetMetaMetaCas(IActionData actionData, IRemoteWorkerProcess rwp, IMetaMetaCas mmc, RetryReason rr) throws JobDriverException {
+		String location = "ungetMetaMetaCas";
+		JobDriver jd = JobDriver.getInstance();
+		CasManager cm = jd.getCasManager();
+		if(mmc != null) {
+			IMetaTask metaCas = mmc.getMetaCas();
+			if(metaCas != null) {
+				String wiId = metaCas.getUserKey();
+				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+				mb.append(Standardize.Label.node.get()+rwp.getNodeName());
+				mb.append(Standardize.Label.pid.get()+rwp.getPid());
+				mb.append(Standardize.Label.userKey+wiId);
+				logger.warn(location, ILogger.null_id, mb.toString());
+				mmc.setMetaCas(null);
+				cm.putMetaCas(metaCas, rr);
+			}
+		}
+	}
+	
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
@@ -183,7 +203,7 @@ public class ActionGet implements IAction {
 				IMetaMetaCas mmc = getMetaMetaCas(actionData);
 				if(mmc.isExhausted()) {
 					Long time = warnedExhausted.putIfAbsent(rwp, new Long(System.currentTimeMillis()));
-					if(time != null) {
+					if(time == null) {
 						MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
 						mbx.append(Standardize.Label.node.get()+rwp.getNodeName());
 						mbx.append(Standardize.Label.pid.get()+rwp.getPid());
@@ -194,7 +214,7 @@ public class ActionGet implements IAction {
 				}
 				if(mmc.isPremature()) {
 					Long time = warnedPremature.putIfAbsent(rwp, new Long(System.currentTimeMillis()));
-					if(time != null) {
+					if(time == null) {
 						String text = fewerWorkItemsAvailableThanExpected;
 						jd.killJob(CompletionType.Exception, text);
 						MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
@@ -207,7 +227,7 @@ public class ActionGet implements IAction {
 				}
 				else if(mmc.isKillJob()) {
 					Long time = warnedJobDiscontinued.putIfAbsent(rwp, new Long(System.currentTimeMillis()));
-					if(time != null) {
+					if(time == null) {
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						mb.append(Standardize.Label.node.get()+rwp.getNodeName());
 						mb.append(Standardize.Label.pid.get()+rwp.getPid());
@@ -215,10 +235,11 @@ public class ActionGet implements IAction {
 						logger.warn(location, ILogger.null_id, mb.toString());
 					}
 					TransactionHelper.addResponseHint(trans, Hint.Killed);
+					ungetMetaMetaCas(actionData,rwp,mmc,RetryReason.ProcessVolunteered);
 				}
 				else if(jobProcessBlacklist.includes(rwp)) {
 					Long time = warnedProcessDiscontinued.put(rwp, new Long(System.currentTimeMillis()));
-					if(time != null) {
+					if(time == null) {
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						mb.append(Standardize.Label.node.get()+rwp.getNodeName());
 						mb.append(Standardize.Label.pid.get()+rwp.getPid());
@@ -226,6 +247,7 @@ public class ActionGet implements IAction {
 						logger.warn(location, ILogger.null_id, mb.toString());
 					}
 					TransactionHelper.addResponseHint(trans, Hint.Blacklisted);
+					ungetMetaMetaCas(actionData,rwp,mmc,RetryReason.ProcessDown);
 				}
 				else {
 					metaCas = mmc.getMetaCas();
