@@ -32,4 +32,6 @@ public interface IServiceProtocolHandler extends Callable<String>, IServiceCompo
 	
 	public void setTransport(IServiceTransport transport);
 	
+	public boolean initialized();
+	
 }
