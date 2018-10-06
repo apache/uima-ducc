@@ -24,7 +24,7 @@ import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 
 
-public class DuccJobsStateEvent extends AbstractDuccEvent {
+public class DuccJobsStateEvent extends AbstractMultiDuccEvent {
 	private static final long serialVersionUID = 1L;
 	private List<IDuccJobDeployment> jobList;
   private List<DuccUserReservation> userReservations;

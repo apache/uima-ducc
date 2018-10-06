@@ -18,9 +18,6 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import java.net.InetAddress;
-
-import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadState;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 
 public abstract class AbstractDuccEvent 
@@ -37,12 +34,8 @@ implements DuccEvent {
 	
 	private DuccContext context = DuccContext.Unspecified;
 	
-	private DuccHeadState duccHeadState = DuccHeadState.unspecified;
-	private String producerHost = "unknown";
-	
 	public AbstractDuccEvent(EventType eventType) {
 		this.eventType = eventType;
-		initProducerHost();
 	}
 	public EventType getEventType() {
 		return eventType;
@@ -81,40 +74,5 @@ implements DuccEvent {
 	public DuccContext getContext() {
 		return context;
 	}
-	
-	/*
-	 * DuccHeadState indicates Master or Backup
-	 */
-	public void setDuccHeadState(DuccHeadState value) {
-		if(value != null) {
-			duccHeadState = value;
-		}
-	}
-	
-	public DuccHeadState getDuccHeadState() {
-		DuccHeadState retVal = DuccHeadState.unspecified;
-		if(duccHeadState != null) {
-			retVal = duccHeadState;
-		}
-		return retVal;
-	}
 
-	private void initProducerHost() {
-		try {
-			String host = InetAddress.getLocalHost().getCanonicalHostName();
-			if(host != null) {
-				host = host.trim();
-				if(host.length() > 0) {
-					producerHost = host;
-				}
-			}
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public String getProducerHost() {
-		return producerHost;
-	}
 }

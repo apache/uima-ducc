@@ -31,7 +31,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 
-public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
+public class OrchestratorStateDuccEvent extends AbstractMultiDuccEvent  {
 	
 	private static final long serialVersionUID = 2L;
 	
