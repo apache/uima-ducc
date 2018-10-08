@@ -26,9 +26,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.uima.ducc.ps.service.protocol.INoTaskAvailableStrategy;
 
 public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy {
-	private int waitTime = 60000;   // default
+	private int waitTime = 30000;   // default
 	private final ReentrantLock lock = new ReentrantLock();
-	private final Object monitor = new Object();
 	
 	public DefaultNoTaskAvailableStrategy(int waitTime) {
 		// if wait time not specified use default
@@ -36,9 +35,13 @@ public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy 
 			this.waitTime = waitTime;
 		}
 	}
-	
+	/**
+	 * This methods is called when a service is stopping. There is no
+	 * need to wait. We want to stop as soon as possible so we just
+	 * interrupt the lock which might be blocking in await()
+	 */
+	@Override
 	public void interrupt() {
-		System.out.println("DefaultNoTaskAvailableStrategy.interrupt()"+" Thread:"+Thread.currentThread().getId()+" - Unlocking the lock");
 		lock.unlock();
 	}
 	
@@ -50,7 +53,6 @@ public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy 
 			// wait only it wait time > 0. No indefinite wait supported
 			if ( waitTime > 0 ) {
 				try {
-					System.out.println("DefaultNoTaskAvailableStrategy.handleNoTaskSupplied() waiting for:"+waitTime+" Thread:"+Thread.currentThread().getId());
 					waitAwhileCondition.await(waitTime, TimeUnit.SECONDS);
 				} catch( InterruptedException e) {
 					System.out.println("DefaultNoTaskAvailableStrategy.handleNoTaskSupplied() - Waiting interrupted "+" Thread:"+Thread.currentThread().getId());
@@ -58,7 +60,6 @@ public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy 
 			}
 		} finally {
 			lock.unlock();
-			System.out.println("DefaultNoTaskAvailableStrategy.handleNoTaskSupplied() - Unlocked Lock "+" Thread:"+Thread.currentThread().getId());
 
 		}
 	}
