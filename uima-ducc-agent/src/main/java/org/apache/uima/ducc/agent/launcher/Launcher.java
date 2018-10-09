@@ -93,6 +93,22 @@ public class Launcher {
         return managedProcess;
     }
     /**
+     * Submit request to exec a process. The process will be exec'd in a separate thread.
+     * 
+     * @param process
+     * @param commandLine
+
+     * @throws Exception
+     */
+    public void launchOSCommand(ICommand command) {
+    	try {
+            executorService.submit(command);
+    	} catch( Exception e) {
+    		e.printStackTrace();
+    	}
+        
+    }
+    /**
      * This method is used to simulation only. It enables launching an agent with 
      * a given name and IP address which are different from a physical node name
      * and IP address. With that multiple agents can be launched on the same 

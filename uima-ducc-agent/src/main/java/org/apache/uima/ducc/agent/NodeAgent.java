@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -46,6 +47,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.camel.CamelContext;
@@ -59,9 +62,12 @@ import org.apache.uima.ducc.agent.event.AgentEventListener;
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
 import org.apache.uima.ducc.agent.launcher.CGroupsManager;
 import org.apache.uima.ducc.agent.launcher.DefunctProcessDetector;
+import org.apache.uima.ducc.agent.launcher.ICommand;
 import org.apache.uima.ducc.agent.launcher.Launcher;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess.StopPriority;
+import org.apache.uima.ducc.agent.launcher.SigKillCommand;
+import org.apache.uima.ducc.agent.launcher.SigTermCommand;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeUsersCollector;
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
@@ -203,6 +209,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   
   private String stateChangeEndpoint;
 
+  long maxTimeToWaitForProcessToStop = 60000; // default 1 minute
+
+  
   public void setStateChangeEndpoint(String stateChangeEndpoint) {
 	this.stateChangeEndpoint = stateChangeEndpoint;
   }
@@ -218,6 +227,11 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     this();
     this.nodeIdentity = ni;
     Utils.findDuccHome();  // add DUCC_HOME to System.properties
+    
+	if ( configurationFactory.processStopTimeout != null) {
+	    maxTimeToWaitForProcessToStop = Long
+		.valueOf(configurationFactory.processStopTimeout);
+	}
   }
 
   public long getLastORSequence() {
@@ -792,6 +806,17 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 					+ process.getProcessState() + " Process Resource State:" + process.getResourceState());
 
 			getInventoryRef().remove(process.getDuccId());
+			
+			Iterator<ManagedProcess> it = deployedProcesses.iterator();
+			while(it.hasNext() ) {
+			  ManagedProcess deployedProcess = it.next();
+			  if ( deployedProcess.getDuccProcess().getDuccId().equals(process.getDuccId()) ) {
+			  	  it.remove();
+			   	  break;
+			  }
+			}
+	        logger.info(methodName,
+					  null, "After Purge Inventory size:"+inventory.size()+" deployedProcesses size:"+deployedProcesses.size());
 		}
 	}
 
@@ -1233,7 +1258,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   }
 
   /**
-   * Called when UIMA AS service wrapper sends an update when a process status changes.
+   * Called when a service wrapper sends status update
    *
    * @param duccEvent
    *          - Ducc event object
@@ -1280,7 +1305,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           synchronized (monitor) {
         	  Iterator<ManagedProcess> it = deployedProcesses.iterator();
         	  while(it.hasNext() ) {
-            //for (ManagedProcess dProcess : deployedProcesses) {
               // Find ManagedProcess instance the DuccProcess
               // instance is associated with
         		  ManagedProcess dProcess = it.next();
@@ -1295,19 +1319,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                   && duccEvent.getState().equals(ProcessState.Running) && deployedProcess != null) {
             // cancel process initialization timer.
             deployedProcess.stopInitializationTimer();
-          }
-          // if a JP process has been deallocated, ignore any updates
-          // from it. It's stopping.
-          if (processEntry.getValue().isDeallocated()) {
-            // stop collecting process stats from /proc/<pid>/statm
-            if (processEntry.getValue().getPID() != null) {
-            	try {
-                    super.getContext().stopRoute(processEntry.getValue().getPID());
-            	} catch( Exception e) {
-            		logger.error(methodName, null, "Unable to stop Camel route for PID:"+processEntry.getValue().getPID());
-            	}
-            }
-            return;
           }
 
           logger.info(methodName, null, ">>>> Agent Handling Process Update - Ducc Id: "
@@ -1360,71 +1371,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             	   }
                }
             }
-	      /*
-            RouteBuilder rb = new ProcessMemoryUsageRoute(this, processEntry.getValue(),
-                    deployedProcess);
-            super.getContext().addRoutes(rb);
-	    //super.getContext().start();
-	    super.getContext().startRoute(duccEvent.getPid());
-            logger.info(
-                    methodName,
-                    null,
-                    "Started Process Metric Gathering Thread For PID:"+duccEvent.getPid());
 
-
-            StringBuffer sb = new StringBuffer();
-            if ( duccEvent.getState().equals(ProcessState.Running) ) {
-               if ( processEntry.getValue().getUimaPipelineComponents() != null &&
-            		processEntry.getValue().getUimaPipelineComponents().size() > 0 ) {
-            	   processEntry.getValue().getUimaPipelineComponents().clear();
-            	   if ( duccEvent.getUimaPipeline() != null ) {
-            		   duccEvent.getUimaPipeline().clear();
-            	   }
-               }
-            }
-            for ( Route route : super.getContext().getRoutes() ) {
-            	sb.append("Camel Context - RouteId:"+route.getId()+"\n");
-            }
-            logger.info(
-                    methodName,
-                    null,
-                    sb.toString());
-
-            logger.info(
-                    methodName,
-                    null,
-                    ">>>> Agent Added new Process Memory Collector Thread for Process:"
-                            + duccEvent.getPid());
-	      */
           } else if (duccEvent.getState().equals(ProcessState.Stopped)
                   || duccEvent.getState().equals(ProcessState.Failed)
                   || duccEvent.getState().equals(ProcessState.Killed)) {
-            	try {
-              	  // stop collecting process stats from /proc/<pid>/statm
-                    super.getContext().stopRoute(duccEvent.getPid());
-            	} catch( Exception e) {
-                    logger.error(methodName, null, "....Unable to stop Camel route for PID:" + duccEvent.getPid());
-            	}
-
-//            super.getContext().stopRoute(duccEvent.getPid());
-
-            // remove route from context, otherwise the routes accumulate over time causing memory leak
-            super.getContext().removeRoute(duccEvent.getPid());
-            StringBuffer sb = new StringBuffer();
-            logger.info(
-                    methodName,
-                    null,
-                    "Removed Camel Route from Context for PID:"+duccEvent.getPid());
-
-            for ( Route route : super.getContext().getRoutes() ) {
-            	sb.append("Camel Context - RouteId:"+route.getId()+"\n");
-            }
-            logger.info(
-                    methodName,
-                    null,
-                    sb.toString());
-
-
             if ( deployedProcess.getMetricsProcessor() != null ) {
             	deployedProcess.getMetricsProcessor().close();  // close open fds (stat and statm files)
             }
@@ -1442,32 +1392,14 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             deployedProcess.kill();
             logger.info(methodName, null, ">>>> Agent Handling Process FailedInitialization. PID:"
                     + duccEvent.getPid() + " Killing Process");
-            try {
-               super.getContext().stopRoute(duccEvent.getPid());
-	       super.getContext().removeRoute(duccEvent.getPid());
 
-	       for( RouteDefinition rt : super.getContext().getRouteDefinitions()) {
-		   logger.info(methodName, null, "..... Active Route Id:"+rt.getId());
-		   if ( rt.getId().equals(duccEvent.getPid() ) ) {
-		       logger.info(methodName, null, "..... Stopping Route Id:"+rt.getId());
-		       rt.stop();
-		   }
-	       }
-
-           } catch( Exception e) {
-        	   logger.error(methodName, null, "Unable to stop Camel route for PID:"+duccEvent.getPid());
-           }
-            logger.info(methodName, null,
-                    "----------- Agent Stopped ProcessMemoryUsagePollingRouter for Process:"
-                            + duccEvent.getPid() + ". Process Failed Initialization");
-            //undeployProcess(processEntry.getValue());
-            sigKill(deployedProcess);
+            undeployProcess(processEntry.getValue());
 
           } else if (duccEvent.getState().equals(ProcessState.InitializationTimeout)) {
             deployedProcess.getDuccProcess().setReasonForStoppingProcess(
                     ReasonForStoppingProcess.InitializationTimeout.toString());
       	    deployedProcess.getDuccProcess().setProcessState(ProcessState.Stopping);
-            //deployedProcess.setStopping();
+            deployedProcess.setStopping();
 
             // Mark process for death. Doesnt actually kill the process
 
@@ -1475,8 +1407,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             logger.info(methodName, null, ">>>> Agent Handling Process InitializationTimeout. PID:"
                     + duccEvent.getPid() + " Killing Process");
 
-            //undeployProcess(processEntry.getValue());
-            sigKill(deployedProcess);
+            undeployProcess(processEntry.getValue());
+
           }
           else if (duccEvent.getState().equals(ProcessState.Stopping)) {
         	  if ( duccEvent.getMessage() != null && duccEvent.getMessage().equals(ReasonForStoppingProcess.ExceededErrorThreshold.toString())) {
@@ -1711,7 +1643,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     	    	while( it.hasNext() ) {
     	    		ManagedProcess deployedProcess = it.next();
     	    		
-      	     // for (ManagedProcess deployedProcess : deployedProcesses) {
                   String pid = deployedProcess.getDuccProcess().getPID();
                   if (pid == null || pid.trim().length() == 0 || !runnable(deployedProcess) ) {
                   	continue;
@@ -1741,58 +1672,22 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
       }
       
-      private void sigKill(ManagedProcess deployedProcess) {
-    	  String methodName = "sigKill";
-    	  String[] cmdLine = { "/bin/kill", "-9", deployedProcess.getDuccProcess().getPID() };
-    	  
-    	  try {
-    		  ProcessBuilder pb = new ProcessBuilder(cmdLine);
-    		  Process process = pb.start();
-    		  InputStream is = process.getInputStream();
-    		  InputStreamReader streamReader = new InputStreamReader(is);
-    		  BufferedReader br = new BufferedReader(streamReader);
-    		  String line;
-    		  while ((line = br.readLine()) != null) {
-    			  System.out.println(line);
-    		  }
-    		  try {
-    			  process.waitFor();
-    		  } catch (InterruptedException ie) {
-    			  logger.error(methodName, null, ie);
-    		  }
-    	  } catch (Exception e) {
-    		  logger.error(methodName, null, e);
-    	  }
-    	  
-      }
-	private void sigTermThanSigKill(IDuccProcess process, ManagedProcess deployedProcess) {
-		String methodName = "killIt";
-		// Mark the process as stopping. When the process exits,
-		// the agent can determine
-		// if the process died on its own (due to say, user code
-		// problem) or if it died
-		// due to Agent initiated stop.
-		deployedProcess.setStopping();
-		// Agent will first send a stop request (via JMS) to the
-		// process.
-		// If the process doesnt stop within alloted window the
-		// agent
-		// will kill it hard
-		ICommandLine cmdLine;
-		try {
-			if (Utils.isWindows()) {
-				cmdLine = new NonJavaCommandLine("taskkill");
-				cmdLine.addArgument("/PID");
-			} else {
-				cmdLine = new NonJavaCommandLine("/bin/kill");
-				cmdLine.addArgument("-9");
-			}
-			cmdLine.addArgument(deployedProcess.getDuccProcess().getPID());
-			launcher.launchProcess(this, getIdentity(), process, cmdLine, this, deployedProcess);
-		} catch (Exception e) {
-			logger.error(methodName, null, e);
-
+	private void handleSigTermTimeout(ManagedProcess deployedProcess) {
+		String methodName = "handleSigTermTimeout";
+		if (!deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopped)) {
+			logger.info(methodName, deployedProcess.getDuccId(),
+					"------------ Agent Timed-out Waiting for Process with PID:"
+							+ deployedProcess.getDuccProcess().getPID() + " to Stop. Process State:"
+							+ deployedProcess.getDuccProcess().getProcessState()
+							+ " .Process did not stop in allotted time of " + maxTimeToWaitForProcessToStop
+							+ " millis");
+			logger.info(methodName, deployedProcess.getDuccId(),
+					">>>>>>>>>>>>>>> Killing Process:" + deployedProcess.getDuccProcess().getPID() + " .Process State:"
+							+ deployedProcess.getDuccProcess().getProcessState());
 		}
+
+		ICommand sigKillCommand = new SigKillCommand(deployedProcess, logger);
+		launcher.launchOSCommand(sigKillCommand);
 	}
 
 	  /**
@@ -1803,75 +1698,92 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
    */
   private void undeployProcess(IDuccProcess process) {
     String methodName = "undeployProcess";
+
     synchronized (monitor) {
-      boolean processFound = false;
-      Iterator<ManagedProcess> it = deployedProcesses.iterator();
-      while (it.hasNext() ) {
-     // for (ManagedProcess deployedProcess : deployedProcesses) {
-    	  ManagedProcess deployedProcess = it.next();
-        if (deployedProcess.getDuccId().equals(process.getDuccId())) {
-          String pid = deployedProcess.getDuccProcess().getPID();
-          processFound = true;
-          if (deployedProcess.isStopping()) {
-            if ( isProcessRunning(deployedProcess.getDuccProcess())) {
-                logger.debug(methodName, null, "....Checking if Proces with PID:" + process.getPID()+" is Defunct");
-                // wait for a short while before running DefunctProcessDetector
-                // Sometimes when a process is killed via kill -9 it shows as
-                // defunct in ps output. Not sure why this is so.
-                try {
-                  monitor.wait(500);
-                } catch(InterruptedException ee) {
-                }
-              
-            	// spin a thread where we check if the process is defunct. If true,
-            	// the process state is changed to Stopped and reason set to 'defunct'.
-            	// Next inventory publication will include this new state and the OR
-            	// can terminate a job.
-            	defunctDetectorExecutor.execute(new DefunctProcessDetector(deployedProcess, logger));
-            } else if ( pid != null && deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopping ) ) {
-                logger.info(methodName, null, ">>>> Undeploying Process - DuccId:" + process.getDuccId()
-                   + " PID:" + pid);
+      
+      ManagedProcess deployedProcess =
+    		  getDeployedProcess(process.getDuccId());
 
-                sigTermThanSigKill(process, deployedProcess);
-	        }
-            break; // this process is already in stopping state
-          }
-          if (pid != null) {
-              logger.info(methodName, null, "....Undeploying Process - DuccId:" + process.getDuccId()
-                   + " PID:" + pid);
-
-              sigTermThanSigKill(process, deployedProcess);
-
-          } else if (!deployedProcess.getDuccProcess().getProcessState()
-                  .equals(ProcessState.Stopped)) { // process
-            // not  reported
-            // its
-            // PID
-            // yet
-            // when the process reports its PID, check if it should
-            // be killed.
-            logger.info(
-                    methodName,
-                    null,
+      // Given process does not exist in agent's inventory
+      if ( Objects.isNull(deployedProcess) ) {
+          logger.info(methodName, null, ".... Process - DuccId:" + process.getDuccId() + " PID:"
+                  + process.getPID()
+                  + " Not in Agent's inventory. Adding to the inventory with state=Stopped");
+          process.setProcessState(ProcessState.Stopped);
+          inventory.put(process.getDuccId(), process);
+          processDeploy(new ManagedProcess(process, null, this, logger, new ProcessMemoryAssignment()));
+    	  return;
+      }
+      
+      if ( Objects.isNull(deployedProcess.getPid()) ) {
+    	  if (!deployedProcess.getDuccProcess().getProcessState()
+                  .equals(ProcessState.Stopped)) { 
+    		  // process not reported its PID yet when the process 
+    		  // reports its PID, check if it should be killed.
+            logger.info( methodName, deployedProcess.getDuccId(),
                     ".... Process - Ducc ID:"
                             + deployedProcess.getDuccId()
                             + " Has Not Started Yet. PID Not Available. Tagging Process For Kill When It Reports Status");
             deployedProcess.killAfterLaunch(true);
-          } else {
-            logger.info(methodName, null, ".... Process Has Already Stopped.");
           }
-          break;
-        }
+    	  return;
       }
-      if (!processFound) {
-        logger.info(methodName, null, ".... Process - DuccId:" + process.getDuccId() + " PID:"
-                + process.getPID()
-                + " Not in Agent's inventory. Adding to the inventory with state=Stopped");
-        process.setProcessState(ProcessState.Stopped);
-        inventory.put(process.getDuccId(), process);
-        ManagedProcess deployedProcess = new ManagedProcess(process, null, this, logger, new ProcessMemoryAssignment());
-        processDeploy(deployedProcess);
+      
+      ICommand sigTermCommand = new SigTermCommand(deployedProcess, logger);
+      
+	  // Mark the process as stopping. When the process exits,
+	  // the agent can determine if the process died on its own
+      // (due to say, user code problem) or if it died
+	  // due to Agent initiated stop.
+	  deployedProcess.setStopping();
+		
+      try {
+          logger.info(methodName,
+        			  deployedProcess.getDuccId(),
+					    "------------ Agent Starting Killer Timer Task For Process with PID:"
+					    + deployedProcess.getDuccProcess().getPID()
+					    + " Process State: "
+					    + deployedProcess.getDuccProcess().getProcessState());
+          // launch SIGTERM
+          launcher.launchOSCommand(sigTermCommand);
+          // fetch deployed process Future object which
+          // will be used to determine if its still 
+          // running
+          Future<?> future = deployedProcess.getFuture();
+          // future.get() blocks until process stops or timeout occurs
+          future.get(maxTimeToWaitForProcessToStop, TimeUnit.MILLISECONDS);
+          logger.info(methodName,
+    			  deployedProcess.getDuccId(),">>>>>>>>>>>>> Process with PID:"+deployedProcess.getDuccProcess().getPID()+" Terminated");
+      } catch( TimeoutException e) {
+    	  logger.info(methodName,
+    			  deployedProcess.getDuccId(),
+    			  ">>>>>>>>> Timed Out Waiting For Process To Terminate After SIGTERM Was Sent");
+        	  handleSigTermTimeout(deployedProcess);
+      } catch( Exception e) {
+        	  logger.error(methodName, deployedProcess.getDuccId(), e);
       }
+      
+      
+      try {
+          monitor.wait(500);
+      } catch(InterruptedException ee) {
+        
+      }
+
+      // check if defunct process
+      if ( isProcessRunning(deployedProcess.getDuccProcess())) {
+          // wait for a short while before running DefunctProcessDetector
+          // Sometimes when a process is killed via kill -9 it shows as
+          // defunct in ps output. Not sure why this is so.
+
+          // spin a thread where we check if the process is defunct. If true,
+       	  // the process state is changed to Stopped and reason set to 'defunct'.
+      	  // Next inventory publication will include this new state and the OR
+       	  // can terminate a job.
+       	  defunctDetectorExecutor.execute(new DefunctProcessDetector(deployedProcess, logger));
+      }
+      logger.info(methodName,
+			  deployedProcess.getDuccId(), "Inventory size:"+inventory.size()+" deployedProcesses size:"+deployedProcesses.size());
     }
   }
 
@@ -1893,7 +1805,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       ProcessStateUpdateDuccEvent event = new ProcessStateUpdateDuccEvent(processStateUpdate);
       // cleanup Camel route associated with a process that just stopped
       if ( process.getPID() != null && super.getContext().getRoute(process.getPID()) != null ) {
-//          super.getContext().stopRoute(process.getPID());
       	try {
         	  // stop collecting process stats from /proc/<pid>/statm
               super.getContext().stopRoute(process.getPID());
@@ -1921,50 +1832,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       logger.error(methodName, null, e);
     } finally {
 
-      try {
-        synchronized (monitor) {
-          logger.debug(methodName, null, "----------------- Deployed Process List Size:"
-                  + deployedProcesses.size());
-
-          // reference to an object we need to remove from the list
-          // of deployed processes
-         // ManagedProcess deployedProcessRef = null;
-          // Find a matching ManagedProcess for provided IDuccProcess
-          // so that we can remove it from the list
-          Iterator<ManagedProcess> it = deployedProcesses.iterator();
-    	  while(it.hasNext() ) {
-          //for (ManagedProcess deployedProcess : deployedProcesses) {
-    		  ManagedProcess deployedProcess  = it.next();
-            if (deployedProcess.getDuccProcess() != null
-                    && deployedProcess.getDuccProcess().equals(process)) {
-              //deployedProcessRef = deployedProcess;
-              logger.debug(methodName, null,
-                      "----------------- Removing Stopped Process from Deployed List");
-              processUndeploy(deployedProcess, it);
-              logger.debug(methodName, null,
-                      "----------------- Deployed Process List Size After Remove:"
-                              + deployedProcesses.size());
-              break;
-            }
-          }
-    	  /*
-          if (deployedProcessRef != null) {
-            logger.debug(methodName, null,
-                    "----------------- Removing Stopped Process from Deployed List");
-            processUndeploy(deployedProcessRef);
-            logger.debug(methodName, null,
-                    "----------------- Deployed Process List Size After Remove:"
-                            + deployedProcesses.size());
-          } else {
-            logger.info(methodName, null,
-                    "----------------- Process Exited but Not Found in List - Deployed Process List Size:"
-                            + deployedProcesses.size());
-          }
-          */
-        }
-      } catch (Exception e) {
-        logger.error(methodName, null, e);
-      }
     }
   }
 
@@ -1986,7 +1853,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     String methodName = "shutdown";
     Iterator<ManagedProcess> it = deployedProcesses.iterator();
     while( it.hasNext() ) {
-   // for (ManagedProcess deployedProcess : deployedProcesses) {
     	ManagedProcess deployedProcess = it.next();
       try {
     	  
@@ -2010,7 +1876,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     synchronized (monitor) {
     	 Iterator<ManagedProcess> it = deployedProcesses.iterator();
     	 while( it.hasNext() ) {
-     // for (ManagedProcess deployedProcess : deployedProcesses) {
     		 ManagedProcess deployedProcess = it.next();
         if (deployedProcess.getDuccProcess() != null) {
           // Check if process has been deployed but has not yet
@@ -2024,21 +1889,11 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           if (dppid == null || dppid.equals(String.valueOf(cpi.getPid()))) {
             return true;
           }
-          // if (dppid != null && dppid.equals(cpi.getPid())) {
-          // return true;
-          // }
         }
       }
       for (NodeUsersCollector.ProcessInfo pi : processList) {
         if (pi.getPid() == cpi.getPPid() && pi.getChildren().size() > 0) { // is
-          // the
-          // current
-          // process
-          // a
-          // child
-          // of
-          // another
-          // java
+          // the current process a child of another java
           // Process?
           return isManagedProcess(pi.getChildren(), pi);
         }
@@ -2068,7 +1923,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       boolean foundDeployedProcessWithNoPID = false;
       Iterator<ManagedProcess> it = deployedProcesses.iterator();
       while( it.hasNext() ) {
-      //for (ManagedProcess deployedProcess : deployedProcesses) {
     	  ManagedProcess deployedProcess = it.next();
         if (deployedProcess.getDuccProcess() != null) {
           // Check if process has been deployed but has not yet
@@ -2101,7 +1955,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     	  return isParentProcessRogue(processList, cpi);
       }
     }
-    //return false;
   }
 
   private boolean isParentProcessRogue(Set<NodeUsersCollector.ProcessInfo> processList,
@@ -2109,10 +1962,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     // boolean found = false;
     for (NodeUsersCollector.ProcessInfo pi : processList) {
       if (pi.getPid() == cpi.getPPid()) { // is the current process a
-        // child of another java
-        // Process?
-        // found = true;
-        if (pi.isRogue()) { // if parent is rogue, a child is rogue as
+         if (pi.isRogue()) { // if parent is rogue, a child is rogue as
           // well
           return true;
         }
@@ -2123,11 +1973,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
         }
       }
     }
-    // if ( !found ) {
-    // return true; // rogue process
-    // }
-    // return false;
-    return true;
+   return true;
 
   }
 
@@ -2303,6 +2149,17 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     return null;
   }
 
+	public ManagedProcess getDeployedProcess(IDuccId duccId) {
+		Iterator<ManagedProcess> it = deployedProcesses.iterator();
+		while (it.hasNext()) {
+			ManagedProcess deployedProcess = it.next();
+			// ignore duplicate start request for the same process
+			if (deployedProcess.getDuccId().equals(duccId)) {
+				return deployedProcess;
+			}
+		}
+		return null;
+	}
   /**
    * Copies reservations sent by the PM. It copies reservations associated with this node.
    *

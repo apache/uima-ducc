@@ -675,7 +675,7 @@ public class ManagedProcess implements Process {
 				observer.onJPInitTimeout(getDuccProcess(), initializationTimeout);
 			} else {
 				getDuccProcess().setProcessState(state);
-				observer.onProcessExit(getDuccProcess());
+	//			observer.onProcessExit(getDuccProcess());
 			}
 		}
 	}

@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -33,7 +34,9 @@ import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo.NodeProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.IDuccId;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 
 /**
  * Spawns "ps -ef --no-heading" cmd and scrapes the output to collect user processes. 
@@ -150,6 +153,34 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         logger.info("aggregate", null, "********* Adding Process With PID:"+cpi.getPid()+ " NO PARENT");
       }
     }
+  }
+  private boolean isJobOrServiceProcess(String[] tokens) {
+	  String component = "";
+	    for( String token : tokens ) {
+	        if ( token.startsWith("-Dducc.deploy.components")) {
+	          int pos = token.indexOf('=');
+	          if ( pos > -1 ) {
+	            component = token.substring(pos+1);
+	            if ( component.trim().startsWith("uima-as") ||  component.trim().startsWith("service") ||  component.trim().startsWith("job-process")) {
+           		  return true;
+	            }
+	          }
+	        }
+	      }
+	    return false;
+  }
+  private boolean ghostJobOrServiceProcess(String pid) {
+	  String component = "";
+      Map<DuccId, IDuccProcess> inventory = agent.getInventoryRef();
+      for( Entry<DuccId, IDuccProcess> entry : inventory.entrySet()) {
+    	  if ( entry.getValue().getPID().equals(pid)) {
+    		  return false;
+    	  }
+      }
+  logger.trace("ghostJobOrServiceProcess", null, "********** Process ("+component+") with PID:"+pid+ " is rogue");
+
+  return true;
+	  
   }
   private boolean duccDaemon(String[] tokens) {
     String location = "duccDaemon";
@@ -291,8 +322,17 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
             if ( processAncestorIsOwnedByDucc(pid, tempProcessList)) {
             	continue;  // skip as this is not a rogue process
             }
+            boolean ghost = false;
+            boolean jobOrServiceProcess = isJobOrServiceProcess(tokens);
+            if ( jobOrServiceProcess ) {
+            	ghost = ghostJobOrServiceProcess(pid);
+                if (!ghost) {
+                	continue;
+                }
+            } 
+
             // any process owned by user who started the agent process is not rogue
-            if ( ducc_user.equalsIgnoreCase(user)) {
+            if ( ducc_user.equalsIgnoreCase(user) && !ghost) {
             	continue;
             }
         	// Detect and skip all ducc daemons except uima-as service
