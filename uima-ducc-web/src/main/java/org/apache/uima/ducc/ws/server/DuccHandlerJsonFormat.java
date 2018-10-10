@@ -116,7 +116,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 
-	private static BrokerHelper brokerHelper = BrokerHelper.getInstance();
 	private static DatabaseHelper databaseHelper = DatabaseHelper.getInstance();
 	
 	private HelperSpecifications helperSpecifications = HelperSpecifications.getInstance();
@@ -2269,6 +2268,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		
 		DuccDaemonsData duccDaemonsData = DuccDaemonsData.getInstance();
 		DuccMachinesData duccMachinesData = DuccMachinesData.getInstance();
+		
+		BrokerHelper brokerHelper = BrokerHelper.getInstance();
 		
 		String wsHostIP = getWebServerHostIP();
 		String wsHostName = getWebServerHostName();

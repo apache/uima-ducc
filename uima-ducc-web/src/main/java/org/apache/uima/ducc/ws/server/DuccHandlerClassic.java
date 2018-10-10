@@ -100,7 +100,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 	
-	private static BrokerHelper brokerHelper = BrokerHelper.getInstance();
 	private static DatabaseHelper databaseHelper = DatabaseHelper.getInstance();
 	
 	private static INodeState nodeState = NodeState.getInstance();
@@ -1442,6 +1441,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		
 		DuccDaemonsData duccDaemonsData = DuccDaemonsData.getInstance();
 		DuccMachinesData duccMachinesData = DuccMachinesData.getInstance();
+		
+		BrokerHelper brokerHelper = BrokerHelper.getInstance();
 		
 		int counter = 0;
 		boolean brokerAlive = brokerHelper.isAlive();
