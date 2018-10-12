@@ -229,7 +229,7 @@ class StopDucc(DuccUtil):
         epilog = epilog+'> '+self._fn()+' '+self.option_component+' '+self.c_or+'@nodeX3'+' '+self.option_kill
         return epilog
     
-    help_all        = 'Stop all DUCC management and agent processes by using database entries recorded by start_ducc.  Only allowed if '+option_kill+' option is also specified.'
+    help_all        = 'Stop all DUCC management and agent processes by using database entries recorded by start_ducc.'
     help_head       = 'Stop the DUCC  management processes on the present head node by using database entries recorded by start_ducc.'
     help_agents     = 'Stop the DUCC agents processes on all nodes by using database entries recorded by '+cmd_start_ducc+'.'
     help_nodelist   = 'Stop agents on the nodes in the nodefile.  Multiple nodefiles may be specified.'
@@ -239,7 +239,7 @@ class StopDucc(DuccUtil):
                     + '  Specification of broker or database is disallowed unless that component is automanaged by '+kw_DUCC+'.'   
     help_kill       = 'Stop the component(s) forcibly and immediately using '+cmd_ssh+' with '+cmd_kill_9+'.  Use this only if a normal stop does not work (e.g. the process may be hung).'
     help_stop       = 'Stop the component(s) gracefully using broadcast.  Agents allow children specified time (in seconds) to exit.  Default is '+str(default_stop)+'.'\
-                    + '  Broadcast is not used for broker and database, instead a direct kill -15 is employed.'
+                    + '  Broadcast is not used for broker, database, and remote head node daemons; instead a direct kill -15 is employed.'
     help_quiesce    = 'Stop the component(s) gracefully using broadcast.  Agents exit only when no children exist.  Children are given infinite time to exit.'
     help_maxthreads = 'Maximum concurrent threads.  Default = '+str(maxthreads)+'.'
     help_debug      = 'Display debugging messages.'
@@ -267,8 +267,9 @@ class StopDucc(DuccUtil):
         elif(self.args.stop):
             if(self.args.maxthreads == None):
                 self.args.maxthreads = 2
-            else:
-                self.parser.error(self.option_maxthreads+' requires '+self.option_kill)
+        elif(self.args.quiesce_then_stop):
+            if(self.args.maxthreads == None):
+                self.args.maxthreads = 2
         elif(self.args.maxthreads != None):
             self.parser.error(self.option_maxthreads+' requires '+self.option_kill)
         # debug
@@ -285,6 +286,8 @@ class StopDucc(DuccUtil):
     def get_db_list(self):
         if(self.db_list == None):
             self.db_list = self.db_acct_query()
+        text = 'list='+str(list)
+        debug(self._mn(),text)
         return self.db_list
     
     # --all
@@ -442,9 +445,13 @@ class StopDucc(DuccUtil):
                         break
         return pid
     
+    def acct_stop(self,node,component):
+        print 'stop: '+component+'@'+node
+        self.db_acct_stop(node,component)
+        
     # target=kill
     def kill(self,count,tid,node,component,signal):
-        self.db_acct_stop(node,component)
+        self.acct_stop(node,component)
         verbosity=False
         ssh = self.ssh_operational(node,verbosity)
         state = 'state=pending'
@@ -472,7 +479,7 @@ class StopDucc(DuccUtil):
         self.pool.release()
     
     # launch threads to perform kills
-    def kill_threads(self,list):
+    def kill_threads(self,list,signal):
         size = len(list)
         msg = 'daemons='+str(len(list))
         output(msg)
@@ -486,25 +493,42 @@ class StopDucc(DuccUtil):
                     count = count+1
                     self.pool.acquire()
                     tid = self.get_tid()
-                    signal = self.sig9
                     t = Thread(target=self.kill, args=(count,tid,node,component,signal))
                     t.start()
-        
+    
+    def filter_remote_head(self,list):
+        list_remote_head = []
+        list_remainder = []
+        this_node = self.get_node_name()
+        for item in list:
+            node = item[0]
+            com = item[1]
+            if(com == self.c_ag):
+                list_remainder.append(item)
+            elif(node == this_node):
+                list_remainder.append(item)
+            else:
+                list_remote_head.append(item)
+        return list_remote_head, list_remainder
+    
     # target=stop
-    def stop(self,list):   
+    def stop(self,list,qflag):   
         text = 'list='+str(list)
         debug(self._mn(),text)
-        # validate
-        self.head_on_node_only(list)
+        # get 2 lists
+        list_remote_head, list = self.filter_remote_head(list)
+        # stop remote head(s)
+        if(len(list_remote_head)>0):
+            signal = self.sig15
+            self.kill_threads(list_remote_head, signal)
         # update database + build admin string
-        self.threads_prep()
         admin = ''
         stop_db = False
         stop_broker = False
         for item in list:
             node = item[0]
             com = item[1]
-            self.db_acct_stop(node,com)
+            self.acct_stop(node,com)
             component = self.longname[com]
             if(component == self.c_broker):
                 stop_broker = True
@@ -515,50 +539,22 @@ class StopDucc(DuccUtil):
             else:
                 component = self.longname[com]
                 admin = admin+component+'@'+node+' '
-                self.db_acct_stop(node,component)
         # issue command
         admin = admin.strip()
         if(len(admin) > 0):
             admin = str(self.args.stop)+' '+admin
-            print "stop: "+admin
-            self.ducc_admin('--stop',admin)
+            if(qflag):
+                print 'quiesce: '+admin
+                self.ducc_admin('--quiesce',admin)
+            else:
+                print 'stop: '+admin
+                self.ducc_admin('--stop',admin)
         # stop broker
         if(stop_broker):
             self.stop_broker()
         # stop database
         if(stop_db):
             self.db_stop()
-    
-    # target=quiesce
-    def quiesce(self,list):   
-        text = 'list='+str(list)
-        debug(self._mn(),text)
-        # validate
-        self.agent_only(list)
-        # update database + build admin string
-        admin = ''
-        for item in list:
-            node = item[0]
-            com = item[1]
-            self.db_acct_stop(node,com)
-            component = self.longname[com]
-            admin = admin+component+'@'+node+' '
-        # issue command
-        admin = admin.strip()
-        if(len(admin) > 0):
-            print "quiesce: "+admin
-            self.ducc_admin('--quiesce',admin)
-    
-    # only head node component on present node allowed
-    def head_on_node_only(self,list):
-        head = self.get_node_name()
-        for item in list:
-            component = item[1]
-            if(component != self.n_ag):
-                node = item[0]
-                if(node != head):
-                    'invalid node='+node+' for component='+component
-                    self._exit()
     
     # only agent component allowed
     def agent_only(self,list):
@@ -599,14 +595,10 @@ class StopDucc(DuccUtil):
     # main
     def main(self,argv):
         self.get_args()
+        self.threads_prep()
         # get list of nodes+daemons
         if(self.args.all):
-            if(self.args.kill):
-                list = self.all()
-            else:
-                msg = 'cannot specify '+self.option_all+' unless '+self.option_kill+' is also specified.'
-                output(msg)
-                self._exit()
+            list = self.all()
         elif(self.args.head):
             list = self.head()
         elif(self.args.agents):
@@ -625,12 +617,12 @@ class StopDucc(DuccUtil):
         self.enforce_location_limits(list)
         # perform action
         if(self.args.kill):
-            self.threads_prep()
-            self.kill_threads(list)
+            signal = self.sig9
+            self.kill_threads(list,signal)
         elif(self.args.stop != None):
-            self.stop(list)
+            self.stop(list,False)
         elif(self.args.quiesce_then_stop):
-            self.quiesce(list)
+            self.stop(list,True)
         else:
             self._help()
         
