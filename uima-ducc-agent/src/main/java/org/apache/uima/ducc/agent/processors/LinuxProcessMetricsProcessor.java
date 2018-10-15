@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.Route;
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.agent.metrics.collectors.DuccGarbageStatsCollector;
@@ -349,11 +350,45 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 			   || 
 			   process.getProcessState().equals(ProcessState.Running);
 	}
+
+	private void stopRoute() throws Exception {
+		String methodName = "stopRoute";
+		if (process.getPID() != null && agent.getContext().getRoute(process.getPID()) != null) {
+			try {
+				// stop collecting process stats 
+				agent.getContext().stopRoute(process.getPID());
+			} catch (Exception e) {
+				logger.error(methodName, null, "....Unable to stop Camel route for PID:" + process.getPID());
+			}
+			// remove route from context, otherwise the routes accumulate over time causing
+			// memory leak
+			agent.getContext().removeRoute(process.getPID());
+			StringBuilder sb = new StringBuilder("\n");
+			logger.info(methodName, null, "Removed Camel Route from Context for PID:" + process.getPID());
+
+			for (Route route : agent.getContext().getRoutes()) {
+				sb.append("Camel Context - RouteId:" + route.getId() + "\n");
+			}
+			logger.info(methodName, null, sb.toString());
+		}
+	}
 	public void process(Exchange e) {
 		// if process is stopping or already dead dont collect metrics. The
 		// Camel route has just been stopped.
 		if (closed || !processIsActive()) {
  		    logger.info("LinuxProcessMetricsProcessor.process",	null,"Process with PID:"+process.getPID() +" not in Running or Initializing state. Returning");	
+ 		    Thread t = new Thread( 
+ 		    		 new Runnable() {
+ 		    		      public void run() {
+ 		    		 		  try {
+ 		    		 			stopRoute();
+ 		    		 		  } catch( Exception ex) {
+ 		    		 			logger.error("process", null, ex);  
+ 		    		 		  }
+ 		    		    	  
+ 		    		      }
+ 		    		});
+ 		    t.start();
  		    return;
 		}
 		try {
