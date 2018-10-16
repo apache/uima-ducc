@@ -161,10 +161,8 @@ public class WebServerConfiguration {
 		try {
 			String brokerCredentialsFile = 
 					System.getProperty("ducc.broker.credentials.file");
-			duccLogger.info("webServer", jobid, "Credentials File:"+brokerCredentialsFile);
 	   	    String path =
 			       Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
-			duccLogger.info("webServer", jobid, "Path:"+path);
 		    brokerCredentials = BrokerCredentials.get(path);
 			
 		} catch( Throwable e) {
