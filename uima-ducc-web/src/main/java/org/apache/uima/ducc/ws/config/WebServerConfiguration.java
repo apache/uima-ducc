@@ -29,9 +29,12 @@ import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.JmsMessage;
+import org.apache.uima.ducc.common.authentication.BrokerCredentials;
+import org.apache.uima.ducc.common.authentication.BrokerCredentials.Credentials;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.config.DuccBlastGuardPredicate;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
@@ -62,7 +65,9 @@ public class WebServerConfiguration {
 	private DuccId jobid = null;
 	
 	private AtomicBoolean singleton = new AtomicBoolean(false);
+	private Credentials brokerCredentials;
 	
+
 	/**
 	 * Instantiate {@link WebServerEventListener} which will handle incoming messages.
 	 * 
@@ -109,13 +114,17 @@ public class WebServerConfiguration {
 	 */
 	private RouteBuilder routeBuilderForWebServerStatePost(final String targetEndpointToReceiveWebServerStateUpdate, final int statePublishRate) throws Exception {
 		final WebServerStateProcessor wssp =  // an object responsible for generating the state 
-			new WebServerStateProcessor();
+				new WebServerStateProcessor(common.brokerUrl,
+						brokerCredentials.getUsername(), 
+						brokerCredentials.getPassword(),
+						targetEndpointToReceiveWebServerStateUpdate
+						);
 		
 		return new RouteBuilder() {
 		      public void configure() {		            
 		    	
 		    	final Predicate blastFilter = new DuccBlastGuardPredicate(duccLogger);
-		    	
+		    	onException(Exception.class).handled(true).process(new ErrorProcessor());
 		        from("timer:webserverStateDumpTimer?fixedRate=true&period=" + statePublishRate)
 		              // This route uses a filter to prevent sudden bursts of messages which
 		        	  // may flood DUCC daemons causing chaos. The filter disposes any event
@@ -124,12 +133,19 @@ public class WebServerConfiguration {
 		              //.process(xmStart)
 		        	  .process(wssp)
 		        	  //.process(xmEnded)
-		        	  .to(targetEndpointToReceiveWebServerStateUpdate)
+		        	  //.to(targetEndpointToReceiveWebServerStateUpdate)
 		        	  ;
 		      }
 		    };
 	}
-	
+	  public class ErrorProcessor implements Processor {
+
+		    public void process(Exchange exchange) throws Exception {
+		      // the caused by exception is stored in a property on the exchange
+		      Throwable causedBy = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
+		      duccLogger.error("ErrorProcessor.process", jobid, causedBy);
+		    }
+		  }
 	/**
 	 * Creates and initializes {@link WebServerComponent} instance. @Bean annotation identifies {@link WebServerComponent}
 	 * as a Spring framework Bean which will be managed by Spring container.  
@@ -142,6 +158,19 @@ public class WebServerConfiguration {
 	public WebServerComponent webServer() throws Exception {
 		String methodName = "webServer";
 		WebServerComponent ws = null;
+		try {
+			String brokerCredentialsFile = 
+					System.getProperty("ducc.broker.credentials.file");
+			duccLogger.info("webServer", jobid, "Credentials File:"+brokerCredentialsFile);
+	   	    String path =
+			       Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
+			duccLogger.info("webServer", jobid, "Path:"+path);
+		    brokerCredentials = BrokerCredentials.get(path);
+			
+		} catch( Throwable e) {
+			duccLogger.error("webServer", jobid, e);
+			
+		}
 		try {
 			if(singleton.getAndSet(true)) {
 				try {
