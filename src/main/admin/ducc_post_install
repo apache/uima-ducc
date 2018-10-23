@@ -424,9 +424,15 @@ class PostInstall():
                 ret = False
 
         return ret
-            
+        
+    def verify_prereqs(self):
+        fn = '/usr/bin/nslookup'
+        # will throw exception if not found
+        dir_stat = os.stat(fn)
+
     def main(self, argv):                    
 
+        self.verify_prereqs()
         self.DUCC_HOME = find_ducc_home()
         self.localhost = find_localhost()
         cwd = os.getcwd()
