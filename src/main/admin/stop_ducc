@@ -533,7 +533,7 @@ class StopDucc(DuccUtil):
             if(component == self.c_broker):
                 stop_broker = True
                 continue
-            elif(com == self.c_database):
+            elif(component == self.c_database):
                 stop_db = True
                 continue
             else:
