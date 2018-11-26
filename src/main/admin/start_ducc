@@ -356,6 +356,10 @@ class StartDucc(DuccUtil):
                 print sys.exc_info()[0], "Can't start the database."
                 sys.exit(1)
 
+        if ( len(components) == 1 ):
+            if ( self.automanage_database and ('db' in components) ):
+                return
+            
         # activeMQ needs to be started externally before starting any DUCC processes
         if ( self.automanage_broker and ('broker' in components) ):
             if ( self.is_amq_active() ):
