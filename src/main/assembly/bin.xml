@@ -348,6 +348,8 @@ under the License.
       <includes>
         <include>cassandra-env.sh</include>
         <include>cassandra.yaml</include>
+        <include>cassandra.yaml.local</include>
+        <include>cassandra.yaml.remote</include>
       </includes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
