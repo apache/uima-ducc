@@ -45,11 +45,11 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.model.RouteDefinition;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
-import org.apache.uima.ducc.common.admin.event.DuccAdminEventQuiesceAndStop;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventStop;
+import org.apache.uima.ducc.common.admin.event.TargetableDuccAdminEvent;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
 import org.apache.uima.ducc.common.exception.DuccConfigurationException;
@@ -637,34 +637,129 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     	return event instanceof DuccAdminEventKill ||
     		   event instanceof DuccAdminEventStop;
     }
-    public void process(final Exchange exchange) throws Exception {
-        logger.info("AdminEventProcessor.process()", null, "Received Admin Message of Type:"
-                    + exchange.getIn().getBody().getClass().getName());
-        if ( !"agent".equals(System.getProperty("ducc.deploy.components"))) {
-            if (killOrStopEvent(exchange.getIn().getBody() ) ) { 
-                // start a new thread to process the admin kill event. Need to do this
-                // so that Camel thread associated with admin channel can go back to
-                // its pool. Otherwise, we will not be able to stop the admin channel.
-                Thread th = new Thread(new Runnable() {
-                   public void run() {
-                      try {
-                        delegate.onDuccAdminKillEvent((DuccAdminEvent) exchange.getIn().getBody());
-                      } catch (Exception e) {
-
-                      }
-                   }
-                 });
-                 th.start();
-            } else {
-                handleAdminEvent((DuccAdminEvent) exchange.getIn().getBody());
-            }  	
-        } else {
-        	// agent
-            handleAdminEvent((DuccAdminEvent) exchange.getIn().getBody());
-        }
+    
+    private String getComponent() {
+    	return System.getProperty("ducc.deploy.components");
     }
-  }
+    
+    private boolean isAgent() {
+    	boolean retVal = false;
+    	if(getComponent().equals("agent")) {
+    		retVal = true;
+    	}
+    	return retVal;
+    }
+    
+    private String getHost() {
+    	String host = null;
+    	try {
+    		NodeIdentity ni = new NodeIdentity();
+    		host = ni.getShortName();
+    	}
+    	catch(Exception e) {
+    		
+    	}
+    	return host;
+    }
+    
+    private boolean targetedEvent(Object event) {
+    	return event instanceof TargetableDuccAdminEvent;
+    }
+    
+    private boolean find(String component, String host, String[] list) {
+    	String location = "AbstractDuccComponent.find()";
+    	boolean retVal = false;
+    	if(component != null) {
+    		if(host != null) {
+    			String token = component+"@"+host;
+    			if(list != null) {
+    				for(String entry : list) {
+    					if(entry != null) {
+    						if(entry.equals(token)) {
+    							retVal = true;
+    							logger.debug(location, jobid, entry+" == "+token);
+    							break;
+    						}
+    						else {
+    							logger.debug(location, jobid, entry+" != "+token);
+    						}
+    					}
+    					else {
+    						logger.warn(location, jobid, "list entry == null");
+    					}
+    				}
+    			}
+    			else {
+    				logger.debug(location, jobid, "list == null");
+    			}
+    		}
+    		else {
+    			logger.debug(location, jobid, "host == null");
+    		}
+    	}
+    	else {
+    		logger.debug(location, jobid, "component == null");
+    	}
+    	return retVal;
+    }
+    
+    private boolean isTarget(TargetableDuccAdminEvent te) {
+    	String location = "AbstractDuccComponent.isTarget()";
+    	String component = getComponent();
+    	String host = getHost();
+    	String[] list = te.getTargetList();
+    	boolean retVal = find(component,host,list);
+    	logger.info(location, jobid, retVal, component, host, "[ "+te.getTargets()+" ]");
+    	return retVal;
+    }
+    
+    private void killme(Object event) {
+    	// start a new thread to process the admin kill event. Need to do this
+        // so that Camel thread associated with admin channel can go back to
+        // its pool. Otherwise, we will not be able to stop the admin channel.
+        Thread th = new Thread(new Runnable() {
+           public void run() {
+              try {
+                delegate.onDuccAdminKillEvent((DuccAdminEvent) event);
+              } catch (Exception e) {
 
+              }
+           }
+         });
+         th.start();
+    }
+    
+    public void process(final Exchange exchange) throws Exception {
+
+    	String location = "AdminEventProcessor.process()";
+    	Object event = exchange.getIn().getBody();
+        logger.info(location, null, "Received Admin Message of Type:" + event.getClass().getName());
+        boolean doProcess = true;
+        if(targetedEvent(event)) {
+        	TargetableDuccAdminEvent te = (TargetableDuccAdminEvent) event;
+        	if(!isTarget(te)) {
+        		doProcess = false;
+        	}
+        }
+        if(doProcess) {
+        	if (!isAgent()) {
+        		// daemon
+                if (killOrStopEvent(event) ) { 
+                   killme(event);
+                } 
+                else {
+                   handleAdminEvent((DuccAdminEvent) exchange.getIn().getBody());
+                }  	
+        	} 
+        	else {
+        		// agent
+        		handleAdminEvent((DuccAdminEvent) exchange.getIn().getBody());
+            }
+        }    
+    }
+    
+  }
+    
   /**
    * Components interested in receiving DuccAdminEvents should override this method
    */

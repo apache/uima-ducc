@@ -286,7 +286,7 @@ class StopDucc(DuccUtil):
     def get_db_list(self):
         if(self.db_list == None):
             self.db_list = self.db_acct_query()
-        text = 'list='+str(list)
+        text = 'list='+str(self.db_list)
         debug(self._mn(),text)
         return self.db_list
     
@@ -525,6 +525,7 @@ class StopDucc(DuccUtil):
         admin = ''
         stop_db = False
         stop_broker = False
+        # pass 1 remove db,br
         for item in list:
             node = item[0]
             com = item[1]
@@ -540,15 +541,14 @@ class StopDucc(DuccUtil):
                 component = self.longname[com]
                 admin = admin+component+'@'+node+' '
         # issue command
-        admin = admin.strip()
-        if(len(admin) > 0):
-            admin = str(self.args.stop)+' '+admin
+        admin = admin.split()
+        for item in admin:
             if(qflag):
-                print 'quiesce: '+admin
-                self.ducc_admin('--quiesce',admin)
+                print 'quiesce: '+item
+                self.ducc_admin('--quiesce',item)
             else:
-                print 'stop: '+admin
-                self.ducc_admin('--stop',admin)
+                print 'stop: '+item
+                self.ducc_admin('--stop',item)
         # stop broker
         if(stop_broker):
             self.stop_broker()

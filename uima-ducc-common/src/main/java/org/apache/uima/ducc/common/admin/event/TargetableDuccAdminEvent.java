@@ -36,5 +36,13 @@ public abstract class TargetableDuccAdminEvent extends DuccAdminEvent {
 	public String getTargets() {
 		return this.targetList;
 	}
+	
+	public String[] getTargetList() {
+		String[] retVal = null;
+		if(targetList != null) {
+			retVal = targetList.split(",");
+		}
+		return retVal;
+	}
 
 }
