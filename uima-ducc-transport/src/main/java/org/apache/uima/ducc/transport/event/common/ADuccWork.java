@@ -95,27 +95,11 @@ public abstract class ADuccWork implements IDuccWork {
 		this.duccSchedulingInfo = schedulingInfo;
 	}
 
-	// Evaluate preemptability of scheduling class for entity: { 1 == yes, -1 == no, 0 == dunno }
-	public int getPreemptableStatus() {
-		int retVal = 0;  // dunno
-		try {
-			if(duccSchedulingInfo != null) {
-				String class_name = duccSchedulingInfo.getSchedulingClass();
-				if(class_name != null) {
-					DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-					boolean preemptable = duccSchedulerClasses.isPreemptable(class_name);
-					if(preemptable) {
-						retVal = 0+1; // yes
-					}
-					else {
-						retVal = 0-1; // no
-					}
-				}
-			}
-		}
-		catch(Exception e) {
-			// dunno
-		}
+	// Evaluate preemptability of scheduling class for entity:
+	public boolean getPreemptableStatus() throws Exception {
+		String class_name = duccSchedulingInfo.getSchedulingClass();
+		DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+		boolean retVal = duccSchedulerClasses.isPreemptable(class_name);
 		return retVal;
 	}
 	

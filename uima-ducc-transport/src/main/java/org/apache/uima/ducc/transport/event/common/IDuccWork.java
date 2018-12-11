@@ -41,8 +41,8 @@ public interface IDuccWork extends Identifiable, Serializable {
 	public IDuccSchedulingInfo getSchedulingInfo();
 	public void setSchedulingInfo(IDuccSchedulingInfo schedulingInfo);
 	
-	// Evaluate preemptability of scheduling class for entity: { 1 == yes, -1 == no, 0 == dunno }
-	public int getPreemptableStatus();
+	// Evaluate preemptability of scheduling class for entity
+	public boolean getPreemptableStatus() throws Exception;
 	
 	public Object getStateObject();
 	public void setStateObject(Object state);
