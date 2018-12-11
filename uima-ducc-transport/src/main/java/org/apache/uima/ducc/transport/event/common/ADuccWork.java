@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.transport.event.common;
 
+import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
@@ -94,6 +95,29 @@ public abstract class ADuccWork implements IDuccWork {
 		this.duccSchedulingInfo = schedulingInfo;
 	}
 
+	// Evaluate preemptability of scheduling class for entity: { 1 == yes, -1 == no, 0 == dunno }
+	public int getPreemptableStatus() {
+		int retVal = 0;  // dunno
+		try {
+			if(duccSchedulingInfo != null) {
+				String class_name = duccSchedulingInfo.getSchedulingClass();
+				if(class_name != null) {
+					DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+					boolean preemptable = duccSchedulerClasses.isPreemptable(class_name);
+					if(preemptable) {
+						retVal = 0+1; // yes
+					}
+					else {
+						retVal = 0-1; // no
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			// dunno
+		}
+		return retVal;
+	}
 	
 	public Object getStateObject() {
 		return stateObject;
