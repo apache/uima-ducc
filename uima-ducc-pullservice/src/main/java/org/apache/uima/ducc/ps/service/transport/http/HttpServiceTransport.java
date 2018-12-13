@@ -20,7 +20,6 @@ package org.apache.uima.ducc.ps.service.transport.http;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.NoRouteToHostException;
 import java.net.SocketException;
@@ -31,7 +30,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.httpclient.URIException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
