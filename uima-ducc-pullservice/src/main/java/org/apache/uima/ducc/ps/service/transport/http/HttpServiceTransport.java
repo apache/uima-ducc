@@ -289,6 +289,7 @@ public class HttpServiceTransport implements IServiceTransport {
 			// NoHttpResponseException, 
 			// HttpHostConnectException, 
 			// URISyntaxException
+			// Use JUnit test JunitTransoirtTestCase to test the above errors
 			
 			if ( ( simulatedException = System.getProperty("MockHttpPostError")) != null ) {
 				HttpClientExceptionGenerator mockExceptionGenerator = 
@@ -307,7 +308,6 @@ public class HttpServiceTransport implements IServiceTransport {
 					log = false;
 					stats.incrementErrorCount();
 					logger.log(Level.WARNING, this.getClass().getName()+".dispatch() >>>>>>>>>> Handling Exception \n"+ex);
-//					System.out.println( this.getClass().getName()+".dispatch() >>>>>>>>>> Unable to communicate with target:"+currentTargetUrl.asString()+" - retrying until successfull - with "+threadSleepTime/1000+" seconds wait between retries  ");
 					logger.log(Level.INFO, ">>>>>>>>>> Unable to communicate with target:"+currentTargetUrl.asString()+" - retrying until successfull - with "+threadSleepTime/1000+" seconds wait between retries  ");
 				}
 				serializedResponse = retryUntilSuccessfull(serializedRequest, postMethod);
@@ -359,9 +359,10 @@ public class HttpServiceTransport implements IServiceTransport {
 	public static class HttpClientExceptionGenerator {
 		public enum ERROR{ IOException, SocketException, UnknownHostException, NoRouteToHostException,NoHttpResponseException, HttpHostConnectException, URISyntaxException};
 		
-		Exception exceptionClass;
+		Exception exceptionClass=null;
 		
 		public HttpClientExceptionGenerator(String exc) {
+			
 			for( ERROR e : ERROR.values()) {
 				if ( exc != null && e.name().equals(exc)) {
 					switch(e) {
@@ -387,6 +388,9 @@ public class HttpServiceTransport implements IServiceTransport {
 					default:
 						
 							
+					}
+					if ( exceptionClass != null ) {
+						break;
 					}
 				}
 			}
