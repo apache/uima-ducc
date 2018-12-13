@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.uima.ducc.ps.service.registry.DefaultRegistryClient;
 import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 import org.apache.uima.ducc.ps.service.transport.http.HttpServiceTransport;
+import org.apache.uima.ducc.ps.service.transport.http.HttpServiceTransport.HttpClientExceptionGenerator.ERROR;
 import org.apache.uima.ducc.ps.service.transport.target.HttpTargetURI;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -91,7 +92,14 @@ public class JunitTransportTestCase {
         }
         System.out.println("Jetty Stopped");
     }
-
+    private void wait(DefaultRegistryClient registryClient) {
+    	synchronized(registryClient) {
+    		try {
+        		registryClient.wait(5*1000); 
+    			
+    		} catch( InterruptedException e) {}
+    	}
+    }
     @Test
     public void testTransportBasicConnectivity() throws Exception
     { 
@@ -105,6 +113,51 @@ public class JunitTransportTestCase {
     	//System.out.println("Test Received Response:"+response);
 
 //        assertThat("Response Code", http.getResponseCode(), (equal((HttpStatus.OK_200)));
+    }
+    @Test
+    public void testTransportIOException() throws Exception
+    { 
+    	System.out.println(".... Test::testTransportIOException");
+    	int scaleout = 12;
+    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+httpPort+"/"+app);
+    	DefaultRegistryClient registryClient =
+    			new DefaultRegistryClient(targetUrl);
+    	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);
+    	transport.initialize();
+    	System.setProperty("MockHttpPostError", ERROR.IOException.name());
+    	transport.dispatch("Dummy Message");
+ 
+    	wait(registryClient);
+    }
+    @Test
+    public void testTransportNoRoutToHostException() throws Exception
+    { 
+    	System.out.println(".... Test::testTransportNoRoutToHostException");
+    	int scaleout = 12;
+    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+httpPort+"/"+app);
+    	DefaultRegistryClient registryClient =
+    			new DefaultRegistryClient(targetUrl);
+    	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);
+    	transport.initialize();
+    	System.setProperty("MockHttpPostError", ERROR.NoRouteToHostException.name());
+    	transport.dispatch("Dummy Message");
+    	wait(registryClient);
+
+    }
+    @Test
+    public void testTransportURISyntaxException() throws Exception
+    { 
+    	System.out.println(".... Test::testTransportURISyntaxException");
+    	int scaleout = 12;
+    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+httpPort+"/"+app);
+    	DefaultRegistryClient registryClient =
+    			new DefaultRegistryClient(targetUrl);
+    	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);
+    	transport.initialize();
+    	System.setProperty("MockHttpPostError", ERROR.URISyntaxException.name());
+    	transport.dispatch("Dummy Message");
+    	wait(registryClient);
+
     }
 	public class TaskHandlerServlet extends HttpServlet {
 		private static final long serialVersionUID = 1L;

@@ -20,7 +20,9 @@ package org.apache.uima.ducc.ps.service.transport.http;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.net.ConnectException;
 import java.net.InetAddress;
+import java.net.NoRouteToHostException;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -29,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.httpclient.URIException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -241,7 +244,7 @@ public class HttpServiceTransport implements IServiceTransport {
 		return response;
 		
 	}
-	private String doPost(HttpPost postMethod) throws URISyntaxException, NoHttpResponseException, IOException, TransportException {
+	private String doPost(HttpPost postMethod) throws URISyntaxException, IOException, TransportException {
 		postMethod.setURI(new URI(currentTargetUrl.asString()));
 		HttpResponse response = httpClient.execute(postMethod);
 		
@@ -251,12 +254,10 @@ public class HttpServiceTransport implements IServiceTransport {
 		HttpEntity entity = response.getEntity();
 		String serializedResponse = EntityUtils.toString(entity);
 		StatusLine statusLine = response.getStatusLine();
-		if (statusLine.getStatusCode() != 200 && logger.isLoggable(Level.WARNING) ) {
-			
-			 logger.log(Level.WARNING,"execute", "Unable to Communicate with client - Error:"+statusLine);
-			 logger.log(Level.WARNING, "Content causing error:"+serializedResponse);
-			throw new TransportException(
-					"Http Client Unable to Communicate with a remote client - Error:" + statusLine);
+		if (statusLine.getStatusCode() != 200 ) {
+			// all IOExceptions are retried
+			throw new IOException(
+					"Unexpected HttpClient response status:"+statusLine+ " Content causing error:"+serializedResponse);
 		}
 		
 		stats.incrementSuccessCount();
@@ -277,61 +278,45 @@ public class HttpServiceTransport implements IServiceTransport {
 		postMethod.setEntity(e);
 		String serializedResponse = null;
 		try {
-			serializedResponse = doPost(postMethod);
+			String simulatedException;
+			// To test transport errors add command line option -DMockHttpPostError=exception where
+			// exception is one of the following Strings:
+			//
+			// IOException, 
+			// SocketException, 
+			// UnknownHostException, 
+			// NoRouteToHostException,
+			// NoHttpResponseException, 
+			// HttpHostConnectException, 
+			// URISyntaxException
 			
-		} catch ( NoHttpResponseException ex ) {
+			if ( ( simulatedException = System.getProperty("MockHttpPostError")) != null ) {
+				HttpClientExceptionGenerator mockExceptionGenerator = 
+						new HttpClientExceptionGenerator(simulatedException);
+				mockExceptionGenerator.throwSimulatedException();
+			} else {
+				serializedResponse = doPost(postMethod);
+			}
+		} catch( IOException | URISyntaxException ex) {
 			if ( stopping ) {
-				System.out.println("Process Thread:"+Thread.currentThread().getId()+" NoHttpResponseException ");
+				// looks like the process is in the shutdown mode. Log an exception and dont retry
+				logger.log(Level.INFO,"Process Thread:"+Thread.currentThread().getId()+" - Process is already stopping - Caught Exception while calling doPost() \n"+ex);
 				throw new TransportException(ex);
 			} else {
-				serializedResponse = retryUntilSuccessfull(serializedRequest, postMethod);
-			}
-
-		} catch (HttpHostConnectException | UnknownHostException ex ) {
-			if ( stopping ) {
-				System.out.println(this.getClass().getName()+".dispatch() Process Thread:"+Thread.currentThread().getId()+" HttpHostConnectException ");
-				
-				throw new TransportException(ex);
-			}
-
-			stats.incrementErrorCount();
-			Action action = handleConnectionError(ex);
-			if ( Action.CONTINUE.equals(action)) {
-				try {
-					// Lost connection to the Task Allocation App
-					// Block until connection is restored
-					if ( log ) {
-						log = false;
-
-						System.out.println( this.getClass().getName()+".dispatch() >>>>>>>>>> Unable to connect to target:"+currentTargetUrl.asString()+" - retrying until successfull - with "+threadSleepTime/1000+" seconds wait between retries  ");
-						logger.log(Level.INFO, ">>>>>>>>>> Unable to connect to target:"+currentTargetUrl.asString()+" - retrying until successfull - with "+threadSleepTime/1000+" seconds wait between retries  ");
-					}
-					serializedResponse = retryUntilSuccessfull(serializedRequest, postMethod);
-					log = true;
-					logger.log(Level.INFO, "Established connection to target:"+currentTargetUrl.asString());
-					
-				} catch( Exception ee) {
-					log = true;
-					// Fail here - bad URI
+				if ( log ) {
+					log = false;
+					stats.incrementErrorCount();
+					logger.log(Level.WARNING, this.getClass().getName()+".dispatch() >>>>>>>>>> Handling Exception \n"+ex);
+//					System.out.println( this.getClass().getName()+".dispatch() >>>>>>>>>> Unable to communicate with target:"+currentTargetUrl.asString()+" - retrying until successfull - with "+threadSleepTime/1000+" seconds wait between retries  ");
+					logger.log(Level.INFO, ">>>>>>>>>> Unable to communicate with target:"+currentTargetUrl.asString()+" - retrying until successfull - with "+threadSleepTime/1000+" seconds wait between retries  ");
 				}
-				
-				
-			} else if ( Action.TERMINATE.equals(action)) {
-				ex.printStackTrace();
+				serializedResponse = retryUntilSuccessfull(serializedRequest, postMethod);
+				log = true;
+				logger.log(Level.INFO, "Established connection to target:"+currentTargetUrl.asString());
 			}
-			
-		} catch (SocketException ex) {
-			if ( stopping ) {
-				throw new TransportException(ex);
-			}
-			
-		}  catch (TransportException ex) {
-			
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			throw new TransportException(ex);
-		}
-		finally {
+
+
+		} finally {
 			postMethod.releaseConnection();
 		}
 		return serializedResponse;
@@ -371,6 +356,53 @@ public class HttpServiceTransport implements IServiceTransport {
 
 	}
 
-
+	public static class HttpClientExceptionGenerator {
+		public enum ERROR{ IOException, SocketException, UnknownHostException, NoRouteToHostException,NoHttpResponseException, HttpHostConnectException, URISyntaxException};
+		
+		Exception exceptionClass;
+		
+		public HttpClientExceptionGenerator(String exc) {
+			for( ERROR e : ERROR.values()) {
+				if ( exc != null && e.name().equals(exc)) {
+					switch(e) {
+					case IOException:
+						exceptionClass = new IOException("Simulated IOException");
+						break;
+					case URISyntaxException:
+						exceptionClass = new URISyntaxException("", "Simulated URISyntaxException");
+						break;
+					case NoRouteToHostException:
+						exceptionClass = new NoRouteToHostException("Simulated NoRouteToHostException");
+						break;
+					case NoHttpResponseException:
+						exceptionClass = new NoHttpResponseException("Simulated NoHttpResponseException");
+						break;	
+					case SocketException:
+						exceptionClass = new SocketException("Simulated SocketException");
+						break;
+					case UnknownHostException:
+						exceptionClass = new UnknownHostException("Simulated UnknownHostException");
+						break;
+						
+					default:
+						
+							
+					}
+				}
+			}
+		}
+		public void throwSimulatedException() throws IOException, URISyntaxException {
+			if ( exceptionClass != null ) {
+				if ( exceptionClass instanceof IOException ) {
+					throw (IOException)exceptionClass;
+				} else if ( exceptionClass instanceof URISyntaxException ) {
+					throw (URISyntaxException)exceptionClass;
+				}
+				
+			}
+		}
+		
+		
+	}
 
 }
