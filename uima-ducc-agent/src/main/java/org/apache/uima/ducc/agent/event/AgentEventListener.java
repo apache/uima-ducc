@@ -126,14 +126,15 @@ public class AgentEventListener implements DuccEventDelegateListener {
 						.getStandardInfo(),
 				jobDeployment
 						.getProcessMemoryAssignment(),
-				jobDeployment.getJobId());
+				jobDeployment.getJobId(), dw.getPreemptableStatus());
 
 	}
 	private void handleServiceState(IDuccJobDeployment jobDeployment, IDuccWork dw, IDuccProcess process) throws Exception {
 		logger.info("onDuccJobsStateEvent",
 				jobDeployment.getJobId(),
 				"SERVICE>>>>>>>>>>>> -PID:"
-						+ process.getPID());
+						+ process.getPID()+" Preemptable:"+dw.getPreemptableStatus());
+		
 		IDuccWorkJob service = (IDuccWorkJob) dw;
 		ICommandLine processCmdLine = service
 				.getCommandLine();
@@ -147,12 +148,13 @@ public class AgentEventListener implements DuccEventDelegateListener {
 						.getStandardInfo(),
 				jobDeployment
 						.getProcessMemoryAssignment(),
-				jobDeployment.getJobId());
+				jobDeployment.getJobId(), dw.getPreemptableStatus());
 
 	}
 	private void handleJobDriverState(IDuccJobDeployment jobDeployment, Map<DuccId, IDuccProcess> processes) throws Exception {
 		IDuccWork dw = null;
 		boolean callReconcile = false;
+		boolean preemptable = false;
 		ICommandLine cmdLine = null;
 		// if driver not running, launch it
 		if ( !processes.containsKey(jobDeployment.getJdProcess().getDuccId())) {
@@ -166,6 +168,7 @@ public class AgentEventListener implements DuccEventDelegateListener {
 					callReconcile = true;
 					cmdLine = driver.getCommandLine();
 				}
+				preemptable = dw.getPreemptableStatus();
             }
 		} else {
 			// driver running already. Still call reconcileProcessStateAndTakeAction()
@@ -174,7 +177,7 @@ public class AgentEventListener implements DuccEventDelegateListener {
 		}
 		if ( callReconcile) {
 			  agent.reconcileProcessStateAndTakeAction(lifecycleController, jobDeployment.getJdProcess(), cmdLine,  
-						jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId());
+						jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId(), preemptable);
 
 		}
 	}
@@ -214,7 +217,7 @@ public class AgentEventListener implements DuccEventDelegateListener {
 						agent.reconcileProcessStateAndTakeAction(lifecycleController,process,
 								null, jobDeployment.getStandardInfo(),
 								jobDeployment.getProcessMemoryAssignment(),
-								jobDeployment.getJobId());
+								jobDeployment.getJobId(), false);
 					}
 				} 
 			}  // for
@@ -337,7 +340,7 @@ public class AgentEventListener implements DuccEventDelegateListener {
 			//  the agent will start a process.
 			if ( Utils.isTargetNodeForMessage(processEntry.getValue().getNodeIdentity().getIp(),agent.getIdentity().getIp()) ) { 
 				logger.info(">>> onProcessStartEvent", null,"... Agent ["+agent.getIdentity().getIp()+"] Matches Target Node Assignment:"+processEntry.getValue().getNodeIdentity().getIp()+" For Share Id:"+  processEntry.getValue().getDuccId());
-				agent.doStartProcess(processEntry.getValue(),duccEvent.getCommandLine(), duccEvent.getStandardInfo(), duccEvent.getDuccWorkId());
+				agent.doStartProcess(processEntry.getValue(),duccEvent.getCommandLine(), duccEvent.getStandardInfo(), duccEvent.getDuccWorkId(), true);
                 if ( processEntry.getValue().getProcessType().equals(ProcessType.Pop)) {
                 	break; // there should only be one JD process to launch
                 } else {

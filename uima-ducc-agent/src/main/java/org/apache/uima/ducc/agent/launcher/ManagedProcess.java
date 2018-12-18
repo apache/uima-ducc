@@ -141,27 +141,32 @@ public class ManagedProcess implements Process {
 	private long initializationTimeout;
 
 	private volatile boolean isUimaAs;
+	private volatile boolean preemptable;
 	
 	public ManagedProcess(IDuccProcess process, ICommandLine commandLine) {
-		this(process, commandLine, null, null, new ProcessMemoryAssignment());
+		this(process, commandLine, null, null, new ProcessMemoryAssignment(), true);
 	}
 
 	public ManagedProcess(IDuccProcess process, ICommandLine commandLine,
 			boolean agentProcess) {
-		this(process, commandLine, null, null, new ProcessMemoryAssignment());
+		this(process, commandLine, null, null, new ProcessMemoryAssignment(), true);
 		this.agentProcess = agentProcess;
 	}
 
 	public ManagedProcess(IDuccProcess process, ICommandLine commandLine,
 			ProcessLifecycleObserver observer, DuccLogger logger,
-			ProcessMemoryAssignment processMemoryAssignment) {
+			ProcessMemoryAssignment processMemoryAssignment, boolean isPreemptable) {
 		this.commandLine = commandLine;
 		this.duccProcess = process;
 		this.observer = observer;
 		this.logger = logger;
 		this.processMemoryAssignment = processMemoryAssignment;
+		this.preemptable = isPreemptable;
 	}
 
+	public boolean isPreemptable() {
+		return preemptable;
+	}
 	public void setMetricsProcessor(LinuxProcessMetricsProcessor processor) {
 		metricsProcessor = processor;
 	}

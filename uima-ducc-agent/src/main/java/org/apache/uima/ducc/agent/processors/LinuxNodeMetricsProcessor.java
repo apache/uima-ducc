@@ -157,7 +157,10 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 			}
             NodeMetrics nodeMetrics = new NodeMetrics(agent.getIdentity(), memInfo, lav,
               cpuInfo, users, cpuReportingEnabled);
-      
+    	    if ( agent.isStopping()) {
+    	    	nodeMetrics.disableNode();  // sends Unavailable status to clients (RM,WS)
+    	    }
+
 			Node node = new DuccNode(agent.getIdentity(), nodeMetrics, agent.useCgroups);
 			// Make the agent aware how much memory is available on the node. Do this once.
 			if ( agent.getNodeInfo() == null ) {
@@ -178,7 +181,8 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 					" Swap Total (KB):"+node.getNodeMetrics().getNodeMemory().getSwapTotal()+
 					" Swap Free (KB):"+node.getNodeMetrics().getNodeMemory().getSwapFree()+
 					" Low Swap Threshold Defined in ducc.properties (KB):"+swapThreshold +
-					" CPU Reporting Enabled:"+cpuReportingEnabled) ;
+					" CPU Reporting Enabled:"+cpuReportingEnabled +
+					" Node Status:"+nodeMetrics.getNodeStatus()) ;
 			
 			logger.trace(methodName, null, "... Agent "+node.getNodeIdentity().getCanonicalName()+" Posting Users:"+
 					node.getNodeMetrics().getNodeUsersMap().size());

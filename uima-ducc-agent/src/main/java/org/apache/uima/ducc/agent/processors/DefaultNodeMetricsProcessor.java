@@ -82,6 +82,7 @@ public class DefaultNodeMetricsProcessor extends BaseProcessor implements
 	                    cpuInfo, nuiFuture.get(), cpuReportingEnabled);
 	    if ( agent.isStopping()) {
 	    	nodeMetrics.disableNode();  // sends Unavailable status to clients (RM,WS)
+	    	logger.info(methodName, null,">>>>>>>>>>>>>>>>> Agent publishing State="+nodeMetrics.getNodeStatus()+" in Outgoing NodeMetrics");
 	    }
 	    //Node node = new DuccNode(new NodeIdentity(), nodeMetrics);
 	    // jrc 2011-07-30 I think this needs to be agent.getIdentity(), not create a new identity.

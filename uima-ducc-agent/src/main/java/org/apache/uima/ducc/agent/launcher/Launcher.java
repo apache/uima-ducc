@@ -109,7 +109,7 @@ public class Launcher {
         
     }
     /**
-     * This method is used to simulation only. It enables launching an agent with 
+     * This method is used for simulation only. It enables launching an agent with 
      * a given name and IP address which are different from a physical node name
      * and IP address. With that multiple agents can be launched on the same 
      * physical machine simulating a cluster of nodes.

@@ -26,6 +26,6 @@ import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
 
 
 public interface ProcessLifecycleController {
-	public void startProcess(IDuccProcess process, ICommandLine commandLine, IDuccStandardInfo info, DuccId workDuccId, ProcessMemoryAssignment pma);
+	public void startProcess(IDuccProcess process, ICommandLine commandLine, IDuccStandardInfo info, DuccId workDuccId, ProcessMemoryAssignment pma, boolean isPreemptable);
 	public void stopProcess( IDuccProcess process );
 }

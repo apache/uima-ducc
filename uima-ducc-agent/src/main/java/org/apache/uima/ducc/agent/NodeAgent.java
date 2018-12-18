@@ -883,7 +883,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
    */
   public void reconcileProcessStateAndTakeAction(ProcessLifecycleController lifecycleController,
           IDuccProcess process, ICommandLine commandLine, IDuccStandardInfo info,
-          ProcessMemoryAssignment processMemoryAssignment, DuccId workDuccId) {
+          ProcessMemoryAssignment processMemoryAssignment, DuccId workDuccId, boolean isPreemptable) {
     String methodName = "reconcileProcessStateAndTakeAction";
     try {
       inventorySemaphore.acquire();
@@ -896,7 +896,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           if (process.isDeallocated() ) {
         	  // if agent is in stopping state, it will try to stop 
         	  // its processes. 
-        	  if ( stopping ) {
+        	  if ( stopping && isPreemptable ) {
         		  logger.info(
                           methodName,
                           workDuccId,
@@ -956,7 +956,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                               + process.getProcessState() + " Process Resource State:"
                               + process.getResourceState());
               lifecycleController.startProcess(process, commandLine, info, workDuccId,
-                      processMemoryAssignment);
+                      processMemoryAssignment, isPreemptable);
             }
           }
         }
@@ -969,7 +969,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   }
 
   public void doStartProcess(IDuccProcess process, ICommandLine commandLine,
-          IDuccStandardInfo info, DuccId workDuccId) {
+          IDuccStandardInfo info, DuccId workDuccId, boolean isPreemptable) {
     String methodName = "doStartProcess";
     try {
       inventorySemaphore.acquire();
@@ -978,7 +978,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 + process.getDuccId() + " is already in agent's inventory.");
         return;
       }
-      startProcess(process, commandLine, info, workDuccId, new ProcessMemoryAssignment());
+      startProcess(process, commandLine, info, workDuccId, new ProcessMemoryAssignment(),isPreemptable);
     } catch (InterruptedException e) {
       logger.error(methodName, null, e);
     } finally {
@@ -1084,7 +1084,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
    *
    */
   public void startProcess(IDuccProcess process, ICommandLine commandLine, IDuccStandardInfo info,
-          DuccId workDuccId, ProcessMemoryAssignment processMemoryAssignment) {
+          DuccId workDuccId, ProcessMemoryAssignment processMemoryAssignment, boolean isPreemptable) {
     String methodName = "startProcess";
 
     try {
@@ -1102,7 +1102,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 "Rejecting Process Start Request. Process ID:" + process.getDuccId()
                         + " hava already been deallocated due to Shrink");
       } else {
-        deployProcess(process, commandLine, info, workDuccId, processMemoryAssignment);
+        deployProcess(process, commandLine, info, workDuccId, processMemoryAssignment,isPreemptable);
       }
 
     } catch (Exception e) {
@@ -1451,7 +1451,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
    *          - fully defined command line that will be used to exec the process.
    */
   private void deployProcess(IDuccProcess process, ICommandLine commandLine,
-          IDuccStandardInfo info, DuccId workDuccId, ProcessMemoryAssignment processMemoryAssignment) {
+          IDuccStandardInfo info, DuccId workDuccId, ProcessMemoryAssignment processMemoryAssignment, boolean preemptable) {
     String methodName = "deployProcess";
     synchronized (monitor) {
       boolean deployProcess = true;
@@ -1477,7 +1477,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           tw.setEnd(null);
           process.setTimeWindowInit(tw);
           ManagedProcess managedProcess = new ManagedProcess(process, commandLine, this, logger,
-                  processMemoryAssignment);
+                  processMemoryAssignment, preemptable);
           managedProcess.setProcessInfo(info);
           managedProcess.setWorkDuccId(workDuccId);
 
@@ -1564,7 +1564,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   /**
    * This method is called when an agent receives a STOP request. It
-   * sends SIGTERM to all child processes and starts a timer. If the
+   * sends SIGTERM to all non-preemptable child processes and starts a timer. If the
    * timer pops and child processes are still running, the agent takes
    * itself out via halt()
    */
@@ -1574,25 +1574,19 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	  try {
 		  Iterator<ManagedProcess> it = deployedProcesses.iterator();
 		  while( it.hasNext() ) {
-			  ManagedProcess deployedProcess = it.next();
-	     // for (ManagedProcess deployedProcess : deployedProcesses) {
-	          String pid = deployedProcess.getDuccProcess().getPID();
-	    	  logger.info(methodName, null, "....Process:"+pid+" is JD="+deployedProcess.isJd());
-	    	  // when called with quiesce=true we dont kill JDs to allow the JP
-	    	  // to send task completions. The JD's will be stopped when all JPs
-	    	  // terminate.
-//	    	  if ( deployedProcess.isStopping() || ( quiesceMode && deployedProcess.isJd()) ) {
-//	    	  if ( deployedProcess.isStopping() ) {
-//	    		  continue;
-//	    	  }
-            if (  deployedProcess.isStopping() || pid == null || pid.trim().length() == 0 || !runnable(deployedProcess) ) {
+			ManagedProcess deployedProcess = it.next();
+	        String pid = deployedProcess.getDuccProcess().getPID();
+	    	logger.info(methodName, null, "....Process:"+pid+" is JD="+deployedProcess.isJd()+" Preemptable:"+deployedProcess.isPreemptable());
+	    	// dont send SIGTERM to non-preemptable processes in quiesce mode
+            if (  (quiesceMode && !deployedProcess.isPreemptable()) || deployedProcess.isStopping() || pid == null || pid.trim().length() == 0 || !runnable(deployedProcess) ) {
             	continue;
             }
             
             logger.info(methodName, null, "....Stopping Process - DuccId:" + deployedProcess.getDuccProcess().getDuccId()
 	                    + " PID:" + pid+" Sending SIGTERM Process State:"+deployedProcess.getDuccProcess().getProcessState().toString()
 	                    +" Process Type:"+ deployedProcess.getDuccProcess().getProcessType()
-	                    +" Uima AS:"+deployedProcess.isUimaAs());
+	                    +" Uima AS:"+deployedProcess.isUimaAs()
+	                    +" Preemtable:"+deployedProcess.isPreemptable());
 			wait = true;
             deployedProcess.setStopPriority(StopPriority.DONT_WAIT);
             // Stop each child process in its own thread to parallelize SIGTERM requests
@@ -1607,24 +1601,24 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	  return wait;
   }
 
-      private void killChildProcesses(boolean killOnlyUimaAs ) {
+      private void killChildProcesses(boolean killOnlyUimaAs, boolean quiesce) {
     	  String methodName = "killChildProcesses";
 
 
     	  try {
       	    if ( useCgroups ) {
-    	        logger.info("stop", null, "CgroupsManager.cleanup() before ");
+    	        logger.info(methodName, null, "CgroupsManager.cleanup() before ");
     	        if ( killOnlyUimaAs ) {
     	        	Set<String> pidsToKill = new HashSet<>();
     	        	Iterator<ManagedProcess> it = deployedProcesses.iterator();
     	        	while( it.hasNext() ) {
     	        		ManagedProcess p = it.next();
-    	        		if ( p.getPid() != null && p.isUimaAs()) {
+    	        		if ( !p.isPreemptable() && p.getPid() != null && p.isUimaAs()) {
     	        			pidsToKill.add(p.getPid());
     	        		}
     	        	}
     	        	if ( !pidsToKill.isEmpty() ) {
-        	        	System.out.println(">>>>>>>> Found "+pidsToKill.size()+" UIMA-AS processes still running - killing all via kill -9");
+    	        		logger.info(methodName, null, ">>>>>>>> Found "+pidsToKill.size()+" UIMA-AS processes still running - killing all non-preemptables via kill -9");
             	        // Since SIGTERM may not be enough to take down a process, use cgroups to find
             	        // any UIMA-AS process still standing and do hard kill
             	        cgroupsManager.cleanupPids(pidsToKill);
@@ -1632,19 +1626,28 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     	        	}
     	        	
     	        } else {
+    	        	Set<String> pidsToKill = new HashSet<>();
+    	        	Iterator<ManagedProcess> it = deployedProcesses.iterator();
         	        // Since SIGTERM may not be enough to take down a process, use cgroups to find
         	        // any process still standing and do hard kill
-        	        cgroupsManager.cleanup();
+    	        	while( it.hasNext() ) {
+    	        		ManagedProcess p = it.next();
+    	        		if ( (!quiesce && !p.isPreemptable()) && p.getPid() != null && p.isUimaAs()) {
+    	        			pidsToKill.add(p.getPid());
+    	        		}
+    	        	}
+    	        	//cgroupsManager.cleanup();
+        	        cgroupsManager.cleanupPids(pidsToKill);
     	        	
     	        }
-    	        logger.info("stop", null, "CgroupsManager.cleanup() after ");
+    	        logger.info(methodName, null, "CgroupsManager.cleanup() after ");
     	    } else {
     	    	Iterator<ManagedProcess> it = deployedProcesses.iterator();
     	    	while( it.hasNext() ) {
     	    		ManagedProcess deployedProcess = it.next();
     	    		
                   String pid = deployedProcess.getDuccProcess().getPID();
-                  if (pid == null || pid.trim().length() == 0 || !runnable(deployedProcess) ) {
+                  if ((quiesce && !deployedProcess.isPreemptable()) || pid == null || pid.trim().length() == 0 || !runnable(deployedProcess) ) {
                   	continue;
                   }
                   logger.info(methodName, null, "....Stopping Process - DuccId:" + deployedProcess.getDuccProcess().getDuccId()
@@ -1711,7 +1714,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                   + " Not in Agent's inventory. Adding to the inventory with state=Stopped");
           process.setProcessState(ProcessState.Stopped);
           inventory.put(process.getDuccId(), process);
-          processDeploy(new ManagedProcess(process, null, this, logger, new ProcessMemoryAssignment()));
+          processDeploy(new ManagedProcess(process, null, this, logger, new ProcessMemoryAssignment(), true));
     	  return;
       }
       
@@ -2004,6 +2007,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
               .process(nmp);
     }
   }
+  @Override
+  public boolean isStopping() {
+	    return stopping;
+	}
     @Override
 	public void quiesceAndStop() throws Exception {
 		stop(true, -1);
@@ -2016,7 +2023,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 			}
 			stopping = true;
 			stateChange(EventType.SHUTDOWN);
-			// Dispatch SIGTERM to all child processes
+			// Dispatch SIGTERM to all processes. If this is quiesce mode we dont try to stop non-preemptable processes
 			boolean wait = stopChildProcesses(quiesce);
 			if ( quiesce ) {
 				logger.info("stop", null, "Agent stopping managed processes");
@@ -2030,35 +2037,26 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 				}
 				// Version 2.10.2 of UIMA-AS is not supporting quiesce and stop
 				// so we need to implement wait than kill -9 strategy.
-				waitForChildProcessesToTerminateAndKill(wait, waitTime, true);
+				waitForChildProcessesToTerminateAndKill(wait, waitTime, true, quiesce);
 				logger.info("stop", null,">>>>>>>>>>>> stop() waitForChildProcessesToTerminateAndKill() completed");
-				// wait for JP processes to terminate. Return only when all 
-				// terminate.
-				//waitForChildProcessesToTerminate(true);
-				//logger.info("stop", null,">>>>>>>>>>>> stop() waitForChildProcessesToTerminate() completed");
-				// now stop JDs
-				//stopChildProcesses(false);
-				//logger.info("stop", null,">>>>>>>>>>>> stop() stopChildProcesses() completed");
-				// wait for JD processes to terminate. Return only when all 
+				// wait for JD processes to terminate. Return only when all non-preemptables
 				// terminate.
 				waitForChildProcessesToTerminate(false);
-				logger.info("stop", null,">>>>>>>>>>>> stop() waitForChildProcessesToTerminate() 2 completed");
+				logger.info("stop", null,">>>>>>>>>>>> stop() waitForChildProcessesToTerminate() completed");
 			} else {
 				logger.info("stop", null, "Agent stopping managed processes with reaper delay of "+waitTimeInSecs+" secs");
 
 				// wait for 60 secs and sends SIGKILL to any process still standing
-				waitForChildProcessesToTerminateAndKill(wait, waitTimeInSecs, false);
+				waitForChildProcessesToTerminateAndKill(wait, waitTimeInSecs, false, quiesce);
 			}
 			// Send an empty process map as the final inventory
-//			HashMap<DuccId, IDuccProcess> emptyMap = new HashMap<>();
 			DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(inventory, getLastORSequence(), getIdentity());
-//			DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap, getLastORSequence(), getIdentity());
 			ORDispatcher.dispatch(duccEvent);
 			logger.info("stop", null, "Agent published final inventory");
 			
 			logger.info("stop", null, "Stopping Publishing Metrics and Inventory");
 
-			//configurationFactory.stopRoutes();
+			
 			configurationFactory.stop();
 			logger.info("stop", null, "Reaper thread finished - calling super.stop()");
 			super.stop();
@@ -2071,36 +2069,21 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 	  stop(false, 60);
   }
 
-  private void waitForChildProcessesToTerminateAndKill(boolean wait, long waitTimeInSecs, boolean killJustUimaAs) throws Exception {
+  private void waitForChildProcessesToTerminateAndKill(boolean wait, long waitTimeInSecs, boolean killJustUimaAs, boolean quiesce) throws Exception {
 		if (wait && !deployedProcesses.isEmpty()) {
-			logger.info("waitForChildProcessesToTerminateAndKill", null, "Agent Sent SIGTERM to ALL Child Processes - Number of Deployed Processes:"
+			logger.info("waitForChildProcessesToTerminateAndKill", null, "Agent Sent SIGTERM to ALL Non-Preemptable Child Processes - Number of Deployed Processes:"
 					+ deployedProcesses.size());
 			
 			Timer timer = new Timer(true);
-			logger.info("waitForChildProcessesToTerminateAndKill", null, "Waiting", waitTimeInSecs, " secs before sending kill -9 to all child processes still running");
+			logger.info("waitForChildProcessesToTerminateAndKill", null, "Waiting", waitTimeInSecs, " secs before sending kill -9 to all ***non-preemptable*** child processes still running");
 			CountDownLatch completionLatch = new CountDownLatch(1);
 			// start a timer task which when triggered kills processes via kill -9
-			timer.schedule(new KillTimerTask(completionLatch, killJustUimaAs), waitTimeInSecs*1000);
+			timer.schedule(new KillTimerTask(completionLatch, killJustUimaAs, quiesce), waitTimeInSecs*1000);
 			
 			// block this thread until killer task finishes its work
 			completionLatch.await();
 			
-			// wait for awhile
-//			synchronized (this) {
-//				long waittime = 60000;
-//				if (configurationFactory.processStopTimeout != null) {
-//					try {
-//						waittime = Long.parseLong(configurationFactory.processStopTimeout);
-//					} catch (NumberFormatException e) {
-//						logger.warn("stop", null, e);
-//					}
-//				}
-//				logger.info("stop", null, "Waiting", waitTimeInSecs, " secs to send final NodeInventory.");
-//				this.wait(waitTimeInSecs*1000);
-//			}
 		}
-		// send kill -9 to any child process still running
-		//killChildProcesses();
 		stopLock.wait(1000);
 		logger.info("waitForChildProcessesToTerminateAndKill", null, "Done");
 
@@ -2125,15 +2108,6 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 			p.getFuture().get();
 			
 		}
-//		for (ManagedProcess p : deployedProcesses) {
-//			// dont wait for JDs to stop. In quiesce mode we keep them 
-//			// running until all JPs terminate and only than we stop them
-//			if ( quiesceMode && p.isJd()) {
-//					continue;
-//			}
-//			p.getFuture().get();
-//		}
-		
 	}
 
   public Future<?> getDeployedJPFuture(IDuccId duccId) {
@@ -2518,16 +2492,18 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
 	private CountDownLatch completionLatch;
 	private boolean killJustUimaAs;
+	private boolean quiesce;
 	
-	public KillTimerTask(CountDownLatch completionLatch, boolean killOnlyUimaAs) {
+	public KillTimerTask(CountDownLatch completionLatch, boolean killOnlyUimaAs, boolean quiesce) {
 		this.completionLatch = completionLatch;
-		killJustUimaAs = killOnlyUimaAs;
+		this.killJustUimaAs = killOnlyUimaAs;
+		this.quiesce = quiesce;
 	}
 	@Override
 	public void run() {
 		try {
 			// send kill -9 to any child process still running
-			killChildProcesses(killJustUimaAs);
+			killChildProcesses(killJustUimaAs, quiesce);
 		} finally {
 			completionLatch.countDown();
 		}
