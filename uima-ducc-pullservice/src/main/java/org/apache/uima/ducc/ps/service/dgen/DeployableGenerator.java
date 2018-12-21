@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -25,8 +25,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -61,15 +59,15 @@ public class DeployableGenerator {
 	  private String userLogDir = null;
 	  private Document doc;
 	  private String registryURL;
-	  
+
 		public DeployableGenerator(String userLogDir) {
 			setUserLogDir(userLogDir);
 		}
-		
+
 		private void setUserLogDir(String value) {
 			userLogDir = value;
 		}
-		
+
 		public String generateAe(IDuccGeneratorUimaAggregate aggregateConfiguration, String jobId, boolean createUniqueFilename) throws Exception {
 			List<String> descriptorPaths = new ArrayList<String>();
 			List<List<String>> overrides = new ArrayList<List<String>>();
@@ -79,10 +77,10 @@ public class DeployableGenerator {
 			}
 			String aed = createAED(
 			    aggregateConfiguration.getFlowController(),
-			    aggregateConfiguration.getThreadCount(), 
+			    aggregateConfiguration.getThreadCount(),
 			    userLogDir,
 			    createUniqueFilename ? null : jobId+"-"+"uima-ae-descriptor"+".xml",
-			    overrides, 
+			    overrides,
 			    descriptorPaths.toArray(new String[descriptorPaths.size()])
 				);
 			return aed;
@@ -90,12 +88,12 @@ public class DeployableGenerator {
 
 		private static String createAED (
 				String flowController,
-				int scaleup, 
-				String directory, 
-				String fname, 
+				int scaleup,
+				String directory,
+				String fname,
 				List<List<String>> overrides,
 				String... aeDescriptors) throws Exception {
-			
+
 			AnalysisEngineDescription aed = UimaUtils.createAggregateDescription(flowController, (scaleup > 1), overrides, aeDescriptors);
 			aed.getMetaData().setName("DUCC.job");
 			File dir = new File(directory);
@@ -116,10 +114,10 @@ public class DeployableGenerator {
 				Path target = source.resolveSibling(fname);
 				Files.move(source,  target, StandardCopyOption.ATOMIC_MOVE);
 				return target.toString();
-			} 
+			}
 			catch(Exception e) {
 				throw e;
-			} 
+			}
 			finally {
 				if( fos != null ) {
 					fos.close();
@@ -130,14 +128,14 @@ public class DeployableGenerator {
 			try {
 				documentBuilderFactory.setFeature(DISALLOW_DOCTYPE_DECL, true);
 			} catch (ParserConfigurationException e1) {
-				UIMAFramework.getLogger().log(Level.WARNING, 
+				UIMAFramework.getLogger().log(Level.WARNING,
 						"DocumentBuilderFactory didn't recognize setting feature " + DISALLOW_DOCTYPE_DECL);
 			}
 
 			try {
 				documentBuilderFactory.setFeature(LOAD_EXTERNAL_DTD, false);
 			} catch (ParserConfigurationException e) {
-				UIMAFramework.getLogger().log(Level.WARNING, 
+				UIMAFramework.getLogger().log(Level.WARNING,
 						"DocumentBuilderFactory doesn't support feature " + LOAD_EXTERNAL_DTD);
 			}
 
@@ -147,22 +145,22 @@ public class DeployableGenerator {
 		/*
 		 * This method is used by the JD to convert a deployment descriptor's inputQueue element
 		 * to make it suitable for the JP's internal broker.
-		 * It is also used by the JP code since when running as a "pull" service it will be given an unconverted DD 
+		 * It is also used by the JP code since when running as a "pull" service it will be given an unconverted DD
 		 */
 		public String generateDd(IDuccGeneratorUimaReferenceByName configuration, String jobId, Boolean createUniqueFilename) throws Exception {
 			//  Create DOM from the DD ... file or class-like name
 			String location = configuration.getReferenceByName();
 	    org.apache.uima.util.XMLInputSource xmlin = UimaUtils.getXMLInputSource(location);  // Reads from FS or classpath
-	    
+
 	    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 	    secureDocumentBuilderFactory(dbFactory);
 	    DocumentBuilder db = dbFactory.newDocumentBuilder();
-	    
+
 	    doc = db.parse(xmlin.getInputStream());
-			
+
 	    // Create converted descriptor if input is not a file or if endpoint or broker wrong
 	    boolean createDescriptor = ! location.endsWith(".xml");
-	    
+
 			//  locate the <inputQueue node within the xml ... should be only one
 			NodeList nodes = doc.getElementsByTagName("inputQueue");
 			Element element;
@@ -186,12 +184,12 @@ public class DeployableGenerator {
 	      throw new Exception("Invalid DD-" + configuration.getReferenceByName()
 	              + ". Missing required element <inputQueue ...");
 	    }
-	    
+
 	    //	Return the original descriptor or the converted one if necessary
 			return createDescriptor ? writeDDFile(xml2String(doc), jobId, createUniqueFilename) : location;
 		}
 
-	  /* 
+	  /*
 	   *  Deduce the scaleout for a deployment descriptor.
 	   *  If a top-level non-AS deployment check for a scaleout setting.
 	   *  Otherwise use the caspool size, with a default of 1
@@ -210,7 +208,7 @@ public class DeployableGenerator {
 	      if (async.isEmpty()) {
 	        if (aeElement.getElementsByTagName("delegates").getLength() == 0) {
 	          async = "false";
-	        } 
+	        }
 	      }
 	      // If async is false a scaleout setting can override the caspool size
 	      if (async.equals("false")) {
@@ -221,7 +219,7 @@ public class DeployableGenerator {
 	        }
 	      }
 	    }
-	    
+
 	    if (soValue.isEmpty()) {
 	      nodes = doc.getElementsByTagName("casPool");
 	      if (nodes.getLength() > 0) {
@@ -229,10 +227,10 @@ public class DeployableGenerator {
 	        soValue = cpElement.getAttribute("numberOfCASes");
 	      }
 	    }
-	    
+
 	    return soValue.isEmpty() ? 1 : Integer.parseInt(soValue);
 		}
-		
+
 		public String getRegistryUrl() {
 		  return registryURL;
 		}
@@ -240,27 +238,27 @@ public class DeployableGenerator {
 		    try {
 		        transformerFactory.setAttribute(ACCESS_EXTERNAL_DTD, "");
 		      } catch (IllegalArgumentException e) {
-		        UIMAFramework.getLogger().log(Level.WARNING, 
+		        UIMAFramework.getLogger().log(Level.WARNING,
 		            "TransformerFactory didn't recognize setting attribute " + ACCESS_EXTERNAL_DTD);
 		      }
-		      
+
 		      try {
 		        transformerFactory.setAttribute(ACCESS_EXTERNAL_STYLESHEET, "");
 		      } catch (IllegalArgumentException e) {
-		        UIMAFramework.getLogger().log(Level.WARNING, 
+		        UIMAFramework.getLogger().log(Level.WARNING,
 		            "TransformerFactory didn't recognize setting attribute " + ACCESS_EXTERNAL_STYLESHEET);
 		      }
 
 		}
 		private String xml2String(Document xmlDoc) throws Exception {
 			StringWriter writer = null;
-			
+
 			DOMSource domSource = new DOMSource(xmlDoc.getDocumentElement());
-			
+
 			writer = new StringWriter();
 
 			StreamResult streamResult = new StreamResult(writer);
-			
+
 			TransformerFactory factory = TransformerFactory.newInstance();
 	    	secureTransformerFactory(factory);
 
@@ -270,7 +268,7 @@ public class DeployableGenerator {
 			StringBuffer serializedDD = writer.getBuffer();
 			return serializedDD.toString();
 		}
-		
+
 		private String writeDDFile(String content, String jobId, boolean createUniqueFilename) throws Exception {
 			File dir = new File(userLogDir);
 			if ( !dir.exists()) {
@@ -299,7 +297,7 @@ public class DeployableGenerator {
 				}
 			}
 		}
-		
+
 		// Don't delete descriptors if this environment variable is set
 		// (Can't put the key in IDuccUser as that is in the common project)
 		private static void deleteOnExitCheck(File f) {

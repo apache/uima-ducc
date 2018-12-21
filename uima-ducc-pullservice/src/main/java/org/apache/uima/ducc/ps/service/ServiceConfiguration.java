@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,7 +20,6 @@
 package org.apache.uima.ducc.ps.service;
 
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
-import org.apache.uima.ducc.ps.service.jmx.JMXAgent;
 
 public class ServiceConfiguration {
 	private String clientURL;
@@ -49,7 +48,7 @@ public class ServiceConfiguration {
 	private int waitTimeWhenNoTaskGiven = 0;
 	private ClassLoader sysCL=null;
     private String processType;
-    
+
 	public String getProcessType() {
 		return processType;
 	}
@@ -213,7 +212,7 @@ public class ServiceConfiguration {
 	public void setServiceType(String serviceType) {
 		this.serviceType = serviceType;
 	}
-	
+
 //	public String getAssignedJmxPort() {
 //		return assignedJmxPort;
 //	}

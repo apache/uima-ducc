@@ -34,7 +34,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.ServiceThreadFactory;
 import org.apache.uima.ducc.ps.service.IService;
-import org.apache.uima.ducc.ps.service.builders.PullServiceStepBuilder.OptionalsStep;
 //import org.apache.uima.ducc.ps.service.ServiceConfiguration;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
@@ -44,7 +43,6 @@ import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
 import org.apache.uima.ducc.ps.service.protocol.IServiceProtocolHandler;
 import org.apache.uima.ducc.ps.service.protocol.builtin.DefaultNoTaskAvailableStrategy;
 import org.apache.uima.ducc.ps.service.protocol.builtin.DefaultServiceProtocolHandler;
-import org.apache.uima.ducc.ps.service.protocol.builtin.NoWaitStrategy;
 import org.apache.uima.ducc.ps.service.registry.DefaultRegistryClient;
 import org.apache.uima.ducc.ps.service.registry.IRegistryClient;
 import org.apache.uima.ducc.ps.service.transport.IServiceTransport;
@@ -62,8 +60,8 @@ public class PullService implements IService {
 	// how many processing threads
 	private int scaleout=1;
 	// amount of time to wait when client has no tasks to give
-	private int waitTimeInMillis=0;  
-	
+	private int waitTimeInMillis=0;
+
 	// application assigned service label
 	private String type;
 	private volatile boolean initialized = false;
@@ -95,8 +93,8 @@ public class PullService implements IService {
 	private Lock initLock = new ReentrantLock();
 
 	private Application application=null;
-	
-	
+
+
 	public PullService(String type) {
 		this(type,null);
 
@@ -107,7 +105,7 @@ public class PullService implements IService {
 
 		this.application = application;
 	}
-	
+
 	public String getType() {
 		return type;
 	}
@@ -260,7 +258,7 @@ public class PullService implements IService {
 				// thread has been interrupted, force executor shutdown
 				threadPool.shutdownNow();
 			}
-		} 
+		}
 
 	}
 	@Override
@@ -282,7 +280,7 @@ public class PullService implements IService {
 		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .dtop()-monitor stopped");
 	}
     public void quiesceAndStop() {
-		// when quiescing, let the process threads finish processing 
+		// when quiescing, let the process threads finish processing
     	stopProtocolHandler(true);  // true = quiesce
 		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .quiesceAndStop()-protocol handler stopped");
 		// close connection to remote client and cleanup
@@ -307,7 +305,7 @@ public class PullService implements IService {
 		}
 	}
 
-	
+
 	private void initializeTransport() throws ServiceInitializationException {
 		try {
 			transport.initialize();
@@ -333,7 +331,7 @@ public class PullService implements IService {
 			try {
 				logger.log(Level.INFO, "Stopping Process Thread Pool");
 				threadPool.shutdownNow();
-				
+
 				// below probably not needed since this is done in start()
 				threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
 				logger.log(Level.INFO, "Process Thread Pool Stopped");
