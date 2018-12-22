@@ -20,6 +20,7 @@ package org.apache.uima.ducc.ps;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -52,7 +53,7 @@ public class Client {
 	private boolean block = false;
 	private AtomicLong errorCount = new AtomicLong();
 	private final static String app="test";
-	private int httpPort = 8080;
+	private int httpPort = 12222;
 	private int maxThreads = 50;
 	private static UimaSerializer uimaSerializer = new UimaSerializer();
 	private AtomicInteger correlationIdCounter = 
@@ -65,7 +66,27 @@ public class Client {
 	protected String getApp() {
 		return app;
 	}
+	protected int getJettyPort() {
+		while(true) {
+			ServerSocket socket=null;
+			try {
+				socket = new ServerSocket(httpPort);
+				break;
+			} catch( IOException e) {
+				httpPort++;
+			} finally {
+				if ( socket != null ) {
+					try {
+						socket.close();
+					} catch( Exception ee) {}
+					
+				}
+			}
+		}
+		return httpPort;
+	}
 	protected int getPort() {
+
 		return httpPort;
 	}
 	   
@@ -86,9 +107,9 @@ public class Client {
 
 			// Server connector
 			ServerConnector connector = new ServerConnector(server);
-			connector.setPort(httpPort);
+			connector.setPort(getJettyPort());
 			server.setConnectors(new Connector[] { connector });
-
+	        System.out.println("launching Jetty on Port:"+connector.getPort());
 			ServletContextHandler context = new ServletContextHandler(
 					ServletContextHandler.SESSIONS);
 			context.setContextPath("/");

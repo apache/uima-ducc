@@ -20,6 +20,7 @@ package org.apache.uima.ducc.ps.transport;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.ServerSocket;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -44,8 +45,31 @@ import org.junit.Test;
 public class JunitTransportTestCase {
 	private Server server;
 	private final static String app="test";
-	private int httpPort = 8080;
+	private int httpPort = 12222;
 	private int maxThreads = 20;
+	private int getJettyPort() {
+		while(true) {
+			ServerSocket socket=null;
+			try {
+				socket = new ServerSocket(httpPort);
+				break;
+			} catch( IOException e) {
+				httpPort++;
+			} finally {
+				if ( socket != null ) {
+					try {
+						socket.close();
+					} catch( Exception ee) {}
+					
+				}
+			}
+		}
+		return httpPort;
+	}
+	private int getPort() {
+
+		return httpPort;
+	}
     @Before
     public void startJetty() throws Exception
     {
@@ -64,9 +88,9 @@ public class JunitTransportTestCase {
 
 		// Server connector
 		ServerConnector connector = new ServerConnector(server);
-		connector.setPort(httpPort);
+		connector.setPort(getJettyPort());
 		server.setConnectors(new Connector[] { connector });
-
+        System.out.println("launching Jetty on Port:"+connector.getPort());
 		ServletContextHandler context = new ServletContextHandler(
 				ServletContextHandler.SESSIONS);
 		context.setContextPath("/");
@@ -104,7 +128,7 @@ public class JunitTransportTestCase {
     public void testTransportBasicConnectivity() throws Exception
     { 
     	int scaleout = 12;
-    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+httpPort+"/"+app);
+    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+getPort()+"/"+app);
     	DefaultRegistryClient registryClient =
     			new DefaultRegistryClient(targetUrl);
     	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);
@@ -119,7 +143,7 @@ public class JunitTransportTestCase {
     { 
     	System.out.println(".... Test::testTransportIOException");
     	int scaleout = 12;
-    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+httpPort+"/"+app);
+    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+getPort()+"/"+app);
     	DefaultRegistryClient registryClient =
     			new DefaultRegistryClient(targetUrl);
     	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);
@@ -134,7 +158,7 @@ public class JunitTransportTestCase {
     { 
     	System.out.println(".... Test::testTransportNoRoutToHostException");
     	int scaleout = 12;
-    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+httpPort+"/"+app);
+    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+getPort()+"/"+app);
     	DefaultRegistryClient registryClient =
     			new DefaultRegistryClient(targetUrl);
     	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);
@@ -149,7 +173,7 @@ public class JunitTransportTestCase {
     { 
     	System.out.println(".... Test::testTransportURISyntaxException");
     	int scaleout = 12;
-    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+httpPort+"/"+app);
+    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+getPort()+"/"+app);
     	DefaultRegistryClient registryClient =
     			new DefaultRegistryClient(targetUrl);
     	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);

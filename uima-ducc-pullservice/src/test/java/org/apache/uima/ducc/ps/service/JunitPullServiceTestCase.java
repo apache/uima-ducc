@@ -52,7 +52,7 @@ public class JunitPullServiceTestCase extends Client {
 		IServiceProcessor processor = new 
 				UimaServiceProcessor(analysisEngineDescriptor);
 		
-		String tasURL = "http://localhost:8080/test";
+		String tasURL = "http://localhost:"+super.getPort()+"/test";
 		
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
@@ -70,6 +70,8 @@ public class JunitPullServiceTestCase extends Client {
 			throw e;
 		} catch (Exception e) {
 			throw e;
+		} finally {
+			super.stopJetty();
 		}
 	}
 	@Test
@@ -82,7 +84,7 @@ public class JunitPullServiceTestCase extends Client {
 		IServiceProcessor processor = new 
 				UimaServiceProcessor(analysisEngineDescriptor);
 
-		String tasURL = "http://localhost:8080/test";
+		String tasURL = "http://localhost:"+super.getPort()+"/test";
 		
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
@@ -100,6 +102,8 @@ public class JunitPullServiceTestCase extends Client {
 			throw e;
 		} catch (Exception e) {
 			throw e;
+		}finally {
+			super.stopJetty();
 		}
 	}
 
@@ -112,7 +116,7 @@ public class JunitPullServiceTestCase extends Client {
 		IServiceProcessor processor = new 
 				UimaServiceProcessor(analysisEngineDescriptor);
 
-		String tasURL ="http://localhost:8080/test";
+		String tasURL ="http://localhost:"+super.getPort()+"/test";
 		
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
@@ -132,6 +136,8 @@ public class JunitPullServiceTestCase extends Client {
 			throw e;
 		} catch (Exception e) {
 			throw e;
+		}finally {
+			super.stopJetty();
 		}
 	}
 	
@@ -148,7 +154,7 @@ public class JunitPullServiceTestCase extends Client {
 		// fail on 1st error
 		processor.setErrorHandlerWindow(1,  5);
 
-		String tasURL = "http://localhost:8080/test";
+		String tasURL = "http://localhost:"+super.getPort()+"/test";
 		
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
@@ -166,6 +172,7 @@ public class JunitPullServiceTestCase extends Client {
 			throw e;
 		} finally {
 			System.getProperties().remove("ProcessFail");
+			super.stopJetty();
 		}
 	}
 	@Test
@@ -180,7 +187,7 @@ public class JunitPullServiceTestCase extends Client {
 				new UimaServiceProcessor(analysisEngineDescriptor);
 		// fail on 2nd error in a window of 5
 		processor.setErrorHandlerWindow(2,  5);
-		String tasURL = "http://localhost:8080/test";
+		String tasURL = "http://localhost:"+super.getPort()+"/test";
 		
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
@@ -199,6 +206,7 @@ public class JunitPullServiceTestCase extends Client {
 			throw e;
 		} finally {
 			System.getProperties().remove("ProcessFail");
+			super.stopJetty();
 		}
 	}
 	@Test
@@ -210,7 +218,7 @@ public class JunitPullServiceTestCase extends Client {
 		IServiceProcessor processor = new 
 				UimaServiceProcessor(analysisEngineDescriptor);
 
-		String tasURL = "http://localhost:8080/test";
+		String tasURL = "http://localhost:"+super.getPort()+"/test";
 		
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
@@ -232,6 +240,7 @@ public class JunitPullServiceTestCase extends Client {
 			throw e;
 		} finally {
 			System.getProperties().remove("ProcessFail");
+			super.stopJetty();
 		}
 	}
 

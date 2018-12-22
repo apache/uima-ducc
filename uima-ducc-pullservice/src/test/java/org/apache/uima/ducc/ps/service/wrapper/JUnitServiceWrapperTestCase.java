@@ -59,7 +59,7 @@ public class JUnitServiceWrapperTestCase extends Client  {
 		String analysisEngineDescriptor = "TestAAE";
 		System.setProperty("ducc.deploy.JpType", "uima");
 
-		String tasURL = "http://localhost:8080/test";
+		String tasURL = "http://localhost:"+super.getPort()+"/test";
 		try {
 			System.setProperty("ducc.deploy.JdURL", tasURL);
 			System.setProperty("ducc.deploy.JpThreadCount","4");
@@ -83,6 +83,7 @@ public class JUnitServiceWrapperTestCase extends Client  {
 			throw e;
 		} finally {
 			monitor.stop();
+			super.stopJetty();
 
 		}
 	}
@@ -97,7 +98,7 @@ public class JUnitServiceWrapperTestCase extends Client  {
 		super.startJetty(false);  // don't block
 		String analysisEngineDescriptor = "NoOpAE";
 
-		String tasURL = "http://localhost:8080/test";
+		String tasURL = "http://localhost:"+super.getPort()+"/test";
 		try {
 			// Force process failure of the first task
 			System.setProperty("ProcessFail","1");
@@ -125,6 +126,7 @@ public class JUnitServiceWrapperTestCase extends Client  {
 		} finally {
 			monitor.stop();
 			System.getProperties().remove("ProcessFail");
+			super.stopJetty();
 		}
 	}
 
