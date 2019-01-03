@@ -259,6 +259,11 @@ public interface IRmPersistence
             public Type type()  { return Type.Boolean; }
             public boolean isIndex() { return true; }
         },
+        Quiesced{
+            public String pname() { return "quiesced"; }
+            public Type type()  { return Type.Boolean; }
+            public boolean isIndex() { return true; }
+        },
         Reservable{
             public String pname() { return "reservable"; }
             public Type type()  { return Type.Boolean; }

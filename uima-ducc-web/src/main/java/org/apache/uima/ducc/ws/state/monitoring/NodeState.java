@@ -50,6 +50,7 @@ public class NodeState implements INodeState {
 	private Monitor monitor = null;
 	
 	private String key_online = "online";
+	private String key_quiesced = "quiesced";
 	
 	private NodeState() {
 		start();
@@ -98,6 +99,38 @@ public class NodeState implements INodeState {
 						Map<String, Object> value = entry.getValue();
 						Boolean value_online = (Boolean) value.get(key_online);
 						retVal = ""+value_online;
+						logger.debug(location, jobid, node+"=="+retVal);
+						break;
+					}
+					else {
+						logger.debug(location, jobid, key+"!="+node);
+					}
+				}
+			}
+			else {
+				logger.warn(location, jobid, "size:"+0);
+			}
+		}
+		else {
+			logger.error(location, jobid, "node:"+node);
+		}
+		return retVal;
+	}
+	
+	// general function to get quiesced status for node
+	@Override
+	public String getQuiesced(String node, String otherwise) {
+		String location = "getQuiesced";
+		String retVal = otherwise;
+		if(node != null) {
+			if(map.size() > 0) {
+				for(Entry<String, Map<String, Object>> entry : map.entrySet()) {
+					String key = entry.getKey();
+					if(key.equals(node)) {
+						logger.debug(location, jobid, key+"=="+node);
+						Map<String, Object> value = entry.getValue();
+						Boolean value_quiesced = (Boolean) value.get(key_quiesced);
+						retVal = ""+value_quiesced;
 						logger.debug(location, jobid, node+"=="+retVal);
 						break;
 					}

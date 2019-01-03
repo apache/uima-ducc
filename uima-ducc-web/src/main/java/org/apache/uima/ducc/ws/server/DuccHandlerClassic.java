@@ -1818,6 +1818,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		row.append("<td>");
 		row.append(nodeState.getOnline(machineInfo.getName(), "-"));
 		row.append("</td>");
+		// Quiesced
+		row.append("<td>");
+		row.append(nodeState.getQuiesced(machineInfo.getName(), "-"));
+		row.append("</td>");
 		// IP
 		row.append("<td>");
 		row.append(machineInfo.getIp());
@@ -2029,6 +2033,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append(""+"Total");
 				row.append("</td>");
 				// Online
+				row.append("<td>");
+				row.append("");
+				row.append("</td>");
+				// Quiesced
 				row.append("<td>");
 				row.append("");
 				row.append("</td>");

@@ -20,6 +20,7 @@ package org.apache.uima.ducc.ws.state.monitoring;
 
 public interface INodeState {
 	public String getOnline(String node, String otherwise);
+	public String getQuiesced(String node, String otherwise);
 	// admin
 	public void start();
 	public void stop();

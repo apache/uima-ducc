@@ -30,6 +30,8 @@ import java.util.Map;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.node.metrics.NodeMetrics;
+import org.apache.uima.ducc.common.node.metrics.NodeMetrics.NodeStatus;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmNodes;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
@@ -61,7 +63,8 @@ class NodePool
     HashMap<Integer, HashMap<Node, Machine>> machinesByOrder = new HashMap<Integer, HashMap<Node, Machine>>(); // All schedulable machines, not necessarily free
     HashMap<String, Machine>                 machinesByName  = new HashMap<String, Machine>();                 // by name, for nodepool support
     HashMap<String, Machine>                 deadByName      = new HashMap<String, Machine>();                 // anything we move to offline or unresponsive,
-                                                                                                               // but with the same name we used, because
+                        
+    List<Node> quiesceMachines = new ArrayList<Node>();
                                                                                                                // sometimes stupid domain gets in the way
     HashMap<String, Machine>                 machinesByIp    = new HashMap<String, Machine>();                 // by IP, for nodepool support
 
@@ -1067,6 +1070,76 @@ class NodePool
         }
     }
 
+    // determine if Node has been quiesced
+    boolean isQuiesce(Node node) {
+    	String methodName = "isQuiesce";
+    	boolean retVal = false;
+    	NodeMetrics nm = node.getNodeMetrics();
+        if(nm != null) {
+        	NodeStatus ns = nm.getNodeStatus();
+        	if(ns != null) {
+        		switch(ns) {
+            	case UnAvailable:
+            		logger.info(methodName, null, node.getNodeIdentity().getShortName(),"node status = "+ns.name());
+            		retVal = true;
+            		break;
+            	default:
+            		logger.debug(methodName, null, node.getNodeIdentity().getShortName(),"node status = "+ns.name());
+            		break;
+            	}
+        	}
+        	else {
+        		logger.warn(methodName, null, node.getNodeIdentity().getShortName(),"node status missing");
+        	}
+        }
+        else {
+        	logger.warn(methodName, null, node.getNodeIdentity().getShortName(),"node metrics missing");
+        }
+    	return retVal;
+    }
+    
+    // process Node that is quiesced
+    private void handle_quiesced(Node node) {
+    	String methodName = "handle_quiesced";
+    	String name = node.getNodeIdentity().getCanonicalName();
+    	if(quiesceMachines.contains(node)) {
+   		 logger.trace(methodName, null, "Node ", name, " is already quiesced.");
+    	}
+	   	else {
+	   		quiesceMachines.add(node);
+	   		logger.info(methodName, null, "Node ", name, " is quiesced.");
+	   		if(allMachines.containsKey(node)) {
+	   			Machine machine = allMachines.get(node);
+	   			signalDb(machine, RmNodes.Quiesced, true);
+	   			logger.info(methodName, null, "Node ", name, " db marked quiesced.");
+	   		}
+	   		else {
+	   			logger.info(methodName, null, "Node ", name, " is new.");
+	   		}
+	   	}
+    }
+    
+    // process Node that is not quiesced
+    private void handle_not_quiesced(Node node) {
+    	String methodName = "handle_not_quiesced";
+    	String name = node.getNodeIdentity().getCanonicalName();
+    	if(!quiesceMachines.contains(node)) {
+   		 logger.trace(methodName, null, "Node ", name, " is already not quiesced.");
+    	}
+	   	else {
+	   		quiesceMachines.remove(node);
+	   		logger.info(methodName, null, "Node ", name, " is not quiesced.");
+	   		if(allMachines.containsKey(node)) {
+	   			Machine machine = allMachines.get(node);
+	   			signalDb(machine, RmNodes.Quiesced, false);
+	   			logger.info(methodName, null, "Node ", name, " db marked not quiesced.");
+	   		}
+	   		else {
+	   			logger.info(methodName, null, "Node ", name, " is new.");
+	   		}
+	   	}
+    }
+    
     /**
      * Handle a new node update.
      */
@@ -1080,6 +1153,14 @@ class NodePool
 
         String n = node.getNodeIdentity().getCanonicalName();
 
+        boolean node_quiesced = isQuiesce(node);
+        if(node_quiesced) {
+        	handle_quiesced(node);
+        }
+        else {
+        	handle_not_quiesced(node);
+        }
+        
         // if it's offline it can't be restored like this.
         if ( offlineMachines.containsKey(node) ) {
             Machine m = offlineMachines.get(node);
@@ -1142,6 +1223,7 @@ class NodePool
         updated++;
 
         Map<RmNodes, Object> props = initDbProperties(allMachines.get(key));
+        props.put(RmNodes.Quiesced, node_quiesced);
         props.put(RmNodes.Responsive, true);
         props.put(RmNodes.Online, true);
         try {
@@ -1303,8 +1385,11 @@ class NodePool
     boolean isSchedulable(Machine m)
     {
         if ( m.isBlacklisted() )                         return false;
+        
         if ( unresponsiveMachines.containsKey(m.key()) ) return false;
         if ( offlineMachines.containsKey(m.key()) )      return false;
+        
+        if ( quiesceMachines.contains(m.key()) )      return false;
 
         return true;
     }

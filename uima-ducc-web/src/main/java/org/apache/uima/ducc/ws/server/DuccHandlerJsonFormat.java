@@ -1801,6 +1801,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		row.add(new JsonPrimitive(sb.toString()));
 		// Online
 		row.add(new JsonPrimitive(nodeState.getOnline(machineInfo.getName(), "-")));
+		// Quiesced
+		row.add(new JsonPrimitive(nodeState.getQuiesced(machineInfo.getName(), "-")));
 		// IP
 		row.add(new JsonPrimitive(machineInfo.getIp()));
 		// Name
@@ -2024,6 +2026,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Status
 				row.add(new JsonPrimitive("Total"));
 				// Online
+				row.add(new JsonPrimitive(""));
+				// Quiesced
 				row.add(new JsonPrimitive(""));
 				// IP
 				row.add(new JsonPrimitive(""));

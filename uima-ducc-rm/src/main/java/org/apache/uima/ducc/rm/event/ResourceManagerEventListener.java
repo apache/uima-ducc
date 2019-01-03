@@ -20,7 +20,10 @@ package org.apache.uima.ducc.rm.event;
 
 import org.apache.camel.Body;
 import org.apache.uima.ducc.common.ANodeStability;
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.node.metrics.NodeMetrics;
+import org.apache.uima.ducc.common.node.metrics.NodeMetrics.NodeStatus;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.rm.ResourceManager;
@@ -90,8 +93,24 @@ public class ResourceManagerEventListener
      */
     public void onNodeMetricsEvent(@Body NodeMetricsUpdateDuccEvent duccEvent) throws Exception 
     {
+    	String location = "onNodeMetricsEvent";
+    	DuccId jobid = null;
         //rm.nodeArrives(duccEvent.getNode());
-        nodeStability.nodeArrives(duccEvent.getNode());
+    	Node node = duccEvent.getNode();
+        nodeStability.nodeArrives(node);
+        if(node != null) {
+        	NodeMetrics nodeMetrics = node.getNodeMetrics();
+        	if(nodeMetrics != null) {
+        		NodeStatus nodeStatus = nodeMetrics.getNodeStatus();
+        		String name = null;
+        		NodeIdentity nodeIdentity = node.getNodeIdentity();
+        		if(nodeIdentity != null) {
+        			name = nodeIdentity.getShortName();
+        		}
+        		logger.debug(location, jobid, name, nodeStatus.name());
+        	}
+        	
+        }
     }
 
     public void onNodeInventoryUpdateEvent(@Body NodeInventoryUpdateDuccEvent duccEvent) throws Exception {
