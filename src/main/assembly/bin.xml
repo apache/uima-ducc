@@ -137,7 +137,7 @@ under the License.
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>com.datastax.cassandra:cassandra-driver-core</include>
-        <include>com.datastax.cassandra:cassandra-driver-dse</include>
+        <!--include>com.datastax.cassandra:cassandra-driver-dse</include-->
         <include>com.datastax.cassandra:cassandra-driver-mapping</include>
         <include>io.netty:netty-buffer</include>
         <include>io.netty:netty-codec</include>

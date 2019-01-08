@@ -69,11 +69,11 @@
           <version>${cassandra.driver.version}</version>
         </dependency>
 
-        <dependency>
+        <!--dependency>
           <groupId>com.datastax.cassandra</groupId>
           <artifactId>cassandra-driver-dse</artifactId>
           <version>${cassandra.driver.version}</version>
-        </dependency>
+        </dependency-->
 
         <dependency>
           <groupId>com.datastax.cassandra</groupId>
@@ -81,6 +81,12 @@
           <version>${cassandra.driver.version}</version>
         </dependency>
 
+           <dependency>
+              <groupId>com.codahale.metrics</groupId>
+              <artifactId>metrics-core</artifactId>
+              <version>${metrics.version}</version>
+            </dependency>
+ 
         <dependency>
           <groupId>org.xerial.snappy</groupId>
           <artifactId>snappy-java</artifactId>
