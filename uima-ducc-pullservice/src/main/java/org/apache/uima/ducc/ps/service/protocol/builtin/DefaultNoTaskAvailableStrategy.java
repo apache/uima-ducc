@@ -26,13 +26,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.uima.ducc.ps.service.protocol.INoTaskAvailableStrategy;
 
 public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy {
-	private int waitTime = 30000;   // default
+	private int waitTime = 30;   // default
 	private final ReentrantLock lock = new ReentrantLock();
 	
-	public DefaultNoTaskAvailableStrategy(int waitTime) {
+	public DefaultNoTaskAvailableStrategy(int waitTimeInSecs) {
 		// if wait time not specified use default
-		if ( waitTime > 0 ) {
-			this.waitTime = waitTime;
+		if ( waitTimeInSecs > 0 ) {
+			this.waitTime = waitTimeInSecs;
 		}
 	}
 	/**
