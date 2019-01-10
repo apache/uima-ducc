@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.ps.service.main;
 
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -131,7 +132,7 @@ public class ServiceWrapper implements Application {
 	 * @return
 	 */
 	private boolean isPiecesParts(ServiceConfiguration serviceConfiguration ) {
-		return ( "uima".equals(serviceConfiguration.getJpType()) && serviceConfiguration.getAnalysisEngineDescriptorPath() == null);
+		return ( "uima".equals(serviceConfiguration.getJpType()) );
 	}
 	public void initialize(String[] args ) throws ServiceInitializationException, ServiceException {
 		// collect -Ds and env vars
@@ -146,13 +147,17 @@ public class ServiceWrapper implements Application {
 		logger.log(Level.INFO, "Deploying service with JMX enabled - clients can connect using jmx URL:"+serviceJmxConnectString);
 		serviceConfiguration.setServiceJmxConnectURL(serviceJmxConnectString);
 		IServiceProcessor processor;
-		if ( isPiecesParts(serviceConfiguration)) {
-			DeployableGeneration dg = new DeployableGeneration(serviceConfiguration);
-			try {
-				analysisEngineDescriptorPath = dg.generate(true);
-				logger.log(Level.INFO, "Deploying UIMA based service using generated (pieces-parts) AE descriptor "+analysisEngineDescriptorPath);
-			} catch( Exception e) {
-				throw new ServiceException("Unable to generate AE descriptor from parts");
+		if ( isPiecesParts(serviceConfiguration) || serviceConfiguration.getAnalysisEngineDescriptorPath() == null ) {
+			if ( !new File(serviceConfiguration.getAnalysisEngineDescriptorPath()).canRead()) {
+				DeployableGeneration dg = new DeployableGeneration(serviceConfiguration);
+				try {
+					analysisEngineDescriptorPath = dg.generate(true);
+					logger.log(Level.INFO, "Deploying UIMA based service using generated (pieces-parts) AE descriptor "+analysisEngineDescriptorPath);
+				} catch( Exception e) {
+					throw new ServiceException("Unable to generate AE descriptor from parts");
+				}
+			} else {
+				analysisEngineDescriptorPath = serviceConfiguration.getAnalysisEngineDescriptorPath();
 			}
 		} else {
 			analysisEngineDescriptorPath = serviceConfiguration.getAnalysisEngineDescriptorPath();
