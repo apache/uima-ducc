@@ -148,10 +148,10 @@ public class JUnitServiceWrapperTestCase extends Client  {
 			System.setProperty("ducc.deploy.service.type", "NotesService");
 			System.setProperty("ducc.deploy.JpType", "uima");
 			System.setProperty("ducc.deploy.JpAeDescriptor","NoOpAE");
-			System.setProperty("ducc.deploy.JobDirectory","/home/cwiklik/ducc/logs");
+			System.setProperty("ducc.deploy.JobDirectory","/home/"+System.getProperty("user.name")+"/ducc/logs");
 			System.setProperty("ducc.deploy.JpFlowController","org.apache.uima.flow.FixedFlowController");
-			System.setProperty("ducc.process.log.dir","/home/cwiklik/ducc/logs/2/");
-			System.setProperty("ducc.job.id","2");
+			System.setProperty("ducc.process.log.dir","/home/"+System.getProperty("user.name")+"/ducc/logs/2000/");
+			System.setProperty("ducc.job.id","2000");
 			ServiceWrapper service = new ServiceWrapper();
 
 			Timer fTimer = new Timer("testPullService Timer");
