@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.ps.service.wrapper;
 
+import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -143,14 +144,15 @@ public class JUnitServiceWrapperTestCase extends Client  {
 
 		String tasURL = "http://localhost:"+super.getPort()+"/test";
 		try {
+			
 			System.setProperty("ducc.deploy.JdURL", tasURL);
 			System.setProperty("ducc.deploy.JpThreadCount","4");
 			System.setProperty("ducc.deploy.service.type", "NotesService");
 			System.setProperty("ducc.deploy.JpType", "uima");
 			System.setProperty("ducc.deploy.JpAeDescriptor","NoOpAE");
-			System.setProperty("ducc.deploy.JobDirectory","/home/"+System.getProperty("user.name")+"/ducc/logs");
+			System.setProperty("ducc.deploy.JobDirectory",System.getProperty("user.dir"));
 			System.setProperty("ducc.deploy.JpFlowController","org.apache.uima.flow.FixedFlowController");
-			System.setProperty("ducc.process.log.dir","/home/"+System.getProperty("user.name")+"/ducc/logs/2000/");
+			System.setProperty("ducc.process.log.dir",System.getProperty("user.dir"));
 			System.setProperty("ducc.job.id","2000");
 			ServiceWrapper service = new ServiceWrapper();
 
@@ -161,7 +163,7 @@ public class JUnitServiceWrapperTestCase extends Client  {
 			service.initialize(new String[] {analysisEngineDescriptor});
 
 			service.start();
-
+			
 
 		} catch (ServiceInitializationException e) {
 			throw e;
@@ -170,6 +172,20 @@ public class JUnitServiceWrapperTestCase extends Client  {
 		} finally {
 			monitor.stop();
 			super.stopJetty();
+			File directory = new File(System.getProperty("user.dir").
+					 concat("/").concat(System.getProperty("ducc.job.id")));
+			
+			if ( directory.exists() ) {
+				for (File f : directory.listFiles()) {
+				    if (f.getName().startsWith("uima-ae-")) {
+				        f.delete();
+				        System.out.println("Removed generated descriptor:"+f.getAbsolutePath());
+				    }
+				}
+				directory.delete();
+				
+			}
+
 
 		}
 	}
