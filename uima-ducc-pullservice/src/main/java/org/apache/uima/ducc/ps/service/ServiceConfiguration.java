@@ -19,6 +19,8 @@
 
 package org.apache.uima.ducc.ps.service;
 
+import java.util.List;
+
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 
 public class ServiceConfiguration {
@@ -249,12 +251,48 @@ public class ServiceConfiguration {
 	    			Integer.valueOf(System.getProperty("ducc.process.thread.sleep.time"));
 	    }
 		jpType = System.getProperty("ducc.deploy.JpType");
+		if ( System.getProperty("ducc.deploy.JpAeDescriptor") != null ) {
+			setAeDescriptor(System.getProperty("ducc.deploy.JpAeDescriptor"));
+		}
+		if ( System.getProperty("ducc.deploy.JobDirectory") != null ) {
+			setJobDirectory(System.getProperty("ducc.deploy.JobDirectory") );
+		}
+		if ( System.getProperty("ducc.deploy.JpFlowController") != null ) {
+			setJpFlowController(System.getProperty("ducc.deploy.JpFlowController"));
+		}	
+	    if ( System.getProperty("ducc.deploy.JpCmDescriptor") != null ) {
+			 setCmDescriptor(System.getProperty("ducc.deploy.JpCmDescriptor"));
+		}
+		if ( System.getProperty("ducc.deploy.JpCcDescriptor") != null ) {
+			  setCcDescriptor(System.getProperty("ducc.deploy.JpCcDescriptor"));
+        }
+		if ( System.getProperty("ducc.deploy.JpCmOverrides") != null ) {
+			setCmOverrides(System.getProperty("ducc.deploy.JpCmOverrides"));
+		}
+		if ( System.getProperty("ducc.deploy.JpAeOverrides") != null ) {
+			setAeOverrides(System.getProperty("ducc.deploy.JpAeOverrides"));
+		}
+		if ( System.getProperty("ducc.deploy.JpCcOverrides") != null ) {
+			setCcOverrides(System.getProperty("ducc.deploy.JpCcOverrides"));
+		}
+		if ( System.getProperty("ducc.job.id") != null ) {
+			setJobId(System.getProperty("ducc.job.id"));
+		}
+/*
+		List<String> cmOverrides = getPropertyListString("ducc.deploy.JpCmOverrides");
+		  List<String> aeOverrides = getPropertyListString("ducc.deploy.JpAeOverrides"); 
+		  List<String> ccOverrides = getPropertyListString("ducc.deploy.JpCcOverrides");
+*/		
+		
 		serviceJmxConnectURL = System.getProperty("ducc.jmx.port");
 		customRegistryClass = System.getProperty("ducc.deploy.registry.class");
 		customProcessorClass = System.getProperty("ducc.deploy.custom.processor.class");
 		processType = System.getProperty("ducc.deploy.components");//=job-process
 		duccHome = System.getenv("DUCC_HOME");
-		jobId = System.getenv("DUCC_JOBID");
+		if ( getJobId() == null ) {
+			setJobId(System.getenv("DUCC_JOBID"));
+		}
+		
 		duccProcessId = System.getenv("DUCC_PROCESSID");
 		duccProcessUniqueId = System.getenv("DUCC_PROCESS_UNIQUEID");
 		monitorPort = System.getenv("DUCC_STATE_UPDATE_PORT");

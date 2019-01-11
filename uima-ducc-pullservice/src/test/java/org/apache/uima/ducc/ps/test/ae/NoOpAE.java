@@ -117,12 +117,15 @@ public class NoOpAE extends CasAnnotator_ImplBase
    		String[] errors = errorSequence.split(",");
    		synchronized(NoOpAE.class) {
    			for( String inx : errors) {
-   				long errorSeq = Long.parseLong(inx.trim());
-   				if ( errorSeq == val ) {
-   					System.out.println(">>>> Error: errorSeq:"+errorSeq+" processCount:"+val);
-   		    		throw new AnalysisEngineProcessException(new RuntimeException("Simulated Exception"));
+   				if ( inx != null && inx.trim().length() > 0 ) {
+   	  				long errorSeq = Long.parseLong(inx.trim());
+   	   				if ( errorSeq == val ) {
+   	   					System.out.println(">>>> Error: errorSeq:"+errorSeq+" processCount:"+val);
+   	   		    		throw new AnalysisEngineProcessException(new RuntimeException("Simulated Exception"));
+   	   				}
+  					
    				}
-   			}
+    		}
    		}
     }
 
