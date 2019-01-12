@@ -141,6 +141,35 @@ public class ServicesRegistry {
 		return retVal;
 	}
 	
+	public ServicesRegistryMapPayload findServiceById(String id) {
+		String location = "findServiceById";
+		ServicesRegistryMapPayload retVal = null;
+		try {
+			logger.debug(location, jobid, "size: "+map.size());
+			logger.debug(location, jobid, "search: "+id);
+			for(Long key : map.keySet()) {
+				ServicesRegistryMapPayload payload = map.get(key);
+				Properties meta = payload.meta;
+				if(meta != null) {
+					if(meta.containsKey(IServicesRegistry.numeric_id)) {
+						String sid = meta.getProperty(IServicesRegistry.numeric_id);
+						if(sid.equals(id)) {
+							retVal = payload;
+							break;
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+		if(retVal == null) {
+			logger.warn(location, jobid, "not found: "+id);
+		}
+		return retVal;
+	}
+	
 	public ServicesRegistryMapPayload findService(String name) {
 		String location = "findService";
 		ServicesRegistryMapPayload retVal = null;

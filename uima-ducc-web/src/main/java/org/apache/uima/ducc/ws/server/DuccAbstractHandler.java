@@ -57,6 +57,7 @@ import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
+import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
 import org.apache.uima.ducc.ws.server.IWebMonitor.MonitorType;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
@@ -742,7 +743,34 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return getDisabledWithHover(request, resourceOwnerUserId);
 	}
 
-	public String getDisabledWithHover(HttpServletRequest request, String resourceOwnerUserId) {
+	public String getDisabledWithHover(HttpServletRequest request, String resourceOwnerUserId, IServiceAdapter service) {
+		String location = "getDisabledWithHover";
+		String disabled = "disabled=\"disabled\"";
+		String hover = "";
+		try {
+			String userId = duccWebSessionManager.getUserId(request);
+			Properties meta = service.getMeta();
+			String serviceId = meta.getProperty(IServicesRegistry.numeric_id);
+			if(HandlersHelper.isLoggedIn(request)) {
+				if(HandlersHelper.isServiceController(userId, serviceId)) {
+					disabled = "";
+				}
+				else {
+					hover = " title=\""+DuccConstants.hintPreferencesNotAdministrator+"\"";
+				}
+			}
+			else {
+				hover = " title=\""+DuccConstants.hintLogin+"\"";
+			}
+		}
+		catch(Exception e) {
+			duccLogger.trace(location, null, e);
+		}
+		String retVal = disabled+hover;
+		return retVal;
+	}
+	
+	private String getDisabledWithHover(HttpServletRequest request, String resourceOwnerUserId) {
 		String disabled = "disabled=\"disabled\"";
 		String hover = "";
 		HandlersHelper.AuthorizationStatus authorizationStatus = HandlersHelper.getAuthorizationStatus(request, resourceOwnerUserId);

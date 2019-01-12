@@ -68,6 +68,41 @@ public class HandlersHelper {
 		return retVal;
 	}
 	
+	public static boolean isServiceController(String user, String serviceId) {
+		String methodName = "isServiceController";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		boolean retVal = false;
+		duccLogger.debug(methodName, null, user, serviceId);
+		try {
+			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
+			ServicesRegistryMapPayload payload = servicesRegistry.findServiceById(serviceId);
+			Properties meta = payload.meta;
+			Properties svc = payload.svc;
+			if(isServiceOwner(user,meta)) {
+				retVal = true;
+				duccLogger.debug(methodName, null, "owner");
+			}
+			else if(isServiceAdministrator(user,svc)) {
+				retVal = true;
+				duccLogger.debug(methodName, null, "admin");
+			}
+			else if(isDuccAdministrator(user,meta)) {
+				retVal = true;
+				duccLogger.debug(methodName, null, "ducc admin");
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, null, e);
+		}
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+		return retVal;
+	}
+	
+	public static boolean isLoggedIn(HttpServletRequest request) {
+		boolean retVal = duccWebSessionManager.isAuthentic(request);
+		return retVal;
+	}
+	
 	public static AuthorizationStatus getAuthorizationStatus(HttpServletRequest request, String resourceOwnerUserid) {
 		String methodName = "getAuthorizationStatus";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
@@ -178,7 +213,16 @@ public class HandlersHelper {
 						duccLogger.debug(location, getDuccId(meta), "user="+reqUser+" "+retVal);
 					}
 				}
+				else {
+					duccLogger.debug(location, getDuccId(meta), "svcOwner="+svcOwner+" "+retVal);
+				}
 			}
+			else {
+				duccLogger.debug(location, getDuccId(meta), "meta="+meta+" "+retVal);
+			}
+		}
+		else {
+			duccLogger.debug(location, getDuccId(meta), "user="+reqUser+" "+retVal);
 		}
 		return retVal;
 	}
@@ -186,18 +230,18 @@ public class HandlersHelper {
 	/**
 	 * Check if user is a service administrator
 	 */
-	private static boolean isServiceAdministrator(String reqUser, Properties meta) {
+	private static boolean isServiceAdministrator(String reqUser, Properties svc) {
 		String location = "isServiceAdministrator";
 		boolean retVal = false;
 		if(reqUser != null) {
-			if(meta != null) {
-				String svcAdministrators = meta.getProperty(IServicesRegistry.administrators);
+			if(svc != null) {
+				String svcAdministrators = svc.getProperty(IServicesRegistry.administrators);
 				if(svcAdministrators != null) {
 					String[] tokens = svcAdministrators.split("\\s+");
 					for(String token : tokens) {
 						if(reqUser.trim().equals(token.trim())) {
 							retVal = true;
-							duccLogger.debug(location, getDuccId(meta), "user="+reqUser+" "+retVal);
+							duccLogger.debug(location, getDuccId(svc), "user="+reqUser+" "+retVal);
 							break;
 						}
 					}

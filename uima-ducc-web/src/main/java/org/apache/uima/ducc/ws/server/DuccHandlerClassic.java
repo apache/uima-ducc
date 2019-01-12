@@ -1091,7 +1091,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					if(service.isRegistered()) {
 						if(buttonsEnabled) {
 							if(service.isDisabled()) {
-								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_enable("+sid+")\" value=\"Enable\" "+getDisabledWithHover(request,user)+"/>");
+								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_enable("+sid+")\" value=\"Enable\" "+getDisabledWithHover(request,user,service)+"/>");
 							}
 						}
 					}
@@ -1102,12 +1102,12 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 						if(buttonsEnabled) {
 							if(service.isPingOnly()) {
 								if(service.isPingActive()) {
-									sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+									sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user,service)+"/>");
 								}
 							}
 							else {
 								if(deployments != 0) {
-									sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+									sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user,service)+"/>");
 								}
 							}
 						}

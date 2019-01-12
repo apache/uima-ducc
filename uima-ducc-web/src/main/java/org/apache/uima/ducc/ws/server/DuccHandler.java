@@ -4327,15 +4327,13 @@ public class DuccHandler extends DuccAbstractHandler {
 			String name = "id";
 			String value = request.getParameter(name).trim();
 			duccLogger.info(methodName, null, command+" "+messages.fetchLabel("id:")+value);
-			String text;
 			String id = value.trim();
-			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
-			String resourceOwnerUserId = servicesRegistry.findServiceUser(id);
-			if(resourceOwnerUserId != null) {
-				if(HandlersHelper.isUserAuthorized(request,resourceOwnerUserId)) {
+			String userId = getUserIdFromRequest(request);
+			String serviceId = id;
+			if(HandlersHelper.isLoggedIn(request)) {
+				if(HandlersHelper.isServiceController(userId, serviceId)) {
 					String arg1 = "--"+command;
 					String arg2 = id;
-					String userId = getUserIdFromRequest(request);
 					String cp = System.getProperty("java.class.path");
 					String java = "/bin/java";
 					String jclass = "org.apache.uima.ducc.cli.DuccServiceApi";
@@ -4345,21 +4343,27 @@ public class DuccHandler extends DuccAbstractHandler {
 					case Administrator:
 						String arg3 = "--"+SpecificationProperties.key_role_administrator;
 						String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
+						duccLogger.debug(methodName, null, String.join(" ", arglistAdministrator));
 						result = DuccAsUser.duckling(userId, arglistAdministrator);
+						duccLogger.debug(methodName, null, result);
 						response.getWriter().println(result);
 						break;
 					case User:
 					default:
 						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
+						duccLogger.debug(methodName, null, String.join(" ", arglistUser));
 						result = DuccAsUser.duckling(userId, arglistUser);
+						duccLogger.debug(methodName, null, result);
 						response.getWriter().println(result);
 						break;
 					}
 				}
+				else {
+					duccLogger.debug(methodName, null, "not logged in");
+				}
 			}
 			else {
-				text = "id "+value+" not found";
-				duccLogger.debug(methodName, null, messages.fetch(text));
+				duccLogger.debug(methodName, null, "not service controller");
 			}
 		}
 		catch(Exception e) {
