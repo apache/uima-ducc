@@ -20,7 +20,7 @@ under the License.
 <small>
 Copyrights:
 <br>
-&copy 2012-2018 The Apache Software Foundation
+&copy 2012-2019 The Apache Software Foundation
 <br>
 &copy 2011-2012 IBM
 </small>
