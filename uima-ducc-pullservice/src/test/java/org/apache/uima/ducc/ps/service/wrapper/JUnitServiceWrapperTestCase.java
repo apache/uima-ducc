@@ -139,6 +139,8 @@ public class JUnitServiceWrapperTestCase extends Client  {
 		monitor.start();
 		System.out.println("........... Monitor Port:"+System.getProperty("DUCC_STATE_UPDATE_PORT"));
 		super.startJetty(false);  // don't block
+		// Dont change the name of TestAAE.xml. This is setup to fail file lookup and force 
+		// generation of AE descriptor.
 		String analysisEngineDescriptor = "TestAAE.xml";
 		System.setProperty("ducc.deploy.JpType", "uima");
 
