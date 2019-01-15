@@ -26,14 +26,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.uima.ducc.ps.service.protocol.INoTaskAvailableStrategy;
 
 public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy {
-	private int waitTime = 30;   // default
+	private int waitTime;   
 	private final ReentrantLock lock = new ReentrantLock();
 	
 	public DefaultNoTaskAvailableStrategy(int waitTimeInSecs) {
-		// if wait time not specified use default
-		if ( waitTimeInSecs > 0 ) {
-			this.waitTime = waitTimeInSecs;
-		}
+		this.waitTime = waitTimeInSecs;
 	}
 	/**
 	 * This methods is called when a service is stopping. There is no
@@ -50,7 +47,7 @@ public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy 
 		Condition waitAwhileCondition = lock.newCondition();
 		try {
 			lock.lock();
-			// wait only it wait time > 0. No indefinite wait supported
+			// wait only if wait time > 0. Indefinite wait is not supported. If waitTime=0, it means no wait
 			if ( waitTime > 0 ) {
 				try {
 					waitAwhileCondition.await(waitTime, TimeUnit.SECONDS);
