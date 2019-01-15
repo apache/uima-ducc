@@ -161,7 +161,7 @@
 		<libpam.version>1.7</libpam.version>
 		<jna.version>4.2.2</jna.version>
 		<datatables.version>1.9.1</datatables.version>
-		<jetty.version>9.2.22.v20170606</jetty.version>
+		<jetty.version>9.4.14.v20181114</jetty.version>
 		<orbit-org-apache-jasper.version>2.1.0.v201110031002</orbit-org-apache-jasper.version>
 		<servlet-api.version>2.5</servlet-api.version>
 

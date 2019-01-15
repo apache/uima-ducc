@@ -202,8 +202,10 @@ class Ducc(DuccUtil):
                 if ( self.ws_jvm_args != None ):
                     jvm_opts.append(self.ws_jvm_args)
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')
-                self.add_to_classpath(ducc_home + '/webserver/lib/jsp/*')
-
+                self.add_to_classpath(ducc_home + '/webserver/lib/apache-jsp/*')
+                self.add_to_classpath(ducc_home + '/webserver/lib/apache-jstl/*')
+                self.add_to_classpath(ducc_home + '/webserver/lib/websocket/*')
+                
             if ( c == 'orchestrator' ):
                 if ( or_parms != None ):
                     args = '-' + or_parms

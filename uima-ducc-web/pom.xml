@@ -55,11 +55,23 @@
 	<dependencyManagement>
 		<dependencies>
 
-		<dependency>
+		<!-- >dependency>
 			<groupId>org.eclipse.jetty.orbit</groupId>
 			<artifactId>org.apache.jasper.glassfish</artifactId>
 			<version>${orbit-org-apache-jasper.version}</version>
-		</dependency>
+		</dependency-->
+        <dependency>
+    <groupId>org.eclipse.jetty</groupId>
+    <artifactId>apache-jsp</artifactId>
+    <version>9.3.25.v20180904</version>
+</dependency>
+        
+      
+        <dependency>
+    <groupId>org.eclipse.jetty</groupId>
+    <artifactId>apache-jstl</artifactId>
+    <version>9.3.25.v20180904</version>
+</dependency>
 
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
@@ -206,11 +218,16 @@
         </dependency>
 
 		<!-- For org.apache.jasper.servlet.JspServlet in DuccWebServer -->
-		<dependency>
+		<!-- >dependency>
 			<groupId>org.eclipse.jetty.orbit</groupId>
 			<artifactId>org.apache.jasper.glassfish</artifactId>
-		</dependency>
+		</dependency -->
 
+       <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>apache-jsp</artifactId>
+        </dependency>
+        
 		<!-- Dependencies on other DUCC projects -->
 		<dependency>
 			<groupId>org.apache.uima</groupId>

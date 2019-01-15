@@ -19,18 +19,29 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.jasper.servlet.JspServlet;
+import org.apache.tomcat.InstanceManager;
+import org.apache.tomcat.SimpleInstanceManager;
+import org.apache.tomcat.util.scan.StandardJarScanner;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.DuccPlugins;
+import org.eclipse.jetty.annotations.ServletContainerInitializersStarter;
+import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
+import org.eclipse.jetty.jsp.JettyJspServlet;
+import org.eclipse.jetty.plus.annotation.ContainerInitializer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -48,6 +59,7 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ScheduledExecutorScheduler;
@@ -67,6 +79,7 @@ public class DuccWebServer {
 		  PortHttp("42133"),
 		  PortHttps("42155"),
 		  WelcomePage("index.html"),
+		  JavaVersion("1.8")
 		  ;
 		  private String defaultValue;
 		  private ConfigValue(String value) {
@@ -168,7 +181,49 @@ public class DuccWebServer {
 	public String getKeyManagerPassword() {
 		return DuccWebServerHelper.getKeyManagerPassword();
 	}
-	
+	private static List<ContainerInitializer> jspInitializers() {
+		JettyJasperInitializer sci = new JettyJasperInitializer();
+		ContainerInitializer initializer = new ContainerInitializer(sci, null);
+		List<ContainerInitializer> initializers = new ArrayList<ContainerInitializer>();
+		initializers.add(initializer);
+		return initializers;
+	}
+    private void enableEmbeddedJspSupport(ServletContextHandler servletContextHandler) throws IOException
+    {
+        // Establish Scratch directory for the servlet context (used by JSP compilation)
+        File tempDir = new File(System.getProperty("java.io.tmpdir"));
+        File scratchDir = new File(tempDir.toString(), "embedded-jetty-jsp");
+    
+        if (!scratchDir.exists())
+        {
+            if (!scratchDir.mkdirs())
+            {
+                throw new IOException("Unable to create scratch directory: " + scratchDir);
+            }
+        }
+        servletContextHandler.setAttribute("javax.servlet.context.tempdir", scratchDir);
+    
+        // Set Classloader of Context to be sane (needed for JSTL)
+        // JSP requires a non-System classloader, this simply wraps the
+        // embedded System classloader in a way that makes it suitable
+        // for JSP to use
+        ClassLoader jspClassLoader = new URLClassLoader(new URL[0], this.getClass().getClassLoader());
+        servletContextHandler.setClassLoader(jspClassLoader);
+        
+        // Manually call JettyJasperInitializer on context startup
+        servletContextHandler.addBean(new JspStarter(servletContextHandler));
+        
+        // Create / Register JSP Servlet (must be named "jsp" per spec)
+        ServletHolder holderJsp = new ServletHolder("jsp", JettyJspServlet.class);
+        holderJsp.setInitOrder(0);
+        holderJsp.setInitParameter("logVerbosityLevel", "ERROR");
+        holderJsp.setInitParameter("fork", "false");
+        holderJsp.setInitParameter("xpoweredBy", "false");
+        holderJsp.setInitParameter("compilerTargetVM", ConfigValue.JavaVersion.toString());
+        holderJsp.setInitParameter("compilerSourceVM", ConfigValue.JavaVersion.toString());
+        holderJsp.setInitParameter("keepgenerated", "false");
+        servletContextHandler.addServlet(holderJsp, "*.jsp");
+    }
 	private void init() {
 		String methodName = "init";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -260,20 +315,25 @@ public class DuccWebServer {
         server.addConnector(https);
         
         // JSP
-         
         ServletContextHandler jspHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        
         jspHandler.setContextPath("/");
         jspHandler.setResourceBase("root");
-        jspHandler.setClassLoader(Thread.currentThread().getContextClassLoader());
+        try {
+        	enableEmbeddedJspSupport(jspHandler);
+        } catch( IOException e) {
+        	logger.error(methodName, jobid, e);
+        }
+    
         jspHandler.addServlet(DefaultServlet.class, "/");
-        ServletHolder jsp = jspHandler.addServlet(JspServlet.class, "*.jsp");
-        jsp.setInitParameter("classpath", jspHandler.getClassPath());
-        //
+
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setDirectoriesListed(true);
         rootDir = DuccWebServerHelper.getDuccWebRoot();
         resourceHandler.setResourceBase(rootDir);
-        //
+        
+        jspHandler.setAttribute("org.eclipse.jetty.containerInitializers", jspInitializers());
+        jspHandler.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
         try {
 			Properties properties = DuccWebProperties.get();
 			String ducc_runmode = properties.getProperty("ducc.runmode","Production");
@@ -369,5 +429,32 @@ public class DuccWebServer {
 	public void stop() throws Exception {
 		server.stop();
 	}
+    public static class JspStarter extends AbstractLifeCycle implements ServletContextHandler.ServletContainerInitializerCaller
+    {
+        JettyJasperInitializer sci;
+        ServletContextHandler context;
+        
+        public JspStarter (ServletContextHandler context)
+        {
+            this.sci = new JettyJasperInitializer();
+            this.context = context;
+            this.context.setAttribute("org.apache.tomcat.JarScanner", new StandardJarScanner());
+        }
 
+        @Override
+        protected void doStart() throws Exception
+        {
+            ClassLoader old = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(context.getClassLoader());
+            try
+            {
+                sci.onStartup(null, context.getServletContext());   
+                super.doStart();
+            }
+            finally
+            {
+                Thread.currentThread().setContextClassLoader(old);
+            }
+        }
+    }
 }
