@@ -260,7 +260,7 @@ class StopDucc(DuccUtil):
         self.parser.add_argument(self.option_maxthreads, '-m', action='store', type=int, default=None, help=self.help_maxthreads)
         self.parser.add_argument(self.option_debug, '-d', action='store_true', help=self.help_debug)
         self.args = self.parser.parse_args()
-        # sepcial cases
+        # special cases
         if(self.args.kill):
             if(self.args.maxthreads == None):
                 self.args.maxthreads = self.maxthreads
