@@ -20,8 +20,11 @@
 package org.apache.uima.ducc.ps.sd.task;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.net.iface.IMetaMetaTask;
@@ -47,11 +50,16 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 	private final long secondsToWait = 30;
 	private static AtomicInteger atomicCounter =
 			new AtomicInteger(0);
+	Properties props = new Properties();
+	
 	public DuccServiceTaskProtocolHandler(TaskAllocatorCallbackListener taskAllocator) {
 	}
 
 	@Override
 	public String initialize(Properties props) throws TaskProtocolException {
+		if ( Objects.nonNull(props)) {
+			this.props = props;
+		}
 		return null;
 	}
 
@@ -129,28 +137,42 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 		}
 		return new MetaTask(atomicCounter.incrementAndGet(), "", serializedCas);
 	}
+	private int convertToInt(String value, int defaultValue) {
+		try {
+			return Integer.valueOf(value);
+		} catch(NumberFormatException e) {
+			return defaultValue;
+		}
+	}
 	private synchronized IMetaMetaTask getMetaMetaTask(TaskConsumer taskConsumer) {
 		IMetaMetaTask mmc = new MetaMetaTask();
 		ServiceDriver sd = DuccServiceDriver.getInstance();
 		TaskAllocatorCallbackListener taskAllocator =
 				sd.getTaskAllocator();
 		ITask task;
-		// The max time we are willing to wait for a task is 60 secs
-		// with 2 secs wait time between retries. With the above
-		// the max number of retries is 30. When we reach the max
+		 
+		// By default, the max time we are willing to wait for a task is 30 secs
+		// with 1 secs wait time between retries. When we reach the max
 		// retry, we return empty task to the service.
-		long retryCount = 60/secondsToWait;
+		int retryCount = convertToInt(props.getProperty(ServiceDriver.DriverTaskRetryCount),30);  
+		if ( retryCount == 0 ) {
+			retryCount = 1;
+		}
+		int waitTime = convertToInt(props.getProperty(ServiceDriver.DriverTaskWaitTime),1000);  
 		while( retryCount > 0 ) {
 			task = taskAllocator.getTask(taskConsumer);
 			// if allocation system does not return a task (or empty)
 			// block this thread and retry until a task becomes
 			// available or until max retry count is exhausted
 			if ( task == null || task.isEmpty() ) {
-				try {
-					this.wait(secondsToWait*1000);
-				} catch(InterruptedException ee) {
-					Thread.currentThread().interrupt();
+				if ( waitTime > 0 ) {
+					try {
+						this.wait(waitTime);
+					} catch(InterruptedException ee) {
+						Thread.currentThread().interrupt();
+					}	
 				}
+
 			} else {
 				IMetaTask metaTask = getMetaTask(task.asString());
 				mmc.setMetaCas(metaTask);
