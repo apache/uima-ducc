@@ -47,7 +47,7 @@ public class ServiceConfiguration {
 	private String aeOverrides;
 	private String maxErrors;
 	private String errorWindowSize;
-	private int waitTimeWhenNoTaskGiven = 0;
+	private int waitTimeWhenNoTaskGiven = 30000;  // unit=ms
 	private ClassLoader sysCL=null;
     private String processType;
 

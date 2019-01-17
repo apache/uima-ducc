@@ -40,9 +40,11 @@ import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 import org.apache.uima.ducc.ps.service.monitor.IServiceMonitor;
 import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
+import org.apache.uima.ducc.ps.service.protocol.INoTaskAvailableStrategy;
 import org.apache.uima.ducc.ps.service.protocol.IServiceProtocolHandler;
 import org.apache.uima.ducc.ps.service.protocol.builtin.DefaultNoTaskAvailableStrategy;
 import org.apache.uima.ducc.ps.service.protocol.builtin.DefaultServiceProtocolHandler;
+import org.apache.uima.ducc.ps.service.protocol.builtin.NoWaitStrategy;
 import org.apache.uima.ducc.ps.service.registry.DefaultRegistryClient;
 import org.apache.uima.ducc.ps.service.registry.IRegistryClient;
 import org.apache.uima.ducc.ps.service.transport.IServiceTransport;
@@ -184,11 +186,13 @@ public class PullService implements IService {
 			// this down just before thread dies.
 			CountDownLatch stopLatch = new CountDownLatch(scaleout);
 			serviceProcessor.setScaleout(scaleout);
+			INoTaskAvailableStrategy waitStrategy = 
+					new DefaultNoTaskAvailableStrategy(waitTimeInMillis);
 			// add default protocol handler
 	        protocolHandler =
 					   new DefaultServiceProtocolHandler.Builder()
 					   .withProcessor(serviceProcessor)
-					   .withNoTaskStrategy(new DefaultNoTaskAvailableStrategy(waitTimeInMillis))
+					   .withNoTaskStrategy(waitStrategy)
 					   .withService(this)
 					   .withTransport(transport)
 					   .withDoneLatch(stopLatch)
