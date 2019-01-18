@@ -22,9 +22,7 @@ package org.apache.uima.ducc.ps.sd.task;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Condition;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.net.iface.IMetaMetaTask;
@@ -47,11 +45,10 @@ import org.apache.uima.util.Logger;
 public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 	Logger logger = UIMAFramework.getLogger(DuccServiceTaskProtocolHandler.class);
 	private volatile boolean running = true;;
-	private final long secondsToWait = 30;
 	private static AtomicInteger atomicCounter =
 			new AtomicInteger(0);
 	Properties props = new Properties();
-	
+
 	public DuccServiceTaskProtocolHandler(TaskAllocatorCallbackListener taskAllocator) {
 	}
 
@@ -150,15 +147,15 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 		TaskAllocatorCallbackListener taskAllocator =
 				sd.getTaskAllocator();
 		ITask task;
-		 
+
 		// By default, the max time we are willing to wait for a task is 30 secs
 		// with 1 secs wait time between retries. When we reach the max
 		// retry, we return empty task to the service.
-		int retryCount = convertToInt(props.getProperty(ServiceDriver.DriverTaskRetryCount),30);  
+		int retryCount = convertToInt(props.getProperty(ServiceDriver.DriverTaskRetryCount),30);
 		if ( retryCount == 0 ) {
 			retryCount = 1;
 		}
-		int waitTime = convertToInt(props.getProperty(ServiceDriver.DriverTaskWaitTime),1000);  
+		int waitTime = convertToInt(props.getProperty(ServiceDriver.DriverTaskWaitTime),1000);
 		while( retryCount > 0 ) {
 			task = taskAllocator.getTask(taskConsumer);
 			// if allocation system does not return a task (or empty)
@@ -167,10 +164,10 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 			if ( task == null || task.isEmpty() ) {
 				if ( waitTime > 0 ) {
 					try {
-						Thread.currentThread().sleep(waitTime);
+            Thread.sleep(waitTime);
 					} catch(InterruptedException ee) {
 						Thread.currentThread().interrupt();
-					}	
+					}
 				}
 
 			} else {
