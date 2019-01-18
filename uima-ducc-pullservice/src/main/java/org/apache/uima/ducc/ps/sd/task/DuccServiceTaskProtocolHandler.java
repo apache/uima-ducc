@@ -167,7 +167,7 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 			if ( task == null || task.isEmpty() ) {
 				if ( waitTime > 0 ) {
 					try {
-						this.wait(waitTime);
+						Thread.currentThread().sleep(waitTime);
 					} catch(InterruptedException ee) {
 						Thread.currentThread().interrupt();
 					}	
