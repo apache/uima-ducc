@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -24,10 +24,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.apache.uima.ducc.ps.Client;
 import org.apache.uima.ducc.ps.service.builders.PullServiceStepBuilder;
-import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
-import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler.Action;
-import org.apache.uima.ducc.ps.service.errors.builtin.WindowBasedErrorHandler;
 import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
 import org.apache.uima.ducc.ps.service.processor.uima.UimaServiceProcessor;
 import org.junit.Test;
@@ -48,12 +45,12 @@ public class JunitPullServiceTestCase extends Client {
 		super.startJetty(false);  // don't block
 		String analysisEngineDescriptor = "TestAAE";
 		System.setProperty("ducc.deploy.JpType", "uima");
-		
-		IServiceProcessor processor = new 
+
+		IServiceProcessor processor = new
 				UimaServiceProcessor(analysisEngineDescriptor);
-		
+
 		String tasURL = "http://localhost:"+super.getPort()+"/test";
-		
+
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
 				.withOptionalsDone().build();
@@ -63,7 +60,7 @@ public class JunitPullServiceTestCase extends Client {
 			Timer fTimer = new Timer("testPullService Timer");
 			// after 5secs stop the pull service
 			fTimer.schedule(new MyTimerTask(service, fTimer, false), DELAY);
-			
+
 			service.start();
 
 		} catch (ServiceInitializationException e) {
@@ -81,11 +78,11 @@ public class JunitPullServiceTestCase extends Client {
 		super.startJetty(false);  // don't block
 		String analysisEngineDescriptor = "TestAAE";
 		System.setProperty("ducc.deploy.JpType", "uima");
-		IServiceProcessor processor = new 
+		IServiceProcessor processor = new
 				UimaServiceProcessor(analysisEngineDescriptor);
 
 		String tasURL = "http://localhost:"+super.getPort()+"/test";
-		
+
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
 				.withOptionalsDone().build();
@@ -95,7 +92,7 @@ public class JunitPullServiceTestCase extends Client {
 			Timer fTimer = new Timer("testPullService Timer");
 			// after 5secs stop the pull service
 			fTimer.schedule(new MyTimerTask(service, fTimer, true), DELAY);
-			
+
 			service.start();
 
 		} catch (ServiceInitializationException e) {
@@ -113,11 +110,11 @@ public class JunitPullServiceTestCase extends Client {
 		super.startJetty(true);  // true=client blocks all POST requests
 		int scaleout = 12;
 		String analysisEngineDescriptor = "TestAAE";
-		IServiceProcessor processor = new 
+		IServiceProcessor processor = new
 				UimaServiceProcessor(analysisEngineDescriptor);
 
 		String tasURL ="http://localhost:"+super.getPort()+"/test";
-		
+
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
 				.withOptionalsDone().build();
@@ -131,7 +128,7 @@ public class JunitPullServiceTestCase extends Client {
 
 			service.start();
 
-			
+
 		} catch (ServiceInitializationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -140,7 +137,7 @@ public class JunitPullServiceTestCase extends Client {
 			super.stopJetty();
 		}
 	}
-	
+
 	@Test
 	public void testStopOnFirstError() throws Exception {
 		System.out.println("----------------- testStopOnFirstError -------------------");
@@ -148,14 +145,14 @@ public class JunitPullServiceTestCase extends Client {
 		super.startJetty(false);  // don't block
 		String analysisEngineDescriptor = "NoOpAE";
 		System.setProperty("ducc.deploy.JpType", "uima");
-		
+
 		IServiceProcessor processor =
 				new UimaServiceProcessor(analysisEngineDescriptor);
 		// fail on 1st error
 		processor.setErrorHandlerWindow(1,  5);
 
 		String tasURL = "http://localhost:"+super.getPort()+"/test";
-		
+
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
 				.withOptionalsDone().build();
@@ -163,7 +160,7 @@ public class JunitPullServiceTestCase extends Client {
 		try {
 			System.setProperty("ProcessFail","2");
 			service.initialize();
-			
+
 			service.start();
 
 		} catch (ServiceInitializationException e) {
@@ -182,13 +179,13 @@ public class JunitPullServiceTestCase extends Client {
 		super.startJetty(false);  // don't block
 		String analysisEngineDescriptor = "NoOpAE";
 		System.setProperty("ducc.deploy.JpType", "uima");
-		
+
 		IServiceProcessor processor =
 				new UimaServiceProcessor(analysisEngineDescriptor);
 		// fail on 2nd error in a window of 5
 		processor.setErrorHandlerWindow(2,  5);
 		String tasURL = "http://localhost:"+super.getPort()+"/test";
-		
+
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
 				.withOptionalsDone().build();
@@ -197,7 +194,7 @@ public class JunitPullServiceTestCase extends Client {
 			// fail task#1 and task#3 which should stop the test
 			System.setProperty("ProcessFail","1,3");
 			service.initialize();
-			
+
 			service.start();
 
 		} catch (ServiceInitializationException e) {
@@ -215,11 +212,11 @@ public class JunitPullServiceTestCase extends Client {
 		int scaleout = 2;
 		super.startJetty(false);  // don't block
 		String analysisEngineDescriptor = "NoOpAE";
-		IServiceProcessor processor = new 
+		IServiceProcessor processor = new
 				UimaServiceProcessor(analysisEngineDescriptor);
 
 		String tasURL = "http://localhost:"+super.getPort()+"/test";
-		
+
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
 				.withOptionalsDone().build();
@@ -231,7 +228,7 @@ public class JunitPullServiceTestCase extends Client {
 			Timer fTimer = new Timer("testPullService Timer");
 			// after 5secs stop the pull service
 			fTimer.schedule(new MyTimerTask(service, fTimer, false), DELAY);
-			
+
 			service.start();
 
 		} catch (ServiceInitializationException e) {
@@ -250,11 +247,11 @@ public class JunitPullServiceTestCase extends Client {
 		int scaleout = 2;
 		super.startJetty(false);  // don't block
 		String analysisEngineDescriptor = "TestAAE";
-		IServiceProcessor processor = new 
+		IServiceProcessor processor = new
 				UimaServiceProcessor(analysisEngineDescriptor);
 
 		String tasURL ="http://localhost2:8080/test";
-		
+
 		IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
 				.withClientURL(tasURL).withType("Note Service").withScaleout(scaleout)
 				.withOptionalsDone().build();
@@ -263,7 +260,7 @@ public class JunitPullServiceTestCase extends Client {
 			service.initialize();
 			service.start();
 
-			
+
 		} catch (ServiceInitializationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -275,7 +272,7 @@ public class JunitPullServiceTestCase extends Client {
 		final IService service;
 		final Timer fTimer;
 		final boolean quiesce;
-		
+
 		MyTimerTask(IService service, Timer fTimer, boolean quiesce) {
 			this.service = service;
 			this.fTimer = fTimer;

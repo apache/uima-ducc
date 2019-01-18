@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -24,7 +24,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.UIMAFramework;
@@ -37,7 +36,7 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 
-public class NoOpAE extends CasAnnotator_ImplBase 
+public class NoOpAE extends CasAnnotator_ImplBase
 {
     Logger logger;
     static boolean initComplete = false;
@@ -46,7 +45,7 @@ public class NoOpAE extends CasAnnotator_ImplBase
 	String errorSequence;
 
     @Override
-    public void initialize(UimaContext uimaContext) throws ResourceInitializationException 
+    public void initialize(UimaContext uimaContext) throws ResourceInitializationException
     {
     	processCount.set(0);
         super.initialize(uimaContext);
@@ -60,7 +59,7 @@ public class NoOpAE extends CasAnnotator_ImplBase
         Map<String, String> env = System.getenv();
         RuntimeMXBean rmxb = ManagementFactory.getRuntimeMXBean();
         String pid = rmxb.getName();
- 
+
         logger = UIMAFramework.getLogger(NoOpAE.class);
         if ( logger == null ) {
             System.out.println("Is this nuts or what, no logger!");
@@ -84,7 +83,7 @@ public class NoOpAE extends CasAnnotator_ImplBase
         return;
     }
 
- 
+
     void dolog(Object ... args)
     {
         StringBuffer sb = new StringBuffer();
@@ -101,7 +100,7 @@ public class NoOpAE extends CasAnnotator_ImplBase
     public void destroy()
     {
         System.out.println(AE_Identifier + " Destroy is called (0)");
-        dolog("Destroy is called (1) !");        
+        dolog("Destroy is called (1) !");
         try {
             Thread.sleep(3000);                         // simulate actual work being done here
         } catch (InterruptedException e) {
@@ -110,7 +109,7 @@ public class NoOpAE extends CasAnnotator_ImplBase
     }
 
     @Override
-    public void process(CAS cas) throws AnalysisEngineProcessException 
+    public void process(CAS cas) throws AnalysisEngineProcessException
     {
     	long val = processCount.incrementAndGet();
     	//String data = cas.getSofaDataString();
@@ -123,11 +122,11 @@ public class NoOpAE extends CasAnnotator_ImplBase
    	   					System.out.println(">>>> Error: errorSeq:"+errorSeq+" processCount:"+val);
    	   		    		throw new AnalysisEngineProcessException(new RuntimeException("Simulated Exception"));
    	   				}
-  					
+
    				}
     		}
    		}
     }
 
- 
+
 }

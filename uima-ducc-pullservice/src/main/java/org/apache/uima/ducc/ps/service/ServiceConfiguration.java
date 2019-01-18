@@ -19,8 +19,6 @@
 
 package org.apache.uima.ducc.ps.service;
 
-import java.util.List;
-
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 
 public class ServiceConfiguration {
@@ -259,7 +257,7 @@ public class ServiceConfiguration {
 		}
 		if ( System.getProperty("ducc.deploy.JpFlowController") != null ) {
 			setJpFlowController(System.getProperty("ducc.deploy.JpFlowController"));
-		}	
+		}
 	    if ( System.getProperty("ducc.deploy.JpCmDescriptor") != null ) {
 			 setCmDescriptor(System.getProperty("ducc.deploy.JpCmDescriptor"));
 		}
@@ -280,10 +278,10 @@ public class ServiceConfiguration {
 		}
 /*
 		List<String> cmOverrides = getPropertyListString("ducc.deploy.JpCmOverrides");
-		  List<String> aeOverrides = getPropertyListString("ducc.deploy.JpAeOverrides"); 
+		  List<String> aeOverrides = getPropertyListString("ducc.deploy.JpAeOverrides");
 		  List<String> ccOverrides = getPropertyListString("ducc.deploy.JpCcOverrides");
-*/		
-		
+*/
+
 		serviceJmxConnectURL = System.getProperty("ducc.jmx.port");
 		customRegistryClass = System.getProperty("ducc.deploy.registry.class");
 		customProcessorClass = System.getProperty("ducc.deploy.custom.processor.class");
@@ -292,7 +290,7 @@ public class ServiceConfiguration {
 		if ( getJobId() == null ) {
 			setJobId(System.getenv("DUCC_JOBID"));
 		}
-		
+
 		duccProcessId = System.getenv("DUCC_PROCESSID");
 		duccProcessUniqueId = System.getenv("DUCC_PROCESS_UNIQUEID");
 		monitorPort = System.getenv("DUCC_STATE_UPDATE_PORT");
