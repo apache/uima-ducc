@@ -116,13 +116,16 @@ class DuccRsync(DuccUtil):
         head = self.ducc_properties.get(self.key_ducc_head) 
         if(self.args.debug):
             print 'head:'+head
-        self.add(node_list,head)
         #reliable
-        reliable = self.ducc_properties.get(self.key_ducc_head_reliable_list)
-        for node in reliable:
-            if(self.args.debug):
-                print 'reliable:'+head
-            self.add(node_list,node)
+        reliable_string = self.ducc_properties.get(self.key_ducc_head_reliable_list)
+        reliable = reliable_string.split()
+        if(len(reliable) > 0):
+            for node in reliable:
+                if(self.args.debug):
+                    print 'reliable:'+node
+                    self.add(node_list,node)
+        else:
+            self.add(node_list,head)
         # agents
         map = {}
         if(self.args.debug):
