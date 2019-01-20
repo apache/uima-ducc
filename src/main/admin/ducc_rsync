@@ -93,10 +93,10 @@ class DuccRsync(DuccUtil):
         else:
             list.append(node)
     
-    # update the specified node, dir
+    # update the specified node, subdir
     def rsync(self,node,user,subdir):
         dir = os.path.join(DUCC_HOME,subdir)
-        cmd = self.rsync_cmd+' '+self.rsync_flags+' '+dir+' '+user+'@'+node+':'+dir
+        cmd = self.rsync_cmd+' '+self.rsync_flags+' '+dir+' '+user+'@'+node+':'+DUCC_HOME
         if(self.args.debug):
             print cmd
         proc = subprocess.Popen(cmd, shell=True, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -109,7 +109,7 @@ class DuccRsync(DuccUtil):
             for line in lines:
                 print line
     
-    # create list of node to be updated
+    # create list of nodes to be updated
     def create_node_list(self):
         node_list = []
         # head
