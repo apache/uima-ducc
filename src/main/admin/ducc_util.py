@@ -1301,7 +1301,18 @@ class DuccUtil(DuccBase):
                         retVal = True
                         break
         return retVal
-        
+    
+    def is_valid_ip_address(self,address):
+        retVal = False
+        try:
+            list = address.split('.')
+            for item in list:
+                int(item)
+            retVal = True
+        except Exception as e:
+            pass
+        return retVal
+    
     # master when current node keepalived answers for head node ip
     # backup when current node keepalived does not answer for head ip, but is capable in config
     # unspecified otherwise
@@ -1310,7 +1321,10 @@ class DuccUtil(DuccBase):
         result = 'unspecified'
         try:
             ducc_head = self.ducc_properties.get('ducc.head')
-            head_ip = self.get_ip_address(ducc_head)
+            if(self.is_valid_ip_address(ducc_head)):
+                head_ip = ducc_head
+            else:
+                head_ip = self.get_ip_address(ducc_head)
             if(self.is_reliable_eligible(head_ip)):
                 text = 'cmd: ', '/sbin/ip', 'addr', 'list'
                 debug(label, text)
