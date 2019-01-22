@@ -140,6 +140,7 @@ public class DuccHandler extends DuccAbstractHandler {
 
 	private String duccVersion						= duccContext+"/version";
 	private String duccHome							= duccContext+"/home";
+	private String duccHostname						= duccContext+"/hostname";
 
 	private String duccLoginLink					= duccContext+"/login-link";
 	private String duccLogoutLink					= duccContext+"/logout-link";
@@ -301,6 +302,27 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		sb.append(dir_home);
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
+	private void handleDuccServletHostname(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletHostname";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		try {
+			Process p = Runtime.getRuntime().exec("hostname");
+			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String hostname = "";
+			while ((hostname = stdInput.readLine()) != null) {
+				sb.append(hostname);
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, null, e);
+		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
@@ -4457,6 +4479,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else if(reqURI.startsWith(duccHome)) {
 				handleDuccServletHome(target, baseRequest, request, response);
+				//DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccHostname)) {
+				handleDuccServletHostname(target, baseRequest, request, response);
 				//DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccAuthenticationStatus)) {
