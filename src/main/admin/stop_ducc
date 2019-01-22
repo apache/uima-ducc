@@ -313,6 +313,12 @@ class StopDucc(DuccUtil):
             component = item[1]
             if(component == self.n_ag):
                 continue
+            if(component == self.n_db):
+                if(not self.automanage_database):
+                    continue
+            if(component == self.n_br):
+                if(not self.automanage_broker):
+                    continue
             if(node != this_node):
                 continue
             list.append(item)
@@ -383,14 +389,17 @@ class StopDucc(DuccUtil):
                 msg = 'invalid component: '+c
                 output(msg)
                 self._exit()
-            if(not dc in self.components):
+            if(dc in self.shortname):
+                component = dc
+            elif(dc in self.components):
+                component = self.shortname[dc]
+            else:
                 msg = 'invalid component: '+c
                 output(msg)
                 self._exit()
             text = dc+'.'+dn
             debug(self._mn(),text)
             node = dn
-            component = self.shortname[dc]
             entry = [ node, component, '' ]
             list.append(entry)
         return list
