@@ -299,7 +299,13 @@ ${uimaDUCCNoticeText}
 			    <version>${project.version}</version>
   		    </dependency>
 
-             <dependency>
+		    <dependency>
+			    <groupId>org.apache.uima</groupId>
+			    <artifactId>uima-ducc-workitem-v2</artifactId>
+				<version>${project.version}</version>
+		    </dependency>
+		       
+            <dependency>
 			    <groupId>org.apache.uima</groupId>
 			    <artifactId>uima-ducc-sm</artifactId>
 			    <version>${project.version}</version>
@@ -988,5 +994,7 @@ ${uimaDUCCNoticeText}
 		</profile>
 
 	</profiles>
+
+
 
 </project>

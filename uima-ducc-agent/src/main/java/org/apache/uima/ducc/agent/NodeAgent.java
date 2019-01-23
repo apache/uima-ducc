@@ -1245,6 +1245,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     switch (state) {
       case FailedInitialization:
       case InitializationTimeout:
+      case Stopped:
+      case Stopping:
         return false;
       case Starting:
       case Started:
@@ -1349,8 +1351,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             // The process has already stopped, but managed to send
             // the last update before dying. Ignore the update
             return;
-          } else if (changeState(duccEvent.getState())) {
-            processEntry.getValue().setProcessState(duccEvent.getState());
+          } else if (changeState(processEntry.getValue().getProcessState())) {
+        	  logger.info(methodName, null,"=============== PID:"+processEntry.getValue().getPID()+" Changing State - current state:"+processEntry.getValue().getProcessState()+" New State:"+duccEvent.getState());
+    		  processEntry.getValue().setProcessState(duccEvent.getState());
+        	  
             // if the process is Stopping, it must have hit an error threshold
           }
           // Check if MemoryCollector should be created for this

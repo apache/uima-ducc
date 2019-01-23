@@ -19,8 +19,13 @@
 package org.apache.uima.ducc.agent.launcher;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +39,7 @@ import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess.StopPriority;
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.container.FlagsHelper;
+import org.apache.uima.ducc.common.exception.DuccRuntimeException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Utils;
@@ -49,6 +55,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
+import org.apache.uima.ducc.user.common.PrivateClassLoader;
 
 public class DuccCommandExecutor extends CommandExecutor {
 	DuccLogger logger = DuccLogger.getLogger(this.getClass(),
@@ -788,9 +795,53 @@ public class DuccCommandExecutor extends CommandExecutor {
 					executable = System.getProperty("java.home")
 							+ File.separator + "bin" + File.separator + "java";
 				}
-
+				boolean jd = ((ManagedProcess) super.managedProcess).isJd();
+				
 				if (cmdLine instanceof JavaCommandLine) {
+					String classpath="";
+					if ( jd ) {
+						for( String option : ((JavaCommandLine) cmdLine).getOptions() ) {
+							logger.info("getDeployableCommandLine",null,"+++++++++ "+option);
+							if ( option.startsWith("-Dducc.deploy.UserClasspath") ) {
+								classpath = option.split("=")[1];
+								break;
+							}
+						}
+						logger.info("getDeployableCommandLine",null,">>>>>>>> User Classpath:"+classpath);
+					} else {
+						classpath = ((JavaCommandLine) cmdLine).getClasspath();
+					}
+					
+					
+					
 					String duccHomePath = Utils.findDuccHome();
+					
+					String[] jars = classpath.split(":");
+					URLClassLoader clsLoader = newClassLoader(jars);
+					Class<?> cls = clsLoader.loadClass("org.apache.uima.impl.UimaVersion");
+					Method majorVersionMethod = cls.getMethod("getMajorVersion");
+					short majorVersion = (short)majorVersionMethod.invoke(null);
+					if ( !duccHomePath.trim().endsWith("/") ) {
+						duccHomePath = duccHomePath.concat("/");
+					}
+					String workItemJarDir = duccHomePath+"lib/uima-ducc/workitem/uima-ducc-workitem-";
+					if ( majorVersion < 3 ) {
+						classpath = workItemJarDir+"v2.jar:"+classpath;
+					} else if ( majorVersion >= 3 ) {
+						classpath = workItemJarDir+"v3.jar:"+classpath;
+					} else {
+						throw new DuccRuntimeException("Unknown version of UIMA - majorVersion="+majorVersion);
+					}
+					 
+					if ( jd ) {
+						logger.info("getDeployableCommandLine",null,"............ JD UserClasspath:"+classpath);
+						// JD uses classloader separation to run user specified jars. 
+						((JavaCommandLine) cmdLine).replaceOption("-Dducc.deploy.UserClasspath", classpath);
+					} else {
+						logger.info("getDeployableCommandLine",null,"............ Not JD - Classpath:"+classpath);
+						((JavaCommandLine) cmdLine).setClasspath(classpath);
+					}
+
 					cmdLine.addOption("-DDUCC_HOME=" + duccHomePath);
 					cmdLine.addOption("-Dducc.deploy.configuration="
 								+ System.getProperty("ducc.deploy.configuration"));
@@ -803,6 +854,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					cmdLine.addOption("-Dducc.process.log.dir="	+ processLogDir);
 					cmdLine.addOption("-Dducc.process.log.basename=" + processLogFile);
 					cmdLine.addOption("-Dducc.job.id=" + ((ManagedProcess) super.managedProcess).getWorkDuccId());
+					
 				}
 
 				if (useDuccSpawn()) {
@@ -830,7 +882,8 @@ public class DuccCommandExecutor extends CommandExecutor {
 					   break;
 					}
 				}
-				boolean jd = ((ManagedProcess) super.managedProcess).isJd();
+
+				
 				// Currently agent has two ports where it listens for process state updates. One is
 				// for JPs and the other is for APs and JDs. The latter use a simplified state update protocol
 				// which is String based. The JPs actually serialize a more complex state Object.
@@ -896,7 +949,29 @@ public class DuccCommandExecutor extends CommandExecutor {
 		}
 
 	}
-
+	  public URLClassLoader newClassLoader(String[] classPathElements) throws IOException  {
+		    ArrayList<URL> urlList = new ArrayList<URL>(classPathElements.length);
+		    for (String element : classPathElements) {
+		      if (element.endsWith("*")) {
+		        File dir = new File(element.substring(0, element.length() - 1));
+		        File[] files = dir.listFiles();   // Will be null if missing or not a dir
+		        if (files != null) {
+		          for (File f : files) {
+		            if (f.getName().endsWith(".jar")) {
+		              urlList.add(f.getCanonicalFile().toURI().toURL());
+		            }
+		          }
+		        }
+		      } else {
+		        File f = new File(element);
+		        if (f.exists()) {
+		          urlList.add(f.getCanonicalFile().toURI().toURL());
+		        }
+		      }
+		    }
+		    URL[] urls = new URL[urlList.size()];
+		    return new URLClassLoader(urlList.toArray(urls), ClassLoader.getSystemClassLoader().getParent());
+		  }
 	public void stop() {
 	}
 }

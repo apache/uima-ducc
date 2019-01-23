@@ -105,7 +105,19 @@ under the License.
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
-    
+       
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>org.apache.uima:uima-ducc-workitem-v2:jar:</include>
+        <include>org.apache.uima:uima-ducc-workitem-v3:jar:</include>
+      </includes>      
+      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
+      <outputDirectory>lib/uima-ducc/workitem</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
    <!-- Google GSon -->   
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>

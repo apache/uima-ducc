@@ -397,7 +397,7 @@ public class ManagedProcess implements Process {
 				// state to Stopped
 				(reason != null && initError ) ) {
 		    //getDuccProcess().setProcessState(ProcessState.Stopped);
-			if ( !initError && ( exitcode - 128 == 9 || exitcode - 128 == 15 ) ) {  // killed with -9?
+			if ( !initError && ( exitcode - 128 == 9 || exitcode - 128 == 15 ) ) {  
 				getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
 			}
 
@@ -432,12 +432,10 @@ public class ManagedProcess implements Process {
 				// default state to Stopped. If the process died unexpectadly the state
 				// will be changed to Failed
 				pstate = ProcessState.Stopped;
-
 				// check if the process died due to an external cause. If that
 				// was the case isstopping = false. The isstopping=true iff the Agent
 				// initiated process stop because the process was deallocated
 				if (!isstopping) {
-
 					// fetch errors from stderr stream. If the process failed to
 					// start due to misconfiguration
 					// the reason for failure would be provided by the OS (wrong
@@ -454,7 +452,6 @@ public class ManagedProcess implements Process {
 					// APs can stop for any reason. There is 
 					// no way to determine why the AP terminated.
 					if ( !isAP ) {
-
 						// Unexpected process termination 
 						pstate = ProcessState.Failed;
 						// fetch errors from stderr stream. If the process failed to
@@ -495,7 +492,7 @@ public class ManagedProcess implements Process {
 				notifyProcessObserver(pstate);
 				log("ManagedProcess.drainProcessStreams",
 						"************ Remote Process PID:" + getPid()
-								+ " Terminated ***************");
+								+ " Terminated *************** State:"+getDuccProcess().getProcessState().toString());
 			}
 		}
 	}

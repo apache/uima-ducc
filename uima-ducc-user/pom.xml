@@ -84,6 +84,11 @@
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-xstream</artifactId>
 		</dependency>
+				
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-workitem-v2</artifactId>
+		</dependency>
 	</dependencies>
  
 </project>

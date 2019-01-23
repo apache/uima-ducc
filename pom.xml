@@ -137,6 +137,16 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-workitem-v2</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-workitem-v3</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-container</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -200,6 +210,15 @@
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-user</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-workitem-v2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-workitem-v3</artifactId>
+		</dependency>
+		
 		<dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-container</artifactId>
@@ -576,6 +595,8 @@
 		<module>uima-ducc-user</module>
 		<!-- Note: uima-ducc-container has a test dependency on uima-ducc-user so must be built after it -->
 		<module>uima-ducc-container</module>
-    <module>uima-ducc-pullservice</module>
+        <module>uima-ducc-pullservice</module>
+        <module>uima-ducc-workitem-v2</module>
+        <module>uima-ducc-workitem-v3</module>
   </modules>
 </project>

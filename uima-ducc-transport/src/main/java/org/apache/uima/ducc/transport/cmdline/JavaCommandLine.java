@@ -54,6 +54,24 @@ public class JavaCommandLine extends ACommandLine {
             options.add(option);
         }
 	}
+    public void replaceOption(String key, String value) {
+    	List<String> newOptions = new ArrayList<>();
+    	boolean modified = false;
+    	for( String option : getOptions() ) {
+    		String[] keyValue = option.split("=");
+    		if ( keyValue[0].equals(key)) {
+    			newOptions.add(key+"="+value);
+    			modified=true;
+    		} else {
+    			newOptions.add(option);
+    		}
+    		
+    	}
+    	if ( modified ) {
+    		options.clear();
+    		options = newOptions;
+    	}
+    }
 	public List<String> getOptions() {
 		return options;
 	}
