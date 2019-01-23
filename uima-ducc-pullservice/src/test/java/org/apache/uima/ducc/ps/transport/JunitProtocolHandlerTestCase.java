@@ -31,7 +31,9 @@ import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
 import org.apache.uima.ducc.ps.service.processor.uima.UimaServiceProcessor;
+import org.apache.uima.ducc.ps.service.protocol.INoTaskAvailableStrategy;
 import org.apache.uima.ducc.ps.service.protocol.IServiceProtocolHandler;
+import org.apache.uima.ducc.ps.service.protocol.builtin.DefaultNoTaskAvailableStrategy;
 import org.apache.uima.ducc.ps.service.protocol.builtin.DefaultServiceProtocolHandler;
 import org.apache.uima.ducc.ps.service.registry.DefaultRegistryClient;
 import org.apache.uima.ducc.ps.service.transport.IServiceTransport;
@@ -50,8 +52,10 @@ public class JunitProtocolHandlerTestCase extends Client {
     	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+super.getPort()+"/"+super.getApp());
     	DefaultRegistryClient registryClient =
     			new DefaultRegistryClient(targetUrl);
+    	INoTaskAvailableStrategy waitStrategy = 
+				new DefaultNoTaskAvailableStrategy(1000);
     	HttpServiceTransport transport = 
-    			new HttpServiceTransport(registryClient, scaleout);
+    			new HttpServiceTransport(registryClient, scaleout,waitStrategy);
     	transport.initialize();
     	return transport;
 	}

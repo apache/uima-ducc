@@ -25,7 +25,7 @@ import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 public interface IServiceTransport extends IServiceComponent {
 	// called by Protocal Handler. Any errors will be handled
 	// by instance of IServiceErrorHandler
-	public String dispatch(String request) throws TransportException;
+	public IMetaTaskTransaction dispatch(String request) throws TransportException;
 	// initialize transport
 	public void initialize() throws ServiceInitializationException; 
 	// stop transport

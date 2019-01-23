@@ -27,8 +27,15 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
+import org.apache.uima.ducc.ps.net.impl.MetaMetaTask;
+import org.apache.uima.ducc.ps.net.impl.MetaTask;
+import org.apache.uima.ducc.ps.net.impl.MetaTaskTransaction;
+import org.apache.uima.ducc.ps.service.protocol.INoTaskAvailableStrategy;
+import org.apache.uima.ducc.ps.service.protocol.builtin.DefaultNoTaskAvailableStrategy;
 import org.apache.uima.ducc.ps.service.registry.DefaultRegistryClient;
 import org.apache.uima.ducc.ps.service.transport.ITargetURI;
+import org.apache.uima.ducc.ps.service.transport.XStreamUtils;
 import org.apache.uima.ducc.ps.service.transport.http.HttpServiceTransport;
 import org.apache.uima.ducc.ps.service.transport.http.HttpServiceTransport.HttpClientExceptionGenerator.ERROR;
 import org.apache.uima.ducc.ps.service.transport.target.HttpTargetURI;
@@ -131,7 +138,10 @@ public class JunitTransportTestCase {
     	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+getPort()+"/"+app);
     	DefaultRegistryClient registryClient =
     			new DefaultRegistryClient(targetUrl);
-    	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);
+    	INoTaskAvailableStrategy waitStrategy = 
+				new DefaultNoTaskAvailableStrategy(1000);
+ 
+    	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout, waitStrategy);
     	transport.initialize();
     	//String response = transport.getWork("Test");
     	//System.out.println("Test Received Response:"+response);
@@ -146,10 +156,13 @@ public class JunitTransportTestCase {
     	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+getPort()+"/"+app);
     	DefaultRegistryClient registryClient =
     			new DefaultRegistryClient(targetUrl);
-    	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);
+    	INoTaskAvailableStrategy waitStrategy = 
+				new DefaultNoTaskAvailableStrategy(1000);
+    	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout, waitStrategy);
     	transport.initialize();
     	System.setProperty("MockHttpPostError", ERROR.IOException.name());
-    	transport.dispatch("Dummy Message");
+    	IMetaTaskTransaction transaction = new MetaTaskTransaction();
+    	transport.dispatch(XStreamUtils.marshall(transaction));
  
     	wait(registryClient);
     }
@@ -161,10 +174,13 @@ public class JunitTransportTestCase {
     	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+getPort()+"/"+app);
     	DefaultRegistryClient registryClient =
     			new DefaultRegistryClient(targetUrl);
-    	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);
+    	INoTaskAvailableStrategy waitStrategy = 
+				new DefaultNoTaskAvailableStrategy(1000);
+    	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout, waitStrategy);
     	transport.initialize();
     	System.setProperty("MockHttpPostError", ERROR.NoRouteToHostException.name());
-    	transport.dispatch("Dummy Message");
+    	IMetaTaskTransaction transaction = new MetaTaskTransaction();
+    	transport.dispatch(XStreamUtils.marshall(transaction));
     	wait(registryClient);
 
     }
@@ -176,10 +192,13 @@ public class JunitTransportTestCase {
     	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+getPort()+"/"+app);
     	DefaultRegistryClient registryClient =
     			new DefaultRegistryClient(targetUrl);
-    	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);
+    	INoTaskAvailableStrategy waitStrategy = 
+				new DefaultNoTaskAvailableStrategy(1000);
+    	HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout, waitStrategy);
     	transport.initialize();
     	System.setProperty("MockHttpPostError", ERROR.URISyntaxException.name());
-    	transport.dispatch("Dummy Message");
+    	IMetaTaskTransaction transaction = new MetaTaskTransaction();
+    	transport.dispatch(XStreamUtils.marshall(transaction));
     	wait(registryClient);
 
     }
@@ -203,7 +222,7 @@ public class JunitTransportTestCase {
 				}
 				String content = sb.toString().trim();
 
-				System.out.println( "Http Request Body:::"+String.valueOf(content));
+				//System.out.println( "Http Request Body:::"+content);
 				
 				
 	    		 String nodeIP = request.getHeader("IP");
@@ -211,8 +230,12 @@ public class JunitTransportTestCase {
 	             String threadID = request.getHeader("ThreadID");
 	             String pid = request.getHeader("PID");
 				System.out.println( "Sender ID:::Node IP"+nodeIP+" Node Name:"+nodeName+" PID:"+pid+" ThreadID:"+threadID);
-
-				response.getWriter().write(content);
+				IMetaTaskTransaction transaction = (IMetaTaskTransaction)XStreamUtils.unmarshall(content);
+				transaction.setMetaTask(new MetaTask(1,"",null));
+				transaction.getMetaTask().setUserSpaceTask("Test Message");
+				String serializedResponse = XStreamUtils.marshall(transaction);
+				//System.out.println(serializedResponse);
+				response.getWriter().write(serializedResponse);
 			} catch (Throwable e) {
 				e.printStackTrace();
 				throw new ServletException(e);

@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.ps.service.transport.http;
 
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.NoRouteToHostException;
@@ -28,6 +29,7 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.http.HttpEntity;
@@ -49,11 +51,13 @@ import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler.Action;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
+import org.apache.uima.ducc.ps.service.protocol.INoTaskAvailableStrategy;
 import org.apache.uima.ducc.ps.service.registry.IRegistryClient;
 import org.apache.uima.ducc.ps.service.transport.IServiceTransport;
 import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 import org.apache.uima.ducc.ps.service.transport.TransportException;
 import org.apache.uima.ducc.ps.service.transport.TransportStats;
+import org.apache.uima.ducc.ps.service.transport.XStreamUtils;
 import org.apache.uima.ducc.ps.service.transport.target.NoOpTargetURI;
 import org.apache.uima.ducc.ps.service.transport.target.TargetURIFactory;
 import org.apache.uima.ducc.ps.service.utils.Utils;
@@ -65,11 +69,11 @@ public class HttpServiceTransport implements IServiceTransport {
 	private HttpClient httpClient = null;
 	private PoolingHttpClientConnectionManager cMgr = null;
 	private int clientMaxConnections = 1;
-	private int clientMaxConnectionsPerRoute = 60;
+	private int clientMaxConnectionsPerRoute = 1;
 	private int clientMaxConnectionsPerHostPort = 0;
 	private ReentrantLock lock = new ReentrantLock();
 	private ReentrantLock registryLookupLock = new ReentrantLock();
-    private long threadSleepTime=10000; // millis
+    private long threadSleepTime=1000; // millis
     private final String nodeIP;
     private final String nodeName;
     private final String pid;		
@@ -83,10 +87,12 @@ public class HttpServiceTransport implements IServiceTransport {
     private volatile boolean stopping = false;
 	private volatile boolean running = false;
 	private volatile boolean log = true;
- 	public HttpServiceTransport(IRegistryClient registryClient, int scaleout) throws ServiceException {
+	private INoTaskAvailableStrategy waitStrategy=null;
+	
+ 	public HttpServiceTransport(IRegistryClient registryClient, int scaleout, INoTaskAvailableStrategy waitStrategy) throws ServiceException {
 		this.registryClient = registryClient;
 		clientMaxConnections = scaleout;
-
+		this.waitStrategy = waitStrategy;
 		try {
 			nodeIP = InetAddress.getLocalHost().getHostAddress();
 			nodeName=InetAddress.getLocalHost().getCanonicalHostName();
@@ -208,8 +214,8 @@ public class HttpServiceTransport implements IServiceTransport {
 		return running;
 	}
 
-	private String retryUntilSuccessfull(String request, HttpPost postMethod) {
-		String response="";
+	private IMetaTaskTransaction retryUntilSuccessfull(String request, HttpPost postMethod) {
+		IMetaTaskTransaction response=null;
 		// Only one thread attempts recovery. Other threads will block here
 		// until connection to the remote is restored.
 		lock.lock();
@@ -242,30 +248,61 @@ public class HttpServiceTransport implements IServiceTransport {
 		return response;
 		
 	}
-	private String doPost(HttpPost postMethod) throws URISyntaxException, IOException, TransportException {
+	private synchronized IMetaTaskTransaction doPost(HttpPost postMethod) throws URISyntaxException, IOException, TransportException {
 		postMethod.setURI(new URI(currentTargetUrl.asString()));
-		HttpResponse response = httpClient.execute(postMethod);
 		
-		if ( stopping ) {
-			throw new TransportException("Service stopping - rejecting request");
+		IMetaTaskTransaction metaTransaction=null;
+		while(running) {
+			HttpResponse response = httpClient.execute(postMethod);
+			if ( stopping ) {
+				throw new TransportException("Service stopping - rejecting request");
+			}
+			HttpEntity entity = response.getEntity();
+			String serializedResponse = EntityUtils.toString(entity);
+			Object transaction=null;
+			try {
+				transaction = XStreamUtils.unmarshall(serializedResponse);
+			} catch(Exception e) {
+				logger.log(Level.WARNING,"Process Thread:"+Thread.currentThread().getId()+" Error while deserializing response with XStream",e);
+				throw new TransportException(e);
+			}
+			if (transaction instanceof IMetaTaskTransaction) {
+				metaTransaction = (IMetaTaskTransaction) transaction;
+				if ( metaTransaction.getMetaTask() == null || metaTransaction.getMetaTask().getUserSpaceTask() == null) {
+					logger.log(Level.INFO,"Process Thread:"+Thread.currentThread().getId()+" - Driver is out of tasks - waiting for awhile ("+threadSleepTime+" ms) and will try again ");
+					waitStrategy.handleNoTaskSupplied();
+				} else {
+					// Got a task
+					break;
+				}
+			} else {
+				if ( Objects.isNull(transaction)) {
+					throw new InvalidClassException(
+							"Expected IMetaTaskTransaction - Instead Received NULL");
+					
+				} else {
+					throw new InvalidClassException(
+							"Expected IMetaTaskTransaction - Instead Received " + transaction.getClass().getName());
+				}
+			}
+			StatusLine statusLine = response.getStatusLine();
+			if (statusLine.getStatusCode() != 200 ) {
+				// all IOExceptions are retried
+				throw new IOException(
+						"Unexpected HttpClient response status:"+statusLine+ " Content causing error:"+serializedResponse);
+			}
+			
+			
 		}
-		HttpEntity entity = response.getEntity();
-		String serializedResponse = EntityUtils.toString(entity);
-		StatusLine statusLine = response.getStatusLine();
-		if (statusLine.getStatusCode() != 200 ) {
-			// all IOExceptions are retried
-			throw new IOException(
-					"Unexpected HttpClient response status:"+statusLine+ " Content causing error:"+serializedResponse);
-		}
-		
 		stats.incrementSuccessCount();
-		return serializedResponse;
+		return metaTransaction;
 	}
 	@Override
-	public String dispatch(String serializedRequest) throws TransportException  {
+	public IMetaTaskTransaction dispatch(String serializedRequest) throws TransportException  {
 		if ( stopping ) {
 			throw new IllegalStateException("Service transport has been stopped, unable to dispatch request");
 		}
+		IMetaTaskTransaction transaction=null;
 		HttpEntity e = wrapRequest(serializedRequest);
 		// Each thread has its own HttpPost method. If current thread
 		// doesnt have one, it will be created and added to the local
@@ -294,7 +331,7 @@ public class HttpServiceTransport implements IServiceTransport {
 						new HttpClientExceptionGenerator(simulatedException);
 				mockExceptionGenerator.throwSimulatedException();
 			} else {
-				serializedResponse = doPost(postMethod);
+				transaction = doPost(postMethod);
 			}
 		} catch( IOException | URISyntaxException ex) {
 			if ( stopping ) {
@@ -308,7 +345,7 @@ public class HttpServiceTransport implements IServiceTransport {
 					logger.log(Level.WARNING, this.getClass().getName()+".dispatch() >>>>>>>>>> Handling Exception \n"+ex);
 					logger.log(Level.INFO, ">>>>>>>>>> Unable to communicate with target:"+currentTargetUrl.asString()+" - retrying until successfull - with "+threadSleepTime/1000+" seconds wait between retries  ");
 				}
-				serializedResponse = retryUntilSuccessfull(serializedRequest, postMethod);
+				transaction = retryUntilSuccessfull(serializedRequest, postMethod);
 				log = true;
 				logger.log(Level.INFO, "Established connection to target:"+currentTargetUrl.asString());
 			}
@@ -317,7 +354,7 @@ public class HttpServiceTransport implements IServiceTransport {
 		} finally {
 			postMethod.releaseConnection();
 		}
-		return serializedResponse;
+		return transaction;
 		
 	}
 	

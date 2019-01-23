@@ -41,7 +41,7 @@ public class JUnitServiceWrapperTestCase extends Client  {
 	public void testPullServiceWrapperNoTask() throws Exception {
 		// make client return null task in response to GET
 		System.setProperty("simulate.no.work", "3");
-		System.setProperty("ducc.process.thread.sleep.time", "2000");
+		System.setProperty("ducc.process.thread.sleep.time", "1000");
 		try {
 			testPullServiceWrapper();
 		} finally {
@@ -71,7 +71,7 @@ public class JUnitServiceWrapperTestCase extends Client  {
 
 			Timer fTimer = new Timer("testPullService Timer");
 			// after 5secs stop the pull service
-			fTimer.schedule(new MyTimerTask(service, fTimer), 20000);
+			fTimer.schedule(new MyTimerTask(service, fTimer), 40000);
 				
 			service.initialize(new String[] {analysisEngineDescriptor});
 

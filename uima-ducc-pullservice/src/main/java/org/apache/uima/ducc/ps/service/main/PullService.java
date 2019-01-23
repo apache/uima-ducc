@@ -34,7 +34,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.ps.ServiceThreadFactory;
 import org.apache.uima.ducc.ps.service.IService;
-//import org.apache.uima.ducc.ps.service.ServiceConfiguration;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
@@ -61,7 +60,7 @@ public class PullService implements IService {
 	// how many processing threads
 	private int scaleout=1;
 	// amount of time to wait when client has no tasks to give
-	private int waitTimeInMillis=0;
+	private int waitTimeInMillis=1000;
 
 	// application assigned service label
 	private String type;
@@ -170,9 +169,12 @@ public class PullService implements IService {
 				// the following will throw exception if client URL not specified
 				initializeDefaultRegistryClient();
 			}
+			// Use default wait strategy when a driver is out of work.
+			INoTaskAvailableStrategy waitStrategy = 
+					new DefaultNoTaskAvailableStrategy(waitTimeInMillis);
 
 			// add default transport
-			transport = new HttpServiceTransport(registryClient, scaleout);
+			transport = new HttpServiceTransport(registryClient, scaleout, waitStrategy);
 
 			// contract is that the service will block in this method until
 			// all process threads initialize. Use a latch to block until this
@@ -185,13 +187,11 @@ public class PullService implements IService {
 			// this down just before thread dies.
 			CountDownLatch stopLatch = new CountDownLatch(scaleout);
 			serviceProcessor.setScaleout(scaleout);
-			INoTaskAvailableStrategy waitStrategy =
-					new DefaultNoTaskAvailableStrategy(waitTimeInMillis);
 			// add default protocol handler
 	        protocolHandler =
 					   new DefaultServiceProtocolHandler.Builder()
 					   .withProcessor(serviceProcessor)
-					   .withNoTaskStrategy(waitStrategy)
+					   //.withNoTaskStrategy(waitStrategy)
 					   .withService(this)
 					   .withTransport(transport)
 					   .withDoneLatch(stopLatch)

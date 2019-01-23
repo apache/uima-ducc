@@ -20,7 +20,6 @@
 package org.apache.uima.ducc.ps.sd.task;
 
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -47,16 +46,12 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 	private volatile boolean running = true;;
 	private static AtomicInteger atomicCounter =
 			new AtomicInteger(0);
-	Properties props = new Properties();
 
 	public DuccServiceTaskProtocolHandler(TaskAllocatorCallbackListener taskAllocator) {
 	}
 
 	@Override
 	public String initialize(Properties props) throws TaskProtocolException {
-		if ( Objects.nonNull(props)) {
-			this.props = props;
-		}
 		return null;
 	}
 
@@ -134,54 +129,23 @@ public class DuccServiceTaskProtocolHandler implements TaskProtocolHandler {
 		}
 		return new MetaTask(atomicCounter.incrementAndGet(), "", serializedCas);
 	}
-	private int convertToInt(String value, int defaultValue) {
-		try {
-			return Integer.valueOf(value);
-		} catch(NumberFormatException e) {
-			return defaultValue;
-		}
-	}
+
 	private synchronized IMetaMetaTask getMetaMetaTask(TaskConsumer taskConsumer) {
 		IMetaMetaTask mmc = new MetaMetaTask();
 		ServiceDriver sd = DuccServiceDriver.getInstance();
 		TaskAllocatorCallbackListener taskAllocator =
 				sd.getTaskAllocator();
 		ITask task;
-
-		// By default, the max time we are willing to wait for a task is 30 secs
-		// with 1 secs wait time between retries. When we reach the max
-		// retry, we return empty task to the service.
-		int retryCount = convertToInt(props.getProperty(ServiceDriver.DriverTaskRetryCount),30);
-		if ( retryCount == 0 ) {
-			retryCount = 1;
-		}
-		int waitTime = convertToInt(props.getProperty(ServiceDriver.DriverTaskWaitTime),1000);
-		while( retryCount > 0 ) {
-			task = taskAllocator.getTask(taskConsumer);
-			// if allocation system does not return a task (or empty)
-			// block this thread and retry until a task becomes
-			// available or until max retry count is exhausted
-			if ( task == null || task.isEmpty() ) {
-				if ( waitTime > 0 ) {
-					try {
-            Thread.sleep(waitTime);
-					} catch(InterruptedException ee) {
-						Thread.currentThread().interrupt();
-					}
-				}
-
-			} else {
-				IMetaTask metaTask = getMetaTask(task.asString());
-				mmc.setMetaCas(metaTask);
-			    if ( logger.isLoggable(Level.FINE)) {
-				   logger.log(Level.FINE,"Returning TASK with appdata:"+task.getMetadata()+" to the service");
-			    }
-				mmc.getMetaCas().setAppData(task.getMetadata());
-				break;
+		
+		task = taskAllocator.getTask(taskConsumer);
+		if ( task != null && !task.isEmpty() ) {
+			IMetaTask metaTask = getMetaTask(task.asString());
+			mmc.setMetaCas(metaTask);
+			if ( logger.isLoggable(Level.FINE)) {
+			   logger.log(Level.FINE,"Returning TASK with appdata:"+task.getMetadata()+" to the service");
 			}
-			retryCount--;
+			mmc.getMetaCas().setAppData(task.getMetadata());
 		}
-
 		return mmc;
 	}
 	private void handleMetaTaskTransationAck(IMetaTaskTransaction trans, TaskConsumer taskConsumer) {
