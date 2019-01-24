@@ -252,6 +252,7 @@ public class HttpServiceTransport implements IServiceTransport {
 		postMethod.setURI(new URI(currentTargetUrl.asString()));
 		
 		IMetaTaskTransaction metaTransaction=null;
+		boolean logOutOfTasks = true;
 		while(running) {
 			HttpResponse response = httpClient.execute(postMethod);
 			if ( stopping ) {
@@ -269,7 +270,11 @@ public class HttpServiceTransport implements IServiceTransport {
 			if (transaction instanceof IMetaTaskTransaction) {
 				metaTransaction = (IMetaTaskTransaction) transaction;
 				if ( metaTransaction.getMetaTask() == null || metaTransaction.getMetaTask().getUserSpaceTask() == null) {
-					logger.log(Level.INFO,"Process Thread:"+Thread.currentThread().getId()+" - Driver is out of tasks - waiting for awhile ("+threadSleepTime+" ms) and will try again ");
+					if ( logOutOfTasks ) {
+						logger.log(Level.INFO,"Process Thread:"+Thread.currentThread().getId()+" - Driver is out of tasks - waiting for awhile ("+threadSleepTime+" ms) and will try again ");
+						logOutOfTasks = false;
+					}
+
 					waitStrategy.handleNoTaskSupplied();
 				} else {
 					// Got a task
