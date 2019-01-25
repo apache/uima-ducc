@@ -253,13 +253,18 @@ class StopDucc(DuccUtil):
         group1.add_argument(self.option_agents, action='store_true', help=self.help_agents)
         group1.add_argument(self.option_nodelist, '-n', action='append', help=self.help_nodelist)
         group1.add_argument(self.option_component, '-c', action='append',  help=self.help_component)
-        group2 = self.parser.add_mutually_exclusive_group(required=True)
+        group2 = self.parser.add_mutually_exclusive_group()
         group2.add_argument(self.option_kill, '-k', action='store_true',  help=self.help_kill)
         group2.add_argument(self.option_stop, '-s', action='store', type=int, nargs='?', const=self.default_stop, help=self.help_stop)
         group2.add_argument(self.option_quiesce, '-q', action='store_true', help=self.help_quiesce)
         self.parser.add_argument(self.option_maxthreads, '-m', action='store', type=int, default=None, help=self.help_maxthreads)
         self.parser.add_argument(self.option_debug, '-d', action='store_true', help=self.help_debug)
         self.args = self.parser.parse_args()
+        # mutual choice
+        if(not self.args.kill):
+            if(not self.args.quiesce_then_stop):
+                if(self.args.stop == None):
+                    self.args.stop = self.default_stop
         # special cases
         if(self.args.kill):
             if(self.args.maxthreads == None):
