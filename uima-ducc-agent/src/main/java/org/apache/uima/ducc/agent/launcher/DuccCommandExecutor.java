@@ -801,13 +801,11 @@ public class DuccCommandExecutor extends CommandExecutor {
 					String classpath="";
 					if ( jd ) {
 						for( String option : ((JavaCommandLine) cmdLine).getOptions() ) {
-							logger.info("getDeployableCommandLine",null,"+++++++++ "+option);
 							if ( option.startsWith("-Dducc.deploy.UserClasspath") ) {
 								classpath = option.split("=")[1];
 								break;
 							}
 						}
-						logger.info("getDeployableCommandLine",null,">>>>>>>> User Classpath:"+classpath);
 					} else {
 						classpath = ((JavaCommandLine) cmdLine).getClasspath();
 					}
@@ -834,11 +832,9 @@ public class DuccCommandExecutor extends CommandExecutor {
 					}
 					 
 					if ( jd ) {
-						logger.info("getDeployableCommandLine",null,"............ JD UserClasspath:"+classpath);
 						// JD uses classloader separation to run user specified jars. 
 						((JavaCommandLine) cmdLine).replaceOption("-Dducc.deploy.UserClasspath", classpath);
 					} else {
-						logger.info("getDeployableCommandLine",null,"............ Not JD - Classpath:"+classpath);
 						((JavaCommandLine) cmdLine).setClasspath(classpath);
 					}
 
