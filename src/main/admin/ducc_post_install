@@ -78,6 +78,9 @@ class PostInstall():
         print "   [-d, --db-password] <root password for database>"
         print "        This is the password DUCC uses to manage the database."
         print ""
+        print "   [-b, --br-password] <password for broker>"
+        print "        This is the password DUCC uses to manage the broker."
+        print ""
         print "   [-h, -? --help]"
         print "        Prints this message."
         print ""
@@ -111,6 +114,8 @@ class PostInstall():
     def configure_broker(self):
         cf = self.DUCC_HOME+"/resources.private/ducc-broker-credentials.properties"
         # create file if it does not exist
+        if(self.broker_pw == None):
+            self.broker_pw = self.generate_pw()
         if ( not os.path.exists(cf) ):
             # create file with username & password
             print "broker configuration create"
@@ -118,7 +123,7 @@ class PostInstall():
                 line = 'ducc.broker.admin.username=admin'+'\n'
                 print line
                 f.write(line)
-                line = 'ducc.broker.admin.password='+self.generate_pw()+'\n'
+                line = 'ducc.broker.admin.password='+self.broker_pw+'\n'
                 print line
                 f.write(line)
         # update existing file
@@ -134,7 +139,7 @@ class PostInstall():
                         line = 'ducc.broker.admin.username=admin'+'\n'
                         print line
                     if 'ducc.broker.admin.password=' in line:
-                        line = 'ducc.broker.admin.password='+self.generate_pw()+'\n'  
+                        line = 'ducc.broker.admin.password='+self.broker_pw+'\n'  
                         print line
                     f.write(line)
         return
@@ -460,10 +465,11 @@ class PostInstall():
         self.database_host_list = None
         self.database_user = None
         self.database_pw = None
+        self.broker_pw = None
         self.path_to_java = None
 
         try:
-            opts, args = getopt.getopt(argv, 'a:m:o:u:d:j:k:n:h?', ['db-automanage=', 'db-home=', 'db-host-list=', 'db-user=', 'db-password=', 'jvm=', 'keystore=', 'head-node=', 'help'])
+            opts, args = getopt.getopt(argv, 'a:m:o:u:d:b:j:k:n:h?', ['db-automanage=', 'db-home=', 'db-host-list=', 'db-user=', 'db-password=', 'br-password=', 'jvm=', 'keystore=', 'head-node=', 'help'])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
 
@@ -483,6 +489,8 @@ class PostInstall():
                 self.database_user = a
             if o in ('-d', '--db-password'):
                 self.database_pw = a
+            if o in ('-b', '--br-password'):
+                self.broker_pw = a
             if o in ('-k', '--keystore'):
                 self.keystore_pw = a
             if o in ('-j', '--jvm'):
