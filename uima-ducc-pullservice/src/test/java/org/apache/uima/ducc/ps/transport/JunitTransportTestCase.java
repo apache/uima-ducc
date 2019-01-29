@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
-import org.apache.uima.ducc.ps.net.impl.MetaMetaTask;
 import org.apache.uima.ducc.ps.net.impl.MetaTask;
 import org.apache.uima.ducc.ps.net.impl.MetaTaskTransaction;
 import org.apache.uima.ducc.ps.service.protocol.INoTaskAvailableStrategy;
