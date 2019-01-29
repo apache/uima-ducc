@@ -64,6 +64,7 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesHelper;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.InetHelper;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -3405,7 +3406,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		String status = dh.get_ducc_head_mode();
-		String hover = DuccPropertiesHelper.getDuccHead();
+		String head = "head="+DuccPropertiesHelper.getDuccHead();
+		String local = "local="+InetHelper.getHostName();;
+		String hover = head+' '+local;
 		if(dh.is_ducc_head_master()) {
 			String text = "<span title=\""+hover+"\">"+status+"</span>";
 			sb.append(text);
