@@ -261,7 +261,15 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 					break;
 				}
 				logger.log(Level.INFO, ".............. Thread "+Thread.currentThread().getId() + " processing new task");
-                
+				if ( Objects.isNull(transaction.getMetaTask()) ) {
+					// this should only be the case when the service is stopping and transport is shutdown
+				    if ( running ) {
+				    	logger.log(Level.INFO, ".............. Thread "+Thread.currentThread().getId() + " GET returned null MetaTask while service is in a running state - this is unexpected");
+				    }
+				    // if !running, the while loop above will terminate
+				    continue;
+				}
+
 				Object task = transaction.getMetaTask().getUserSpaceTask();
 				
 				// send ACK 
