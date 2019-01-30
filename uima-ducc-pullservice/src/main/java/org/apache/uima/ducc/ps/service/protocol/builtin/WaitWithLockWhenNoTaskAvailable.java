@@ -64,5 +64,9 @@ public class WaitWithLockWhenNoTaskAvailable implements INoTaskAvailableStrategy
 
 		}
 	}
+	@Override
+	public long getWaitTimeInMillis() {
+		return waitTime;
+	}
 	
 }

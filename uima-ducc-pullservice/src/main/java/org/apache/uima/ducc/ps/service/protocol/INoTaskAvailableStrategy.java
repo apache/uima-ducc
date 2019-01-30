@@ -22,4 +22,5 @@ package org.apache.uima.ducc.ps.service.protocol;
 public interface INoTaskAvailableStrategy {
 	public void handleNoTaskSupplied();
 	public void interrupt();
+	public long getWaitTimeInMillis();
 }

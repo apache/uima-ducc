@@ -209,7 +209,7 @@ public class JunitPullServiceTestCase extends Client {
 	@Test
 	public void testProcessFailureDefaultErrorHandler() throws Exception {
 		System.out.println("----------------- testProcessFailureDefaultErrorHandler -------------------");
-		int scaleout = 2;
+		int scaleout = 14;
 		super.startJetty(false);  // don't block
 		String analysisEngineDescriptor = "NoOpAE";
 		IServiceProcessor processor = new
@@ -223,11 +223,11 @@ public class JunitPullServiceTestCase extends Client {
 
 		try {
 			// fail on 2nd task. This should terminate the test
-			 System.setProperty("ProcessFail","2");
+			 System.setProperty("ProcessFail","20");
 			service.initialize();
 			Timer fTimer = new Timer("testPullService Timer");
 			// after 5secs stop the pull service
-			fTimer.schedule(new MyTimerTask(service, fTimer, false), DELAY);
+			fTimer.schedule(new MyTimerTask(service, fTimer, false), 20000);
 
 			service.start();
 

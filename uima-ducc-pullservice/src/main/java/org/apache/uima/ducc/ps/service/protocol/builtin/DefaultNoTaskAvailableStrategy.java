@@ -34,7 +34,7 @@ public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy 
 	/**
 	 * This methods is called when a service is stopping. There is no
 	 * need to wait. We want to stop as soon as possible so we just
-	 * interrupt the lock which might be blocking in await()
+	 * interrupt the thread which might be blocking in sleep()
 	 */
 	@Override
 	public void interrupt() {
@@ -49,6 +49,10 @@ public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy 
 			Thread.currentThread().interrupt();
 		}
 
+	}
+	@Override
+	public long getWaitTimeInMillis() {
+		return waitTime;
 	}
 	
 }

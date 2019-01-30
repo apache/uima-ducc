@@ -180,6 +180,7 @@ public class Client {
 						if ( System.getProperty("simulate.no.work") == null || noMoreErrors) {
 							imt.getMetaTask().setUserSpaceTask(getSerializedCAS());
 						} else {
+							System.out.println("---- Driver handling GET Request -- Client Out of Tasks -- Thread:"+Thread.currentThread().getId());
 							imt.getMetaTask().setUserSpaceTask(null);
 							if ( atomicErrorCounter.decrementAndGet() == 0 ) {
 								noMoreErrors = true;

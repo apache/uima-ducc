@@ -174,7 +174,7 @@ public class PullService implements IService {
 					new DefaultNoTaskAvailableStrategy(waitTimeInMillis);
 
 			// add default transport
-			transport = new HttpServiceTransport(registryClient, scaleout, waitStrategy);
+			transport = new HttpServiceTransport(registryClient, scaleout);
 
 			// contract is that the service will block in this method until
 			// all process threads initialize. Use a latch to block until this
@@ -191,7 +191,7 @@ public class PullService implements IService {
 	        protocolHandler =
 					   new DefaultServiceProtocolHandler.Builder()
 					   .withProcessor(serviceProcessor)
-					   //.withNoTaskStrategy(waitStrategy)
+					   .withNoTaskStrategy(waitStrategy)
 					   .withService(this)
 					   .withTransport(transport)
 					   .withDoneLatch(stopLatch)

@@ -73,8 +73,6 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 	
 	private static AtomicInteger idGenerator = new AtomicInteger();
 	
-	private static ReentrantLock retryLock = new ReentrantLock();
-	
 	private Thread retryThread = null;
 	
 	private DefaultServiceProtocolHandler(Builder builder) { 
@@ -142,6 +140,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
     	transport.addRequestorInfo(transaction);
     	IMetaTaskTransaction reply = null;
 		try {
+			// XStream is thread safe so multiple threads can serialize concurrently
 			String body = XStreamUtils.marshall(transaction);
 			// dispatch implements waiting if no task is given by the driver
 			reply = transport.dispatch(body);
@@ -175,13 +174,42 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 		}
 		return sendAndReceive(transaction);
 	}
-
-	private IMetaTaskTransaction callGet(IMetaTaskTransaction transaction) throws Exception {
+	/**
+	 * Fetch new task from a remote driver. This method is synchronized to prevent overrunning the
+	 * driver when a service scales up (many threads) and out (many instances). Only one thread
+	 * at a time is allowed to pull tasks per service instance.
+	 * 
+	 * When the driver is out of tasks, a single thread first sleeps for awhile and than tries
+	 * again until a task is returned.
+	 * 
+	 * @param transaction
+	 * @return
+	 * @throws Exception
+	 */
+	private synchronized IMetaTaskTransaction callGet(IMetaTaskTransaction transaction) throws Exception {
 		transaction.setType(Type.Get); 
 		if ( logger.isLoggable(Level.FINE)) {
 			logger.log(Level.FINE, "ProtocolHandler calling GET");
 		}
-		return sendAndReceive(transaction);
+		IMetaTaskTransaction metaTransaction=null;
+		boolean logOutOfTasks = true;
+		while(running) {
+			metaTransaction = sendAndReceive(transaction);
+			// check if driver is out of tasks
+			if ( metaTransaction.getMetaTask() == null || metaTransaction.getMetaTask().getUserSpaceTask() == null) {
+				if ( logOutOfTasks ) {
+					if ( logger.isLoggable(Level.FINE)) {
+						logger.log(Level.FINE,"Process Thread:"+Thread.currentThread().getId()+" - Driver is out of tasks - waiting for awhile ("+noTaskStrategy.getWaitTimeInMillis()+" ms) and will try again ");
+					}
+					logOutOfTasks = false;
+				}
+				noTaskStrategy.handleNoTaskSupplied();
+			} else {
+				// Got a task
+				break;
+			}
+		}
+		return metaTransaction;
 	}
 	/**
 	 * Block until service start() is called
@@ -197,42 +225,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 		}
 	}
 
-	private IMetaTaskTransaction retryUntilSuccessfull() throws Exception {
-		retryLock.lock();
-		IMetaTaskTransaction transaction = null;
-		try {
-			while (running) {
 
-				// send GET Request
-				transaction = 
-						callGet(new MetaTaskTransaction());
-				// the code may have blocked in callGet for awhile, so check
-				// if service is still running. If this service is in quiescing
-				// mode, finish processing current task. The while-loop will
-				// terminate when the task is finished.
-				if (!running && !quiescing) {
-					break;
-				}
-				if (transaction.getMetaTask() != null && transaction.getMetaTask().getUserSpaceTask() != null) {
-					break;
-				} 
-				retryThread = Thread.currentThread();
-				
-				System.out.println("Thread:"+Thread.currentThread().getId()+" ------------- No Task -------------- Retrying GET until success");
-				// the client has no tasks to give.
-				noTaskStrategy.handleNoTaskSupplied();
-
-			}
-		} finally {
-			// success, so release the lock so that other waiting threads
-			// can retry command
-			if (retryLock.isHeldByCurrentThread()) {
-				retryLock.unlock();
-			}
-			retryThread = null;
-		}
-		return transaction;
-	}
 	public String call() throws ServiceInitializationException, ServiceException {
 		// we may fail in initialize() in which case the ServiceInitializationException
 		// is thrown
@@ -262,19 +255,13 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 				if ( !running && !quiescing  ) {
 					break;
 				}
-//				if (transaction.getMetaTask() == null || transaction.getMetaTask().getUserSpaceTask() == null ) {
-//					// synchronize retry. Allow single thread to test if client has
-//					// more tasks to give. If so, unblock other threads and proceed
-//					// to normal processing.
-//					transaction = retryUntilSuccessfull();
-//				}
 				// transaction may be null if retryUntilSuccessfull was interrupted
 				// due to stop
 				if (Objects.isNull(transaction) || (!running  && !quiescing)) {
 					break;
 				}
 				logger.log(Level.INFO, ".............. Thread "+Thread.currentThread().getId() + " processing new task");
-
+                
 				Object task = transaction.getMetaTask().getUserSpaceTask();
 				
 				// send ACK 

@@ -52,10 +52,9 @@ public class JunitProtocolHandlerTestCase extends Client {
     	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+super.getPort()+"/"+super.getApp());
     	DefaultRegistryClient registryClient =
     			new DefaultRegistryClient(targetUrl);
-    	INoTaskAvailableStrategy waitStrategy = 
-				new DefaultNoTaskAvailableStrategy(1000);
+
     	HttpServiceTransport transport = 
-    			new HttpServiceTransport(registryClient, scaleout,waitStrategy);
+    			new HttpServiceTransport(registryClient, scaleout);
     	transport.initialize();
     	return transport;
 	}
@@ -76,11 +75,13 @@ public class JunitProtocolHandlerTestCase extends Client {
 				   new UimaServiceProcessor(analysisEngineDescriptor);
 		   ServiceMockup service = 
 				   new ServiceMockup(transport, processor, stopLatch);
-		   
+	       INoTaskAvailableStrategy waitStrategy = 
+					new DefaultNoTaskAvailableStrategy(1000);
 		   DefaultServiceProtocolHandler protocolHandler =
 				   new DefaultServiceProtocolHandler.Builder()
 				   .withProcessor(processor)
 				   .withService(service)
+				   .withNoTaskStrategy(waitStrategy)
 				   .withTransport(transport)
 				   .withDoneLatch(stopLatch)
 				   .withInitCompleteLatch(threadsReady)

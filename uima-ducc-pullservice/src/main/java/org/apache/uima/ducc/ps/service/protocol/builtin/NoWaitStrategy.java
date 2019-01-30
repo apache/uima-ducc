@@ -32,4 +32,9 @@ public class NoWaitStrategy implements INoTaskAvailableStrategy {
 	public void interrupt() {
 	}
 
+	@Override
+	public long getWaitTimeInMillis() {
+		return 1;  // !zero
+	}
+
 }
