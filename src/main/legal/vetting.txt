@@ -19,6 +19,10 @@
 
 This readme includes notes related to DUCC NOTICE and LICENSE files.
 
+01/10/2019 Updated with guava v.18.0, joda v.2.4, commons.lang v.3.1, commons.math v.3.2, 
+           jetty v.9.4.14.v20181114, cassandra.driver v.3.6.0, cassandra.server v.3.11.3,
+           netty v.4.0.44, snappy v.1.1.1.7
+
 02/12/2018 Updated with Apache Camel 2.9.13
 
 02/12/2018 Updated with UIMA-AS which includes UIMA-SDK 2.10.2 and
