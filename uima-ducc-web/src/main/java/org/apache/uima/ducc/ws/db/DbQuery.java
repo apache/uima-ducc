@@ -22,16 +22,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.db.DbHelper;
 import org.apache.uima.ducc.common.persistence.rm.IRmPersistence;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.history.HistoryFactory;
-import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
+import org.apache.uima.ducc.database.DbOrchestratorProperties;
+import org.apache.uima.ducc.database.DbOrchestratorProperties.keys;
 
 public class DbQuery {
 
@@ -45,12 +43,7 @@ public class DbQuery {
 	private static String component = IDuccLoggerComponents.abbrv_webServer;
 	
 	private IRmPersistence persistence = null;
-	
-	private IHistoryPersistenceManager history = null;
-	
-	private boolean db_status = false; // false == down, true == up
-	private long db_status_age_limit = 1000*60;
-	private long db_status_tod = System.currentTimeMillis()-(db_status_age_limit+1);
+	private DbOrchestratorProperties orProperties = null;
 	
 	static {
 		synchronized(DbQuery.class) {
@@ -61,9 +54,19 @@ public class DbQuery {
 	}
 	
 	private DbQuery() {
-		enabled = DbHelper.isDbEnabled();
-		persistence = RmPersistenceFactory.getInstance(this.getClass().getName(),component);
-		history = HistoryFactory.getInstance(this.getClass().getName());
+		init();
+	}
+	
+	private void init() {
+		String location = "init";
+		try {
+			enabled = DbHelper.isDbEnabled();
+			persistence = RmPersistenceFactory.getInstance(this.getClass().getName(),component);
+			orProperties = new DbOrchestratorProperties(logger);
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
 	}
 	
 	public static DbQuery getInstance() {
@@ -74,39 +77,24 @@ public class DbQuery {
 		return enabled;
 	}
 	
-	private Pair<DuccWorkMap, Map<DuccId, DuccId>> getCkpt() {
-		String location = "getCkpt";
-		Pair<DuccWorkMap, Map<DuccId, DuccId>> retVal = new Pair<DuccWorkMap, Map<DuccId, DuccId>>();
+	private boolean isAccessible() {
+		String location = "isAccessible";
+		boolean retVal = false;
 		try {
-			retVal = history.restore();
-		} 
-		catch (Exception e) {
+			String seqno = orProperties.fetch(keys.publication_seqno.name());
+			if(seqno != null) {
+				retVal = true;
+			}
+		}
+		catch(Exception e) {
 			logger.debug(location, jobid, e);
 		}
+		
 		return retVal;
-    }
+	}
 	
 	public boolean isUp() {
-		String location = "isUp";
-		/*
-		if(getMapMachines().size() > 0) {
-			status = true;
-		}
-		else 
-		*/
-			long now = System.currentTimeMillis();
-			long elapsed = now - db_status_tod;
-			if(elapsed > db_status_age_limit) {
-				db_status_tod = now;
-				if(getCkpt().first() != null) {
-					db_status = true;
-				}
-				else {
-					db_status = false;
-				}
-				logger.debug(location, jobid, db_status);
-			}
-		return db_status;
+		return isAccessible();
 	}
 	
 	public static void dumpMap(Map<String, IDbMachine> dbMachineMap) {

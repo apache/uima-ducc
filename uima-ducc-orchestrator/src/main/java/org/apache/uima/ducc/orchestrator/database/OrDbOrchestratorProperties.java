@@ -43,7 +43,6 @@ public class OrDbOrchestratorProperties extends DbOrchestratorProperties {
 		try {
 			if(instance == null) {
 				instance = new OrDbOrchestratorProperties();
-				instance.dbInit();
 			}
 		}
 		catch(Exception e) {
@@ -55,6 +54,7 @@ public class OrDbOrchestratorProperties extends DbOrchestratorProperties {
 	
 	private OrDbOrchestratorProperties() throws Exception {
 		super(logger);
+		super.dbInit();
 	}
 	
 	private AtomicBoolean resumeAnnounced = new AtomicBoolean(true);
@@ -76,16 +76,6 @@ public class OrDbOrchestratorProperties extends DbOrchestratorProperties {
 			logger.warn(location, jobid, "operations suspended - backup mode");
 			suspendAnnounced.set(true);
 			resumeAnnounced.set(false);
-		}
-	}
-	
-	public void dbInit() throws Exception {
-		if(dh.is_ducc_head_virtual_master()) {
-			resume();
-			super.dbInit();
-		}
-		else {
-			suspend();
 		}
 	}
 	
