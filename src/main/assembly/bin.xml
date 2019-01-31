@@ -71,6 +71,9 @@ under the License.
         <include>org.apache.uima:uima-ducc-web</include>
         <include>org.apache.uima:uima-ducc-container</include>
         <include>org.apache.uima:uima-ducc-database</include>
+        <include>org.apache.uima:uima-ducc-workitem-v2</include>
+        <include>org.apache.uima:uima-ducc-workitem-v3</include>
+ 
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
       <outputDirectory>lib/uima-ducc</outputDirectory>
@@ -179,7 +182,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-	<!-- xmlbeans is in UIMA-AS 2.6.0 package -->
+	<!-- xmlbeans is in UIMA-AS package -->
     
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
