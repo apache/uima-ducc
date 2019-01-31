@@ -152,6 +152,28 @@ public class DbOrchestratorProperties implements IDbOrchestratorProperties {
 	}
 	
 	/**
+	 * Add or update an Orchestrator property
+	 */
+	private void insert(String name, String value) throws Exception {
+		String location = "insert";
+		try {
+			String table = ORCHESTRATOR_PROPERTIES_TABLE;
+			String c0 = COL_VALUE+"="+"'"+value+"'";
+			String c1 = COL_NAME+"="+"'"+name+"'";
+	        String cql = "UPDATE "+table+" SET "+c0+" WHERE "+c1;
+	        logger.debug(location, jobid, cql);
+	        DbHandle h = dbManager.open();
+	        h.execute(cql);
+		}
+		catch(Exception e) {
+			DuccId duccid = null;
+			String text = "name="+name+" "+"value="+value;
+			logger.error(location, duccid, text, e);
+			throw e;
+		}
+	}
+	
+	/**
 	 * Retrieve an Orchestrator property
 	 */
 	@Override
@@ -185,12 +207,19 @@ public class DbOrchestratorProperties implements IDbOrchestratorProperties {
 	}
 	
 	private void initPublicationSeqNo() {
+		String location = "initPublicationSeqNo";
 		try {
 			String value = fetch(keys.publication_seqno.name());
 			Long.parseLong(value);
 		}
 		catch(Exception e) {
-			setPublicationSeqNo(0);
+			try {
+				long value = 0;
+				insert(keys.publication_seqno.name(),""+value);
+			}
+			catch(Exception x) {
+				logger.error(location, jobid, x);
+			}
 		}
 	}
 	
@@ -249,7 +278,13 @@ public class DbOrchestratorProperties implements IDbOrchestratorProperties {
 			lval = Long.parseLong(value);
 		}
 		catch(Exception e) {
-			setDuccWorkSeqNo(0);
+			try {
+				long value = 0;
+				insert(keys.duccwork_seqno.name(),""+value);
+			}
+			catch(Exception x) {
+				logger.error(location, jobid, x);
+			}
 		}
 		logger.debug(location, jobid, lval);
 	}
