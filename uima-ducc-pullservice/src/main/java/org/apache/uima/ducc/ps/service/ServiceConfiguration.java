@@ -58,6 +58,9 @@ public class ServiceConfiguration {
 	public int getWaitTime() {
 		return this.waitTimeWhenNoTaskGiven;
 	}
+	public void setWaitTime(int waitTimeMillis) {
+		this.waitTimeWhenNoTaskGiven = waitTimeMillis;
+	}
 	public String getMaxErrors() {
 		return maxErrors;
 	}
