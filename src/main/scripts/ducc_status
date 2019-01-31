@@ -291,6 +291,8 @@ def summarize():
         value = options.daemons_head[key]
         if(value == 'up'):
             options.head_up = options.head_up + 1
+        elif(value == 'up, pending JD allocation'):
+        	options.head_up = options.head_up + 1
         else:
             options.head_down = options.head_down + 1
     for key in options.daemons_agent:
