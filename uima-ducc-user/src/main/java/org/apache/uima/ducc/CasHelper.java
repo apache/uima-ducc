@@ -18,31 +18,49 @@
  */
 package org.apache.uima.ducc;
 
-import java.util.Iterator;
-
+import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
+import org.apache.uima.analysis_engine.annotator.AnnotatorInitializationException;
 import org.apache.uima.cas.CAS;
-import org.apache.uima.jcas.cas.TOP;
+import org.apache.uima.cas.FSIterator;
+import org.apache.uima.cas.Feature;
+import org.apache.uima.cas.FeatureStructure;
+import org.apache.uima.cas.Type;
 
+/**
+ * 
+ * Return CAS's DocumentText, or if it exists, the Workitem:inputspec
+ * 
+ */
 public class CasHelper {
 
 	public static String getId(CAS cas) {
+	  Type mWorkitemType;
+	  Feature mInputspecFeature;
 		String retVal = null;
 		if (cas != null) {
 			retVal = cas.getDocumentText();
 			try {
-				Iterator<TOP> fsIter = null;
-				Workitem wi = null;
-				if (cas.getJCas().getTypeSystem().getType(Workitem.class.getName()) != null) {
-					fsIter = cas.getJCas().getJFSIndexRepository().getAllIndexedFS(Workitem.type);
-				}
-				if (fsIter != null && fsIter.hasNext()) {
-					wi = (Workitem) fsIter.next();
-				}
-				if (wi != null) {
-					String id = wi.getInputspec();
-					if(id != null) {
-						retVal = id;
-					}
+			  // Get a reference to the "Workitem" Type
+			  mWorkitemType = cas.getTypeSystem().getType("org.apache.uima.ducc.Workitem");
+			  if (mWorkitemType == null) {
+			    throw new AnalysisEngineProcessException(AnnotatorInitializationException.TYPE_NOT_FOUND,
+			            new Object[] { CasHelper.class.getName(), "org.apache.uima.ducc.Workitem" });
+			  }
+			  // Get a reference to the "sendToALL" Feature
+			  mInputspecFeature = mWorkitemType.getFeatureByBaseName("inputspec");
+			  if (mInputspecFeature == null) {
+			    throw new AnalysisEngineProcessException(AnnotatorInitializationException.FEATURE_NOT_FOUND,
+			            new Object[] { CasHelper.class.getName(), "org.apache.uima.ducc.Workitem:inputspec" });
+			  }
+			  FSIterator<FeatureStructure> it = cas.getIndexRepository().getAllIndexedFS(mWorkitemType);
+			  if (it.isValid()) {
+			    FeatureStructure wi = it.get();
+			    if (wi != null) {
+			      String id = wi.getStringValue(mInputspecFeature);
+						if(id != null) {
+						  retVal = id;
+						}
+			    }
 				}
 			} 
 			catch (Exception e) {

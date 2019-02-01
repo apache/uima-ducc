@@ -28,18 +28,22 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
 import org.apache.uima.analysis_engine.metadata.FixedFlow;
 import org.apache.uima.analysis_engine.metadata.FlowConstraints;
-import org.apache.uima.jcas.cas.TOP;
-import org.apache.uima.ducc.Workitem;
+import org.apache.uima.flow.CasFlowController_ImplBase;
+import org.apache.uima.flow.CasFlow_ImplBase;
 import org.apache.uima.flow.FinalStep;
 import org.apache.uima.flow.Flow;
 import org.apache.uima.flow.FlowControllerContext;
-import org.apache.uima.flow.JCasFlowController_ImplBase;
-import org.apache.uima.flow.JCasFlow_ImplBase;
 import org.apache.uima.flow.SimpleStep;
 import org.apache.uima.flow.Step;
-import org.apache.uima.jcas.JCas;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.resource.metadata.OperationalProperties;
+import org.apache.uima.cas.CAS;
+import org.apache.uima.cas.FSIterator;
+import org.apache.uima.cas.TypeSystem;
+import org.apache.uima.cas.Feature;
+import org.apache.uima.cas.Type;
+import org.apache.uima.cas.FeatureStructure;
+import org.apache.uima.analysis_engine.annotator.AnnotatorInitializationException;
 
 /**
  * Ducc FlowController for Job Processes assembled from user components
@@ -47,10 +51,14 @@ import org.apache.uima.resource.metadata.OperationalProperties;
  *    and then optionally to CC delegate if so specified by flag in WorkItem feature structure.
  * If no CM delegate, then WI-Cas is sent to AE and CC if it exists.
  */
-public class FlowController extends JCasFlowController_ImplBase {
+public class FlowController extends CasFlowController_ImplBase {
 
   private List<String> mSequence;
   private boolean mStartsWithCasMultiplier=false;
+  private Type mWorkitemType;
+  private Feature mSendToAllFeature;
+  private Feature mSendToLastFeature;
+  
 
   public void initialize(FlowControllerContext aContext) throws ResourceInitializationException {
     super.initialize(aContext);
@@ -82,16 +90,35 @@ public class FlowController extends JCasFlowController_ImplBase {
     }
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.uima.flow.JCasFlowController_ImplBase#computeFlow(org.apache.uima.cas.JCas)
-   */
-  public Flow computeFlow(JCas aCAS) throws AnalysisEngineProcessException {
+
+  public void typeSystemInit(TypeSystem aTypeSystem) throws AnalysisEngineProcessException {
+	  // Get a reference to the "Workitem" Type
+	  mWorkitemType = aTypeSystem.getType("org.apache.uima.ducc.Workitem");
+	  if (mWorkitemType == null) {
+		  throw new AnalysisEngineProcessException(AnnotatorInitializationException.TYPE_NOT_FOUND,
+				  new Object[] { getClass().getName(), "org.apache.uima.ducc.Workitem" });
+	  }
+	
+	  // Get a reference to the "sendToALL" Feature
+	  mSendToAllFeature = mWorkitemType.getFeatureByBaseName("sendToAll");
+	  if (mSendToAllFeature == null) {
+		  throw new AnalysisEngineProcessException(AnnotatorInitializationException.FEATURE_NOT_FOUND,
+				  new Object[] { getClass().getName(), "org.apache.uima.ducc.Workitem:sendToAll" });
+	  }
+	
+	  // Get a reference to the "sendToLast" Feature
+	  mSendToLastFeature = mWorkitemType.getFeatureByBaseName("sendToLast");
+	  if (mSendToLastFeature == null) {
+		  throw new AnalysisEngineProcessException(AnnotatorInitializationException.FEATURE_NOT_FOUND,
+				  new Object[] { getClass().getName(), "org.apache.uima.ducc.Workitem:sendToLast" });
+	  }
+  }
+	  
+  public Flow computeFlow(CAS aCAS) throws AnalysisEngineProcessException {
     return new FixedFlowObject(0);
   }
 
-  class FixedFlowObject extends JCasFlow_ImplBase {
+  class FixedFlowObject extends CasFlow_ImplBase {
     private int currentStep;
     private boolean internallyCreatedCas = false;
 
@@ -120,12 +147,6 @@ public class FlowController extends JCasFlowController_ImplBase {
       this.internallyCreatedCas = internallyCreatedCas;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.uima.flow.Flow#next()
-     */
-    @Override
     public Step next() throws AnalysisEngineProcessException {
 
       // If this is a work item CAS in a pipeline with an initial CM that has just been
@@ -134,28 +155,20 @@ public class FlowController extends JCasFlowController_ImplBase {
         // Parent CAS has been to the initial CM, so see if a special flow has been requested.
         // Get an iterator only if the Workitem type is in the CAS's typesystem 
         // (avoids JCAS_TYPE_NOT_IN_CAS error)
-        Iterator<TOP> fsIter = null;
-
-        if (this.getJCas().getTypeSystem().getType(Workitem.class.getName()) != null) {
-          fsIter = this.getJCas().getJFSIndexRepository().getAllIndexedFS(Workitem.type);
-        }
-        if (fsIter != null && fsIter.hasNext()) {
-          Workitem wi = (Workitem) fsIter.next();
-          if (fsIter.hasNext()) {
+ 
+    	FSIterator<FeatureStructure> it = this.getCas().getIndexRepository().getAllIndexedFS(mWorkitemType);
+        if (it.isValid()) {
+          FeatureStructure wi = it.get();
+          it.moveToNext();
+          if (it.isValid()) {
             throw new IllegalStateException("More than one instance of Workitem type");
           }
-          if (wi.getSendToAll()) {
-        	// send WI-CAS to any remaining delegates 
+          if (wi.getBooleanValue(mSendToAllFeature)) {
+        	// send WI-CAS to all delegates 
           }
-          else if (wi.getSendToLast()) {
-          	// send WI-CAS to last delegate, unless the only delegate is the initial CM
-          	if (currentStep < (mSequence.size() - 1)) {
-          	  currentStep = mSequence.size() - 1;
-          	}
-          }
-          else {
-        	// send WI-CAS back to JD
-          	return new FinalStep();
+          else if (wi.getBooleanValue(mSendToLastFeature)) {
+        	// send to last delegate only
+        	currentStep = mSequence.size() - 1;
           }
         }
         // No Workitem FS in CAS, WI-CAS is at end of flow
@@ -170,13 +183,7 @@ public class FlowController extends JCasFlowController_ImplBase {
       return new SimpleStep((String)mSequence.get(currentStep++));
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.uima.flow.JCasFlow_ImplBase#newCasProduced(JCas, String)
-     */
-    @Override
-    public Flow newCasProduced(JCas newCas, String producedBy) throws AnalysisEngineProcessException {
+    public Flow newCasProduced(CAS newCas, String producedBy) throws AnalysisEngineProcessException {
       // start the new output CAS from the next node after the CasMultiplier that produced it
       // (there may be a CM in other than the first step)
       int i = 0;
