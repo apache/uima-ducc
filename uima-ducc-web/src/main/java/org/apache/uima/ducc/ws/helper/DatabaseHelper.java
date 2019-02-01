@@ -31,9 +31,12 @@ public class DatabaseHelper extends JmxHelper {
 	private static DuccLogger logger = DuccLogger.getLogger(DatabaseHelper.class);
 	private static DuccId jobid = null;
 	
-	private static DatabaseHelper instance = new DatabaseHelper();
+	private static DatabaseHelper instance = null;
 	
 	public static DatabaseHelper getInstance() {
+		if(instance == null) {
+			instance = new DatabaseHelper();
+		}
 		return instance;
 	}
 
@@ -54,7 +57,6 @@ public class DatabaseHelper extends JmxHelper {
 				setJmxHost(jmx_host);
 				Integer jmx_port = DbHelper.getJxmPortInteger();
 				setJmxPort(jmx_port); 
-				jmxConnect();
 			}
 		}
 		catch(Exception e) {
@@ -99,9 +101,10 @@ public class DatabaseHelper extends JmxHelper {
 		}
 		catch(Exception e) {
 			try {
-				reconnect();
+				connect();
 				mbsc = getMBSC();
 				o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "StartTime");
+				disconnect();
 				retVal = (Long) o;
 			}
 			catch(Exception e2) {
@@ -109,13 +112,6 @@ public class DatabaseHelper extends JmxHelper {
 			}
 		}
 		return retVal;
-	}
-	
-	@Override
-	protected void reconnect() {
-		String location = "reconnect";
-		init();
-		logger.debug(location, jobid, "reconnected");
 	}
 	
 }

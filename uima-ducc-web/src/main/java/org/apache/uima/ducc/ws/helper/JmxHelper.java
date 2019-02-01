@@ -18,8 +18,6 @@
 */
 package org.apache.uima.ducc.ws.helper;
 
-import java.io.IOException;
-
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
@@ -37,9 +35,9 @@ public abstract class JmxHelper {
 	private String jmxHost = "localhost";
 	private int jmxPort = -1;
 	
-	private JMXServiceURL url;
-	private JMXConnector jmxc;
-	private MBeanServerConnection mbsc;
+	private JMXServiceURL url = null;
+	private JMXConnector jmxc = null;
+	private MBeanServerConnection mbsc = null;
 	
 	protected void setJmxHost(String value) {
 		jmxHost = value;
@@ -65,10 +63,36 @@ public abstract class JmxHelper {
 		return mbsc;
 	}
 	
-	protected void jmxConnect() throws IOException {
-		url = new JMXServiceURL(getJmxUrl());
-		jmxc = JMXConnectorFactory.connect(url, null);
-		mbsc = jmxc.getMBeanServerConnection();
+	protected void connect() throws Exception {
+		String location = "connect";
+		try {
+			url = new JMXServiceURL(getJmxUrl());
+			jmxc = JMXConnectorFactory.connect(url, null);
+			mbsc = jmxc.getMBeanServerConnection();
+			String id = jmxc.getConnectionId();
+			logger.debug(location, jobid, id);
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+			throw e;
+		}
+		
+	}
+
+	protected void disconnect() throws Exception {
+		String location = "disconnect";
+		try {
+			if(jmxc != null) {
+				String id = jmxc.getConnectionId();
+				jmxc.close();
+				jmxc = null;
+				logger.debug(location, jobid, id);
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+			throw e;
+		}
 	}
 	
 	protected String getJmxData() throws Exception {
@@ -79,9 +103,10 @@ public abstract class JmxHelper {
 			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
 		} 
 		catch(Exception e) {
-			reconnect();
+			connect();
 			mbsc = getMBSC();
 			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
+			disconnect();
 		}
 		String data = (String) o;
 		return data;
@@ -102,5 +127,4 @@ public abstract class JmxHelper {
 		return retVal;
 	}
 
-	protected abstract void reconnect();
 }

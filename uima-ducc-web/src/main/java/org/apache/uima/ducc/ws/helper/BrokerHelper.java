@@ -32,13 +32,9 @@ import java.util.TreeSet;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.InstanceNotFoundException;
-import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import javax.management.openmbean.CompositeData;
-import javax.management.remote.JMXConnector;
-import javax.management.remote.JMXConnectorFactory;
-import javax.management.remote.JMXServiceURL;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -54,10 +50,6 @@ public class BrokerHelper extends JmxHelper {
 	public static BrokerHelper getInstance() {
 		return new BrokerHelper();
 	}
-
-	private JMXServiceURL jmxServiceUrl = null;;
-	private JMXConnector jmxc;
-	private MBeanServerConnection mbsc;
 
 	private OperatingSystemMXBean remoteOperatingSystem;
 	private ThreadMXBean remoteThread;
@@ -133,7 +125,7 @@ public class BrokerHelper extends JmxHelper {
 		String location = "populateRemoteOperatingSystem";
 		try {
 			remoteOperatingSystem = ManagementFactory.newPlatformMXBeanProxy(
-				mbsc,
+				getMBSC(),
 				ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME,
 				OperatingSystemMXBean.class);
 		} 
@@ -146,7 +138,7 @@ public class BrokerHelper extends JmxHelper {
 		String location = "populateRemoteThread";
 		try {
 			remoteThread = ManagementFactory.newPlatformMXBeanProxy(
-				mbsc,
+				getMBSC(),
 				ManagementFactory.THREAD_MXBEAN_NAME,
 				ThreadMXBean.class);
 		} 
@@ -179,7 +171,7 @@ public class BrokerHelper extends JmxHelper {
 	private void populateMemory() {
 		String location = "populateMemory";
 		try {
-			Object o = mbsc.getAttribute(new ObjectName("java.lang:type=Memory"), "HeapMemoryUsage");
+			Object o = getMBSC().getAttribute(new ObjectName("java.lang:type=Memory"), "HeapMemoryUsage");
 			CompositeData cd = (CompositeData) o;
 			memoryUsed = (Long) cd.get("used");
 			memoryMax = (Long) cd.get("max");
@@ -193,7 +185,7 @@ public class BrokerHelper extends JmxHelper {
 		String location = "populateRuntime";
 		try {
 			Object o;
-			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "StartTime");
+			o = getMBSC().getAttribute(new ObjectName("java.lang:type=Runtime"), "StartTime");
 			startTime = (Long) o;
 		}
 		catch(Exception e) {
@@ -301,7 +293,7 @@ public class BrokerHelper extends JmxHelper {
 							if(dName.startsWith("ducc.")) {
 								logger.trace(location, jobid, dType+": "+dName);
 								Map<String,String> attributes = new TreeMap<String,String>();
-								AttributeList  attributeList = mbsc.getAttributes(objectName, topicAttributeNames);
+								AttributeList  attributeList = getMBSC().getAttributes(objectName, topicAttributeNames);
 								for(Object object : attributeList) {
 								   	Attribute attribute = (Attribute) object;
 								   	String attrName = attribute.getName();
@@ -335,7 +327,7 @@ public class BrokerHelper extends JmxHelper {
 					String prefix = "ducc.";
 					if(start(name,prefix)) {
 						Map<String,String> attributes = new TreeMap<String,String>();
-						AttributeList  attributeList = mbsc.getAttributes(objectName, topicAttributeNames);
+						AttributeList  attributeList = getMBSC().getAttributes(objectName, topicAttributeNames);
 						for(Object object : attributeList) {
 						   	Attribute attribute = (Attribute) object;
 						   	String attrName = attribute.getName();
@@ -358,7 +350,7 @@ public class BrokerHelper extends JmxHelper {
 	
 	private Map<String,Map<String,String>> search() throws IOException, InstanceNotFoundException, ReflectionException {
 		Map<String,Map<String,String>> map = new TreeMap<String,Map<String,String>>();
-		Set<ObjectName> objectNames = new TreeSet<ObjectName>(mbsc.queryNames(null, null));
+		Set<ObjectName> objectNames = new TreeSet<ObjectName>(getMBSC().queryNames(null, null));
 		for (ObjectName objectName : objectNames) {
 			brokerAdd(objectName);
 		}
@@ -378,7 +370,7 @@ public class BrokerHelper extends JmxHelper {
 				}
 				String s1 = "Broker";
 				if(match(s0,s1)) {
-					AttributeList  attributeList = mbsc.getAttributes(objectName, brokerAttributeNames);
+					AttributeList  attributeList = getMBSC().getAttributes(objectName, brokerAttributeNames);
 					for(Object object : attributeList) {
 						Attribute attribute = (Attribute) object;
 					   	String attrName = attribute.getName();
@@ -419,21 +411,7 @@ public class BrokerHelper extends JmxHelper {
 		return getJmxPort();
 	}
 
-	private void connect() throws IOException {
-		jmxServiceUrl = new JMXServiceURL(getJmxUrl());
-		jmxc = JMXConnectorFactory.connect(jmxServiceUrl, null);
-		mbsc = jmxc.getMBeanServerConnection();
-	}
 
-	private void disconnect() {
-		String location = "disconnect";
-		try {
-			jmxc.close();
-		}
-		catch(Exception e) {
-			logger.error(location, jobid, e);
-		}
-	}
 	
 	// Operating System Info //
 
@@ -490,17 +468,6 @@ public class BrokerHelper extends JmxHelper {
 	public boolean isAlive() {
 		boolean retVal = DuccDaemonsData.getInstance().isWsPublicationOntime();
 		return retVal;
-	}
-
-	@Override
-	protected void reconnect() {
-		String location = "reconnect";
-		try {
-			jmxConnect();
-		}
-		catch(Exception e) {
-			logger.error(location, jobid, e);
-		}
 	}
 	
 	// Command Line
