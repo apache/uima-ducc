@@ -290,10 +290,17 @@ Copy a UIMA logger configuration file that suppresses tons of output from OpenNL
    cp $DUCC_HOME/examples/sampleapps/descriptors/ConsoleLogger.properties .
 \end{verbatim}
 
-Copy the executable code and resources for the DUCC sample application components:
+Copy the executable code and resources for the DUCC sample application components.
+If using UIMA v2.x:
 \begin{verbatim}
    mkdir lib
    cp $DUCC_HOME/lib/uima-ducc/examples/uima-ducc-examples*.jar lib
+\end{verbatim}
+If using UIMA v3.x, update the example JCas classes and then copy the updated uima-ducc-examples*.jar from the /tmp folder to lib, as below:
+\begin{verbatim}
+   mkdir lib
+   $UIMA_HOME/bin/runV3migrateJCas.sh -classesRoots $DUCC_HOME/lib/uima-ducc/examples -migrateClasspath $UIMA_HOME/lib
+   cp /tmp/migrateJCasOutput{some long number}/jars/1/uima-ducc-examples*.jar lib
 \end{verbatim}
 
 For reference the source code for DUCC sample applications is in \ducchome/examples/src,
