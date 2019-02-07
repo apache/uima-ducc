@@ -1451,10 +1451,17 @@ class DuccUtil(DuccBase):
         if ( dbhost == None ):
             dbhost = 'localhost'
 
-        dir_db_state = self.DUCC_HOME + '/state/database/'+dbhost
-        self.makedirs(dir_db_state)
-        dir_db_logs = self.DUCC_HOME + '/logs/database/'+dbhost
-        self.makedirs(dir_db_logs)
+
+        manage_database = self.ducc_properties.get('ducc.database.automanage')
+        self.automanage_database = False
+        if (manage_database in ('t', 'true', 'T', 'True')) :
+            self.automanage_database = True     
+
+        if(manage_database):
+            dir_db_state = self.DUCC_HOME + '/state/database/'+dbhost
+            self.makedirs(dir_db_state)
+            dir_db_logs = self.DUCC_HOME + '/logs/database/'+dbhost
+            self.makedirs(dir_db_logs)
 
         self.db_pidfile = dir_db_state+ '/cassandra.pid'
         self.db_logfile = dir_db_logs + '/cassandra.console'
@@ -1471,11 +1478,6 @@ class DuccUtil(DuccBase):
         self.automanage_broker = False
         if (manage_broker in ('t', 'true', 'T', 'True')) :
             self.automanage_broker = True                    
-
-        manage_database = self.ducc_properties.get('ducc.database.automanage')
-        self.automanage_database = False
-        if (manage_database in ('t', 'true', 'T', 'True')) :
-            self.automanage_database = True     
 
         py_version = platform.python_version().split('.')
         if ( int(py_version[0]) > 2 ):

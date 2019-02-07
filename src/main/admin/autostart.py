@@ -114,6 +114,10 @@ class AutoStart(DuccUtil):
             'ws':'ws',
     }
     
+    def __init__(self):
+        DuccUtil.__init__(self)
+        self.ssh_enabled = False
+        
     # return file name
     def _fn(self):
         fpath = __file__.split('/')
@@ -144,7 +148,6 @@ class AutoStart(DuccUtil):
         LOGLEVEL = os.environ.get('LOGLEVEL','info')
         self.logger = Logger(LOGFILE,LOGLEVEL)
         
-       
     # check if host names with domain match
     def is_host_match_with_domain(self,h1,h2):
         retVal = False
@@ -195,9 +198,10 @@ class AutoStart(DuccUtil):
             pass
         return retVal
     
-    # get daemons started (from DB)
-    def get_daemons_started(self):
-        daemons = []
+    # get daemons started/all in DB for host
+    def get_daemons_host(self):
+        db = []
+        started = []
         jclass = 'org.apache.uima.ducc.database.lifetime.DbDaemonLifetimeUI'   
         option = '--query'
         cmd = [self.jvm, '-DDUCC_HOME='+self.DUCC_HOME, jclass, option]
@@ -207,8 +211,9 @@ class AutoStart(DuccUtil):
         for line in lines:
             host, daemon, state = self.parse_line(line)
             if(self.is_host_match(self.LOCAL_HOST, host)):
+                db.append(daemon)
                 if(state == 'Start'):
-                    daemons.append(daemon)
+                    started.append(daemon)
                     text = 'add'+' '+host+' '+daemon
                     self.logger.debug(self._mn(),text)
                 else:
@@ -217,16 +222,16 @@ class AutoStart(DuccUtil):
             else:
                 text = 'skip'+' '+host+' '+daemon
                 self.logger.debug(self._mn(),text)
-        text = 'daemons'+' '+str(daemons)
+        text = 'started'+' '+str(started)+' '+'db'+' '+str(db)
         self.logger.debug(self._mn(),text)
-        return daemons
+        return db, started
 
     def normalize_component(self,component):
         daemon = component[:2]
         return daemon
         
     # get daemons running (from system)
-    def get_daemons_running(self):
+    def get_components_running(self):
         daemons = []
         result = self.find_ducc_process(self.LOCAL_HOST)
         find_status = result[0]
@@ -271,19 +276,50 @@ class AutoStart(DuccUtil):
         out, err = p.communicate()
         text = str(out)
         self.logger.info(self._mn(),text)
-     
+    
+    def insert(self):
+        python_script = os.path.join(self.DUCC_HOME,'admin','db_autostart_insert.py')
+        node = self.get_node_name()
+        component = 'ag'
+        cmd = [ python_script, '--host', node, '--name', component]
+        text = str(cmd)
+        self.logger.info(self._mn(),text)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        text = str(out)
+        self.logger.info(self._mn(),text)
+        
     # autostart: start head or agent daemons, as required
     def main(self, argv):
         NAME = 'autostart'
         self.setup_logging(NAME)
         self.get_args()
         try:
-            daemons_started = self.get_daemons_started()
-            daemons_running = self.get_daemons_running()
+            daemons_db, daemons_started = self.get_daemons_host()
+            text = 'daemons_db '+str(len(daemons_db))
+            self.logger.debug(self._mn(),text)
+            text = 'daemons_started '+str(len(daemons_started))
+            self.logger.debug(self._mn(),text)
+            # if agent node is not in db, then insert it!
+            if(len(daemons_db) == 0):
+                if(self.is_head_node()):
+                    pass
+                else:
+                    self.insert()
+                    daemons_db, daemons_started = self.get_daemons_host()
+            components_running = self.get_components_running()
+            text = 'components_running '+str(components_running)
+            self.logger.debug(self._mn(),text)
             for daemon in daemons_started:
-                if(not daemon in daemons_running):
+                component = self.normalize_component(daemon)
+                text = 'component '+str(component)
+                self.logger.debug(self._mn(),text)
+                if(component in components_running):
+                    pass
+                else:
+                    text = 'start daemon '+str(daemon)
+                    self.logger.debug(self._mn(),text)
                     self.start(daemon)
-            
         except Exception,e:
             lines = traceback.format_exc().splitlines()
             for line in lines:
