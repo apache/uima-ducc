@@ -173,46 +173,218 @@ BSD license (see LICENSE file).
 
 ==============================================================
  Jetty Web Container
- Copyright 1995-2006 Mort Bay Consulting Pty Ltd
+ Copyright 1995-2018 Mort Bay Consulting Pty Ltd.
 ==============================================================
 
-This product includes some software developed at The Apache Software
-Foundation (http://www.apache.org/).
+The Jetty Web Container is Copyright Mort Bay Consulting Pty Ltd
+unless otherwise noted.
 
-The javax.servlet package used by Jetty is copyright
-Sun Microsystems, Inc and Apache Software Foundation. It is
-distributed under the Common Development and Distribution License.
-You can obtain a copy of the license at
-https://glassfish.dev.java.net/public/CDDLv1.0.html.
+Jetty is dual licensed under both
 
-The UnixCrypt.java code ~Implements the one way cryptography used by
+  * The Apache 2.0 License
+    http://www.apache.org/licenses/LICENSE-2.0.html
+
+      and
+
+  * The Eclipse Public 1.0 License
+    http://www.eclipse.org/legal/epl-v10.html
+
+Jetty may be distributed under either license.
+
+------
+Eclipse
+
+The following artifacts are EPL.
+ * org.eclipse.jetty.orbit:org.eclipse.jdt.core
+
+The following artifacts are EPL and ASL2.
+ * org.eclipse.jetty.orbit:javax.security.auth.message
+
+
+The following artifacts are EPL and CDDL 1.0.
+ * org.eclipse.jetty.orbit:javax.mail.glassfish
+
+
+------
+Oracle
+
+The following artifacts are CDDL + GPLv2 with classpath exception.
+https://glassfish.dev.java.net/nonav/public/CDDL+GPL.html
+
+ * javax.servlet:javax.servlet-api
+ * javax.annotation:javax.annotation-api
+ * javax.transaction:javax.transaction-api
+ * javax.websocket:javax.websocket-api
+
+------
+Oracle OpenJDK
+
+If ALPN is used to negotiate HTTP/2 connections, then the following
+artifacts may be included in the distribution or downloaded when ALPN
+module is selected.
+
+ * java.sun.security.ssl
+
+These artifacts replace/modify OpenJDK classes.  The modififications
+are hosted at github and both modified and original are under GPL v2 with
+classpath exceptions.
+http://openjdk.java.net/legal/gplv2+ce.html
+
+
+------
+OW2
+
+The following artifacts are licensed by the OW2 Foundation according to the
+terms of http://asm.ow2.org/license.html
+
+org.ow2.asm:asm-commons
+org.ow2.asm:asm
+
+
+------
+Apache
+
+The following artifacts are ASL2 licensed.
+
+org.apache.taglibs:taglibs-standard-spec
+org.apache.taglibs:taglibs-standard-impl
+
+
+------
+MortBay
+
+The following artifacts are ASL2 licensed.  Based on selected classes from
+following Apache Tomcat jars, all ASL2 licensed.
+
+org.mortbay.jasper:apache-jsp
+  org.apache.tomcat:tomcat-jasper
+  org.apache.tomcat:tomcat-juli
+  org.apache.tomcat:tomcat-jsp-api
+  org.apache.tomcat:tomcat-el-api
+  org.apache.tomcat:tomcat-jasper-el
+  org.apache.tomcat:tomcat-api
+  org.apache.tomcat:tomcat-util-scan
+  org.apache.tomcat:tomcat-util
+
+org.mortbay.jasper:apache-el
+  org.apache.tomcat:tomcat-jasper-el
+  org.apache.tomcat:tomcat-el-api
+
+
+------
+Mortbay
+
+The following artifacts are CDDL + GPLv2 with classpath exception.
+
+https://glassfish.dev.java.net/nonav/public/CDDL+GPL.html
+
+org.eclipse.jetty.toolchain:jetty-schemas
+
+------
+Assorted
+
+The UnixCrypt.java code implements the one way cryptography used by
 Unix systems for simple password protection.  Copyright 1996 Aki Yoshida,
 modified April 2001  by Iris Van den Broeke, Daniel Deville.
+Permission to use, copy, modify and distribute UnixCrypt
+for non-commercial or commercial purposes and without fee is
+granted provided that the copyright notice appears in all copies.
 
-The default JSP implementation is provided by the Glassfish JSP engine
-from project Glassfish http://glassfish.dev.java.net.  Copyright 2005
-Sun Microsystems, Inc. and portions Copyright Apache Software Foundation.
+===============================================
+ Cassandra (apache-cassandra-3.11.3.jar)
+===============================================
+ 
+Apache Cassandra
+Copyright 2009-2014 The Apache Software Foundation
 
-Some portions of the code are Copyright:
-  2006 Tim Vernum
-  1999 Jason Gilbert.
+This product includes software developed by The Apache Software
+Foundation (http://www.apache.org/).
 
+Some alternate data structures provided by high-scale-lib from
+http://sourceforge.net/projects/high-scale-lib/.
+Written by Cliff Click and released as Public Domain.
 
-===============================================================================
-webserver/lib/jsp/org.eclipse.jetty.orbit.javax.servlet.jsp.jstl-1.2.0.v201105211821.jar
-===============================================================================
+Some alternate data structures provided by concurrentlinkedhashmap
+from http://code.google.com/p/concurrentlinkedhashmap/.
+Copyright 2009 Benjamin Manes
 
-JavaServer Pages Standard Tag Library API 2.1 from Glassfish
-The plug-in includes software developed by Sun as part of the Glassfish project.
+Alternative collection types provided by google-collections from
+http://code.google.com/p/google-collections/.
+Copyright (C) 2007 Google Inc.
 
-Your use of the library code is subject to the terms and conditions of the Apache Software License 2.0 and the Common Development and Distribution License("CDDL") license.
-A copy of the Apache Software License 2.0 is contained in the file LICENSE_ASL20.txt and is also available at http://www.apache.org/licenses/LICENSE-2.0.html.
+JSON (de)serialization provided by jackson (http://jackson.codehaus.org).
+Copyright (C) 2010 Tatu Saloranta and others.
 
-A copy of the Common Development and Distribution License is contained in the file about_files/LICENSE_CDDL.txt and is also
-available at http://www.sun.com/cddl/cddl.html">http://www.sun.com/cddl/cddl.html
+Alternative JSON (de)serialization by json-simple from
+(http://code.google.com/p/json-simple).
+Copyright (C) 2009 Fang Yidong and Chris Nokleberg
 
-Original binaries and source are available from the http://glassfish.dev.java.net
+This product includes the Jetty HTTP server
+(http://jetty.codehaus.org/jetty/).
+Copyright 1995-2006 Mort Bay Consulting Pty Ltd
 
+YAML support provided by snakeyaml (http://code.google.com/p/snakeyaml/).
+Copyright (c) 2008-2010 Andrey Somov
+
+Compression support provided by snappy-java (http://code.google.com/p/snappy-java/)
+Written by Taro L. Saito.
+
+Streaming compression support provided by ning-compress
+(https://github.com/ning/compress)
+Copyright 2009-2010 Ning, Inc.
+
+CQL Native transport uses Netty
+(https://netty.io/)
+Copyright (C) 2011 The Netty Project
+
+LZ4 compression support provided by lz4-java (http://github.com/jpountz/lz4-java)
+Written by Adrien Grand.
+Contains bindings to the C LZ4 implementation (http://code.google.com/p/lz4/)
+Copyright (C) 2011-2012, Yann Collet.
+
+Alternative Disruptor backed thrift server from https://github.com/xedin/disruptor_thrift_server
+Written by Pavel Yaskevich.
+
+LMAX Disruptor
+(http://lmax-exchange.github.io/disruptor/)
+Copyright 2011 LMAX Ltd.
+
+Airline
+(https://github.com/airlift/airline)
+Copyright 2011, Dain Sundstrom dain@iq80.com
+Copyright 2010, Cedric Beust cedric@beust.com
+
+HLL++ support provided by stream-lib
+(https://github.com/addthis/stream-lib)
+
+Eclipse JDT
+Java compilation software for user-defined-functions is provided by Eclipse,
+which is open source software.  The original software and
+related information is available at http://www.eclipse.org/
+(http://www.eclipse.org/jdt/)
+
+SIGAR
+http://sigar.hyperic.com/
+
+OHC
+(https://github.com/snazy/ohc)
+Java Off-Heap-Cache, licensed under APLv2
+Copyright 2014-2015 Robert Stupp, Germany.
+
+Protocol buffers for varint encoding
+https://developers.google.com/protocol-buffers/
+Copyright 2008 Google Inc.  All rights reserved.
+BSD 3-clause
+
+ASM
+(http://asm.ow2.org/)
+Copyright (c) 2000-2011 INRIA, France Telecom
+
+HdrHistogram
+http://hdrhistogram.org
+
+JCTools
+http://jctools.github.io/JCTools/
 
 ===============================================
 Java Authentication SPI for Containers
@@ -248,7 +420,95 @@ and distribution of this entire article is permitted in any medium,
 provided this notice is preserved.
 --------------------------------------------------------------------------------
 
+========================================================================
+Jackson Core (jackson-core-asl-1.9.13.jar)
 =========================================================================
+This product currently only contains code developed by authors
+of specific components, as identified by the source code files;
+if such notes are missing files have been created by
+Tatu Saloranta.
+
+
+=========================================================================
+Apache Commons Math (commons-math3-3.2.jar)
+=========================================================================
+
+Apache Commons Math
+Copyright 2001-2013 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+===============================================================================
+
+The inverse error function implementation in the Erf class is based on CUDA
+code developed by Mike Giles, Oxford-Man Institute of Quantitative Finance,
+and published in GPU Computing Gems, volume 2, 2010.
+===============================================================================
+
+The BracketFinder (package org.apache.commons.math3.optimization.univariate)
+and PowellOptimizer (package org.apache.commons.math3.optimization.general)
+classes are based on the Python code in module "optimize.py" (version 0.5)
+developed by Travis E. Oliphant for the SciPy library (http://www.scipy.org/)
+Copyright © 2003-2009 SciPy Developers.
+===============================================================================
+
+The LinearConstraint, LinearObjectiveFunction, LinearOptimizer,
+RelationShip, SimplexSolver and SimplexTableau classes in package
+org.apache.commons.math3.optimization.linear include software developed by
+Benjamin McCann (http://www.benmccann.com) and distributed with
+the following copyright: Copyright 2009 Google Inc.
+===============================================================================
+
+This product includes software developed by the
+University of Chicago, as Operator of Argonne National
+Laboratory.
+The LevenbergMarquardtOptimizer class in package
+org.apache.commons.math3.optimization.general includes software
+translated from the lmder, lmpar and qrsolv Fortran routines
+from the Minpack package
+Minpack Copyright Notice (1999) University of Chicago.  All rights reserved
+===============================================================================
+
+The GraggBulirschStoerIntegrator class in package
+org.apache.commons.math3.ode.nonstiff includes software translated
+from the odex Fortran routine developed by E. Hairer and G. Wanner.
+Original source copyright:
+Copyright (c) 2004, Ernst Hairer
+===============================================================================
+
+The EigenDecompositionImpl class in package
+org.apache.commons.math3.linear includes software translated
+from some LAPACK Fortran routines.  Original source copyright:
+Copyright (c) 1992-2008 The University of Tennessee.  All rights reserved.
+===============================================================================
+
+The MersenneTwister class in package org.apache.commons.math3.random
+includes software translated from the 2002-01-26 version of
+the Mersenne-Twister generator written in C by Makoto Matsumoto and Takuji
+Nishimura. Original source copyright:
+Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
+All rights reserved
+===============================================================================
+
+The LocalizedFormatsTest class in the unit tests is an adapted version of
+the OrekitMessagesTest class from the orekit library distributed under the
+terms of the Apache 2 licence. Original source copyright:
+Copyright 2010 CS Systèmes d'Information
+===============================================================================
+
+The HermiteInterpolator class and its corresponding test have been imported from
+the orekit library distributed under the terms of the Apache 2 licence. Original
+source copyright:
+Copyright 2010-2012 CS Systèmes d'Information
+===============================================================================
+
+The creation of the package "o.a.c.m.analysis.integration.gauss" was inspired
+by an original code donated by Sébastien Brisard.
+===============================================================================
+
+
+
 ------------------ Jetty (jetty-util) Notice
 
 The UnixCrypt.java code implements the one way cryptography used by
@@ -264,16 +524,6 @@ granted provided that the copyright notice appears in all copies.
 This product also includes software developed by
 Clinton Begin (http://www.ibatis.com).
 
-=========================================================================
-------------------- GlassFish JSP Notice -------
-=========================================================================
-The default JSP implementation is provided by the Glassfish JSP engine
-from project Glassfish http://glassfish.dev.java.net.  Copyright 2005
-Sun Microsystems, Inc. and portions Copyright Apache Software Foundation.
-
-Some portions of the code are Copyright:
-  2006 Tim Vernum
-  1999 Jason Gilbert.
 
 =========================================================================
 ==  ActiveMQ Notice                                                      ==
@@ -351,53 +601,6 @@ http://www.w3.org/Consortium/Legal/
 
 
 =========================================================================
--------- ASM 3.1 library Notice
-=========================================================================
-
-Copyright (c) 2000-2005 INRIA, France Telecom.
-
-=========================================================================
--------- JavaServer Pages Expression Language 2.1 library Notice
-=========================================================================
-JavaServer Pages Expression Language 2.1 Reference Implementation from Glassfish
-
-The plug-in includes software developed by Sun as part of the Glassfish project.
-
-Your use of the library code is subject to the terms and conditions of the Common Development and Distribution License("CDDL") license.
-
-A copy of the Common Development and Distribution License is available at http://www.sun.com/cddl/cddl.html
-
-Original binaries and source are available from the Glassfish website http://glassfish.dev.java.net
-
-=========================================================================
--------- JavaServer Pages Expression Language API 2.1 library Notice
-=========================================================================
-JavaServer Pages Expression Language API 2.1 from Glassfish
-
-The plug-in includes software developed by Sun as part of the Glassfish project.
-
-Your use of the library code is subject to the terms and conditions of the Apache Software License 2.0 and the Common Development and Distribution License("CDDL") license.
-A copy of the Apache Software License 2.0 is contained is available at http://www.apache.org/licenses/LICENSE-2.0.html.
-
-A copy of the Common Development and Distribution License is available at http://www.sun.com/cddl/cddl.html.
-
-Original binaries and source are available from the Glassfish website http://glassfish.dev.java.net
-
-=========================================================================
--------- JavaServer Pages Standard Tag Library library Notice
-=========================================================================
-JavaServer Pages Standard Tag Library Implementation for the 1.2 version of the JSTL spec
-
-The plug-in includes software developed by Sun as part of the Glassfish project.
-
-Your use of the library code is subject to the terms and conditions of the Apache Software License 2.0 and the Common Development and Distribution License("CDDL") license.
-A copy of the Apache Software License 2.0 is contained is available at http://www.apache.org/licenses/LICENSE-2.0.html.
-
-A copy of the Common Development and Distribution License is available at http://www.sun.com/cddl/cddl.html.
-
-Original binaries and source are available from the Glassfish website http://glassfish.dev.java.net
-
-=========================================================================
 -------- Java Mail 1.4.1 library Notice
 =========================================================================
 Your use of the Java Mail code is subject to the terms and
@@ -426,10 +629,6 @@ by JCraft.  The original software is available from
 =========================================================================
 This product includes software developed by
 Joda.org (http://www.joda.org/).
-
-(C) Copyright 1997,2004 International Business Machines Corporation.  All rights reserved.
-
-(C) Copyright IBM Corp. 2003. 
 
 -------------------- xmlbean library Notice
 
