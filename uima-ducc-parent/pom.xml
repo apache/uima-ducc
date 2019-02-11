@@ -816,21 +816,6 @@ ${uimaDUCCNoticeText}
 
 	<build>
 		<finalName>${project.artifactId}-${project.version}</finalName>
-		<!-- pluginManagement>
-		
-			<plugins>
-				
-				<plugin>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<configuration>
-						<source>1.6</source>
-						<target>1.6</target>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement -->
-
-
 
 		<!-- define common plugins that are shared by every pom -->
 		<plugins>
@@ -838,7 +823,6 @@ ${uimaDUCCNoticeText}
 		<plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.10.4</version>
           <configuration>
 
             <source>${maven.compiler.source}</source>
@@ -866,7 +850,6 @@ ${uimaDUCCNoticeText}
 		  <plugin>
 			<groupId>org.codehaus.mojo</groupId>
 			<artifactId>buildnumber-maven-plugin</artifactId>
-			<version>1.4</version>
 			<executions>
 			  <execution>
 				<phase>validate</phase>
@@ -957,7 +940,6 @@ ${uimaDUCCNoticeText}
 					<plugin>
 						<groupId>org.apache.rat</groupId>
 						<artifactId>apache-rat-plugin</artifactId>
-						<version>0.10</version>
 						<executions>
 							<execution>
 
