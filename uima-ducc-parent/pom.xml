@@ -128,6 +128,17 @@
 	    <uima.ducc>Apache UIMA DUCC:</uima.ducc>
 		<!-- Ducc jira version -->
 		<jiraVersion>12343013</jiraVersion>
+		
+		<compat.level>BACKWARD_COMPATIBLE_USER</compat.level>
+        <compat.previous.version>2.2.2</compat.previous.version>
+        <api_check_oldVersion>2.2.2</api_check_oldVersion>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.surefire.argLine />
+        <maven.surefire.java9 />
+
+        <jacoco.argLine />
+        <java.version>8</java.version>
+        
 		<maven.build.timestamp.format>MM-dd-yyyy HH:mm</maven.build.timestamp.format>
 		<ducc.version>${project.version}</ducc.version>
 		<org.springframework.version>4.3.9.RELEASE</org.springframework.version>
