@@ -112,7 +112,13 @@ uima-ducc/uima-ducc-cli-${ducc.version}.jar uima-ducc/uima-ducc-common-${ducc.ve
     <plugins>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-
+        <!-- ****************************************************************************** -->
+        <!-- IMPORTANT! Had to downgrade to v.2.6 to be able to generate two jars (one of which is a manifest only jar). 
+             The newer versions of the plugin (3.X.X) are not allowing the pluging to execute more than once with 
+             <goal>jar</goal> throwing an error 
+            "...You have to use a classifier to attach supplemental artifacts to the project instead of replacing them."
+        -->
+        <version>2.6</version>
         <executions>
 
 		  <!-- Create a manifest-only jar that will be placed up one level under <ducc-home>/lib -->

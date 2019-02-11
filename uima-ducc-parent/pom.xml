@@ -823,6 +823,7 @@ ${uimaDUCCNoticeText}
 		<plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.10.4</version>
           <configuration>
 
             <source>${maven.compiler.source}</source>
@@ -873,12 +874,11 @@ ${uimaDUCCNoticeText}
 				</configuration>
 			</plugin>
 			<!-- Each jar produced should have metadata attached to a Manifest -->
-			<plugin>
+			<!--plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
 					<archive>
-						<!-- index>true</index -->
 						<manifest>
 							<addClasspath>false</addClasspath>
 						</manifest>
@@ -892,7 +892,7 @@ ${uimaDUCCNoticeText}
 						</manifestEntries>
 					</archive>
 				</configuration>
-			</plugin>
+			</plugin-->
 		</plugins>
 
 	</build>
