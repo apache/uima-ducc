@@ -127,7 +127,8 @@
 	<properties>
 	    <uima.ducc>Apache UIMA DUCC:</uima.ducc>
 		<!-- Ducc jira version -->
-		<jiraVersion>12343013</jiraVersion>
+		<!--jiraVersion>12343013</jiraVersion-->
+		<jiraVersion>3.0.0-Ducc</jiraVersion>
 		
 		<compat.level>BACKWARD_COMPATIBLE_USER</compat.level>
         <compat.previous.version>2.2.2</compat.previous.version>
