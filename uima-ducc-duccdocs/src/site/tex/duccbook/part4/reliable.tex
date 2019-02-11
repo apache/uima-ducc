@@ -54,7 +54,7 @@
 \begin{minipage}{\textwidth}
 % ========================================
 
-	Sample /etc/sysconfig/keepalived
+	Sample /etc/sysconfig/keepalived\\
 
 	\begin{greybatim}
 	
@@ -92,7 +92,7 @@ KEEPALIVED_OPTIONS="-D -P"
 \begin{minipage}{\textwidth}
 % ========================================
 
-	Sample MASTER /etc/keepalived/keepalived.conf
+	Sample MASTER /etc/keepalived/keepalived.conf\\
 	
 	\begin{greybatim}
 	
@@ -138,7 +138,7 @@ vrrp_instance VI_1 {
 \begin{minipage}{\textwidth}
 % ========================================
 
-	Sample BACKUP /etc/keepalived/keepalived.conf
+	Sample BACKUP /etc/keepalived/keepalived.conf\\
 	
 	\begin{greybatim}
 	
@@ -195,7 +195,7 @@ vrrp_instance VI_1 {
 \begin{minipage}{\textwidth}
 % ========================================
 
-	Sample /etc/keepalived/keepalived\_evaluator.py
+	Sample /etc/keepalived/keepalived\_evaluator.py\\
 	
 	\begin{greybatim}
 	
@@ -398,18 +398,14 @@ if __name__ == "__main__":
 	The {\em master} DUCC Webserver will display all pages normally with additional
 	information in the heading upper left:
 	
-	\begin{verbatim}
 	reliable: \textbf{master}
-   	\end{verbatim}
-	
+   	
 	Webserver for Backup
 	
 	The {\em backup} DUCC Webserver will display some pages normally with additional
 	information in the heading upper left:
 	
-	\begin{verbatim}
 	\underline{reliable}: \textbf{backup}
-   	\end{verbatim}
    	
    	Hovering over \underline{reliable} will yield the following information:
    	{\em Click to visit master}
