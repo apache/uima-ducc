@@ -48,22 +48,21 @@ provides cluster management services to automate the scale-out of UIMA pipelines
 Apache UIMA DUCC 3.0.0 is a maintenance release containing new features and bug fixes. What's new:<br>
 
 <ul>
-<li>Upgraded UIMA (2.10.2), UIMA-AS (2.10.2), ActiveMQ (5.15.2), Spring Framework (4.3.9), Camel (2.19.3), XStream (1.4.10)</li>
-<li>Requires java 8 for builds and runtime. User jobs and services must use java 8.</li>
-<li>Fixed rogue process detector to prevent truncation of user names</li>
-<li>Reduced size of publications between the PM and Agents</li>
-<li>Improved Agent's detection of defunct processes</li>
-<li>Improved logging of system events</li>
-<li>ducc_watcher improvements</li>
-<li>Job & managed reservation specs now saved in DB</li>
-<li>DUCC Web Server (WS) queries DB too often</li>
-<li>DUCC Web Server (WS) should use Resource Manager (RM) calculated value for machine's memory available</li>
+
+<li>Support for UIMA v2 and v3</li>
+<li>Created new pull service that can be run with or without DUCC</li>
+<li>Enable DUCC to run without shared file system</li> 
+<li>Add new DUCC stop options, including quiesce</li>
+<li>Add "CASes processed" to annotator performance metrics</li>
+<li>Upgraded to Cassandra Server v.3.11.3, Cassandra Driver v.3.6.0, Jetty v.9.4.14.v20181114, guava v.18.0, 
+joda v.2.4, commons.lang v.3.1, commons.math v.3.2, netty v.4.0.44, snappy v.1.1.1.7</li>
+
 </ul>
 
 <br><br>
 
 For a complete list of issues fixed and up-to-date information on UIMA-DUCC issues, see our issue tracker: 
-<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.2-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%222.2.2-Ducc%22%20</a>
+<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%223.0.0-Ducc%22%20">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%223.0.0-Ducc%22%20</a>
 </p> 
       
 <h2><a name="migration">3. Migration from a Prior Release</a></h2>
@@ -88,9 +87,6 @@ able to test for AnalysisEngineProcessException in a stack trace with a code lik
 <p>
 To use OS-based login with the WebServer while running DUCC with IBM java, the minimum JDK version is 
 Java 8 SR4 FP5 (8.0.4.5).
-</p>
-<p>
-Due to a bug in uima-as v.2.10.2 (see <a href="https://issues.apache.org/jira/browse/UIMA-5747">https://issues.apache.org/jira/browse/UIMA-5747</a>), job processes which use uima-as Jms Service Descriptor may fail with javax.jms.InvalidClientIDException. The fix for this is to use uima-as 2.9.0.  
 </p>
 </body>
 </html>
