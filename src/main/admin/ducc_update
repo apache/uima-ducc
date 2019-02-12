@@ -45,6 +45,7 @@ import datetime
 import fnmatch
 import re
 import shutil
+import subprocess
 
 global preserveFiles
 global preserveDirectories
@@ -207,7 +208,26 @@ def update_directory(olddir, newdir, archdir):
     if nleft == 0:
         os.rmdir(newdir)
 
-
+#-----------------------------------------------------------------------------------------
+# Insure ducc not running
+#-----------------------------------------------------------------------------------------
+def check_ducc(runtime):
+    print 'checking for ducc running, may take a few minutes...'
+    cmd = [ os.path.join(runtime,'admin/check_ducc') ]
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1, universal_newlines=True)
+    while True:
+        output = p.stdout.readline()
+        if output == '' and p.poll() is not None:
+            break
+        if output:
+            line = output.strip()
+            #print line
+            if('Found ducc' in line):
+                print "ERROR - DUCC appears to be running ... please run '" + os.path.join(runtime,'admin/stop_ducc') + " -a'"
+                exit(1)
+    rc = p.poll()
+    return rc
+    
 #=========================================================================================
 # Main program:
 #    tarfile runtime
@@ -245,6 +265,8 @@ if len(sys.argv) != 3:
 rtime   = sys.argv[1]
 tarfile = sys.argv[2]
 runtime = os.path.realpath(rtime)
+
+check_ducc(runtime)
 
 if not os.path.exists(tarfile):
     print "ERROR - Missing tar file", tarfile
