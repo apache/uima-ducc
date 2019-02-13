@@ -1,0 +1,125 @@
+#!/usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+
+import os
+import sys
+import getopt
+
+
+#
+# This is a one-time-use utility to move your history and checkpoint files
+# int the database.  It will not run if the database is already populated.
+#
+# If you need to run it again, you must first remove or drop your existing database.
+#
+from ducc_util import DuccUtil
+
+class DbLoader(DuccUtil):
+
+    def __init__(self):
+        DuccUtil.__init__(self, True)
+
+    def usage(self, *args):
+        if ( args[0] != None ):
+            print ''
+            print ' '.join(args)
+            print ''
+        print 'Usage:'
+        print ''
+        print 'db_loader -i runtime [-t #threads] [--no-archive]'
+        print ''
+        print 'Where:'
+        print '    -i runtime'
+        print '         Specifies the DUCC_HOME of the DUCC runtime to be moved into the database.'
+        print ''
+        print '    -t #threads'
+        print '         Specifies number of processing threads (default is 10)'
+        print ''
+        print '    --no-archive'
+        print '         Suppresses archival of the input files.'
+        print ''
+        print 'Notes:'
+        print '    1.  Because this is a bootstrap script DUCC must be stopped.'
+        print '        The database will be started & stopped by this script.'
+        print '    2.  Reducing the number of processing threads will reduce the CPU load but'
+        print '        increase the processing time.'
+        print '    3.  Archival consists of renaming relevent input directories and files by appending'
+        print '        ".archive" to their names.  It is fully non-destructive and may be reversed by'
+        print '        manually renaming them back to their original names.'
+
+        sys.exit(1);
+
+    def main(self, argv):
+
+        in_home = None
+        out_url = None
+        archive = True
+        nthreads = '10'
+        try:
+            opts, args = getopt.getopt(argv, 'i:t:h?', ['no-archive'])
+        except:
+            self.usage("Invalid arguments", ' '.join(argv))
+
+        for ( o, a ) in opts:
+            if o in ('-i'):
+                in_home = a
+            elif o in ('-t'):
+                nthreads = a
+            elif o in ('--no-archive'):
+                archive = False
+            else:
+                self.usage(None)
+
+
+        if ( in_home == None ):
+            self.usage("Missing input DUCC_HOME")
+
+        out_url = self.get_db_host()
+        if ( out_url == None ):
+            self.usage("Database host not defined in ducc.properties file.");
+
+        self.db_start()
+
+        if ( not self.db_alive(3) ):
+            print "Database is not running or cannot be contacted."
+            return
+
+        DUCC_JVM_OPTS = '-DDUCC_HOME=' + self.DUCC_HOME
+
+        if ( not archive ):
+            DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDONT_ARCHIVE'
+
+        CMD = [self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.database.DbLoader', in_home, out_url, nthreads]
+        CMD = ' '.join(CMD)
+
+        os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ':' + self.DUCC_HOME + "/resources"
+        print 'CLASSPATH', os.environ['CLASSPATH']
+        print 'Executing', CMD
+        os.system(CMD)
+
+
+        self.db_stop()
+                
+if __name__ == "__main__":
+    console = DbLoader()
+    console.main(sys.argv[1:])
+    
+

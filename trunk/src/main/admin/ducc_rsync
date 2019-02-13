@@ -1,0 +1,174 @@
+#!/usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+import sys
+
+version_min = [2, 7]
+version_info = sys.version_info
+version_error = False
+if(version_info[0] < version_min[0]):
+    version_error = True
+elif(version_info[0] == version_min[0]):
+    if(version_info[1] < version_min[1]):
+        version_error = True
+if(version_error):
+    print('Python minimum requirement is version '+str(version_min[0])+'.'+str(version_min[1]))
+    sys.exit(1)
+
+import argparse
+import os
+
+from argparse import RawDescriptionHelpFormatter
+
+from ducc_util import *
+
+class DuccRsync(DuccUtil):
+
+    merge = False
+    
+    key_ducc_head = 'ducc.head'
+    key_ducc_head_reliable_list = 'ducc.head.reliable.list'
+    
+    rsync_cmd = 'rsync'
+    rsync_flags = '-avz --delete --ignore-errors'
+    
+    def __init__(self):
+        DuccUtil.__init__(self, self.merge)
+
+    def _fn(self):
+        fpath = __file__.split('/')
+        flen = len(fpath)
+        return fpath[flen-1]
+
+    # extra help!
+    def get_epilog(self):
+        epilog = ''
+        epilog = epilog+'Purpose: synchronize DUCC directory(s) from present node to other head & agent nodes.'
+        epilog = epilog+'\n\n'
+        epilog = epilog+'Example:'
+        epilog = epilog+'\n\n'
+        epilog = epilog+'> '+self._fn()+' '+'--dirs "resources admin" --nodelist ducc.nodes'
+        return epilog
+        
+    default_dirs     = 'resources'
+    default_nodelist = 'ducc.nodes'
+    
+    help_dirs        = 'Blank separated list of directories to synchronize, default='+default_dirs+'.'
+    help_nodelist    = 'Blank separated list of file names, default='+default_nodelist+'.'
+    help_debug       = 'Display debugging messages.'
+    help_quiet       = 'Suppress informational messages.'
+    
+    # parse command line
+    def get_args(self):
+        self.parser = argparse.ArgumentParser(formatter_class=RawDescriptionHelpFormatter,epilog=self.get_epilog())
+        self.parser.add_argument('--dirs' , '-d', action='store', default=self.default_dirs, help=self.help_dirs)
+        self.parser.add_argument('--nodelist' , '-n', action='store', default=self.default_nodelist, help=self.help_nodelist)
+        self.parser.add_argument('--debug', '-g', action='store_true', help=self.help_debug)
+        self.parser.add_argument('--quiet', '-q', action='store_true', help=self.help_quiet)
+        self.args = self.parser.parse_args()
+
+    # conditionally add node to list of nodes to be updated
+    def add(self,list,node):
+        if(node == self.localhost):
+            pass
+        elif(node in list):
+            pass
+        else:
+            list.append(node)
+    
+    # update the specified node, subdir
+    def rsync(self,node,user,subdir):
+        dir = os.path.join(DUCC_HOME,subdir)
+        cmd = self.rsync_cmd+' '+self.rsync_flags+' '+dir+' '+user+'@'+node+':'+DUCC_HOME
+        if(self.args.debug):
+            print cmd
+        proc = subprocess.Popen(cmd, shell=True, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        lines = []
+        for  line in proc.stdout:
+            lines.append(line.strip())
+        proc.wait()
+        rc = proc.returncode
+        if(self.args.debug):
+            for line in lines:
+                print line
+    
+    # create list of nodes to be updated
+    def create_node_list(self):
+        node_list = []
+        # head
+        head = self.ducc_properties.get(self.key_ducc_head) 
+        if(self.args.debug):
+            print 'head:'+head
+        #reliable
+        reliable_string = self.ducc_properties.get(self.key_ducc_head_reliable_list)
+        reliable = reliable_string.split()
+        if(len(reliable) > 0):
+            for node in reliable:
+                if(self.args.debug):
+                    print 'reliable:'+node
+                    self.add(node_list,node)
+        else:
+            self.add(node_list,head)
+        # agents
+        map = {}
+        if(self.args.debug):
+            print 'nodelist:'+str(self.args.nodelist)
+        nodefiles = self.args.nodelist.split()
+        if(self.args.debug):
+            print 'nodefiles:'+str(nodefiles)
+        for nodefile in nodefiles:
+            nodes, map = self.read_nodefile(nodefile,map)
+            if(self.args.debug):
+                print nodes, str(map)
+            for key in map:
+                value = map[key]
+                if(self.args.debug):
+                    print 'key:'+key+' '+'value:'+str(value)
+                for node in value:
+                    if(self.args.debug):
+                        print 'node:'+node
+                    self.add(node_list,node)
+        return node_list
+    
+    # do rsync of dir(s) from present node to peers
+    def main(self, argv):    
+        try:
+            node_list = []
+            user = find_ducc_uid()
+            self.get_args()
+            dir_list = self.args.dirs.split()
+            if(self.args.debug):
+                print 'dirs:'+str(dir_list)
+            node_list = self.create_node_list()
+            for node in node_list:
+                #print 'updating:'+node
+                for dir in dir_list:
+                    if(self.args.quiet):
+                        pass
+                    else:
+                        print 'updating:'+node+'->'+dir
+                    self.rsync(node,user,dir)
+        except Exception,e:
+            print e
+        
+if __name__ == "__main__":
+
+    instance = DuccRsync()
+    instance.main(sys.argv[1:])

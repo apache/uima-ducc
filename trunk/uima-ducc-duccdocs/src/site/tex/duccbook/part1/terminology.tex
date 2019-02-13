@@ -1,0 +1,115 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_TERMINOLOGY'></a>}
+\fi
+\chapter{Glossary}
+
+\begin{description}
+
+\item[Agent] DUCC Agent processes run on every node in the system. The Agent receives orders to
+  start and stop processes on each node. Agents monitors nodes, sending heartbeat packets with node
+  statistics to interested components (such as the RM and web-server). If CGroups are installed in
+  the cluster, the Agent is responsible for managing the CGroups for each job process. All processes
+  other than the DUCC management processes are are managed as children of the agents.
+
+\item[Autostarted Service] An autostarted service is a registered service that is started automatically
+  by DUCC when the DUCC system is booted.
+
+\item[Dependent Service or Job] A dependent service or job is a service or job that specifies one
+  or more service dependencies in their job specification. The service or job is dependent upon the
+  referenced service being operational before being started by DUCC.
+
+\item[DUCC] Distributed UIMA Cluster Computing.
+
+\item[DUCC-MON]  DUCC-MON is the DUCC web-server.
+
+\item[Job] A DUCC job consists of the components required to deploy and execute a UIMA pipeline over
+  a computing cluster. It consists of a JD to run the Collection Reader, a set of JPs to run the UIMA
+  AEs, and a Job Specification to describe how the parts fit together.
+
+\item[Job Driver (JD)]The Job Driver is a thin wrapper that encapsulates a Job's Collection
+  Reader. The JD executes as a process that is scheduled and deployed by DUCC.
+
+\item[Job Process (JP)] The Job Process is a thin wrapper that encapsulates a job's pipeline
+  components. The JP executes in a process that is scheduled and deployed by DUCC.
+
+\item[Job Specification] The Job Specification is a collection of properties that describe work to be
+  scheduled and deployed by DUCC. It
+  identifies the UIMA components (CR, AE, etc) that comprise the job and the system-wide
+  properties of the job (CLASSPATHs, RAM requirements, etc). 
+
+\item[Machine] A physical computing resource managed by the DUCC Resource Manager.
+
+\item[Managed Reservation] A DUCC managed reservation comprises an arbitrary process that is
+  deployed on the computing cluster within a {\em share} assigned by the DUCC scheduler.
+
+\item[Node] See Machine.
+
+\item[Orchestrator (OR)] The Orchestrator manages the life cycle of all entities within DUCC.
+
+\item[Process] A process is one physical process executing on a machine in the DUCC cluster. DUCC
+  jobs are comprised of one or more processes (JDs and JPs).  Each process is assigned one or
+  more {\em shares} by the DUCC scheduler.
+
+\item[Process Manager (PM) ] The Process Manager coordinates distribution of work among the Agents.
+
+\item[Registered Service] A registered service is a service that is registered with DUCC. DUCC
+  saves the service specification and fully manages the service, insuring it is running when needed,
+  and shutdown when not.
+
+\item[Resource Manager (RM) ] The Resource Manager schedules physical resources for DUCC work.
+
+\item[Service Endpoint] In DUCC, the service endpoint provides a unique identifier for a service. In
+  the case of UIMA-AS services, the endpoint also serves as a well-known address for contacting the
+  service. 
+
+\item[Service Instance] A service instance is one physical process which runs a CUSTOM or UIMA-AS
+  service.  UIMA-AS services are usually scaled-out with multiple instances implementing the
+  same underlying service logic.
+
+\item[Service Manager (SM)] The Service Manager manages the life-cycles of UIMA-AS and CUSTOM
+  services. It coordinates registration of services, starting and stopping of services, and ensures
+  that services are available and remain available for the lifetime of the jobs.
+
+\item[Share Quantum] The DUCC scheduler abstracts the nodes in the cluster as a single large
+  conglomerate of resources: memory, processor cores, etc.  The scheduler logically decomposes 
+  the collection of resources into some number of equal-sized atomic units.  Each unit of work requiring
+  resources is apportioned one or more of these atomic units.  The smallest possible atomic 
+  unit is called the {\em share quantum}, or simply, {\em share}.
+
+\item[Weighted Fair Share] A weighted fair share calculation is used to apportion resources
+  equitably to the outstanding work in the system.  In a non-weighted fair-share system, all
+  work requests are given equal consideration to all resources.  To provide some (``more important'')
+  work more than equal resources, weights are used to bias the allotment of shares in favor of
+  some classes of work.
+
+\item[Work Items] A DUCC work item is one unit of work to be completed in a single DUCC process. It
+  is usually initiated by the submission of a single CAS from the JD to one of the JPs. It could be
+  thought of as a single ``question'' to be answered by a UIMA analytic, or a single ``task'' to
+  complete. Usually each DUCC JP executes many work items per job.
+
+\item[\$DUCC\_HOME] The root of the installed DUCC runtime, e.g. /home/ducc/ducc\_runtime.  
+  It need not be set in the environment, although the examples in this document assume that it has been.
+
+\end{description}
+
+

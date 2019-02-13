@@ -1,0 +1,62 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_CLI_PERF_STATS'></a>}
+\fi
+    \section{ducc\_perf\_stats}
+    \label{sec:cli.ducc-perf-stats}
+    \paragraph{Description:}
+    This CLI is used to format job history and performance data into CSV or (mostly) human readable
+    form for post-analysis.  This may be run while a job is executing to monitor the current job, or
+    after it exits.  This command produces the equivalent of the web servers
+    \hyperref[sec:ws-job-details]{job details page}.
+
+    \paragraph{Usage:}
+    \begin{description}
+    \item[Script wrapper] \ducchome/bin/ducc\_perf\_stats {\em options}
+    \item[Java Main]      java -cp \ducchome/lib/uima-ducc-cli.jar org.apache.uima.ducc.cli.DuccPerfStats {\em options}
+    \end{description}
+
+    \paragraph{Options:}
+    \begin{description}
+        \item[$--$job {[id]}] This specifies the job to report on.
+        \item[$--$directory {[dir]}] This specifies the job's log directory. (DUCC writes usage information into this
+          directory as the job is running.)
+        \item[$--$report {[summary or workitems or processes]}]
+          This specifies the type of report:
+          \begin{description}
+              \item[summary] This produces a per-AE summary of the performance of that AE, including
+                total time spent in the analytic, maximum time spent, minimum time, and total CASs
+                processed.
+              \item[workitms] This produces a performance break down of each each input CAS (work
+                item), including the work item id, ending state, time spent in queue after dispatch,
+                processing time, the node it executed on, and the process id it ran in.
+              \item[processes] This produces a summary of all the processes which have executed on
+                behalf of the job, including the node, processid, initialization time, current memory usage,
+                maximum memory usage, page faults, swap space in use, maximum swap used, \%CPU,
+                garbage collection statistics, and work item statistics (processed, errors, retried, etc.).
+          \end{description}
+        \item[$--$help] Prints the usage text to the console. 
+     \end{description}
+        
+    \paragraph{Notes:}
+    None.
+

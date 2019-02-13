@@ -1,0 +1,432 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+
+\let\oldv\verbatim
+\let\oldendv\endverbatim
+
+\def\greybatim{\par\setbox0\vbox\bgroup\oldv}
+\def\endgreybatim{\oldendv\egroup\fboxsep0pt \noindent\colorbox[gray]{0.8}{\usebox0}\par}
+
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_RELIABLE'></a>}
+\fi
+
+\chapter{Reliable DUCC}
+\label{chap:reliable}
+
+\section{Introduction}
+    DUCC can be configured to run reliably by having multiple head nodes,
+    comprising one {\em master} and one or more {\em backup} head nodes.
+    DUCC exploits Linux {\em keepalived} virtual IP addressing to enable
+    this capability.
+    
+    The advantages are that if the {\em master} DUCC host becomes
+    unusable, the {\em backup} DUCC can take over seamlessly
+    such that active distributed Jobs, Reservations, Managed Reservations 
+    and Services continue uninterrupted.  Take over also facilitates
+    continued acceptance of new submissions and monitoring of new and
+    existing submissions without interruption.
+        
+\section{Configuring Host Machines}    
+    See {\em Configuring Simple Virtual IP Address Failover Using Keepalived} 
+    which can be found at this web address: 
+    \url{https://docs.oracle.com/cd/E37670_01/E41138/html/section_uxg_lzh_nr.html}.
+
+% ========================================
+\begin{minipage}{\textwidth}
+% ========================================
+
+	Sample /etc/sysconfig/keepalived\\
+
+	\begin{greybatim}
+	
+# Options for keepalived. See `keepalived --help' output and keepalived(8) and
+# keepalived.conf(5) man pages for a list of all options. Here are the most
+# common ones :
+#
+# --vrrp               -P    Only run with VRRP subsystem.
+# --check              -C    Only run with Health-checker subsystem.
+# --dont-release-vrrp  -V    Dont remove VRRP VIPs & VROUTEs on daemon stop.
+# --dont-release-ipvs  -I    Dont remove IPVS topology on daemon stop.
+# --dump-conf          -d    Dump the configuration data.
+# --log-detail         -D    Detailed log messages.
+# --log-facility       -S    0-7 Set local syslog facility (default=LOG_DAEMON)
+#
+
+KEEPALIVED_OPTIONS="-D -P"
+
+	\end{greybatim}
+	
+	\medskip
+	IMPORTANT: Specify {\em -P} to enable keepalived IP takeover.
+	
+	\medskip
+	See example here:
+	\begin{verbatim}
+    examples/reliable/etc/sysconfig/keepalived
+   	\end{verbatim}
+	
+% ========================================	
+\end{minipage}
+% ========================================
+
+% ========================================
+\begin{minipage}{\textwidth}
+% ========================================
+
+	Sample MASTER /etc/keepalived/keepalived.conf\\
+	
+	\begin{greybatim}
+	
+! Configuration File for keepalived
+
+global_defs {
+	script_user ducc 
+	enable_script_security
+}
+
+vrrp_script chk_ducc {
+  script       "/etc/keepalived/keepalived_evaluator.py"
+  interval 5   # check every 5 seconds
+  fall 2       # require 2 failures for KO
+  rise 1       # require 1 successes for OK
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface bond0
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        9.59.193.8
+    }
+    track_script {
+    	chk_ducc
+  	}
+}
+
+   	\end{greybatim}
+
+% ========================================	
+\end{minipage}
+% ========================================
+
+% ========================================
+\begin{minipage}{\textwidth}
+% ========================================
+
+	Sample BACKUP /etc/keepalived/keepalived.conf\\
+	
+	\begin{greybatim}
+	
+! Configuration File for keepalived
+
+global_defs {
+	script_user ducc 
+	enable_script_security
+}
+
+vrrp_script chk_ducc {
+  script       "/etc/keepalived/keepalived_evaluator.py"
+  interval 5   # check every 5 seconds
+  fall 2       # require 2 failures for KO
+  rise 1       # require 1 successes for OK
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface bond0
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        9.59.193.8
+    }
+    track_script {
+    	chk_ducc
+  	}
+}
+
+   	\end{greybatim}
+   	
+% ========================================	
+\end{minipage}
+% ========================================
+
+	\medskip
+	In this example, the IP address 9.59.193.8 is managed by the keepalived daemons.
+   	It is assigned to the current DUCC master.
+   	If can float to another host when the presently assigned master is no longer viable.
+
+	\medskip
+	See example here:
+	\begin{verbatim}
+    examples/reliable/etc/keepalived/keepalived.conf
+   	\end{verbatim}
+
+% ========================================
+\begin{minipage}{\textwidth}
+% ========================================
+
+	Sample /etc/keepalived/keepalived\_evaluator.py\\
+	
+	\begin{greybatim}
+	
+#!/usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+import sys
+
+version_min = [2, 7]
+version_info = sys.version_info
+version_error = False
+if(version_info[0] < version_min[0]):
+    version_error = True
+elif(version_info[0] == version_min[0]):
+    if(version_info[1] < version_min[1]):
+        version_error = True
+if(version_error):
+    print('Python minimum requirement is version '+str(version_min[0])+'.'+str(version_min[1]))
+    sys.exit(1)
+
+import os
+import subprocess
+import traceback
+
+ducc_runtime = '/home/ducc/ducc_runtime'
+ducc_status = os.path.join(ducc_runtime,'bin/ducc_status')
+
+state_dir = fpath = __file__.split('/')[0]
+
+   	\end{greybatim}
+   	
+% ========================================	
+\end{minipage}
+% ========================================
+
+% ========================================
+\begin{minipage}{\textwidth}
+% ========================================
+
+	\begin{greybatim}
+	
+class Keepalived_Evaluator():
+    
+    flag_error = True
+    flag_debug = False
+    flag_info = True
+    
+    def __init__(self):
+        pass
+    
+    def _cn(self):
+        return self.__class__.__name__
+
+    def _mn(self):
+        return traceback.extract_stack(None,2)[0][2]
+    
+    def error(self,mn,text):
+        if(self.flag_error):
+            print mn+' '+text
+    
+    def debug(self,mn,text):
+        if(self.flag_debug):
+            print mn+' '+text
+            
+    def info(self,mn,text):
+        if(self.flag_info):
+            print mn+' '+text
+    
+    def do_cmd(self,cmd):
+        mn = self._mn()
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        text = 'out:'+str(out)
+        self.debug(mn,text)
+        text = 'err:'+str(err)
+        self.debug(mn,text)
+        return out,err
+    
+    def get_ducc_status(self):
+        mn = self._mn()
+        cmd = [ducc_status,'--target','localhost']
+        out, err = self.do_cmd(cmd)
+        if('down=0' in out):
+            status = 0
+        else:
+            status = 1
+        text = str(status)
+        self.debug(mn,text)
+        return status
+    
+   	\end{greybatim}
+   	
+% ========================================	
+\end{minipage}
+% ========================================
+
+% ========================================
+\begin{minipage}{\textwidth}
+% ========================================
+
+	\begin{greybatim}
+	
+    def main(self, argv):
+        mn = self._mn()
+        rc = 0
+        try:
+            rc = self.get_ducc_status()
+        except Exception as e:
+            lines = traceback.format_exc().splitlines()
+            for line in lines:
+                text = line
+                self.error(mn,text)
+            rc = 1
+        text = 'rc='+str(rc)
+        self.info(mn,text)
+        sys.exit(rc)
+
+if __name__ == "__main__":
+    instance = Keepalived_Evaluator()
+    instance.main(sys.argv[1:])
+
+   	\end{greybatim}
+   	
+% ========================================	
+\end{minipage}
+% ========================================
+
+	\medskip
+   	The script 
+   	\begin{verbatim}
+    /etc/keepalived/keepalived_evaluator.py
+   	\end{verbatim}
+   	determines the viability of DUCC on the present host, returning 0 when viable or 1 otherwise.
+   	Note that in this example the value of {\em ``ducc\_runtime''} is hard-coded.
+ 
+	Linux Commands
+	
+	Starting keepalived
+	
+    \begin{verbatim}
+    > sudo service keepalived start
+    Starting keepalived:                                       [  OK  ]
+   	\end{verbatim}
+   	
+   	Querying keepalived
+	
+    \begin{verbatim}
+    > /sbin/ip addr show dev bond0
+    8: bond0: <BROADCAST,MULTICAST,MASTER,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 0c:c4:7a:bc:e6:7a brd ff:ff:ff:ff:ff:ff
+    inet 10.185.47.235/23 brd 10.185.47.255 scope global bond0
+       valid_lft forever preferred_lft forever
+    inet 9.59.193.235/23 brd 9.59.193.255 scope global bond0:0
+       valid_lft forever preferred_lft forever
+    inet 9.59.193.8/32 scope global bond0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::ec4:7aff:febc:e67a/64 scope link 
+       valid_lft forever preferred_lft forever
+   	\end{verbatim}
+
+	Stopping keepalived
+	
+    \begin{verbatim}
+    > sudo service keepalived stop
+    Stopping keepalived: 
+   	\end{verbatim}
+
+\section{Configuring DUCC}  
+    To configure DUCC to run reliable, one required property must
+    be configured in the {\em site.ducc.properties} file.  Example:
+    
+    \begin{verbatim}
+	ducc.head = 9.59.193.8
+   	\end{verbatim}
+    
+    Use the virtual IP address configured for your host machines keepalived. 
+    Use of the DNS name is also supported. 
+    
+\section{Webserver}
+
+	Webserver for Master
+
+	The {\em master} DUCC Webserver will display all pages normally with additional
+	information in the heading upper left:
+	
+	reliable: \textbf{master}
+   	
+	Webserver for Backup
+	
+	The {\em backup} DUCC Webserver will display some pages normally with additional
+	information in the heading upper left:
+	
+	\underline{reliable}: \textbf{backup}
+   	
+   	Hovering over \underline{reliable} will yield the following information:
+   	{\em Click to visit master}
+   	
+   	Several pages will display the following information (or similar):
+   	
+   	\begin{verbatim}
+	no data - not master
+   	\end{verbatim}
+
+\section{Database}
+
+	Configure the database to be on a separate machine from the reliable DUCC head nodes.
+	In {\em site.ducc.properties} specify:
+	
+	\begin{verbatim}
+	# Database location
+    ducc.database.host = dbhost123
+    ducc.database.jmx.host = dbhost123
+    ducc.database.automanage = false
+   	\end{verbatim}
+   	
+   	The existing administrator commands {\em start\_ducc} and {\em stop\_ducc} will
+   	honor the value specified for {\em ducc.database.automanage} in {\em site.ducc.properties}.

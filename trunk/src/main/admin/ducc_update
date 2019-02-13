@@ -1,0 +1,545 @@
+#! /usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------
+# Updates an existing ducc installation (1.1.0 or newer) from a binary tar.gz build
+# Updates in place so preserves all the site-specific files
+# Archives the current build in a timestamped direcory under DUCC_HOME/../ducc_archives
+#   - checks that ducc is not running
+#   - creates a site.ducc.properties file if updating from DUCC 1.1.0
+#   - creates a time-stamped archive directory to hold the current build
+#   - archives files replaced by the new build, except
+#     - retains the customized files and any added to resources & resources.private
+#     - retains the webserver/etc/keystore file
+#     - retains the customizable files: admin/local_hooks.py webserver/root/site.jsp webserver/root/js/ducc.local.js
+#     - retains other files added to certain directories, i.e. lib admin
+#           ebserver/root webserver/root/$banner webserver/root/js webserver/root/opensources/images
+#   - rebuilds the non-privileged ducc_ling
+#
+#  Note: files added to other directories will not be retained, but will be archived
+#        new versions of files not replaced are left in the extract for comparison
+#
+#  To revert back to an archived build:
+#   - copy/move all of the archived files back to the runtime
+# -------------------------------------------------------------------------------------
+import os
+import sys 
+import datetime
+import fnmatch
+import re
+import shutil
+import subprocess
+
+global preserveFiles
+global preserveDirectories
+global modifiableDirectories
+global lenRuntime
+
+def usage():
+    print "Usage: ducc_update   ducc_runtime  ducc-binary-tarfile"
+    print ""
+    print "  Installs or updates DUCC at 'ducc_runtime' from the build in 'ducc-binary-tarfile'"
+    print "   If there is no existing runtime a fresh installation will be placed in 'ducc_runtime'"
+    print "   If the runtime exists, the update will:"
+    print "   - check that DUCC is not running"
+    print "   - create a site.ducc.properties file if updating from DUCC 1.1.0"
+    print "   - create a time-stamped archive directory to hold the old runtime"
+    print "   - archive current files before updating them, except for the customizable ones"
+    print "   - report which are replaced, added, or kept"
+    print "   - leave in place any added to certain directories"
+    print "   - rebuild the non-privileged ducc_ling"
+    print "  Note: only  files added to the following directories will be retained, others will be archived:"
+    print modifiableDirectories
+    print ""
+    print "  To revert back to an archived build:"
+    print "   - copy/move all of the archived files back to the runtime"
+
+#-----------------------------------------------------------------------------------------
+# Get the version of the build from the name of the cli jar
+#-----------------------------------------------------------------------------------------
+def get_oversion(runtime):
+    fns = fnmatch.filter(os.listdir(runtime + '/lib/uima-ducc'), 'uima-ducc-cli-*.jar')
+    if ( len(fns) == 0 ):
+        raise Exception("Not a valid DUCC installation - missing versioned cli jar")
+    m = re.match('uima\\-ducc\\-cli\\-([a-zA-Z0-9_\\.\\-]+)\\.jar', fns[0])
+    if ( m == None ):
+        raise Exception("Not a valid DUCC installation - invalid name: " + fns[0])
+    return m.group(1)
+
+#-----------------------------------------------------------------------------------------
+# Get the version of the build from the name of the tar file
+#-----------------------------------------------------------------------------------------
+def get_nversion(tarfile):
+    p = re.compile('^uima\\-ducc\\-([a-zA-Z0-9_\\.\\-]+)\\-bin\\.tar\\.gz$')
+    m = p.search(tarfile, 0)
+    if ( m == None ):
+        raise Exception("Invalid tar file name: " + tarfile + " ... expecting: uima-ducc-<version>-bin.tar.gz")
+    return m.group(1)
+
+#-----------------------------------------------------------------------------------------
+# Create archive directory 
+#-----------------------------------------------------------------------------------------
+def create_archive(runtime, oversion, nversion):
+    runtimeParent,runtimeName = os.path.split(runtime)
+    now = datetime.datetime.now()
+    nowstr = now.strftime('%Y%m%d-%H%M')
+    archiveParent = os.path.join(runtimeParent, 'ducc_archives')
+    archive = os.path.join(archiveParent, runtimeName + '_' + nowstr)
+    if not os.path.exists(archive):        
+        os.makedirs(archive)
+
+    print " --- Updating DUCC to", nversion, " and archiving", oversion, "to", archive
+    print "     NOTE: this update may be reversed by copying back all of the archived files,"
+    print "       e.g. cp --recursive --remove-destination", archive+"/*", runtime
+
+    return archive
+
+
+#-----------------------------------------------------------------------------------------
+# Clear out the old expanded tarball if needed, and expand the new one
+#-----------------------------------------------------------------------------------------
+def expand_tarball(tarfile, nversion, outdir):
+    print "\n", " --- Expanding tar file"
+    extract = os.path.join(outdir, 'apache-uima-ducc-' + nversion)
+    try:
+        if ( os.path.exists(extract) ):        
+            shutil.rmtree(extract);
+    except:
+        raise Exception("Cannot remove old tarball extract: " + extract)
+    
+    cmd = 'umask 022 && tar -C ' + outdir + ' -xf ' + tarfile
+    rc = os.system(cmd);
+    if ( rc != 0 ):
+        raise Exception("Command fails, rc= " + str(rc) + "\n    " + cmd)
+
+    if not os.path.exists(extract):
+        raise Exception("Cannot extract runtime from tarball " + tarfile + " Expecting to find " + extract)
+
+    return extract
+
+#-----------------------------------------------------------------------------------------
+# Convert final comments into a DUCC 1.1.0 properties file
+#-----------------------------------------------------------------------------------------
+def create_110_properties(source, dest):
+    found = False
+    with open(source) as f:
+        for line in f:
+            if not found:
+                if line.startswith("#=====MARKER====="):
+                    found = True
+                    outf = open(dest, 'w')
+            else:
+                outf.write('ducc.' + line[1:])   
+    outf.close(); 
+
+#-----------------------------------------------------------------------------------------
+# Update directory by archiving all files that are replaced, unless in exclude list
+# Descend into nested directories if they may contain site-added files to be retained
+#-----------------------------------------------------------------------------------------
+def update_directory(olddir, newdir, archdir):
+    
+    global preserveFiles
+    global preserveDirectories
+    global modifiableDirectories
+    global lenRuntime
+
+    if len(olddir) <= lenRuntime:
+        print "\n", " --- Processing folder:", olddir
+    else:
+        print "\n", " --- Processing folder:", olddir[lenRuntime:]
+
+    subdirs = []
+    preserveAll = os.path.basename(newdir) in preserveDirectories
+    if not os.path.exists(archdir):
+        os.mkdir(archdir)
+    files = os.listdir(newdir)
+    for f in files:
+        curf = os.path.join(olddir, f)
+        newf = os.path.join(newdir, f)
+        if f in preserveFiles or preserveAll: 
+            if os.path.exists(curf):
+                # If file has changed don't replace it ... if unchanged remove from the extract
+                cmd = 'cmp --quiet ' + newf + ' ' + curf
+                rc = os.system(cmd);
+                if rc != 0:
+                    print "Keeping", f, "(new version left in the extract)"
+                else:
+                    os.remove(newf)
+            else:
+                print "Adding", f
+                os.rename(newf, curf)
+        else:
+            if os.path.isdir(newf):
+                relf = curf[lenRuntime:]
+                # Save sub-directories that must be processed recursively to preserve any added files 
+                if (relf in modifiableDirectories) and os.path.exists(curf):
+                    subdirs.append(f)
+                    continue
+            if os.path.exists(curf):
+                print "Replacing", f
+                os.rename(curf, os.path.join(archdir,f))
+            else:
+                print "Adding", f
+            os.rename(newf, curf)
+    # Process directories last to make printout more readable
+    for f in subdirs:
+        curf = os.path.join(olddir, f)
+        newf = os.path.join(newdir, f)
+        update_directory(curf, newf, os.path.join(archdir, f))
+    # Remove empty directories to make unused files obvious
+    nleft = len(os.listdir(newdir)) 
+    if nleft == 0:
+        os.rmdir(newdir)
+
+#-----------------------------------------------------------------------------------------
+# Insure ducc not running
+#-----------------------------------------------------------------------------------------
+def check_ducc(runtime):
+    print 'checking for ducc running, may take a few minutes...'
+    cmd = [ os.path.join(runtime,'admin/check_ducc') ]
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1, universal_newlines=True)
+    while True:
+        output = p.stdout.readline()
+        if output == '' and p.poll() is not None:
+            break
+        if output:
+            line = output.strip()
+            #print line
+            if('Found ducc' in line):
+                print "ERROR - DUCC appears to be running ... please run '" + os.path.join(runtime,'admin/stop_ducc') + " -a'"
+                exit(1)
+    rc = p.poll()
+    return rc
+    
+#=========================================================================================
+# Main program:
+#    tarfile runtime
+#=========================================================================================
+
+
+#-----------------------------------------------------------------------------------------
+# Retain a few site-modified files from the archive
+#  - the local_hooks.py may define local versions of 3 utility functions:
+#         find_other_processes, verify_slave_node, verify_master_node
+#  - the keystore is created by ducc-post-install using the password in resources.private
+#  - the site.jsp may define extra ducc-mon buttons
+#  - the ducc.local.js may define local versions of 2 place-holder functions:
+#         ducc_init_local, ducc_update_page_local
+#-----------------------------------------------------------------------------------------
+
+# List of customizable files that must not be replaced
+preserveFiles = [ 'ducc.classes', 'ducc.administrators', 'ducc.nodes',
+                  'local_hooks.py', 'keystore', 'site.jsp', 'ducc.local.js' ]
+
+# List of directories all of whose files nust not be replaced
+preserveDirectories = [ 'resources.private' ]
+
+# List of directories which may contain site-added or modified files
+# (Their parents must also be included so may also contain other files)
+modifiableDirectories = [ 'admin', 'lib', 
+                          'resources', 'resources/service_monitors', 'resources.private',
+                          'webserver/etc', 'webserver/root', 'webserver/root/$banner', 'webserver/root/js', 'webserver/root/opensources/images', 
+                          'webserver', 'webserver/root/opensources' ]
+
+if len(sys.argv) != 3:
+    usage()
+    exit(1)
+
+rtime   = sys.argv[1]
+tarfile = sys.argv[2]
+runtime = os.path.realpath(rtime)
+
+check_ducc(runtime)
+
+if not os.path.exists(tarfile):
+    print "ERROR - Missing tar file", tarfile
+    exit(1)
+nversion = get_nversion(os.path.basename(tarfile))
+
+#-----------------------------------------------------------------------------------------
+# Check if is a new install ... just untar
+#-----------------------------------------------------------------------------------------
+if not os.path.exists(runtime):
+    print " --- A fresh installation of DUCC", nversion, "will be created at", runtime
+    runtimeParent = os.path.dirname(runtime)
+    if not os.path.exists(runtimeParent):
+        os.makedirs(runtimeParent)
+    newducc = expand_tarball( tarfile, nversion, runtimeParent ) 
+    os.rename(newducc, runtime)
+    print "\n", " --- Installation completed ... please run './ducc_post_install' from the admin directory"
+    exit(0)
+
+#-----------------------------------------------------------------------------------------
+# Check if invoked from inside the runtime
+# Probably OK if from admin, but to be safe ...
+#-----------------------------------------------------------------------------------------
+
+curdir = os.path.realpath(os.environ['PWD'])
+if curdir.startswith(runtime) and curdir != runtime:
+    print "ERROR - Cannot run from inside the runtime"
+    exit(1)
+
+#-----------------------------------------------------------------------------------------
+# Check if appears to be a valid (stopped) DUCC installation
+#-----------------------------------------------------------------------------------------
+if not os.path.exists(os.path.join(runtime, 'resources/ducc.properties')):
+    print "ERROR - Not a valid DUCC runtime directory:", runtime
+    exit(1)
+if os.path.exists(os.path.join(runtime, 'state/ducc.pids')):
+    print "ERROR - DUCC appears to be running ... please run '" + rtime + "/admin/stop_ducc -a'"
+    exit(1)
+
+oversion = get_oversion(runtime)
+if oversion == '1.0.0':
+    print "Sorry, migration not supported for DUCC 1.0.0 at present"
+    exit(9)
+
+#-----------------------------------------------------------------------------------------
+# Create a time-stamped archive and expand the tarball into its parent
+#-----------------------------------------------------------------------------------------
+archive = create_archive(runtime, oversion, nversion)
+newducc = expand_tarball( tarfile, nversion, os.path.dirname(archive) )
+
+#-----------------------------------------------------------------------------------------
+# May need to create the new webserver directory for 2.0
+#-----------------------------------------------------------------------------------------
+weblogdir = os.path.join(runtime, 'logs/webserver')
+if not os.path.exists(weblogdir):
+    os.makedirs(weblogdir)
+
+#-----------------------------------------------------------------------------------------
+# Create a site.ducc.properties file if missing ... only for DUCC 1.1.0
+# Archive original ducc.properties for safety
+#-----------------------------------------------------------------------------------------
+siteProps = os.path.join(runtime, 'resources/site.ducc.properties')
+if not os.path.exists(siteProps):
+    if oversion != '1.1.0':
+        print "Missing site.ducc.properties - can only be created for 1.1.0"
+        exit(9)
+    currentProps = os.path.join(runtime, 'resources/ducc.properties')
+    archdir = os.path.join(archive,'resources')
+    if not os.path.exists(archdir):
+        os.mkdir(archdir)
+    shutil.copy(currentProps, archdir)
+
+    originalProps = os.path.join(runtime, 'resources/ducc-1.1.0.properties')
+    create_110_properties(os.path.realpath(sys.argv[0]), originalProps)
+
+    if not os.path.exists(originalProps):
+        print "ERROR - Failed to create the 1.1.0 properties file from the ending comments in this script"
+        exit(9)
+
+    # Use the new props manager - use abs fnames as otherwise are relative to the deduced DUCC_HOME/resources
+    cmd = newducc + '/admin/ducc_props_manager --delta ' + originalProps + ' --with ' + currentProps + ' --to ' + siteProps
+    rc = os.system(cmd)
+    if rc != 0:
+        print "ERROR", rc, "Failed to create", siteProps
+        exit(9)
+    print " --- Created a file with just the site-specific properties:", siteProps
+
+#-----------------------------------------------------------------------------------------
+# Add or replace (after archiving) most files and directories found in the new build 
+# EXCEPT for those that are designed to be sire-specific.
+# Sites may also add files to the 'modifiable' directories and their sub-directories.
+# The other directories are replaced in toto e.g. 3rd-party ones.
+#-----------------------------------------------------------------------------------------
+
+# Strip the runtime prefix when printing
+lenRuntime = len(runtime) + 1
+update_directory(runtime, newducc, archive)
+
+#-----------------------------------------------------------------------------------------
+# Delete what's left of the extract (just the resources & lib folders)
+#-----------------------------------------------------------------------------------------
+print "\n", " --- Files not replaced are left in the extract at", newducc
+
+#-----------------------------------------------------------------------------------------
+# Re-build ducc_ling
+# Since it needs ducc.properties run the merge from the admin directory
+#-----------------------------------------------------------------------------------------
+print "\n", " --- Rebuilding ducc_ling"
+os.chdir(runtime + '/admin')
+rc = os.system('./ducc_props_manager --merge ../resources/default.ducc.properties --with ../resources/site.ducc.properties --to ../resources/ducc.properties')
+if (rc != 0):
+    print "ERROR - failed to create ducc.properties and to rebuild ducc_ling"
+    exit(9)
+rc = os.system('./build_duccling')
+if (rc != 0):
+    print "ERROR - failed to rebuild or install ducc_ling"
+    exit(9)
+
+print "\n", " --- Installation completed!"
+print "     NOTE - if your ducc_ling is privileged you should update it" 
+
+#-----------------------------------------------------------------------------------------
+# Warn if DB disabled
+#-----------------------------------------------------------------------------------------
+siteprops = runtime + '/resources/site.ducc.properties'
+dbcreated = False
+with open(siteprops) as f:
+    for line in f:
+        if line.startswith("ducc.database.host"):
+            dbcreated = True
+            break
+if not dbcreated:
+    print "   WARNING - The database has not yet been created - DUCC will have reduced functionality."
+    print "             Run db_create then db_loader to convert existing state and history"
+
+#->->->->->->->   DO NOT CHANGE ANYTHING BELOW THIS MARKER <-<-<-<-<-<-<-
+#=====MARKER===== The following are the original ducc.properties shipped with DUCC 1.1.0 
+#head=<head-node>
+#jvm=<full-path-to-java-command>
+#cluster.name=Apache UIMA-DUCC
+#private.resources=${DUCC_HOME}/resources.private
+#jms.provider=activemq
+#broker.protocol=tcp
+#broker.hostname=${ducc.head}
+#broker.port=61617
+#broker.url.decoration=jms.useCompression=true
+#broker.name=localhost
+#broker.jmx.port=1100
+#broker.credentials.file=${ducc.private.resources}/ducc-broker-credentials.properties
+#broker.automanage=true
+#broker.memory.options=-Xmx1G
+#broker.configuration=conf/activemq-ducc.xml
+#broker.home=${DUCC_HOME}/apache-uima/apache-activemq
+#broker.server.url.decoration=transport.soWriteTimeout=45000
+#locale.language=en
+#locale.country=us
+#node.min.swap.threshold=0
+#admin.endpoint=ducc.admin.channel
+#admin.endpoint.type=topic
+#jmx.port=2099
+#agent.jvm.args=-Xmx500M
+#orchestrator.jvm.args=-Xmx1G
+#rm.jvm.args=-Xmx1G
+#pm.jvm.args=-Xmx1G
+#sm.jvm.args=-Xmx1G
+#db.jvm.args=-Xmx2G
+#ws.jvm.args=-Xmx2G -Djava.util.Arrays.useLegacyMergeSort=true
+#environment.propagated=USER HOME LANG
+#cli.httpclient.sotimeout=0
+#signature.required=on
+#db.configuration.class=org.apache.uima.ducc.db.config.DbComponentConfiguration
+#db.state.update.endpoint=ducc.db.state
+#db.state.update.endpoint.type=topic
+#db.state.publish.rate=15000
+#ws.configuration.class=org.apache.uima.ducc.ws.config.WebServerConfiguration
+#ws.port=42133
+#ws.port.ssl=42155
+#ws.session.minutes=60
+#ws.automatic.cancel.minutes=5
+#ws.max.history.entries=4096
+#ws.jsp.compilation.directory=/tmp/ducc/jsp
+#ws.login.enabled=false
+#ws.visualization.strip.domain=true
+#jd.configuration.class=org.apache.uima.ducc.jd.config.JobDriverConfiguration
+#jd.state.update.endpoint=ducc.jd.state
+#jd.state.update.endpoint.type=topic
+#jd.state.publish.rate=15000
+#jd.queue.prefix=ducc.jd.queue.
+#jd.queue.timeout.minutes=5
+#jd.host.class=JobDriver
+#jd.host.description=Job Driver
+#jd.host.memory.size=2GB
+#jd.host.number.of.machines=1
+#jd.host.user=System
+#jd.share.quantum=400
+#threads.limit=500
+#driver.jvm.args=-Xmx300M
+#sm.configuration.class=org.apache.uima.ducc.sm.config.ServiceManagerConfiguration
+#sm.state.update.endpoint=ducc.sm.state
+#sm.state.update.endpoint.type=topic
+#sm.default.monitor.class=org.apache.uima.ducc.cli.UimaAsPing
+#sm.instance.failure.max=5
+#sm.instance.failure.limit=${ducc.sm.instance.failure.max}
+#sm.instance.failure.window=30
+#sm.init.failure.limit=1
+#sm.meta.ping.rate=60000
+#sm.meta.ping.stability=10
+#sm.meta.ping.timeout=15000
+#sm.http.port=19989
+#sm.http.node=${ducc.head}
+#sm.default.linger=300000
+#orchestrator.configuration.class=org.apache.uima.ducc.orchestrator.config.OrchestratorConfiguration
+#orchestrator.start.type=warm
+#orchestrator.state.update.endpoint=ducc.orchestrator.state
+#orchestrator.state.update.endpoint.type=topic
+#orchestrator.state.publish.rate=10000
+#orchestrator.maintenance.rate=60000
+#orchestrator.http.port=19988
+#orchestrator.http.node=${ducc.head}
+#orchestrator.unmanaged.reservations.accepted=true
+#rm.configuration.class=org.apache.uima.ducc.rm.config.ResourceManagerConfiguration
+#rm.state.update.endpoint=ducc.rm.state
+#rm.state.update.endpoint.type=topic
+#rm.state.publish.rate=10000
+#rm.share.quantum=1
+#rm.scheduler=org.apache.uima.ducc.rm.scheduler.NodepoolScheduler
+#rm.class.definitions=ducc.classes
+#rm.default.memory=4
+#rm.init.stability=2
+#rm.node.stability=5
+#rm.eviction.policy=SHRINK_BY_INVESTMENT
+#rm.initialization.cap=1
+#rm.expand.by.doubling=true
+#rm.prediction=true
+#rm.prediction.fudge=120000
+#rm.fragmentation.threshold=8
+#rm.admin.endpoint=ducc.rm.admin.channel
+#rm.admin.endpoint.type=queue
+#agent.configuration.class=org.apache.uima.ducc.agent.config.AgentConfiguration
+#agent.request.endpoint=ducc.agent
+#agent.request.endpoint.type=topic
+#agent.managed.process.state.update.endpoint=ducc.managed.process.state.update
+#agent.managed.process.state.update.endpoint.type=socket
+#agent.managed.process.state.update.endpoint.params=transferExchange=true&sync=false
+#agent.node.metrics.sys.gid.max=500
+#agent.node.metrics.publish.rate=30000
+#agent.node.metrics.endpoint=ducc.node.metrics
+#agent.node.metrics.endpoint.type=topic
+#agent.node.inventory.publish.rate=10000
+#agent.node.inventory.publish.rate.skip=30
+#agent.node.inventory.endpoint=ducc.node.inventory
+#agent.node.inventory.endpoint.type=topic
+#agent.launcher.thread.pool.size=10
+#agent.launcher.use.ducc_spawn=true
+#agent.launcher.ducc_spawn_path=${DUCC_HOME}/admin/ducc_ling
+#agent.launcher.process.stop.timeout=60000
+#agent.launcher.process.init.timeout=7200000
+#agent.rogue.process.user.exclusion.filter=
+#agent.rogue.process.exclusion.filter=sshd:,-bash,-sh,/bin/sh,/bin/bash,grep,ps
+#agent.share.size.fudge.factor=5
+#agent.launcher.cgroups.enable=false
+#agent.launcher.cgroups.utils.dir=/usr/bin,/bin
+#agent.exclusion.file=${DUCC_HOME}/resources/exclusion.nodes
+#pm.configuration.class=org.apache.uima.ducc.pm.config.ProcessManagerConfiguration
+#pm.request.endpoint=ducc.pm
+#pm.request.endpoint.type=queue
+#pm.state.update.endpoint=ducc.pm.state
+#pm.state.update.endpoint.type=topic
+#pm.state.publish.rate=15000
+#uima-as.configuration.class=org.apache.uima.ducc.agent.deploy.uima.UimaAsServiceConfiguration
+#uima-as.endpoint=ducc.job.managed.service
+#uima-as.endpoint.type=socket
+#uima-as.endpoint.params=transferExchange=true&sync=false
+#uima-as.saxon.jar.path=file:${DUCC_HOME}/apache-uima/saxon/saxon8.jar
+#uima-as.dd2spring.xsl.path=${DUCC_HOME}/apache-uima/bin/dd2spring.xsl
+#flow-controller.specifier=org.apache.uima.ducc.common.uima.DuccJobProcessFC

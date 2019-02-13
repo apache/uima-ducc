@@ -1,0 +1,25 @@
+# 
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+# 
+#   http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# 
+tod = 77559140
+elapsed = 2256833 2709253 2873552 3169991 3200711 3166021 3522763 539872 1518787 628315 1036099 612733 1090478 1872733 932438 1605664 456437 1483755 283315 2311932 2273198 3643513 2591388 8117480 2986738 3720378
+threads = 4
+user = Rodrigo
+memory = 20
+class = normal
+machines = 2

@@ -1,0 +1,98 @@
+#!/usr/bin/env python
+
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+# Retrieve a DUCC Service status from Webserver
+
+import sys
+import urllib2
+
+from optparse import OptionParser
+from HTMLParser import HTMLParser
+
+from ducc_base import DuccBase
+
+row = 0
+column = 0
+
+service_host = None
+service_pid = None
+service_state = None
+
+class DuccServiceDeploymentsTabHTMLParser(HTMLParser):
+    
+    def handle_starttag(self, tag, attrs):
+        global row, column, service_host, service_pid, service_state
+        #print("Encountered a start tag:", tag)
+        if(tag == 'td'):
+            column = column + 1
+
+    def handle_endtag(self, tag):
+        global row, column, service_host, service_pid, service_state
+        if(tag == 'tr'):
+            column = 0
+            row = row + 1
+        #print("Encountered an end tag :", tag)
+
+    def handle_data(self, data):
+        global row, column, service_host, service_pid, service_state
+        if(column == 2):
+            service_state = data
+        elif(column == 6):
+            service_host = data
+        elif(column == 7):
+            service_pid = data
+            print 'host:'+service_host, 'pid:'+service_pid,'state:'+ service_state
+        else:
+            pass
+        #print("Encountered some data  :", str(row), str(column), data)
+
+class DuccServiceStatus(DuccBase):
+    
+    # parse command line
+    def parse_cmdline(self):
+        global options
+        parser = OptionParser()
+        parser.add_option('--scheme', action='store', dest='scheme', default='http', help='default = http')
+        parser.add_option('--host', action='store', dest='host', default=self.webserver_node, help='default = '+self.webserver_node)
+        parser.add_option('--port', action='store', dest='port', default='42133', help='default = 42133')
+        parser.add_option('--name', action='store', dest='name', default=None, help='required (no default)')
+        (options, args) = parser.parse_args()
+        
+        if(options.host == None):
+            parser.error("missing --host")
+    
+        if(options.name == None):
+            parser.error("missing --name")
+        
+    def main(self, argv):
+        servlet = '/ducc-servlet/service-deployments-data'
+        self.parse_cmdline()
+        url_string = options.scheme+'://'+options.host+':'+options.port+servlet+'?name='+options.name
+        #print url_string
+        response = urllib2.urlopen(url_string)
+        html = response.read()
+        
+        parser = DuccServiceDeploymentsTabHTMLParser()
+        parser.feed(html)
+
+if __name__ == '__main__':
+    instance = DuccServiceStatus()
+    instance.main(sys.argv[1:])
