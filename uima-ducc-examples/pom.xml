@@ -23,7 +23,7 @@
    <parent>
     <artifactId>uima-ducc-parent</artifactId>
     <groupId>org.apache.uima</groupId>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <relativePath>../uima-ducc-parent/pom.xml</relativePath>
   </parent>
   
