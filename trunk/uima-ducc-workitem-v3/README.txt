@@ -1,1 +1,0 @@
-These jcas classes are compatible with uima v.3
