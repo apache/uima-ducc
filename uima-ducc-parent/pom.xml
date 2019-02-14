@@ -28,7 +28,7 @@
 	</parent>
 
 	<artifactId>uima-ducc-parent</artifactId>
-	<version>3.0.0-SNAPSHOT</version>
+	<version>3.0.0</version>
         <name>${uima.ducc} ${project.artifactId}</name>
 	<packaging>pom</packaging>
 	<!-- Add project inception year. This is used by javadoc plugin   -->
@@ -42,13 +42,13 @@
 		cutting/pasting the <scm> element, and just changing the following two properties -->
 	<scm>
 		<connection>
-      scm:svn:http://svn.apache.org/repos/asf/uima/uima-ducc/trunk/uima-ducc-parent
+      scm:svn:http://svn.apache.org/repos/asf/uima/uima-ducc/tags/uima-ducc-3.0.0/uima-ducc-parent
     </connection>
 		<developerConnection>
-      scm:svn:https://svn.apache.org/repos/asf/uima/uima-ducc/trunk/uima-ducc-parent
+      scm:svn:https://svn.apache.org/repos/asf/uima/uima-ducc/tags/uima-ducc-3.0.0/uima-ducc-parent
     </developerConnection>
 		<url>
-      http://svn.apache.org/viewvc/uima/uima-ducc/trunk/uima-ducc-parent
+      http://svn.apache.org/viewvc/uima/uima-ducc/tags/uima-ducc-3.0.0/uima-ducc-parent
     </url>
 	</scm>
 
