@@ -72,7 +72,7 @@ class DbCreate(DuccUtil):
                                     
     def main(self, argv):     
                    
-		self.database_automanage = True
+        self.database_automanage = True
         self.database_host_list = None
         self.database_user = None
         self.database_pw = None
@@ -124,7 +124,7 @@ class DbCreate(DuccUtil):
         if( self.database_host_list == None ) :
         	self.database_host_list = self.ducc_properties.get("ducc.head")
     
-    	 if ( self.database_user == None ):
+    	if ( self.database_user == None ):
             self.database_user = 'ducc'
     
         if ( self.database_pw == None ):
