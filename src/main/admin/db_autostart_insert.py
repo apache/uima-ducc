@@ -42,7 +42,7 @@ from ducc_util import DuccUtil
 
 class AutostartInsert(DuccUtil):
 
-	valid_names = [ 'ag', 'br', 'or', 'pm', 'rm', 'sm', 'ws' ]
+	valid_names = [ 'ag', 'br', 'or', 'pm', 'rm', 'sm', 'ws', 'db' ]
 	jclass = 'org.apache.uima.ducc.database.lifetime.DbDaemonLifetimeUI'
 	
 	description = 'Insert an entry into the autostart database table, if one does not already exist.'
