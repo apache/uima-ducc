@@ -79,6 +79,13 @@ class StartDucc(DuccUtil):
         if (com in self.local_components):
             node = self.localhost
 
+        if(self.automanage_database):
+            pass
+        else:
+            if (com in ['db', 'database']):
+                msgs.append(('Unmanaged component', component))
+                return msgs
+            
         if ((com in self.default_components) or ( com == 'agent')) :
             msgs.append((node, 'Starting', com))
         else:
@@ -278,9 +285,19 @@ class StartDucc(DuccUtil):
                     components.append('rm')
                     components.append('sm')
                     components.append('ws')
-                    components.append('db')
                     components.append('broker')
+                    if(self.automanage_database):
+                        components.append('db')
                 else:
+                    if(self.automanage_database):
+                        pass
+                    else:
+                        if('db' in a):
+                             print "Database not automanaged."
+                             return
+                        if('database' in a):
+                             print "Database not automanaged."
+                             return
                     components.append(a)
             elif o in ( '-n', '--nodelist' ):
                 nodefiles.append(a)
@@ -343,18 +360,19 @@ class StartDucc(DuccUtil):
             print "Limits too low to run DUCC"
             sys.exit(1)
         
-        if ( self.automanage_database and ('db' in components) ):
-            try:
-                if ( not self.db_start() ):
-                    print "Failed to start or connect to the database."
+        if ( self.automanage_database ):
+            if ( 'db' in components ):
+                try:
+                    if ( not self.db_start() ):
+                        print "Failed to start or connect to the database."
+                        sys.exit(1)
+                    node = self.get_db_host()
+                    com = 'database'
+                    self.db_acct_start(node,com)
+                except Exception (e):
+                    # print e
+                    print sys.exc_info()[0], "Can't start the database."
                     sys.exit(1)
-                node = self.get_db_host()
-                com = 'database'
-                self.db_acct_start(node,com)
-            except Exception (e):
-                # print e
-                print sys.exc_info()[0], "Can't start the database."
-                sys.exit(1)
 
         if ( len(components) == 1 ):
             if ( self.automanage_database and ('db' in components) ):

@@ -352,6 +352,10 @@ class DuccUtil(DuccBase):
             
     def db_start(self):
 
+        if(not self.automanage_database):
+            print '   (Bypass database start - not automanaged)'
+            return False
+
         # bypass all of this for the initial delivery
         if ( self.db_bypass == True) :
             print '   (Bypass database start)'
@@ -408,6 +412,9 @@ class DuccUtil(DuccBase):
 
     def db_stop(self):
         try:
+            if(not self.automanage_database):
+                print '   (Bypass database start - not automanaged)'
+                return False
             if ( self.db_bypass == True) :
                 print '   (Bypass database stop)'
                 return True
