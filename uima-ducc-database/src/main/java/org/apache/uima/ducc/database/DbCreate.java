@@ -49,6 +49,7 @@ public class DbCreate
     String[] db_host_list;
     String adminid = null;
     String adminpw = null;
+    String replication = null;
     boolean useNewPw = false;
 
     private Cluster cluster;
@@ -70,6 +71,14 @@ public class DbCreate
         this.adminpw = adminpw;
     }
 
+    DbCreate(String db_host_list, String adminid, String adminpw, String replication)
+    {
+        this.db_host_list = toArray(db_host_list);
+        this.adminid = adminid;
+        this.adminpw = adminpw;
+        this.replication = replication;
+    }
+    
     private String toString(String[] array) {
     	StringBuffer sb = new StringBuffer();
     	if(array != null) {
@@ -263,7 +272,13 @@ public class DbCreate
     	String guest_pw = adminpw;
     	
         // A 'keyspace' is what we usually think of as a database.
-        session.execute("CREATE KEYSPACE IF NOT EXISTS ducc WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};");
+    	String strategy = "SimpleStrategy";
+		String factor = "1";
+    	if(replication != null) {
+    		//strategy = "NetworkTopologyStrategy";
+    		factor = replication;
+    	}
+        session.execute("CREATE KEYSPACE IF NOT EXISTS ducc WITH replication = {'class':'"+strategy+"', 'replication_factor':"+factor+"};");
         session.execute("CREATE USER IF NOT EXISTS guest  WITH PASSWORD '"+guest_pw+"' NOSUPERUSER");
         session.execute("GRANT SELECT ON KEYSPACE ducc TO guest");
         session.execute("REVOKE SELECT ON KEYSPACE system FROM guest");
@@ -328,14 +343,18 @@ public class DbCreate
 
     public static void main(String[] args)
     {
-        if ( args.length != 3 ) {
-            System.out.println("Usage: DbCreate database_url db_id db_pw");
-            System.exit(1);
-        }
-
         DbCreate client = null;
         try {
-            client = new DbCreate(args[0], args[1], args[2]);
+        	if ( args.length == 4 ) {
+        		client = new DbCreate(args[0], args[1], args[2], args[3]);
+        	}
+        	else if ( args.length == 3 ) {
+        		client = new DbCreate(args[0], args[1], args[2]);
+        	}
+        	else {
+                System.out.println("Usage: DbCreate database_url db_id db_pw");
+                System.exit(1);
+            }
             if ( client.connect() ) {
                 client.createSchema();
                 client.close();

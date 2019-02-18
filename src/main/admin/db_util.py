@@ -141,7 +141,7 @@ def update_cassandra_config(DUCC_HOME, DUCC_HEAD):
                 os.system(ch_head)
         
 
-def configure_database(DUCC_HOME, DUCC_HEAD, java, db_autostart=True, db_host=None, db_user=None, db_pw=None ):
+def configure_database(DUCC_HOME, DUCC_HEAD, java, db_autostart=True, db_host=None, db_user=None, db_pw=None, db_replication=None):
     # for cassandra:
     # in ducc_runtime/cassandra-server/conf we need to update cassandra.yaml to establish
     # the data directories and db connection addresses
@@ -193,6 +193,8 @@ def configure_database(DUCC_HOME, DUCC_HEAD, java, db_autostart=True, db_host=No
 
     ret = True
     CMD = [java, '-DDUCC_HOME=' + DUCC_HOME, 'org.apache.uima.ducc.database.DbCreate', db_host, db_user, db_pw]
+    if(db_replication != None):
+        CMD.append(db_replication)
     CMD = ' '.join(CMD)
     if ( execute(CMD) == 0 ):
         print 'Database is initialized.'

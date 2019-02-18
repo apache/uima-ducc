@@ -66,6 +66,9 @@ class PostInstall():
         print "   [-a, --db-automanage] <True|False>"
         print "        Specify False if DUCC should not start/stop database."
         print ""
+        print "   [-r, --db-replication] <integer>"
+        print "        Specify database replication level (default = 1)."
+        print ""
         print "   [-m, --db-home] <path>"
         print "        The location of the database home directory, only specify when db-automanage is False and the default database directory should not be used."
         print ""
@@ -162,7 +165,7 @@ class PostInstall():
         #    self.update_property('ducc.database.host', '--disabled--', '# Database support is disabled')
         #    return True;
         
-        if ( dbu.configure_database(self.DUCC_HOME, self.ducc_head, self.path_to_java, self.database_automanage, self.database_host_list, self.database_user, db_pw) ):
+        if ( dbu.configure_database(self.DUCC_HOME, self.ducc_head, self.path_to_java, self.database_automanage, self.database_host_list, self.database_user, db_pw, self.database_replication) ):
             print 'Configuring DUCC to use the database.'
 
             self.update_property('ducc.service.persistence.impl', 'org.apache.uima.ducc.database.StateServicesDb', '# Service manager persistence')
@@ -461,6 +464,7 @@ class PostInstall():
         self.ducc_head = None
         self.keystore_pw = None
         self.database_automanage = None
+        self.database_replication = None
         self.database_home = None
         self.database_host_list = None
         self.database_user = None
@@ -469,7 +473,7 @@ class PostInstall():
         self.path_to_java = None
 
         try:
-            opts, args = getopt.getopt(argv, 'a:m:o:u:d:b:j:k:n:h?', ['db-automanage=', 'db-home=', 'db-host-list=', 'db-user=', 'db-password=', 'br-password=', 'jvm=', 'keystore=', 'head-node=', 'help'])
+            opts, args = getopt.getopt(argv, 'a:r:m:o:u:d:b:j:k:n:h?', ['db-automanage=', 'db-replication=', 'db-home=', 'db-host-list=', 'db-user=', 'db-password=', 'br-password=', 'jvm=', 'keystore=', 'head-node=', 'help'])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
 
@@ -481,6 +485,8 @@ class PostInstall():
                     self.database_automanage = True
                 else:
                     self.database_automanage = False
+            if o in ('-r', '--db-replication'):
+                self.database_replication = a
             if o in ('-m', '--db-home'):
                 self.database_home = a
             if o in ('-o', '--db-host-list'):
