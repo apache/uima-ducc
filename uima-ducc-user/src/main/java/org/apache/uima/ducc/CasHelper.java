@@ -18,8 +18,6 @@
  */
 package org.apache.uima.ducc;
 
-import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
-import org.apache.uima.analysis_engine.annotator.AnnotatorInitializationException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.FSIterator;
 import org.apache.uima.cas.Feature;
@@ -39,33 +37,24 @@ public class CasHelper {
 		String retVal = null;
 		if (cas != null) {
 			retVal = cas.getDocumentText();
-			try {
-			  // Get a reference to the "Workitem" Type
-			  mWorkitemType = cas.getTypeSystem().getType("org.apache.uima.ducc.Workitem");
-			  if (mWorkitemType == null) {
-			    throw new AnalysisEngineProcessException(AnnotatorInitializationException.TYPE_NOT_FOUND,
-			            new Object[] { CasHelper.class.getName(), "org.apache.uima.ducc.Workitem" });
-			  }
-			  // Get a reference to the "sendToALL" Feature
-			  mInputspecFeature = mWorkitemType.getFeatureByBaseName("inputspec");
-			  if (mInputspecFeature == null) {
-			    throw new AnalysisEngineProcessException(AnnotatorInitializationException.FEATURE_NOT_FOUND,
-			            new Object[] { CasHelper.class.getName(), "org.apache.uima.ducc.Workitem:inputspec" });
-			  }
-			  FSIterator<FeatureStructure> it = cas.getIndexRepository().getAllIndexedFS(mWorkitemType);
-			  if (it.isValid()) {
-			    FeatureStructure wi = it.get();
-			    if (wi != null) {
-			      String id = wi.getStringValue(mInputspecFeature);
-						if(id != null) {
-						  retVal = id;
-						}
-			    }
-				}
-			} 
-			catch (Exception e) {
-				e.printStackTrace();
-			}
+
+			// Get references to the "Workitem" Type and the "inputspec" Feature
+		  mWorkitemType = cas.getTypeSystem().getType("org.apache.uima.ducc.Workitem");
+      if (mWorkitemType != null) {			  
+        mInputspecFeature = mWorkitemType.getFeatureByBaseName("inputspec");
+        if (mInputspecFeature != null) {
+          FSIterator<FeatureStructure> it = cas.getIndexRepository().getAllIndexedFS(mWorkitemType);
+          if (it.isValid()) {
+            FeatureStructure wi = it.get();
+            if (wi != null) {
+              String id = wi.getStringValue(mInputspecFeature);
+              if(id != null) {
+                retVal = id;
+              }
+            }
+          }
+        }
+      }
 		}
 		return retVal;
 	}

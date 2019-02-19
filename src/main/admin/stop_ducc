@@ -248,7 +248,7 @@ class StopDucc(DuccUtil):
     def get_args(self):
         self.parser = argparse.ArgumentParser(formatter_class=RawDescriptionHelpFormatter,epilog=self.get_epilog())
         group1 = self.parser.add_mutually_exclusive_group(required=True)
-        group1.add_argument(self.option_all, action='store_true', help=self.help_all)
+        group1.add_argument(self.option_all, '-a', action='store_true', help=self.help_all)
         group1.add_argument(self.option_head, action='store_true', help=self.help_head)
         group1.add_argument(self.option_agents, action='store_true', help=self.help_agents)
         group1.add_argument(self.option_nodelist, '-n', action='append', help=self.help_nodelist)

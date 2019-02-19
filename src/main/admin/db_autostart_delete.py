@@ -42,7 +42,7 @@ from ducc_util import DuccUtil
 
 class AutostartDelete(DuccUtil):
 
-	valid_names = [ 'ag', 'br', 'or', 'pm', 'rm', 'sm', 'ws' ]
+	valid_names = [ 'ag', 'br', 'or', 'pm', 'rm', 'sm', 'ws', 'db' ]
 	jclass = 'org.apache.uima.ducc.database.lifetime.DbDaemonLifetimeUI'
 	
 	description = 'Delete an entry from the autostart database table.'

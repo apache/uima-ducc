@@ -232,7 +232,16 @@ class DuccUtil(DuccBase):
         host_list = self.get_db_host_list()
         if(host_list != None):
             if(len(host_list) > 0):
-                result = host_list[0]
+                if(result == None):
+                    this_host = self.get_hostname_long()
+                    if(this_host in host_list):
+                        result = this_host
+                if(result == None):
+                    this_host = self.get_hostname_short()
+                    if(this_host in host_list):
+                        result = this_host
+                if(result == None):
+                    result = host_list[0]
         return result
     
     def is_db_disabled(self):
@@ -281,6 +290,32 @@ class DuccUtil(DuccBase):
                 return True
         return False
 
+    def db_process_kill(self,code):
+        if ( not os.path.exists(self.db_pidfile) ):
+            return False
+
+        f = open(self.db_pidfile)
+        pid = f.read();
+        f.close()
+        answer = []
+        if ( self.system == 'Darwin'):
+            ps = 'ps -eo user,pid,comm,args ' + pid
+        else:
+            ps = 'ps -eo user:14,pid,comm,args ' + pid
+        lines = self.popen(ps)
+        
+        for line in lines:
+            line = line.strip()
+            if (pid in line and 'cassandra' in line):
+                cmd = [ 'kill', '-'+str(code), pid ]
+                cmd = ' '.join(cmd)
+                rc = os.system(cmd)
+                if ( rc == 0 ):
+                    return True
+                else:
+                    return False
+        return False
+
     # contact the database and see how useful it seems to be
     def db_alive(self, retry=10, verbose=True):
         if ( self.db_bypass == True ):
@@ -316,6 +351,10 @@ class DuccUtil(DuccBase):
 
             
     def db_start(self):
+
+        if(not self.automanage_database):
+            print '   (Bypass database start - not automanaged)'
+            return False
 
         # bypass all of this for the initial delivery
         if ( self.db_bypass == True) :
@@ -373,6 +412,9 @@ class DuccUtil(DuccBase):
 
     def db_stop(self):
         try:
+            if(not self.automanage_database):
+                print '   (Bypass database start - not automanaged)'
+                return False
             if ( self.db_bypass == True) :
                 print '   (Bypass database stop)'
                 return True
@@ -476,6 +518,26 @@ class DuccUtil(DuccBase):
         devnw.close()
         if ( showpid ) :
             print 'PID', ducc.pid
+
+    def get_hostname_long(self):
+        hostname = '?'
+        cmd = '/bin/hostname'
+        resp = self.popen(cmd)
+        lines = resp.readlines()
+        if(len(lines)== 1):
+            line = lines[0]
+            hostname = line.strip();
+        return hostname
+    
+    def get_hostname_short(self):
+        hostname = '?'
+        cmd = '/bin/hostname -s'
+        resp = self.popen(cmd)
+        lines = resp.readlines()
+        if(len(lines)== 1):
+            line = lines[0]
+            hostname = line.strip();
+        return hostname
 
     def get_hostname(self):
         hostname = '?'
