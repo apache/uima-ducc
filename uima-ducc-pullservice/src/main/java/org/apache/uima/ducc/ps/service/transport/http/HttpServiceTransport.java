@@ -236,9 +236,9 @@ public class HttpServiceTransport implements IServiceTransport {
 
 		IMetaTaskTransaction metaTransaction=null;
 		HttpResponse response = httpClient.execute(postMethod);
-		if ( stopping ) {
-			throw new TransportException("Service stopping - rejecting request");
-		}
+		//		if ( stopping ) {
+		//	throw new TransportException("Service stopping - rejecting request");
+		//}
 		HttpEntity entity = response.getEntity();
 		String serializedResponse = EntityUtils.toString(entity);
 		Object transaction=null;
@@ -276,9 +276,9 @@ public class HttpServiceTransport implements IServiceTransport {
 	 */
 	@Override
 	public synchronized IMetaTaskTransaction dispatch(String serializedRequest) throws TransportException  {
-		if ( stopping ) {
-			throw new IllegalStateException("Service transport has been stopped, unable to dispatch request");
-		}
+	    //if ( stopping ) {
+	    //		throw new IllegalStateException("Service transport has been stopped, unable to dispatch request");
+	    //	}
 		IMetaTaskTransaction transaction=null;
 		HttpEntity e = wrapRequest(serializedRequest);
 		// Each thread has its own HttpPost method. If current thread
