@@ -48,7 +48,21 @@ public class ServiceConfiguration {
 	private int waitTimeWhenNoTaskGiven = 30000;  // unit=ms
 	private ClassLoader sysCL=null;
     private String processType;
-
+    private String nodeIP;
+    private String nodeName;
+    
+	public String getNodeIP() {
+		return nodeIP;
+	}
+	public void setNodeIP(String nodeIP) {
+		this.nodeIP = nodeIP;
+	}
+	public String getNodeName() {
+		return nodeName;
+	}
+	public void setNodeName(String nodeName) {
+		this.nodeName = nodeName;
+	}
 	public String getProcessType() {
 		return processType;
 	}
@@ -297,7 +311,8 @@ public class ServiceConfiguration {
 		duccProcessId = System.getenv("DUCC_PROCESSID");
 		duccProcessUniqueId = System.getenv("DUCC_PROCESS_UNIQUEID");
 		monitorPort = System.getenv("DUCC_STATE_UPDATE_PORT");
-
+		nodeIP =  System.getenv("DUCC_IP");
+		nodeName = System.getenv("DUCC_NODENAME");
 		analysisEngineDescriptorPath = args[0];
 	}
 }

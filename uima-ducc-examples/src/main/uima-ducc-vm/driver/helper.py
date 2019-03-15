@@ -18,11 +18,9 @@
 # under the License.
 # -----------------------------------------------------------------------
 
-
-
-
 import os
 import random
+import socket
 import datetime
 
 class Helper():
@@ -84,9 +82,12 @@ class Helper():
     
     #####
     
+    hostname = socket.gethostname().split('.')[0]
+    port = '61617'
+    
     dictService = {
-        1:'UIMA-AS:FixedSleepAE_1:tcp://localhost:61617',
-        2:'UIMA-AS:FixedSleepAE_4:tcp://localhost:61617',
+        1:'UIMA-AS:FixedSleepAE_1:tcp://'+hostname+':'+port,
+        2:'UIMA-AS:FixedSleepAE_4:tcp://'+hostname+':'+port,
         3:'CUSTOM:localhost:7175',
     }
     
