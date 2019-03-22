@@ -18,13 +18,20 @@
 */
 package org.apache.uima.ducc.cli;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.uima.ducc.cli.aio.AllInOneLauncher;
+import org.apache.uima.ducc.common.exception.DuccRuntimeException;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
@@ -320,8 +327,54 @@ public class DuccJobSubmit
         }
 
     }
-
+	  private URLClassLoader newClassLoader(String[] classPathElements) throws IOException  {
+		    ArrayList<URL> urlList = new ArrayList<URL>(classPathElements.length);
+		    for (String element : classPathElements) {
+		      if (element.endsWith("*")) {
+		        File dir = new File(element.substring(0, element.length() - 1));
+		        File[] files = dir.listFiles();   // Will be null if missing or not a dir
+		        if (files != null) {
+		          for (File f : files) {
+		            if (f.getName().endsWith(".jar")) {
+		              urlList.add(f.getCanonicalFile().toURI().toURL());
+		            }
+		          }
+		        }
+		      } else {
+		        File f = new File(element);
+		        if (f.exists()) {
+		          urlList.add(f.getCanonicalFile().toURI().toURL());
+		        }
+		      }
+		    }
+		    URL[] urls = new URL[urlList.size()];
+		    return new URLClassLoader(urlList.toArray(urls), ClassLoader.getSystemClassLoader().getParent());
+		  }
     //**********
+	private void modifyClasspathBasedOnUimaVersion(String classpathKey) throws Exception {
+        String duccHomePath = Utils.findDuccHome();
+        
+        String classpath = jobRequestProperties.getProperty(classpathKey);
+		String[] jars = classpath.split(":");
+		URLClassLoader clsLoader = newClassLoader(jars);
+		Class<?> cls = clsLoader.loadClass("org.apache.uima.impl.UimaVersion");
+		Method majorVersionMethod = cls.getMethod("getMajorVersion");
+		short majorVersion = (short)majorVersionMethod.invoke(null);
+		
+		
+        if ( !duccHomePath.trim().endsWith("/") ) {
+			duccHomePath = duccHomePath.concat("/");
+		}
+		String workItemJarDir = duccHomePath+"lib/uima-ducc/workitem/uima-ducc-workitem-";
+		if ( majorVersion < 3 ) {
+			classpath = workItemJarDir+"v2.jar:"+classpath;
+		} else if ( majorVersion >= 3 ) {
+			classpath = workItemJarDir+"v3.jar:"+classpath;
+		} else {
+			throw new DuccRuntimeException("Unknown version of UIMA - majorVersion="+majorVersion);
+		}
+		jobRequestProperties.setProperty(classpathKey,classpath);
+	}
 
     /**
      * Execute collects the job parameters, does basic error and correctness checking, and sends
@@ -355,7 +408,10 @@ public class DuccJobSubmit
         if (!jobRequestProperties.containsKey(key_cp)) {
             jobRequestProperties.setProperty(key_cp, System.getProperty("java.class.path"));
         }
-
+        // using user classpath determine which uima version is being used and 
+        // add to the front a corresponding version of uima-ducc-workitem-v<N>.jar
+        modifyClasspathBasedOnUimaVersion(key_cp);
+        
         if (jobRequestProperties.containsKey(UiOption.Debug.pname())) {
             jobRequestProperties.dump();
         }
