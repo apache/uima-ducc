@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.apache.uima</groupId>
 		<artifactId>uima-ducc-parent</artifactId>
-		<version>3.0.0</version>
+		<version>3.0.1-SNAPSHOT</version>
 		<relativePath>../uima-ducc-parent/pom.xml</relativePath>
 	</parent>
   
@@ -30,13 +30,13 @@
 		cutting/pasting the <scm> element, and just changing the following two properties -->
   <scm>
 	<connection>
-      scm:svn:http://svn.apache.org/repos/asf/uima/uima-ducc/tags/uima-ducc-3.0.0/uima-ducc-spawn
+      scm:svn:http://svn.apache.org/repos/asf/uima/uima-ducc/trunk/uima-ducc-spawn
     </connection>
 	<developerConnection>
-      scm:svn:https://svn.apache.org/repos/asf/uima/uima-ducc/tags/uima-ducc-3.0.0/uima-ducc-spawn
+      scm:svn:https://svn.apache.org/repos/asf/uima/uima-ducc/trunk/uima-ducc-spawn
     </developerConnection>
 	<url>
-      http://svn.apache.org/viewvc/uima/uima-ducc/tags/uima-ducc-3.0.0/uima-ducc-spawn
+      http://svn.apache.org/viewvc/uima/uima-ducc/trunk/uima-ducc-spawn
     </url>
   </scm>
 
