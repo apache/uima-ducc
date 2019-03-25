@@ -813,7 +813,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					
 					
 					String duccHomePath = Utils.findDuccHome();
-					
+					/*
 					String[] jars = classpath.split(":");
 					URLClassLoader clsLoader = newClassLoader(jars);
 					Class<?> cls = clsLoader.loadClass("org.apache.uima.impl.UimaVersion");
@@ -837,7 +837,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					} else {
 						((JavaCommandLine) cmdLine).setClasspath(classpath);
 					}
-
+					*/
 					cmdLine.addOption("-DDUCC_HOME=" + duccHomePath);
 					cmdLine.addOption("-Dducc.deploy.configuration="
 								+ System.getProperty("ducc.deploy.configuration"));

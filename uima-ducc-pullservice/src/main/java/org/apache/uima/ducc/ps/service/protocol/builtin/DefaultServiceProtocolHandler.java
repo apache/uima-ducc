@@ -20,6 +20,8 @@ package org.apache.uima.ducc.ps.service.protocol.builtin;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -107,9 +109,10 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 		} catch (Throwable e) {
 			initError = true;
 			running = false;
+			e.printStackTrace();
 			logger.log(Level.WARNING, "ProtocolHandler initialize() failed -",e);
 			throw new ServiceInitializationException(
-					"Thread:" + Thread.currentThread().getName() + " Failed initialization");
+					"Thread:" + Thread.currentThread().getName() + " Failed initialization - "+  e);
 		} finally {
 
 			initLatch.countDown();
