@@ -42,7 +42,7 @@ public class Version
      * This version number is included on each CLI request and checked by DUCC.
      * Change the value when requests are changed in an incompatible way.
      */
-    public final static int cliVersion = 1;
+    public final static int cliVersion = 3;
 
     public static void main(String[] args)
     {
