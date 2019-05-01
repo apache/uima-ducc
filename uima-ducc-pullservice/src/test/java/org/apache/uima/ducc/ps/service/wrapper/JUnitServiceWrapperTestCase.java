@@ -28,189 +28,194 @@ import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 import org.apache.uima.ducc.ps.service.main.ServiceWrapper;
 import org.junit.Test;
 
-public class JUnitServiceWrapperTestCase extends Client  {
-	private static final long  DELAY=5000;
-	{
-		// static initializer sets amount of time the service delays
-		// sending READY to a monitor
-		System.setProperty("ducc.service.init.delay", "3000");
-	}
-	
-	
-	@Test
-	public void testPullServiceWrapperNoTask() throws Exception {
-		// make client return null task in response to GET
-		System.setProperty("simulate.no.work", "3");
-		System.setProperty("ducc.process.thread.sleep.time", "1000");
-		try {
-			testPullServiceWrapper();
-		} finally {
-			System.getProperties().remove("simulate.no.work");
-		}
-	}
-	@Test
-	public void testPullServiceWrapper() throws Exception {
-		System.out.println("-------------------------- testPullServiceWrapper ----------------------");;
+public class JUnitServiceWrapperTestCase extends Client {
+  private static final long DELAY = 5000;
+  {
+    // static initializer sets amount of time the service delays
+    // sending READY to a monitor
+    System.setProperty("ducc.service.init.delay", "3000");
+  }
 
-		//int scaleout = 2;
-		StateMonitor monitor = new StateMonitor();
-		monitor.start();
-		System.out.println("........... Monitor Port:"+System.getProperty("DUCC_STATE_UPDATE_PORT"));
-		super.startJetty(false);  // don't block
-		String analysisEngineDescriptor = "TestAAE";
-		System.setProperty("ducc.deploy.JpType", "uima");
+  @Test
+  public void testPullServiceWrapperNoTask() throws Exception {
+    // make client return null task in response to GET
+    System.setProperty("simulate.no.work", "3");
+    System.setProperty("ducc.process.thread.sleep.time", "1000");
+    try {
+      testPullServiceWrapper();
+    } finally {
+      System.getProperties().remove("simulate.no.work");
+    }
+  }
 
-		String tasURL = "http://localhost:"+super.getPort()+"/test";
-		try {
-			System.setProperty("ducc.deploy.JdURL", tasURL);
-			System.setProperty("ducc.deploy.JpThreadCount","4");
-			System.setProperty("ducc.deploy.service.type", "NotesService");
-			System.setProperty("ducc.deploy.JpType", "uima");
+  @Test
+  public void testPullServiceWrapper() throws Exception {
+    System.out.println("-------------------------- testPullServiceWrapper ----------------------");
+    ;
 
-			ServiceWrapper service = new ServiceWrapper();
+    // int scaleout = 2;
+    StateMonitor monitor = new StateMonitor();
+    monitor.start();
+    System.out.println("........... Monitor Port:" + System.getProperty("DUCC_STATE_UPDATE_PORT"));
+    super.startJetty(false); // don't block
+    String analysisEngineDescriptor = "TestAAE";
+    System.setProperty("ducc.deploy.JpType", "uima");
 
-			Timer fTimer = new Timer("testPullService Timer");
-			// after 5secs stop the pull service
-			fTimer.schedule(new MyTimerTask(service, fTimer), 40000);
-				
-			service.initialize(new String[] {analysisEngineDescriptor});
+    String tasURL = "http://localhost:" + super.getPort() + "/test";
+    try {
+      System.setProperty("ducc.deploy.JdURL", tasURL);
+      System.setProperty("ducc.deploy.JpThreadCount", "12");
+      System.setProperty("ducc.deploy.service.type", "NotesService");
+      System.setProperty("ducc.deploy.JpType", "uima");
 
-			service.start();
+      ServiceWrapper service = new ServiceWrapper();
 
+      Timer fTimer = new Timer("testPullService Timer");
+      // after 5secs stop the pull service
+      fTimer.schedule(new MyTimerTask(service, fTimer), 40000);
 
-		} catch (ServiceInitializationException e) {
-			throw e;
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			monitor.stop();
-			super.stopJetty();
+      service.initialize(new String[] { analysisEngineDescriptor });
 
-		}
-	}
-	
-	@Test
-	public void testPullServiceWrapperWithProcessFailure() throws Exception {
-		System.out.println("-------------------------- testPullServiceWrapperWithProcessFailure ----------------------");;
-		//int scaleout = 2;
-		StateMonitor monitor = new StateMonitor();
-		monitor.start();
-		System.out.println("........... Monitor Port:"+System.getProperty("DUCC_STATE_UPDATE_PORT"));
-		super.startJetty(false);  // don't block
-		String analysisEngineDescriptor = "NoOpAE";
+      service.start();
 
-		String tasURL = "http://localhost:"+super.getPort()+"/test";
-		try {
-			// Force process failure of the first task
-			System.setProperty("ProcessFail","1");
-			 
-			System.setProperty("ducc.deploy.JdURL", tasURL);
-			System.setProperty("ducc.deploy.JpThreadCount","4");
-			System.setProperty("ducc.deploy.service.type", "NotesService");
-			System.setProperty("ducc.deploy.JpType", "uima");
-			// use default error window (1,1)
-			ServiceWrapper service = new ServiceWrapper();
+    } catch (ServiceInitializationException e) {
+      throw e;
+    } catch (Exception e) {
+      throw e;
+    } finally {
+      monitor.stop();
+      super.stopJetty();
 
-			Timer fTimer = new Timer("testPullService Timer");
-			// after 5secs stop the pull service
-			fTimer.schedule(new MyTimerTask(service, fTimer), 10000);
-				
-			service.initialize(new String[] {analysisEngineDescriptor});
+    }
+  }
 
-			service.start();
+  @Test
+  public void testPullServiceWrapperWithProcessFailure() throws Exception {
+    System.out.println(
+            "-------------------------- testPullServiceWrapperWithProcessFailure ----------------------");
+    ;
+    // int scaleout = 2;
+    StateMonitor monitor = new StateMonitor();
+    monitor.start();
+    System.out.println("........... Monitor Port:" + System.getProperty("DUCC_STATE_UPDATE_PORT"));
+    super.startJetty(false); // don't block
+    String analysisEngineDescriptor = "NoOpAE";
 
+    String tasURL = "http://localhost:" + super.getPort() + "/test";
+    try {
+      // Force process failure of the first task
+      System.setProperty("ProcessFail", "1");
 
-		} catch (ServiceInitializationException e) {
-			throw e;
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			monitor.stop();
-			System.getProperties().remove("ProcessFail");
-			super.stopJetty();
-		}
-	}
-	@Test
-	public void testPullServiceWrapperDDGenerator() throws Exception {
-		System.out.println("-------------------------- testPullServiceWrapperDDGenerator ----------------------");;
+      System.setProperty("ducc.deploy.JdURL", tasURL);
+      System.setProperty("ducc.deploy.JpThreadCount", "4");
+      System.setProperty("ducc.deploy.service.type", "NotesService");
+      System.setProperty("ducc.deploy.JpType", "uima");
+      // use default error window (1,1)
+      ServiceWrapper service = new ServiceWrapper();
 
-		//int scaleout = 2;
-		StateMonitor monitor = new StateMonitor();
-		monitor.start();
-		System.out.println("........... Monitor Port:"+System.getProperty("DUCC_STATE_UPDATE_PORT"));
-		super.startJetty(false);  // don't block
-		// Dont change the name of TestAAE.xml. This is setup to fail file lookup and force 
-		// generation of AE descriptor.
-		String analysisEngineDescriptor = "TestAAE.xml";
-		System.setProperty("ducc.deploy.JpType", "uima");
+      Timer fTimer = new Timer("testPullService Timer");
+      // after 5secs stop the pull service
+      fTimer.schedule(new MyTimerTask(service, fTimer), 10000);
 
-		String tasURL = "http://localhost:"+super.getPort()+"/test";
-		try {
-			
-			System.setProperty("ducc.deploy.JdURL", tasURL);
-			System.setProperty("ducc.deploy.JpThreadCount","4");
-			System.setProperty("ducc.deploy.service.type", "NotesService");
-			System.setProperty("ducc.deploy.JpType", "uima");
-			System.setProperty("ducc.deploy.JpAeDescriptor","NoOpAE");
-			System.setProperty("ducc.deploy.JobDirectory",System.getProperty("user.dir"));
-			System.setProperty("ducc.deploy.JpFlowController","org.apache.uima.flow.FixedFlowController");
-			System.setProperty("ducc.process.log.dir",System.getProperty("user.dir"));
-			System.setProperty("ducc.job.id","2000");
-			ServiceWrapper service = new ServiceWrapper();
+      service.initialize(new String[] { analysisEngineDescriptor });
 
-			Timer fTimer = new Timer("testPullService Timer");
-			// after 5secs stop the pull service
-			fTimer.schedule(new MyTimerTask(service, fTimer), 20000);
-				
-			service.initialize(new String[] {analysisEngineDescriptor});
+      service.start();
 
-			service.start();
-			
+    } catch (ServiceInitializationException e) {
+      throw e;
+    } catch (Exception e) {
+      throw e;
+    } finally {
+      monitor.stop();
+      System.getProperties().remove("ProcessFail");
+      super.stopJetty();
+    }
+  }
 
-		} catch (ServiceInitializationException e) {
-			throw e;
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			monitor.stop();
-			super.stopJetty();
-			File directory = new File(System.getProperty("user.dir").
-					 concat("/").concat(System.getProperty("ducc.job.id")));
-			
-			if ( directory.exists() ) {
-				for (File f : directory.listFiles()) {
-				    if (f.getName().startsWith("uima-ae-")) {
-				        f.delete();
-				        System.out.println("Removed generated descriptor:"+f.getAbsolutePath());
-				    }
-				}
-				directory.delete();
-				
-			}
+  @Test
+  public void testPullServiceWrapperDDGenerator() throws Exception {
+    System.out.println(
+            "-------------------------- testPullServiceWrapperDDGenerator ----------------------");
+    ;
 
+    // int scaleout = 2;
+    StateMonitor monitor = new StateMonitor();
+    monitor.start();
+    System.out.println("........... Monitor Port:" + System.getProperty("DUCC_STATE_UPDATE_PORT"));
+    super.startJetty(false); // don't block
+    // Dont change the name of TestAAE.xml. This is setup to fail file lookup and force
+    // generation of AE descriptor.
+    String analysisEngineDescriptor = "TestAAE.xml";
+    System.setProperty("ducc.deploy.JpType", "uima");
 
-		}
-	}
-	class MyTimerTask extends TimerTask {
-		final ServiceWrapper service;
-		final Timer fTimer;
+    String tasURL = "http://localhost:" + super.getPort() + "/test";
+    try {
 
-		MyTimerTask(ServiceWrapper service, Timer fTimer) {
-			this.service = service;
-			this.fTimer = fTimer;
-		}
+      System.setProperty("ducc.deploy.JdURL", tasURL);
+      System.setProperty("ducc.deploy.JpThreadCount", "4");
+      System.setProperty("ducc.deploy.service.type", "NotesService");
+      System.setProperty("ducc.deploy.JpType", "uima");
+      System.setProperty("ducc.deploy.JpAeDescriptor", "NoOpAE");
+      System.setProperty("ducc.deploy.JobDirectory", System.getProperty("user.dir"));
+      System.setProperty("ducc.deploy.JpFlowController",
+              "org.apache.uima.flow.FixedFlowController");
+      System.setProperty("ducc.process.log.dir", System.getProperty("user.dir"));
+      System.setProperty("ducc.job.id", "2000");
+      ServiceWrapper service = new ServiceWrapper();
 
-		@Override
+      Timer fTimer = new Timer("testPullService Timer");
+      // after 5secs stop the pull service
+      fTimer.schedule(new MyTimerTask(service, fTimer), 20000);
 
-		public void run() {
-			this.cancel();
-			fTimer.purge();
-			fTimer.cancel();
-			System.out.println("Timmer popped - stopping service");
-			service.stop();
+      service.initialize(new String[] { analysisEngineDescriptor });
 
-		}
+      service.start();
 
-	}
+    } catch (ServiceInitializationException e) {
+      throw e;
+    } catch (Exception e) {
+      throw e;
+    } finally {
+      monitor.stop();
+      super.stopJetty();
+      File directory = new File(
+              System.getProperty("user.dir").concat("/").concat(System.getProperty("ducc.job.id")));
+
+      if (directory.exists()) {
+        for (File f : directory.listFiles()) {
+          if (f.getName().startsWith("uima-ae-")) {
+            f.delete();
+            System.out.println("Removed generated descriptor:" + f.getAbsolutePath());
+          }
+        }
+        directory.delete();
+
+      }
+
+    }
+  }
+
+  class MyTimerTask extends TimerTask {
+    final ServiceWrapper service;
+
+    final Timer fTimer;
+
+    MyTimerTask(ServiceWrapper service, Timer fTimer) {
+      this.service = service;
+      this.fTimer = fTimer;
+    }
+
+    @Override
+
+    public void run() {
+      this.cancel();
+      fTimer.purge();
+      fTimer.cancel();
+      System.out.println("Timmer popped - stopping service");
+      service.stop();
+
+    }
+
+  }
 
 }

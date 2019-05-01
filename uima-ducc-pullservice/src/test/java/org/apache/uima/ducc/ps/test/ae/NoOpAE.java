@@ -24,6 +24,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.UIMAFramework;
@@ -126,7 +127,24 @@ public class NoOpAE extends CasAnnotator_ImplBase
    				}
     		}
    		}
+   		try {
+   			//int n = getRandomNumberInRange(2000,3000);
+   			int n = getRandomNumberInRange(250,450);
+   			//System.out.println(" AE Sleeping for "+n + " millis");
+   	   	 Thread.sleep(n);
+   			
+   		} catch( InterruptedException e) {
+   			
+   		}
     }
+    private static int getRandomNumberInRange(int min, int max) {
 
+		if (min >= max) {
+			throw new IllegalArgumentException("max must be greater than min");
+		}
+
+		Random r = new Random();
+		return r.nextInt((max - min) + 1) + min;
+	}
 
 }

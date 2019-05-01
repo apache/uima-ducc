@@ -45,4 +45,9 @@ public class XStreamUtils {
     		return xStream.fromXML(targetToUnmarshall);
         }
 	}
+	public static XStream getXStreamInstance() {
+		XStream xStream = new XStream(new DomDriver());
+		initXStreanSecurity(xStream);
+		return xStream;
+	}
 }
