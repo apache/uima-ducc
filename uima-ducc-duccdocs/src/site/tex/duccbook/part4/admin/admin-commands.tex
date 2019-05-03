@@ -436,7 +436,7 @@ check_ducc -n nlist1 -n nlist2
 \label{subsec:admin.ducc-update}
 
     \paragraph{Description:}
-        This command is used to unpack a new release of DUCC and create a new installion or update
+        This command is used to unpack a new release of DUCC and create a new installation or update
         an existing one.
         For a new installation it simply unpacks the tar file with the appropriate permissions.
         The setup must be completed by running \hyperref[subsec:admin.ducc-post-install]{\em ducc\_post\_install}.
@@ -644,7 +644,7 @@ Nodepool power
     \begin{itemize}
       \item The name of the host,
       \item Whether the host has any blacklists processes on it,
-      \item Whether the host is currently onlline (responsive),
+      \item Whether the host is currently online (responsive),
       \item The status of the host; whether the host is schedulable ({\em up} or {\em down}.  A responsive host becomes
         unschedulable ({\em down}) if it is varied-off,
       \item The nodepool the host is a member of,
@@ -652,7 +652,7 @@ Nodepool power
       \item The {\em order} of the host.  The {\em order} is defined to be the maximum number of quantum shares
         supported by the host,
       \item The number of unscheduled quantum shares on the host, and
-      \item If work is scheduled on the host, information relevent to that scheduled processes (or reservation).
+      \item If work is scheduled on the host, information relevant to that scheduled processes (or reservation).
     \end{itemize}
 
     If work is scheduled on a host, the work summary is keyed thus:
@@ -669,7 +669,7 @@ Nodepool power
       \item[E] Whether the RM has preempted (evicted) the process but it has not yet exited,
       \item[P] Whether the RM has purged the process (evicted, because the host is non-responsive), but it has not
         been confirmed evicted,
-      \item[F] Whether the process is {\em fixed}; that is, non-preemptbable,
+      \item[F] Whether the process is {\em fixed}; that is, non-preemptable,
       \item[I] Whether the initialization phase is completed (usually only UIMA-AS processes).
     \end{description}
 
@@ -708,7 +708,7 @@ Nodepool power
     Vary\_off is used to remove a host from scheduling and to evict the preemptable work that is running on it.
     This allows for graceful clearance of a host so the host can be take offline for maintenance,
     or any other purpose (such as sharing the host with other applications.)  
-    The DUCC agent is NOT stoppped; use \hyperref[subsec:admin.stop-ducc]{stop\_ducc} to stop the
+    The DUCC agent is NOT stopped; use \hyperref[subsec:admin.stop-ducc]{stop\_ducc} to stop the
     agent.  
     Managed and unmanaged reservations are not canceled by {\em vary\_off}.
     
@@ -840,8 +840,8 @@ Nodepool power
           \item Loads all reservation history from {\em DUCC\_HOME/history/reservations}.
           \item Loads all service instance and AP history from {\em DUCC\_HOME/history/services}.
           \item Loads the service registry from {\em DUCC\_HOME/state/services}.
-          \item Loads the service registry histroy from {\em DUCC\_HOME/history/service-registry}.  
-          \item Reloads the Orchestratory checkpoint, as a spot-check of the loader's instrumentation (to insure
+          \item Loads the service registry history from {\em DUCC\_HOME/history/service-registry}.  
+          \item Reloads the Orchestrator checkpoint, as a spot-check of the loader's instrumentation (to insure
             load times stay reasonable.)
           \item Re-installs the DUCC database schema.
           \item Stops the database.
@@ -892,20 +892,20 @@ db_loader -i /home/ducc.old/ducc_runtime --no-archive
     \paragraph{Options:}
     Exactly one of the following options is required.
     \begin{description}
-	        \item[$--save$ {\em PATH.tar.gz}] 
+	        \item[$--$save {\em PATH.tar.gz}] 
 	          The file to save the DUCC database contents.  The database must be up.  The file cannot already exist.
-       		\item[$--save-overwrite$ {\em PATH.tar.gz}] 
+       		\item[$--$save-overwrite {\em PATH.tar.gz}] 
 	          The file to save the DUCC database contents.  The database must be up.
-	        \item[$--restore$ {\em PATH.tar.gz}] 
+	        \item[$--$restore {\em PATH.tar.gz}] 
 	          The file to restore the DUCC database contents.  The database must be down.  The database directory cannot exist.
-	        \item[$--restore-overwrite$ {\em PATH.tar.gz}] 
+	        \item[$--$restore-overwrite {\em PATH.tar.gz}] 
 	          The file to restore the DUCC database contents.  The database must be down.
      \end{description}
-	 The following options are optional and are mutually exclusive wtih each other.
+	 The following options are optional and are mutually exclusive with each other.
 	 \begin{description}
-	        \item[$--verbose$] 
+	        \item[$--$verbose] 
 	          Print extra debug messages.
-       		\item[$--quiet$] 
+       		\item[$--$quiet] 
 	          Print no informational messages.
      \end{description}
 	 
