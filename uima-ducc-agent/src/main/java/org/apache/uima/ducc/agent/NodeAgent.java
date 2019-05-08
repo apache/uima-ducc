@@ -1287,12 +1287,11 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             processEntry.getValue().setProcessJmxUrl(duccEvent.getProcessJmxUrl());
           }
           ITimeWindow tw = processEntry.getValue().getTimeWindowInit();
-          if (tw != null && tw.getEnd() == null ) {
-        	if ( !duccEvent.getState().equals(ProcessState.Initializing)) {
+          if (tw != null ) {
+         	if ( !duccEvent.getState().equals(ProcessState.Initializing)) {
         		// Mark the time the process ended initialization. It also
         		// covers a case when the process terminates while initializing
           	    tw.setEnd(TimeStamp.getCurrentMillis());
-
             	if ( duccEvent.getState().equals(ProcessState.Running)) {
         		    ITimeWindow twr = new TimeWindow();
         		    String millis;
@@ -1302,6 +1301,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
         		    twr.setStart(millis);
             	}
         	}
+          } else {
+           	  logger.info(methodName, null,"++++++++++++ Agent Init TimeWindow not available - tw==null");
           }
           ManagedProcess deployedProcess = null;
           synchronized (monitor) {
