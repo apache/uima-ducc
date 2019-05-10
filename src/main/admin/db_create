@@ -71,7 +71,9 @@ class DbCreate(DuccUtil):
         sys.exit(1) 
                                     
     def main(self, argv):     
-                   
+        
+        self.cmd_name_nodetool = 'nodetool'
+        
         self.database_automanage = True
         self.database_host_list = None
         self.database_user = None
@@ -172,5 +174,5 @@ class DbCreate(DuccUtil):
         
 if __name__ == "__main__":
 
-    postinstall = DbCreate()
-    postinstall.main(sys.argv[1:])
+    instance = DbCreate()
+    instance.main(sys.argv[1:])
