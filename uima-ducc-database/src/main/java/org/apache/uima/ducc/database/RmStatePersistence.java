@@ -139,6 +139,18 @@ public class RmStatePersistence
         } 
     }
 
+    /*
+     * Alter is used to update table in older DUCCs.
+     * The "quiesced" column was added in DUCC 3.0.0.
+     */
+    public static List<SimpleStatement> getAlterList() {
+    	List<SimpleStatement> list = new ArrayList<SimpleStatement>();
+    	StringBuffer sb;
+    	sb = new StringBuffer("ALTER TABLE " + RM_NODE_TABLE + " ADD "+"quiesced"+" "+"boolean");
+    	list.add(new SimpleStatement(sb.toString()));
+    	return list;
+    }
+    
     static List<SimpleStatement> mkSchema()
     	throws Exception
     {

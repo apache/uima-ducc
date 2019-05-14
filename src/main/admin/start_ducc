@@ -34,6 +34,8 @@ from ducc        import Ducc
 from ducc_util import ThreadPool
 from ducc_base import find_ducc_home
 
+import db_util as dbu
+
 class StartDucc(DuccUtil):
 
     def __init__(self):
@@ -369,6 +371,7 @@ class StartDucc(DuccUtil):
                     node = self.get_db_host()
                     com = 'database'
                     self.db_acct_start(node,com)
+                    dbu.update_database(self.DUCC_HOME, self.jvm)
                 except Exception (e):
                     # print e
                     print sys.exc_info()[0], "Can't start the database."

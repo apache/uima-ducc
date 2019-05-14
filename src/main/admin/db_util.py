@@ -205,3 +205,12 @@ def configure_database(DUCC_HOME, DUCC_HEAD, java, db_autostart=True, db_host=No
     if( db_autostart ):
         stop_database(pidfile)
     return ret
+
+def update_database(DUCC_HOME, jvm):    
+    CMD = [jvm, '-DDUCC_HOME=' + DUCC_HOME, 'org.apache.uima.ducc.database.DbUpdate']
+    CMD = ' '.join(CMD)
+    if ( execute(CMD) != 0 ):
+        print 'Database schema update failure.'
+    #else:
+    #    print 'Database schema update success.'
+    
