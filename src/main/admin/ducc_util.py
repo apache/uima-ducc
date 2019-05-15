@@ -338,7 +338,7 @@ class DuccUtil(DuccBase):
         
         dbnode = self.get_db_host()
         
-        CMD = [self.java(), 'org.apache.uima.ducc.database.DbAlive', dbnode, 'ducc', self.db_password, str(retry)]
+        CMD = [self.java(), 'org.apache.uima.ducc.database.DbAlive', self.DUCC_HOME, dbnode, str(retry)]
 
         CMD = ' '.join(CMD)
         if(not verbose):

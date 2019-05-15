@@ -164,25 +164,41 @@ public class DbManager
         return session.execute(s);
     }
 
-    static void dbPassword()
-    	throws Exception
+    private static void dbPassword() throws Exception
     {
-        File f = new File(System.getProperty("DUCC_HOME") + "/resources.private/" + DbCreate.PASSWORD_FILE);
-        // If i can read the file that's supposed to have the super user password I'll do so.  If not, or
-        // if there's no password there, tough luck Charlie.
-        db_id = "ducc";
-        Properties props = new Properties();
-        FileInputStream fis = new FileInputStream(f);
-        props.load(fis);
-        fis.close();
-
-        db_pw = props.getProperty(DbCreate.PASSWORD_KEY);
-        if ( db_pw == null ) {
-            throw new IllegalStateException("Cannot acquire the database password.");
-        }
+    	String ducc_home = System.getProperty("DUCC_HOME");
+    	db_id = getDbUser(ducc_home);
+        db_pw = getDbPassword(ducc_home);
     }
 
-
+    public static String getDbUser(String ducc_home)  {
+    	String retVal = null;
+    	try {
+    		retVal = "ducc";
+    	}
+    	catch(Exception e) {
+    		throw new IllegalStateException(e);
+    	}
+    	return retVal;
+    }
+    
+    public static String getDbPassword(String ducc_home)  {
+    	String retVal = null;
+    	try {
+    		String fp = ducc_home+"/resources.private/"+DbCreate.PASSWORD_FILE;
+    		File f = new File(fp);
+            Properties props = new Properties();
+            FileInputStream fis = new FileInputStream(f);
+            props.load(fis);
+            fis.close();
+            retVal = props.getProperty(DbCreate.PASSWORD_KEY);
+    	}
+    	catch(Exception e) {
+    		throw new IllegalStateException(e);
+    	}
+    	return retVal;
+    }
+    
     public static void main(String[] args)
     {
     }

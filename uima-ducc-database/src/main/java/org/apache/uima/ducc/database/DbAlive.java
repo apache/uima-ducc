@@ -33,8 +33,6 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 public class DbAlive
 {
     String db_host_list;
-    String adminid = null;
-    String adminpw = null;
 
     enum RC {
         OK {
@@ -65,14 +63,12 @@ public class DbAlive
     private Cluster cluster;
     //private Session session;
 
-    public DbAlive(String db_host_list, String adminid, String adminpw)
+    public DbAlive(String db_host_list)
     {
         this.db_host_list = db_host_list;
-        this.adminid = adminid;
-        this.adminpw = adminpw;
     }
 
-    public RC connect()
+    private RC connect(String adminid, String adminpw)
         throws Exception
     {
         RC ret = RC.OK;
@@ -124,19 +120,19 @@ public class DbAlive
 
     static void usage()
     {
-        System.out.println("Usage: DbAlive database_url id pw retry-count");
+        System.out.println("Usage: DbAlive ducc_home database_url retry_count");
         System.exit(1);
     }
 
     public static void main(String[] args)
     {
-        if ( args.length != 4 ) {
+        if ( args.length != 3 ) {
             usage();
         }
 
         int max = 0;
         try {
-            max = Integer.parseInt(args[3]);                         // we'll wait up to 60 seconds: 20 x 3 seconds
+            max = Integer.parseInt(args[2]);                         // we'll wait up to 60 seconds: 20 x 3 seconds
         } catch ( NumberFormatException e ) {
             System.out.println("Retry count must be numeric.");
             System.exit(1);
@@ -145,9 +141,12 @@ public class DbAlive
         DbAlive client = null;
         RC rc = RC.OK;
         try {
-            client = new DbAlive(args[0], args[1], args[2]);
+        	String ducc_home = args[0];
+        	String adminid = DbManager.getDbUser(ducc_home);
+        	String adminpw = DbManager.getDbPassword(ducc_home);
+            client = new DbAlive(args[1]);
             for ( int i = 0; i < max; i++ ) {
-                rc = client.connect();
+                rc = client.connect(adminid, adminpw);
                 System.out.println(rc.message());
                 if ( rc == RC.OK) {
                     break;
