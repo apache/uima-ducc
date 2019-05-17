@@ -36,7 +36,7 @@ from ducc_util import ThreadPool
 class CheckDucc(DuccUtil):
 
     def __init__(self):
-        DuccUtil.__init__(self)
+        DuccUtil.__init__(self,merge=True)
         self.badnodes = []
 
     def validate(self, checkdate):

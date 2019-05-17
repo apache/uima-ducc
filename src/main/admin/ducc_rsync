@@ -41,7 +41,7 @@ from ducc_util import *
 
 class DuccRsync(DuccUtil):
 
-    merge = False
+    merge = True
     
     key_ducc_head = 'ducc.head'
     key_ducc_head_reliable_list = 'ducc.head.reliable.list'
