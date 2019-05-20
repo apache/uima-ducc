@@ -55,7 +55,6 @@ import org.apache.uima.ducc.ps.service.transport.IServiceTransport;
 import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 import org.apache.uima.ducc.ps.service.transport.TransportException;
 import org.apache.uima.ducc.ps.service.transport.TransportStats;
-import org.apache.uima.ducc.ps.service.transport.XStreamUtils;
 import org.apache.uima.ducc.ps.service.transport.target.NoOpTargetURI;
 import org.apache.uima.ducc.ps.service.transport.target.TargetURIFactory;
 import org.apache.uima.ducc.ps.service.utils.Utils;
@@ -63,7 +62,6 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
 
 public class HttpServiceTransport implements IServiceTransport {
   private Logger logger = UIMAFramework.getLogger(HttpServiceTransport.class);
@@ -106,14 +104,7 @@ public class HttpServiceTransport implements IServiceTransport {
   private volatile boolean log = true;
 
   private AtomicLong xstreamTime = new AtomicLong();
-  // private ThreadLocal<HashMap<Long, XStream>> localXStream = new ThreadLocal<HashMap<Long,
-  // XStream>>() {
-  // @Override
-  // protected HashMap<Long, XStream> initialValue() {
-  // return new HashMap<Long, XStream>();
-  // }
-  // };
-
+ 
   public HttpServiceTransport(IRegistryClient registryClient, int scaleout)
           throws ServiceException {
     this.registryClient = registryClient;
@@ -227,15 +218,10 @@ public class HttpServiceTransport implements IServiceTransport {
   }
 
   private void addCommonHeaders(HttpPost method) {
-    // synchronized( HttpServiceTransport.class ) {
-
     method.setHeader("IP", nodeIP);
     method.setHeader("Hostname", nodeName);
     method.setHeader("ThreadID", String.valueOf(Thread.currentThread().getId()));
     method.setHeader("PID", pid);
-
-    // }
-
   }
 
   private HttpEntity wrapRequest(String serializedRequest) {
@@ -356,6 +342,9 @@ public class HttpServiceTransport implements IServiceTransport {
                 simulatedException);
         mockExceptionGenerator.throwSimulatedException();
       } else {
+//    	  if ( stopping ) {
+//    		  throw new TransportException("Service is Stopping ");
+//    	  }
         transaction = doPost(postMethod, localXStream);
       }
     } catch (IOException | URISyntaxException ex) {
@@ -397,9 +386,10 @@ public class HttpServiceTransport implements IServiceTransport {
     System.out.println(Utils.getTimestamp() + ">>>>>>> " + Utils.getShortClassname(this.getClass())
             + " stop() called - mode:" + (quiesce == true ? "quiesce" : "stop"));
     logger.log(Level.INFO, this.getClass().getName() + " stop() called");
-    System.out.println(" ########################################3 Total time in XStream:"
-            + (xstreamTime.get() / 1000) + " secs");
     if (!quiesce && cMgr != null) {
+        System.out.println(Utils.getTimestamp() + ">>>>>>> "
+                + Utils.getShortClassname(this.getClass()) + " stopping connection mgr");
+
       cMgr.shutdown();
       System.out.println(Utils.getTimestamp() + ">>>>>>> "
               + Utils.getShortClassname(this.getClass()) + " stopped connection mgr");

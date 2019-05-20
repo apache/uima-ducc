@@ -220,40 +220,45 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
     }
     IMetaTaskTransaction metaTransaction = null;
 
-    while (running) {
-      metaTransaction = sendAndReceive(transaction);
-      if (metaTransaction.getMetaTask() != null
-              && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
-        return metaTransaction;
-      }
+    try {
+        while (running) {
+            metaTransaction = sendAndReceive(transaction);
+            if (metaTransaction.getMetaTask() != null
+                    && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
+              return metaTransaction;
+            }
 
-      // If the first thread to get the lock poll for work and unlock when work found
-      // If don't immediately get the lock then wait for the lock to be released when
-      // work becomes available,
-      // and immediately release the lock and loop back to retry
-      boolean firstLocker = noWorkLock.tryLock();
-      if (!firstLocker) {
-        noWorkLock.lock();
-        noWorkLock.unlock();
-        continue;
-      }
+            // If the first thread to get the lock poll for work and unlock when work found
+            // If don't immediately get the lock then wait for the lock to be released when
+            // work becomes available,
+            // and immediately release the lock and loop back to retry
+            boolean firstLocker = noWorkLock.tryLock();
+            if (!firstLocker) {
+              noWorkLock.lock();
+              noWorkLock.unlock();
+              continue;
+            }
 
-      // If the first one here hold the lock and sleep before retrying
-      if (logger.isLoggable(Level.INFO)) {
-        logger.log(Level.INFO, "Driver is out of tasks - waiting for "
-                + noTaskStrategy.getWaitTimeInMillis() + "ms before trying again ");
-      }
-      while (running) {
-        noTaskStrategy.handleNoTaskSupplied();
-        metaTransaction = sendAndReceive(transaction);
-        if (metaTransaction.getMetaTask() != null
-                && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
-          noWorkLock.unlock();
-          return metaTransaction;
-        }
-      }
+            // If the first one here hold the lock and sleep before retrying
+            if (logger.isLoggable(Level.INFO)) {
+              logger.log(Level.INFO, "Driver is out of tasks - waiting for "
+                      + noTaskStrategy.getWaitTimeInMillis() + "ms before trying again ");
+            }
+            while (running) {
+              noTaskStrategy.handleNoTaskSupplied();
+              metaTransaction = sendAndReceive(transaction);
+              if (metaTransaction.getMetaTask() != null
+                      && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
+                noWorkLock.unlock();
+                return metaTransaction;
+              }
+            }
+          } 
+    } finally {
+    	if ( noWorkLock.isHeldByCurrentThread() ) {
+    		noWorkLock.unlock();
+    	}
     }
-    ;
 
     return metaTransaction; // When shutting down
   }
@@ -374,7 +379,8 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 
             @Override
             public void run() {
-              delegateStop();
+              //delegateStop();
+            	stop();
             }
           }).start();
           running = false;
@@ -454,7 +460,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
     logger.log(Level.INFO, this.getClass().getName() + " quiesceAndStop() called");
     // change state of transport to not running but keep connection open
     // so that other threads can quiesce (send results)
-    transport.stop(true);
+//    transport.stop(true);
 
     quiescing = true;
     running = false;
@@ -471,6 +477,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
     try {
       // wait for process threads to terminate
       stopLatch.await();
+      transport.stop(true);
     } catch (Exception e) {
 
     }
