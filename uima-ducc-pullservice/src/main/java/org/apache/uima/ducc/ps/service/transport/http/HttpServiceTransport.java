@@ -390,7 +390,7 @@ public class HttpServiceTransport implements IServiceTransport {
         System.out.println(Utils.getTimestamp() + ">>>>>>> "
                 + Utils.getShortClassname(this.getClass()) + " stopping connection mgr");
 
-      cMgr.shutdown();
+      //cMgr.shutdown();
       System.out.println(Utils.getTimestamp() + ">>>>>>> "
               + Utils.getShortClassname(this.getClass()) + " stopped connection mgr");
       logger.log(Level.INFO, this.getClass().getName() + " stopped connection mgr");
