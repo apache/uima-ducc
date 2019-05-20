@@ -379,8 +379,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
 
             @Override
             public void run() {
-              //delegateStop();
-            	stop();
+              delegateStop();
             }
           }).start();
           running = false;
