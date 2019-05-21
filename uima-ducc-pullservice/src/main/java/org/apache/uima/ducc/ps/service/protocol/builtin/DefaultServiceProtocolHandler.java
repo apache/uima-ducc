@@ -290,7 +290,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
     // this thread's tasks
     if (threadLocalXStream.get().get(Thread.currentThread().getId()) == null) {
       threadLocalXStream.get().put(Thread.currentThread().getId(),
-              XStreamUtils.getXStreamInstance());// new XStream(new DomDriver()));
+              XStreamUtils.getXStreamInstance());
     }
     // all threads intialized, enter running state
 
@@ -444,7 +444,8 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
         retryThread.interrupt();
       }
     } catch (Exception ee) {
-    } // noTaskStrategy.interrupt();
+    } 
+    waitForWorkerThreadsToComplete();
     if (logger.isLoggable(Level.INFO)) {
       logger.log(Level.INFO, this.getClass().getName() + " stop() called");
     }
@@ -473,19 +474,21 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
       }
     } catch (Exception ee) {
     }
-    try {
-      // wait for process threads to terminate
-      stopLatch.await();
-      transport.stop(true);
-    } catch (Exception e) {
-
-    }
+    waitForWorkerThreadsToComplete();
     // Use System.out since the logger's ShutdownHook may have closed streams
     System.out.println(Utils.getTimestamp() + ">>>>>>> " + Utils.getShortClassname(this.getClass())
             + ".queisceAndStop() All process threads completed quiesce");
     logger.log(Level.INFO, this.getClass().getName() + " All process threads completed quiesce");
   }
 
+  private void waitForWorkerThreadsToComplete() {
+	  try {
+		  // wait for process threads to terminate
+		  stopLatch.await();
+	  } catch (Exception e) {
+		  e.printStackTrace();
+	  }
+  }
   @Override
   public void start() {
     running = true;

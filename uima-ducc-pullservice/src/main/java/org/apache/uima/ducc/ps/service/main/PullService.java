@@ -273,14 +273,14 @@ public class PullService implements IService {
 		threadPool.shutdownNow();
 		// close connection to remote client and cleanup
 		stopTransport();
-		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .quiesceAndStop()-transport stopped");
+		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .stop()-transport stopped");
 		stopProtocolHandler(false);
-		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .quiesceAndStop()-protocol handler stopped");
+		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .stop()-protocol handler stopped");
 		stopServiceProcessor();
 		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .stop()-processor stopped");
 	    // monitor should be stopped last to keep posting updates to observer
 		stopMonitor();
-		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .dtop()-monitor stopped");
+		System.out.println(">>>>>>>> "+Utils.getTimestamp()+" "+Utils.getShortClassname(this.getClass())+" .stop()-monitor stopped");
 	}
     public void quiesceAndStop() {
 		// when quiescing, let the process threads finish processing
@@ -328,7 +328,6 @@ public class PullService implements IService {
 	}
 
 	private void stopProcessThreadPool() {
-//		if (threadPool != null && !threadPool.isShutdown() && !threadPool.isTerminating() && !threadPool.isTerminated()) {
 		if (threadPool != null ) {
 
 			try {

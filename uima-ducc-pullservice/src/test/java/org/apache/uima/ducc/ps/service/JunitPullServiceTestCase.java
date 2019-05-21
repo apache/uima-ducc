@@ -281,7 +281,7 @@ public class JunitPullServiceTestCase extends Client {
       this.cancel();
       fTimer.purge();
       fTimer.cancel();
-      System.out.println("Timmer popped - stopping service");
+      System.out.println("Timer popped - stopping service");
       if (quiesce) {
         service.quiesceAndStop();
       } else {
