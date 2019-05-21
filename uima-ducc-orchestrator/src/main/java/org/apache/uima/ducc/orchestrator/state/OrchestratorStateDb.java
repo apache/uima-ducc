@@ -76,7 +76,7 @@ public class OrchestratorStateDb implements IOrchestratorState {
 	}
 
 	@Override
-	public long getNextDuccWorkSequenceNumber() {
+	public synchronized long getNextDuccWorkSequenceNumber() {
 		long prev = orDbOrchestratorProperties.getDuccWorkSeqNo();
 		long next = prev+1;
 		orDbOrchestratorProperties.setDuccWorkSeqNo(next);

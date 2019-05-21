@@ -27,7 +27,7 @@ public class DuccWorkIdFactory implements IDuccIdFactory {
 	private static IOrchestratorState orchestratorState = OrchestratorState.getInstance();
 	
 	@Override
-	public DuccId next() {
+	public synchronized DuccId next() {
 		long value = orchestratorState.getNextDuccWorkSequenceNumber();
 		return new DuccId(value);
 	}
