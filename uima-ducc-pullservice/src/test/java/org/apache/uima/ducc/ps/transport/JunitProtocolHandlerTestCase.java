@@ -30,6 +30,7 @@ import org.apache.uima.ducc.ps.service.IService;
 import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
+import org.apache.uima.ducc.ps.service.processor.uima.AbstractServiceProcessor;
 import org.apache.uima.ducc.ps.service.processor.uima.UimaServiceProcessor;
 import org.apache.uima.ducc.ps.service.protocol.INoTaskAvailableStrategy;
 import org.apache.uima.ducc.ps.service.protocol.IServiceProtocolHandler;
@@ -41,12 +42,21 @@ import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 import org.apache.uima.ducc.ps.service.transport.http.HttpServiceTransport;
 import org.apache.uima.ducc.ps.service.transport.target.HttpTargetURI;
 //import org.junit.Test;
+import org.junit.After;
+import org.junit.Before;
 
 public class JunitProtocolHandlerTestCase extends Client {
 
 	CountDownLatch threadsReady;
 	CountDownLatch stopLatch;
-	
+	  @Before
+	  public void setUp() throws Exception {
+		  System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP,"true");
+	  }
+	  @After
+	  public void tearDown() throws Exception {
+		  
+	  }
 	private IServiceTransport initializeTransport() throws Exception {
 		int scaleout = 1;
     	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+super.getPort()+"/"+super.getApp());

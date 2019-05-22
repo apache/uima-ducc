@@ -19,77 +19,65 @@
 package org.apache.uima.ducc.ps.service.processor.uima;
 
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
-//import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.analysis_engine.AnalysisEngine;
-import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
-import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.ps.service.IServiceState;
 import org.apache.uima.ducc.ps.service.ServiceConfiguration;
-//import org.apache.uima.ducc.ps.service.dgen.DeployableGeneration;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler.Action;
 import org.apache.uima.ducc.ps.service.metrics.IWindowStats;
 import org.apache.uima.ducc.ps.service.metrics.builtin.ProcessWindowStats;
-//import org.apache.uima.ducc.ps.service.jmx.JmxAEProcessInitMonitor;
 import org.apache.uima.ducc.ps.service.monitor.IServiceMonitor;
 import org.apache.uima.ducc.ps.service.monitor.builtin.RemoteStateObserver;
 import org.apache.uima.ducc.ps.service.processor.IProcessResult;
 import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
 import org.apache.uima.ducc.ps.service.processor.IServiceResultSerializer;
 import org.apache.uima.ducc.ps.service.processor.uima.utils.PerformanceMetrics;
-import org.apache.uima.ducc.ps.service.processor.uima.utils.UimaMetricsGenerator;
 import org.apache.uima.ducc.ps.service.processor.uima.utils.UimaResultDefaultSerializer;
 import org.apache.uima.ducc.ps.service.utils.UimaSerializer;
 import org.apache.uima.ducc.ps.service.utils.UimaUtils;
-import org.apache.uima.resource.Resource;
-import org.apache.uima.resource.ResourceInitializationException;
-import org.apache.uima.resource.ResourceManager;
 import org.apache.uima.resource.ResourceSpecifier;
-import org.apache.uima.util.CasPool;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 import org.apache.uima.util.XMLInputSource;
 
 public class UimaServiceProcessor extends AbstractServiceProcessor implements IServiceProcessor {
+	public static final String AE_NAME = "AeName";
+	public static final String AE_CONTEXT = "AeContext";
+	public static final String AE_ANALYSIS_TIME = "AeAnalysisTime";
+	public static final String AE_CAS_PROCESSED = "AeProcessedCasCount";
+
 	public static final String IMPORT_BY_NAME_PREFIX = "*importByName:";
+	private static String M_PROCESS="process";
+	private static String M_STOP="stop";
+	private static String M_INITIALIZE="initialize";
+
 	Logger logger = UIMAFramework.getLogger(UimaServiceProcessor.class);
-   // Map to store DuccUimaSerializer instances. Each has affinity to a thread
 	private IServiceResultSerializer resultSerializer;
 	// stores AE instance pinned to a thread
-	private ThreadLocal<AnalysisEngine> threadLocal = 
-			new ThreadLocal<> ();
+	private ThreadLocal<AnalysisEngine> threadLocal = new ThreadLocal<> ();
     private ReentrantLock initStateLock = new ReentrantLock();
     private boolean sendInitializingState = true;
-	private ResourceManager rm = 
-			UIMAFramework.newDefaultResourceManager();;
-    private CasPool casPool = null;
 	private int scaleout=1;
     private String analysisEngineDescriptor;
-    private AnalysisEngineMetaData analysisEngineMetadata;
-	// Platform MBean server if one is available (Java 1.5 only)
-	private static Object platformMBeanServer;
-	private ServiceConfiguration serviceConfiguration;
+ 	private ServiceConfiguration serviceConfiguration;
 	private IServiceMonitor monitor;
 	private AtomicInteger numberOfInitializedThreads = new AtomicInteger();
 	private IServiceErrorHandler errorHandler;
-	
-	static {
-		// try to get platform MBean Server (Java 1.5 only)
-		try {
-			Class<?> managementFactory = Class.forName("java.lang.management.ManagementFactory");
-			Method getPlatformMBeanServer = managementFactory.getMethod("getPlatformMBeanServer", new Class[0]);
-			platformMBeanServer = getPlatformMBeanServer.invoke(null, (Object[]) null);
-		} catch (Exception e) {
-			platformMBeanServer = null;
-		}
-	}	
+	private Method processMethod;
+	private Method stopMethod;
+	private Object processorInstance;
+	private UimaDelegator uimaDelegator=null;
 	
 	public UimaServiceProcessor(String analysisEngineDescriptor) {
 		this(analysisEngineDescriptor,  new UimaResultDefaultSerializer(), new ServiceConfiguration());
@@ -135,6 +123,17 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 	public int getScaleout() {
 		return scaleout;
 	}
+	public void dump(ClassLoader cl, int numLevels) {
+		int n = 0;
+		for (URLClassLoader ucl = (URLClassLoader) cl; ucl != null
+				&& ++n <= numLevels; ucl = (URLClassLoader) ucl.getParent()) {
+			System.out.println("Class-loader " + n + " has "
+					+ ucl.getURLs().length + " urls:");
+			for (URL u : ucl.getURLs()) {
+				System.out.println("  " + u);
+			}
+		}
+	}
 
 	@Override
 	public void initialize() {
@@ -157,41 +156,72 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 		} finally {
 			initStateLock.unlock();
 		}
-
-
-	    HashMap<String,Object> paramsMap = new HashMap<>();
-        paramsMap.put(Resource.PARAM_RESOURCE_MANAGER, rm);
-	    paramsMap.put(AnalysisEngine.PARAM_MBEAN_SERVER, platformMBeanServer);
-	    
-		try {
+		// every process thread has its own uima deserializer
+		if (serviceConfiguration.getJpType() != null) {
+		  serializerMap.put(Thread.currentThread().getId(), new UimaSerializer());
+		}
+        // *****************************************
+		// SWITCHING CLASSLOADER
+        // *****************************************
+        // Ducc code is loaded from jars identified by -Dducc.deploy.DuccClasspath. The jars
+		// are loaded into a custom classloader.
 		
-			XMLInputSource is =
-					UimaUtils.getXMLInputSource(analysisEngineDescriptor);
-			String aed = is.getURL().toString();
-			ResourceSpecifier rSpecifier =
-			    UimaUtils.getResourceSpecifier(aed);
+		// User code is loaded from jars in the System Classloader. We must switch classloaders
+		// if we want to access user code. When user code is done, we restore Ducc classloader to be able
+		// to access Ducc classes.
+		
+	   	// Save current context cl and inject System classloader as
+		// a context cl before calling user code. 
+		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
+		boolean failed = false;
+		try {
+			
+			// For junit testing dont use classpath switching. 
+			if ( Objects.isNull(System.getProperty(CLASSPATH_SWITCH_PROP)) ) {
+				// Running with classpath switching 
+				Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader());
+				if ( logger.isLoggable(Level.FINE)) {
+					logger.log(Level.FINE,"",">>>> initialize():::Context Classloader Switch - Executing code from System Classloader");
+				}
+				// load proxy class from uima-ducc-user.jar to access uima classes. The UimaWrapper is a convenience/wrapper
+				// class so that we dont have to use reflection on Uima classes.
+				Class<?> classToLaunch = 
+						ClassLoader.getSystemClassLoader().loadClass("org.apache.uima.ducc.user.common.main.UimaWrapper");
+	
+				processorInstance = classToLaunch.newInstance();
 
-			AnalysisEngine ae = UIMAFramework.produceAnalysisEngine(rSpecifier,
-					paramsMap);
-			// pin AE instance to this thread
-			threadLocal.set(ae);
+				Method initMethod = processorInstance.getClass().getMethod(M_INITIALIZE, String.class, int.class, boolean.class, ThreadLocal.class);
 
-			synchronized(UimaServiceProcessor.class) {
-		    	if ( casPool == null ) {
-		    		initializeCasPool(ae.getAnalysisEngineMetaData());
-		    	}
+				processMethod = processorInstance.getClass().getMethod(M_PROCESS, new Class[] {String.class, ThreadLocal.class});
+				
+				stopMethod = processorInstance.getClass().getMethod(M_STOP, ThreadLocal.class);
+ 
+				// initialize AE via UimaWrapper
+				initMethod.invoke(processorInstance, analysisEngineDescriptor, scaleout, (serviceConfiguration.getJpType() != null), threadLocal);
+				
+			} else {
+				// no classloader switching for junit tests
+				ResourceSpecifier rSpecifier = getResourceSpecifier(analysisEngineDescriptor);
+				// The UimaDelegator is a convenience class which wraps Uima classes
+				uimaDelegator = new UimaDelegator();
+				uimaDelegator.initialize(rSpecifier, scaleout, (serviceConfiguration.getJpType() != null), threadLocal);
 			}
-			// every process thread has its own uima deserializer
-			if (serviceConfiguration.getJpType() != null) {
-			  serializerMap.put(Thread.currentThread().getId(), new UimaSerializer());
-			}
+			
 
 		} catch (Exception e) {
 			logger.log(Level.WARNING, null, e);
-			monitor.onStateChange(IServiceState.State.FailedInitialization.toString(), new Properties());
+			failed = true;
 			throw new RuntimeException(e);
 
-		} 
+		}  finally {
+			Thread.currentThread().setContextClassLoader(savedCL);
+			if ( logger.isLoggable(Level.FINE)) {
+				logger.log(Level.FINE,"",">>>> initialize():::Context Classloader Switch - Restored Ducc Classloader");
+			}
+			if ( failed ) {
+				monitor.onStateChange(IServiceState.State.FailedInitialization.toString(), new Properties());
+			}
+		}
 		if ( logger.isLoggable(Level.INFO)) {
 			logger.log(Level.INFO, "Process Thread:"+ Thread.currentThread().getName()+" Done Initializing AE");
 			
@@ -201,52 +231,60 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 			monitor.onStateChange(IServiceState.State.Running.toString(), new Properties());
 		}
 	}
+	private ResourceSpecifier getResourceSpecifier(String analysisEngineDescriptor) throws Exception {
+		XMLInputSource is =
+				UimaUtils.getXMLInputSource(analysisEngineDescriptor);
+		String aed = is.getURL().toString();
+		return  UimaUtils.getResourceSpecifier(aed);
 
-	private void initializeCasPool(AnalysisEngineMetaData aeMeta) throws ResourceInitializationException {
-		Properties props = new Properties();
-		props.setProperty(UIMAFramework.CAS_INITIAL_HEAP_SIZE, "1000");
-
-		analysisEngineMetadata = aeMeta;
-		casPool = new CasPool(scaleout, analysisEngineMetadata, rm);
 	}
-
+	@SuppressWarnings("unchecked")
 	@Override
 	public IProcessResult process(String serializedTask) {
-		AnalysisEngine ae = null;
+	   	// save current context cl and inject System classloader as
+		// a context cl before calling user code. 
+		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader());
+		if ( logger.isLoggable(Level.FINE)) {
+			logger.log(Level.FINE,"",">>>> process():::Context Classloader Switch - Executing code from System Classloader");
+		}
 
-		CAS cas = casPool.getCas();
 		IProcessResult result;
 		
 		try {
-		  // DUCC JP  services are given a serialized CAS ... others just the doc-text for a CAS
-			if (serviceConfiguration.getJpType() != null) {
-			  getUimaSerializer().deserializeCasFromXmi(serializedTask, cas);
-			} else {
-			  cas.setDocumentText(serializedTask);
-			  cas.setDocumentLanguage("en");
-			}
-			// check out AE instance pinned to this thread
-			ae = threadLocal.get();
-			// get AE metrics before calling process(). Needed for
-			// computing a delta
-			List<PerformanceMetrics> beforeAnalysis = 
-					UimaMetricsGenerator.get(ae);
 			
-			// *****************************************************
-			// PROCESS
-			// *****************************************************
-			ae.process(cas);
-			
-			// *****************************************************
-			// No exception in process() , fetch metrics 
-			// *****************************************************
-			List<PerformanceMetrics> afterAnalysis = 
-					UimaMetricsGenerator.get(ae);
+			// The clients expect metrics in PeformanceMetrics class
+			List<PerformanceMetrics> casMetrics;
 
-			// get the delta
-			List<PerformanceMetrics> casMetrics = 
-					UimaMetricsGenerator.getDelta( afterAnalysis, beforeAnalysis);
-			
+			// JUnit tests currently dont support CL switching so don't use
+			// reflection 
+			if ( Objects.isNull(System.getProperty(CLASSPATH_SWITCH_PROP)) ) {
+				casMetrics = new ArrayList<>();
+				// Use basic data structures for returning performance metrics from 
+				// a processor process(). The PerformanceMetrics class is not 
+				// visible in the code packaged in uima-ducc-user.jar so return
+				// metrics in Properties object for each AE.
+				List<Properties> metrics;
+
+				// *****************************************************
+				// PROCESS
+				// *****************************************************
+				metrics = (List<Properties>) processMethod.invoke(processorInstance, serializedTask, threadLocal);
+				for( Properties p : metrics ) {
+					// there is Properties object for each AE, so create an
+					// instance of PerformanceMetrics and initialize it
+					PerformanceMetrics pm = 
+							new PerformanceMetrics(p.getProperty(AE_NAME), 
+									p.getProperty(AE_CONTEXT),
+									Long.valueOf(p.getProperty(AE_ANALYSIS_TIME)), 
+									Long.valueOf(p.getProperty(AE_CAS_PROCESSED)));
+					casMetrics.add(pm);
+				}
+			} else {
+				// for JUnit tests call delegator which does not use reflection
+				casMetrics = uimaDelegator.process(serializedTask, threadLocal);
+			}
+
 			successCount.incrementAndGet();
 			errorCountSinceLastSuccess.set(0);
 			return new UimaProcessResult(resultSerializer.serialize(casMetrics));
@@ -262,9 +300,9 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 			result = new UimaProcessResult(e, action);
 			return result;
  		} finally {
-			
-			if (cas != null) {
-				casPool.releaseCas(cas);
+			Thread.currentThread().setContextClassLoader(savedCL);
+			if ( logger.isLoggable(Level.FINE)) {
+				logger.log(Level.FINE,"",">>>> process():::Context Classloader Switch - Restored Ducc Classloader");
 			}
 		}
 	}
@@ -277,40 +315,31 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 	@Override
 	public void stop() {
 		logger.log(Level.INFO,this.getClass().getName()+" stop() called");
+	   	// save current context cl and inject System classloader as
+		// a context cl before calling user code. This is done in 
+		// user code needs to load resources 
+		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader());
+		if ( logger.isLoggable(Level.FINE)) {
+			logger.log(Level.FINE,"",">>>> stop():::Context Classloader Switch - Executing code from System Classloader");
+		}
 		try {
-			AnalysisEngine ae = threadLocal.get();
-			if ( ae != null ) {
-				ae.destroy();
+			if ( Objects.isNull(System.getProperty(CLASSPATH_SWITCH_PROP)) ) {
+				stopMethod.invoke(processorInstance, threadLocal);
+			} else {
+				uimaDelegator.stop(threadLocal);
 			}
 			super.stop();
 
 		} catch( Exception e) {
 			logger.log(Level.WARNING, "stop", e);
-		} 
+		} finally {
+			Thread.currentThread().setContextClassLoader(savedCL);
+			if ( logger.isLoggable(Level.FINE)) {
+				logger.log(Level.FINE,"",">>>> stop():::Context Classloader Switch - Restored Ducc Classloader");
+			}
+		}
 	}
-	/*
-	  // Build just an AE from parts and return the filename
-	  // (DD's are converted in UimaAsProcessContainer.parseDD)
-	  protected String buildDeployable(ServiceConfiguration serviceConfiguration) {
-		  try {
-			  String jpType = serviceConfiguration.getJpType();//getPropertyString("ducc.deploy.JpType");
-			  if(jpType == null) {
-				  jpType = "uima";
-			  }
-			  if(jpType.equalsIgnoreCase("uima-as")) {
-				  logger.log(Level.WARNING,"ERROR - should not be called for type="+jpType);
-			  }
-			  else {
-				  DeployableGeneration dg = new DeployableGeneration(serviceConfiguration);
-				  return dg.generate(true);
-			  }
-		  }
-		  catch(Exception e) {
-			  e.printStackTrace();
-			  logger.log(Level.WARNING,"buildDeployable",e);
-		  }
-		  return null;
-	  }
-*/
+
 }
 

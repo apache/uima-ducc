@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 import org.apache.uima.ducc.ps.net.impl.MetaTask;
 import org.apache.uima.ducc.ps.net.impl.MetaTaskTransaction;
+import org.apache.uima.ducc.ps.service.processor.uima.AbstractServiceProcessor;
 import org.apache.uima.ducc.ps.service.registry.DefaultRegistryClient;
 import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 import org.apache.uima.ducc.ps.service.transport.XStreamUtils;
@@ -65,7 +66,14 @@ public class JunitTransportTestCase {
       return new HashMap<Long, XStream>();
     }
   };
-
+  @Before
+  public void setUp() throws Exception {
+	  System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP,"true");
+  }
+  @After
+  public void tearDown() throws Exception {
+	  
+  }
   private int getJettyPort() {
     while (true) {
       ServerSocket socket = null;

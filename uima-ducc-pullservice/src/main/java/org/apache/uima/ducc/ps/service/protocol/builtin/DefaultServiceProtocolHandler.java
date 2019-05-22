@@ -214,53 +214,48 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
    * @throws Exception
    */
   private IMetaTaskTransaction callGet(IMetaTaskTransaction transaction) throws Exception {
-    transaction.setType(Type.Get);
-    if (logger.isLoggable(Level.FINE)) {
-      logger.log(Level.FINE, "ProtocolHandler calling GET");
-    }
-    IMetaTaskTransaction metaTransaction = null;
+	  transaction.setType(Type.Get);
+	  if (logger.isLoggable(Level.FINE)) {
+		  logger.log(Level.FINE, "ProtocolHandler calling GET");
+	  }
+	  IMetaTaskTransaction metaTransaction = null;
 
-    try {
-        while (running) {
-            metaTransaction = sendAndReceive(transaction);
-            if (metaTransaction.getMetaTask() != null
-                    && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
-              return metaTransaction;
-            }
+	  while (running) {
+		  metaTransaction = sendAndReceive(transaction);
+		  if (metaTransaction.getMetaTask() != null
+				  && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
+			  return metaTransaction;
+		  }
 
-            // If the first thread to get the lock poll for work and unlock when work found
-            // If don't immediately get the lock then wait for the lock to be released when
-            // work becomes available,
-            // and immediately release the lock and loop back to retry
-            boolean firstLocker = noWorkLock.tryLock();
-            if (!firstLocker) {
-              noWorkLock.lock();
-              noWorkLock.unlock();
-              continue;
-            }
+		  // If the first thread to get the lock poll for work and unlock when work found
+		  // If don't immediately get the lock then wait for the lock to be released when
+		  // work becomes available,
+		  // and immediately release the lock and loop back to retry
+		  boolean firstLocker = noWorkLock.tryLock();
+		  if (!firstLocker) {
+			  noWorkLock.lock();
+			  noWorkLock.unlock();
+			  continue;
+		  }
 
-            // If the first one here hold the lock and sleep before retrying
-            if (logger.isLoggable(Level.INFO)) {
-              logger.log(Level.INFO, "Driver is out of tasks - waiting for "
-                      + noTaskStrategy.getWaitTimeInMillis() + "ms before trying again ");
-            }
-            while (running) {
-              noTaskStrategy.handleNoTaskSupplied();
-              metaTransaction = sendAndReceive(transaction);
-              if (metaTransaction.getMetaTask() != null
-                      && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
-                noWorkLock.unlock();
-                return metaTransaction;
-              }
-            }
-          } 
-    } finally {
-    	if ( noWorkLock.isHeldByCurrentThread() ) {
-    		noWorkLock.unlock();
-    	}
-    }
+		  // If the first one here hold the lock and sleep before retrying
+		  if (logger.isLoggable(Level.INFO)) {
+			  logger.log(Level.INFO, "Driver is out of tasks - waiting for "
+					  + noTaskStrategy.getWaitTimeInMillis() + "ms before trying again ");
+		  }
+		  while (running) {
+			  noTaskStrategy.handleNoTaskSupplied();
+			  metaTransaction = sendAndReceive(transaction);
+			  if (metaTransaction.getMetaTask() != null
+					  && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
+				  noWorkLock.unlock();
+				  return metaTransaction;
+			  }
+		  }
+	  } 
+	  noWorkLock.unlock();
 
-    return metaTransaction; // When shutting down
+	  return metaTransaction; // When shutting down
   }
 
   /**

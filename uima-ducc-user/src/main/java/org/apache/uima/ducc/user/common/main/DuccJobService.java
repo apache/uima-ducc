@@ -19,8 +19,6 @@
 package org.apache.uima.ducc.user.common.main;
 
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -40,7 +38,7 @@ public class DuccJobService {
 	private Investment investment = null;
 	private Logger logger = Logger.getLogger(DuccJobService.class.getName());
 	private IServiceWrapper service = null;
-	 
+
 	public static URLClassLoader create(String classPath)
 			throws MalformedURLException {
 		return create(classPath.split(":"));
@@ -87,71 +85,15 @@ public class DuccJobService {
 			}
 		}
 	}
-	private void addUrlsToSystemLoader(URL[] urls) throws IOException {
-		URLClassLoader systemClassLoader = (URLClassLoader) ClassLoader
-				.getSystemClassLoader();
-		try {
-			Method method = URLClassLoader.class.getDeclaredMethod("addURL",
-					new Class[] { URL.class });
-			method.setAccessible(true); // is normally "protected"
-			for (URL url : urls) {
-				method.invoke(systemClassLoader, new Object[] { url });
-			}
-		} catch (Throwable t) {
-			t.printStackTrace();
-			throw new IOException(
-					"Error, could not add URL to system classloader");
-		}
-	}
-	private URL[] getUrlsFromDuccClasspath(String[] duccClassPath)
-			throws MalformedURLException {
-		ArrayList<URL> urlList = new ArrayList<URL>(duccClassPath.length);
-		for (String element : duccClassPath) {
-			if (element.endsWith("*")) {
-				File dir = new File(element.substring(0, element.length() - 1));
-				File[] files = dir.listFiles(); // Will be null if missing or
-												// not a dir
-				if (files != null) {
-					for (File f : files) {
-						if (f.getName().endsWith(".jar")) {
-							urlList.add(f.toURI().toURL());
-						}
-					}
-				}
-			} else {
-				File f = new File(element);
-				if (f.exists()) {
-					urlList.add(f.toURI().toURL());
-				}
-			}
-		}
-		URL[] urls = new URL[urlList.size()];
-		return urlList.toArray(urls);
-	}
+
+
 	public void start(String[] args) throws Exception {
 		try {
 	        investment = new Investment();
 
-			// Fetch a classpath for the fenced Ducc container
-			String duccContainerClasspath = System.getProperty("ducc.deploy.DuccClasspath");
-			if ( duccContainerClasspath != null ) {
-				URL[] urls = getUrlsFromDuccClasspath(duccContainerClasspath.split(":"));
-				addUrlsToSystemLoader(urls);
-			}
-			if (System.getProperty("ducc.debug") != null) {
-				DEBUG = true;
-			}
-			if (DEBUG) {
-				dump((URLClassLoader) ClassLoader
-						.getSystemClassLoader(), 4);
-			}
 	        service = ServiceFactory.newService();
 	        service.initialize(args);
 	        service.start();
-	        
-//			HashMap<String, String> savedPropsMap = hideLoggingProperties();  // Ensure DUCC doesn't try to use the user's logging setup
-//			restoreLoggingProperties(savedPropsMap);  // May not be necessary as user's logger has been established
-
 			logger.log(Level.INFO, "<<<<<<<< Ducc Container ended");
 			
 		} catch( Throwable t) {
@@ -183,7 +125,6 @@ public class DuccJobService {
 			if (val != null) {
 				savedPropsMap.put(prop,  val);
 				System.getProperties().remove(prop);
-				//System.out.println("!!!! Saved prop " + prop + " = " + val);
 			}
 		}
 		return savedPropsMap;
@@ -192,7 +133,6 @@ public class DuccJobService {
 	public static void restoreLoggingProperties(HashMap<String,String> savedPropsMap) {
 		for (String prop : savedPropsMap.keySet()) {
 			System.setProperty(prop, savedPropsMap.get(prop));
-			//System.out.println("!!!! Restored prop " + prop + " = " + System.getProperty(prop));
 		}
 	}
 	

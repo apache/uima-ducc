@@ -27,7 +27,10 @@ import org.apache.uima.ducc.ps.Client;
 import org.apache.uima.ducc.ps.service.builders.PullServiceStepBuilder;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
+import org.apache.uima.ducc.ps.service.processor.uima.AbstractServiceProcessor;
 import org.apache.uima.ducc.ps.service.processor.uima.UimaServiceProcessor;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class JunitPullServiceTestCase extends Client {
@@ -42,6 +45,14 @@ public class JunitPullServiceTestCase extends Client {
     System.setProperty("ducc.service.init.delay", "3000");
   }
 
+  @Before
+  public void setUp() throws Exception {
+	  System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP,"true");
+  }
+  @After
+  public void tearDown() throws Exception {
+	  
+  }
   @Test
   public void testPullService() throws Exception {
     System.out.println("----------------- testPullService -------------------");
@@ -292,3 +303,4 @@ public class JunitPullServiceTestCase extends Client {
   }
 
 }
+

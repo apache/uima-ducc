@@ -29,6 +29,9 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 public class AbstractServiceProcessor {
+	
+	public static final String CLASSPATH_SWITCH_PROP = "ClasspathSwitch";
+
 	// Map to store DuccUimaSerializer instances. Each has affinity to a thread
 	protected Map<Long, UimaSerializer> serializerMap = new HashMap<>();
 	protected AtomicLong errorCount = new AtomicLong();

@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.user.common.main;
 
 import java.lang.reflect.Method;
+import java.net.URLClassLoader;
 
 /*
  * Implements dynamic loading of a service class, initializes its instance
@@ -29,10 +30,22 @@ public class PullServiceWrapper implements IServiceWrapper{
 
 	private Object instance = null;
 	private Class<?> duccServiceClass =  null;
+	private boolean DEBUG;
 	
 	public void initialize(String[] args) throws Exception{
-		duccServiceClass = 
-				ClassLoader.getSystemClassLoader().loadClass("org.apache.uima.ducc.ps.service.main.ServiceWrapper");
+		
+		// Fetch a classpath for the fenced Ducc container
+		String duccContainerClasspath = System.getProperty("ducc.deploy.DuccClasspath");
+		URLClassLoader ucl = DuccJobService.create(duccContainerClasspath);
+		if (System.getProperty("ducc.debug") != null) {
+			DEBUG = true;
+		}
+		if (DEBUG) {
+			DuccJobService.dump(ucl, 4);
+		}
+
+		// Load the DuccService class and find its methods of interest
+		duccServiceClass = ucl.loadClass("org.apache.uima.ducc.ps.service.main.ServiceWrapper");
 		instance = duccServiceClass.newInstance();
 		Method initMethod = duccServiceClass.getMethod("initialize", String[].class);
 		initMethod.invoke(instance, (Object) args);

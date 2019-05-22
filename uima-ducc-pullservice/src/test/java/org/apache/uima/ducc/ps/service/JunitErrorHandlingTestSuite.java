@@ -1,6 +1,9 @@
 package org.apache.uima.ducc.ps.service;
 
 import org.apache.uima.ducc.ps.service.errors.builtin.WindowBasedErrorHandler;
+import org.apache.uima.ducc.ps.service.processor.uima.AbstractServiceProcessor;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import junit.framework.Assert;
@@ -30,7 +33,14 @@ public class JunitErrorHandlingTestSuite {
 		
 		
 	}
-
+	  @Before
+	  public void setUp() throws Exception {
+		  System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP,"true");
+	  }
+	  @After
+	  public void tearDown() throws Exception {
+		  
+	  }
 	@Test
 	public void testNoWindow() throws Exception {
 		// fails on 3rd error 

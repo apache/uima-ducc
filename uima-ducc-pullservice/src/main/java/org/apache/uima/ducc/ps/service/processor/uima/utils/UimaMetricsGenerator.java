@@ -66,7 +66,37 @@ public class UimaMetricsGenerator {
 		}
 		return analysisManagementObjects;
 	}
-		
+	   public static List<PerformanceMetrics> get(AnalysisEngineManagement aem)
+			throws Exception {
+		List<PerformanceMetrics> analysisManagementObjects = new ArrayList<PerformanceMetrics>();
+		synchronized(UimaMetricsGenerator.class) {
+			// Fetch AE's management information that includes per component
+			// performance stats
+			// These stats are internally maintained in a Map. If the AE is an
+			// aggregate
+			// the Map will contain AnalysisEngineManagement instance for each AE.
+			//AnalysisEngineManagement aem = ae.getManagementInterface();
+			if (aem.getComponents().size() > 0) {
+				// Flatten the hierarchy by recursively (if this AE is an aggregate)
+				// extracting
+				// primitive AE's AnalysisEngineManagement instance and placing it
+				// in
+				// afterAnalysisManagementObjects List.
+				getLeafManagementObjects(aem, analysisManagementObjects);
+				// System.out.println("-----------------Unique1:"+aem.getUniqueMBeanName());
+				// System.out.println("-----------------Simple1:"+aem.getName());
+			} else {
+				String path = produceUniqueName(aem);
+//				 System.out.println(Thread.currentThread().getId()+" -----------------Unique2:"+aem.getUniqueMBeanName());
+//				 System.out.println(Thread.currentThread().getId()+" -----------------Simple2:"+aem.getName());
+//				 System.out.println(Thread.currentThread().getId()+" -----------------Path:"+path);
+				analysisManagementObjects.add(deepCopyMetrics(aem, path));
+
+			}
+			
+		}
+		return analysisManagementObjects;
+	}	
 	/**
 	 * Recursively
 	 * 
