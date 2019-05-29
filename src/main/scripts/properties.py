@@ -219,7 +219,7 @@ class Properties:
     #
     def _makedirs(self, path):
         try:
-            dir_path = path.rsplit('/',1)[0]
+            dir_path = os.path.dirpath(path)
             os.makedirs(dir_path)
         except:
             pass
