@@ -49,6 +49,60 @@ class DuccRsync(DuccUtil):
     rsync_cmd = 'rsync'
     rsync_flags = '-avz --delete --ignore-errors'
     
+    head_dirs_list = [
+        'admin', 
+        'apache-uima',
+        'bin',
+        'cassandra-server',
+        'cron', 
+        'docs',
+        'duccling',
+        'examples',
+        #'history',
+        #'INSTALL',
+        #'issuesFixed',
+        'lib', 
+        #'LICENSE',
+        #'logs', 
+        #'NOTICE',
+        #'README',
+        #'RELEASE_NOTES.html',
+        'webserver', 
+        'resources', 
+        'resources.private',   
+        #'state',
+        ]
+    
+    agent_dirs_list = [
+        'admin', 
+        'apache-uima',
+        'bin',
+        #'cassandra-server',
+        'cron', 
+        'docs',
+        'duccling',
+        'examples',
+        #'history',
+        #'INSTALL',
+        #'issuesFixed',
+        'lib', 
+        #'LICENSE',
+        #'logs', 
+        #'NOTICE',
+        #'README',
+        #'RELEASE_NOTES.html',
+        #'webserver', 
+        'resources', 
+        'resources.private',   
+        #'state',
+        ]   
+    
+    dual_dirs_list = head_dirs_list 
+    
+    head_dirs  = ' '.join(head_dirs_list)
+    agent_dirs = ' '.join(agent_dirs_list)
+    dual_dirs  = ' '.join(dual_dirs_list)
+    
     def __init__(self):
         DuccUtil.__init__(self, self.merge)
 
@@ -61,29 +115,35 @@ class DuccRsync(DuccUtil):
     def get_epilog(self):
         epilog = ''
         epilog = epilog+'Purpose: synchronize DUCC directory(s) from present node to other head & agent nodes.'
-        epilog = epilog+'\n\n'
-        epilog = epilog+'Example:'
-        epilog = epilog+'\n\n'
-        epilog = epilog+'> '+self._fn()+' '+'--dirs "resources admin" --nodelist ducc.nodes'
         return epilog
-        
-    default_dirs     = 'resources'
-    default_nodelist = 'ducc.nodes'
-    
-    help_dirs        = 'Blank separated list of directories to synchronize, default='+default_dirs+'.'
-    help_nodelist    = 'Blank separated list of file names, default='+default_nodelist+'.'
-    help_debug       = 'Display debugging messages.'
-    help_quiet       = 'Suppress informational messages.'
     
     # parse command line
     def get_args(self):
+        self.help_head_nodes  = 'Blank separated list of head nodes to synchronize, default:"None"; specify "all" for '+' '.join(self.head_nodes)
+        self.help_agent_nodes = 'Blank separated list of agent nodes to synchronize, default:"None"; specify "all" for '+' '.join(self.agent_nodes)
+        
+        self.help_head_dirs   = 'Blank separated list of head directories to synchronize, default="'+self.head_dirs+'"'
+        self.help_agent_dirs  = 'Blank separated list of agent directories to synchronize, default="'+self.agent_dirs+'"'
+        
+        self.help_debug       = 'Display debugging messages.'
+        self.help_quiet       = 'Suppress informational messages.'
+        
         self.parser = argparse.ArgumentParser(formatter_class=RawDescriptionHelpFormatter,epilog=self.get_epilog())
-        self.parser.add_argument('--dirs' , '-d', action='store', default=self.default_dirs, help=self.help_dirs)
-        self.parser.add_argument('--nodelist' , '-n', action='store', default=self.default_nodelist, help=self.help_nodelist)
-        self.parser.add_argument('--debug', '-g', action='store_true', help=self.help_debug)
-        self.parser.add_argument('--quiet', '-q', action='store_true', help=self.help_quiet)
+        
+        self.parser.add_argument('--head-nodes'  , action='store' , help=self.help_head_nodes)
+        self.parser.add_argument('--agent-nodes' , action='store' , help=self.help_agent_nodes)
+        self.parser.add_argument('--head-dirs'   , action='store' , help=self.help_head_dirs)
+        self.parser.add_argument('--agent-dirs'  , action='store' , help=self.help_agent_dirs)
+        
+        self.parser.add_argument('--debug' , action='store_true', help=self.help_debug)
+        self.parser.add_argument('--quiet' , action='store_true', help=self.help_quiet)
+      
         self.args = self.parser.parse_args()
-
+        
+        if(self.args.head_nodes == None):
+            if(self.args.agent_nodes == None):
+                raise Exception('--head-nodes and/or --agent-nodes must be specified')
+    
     # conditionally add node to list of nodes to be updated
     def add(self,list,node):
         if(node == self.localhost):
@@ -93,82 +153,125 @@ class DuccRsync(DuccUtil):
         else:
             list.append(node)
     
-    # update the specified node, subdir
-    def rsync(self,node,user,subdir):
-        dir = os.path.join(DUCC_HOME,subdir)
-        cmd = self.rsync_cmd+' '+self.rsync_flags+' '+dir+' '+user+'@'+node+':'+DUCC_HOME
-        if(self.args.debug):
-            print cmd
-        proc = subprocess.Popen(cmd, shell=True, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        lines = []
-        for  line in proc.stdout:
-            lines.append(line.strip())
-        proc.wait()
-        rc = proc.returncode
-        if(self.args.debug):
-            for line in lines:
-                print line
-    
-    # create list of nodes to be updated
-    def create_node_list(self):
+    # create list of head nodes
+    def get_head_node_list(self):
         node_list = []
         # head
         head = self.ducc_properties.get(self.key_ducc_head) 
-        if(self.args.debug):
-            print 'head:'+head
         #reliable
         reliable_string = self.ducc_properties.get(self.key_ducc_head_reliable_list)
         reliable = reliable_string.split()
         if(len(reliable) > 0):
             for node in reliable:
-                if(self.args.debug):
-                    print 'reliable:'+node
-                    self.add(node_list,node)
+                self.add(node_list,node)
         else:
             self.add(node_list,head)
-        # agents
+        return node_list
+    
+    # create list of head nodes
+    def get_agent_node_list(self):
+        node_list = []
+        ducc_nodes = 'ducc.nodes'
+        nodefiles = ducc_nodes.split();
         map = {}
-        if(self.args.debug):
-            print 'nodelist:'+str(self.args.nodelist)
-        nodefiles = self.args.nodelist.split()
-        if(self.args.debug):
-            print 'nodefiles:'+str(nodefiles)
         for nodefile in nodefiles:
             nodes, map = self.read_nodefile(nodefile,map)
-            if(self.args.debug):
-                print nodes, str(map)
             for key in map:
                 value = map[key]
-                if(self.args.debug):
-                    print 'key:'+key+' '+'value:'+str(value)
                 for node in value:
-                    if(self.args.debug):
-                        print 'node:'+node
                     self.add(node_list,node)
         return node_list
     
-    # do rsync of dir(s) from present node to peers
+    # use user specified head nodes, else from ducc.properties
+    def resolve_head_nodes(self):
+        if(self.args.head_nodes == None):
+            self.head_nodes = None
+        elif(self.args.head_nodes.lower() != 'all'):
+            self.head_nodes = self.args.head_nodes.split()
+    
+    # use user specified agent nodes, else from ducc.nodes
+    def resolve_agent_nodes(self):
+        if(self.args.agent_nodes == None):
+            self.agent_nodes = None
+        elif(self.args.agent_nodes.lower() != 'all'):
+            self.agent_nodes = self.args.agent_nodes.split()
+
+    # update nodes that are head+agent
+    def update_dual(self,user):
+        if(self.head_nodes != None):
+            if(self.agent_nodes != None):
+                for node in self.head_nodes:
+                    if(node in self.agent_nodes):
+                        if(self.args.debug):
+                            print 'update head+agent: '+node
+                        self.rsync(node,user,self.dual_dirs)
+                                
+    # update nodes that are head only
+    def update_heads(self,user):
+        update = True
+        if(self.head_nodes != None):
+            for node in self.head_nodes:
+                if(self.agent_nodes != None):
+                    if(node in self.agent_nodes):
+                        # dual should have done this one
+                        update = False
+                if(update):
+                    if(self.args.debug):
+                        print 'update head: '+node
+                    self.rsync(node,user,self.head_dirs)
+    
+    # update nodes that are agent only
+    def update_agents(self,user):
+        update = True
+        if(self.agent_nodes != None):
+            for node in self.agent_nodes:
+                if(self.head_nodes != None):
+                    if(node in self.head_nodes):
+                        # dual should have done this one
+                        update = False
+                if(update):
+                    if(self.args.debug):
+                        print 'update agent: '+node
+                    self.rsync(node,user,self.agent_dirs)
+                    
+    # update the specified node, subdirs
+    def rsync(self,node,user,subdirs):
+        for subdir in subdirs.split():
+            if(not self.args.quiet):
+                print 'rsync '+user+' '+node+' '+subdir
+            dir = os.path.join(DUCC_HOME,subdir)
+            cmd = self.rsync_cmd+' '+self.rsync_flags+' '+dir+' '+user+'@'+node+':'+DUCC_HOME
+            proc = subprocess.Popen(cmd, shell=True, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            lines = []
+            for line in proc.stdout:
+                lines.append(line.strip())
+            proc.wait()
+            rc = proc.returncode
+            if(rc != 0):
+                self.rsync_display(cmd, lines)
+            elif(self.args.debug):
+                self.rsync_display(cmd, lines)
+    
+    def rsync_display(self, cmd, lines):
+        print cmd
+        for line in lines:
+            print line
+        
+    # do rsync of dir(s) from present node to peer(s)
     def main(self, argv):    
         try:
-            node_list = []
-            user = find_ducc_uid()
+            self.head_nodes = self.get_head_node_list()
+            self.agent_nodes = self.get_agent_node_list()
             self.get_args()
-            dir_list = self.args.dirs.split()
-            if(self.args.debug):
-                print 'dirs:'+str(dir_list)
-            node_list = self.create_node_list()
-            for node in node_list:
-                #print 'updating:'+node
-                for dir in dir_list:
-                    if(self.args.quiet):
-                        pass
-                    else:
-                        print 'updating:'+node+'->'+dir
-                    self.rsync(node,user,dir)
+            self.resolve_head_nodes()
+            self.resolve_agent_nodes()
+            user = find_ducc_uid()
+            self.update_dual(user)
+            self.update_heads(user)
+            self.update_agents(user)
         except Exception,e:
             print e
         
-if __name__ == "__main__":
-
+if __name__ == '__main__':
     instance = DuccRsync()
     instance.main(sys.argv[1:])
