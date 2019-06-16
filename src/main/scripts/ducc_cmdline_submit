@@ -1,0 +1,89 @@
+#!/bin/sh
+
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+if [ -z $DUCC_HOME ]; then
+    DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    DUCC_HOME="$( cd $DIR/.. && pwd )"
+fi
+
+
+if [ $# -lt 4 ]; then
+    echo
+    echo Usage $0 "<cmds-file> <mem-size> <class> <timeout> [DUCC args]"
+    echo "  "
+    echo "  <cmds-file> - Each line in cmds-file will be run as a remote process"
+    echo "  "
+    echo "  <mem-size> - the minimum CGroup container size for each remote process"
+    echo "    Actual container size is mem-size rounded up to a multiple of the class quantum"
+    echo "    For Java the Xmx specification should be smaller than the container size"
+    echo "  "
+    echo "  <class> - the DUCC scheduling class. Use a fair share class to get more resources"
+    echo "  "
+    echo "  <timeout> - the number of minutes each remote process is allowed to run"
+    echo "  "
+    echo "  [DUCC args]"
+    echo "  "
+    echo "  Arguments after <timeout> are passed as is to ducc_submit"
+    echo "    For example, \"--all_in_one local\" would run the job as a single process on client machine"
+    echo ""
+    echo "  For Java commands, specify the required classpath with DUCC_CMDLINE_CLASSPATH"
+    echo ""
+    echo "  To specify ENV parameters common to all commands, set DUCC_CMDLINE_ENVIRONMENT"
+    echo "    See \"--environment [env vars]\" in the DUCCBOOK for the format and behavior of this setting"
+    echo ""
+    echo "  To specify unique ENV parms per command, prefix the command with"
+    echo "    /bin/env env1=val1 [env2=val2 ...] "
+    echo
+    exit 1
+fi
+
+COMMAND_FILENAME=$1
+MEM_SIZE_GB=$2
+SCHED_CLASS=$3
+TIMEOUT=$4
+
+if [ $# -gt 4 ]; then
+    for i in $(seq 5 "$#")
+      do
+	DUCC_ARGS="$DUCC_ARGS ${!i}"
+      done
+fi
+
+	
+echo Running: $0 $1 $MEM_SIZE_GB $SCHED_CLASS $TIMEOUT
+echo "cmds-file: $COMMAND_FILENAME"
+
+DUCC_SUBMIT=$DUCC_HOME/bin/ducc_submit
+
+CP=$DUCC_HOME/lib/uima-ducc/examples/*:$DUCC_HOME/lib/guava/*:$DUCC_HOME/apache-uima/lib/uima-core.jar
+
+$DUCC_SUBMIT --classpath "$CP" --description "Command line runner: $COMMAND_FILENAME" \
+    --driver_descriptor_CR org.apache.uima.ducc.sampleapps.LinesFromFileCR \
+    --driver_descriptor_CR_overrides "Filename=$COMMAND_FILENAME" \
+    --process_descriptor_AE org.apache.uima.ducc.sampleapps.CommandLineRunnerAE \
+    --wait_for_completion true \
+    --process_thread_count 1 \
+    --process_jvm_args "-Xmx200M" \
+    --environment "DUCC_CMDLINE_ENVIRONMENT DUCC_CMDLINE_CLASSPATH" \
+    --scheduling_class $SCHED_CLASS \
+    --process_memory_size $MEM_SIZE_GB \
+    --process_per_item_time_max $TIMEOUT $DUCC_ARGS
+
