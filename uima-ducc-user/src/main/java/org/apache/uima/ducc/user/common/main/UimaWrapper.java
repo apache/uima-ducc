@@ -18,35 +18,24 @@
 */
 package org.apache.uima.ducc.user.common.main;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
-import javax.xml.parsers.FactoryConfigurationError;
-
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
 import org.apache.uima.cas.CAS;
-import org.apache.uima.cas.impl.XmiCasDeserializer;
 import org.apache.uima.ducc.user.common.BasicUimaMetricsGenerator;
 import org.apache.uima.ducc.user.common.UimaUtils;
-import org.apache.uima.internal.util.XMLUtils;
 import org.apache.uima.resource.Resource;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.resource.ResourceManager;
 import org.apache.uima.resource.ResourceSpecifier;
 import org.apache.uima.util.CasPool;
-import org.xml.sax.ContentHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
 
-public class UimaWrapper {
+public class UimaWrapper extends AbstractWrapper {
 	private CasPool casPool = null;
 	private ResourceManager rm = UIMAFramework.newDefaultResourceManager();
 	// Platform MBean server if one is available (Java 1.5 only)
@@ -91,7 +80,7 @@ public class UimaWrapper {
 		CAS cas = casPool.getCas();
 		try {
 			if (deserializeFromXMI) {
-				deserializeCasFromXmi(serializedTask, cas);
+				super.deserializeCasFromXmi(serializedTask, cas);
 			} else {
 				cas.setDocumentText(serializedTask);
 				cas.setDocumentLanguage("en");
@@ -110,17 +99,6 @@ public class UimaWrapper {
 			}
 		}
 
-	}
-
-	public void deserializeCasFromXmi(String anXmlStr, CAS aCAS)
-			throws FactoryConfigurationError, SAXException, IOException {
-
-		XMLReader xmlReader = XMLUtils.createXMLReader();
-		Reader reader = new StringReader(anXmlStr);
-		XmiCasDeserializer deser = new XmiCasDeserializer(aCAS.getTypeSystem());
-		ContentHandler handler = deser.getXmiCasHandler(aCAS);
-		xmlReader.setContentHandler(handler);
-		xmlReader.parse(new InputSource(reader));
 	}
 
 	public void stop(ThreadLocal<AnalysisEngine> threadLocal) {
