@@ -59,18 +59,19 @@ class DuccRsync(DuccUtil):
         'duccling',
         'examples',
         #'history',
-        #'INSTALL',
-        #'issuesFixed',
+        'INSTALL',
+        'issuesFixed',
         'lib', 
-        #'LICENSE',
+        'LICENSE',
         #'logs', 
-        #'NOTICE',
-        #'README',
-        #'RELEASE_NOTES.html',
-        'webserver', 
+        'NOTICE',
+        'README',
+        'RELEASE_NOTES.html',
         'resources', 
         'resources.private',   
         #'state',
+        'state/duccling.version',
+        'webserver', 
         ]
     
     agent_dirs_list = [
@@ -83,18 +84,19 @@ class DuccRsync(DuccUtil):
         'duccling',
         'examples',
         #'history',
-        #'INSTALL',
-        #'issuesFixed',
+        'INSTALL',
+        'issuesFixed',
         'lib', 
-        #'LICENSE',
+        'LICENSE',
         #'logs', 
-        #'NOTICE',
-        #'README',
-        #'RELEASE_NOTES.html',
-        #'webserver', 
+        'NOTICE',
+        'README',
+        'RELEASE_NOTES.html',
         'resources', 
-        'resources.private',   
+        'resources.private/ducc-broker-credentials.properties',   
         #'state',
+        'state/duccling.version',
+        #'webserver', 
         ]   
     
     dual_dirs_list = head_dirs_list 
@@ -122,8 +124,8 @@ class DuccRsync(DuccUtil):
         self.help_head_nodes  = 'Blank separated list of head nodes to synchronize, default:"None"; specify "all" for '+' '.join(self.head_nodes)
         self.help_agent_nodes = 'Blank separated list of agent nodes to synchronize, default:"None"; specify "all" for '+' '.join(self.agent_nodes)
         
-        self.help_head_dirs   = 'Blank separated list of head directories to synchronize, default="'+self.head_dirs+'"'
-        self.help_agent_dirs  = 'Blank separated list of agent directories to synchronize, default="'+self.agent_dirs+'"'
+        self.help_head_dirs   = 'Blank separated list of head directories (and files) to synchronize, default="'+self.head_dirs+'"'
+        self.help_agent_dirs  = 'Blank separated list of agent directories (and files) to synchronize, default="'+self.agent_dirs+'"'
         
         self.help_debug       = 'Display debugging messages.'
         self.help_quiet       = 'Suppress informational messages.'
