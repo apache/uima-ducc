@@ -185,6 +185,16 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 
 	private DateFormat format = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss E", Locale.ENGLISH);
 
+	public String toDash(String value) {
+		String retVal = "-";
+		if(value != null) {
+			if(value.length() > 0) {
+				retVal = value;
+			}
+		}
+		return retVal;
+	}
+	
 	public String getTimeStamp(DateStyle dateStyle, long tod) {
 		String methodName = "";
 		Date date = new Date(tod);

@@ -1611,11 +1611,11 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			sb.append("</td>");
 			// Boot Time
 			sb.append("<td>");
-			sb.append(bootTime);
+			sb.append(toDash(bootTime));
 			sb.append("</td>");
 			// Host IP
 			sb.append("<td>");
-			sb.append(hostIP);
+			sb.append(toDash(hostIP));
 			sb.append("</td>");	
 			// Host Name
 			sb.append("<td>");
@@ -1623,7 +1623,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			sb.append("</td>");
 			// PID
 			sb.append("<td>");
-			sb.append(pid);
+			sb.append(toDash(pid));
 			sb.append("</td>");
 			// Publication Size (last)
 			sb.append("<td align=\"right\">");
