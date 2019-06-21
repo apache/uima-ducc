@@ -57,6 +57,7 @@ import org.apache.camel.Route;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.hadoop.conf.Configured;
 import org.apache.uima.ducc.agent.config.AgentConfiguration;
 import org.apache.uima.ducc.agent.event.AgentEventListener;
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
@@ -69,6 +70,7 @@ import org.apache.uima.ducc.agent.launcher.ManagedProcess.StopPriority;
 import org.apache.uima.ducc.agent.launcher.SigKillCommand;
 import org.apache.uima.ducc.agent.launcher.SigTermCommand;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeUsersCollector;
+import org.apache.uima.ducc.agent.processors.DefaultNodeInventoryProcessor;
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
@@ -1354,8 +1356,22 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             return;
           } else if (changeState(processEntry.getValue().getProcessState())) {
         	  logger.info(methodName, null,"=============== PID:"+processEntry.getValue().getPID()+" Changing State - current state:"+processEntry.getValue().getProcessState()+" New State:"+duccEvent.getState());
-    		  processEntry.getValue().setProcessState(duccEvent.getState());
-        	  
+  		      processEntry.getValue().setProcessState(duccEvent.getState());
+  		      DuccEventDispatcher dispatcher = 
+  		    		configurationFactory.getORDispatcher(super.getContext());
+  		      try {
+      		    DefaultNodeInventoryProcessor processor = 
+      		    		configurationFactory.nodeInventoryProcessor(this);
+          		Map<DuccId, IDuccProcess> inventoryCopy
+          			= (Map<DuccId, IDuccProcess>)SerializationUtils.clone((ConcurrentHashMap<DuccId, IDuccProcess>) inventory);
+ 
+          		processor.dispatchInventoryUpdate(dispatcher, configurationFactory.getInventoryUpdateEndpoint(), inventoryCopy);
+      		    logger.info(methodName, null,"Sent Node Inventory Update to the OR - process PID:"+processEntry.getValue().getPID());
+
+  		      } catch( Exception e) {
+  		    	logger.warn("", null,e);
+  		      }
+   		    
             // if the process is Stopping, it must have hit an error threshold
           }
           // Check if MemoryCollector should be created for this

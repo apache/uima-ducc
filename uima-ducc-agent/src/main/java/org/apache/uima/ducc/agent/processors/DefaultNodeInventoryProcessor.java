@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.agent.processors;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +27,7 @@ import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
+import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
@@ -65,6 +65,12 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 		return agent.getInventoryCopy();
 	}
 
+	public void dispatchInventoryUpdate(DuccEventDispatcher dispatcher, String targetEndpoint, Map<DuccId, IDuccProcess> inventory) throws Exception {
+		NodeInventoryUpdateDuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(inventory,agent.getLastORSequence(), agent.getIdentity());
+		dispatcher.dispatch(targetEndpoint, duccEvent);
+		logger.info("dispatchInventoryUpdate", null, "Agent dispatched inventory update event to endpoint:"+targetEndpoint);
+	}
+
 	/**
 	 * 
 	 */
@@ -81,7 +87,7 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 		// (ducc.agent.node.inventory.publish.rate.skip)
 		// configured in ducc.properties.
 		if (previousInventory != null) {
-			if ( agent.getEventListener().forceInvotoryUpdate()) {
+			if (agent.getEventListener().forceInvotoryUpdate()) {
 				inventoryChanged = true;
 				agent.getEventListener().resetForceInventoryUpdateFlag();
 			}
@@ -95,17 +101,14 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 				// that perhaps a new process was added and one was removed. In
 				// this case,
 				// force the publish, since there was a change.
-				for (Map.Entry<DuccId, IDuccProcess> currentProcess : inventory
-						.entrySet()) {
+				for (Map.Entry<DuccId, IDuccProcess> currentProcess : inventory.entrySet()) {
 					// Check if a process in the current inventory exists in a
 					// previous
 					// inventory snapshot
 					if (previousInventory.containsKey(currentProcess.getKey())) {
-						IDuccProcess previousProcess = previousInventory
-								.get(currentProcess.getKey());
+						IDuccProcess previousProcess = previousInventory.get(currentProcess.getKey());
 						// check if either PID or process state has changed
-						if (currentProcess.getValue().getPID() != null
-								&& previousProcess.getPID() == null) {
+						if (currentProcess.getValue().getPID() != null && previousProcess.getPID() == null) {
 							inventoryChanged = true;
 							break;
 						} else if (!currentProcess.getValue().getProcessState()
@@ -113,30 +116,22 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 							inventoryChanged = true;
 							break;
 						} else {
-							List<IUimaPipelineAEComponent> breakdown = currentProcess
-									.getValue().getUimaPipelineComponents();
+							List<IUimaPipelineAEComponent> breakdown = currentProcess.getValue()
+									.getUimaPipelineComponents();
 							if (breakdown != null && breakdown.size() > 0) {
 								List<IUimaPipelineAEComponent> previousBreakdown = previousProcess
 										.getUimaPipelineComponents();
-								if (previousBreakdown == null
-										|| previousBreakdown.size() == 0
-										|| breakdown.size() != previousBreakdown
-												.size()) {
+								if (previousBreakdown == null || previousBreakdown.size() == 0
+										|| breakdown.size() != previousBreakdown.size()) {
 									inventoryChanged = true;
 								} else {
 									for (IUimaPipelineAEComponent uimaAeState : breakdown) {
 										boolean found = false;
 										for (IUimaPipelineAEComponent previousUimaAeState : previousBreakdown) {
-											if (uimaAeState.getAeName().equals(
-													previousUimaAeState
-															.getAeName())) {
+											if (uimaAeState.getAeName().equals(previousUimaAeState.getAeName())) {
 												found = true;
-												if (!uimaAeState
-														.getAeState()
-														.equals(previousUimaAeState
-																.getAeState())
-														|| uimaAeState
-																.getInitializationTime() != previousUimaAeState
+												if (!uimaAeState.getAeState().equals(previousUimaAeState.getAeState())
+														|| uimaAeState.getInitializationTime() != previousUimaAeState
 																.getInitializationTime()) {
 													inventoryChanged = true;
 													break;
@@ -188,79 +183,57 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 																							// rate,
 																							// publish
 
-				StringBuffer sb = new StringBuffer("Node Inventory ("
-						+ inventory.size() + ")");
+				StringBuffer sb = new StringBuffer("Node Inventory (" + inventory.size() + ")");
 				for (Map.Entry<DuccId, IDuccProcess> p : inventory.entrySet()) {
 					/*
-					 * long endInitLong = 0; String endInit = ""; ITimeWindow
-					 * wInit = p.getValue().getTimeWindowInit(); if(wInit !=
-					 * null) { endInit = wInit.getEnd(); endInitLong =
-					 * wInit.getEndLong(); } long startRunLong = 0; String
-					 * startRun = ""; ITimeWindow wRun =
-					 * p.getValue().getTimeWindowRun(); if(wRun != null) {
-					 * startRun = wRun.getStart(); startRunLong =
+					 * long endInitLong = 0; String endInit = ""; ITimeWindow wInit =
+					 * p.getValue().getTimeWindowInit(); if(wInit != null) { endInit =
+					 * wInit.getEnd(); endInitLong = wInit.getEndLong(); } long startRunLong = 0;
+					 * String startRun = ""; ITimeWindow wRun = p.getValue().getTimeWindowRun();
+					 * if(wRun != null) { startRun = wRun.getStart(); startRunLong =
 					 * wRun.getStartLong(); } if(endInitLong > startRunLong) {
 					 * logger.warn(methodName, null,
 					 * "endInit:"+endInitLong+" "+"startRun:"+startRunLong); }
 					 */
 					if (p.getValue().getUimaPipelineComponents() == null) {
-						p.getValue().setUimaPipelineComponents(
-								new ArrayList<IUimaPipelineAEComponent>());
+						p.getValue().setUimaPipelineComponents(new ArrayList<IUimaPipelineAEComponent>());
 					}
-					if ( !p.getValue().getProcessState().equals(ProcessState.Initializing)) {
+					if (!p.getValue().getProcessState().equals(ProcessState.Initializing)) {
 						p.getValue().getUimaPipelineComponents().clear();
 					}
-					int pipelineInitStats = (p.getValue()
-							.getUimaPipelineComponents() == null) ? 0 : p
-							.getValue().getUimaPipelineComponents().size();
+					int pipelineInitStats = (p.getValue().getUimaPipelineComponents() == null) ? 0
+							: p.getValue().getUimaPipelineComponents().size();
 					StringBuffer gcInfo = new StringBuffer();
-					if (p.getValue().getGarbageCollectionStats() != null ) {
+					if (p.getValue().getGarbageCollectionStats() != null) {
 						gcInfo.append(" GC Total=")
 								.append(p.getValue().getGarbageCollectionStats().getCollectionCount())
 								.append(" GC Time=")
-								.append(p.getValue().getGarbageCollectionStats().getCollectionTime())
-								.append(" ");
-
+								.append(p.getValue().getGarbageCollectionStats().getCollectionTime()).append(" ");
 
 					}
-					sb.append("\n\t[Process Type=")
-							.append(p.getValue().getProcessType())
-							.append(" DUCC ID=")
-							.append(p.getValue().getDuccId())
-							.append(" PID=")
-							.append(p.getValue().getPID())
-							.append(" State=")
-							.append(p.getValue().getProcessState())
-							.append(" Resident Memory=")
-							.append(p.getValue().getResidentMemory())
-							.append(gcInfo.toString())
-							.append(" Init Stats List Size:"
-									+ pipelineInitStats)
-							.append(" Reason: "+p.getValue().getReasonForStoppingProcess())		
-							.append("] ");
-					if (p.getValue().getProcessState()
-							.equals(ProcessState.Stopped)
-							|| p.getValue().getProcessState()
-									.equals(ProcessState.Failed)
-							|| p.getValue().getProcessState()
-									.equals(ProcessState.Killed)) {
-						sb.append(" Reason:"
-								+ p.getValue().getReasonForStoppingProcess());
-						sb.append(" Extended Reason:"+p.getValue().getExtendedReasonForStoppingProcess());
+					sb.append("\n\t[Process Type=").append(p.getValue().getProcessType()).append(" DUCC ID=")
+							.append(p.getValue().getDuccId()).append(" PID=").append(p.getValue().getPID())
+							.append(" State=").append(p.getValue().getProcessState()).append(" Resident Memory=")
+							.append(p.getValue().getResidentMemory()).append(gcInfo.toString())
+							.append(" Init Stats List Size:" + pipelineInitStats)
+							.append(" Reason: " + p.getValue().getReasonForStoppingProcess()).append("] ");
+					if (p.getValue().getProcessState().equals(ProcessState.Stopped)
+							|| p.getValue().getProcessState().equals(ProcessState.Failed)
+							|| p.getValue().getProcessState().equals(ProcessState.Killed)) {
+						sb.append(" Reason:" + p.getValue().getReasonForStoppingProcess());
+						sb.append(" Extended Reason:" + p.getValue().getExtendedReasonForStoppingProcess());
 					}
 
-					if (!p.getValue().getProcessState()
-							.equals(ProcessState.Running)
-							&& !p.getValue().getProcessState()
-					                .equals(ProcessState.Initializing)) {
-					    sb.append(" Exit Code=" + p.getValue().getProcessExitCode());
-					}					
+					if (!p.getValue().getProcessState().equals(ProcessState.Running)
+							&& !p.getValue().getProcessState().equals(ProcessState.Initializing)) {
+						sb.append(" Exit Code=" + p.getValue().getProcessExitCode());
+					}
 
 				}
-				logger.info(methodName, null, "Agent "
-						+ agent.getIdentity().getCanonicalName() + " Posting Inventory:"
-						+ sb.toString());
-				outgoingMessage.getIn().setBody(new NodeInventoryUpdateDuccEvent(inventory,agent.getLastORSequence(), agent.getIdentity()));
+				logger.info(methodName, null,
+						"Agent " + agent.getIdentity().getCanonicalName() + " Posting Inventory:" + sb.toString());
+				outgoingMessage.getIn().setBody(
+						new NodeInventoryUpdateDuccEvent(inventory, agent.getLastORSequence(), agent.getIdentity()));
 
 			} else {
 				// Add null to the body of the message. A filter
@@ -279,6 +252,7 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 			}
 			inventoryChanged = false;
 		}
+
 	}
 
 }

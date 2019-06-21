@@ -24,6 +24,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
@@ -136,6 +137,7 @@ public class AgentConfiguration {
   @Autowired
   CommonConfiguration common;
 
+  DefaultNodeInventoryProcessor inventoryProcessor=null;
   /**
    * Creates {@code AgentEventListener} that will handle incoming messages.
    *
@@ -499,7 +501,9 @@ public class AgentConfiguration {
     }
     return null;
   }
-
+  public String getInventoryUpdateEndpoint() {
+	  return common.nodeInventoryEndpoint;
+  }
   public void startNodeMetrics(NodeAgent agent) throws Exception {
 
   	  nodeMetricsProcessor.setAgent(agent);
@@ -544,8 +548,11 @@ public class AgentConfiguration {
 
   }
 
-  public NodeInventoryProcessor nodeInventoryProcessor(NodeAgent agent) {
-    return new DefaultNodeInventoryProcessor(agent, inventoryPublishRateSkipCount);
+  public DefaultNodeInventoryProcessor nodeInventoryProcessor(NodeAgent agent) {
+	  if ( Objects.isNull(inventoryProcessor) ) {
+		  inventoryProcessor = new DefaultNodeInventoryProcessor(agent, inventoryPublishRateSkipCount);
+	  }
+    return inventoryProcessor;
   }
 
   public void stopInventoryRoute() {
