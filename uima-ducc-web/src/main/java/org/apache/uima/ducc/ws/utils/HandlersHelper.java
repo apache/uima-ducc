@@ -426,12 +426,20 @@ public class HandlersHelper {
 		String methodName = "getServiceAuthorization";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		DataAccessPermission retVal = DataAccessPermission.None;
+		
 		try {
-			if(resOwner == reqUser) {
+			if(resOwner == null) {
+				// None
+			}
+			else if(reqUser == null) {
+				// None
+			}
+			else if(resOwner.equals(reqUser)) {
 				retVal = DataAccessPermission.Read;
 			}
 			else {
 				String home = getSecurityHome(resOwner.trim());
+				duccLogger.debug(methodName, jobid, "owner="+resOwner+" "+"home"+home);
 				if(home != null) {
 					if(!home.endsWith(File.separator)) {
 						home = home+File.separator;
@@ -440,10 +448,10 @@ public class HandlersHelper {
 					boolean readable = isFileReadable(reqUser, path);
 					if(readable) {
 						retVal = DataAccessPermission.Read;
-						duccLogger.debug(methodName, jobid, "owner="+resOwner+" "+"user="+reqUser+" "+retVal);
 					}
 				}
 			}
+			duccLogger.debug(methodName, jobid, "owner="+resOwner+" "+"user="+reqUser+" "+retVal);
 		}
 		catch(Exception e) {
 			duccLogger.error(methodName, jobid, e);
