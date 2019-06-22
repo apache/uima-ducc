@@ -462,14 +462,14 @@ implements Orchestrator {
 		boolean is_master = getDuccHead().is_ducc_head_virtual_master();
 		if(!is_master) {
 			duccEvent.setDuccHeadMaster(false);
-			logger.info(methodName, duccId, "not master");
+			logger.debug(methodName, duccId, "not master");
 		}
 		else {
 			duccEvent.setDuccHeadMaster(true);
-			logger.info(methodName, duccId, "master");
+			logger.debug(methodName, duccId, "master");
 			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
 			if(dsr != null) {
-				logger.info(methodName, duccId, dsr.getLogReport());
+				logger.debug(methodName, duccId, dsr.getLogReport());
 				stateManager.reconcileState(dsr);
 				String sid = ""+duccId.getFriendly();
 				DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.cloneDuccWork(workMap, sid, this, methodName);
