@@ -19,6 +19,7 @@
 # -----------------------------------------------------------------------
 
 import sys
+import syslog
 
 version_min = [2, 7]
 version_info = sys.version_info
@@ -68,6 +69,10 @@ class Keepalived_Evaluator():
         if(self.flag_info):
             print mn+' '+text
     
+    def to_syslog(self,mn,text):
+        cn = self._cn()
+        syslog.syslog(cn+'.'+mn+': '+text)
+    
     def do_cmd(self,cmd):
         mn = self._mn()
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -80,12 +85,16 @@ class Keepalived_Evaluator():
     
     def get_ducc_status(self):
         mn = self._mn()
-        cmd = [ducc_status,'--target','localhost']
+        cmd = [ducc_status,'--target','localhost','-e']
         out, err = self.do_cmd(cmd)
         if('down=0' in out):
             status = 0
         else:
             status = 1
+            text = 'out: '+str(out)
+            self.to_syslog(mn,text)
+            text = 'rc: '+str(status)
+            self.to_syslog(mn,text)
         text = str(status)
         self.debug(mn,text)
         return status
@@ -100,7 +109,10 @@ class Keepalived_Evaluator():
             for line in lines:
                 text = line
                 self.error(mn,text)
+                self.to_syslog(mn,text)
             rc = 1
+            text = 'rc: '+str(rc)
+            self.to_syslog(mn,text)
         text = 'rc='+str(rc)
         self.info(mn,text)
         sys.exit(rc)
