@@ -180,24 +180,17 @@ public class JobDriverStateExchanger extends Thread {
 	
 	private void abortIfTold(JdReplyEvent jdReplyEvent) {
 		String location = "abortIfTold";
-		if(jdReplyEvent != null) {
-			if(jdReplyEvent.isDuccHeadMaster()) {
-				String killDriverReason = jdReplyEvent.getKillDriverReason();
-				if(killDriverReason != null) {
-					int code = 255;
-					StringBuffer sb = new StringBuffer();
-					sb.append("System Exit");
-					sb.append(" ");
-					sb.append("code="+code);
-					sb.append(" ");
-					sb.append("reason="+killDriverReason);
-					logger.warn(location, jobid, sb.toString());
-					System.exit(code);
-				}
-			}
-			else {
-				logger.warn(location, jobid, "not master");
-			}
+		String killDriverReason = jdReplyEvent.getKillDriverReason();
+		if(killDriverReason != null) {
+			int code = 255;
+			StringBuffer sb = new StringBuffer();
+			sb.append("System Exit");
+			sb.append(" ");
+			sb.append("code="+code);
+			sb.append(" ");
+			sb.append("reason="+killDriverReason);
+			logger.warn(location, jobid, sb.toString());
+			System.exit(code);
 		}
 	}
 	
@@ -316,7 +309,22 @@ public class JobDriverStateExchanger extends Thread {
 		try {
 			JdRequestEvent jdRequestEvent = getJdRequestEvent();
 			JdReplyEvent jdReplyEvent = request(jdRequestEvent);
-			handle(jdReplyEvent);
+			if(jdReplyEvent != null) {
+				if(jdReplyEvent.isDuccHeadMaster()) {
+					if(jdReplyEvent.getProcessMap() != null) {
+						handle(jdReplyEvent);
+					}
+					else {
+						logger.warn(location, jobid, "no map");
+					}
+				}
+				else {
+					logger.warn(location, jobid, "not master");
+				}
+			}
+			else {
+				logger.warn(location, jobid, "null reply");
+			}
 			if(!communications_ok) {
 				logger.warn(location, jobid, "Status reporting resumed.");
 				communications_ok = true;
