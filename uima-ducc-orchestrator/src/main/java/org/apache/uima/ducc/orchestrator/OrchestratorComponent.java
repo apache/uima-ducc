@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.camel.CamelContext;
@@ -725,6 +726,42 @@ implements Orchestrator {
     	return dh;
     }
 	
+	private void diagnose(DuccHeadTransition dh_transition, String when) {
+		String methodName = "diagnose";
+		DuccWorkMap dwm = orchestratorCommonArea.getWorkMap();
+		Set<DuccId> keys = dwm.getJobKeySet();
+		if(keys.isEmpty()) {
+			logger.debug(methodName, null, "no jobs");
+		}
+		else {
+			for(DuccId key : keys) {
+				IDuccWork dw = dwm.findDuccWork(key);
+				IDuccWorkJob dwj = (IDuccWorkJob) dw;
+				if(dwj != null) {
+					IDuccProcessMap processMap = dwj.getProcessMap();
+					if(processMap != null) {
+						for(IDuccProcess process : processMap.values()) {
+							StringBuffer sb = new StringBuffer();
+							sb.append("head-state:"+dh_transition.name()+"="+when);
+							sb.append(" ");
+							sb.append("ducc-pid:"+process.getDuccId());
+							sb.append(" ");
+							sb.append("user:"+dwj.getStandardInfo().getUser());
+							sb.append(" ");
+							sb.append("node:"+process.getNode().getNodeIdentity().getCanonicalName());
+							sb.append(" ");
+							sb.append("pid:"+process.getPID());
+							logger.debug(methodName, dwj.getDuccId(), sb);
+						}
+					}
+				}
+				else {
+					logger.debug(methodName, key, "no job");
+				}
+			}
+		}	
+	}
+	
 	/**
 	 * Publish Orchestrator State
 	 */
@@ -745,10 +782,12 @@ implements Orchestrator {
 			logger.warn(methodName, jobid, "ducc head -> backup");
 			break;
 		case backup_to_master:
+			diagnose(dh_transition,"before");
 			OrchestratorCommonArea.getInstance().restart();
 			SystemEventsLogger.warn(IDuccLoggerComponents.abbrv_orchestrator, EventType.SWITCH_TO_MASTER.name(), "");
 			orchestratorStateDuccEvent.setDuccHeadState(DuccHeadState.master);
 			logger.warn(methodName, jobid, "ducc head -> master");
+			diagnose(dh_transition,"after");
 			break;
 		case master_to_master:
 			orchestratorStateDuccEvent.setDuccHeadState(DuccHeadState.master);

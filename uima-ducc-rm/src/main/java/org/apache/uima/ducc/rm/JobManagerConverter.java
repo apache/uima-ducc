@@ -1262,8 +1262,13 @@ public class JobManagerConverter
                             ProcessState state = proc.getProcessState();
                             Node n = proc.getNode();
                             if ( n == null ) {
-                                logger.info(methodName, w.getDuccId(), "   Process[", pid, "] state [", state, "] is complete[", proc.isComplete(), "] Node [N/A] mem[N/A");
-                            } else {
+                                logger.info(methodName, w.getDuccId(), "   Process[", pid, "] state [", state, "] is complete[", proc.isComplete(), "] Node [N/A] mem[N/A]");
+                            }
+                            else if( proc.isComplete() ) {
+                            	long mem = n .getNodeMetrics().getNodeMemory().getMemTotal();
+                            	logger.info(methodName, w.getDuccId(), "   Process[", pid, "] state [", state, "] is complete[", proc.isComplete(), "] Node [",n.getNodeIdentity().getCanonicalName() + "." + proc.getDuccId(),"] mem[", mem, "]");
+                            }
+                            else {
                                 long mem = n .getNodeMetrics().getNodeMemory().getMemTotal();
                                 logger.info(methodName, w.getDuccId(), 
                                             "   Process[", pid, 
@@ -1296,6 +1301,10 @@ public class JobManagerConverter
                         IDuccReservationMap  rm = de.getReservationMap();
 
                         logger.info(methodName, w.getDuccId(), "Receive:", prefix, w.getDuccType(), w.getStateObject(), "processes[", rm.size(), "] Completed:", w.isCompleted());
+                        
+                        if(w.isCompleted()) {
+                        	continue;
+                        }
                         
                         for ( IDuccReservation r: rm.values()) {
                             Node n = r.getNode();                        
