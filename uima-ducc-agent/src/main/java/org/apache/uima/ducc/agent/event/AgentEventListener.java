@@ -112,21 +112,34 @@ public class AgentEventListener implements DuccEventDelegateListener {
 						+ process.getPID());
 
 		IDuccWorkExecutable dwe = (IDuccWorkExecutable) dw;
-		// processCmdLine =
-		// dwe.getCommandLine();
+		boolean preemptable = true;
+		
+		try {
+			// this may fail if scheduling class is wrong
+			preemptable = dw.getPreemptableStatus();
+		} catch(Exception e) {
+			// tag the process as failed so the reconciler does not
+			// try to launch the process. Instead agent will publish
+			// this process as Failed 
+			process.setProcessState(ProcessState.Failed);
+			logger.info("onDuccJobsStateEvent",
+					jobDeployment.getJobId(),
+					">>>>>>>>>>>> "
+							+" Unable to Determine Scheduling Class for Ducc Process: "+process.getDuccId() );
+		}
+
 		// agent will check the state of JP
 		// process and either start, stop,
-		// or
-		// take no action
+		// or take no action
 		agent.reconcileProcessStateAndTakeAction(
 				lifecycleController,
 				process,
-				dwe.getCommandLine(), // jobDeployment.getJpCmdLine(),
+				dwe.getCommandLine(), 
 				jobDeployment
 						.getStandardInfo(),
 				jobDeployment
 						.getProcessMemoryAssignment(),
-				jobDeployment.getJobId(), dw.getPreemptableStatus());
+				jobDeployment.getJobId(), preemptable);
 
 	}
 	private void handleServiceState(IDuccJobDeployment jobDeployment, IDuccWork dw, IDuccProcess process) throws Exception {

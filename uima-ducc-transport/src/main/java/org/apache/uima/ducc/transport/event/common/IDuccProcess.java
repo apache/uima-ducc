@@ -125,6 +125,7 @@ public interface IDuccProcess extends Serializable {
 		CommandLineMissing,
 		Unexplained,
 		Defunct,
+		InvalidSchedulingClass,
 		Other
 	}
 	

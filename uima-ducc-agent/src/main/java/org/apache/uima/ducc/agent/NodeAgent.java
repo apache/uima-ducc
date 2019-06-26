@@ -919,7 +919,23 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       } else { // Process not in agent's inventory
         // Add this process to the inventory so that it gets published.
         getInventoryRef().put(process.getDuccId(), process);
-        if (process.isDeallocated()) {
+        if ( process.isFailed()) {
+        	// When a process scheduling class is invalid, the AgentEventListener will 
+        	// tag it as FAILED 
+        	process.setReasonForStoppingProcess(IDuccProcess.ReasonForStoppingProcess.InvalidSchedulingClass.name());
+        	ITimeWindow twr = new TimeWindow();
+
+        	process.setTimeWindowRun(twr);
+		    twr.setStartLong(0);
+		    twr.setEndLong(0);
+		    
+	       	ITimeWindow twi = new TimeWindow();
+	       	process.setTimeWindowInit(twi);
+		    twi.setStartLong(0);
+		    twi.setEndLong(0);
+	       	
+		    
+        } else if (process.isDeallocated()) {
           // process not in agent's inventory and it is marked as
           // deallocated. This can happen when an agent is restarted
           // while the rest of DUCC is running.
