@@ -1351,13 +1351,49 @@ class DuccUtil(DuccBase):
             return False
         return True
 
-    keepalivd_conf = '/etc/keepalived/keepalived.conf'
+    keepalived_conf = '/etc/keepalived/keepalived.conf'
+
+    def get_virtual_ipaddress(self):
+        state = 0
+        vip = 'unspecified'
+        if ( os.path.exists(self.keepalived_conf) ):
+            with open(self.keepalived_conf) as f:
+                for line in f:
+                    tokens = line.split(' ')
+                    if(tokens == None):
+                        pass
+                    elif(len(tokens) == 0):
+                        pass
+                    elif(tokens[0] == '!'):
+                        pass
+                    else:
+                        for token in tokens:
+                            token = token.strip()
+                            if(len(token) == 0):
+                                continue
+                            elif(token == '#'):
+                                break
+                            if(state == 0):
+                                if(token == 'virtual_ipaddress'):
+                                    state = 1
+                            elif(state == 1):
+                                if(token == '{'):
+                                    state = 2
+                            elif(state == 2):
+                                vip = token
+                                state = 3
+                            elif(state == 3):
+                                if(token == '}'):
+                                    state = 4
+                            else:
+                                pass
+        return vip
 
     # eligible when keepalived config comprises the ip
     def is_reliable_eligible(self, ip):
         retVal = False
-        if ( os.path.exists(self.keepalivd_conf) ):
-            with open(self.keepalivd_conf) as f:
+        if ( os.path.exists(self.keepalived_conf) ):
+            with open(self.keepalived_conf) as f:
                 for line in f:
                     if ip in line:
                         retVal = True
