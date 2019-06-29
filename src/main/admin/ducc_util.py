@@ -712,21 +712,25 @@ class DuccUtil(DuccBase):
         label = 'get_ip_address'
         result = None
         try:
-            p = subprocess.Popen(['/usr/bin/nslookup', hostname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            output, err = p.communicate()
-            #print hostname, output, err
-            name = None
-            for line in output.splitlines():
-                tokens = line.split()
-                if(len(tokens) == 2):
-                    t0 = tokens[0]
-                    t1 = tokens[1]
-                    if(t0 == 'Address:'):
-                        if(name != None):
-                            result = t1
-                            break
-                    elif(t0 == 'Name:'):
-                        name = t1
+            # get virtual ip address from keepalived.conf
+            result = self.get_virtual_ipaddress()
+            if(result == None):
+                # get virtual ip address from nameserver
+                p = subprocess.Popen(['/usr/bin/nslookup', hostname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                output, err = p.communicate()
+                #print hostname, output, err
+                name = None
+                for line in output.splitlines():
+                    tokens = line.split()
+                    if(len(tokens) == 2):
+                        t0 = tokens[0]
+                        t1 = tokens[1]
+                        if(t0 == 'Address:'):
+                            if(name != None):
+                                result = t1
+                                break
+                        elif(t0 == 'Name:'):
+                            name = t1
         except Exception as e:
             print e
         debug(label, str(result))
@@ -1355,7 +1359,7 @@ class DuccUtil(DuccBase):
 
     def get_virtual_ipaddress(self):
         state = 0
-        vip = 'unspecified'
+        vip = None
         if ( os.path.exists(self.keepalived_conf) ):
             with open(self.keepalived_conf) as f:
                 for line in f:
