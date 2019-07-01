@@ -38,7 +38,6 @@ import javax.management.openmbean.CompositeData;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.apache.uima.ducc.common.utils.InetHelper;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 
@@ -101,7 +100,8 @@ public class BrokerHelper extends JmxHelper {
 		String key;
 		String value;
 		//
-		value = InetHelper.getHostName();
+		key = "ducc.broker.name";
+		value = duccPropertiesResolver.getCachedProperty(key);
 		setHost(value);
 		//
 		key = "ducc.broker.jmx.port";
