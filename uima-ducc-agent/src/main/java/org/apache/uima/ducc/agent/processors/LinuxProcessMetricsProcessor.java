@@ -46,7 +46,7 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 		ProcessMetricsProcessor {
 
-	private long previousCPUReadingInMillis = 0;
+	private long previousCPUReadingInNanos = 0;
 	
 	private long previousSnapshotTime = 0;
 
@@ -192,10 +192,8 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 			processCpuUsage = pool
 					.submit(processCpuUsageCollector);
 			long cpuUsageInNanos = processCpuUsage.get().getCpuUsage();
-			if ( cpuUsageInNanos >= 0 ) {
-				// cpuUsage comes from cpuacct.usage and is in nanos
-				cpuUsage = Math.round( cpuUsageInNanos / 1000000 );  // normalize into millis
-			} 
+			// cpuUsage comes from cpuacct.usage and is in nanos
+			cpuUsage =  cpuUsageInNanos;// / 1000000 ;  // normalize into millis
 			logger.debug(
 					"LinuxProcessMetricsProcessor.getCpuUsage",null,
 					"CPU USAGE:"+cpuUsageInNanos+ " CLOCK RATE:"+agent.cpuClockRate+" Total CPU USAGE:"+cpuUsage);
@@ -203,47 +201,47 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 		return cpuUsage;
 	}
 	
-	private long getCpuTime( long totalCpuUsageInMillis) throws Exception {
-		long cp = -1;
-		if (managedProcess.getDuccProcess().getProcessState()
-				.equals(ProcessState.Running) ||
-				managedProcess.getDuccProcess().getProcessState()
-				.equals(ProcessState.Initializing)	
-				) {
-			if (agent.useCgroups && totalCpuUsageInMillis != -1) {
-				
-				long timeRunning = 1;
-				if ( process.getTimeWindowInit() != null ) {
-					timeRunning = process.getTimeWindowInit().getElapsedMillis();
-				}
-				if ( process.getTimeWindowRun() != null ) {
-					timeRunning += process.getTimeWindowRun().getElapsedMillis();
-				}
-				// normalize time in running state into seconds
-				percentCPU = Math.round(100*( (totalCpuUsageInMillis*1.0)/ (timeRunning*1.0)));
-				cp = percentCPU;
-			}
-		} else {
-			cp  = percentCPU;
-		}
-		return cp;
-	}
+  private long getCpuTime(long totalCpuUsageInNanos) throws Exception {
+    long cp = -1;
+    if (agent.useCgroups) {
+      if (managedProcess.getDuccProcess().getProcessState().equals(ProcessState.Running)
+              || managedProcess.getDuccProcess().getProcessState()
+                      .equals(ProcessState.Initializing)) {
 
-	private long getCurrentCpu(long totalCpuUsageInMillis ) {
+        long timeRunning = 1;
+        if (process.getTimeWindowInit() != null) {
+          timeRunning = process.getTimeWindowInit().getElapsedMillis();
+        }
+        if (process.getTimeWindowRun() != null) {
+          timeRunning += process.getTimeWindowRun().getElapsedMillis();
+        }
+        long totalCpuUsageInMillis = totalCpuUsageInNanos/1000000;
+        // normalize time in running state into seconds
+        percentCPU = Math.round(100*( (totalCpuUsageInMillis*1.0)/ (timeRunning*1.0)));
+
+        cp = percentCPU;
+
+      } else {
+        cp = percentCPU;
+      }
+    }
+
+    return cp;
+  }
+
+	private long getCurrentCpu(long totalCpuUsageInNanos ) {
 		long currentCpu=-1;
 		// publish current CPU usage by computing a delta from the last time
 		// CPU data was fetched.
-		if ( totalCpuUsageInMillis > 0 ) {
-			double millisCPU = ( totalCpuUsageInMillis - previousCPUReadingInMillis )*1.0;
-			double millisRun = ( System.currentTimeMillis() - previousSnapshotTime )*1.0;
-			currentCpu = Math.round(100*(millisCPU/millisRun) ) ;
-			previousCPUReadingInMillis = totalCpuUsageInMillis;
+		if ( agent.useCgroups) {
+		  //long totalCpuUsageInMillis = totalCpuUsageInNanos/1000000;
+			long millisCPU =  (totalCpuUsageInNanos - previousCPUReadingInNanos)/1000000 ;
+			long millisRun = System.currentTimeMillis() - previousSnapshotTime ;
+			currentCpu = Math.round(100*( (millisCPU*1.0)/(millisRun*1.0)) );
+			previousCPUReadingInNanos = totalCpuUsageInNanos;
 			previousSnapshotTime = System.currentTimeMillis();
-		} else {
-			if (agent.useCgroups && totalCpuUsageInMillis != -1 ) {
-				currentCpu = 0;
-			}
-		}
+		} 
+		
 		return currentCpu;
 	}
 	
