@@ -373,12 +373,12 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements
 			long rssInBytes = getRss();
 			process.setResidentMemory(rssInBytes);
 
-			long totalCpuUsageInMillis = getCpuUsage();
+			long totalCpuUsageInNanos = getCpuUsage();
 
 			// set CPU time in terms of %
-			process.setCpuTime(getCpuTime(totalCpuUsageInMillis));
+			process.setCpuTime(getCpuTime(totalCpuUsageInNanos));
 
-			process.setCurrentCPU(getCurrentCpu(totalCpuUsageInMillis));
+			process.setCurrentCPU(getCurrentCpu(totalCpuUsageInNanos));
 
 			ProcessGarbageCollectionStats gcStats = getGCStats();
 			process.setGarbageCollectionStats(gcStats);
