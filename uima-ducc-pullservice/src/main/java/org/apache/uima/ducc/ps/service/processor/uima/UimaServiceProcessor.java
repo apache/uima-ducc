@@ -227,7 +227,7 @@ public class UimaServiceProcessor extends AbstractServiceProcessor implements IS
 			
 		}
 		if ( numberOfInitializedThreads.incrementAndGet() == scaleout ) {
-			super.delay(logger, DEFAULT_INIT_DELAY);
+			//super.delay(logger, DEFAULT_INIT_DELAY);
 			monitor.onStateChange(IServiceState.State.Running.toString(), new Properties());
 		}
 	}
