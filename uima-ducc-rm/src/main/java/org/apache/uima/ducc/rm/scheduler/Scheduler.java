@@ -1232,15 +1232,17 @@ public class Scheduler
     private NodePool findNodepoolByRule(NodeIdentity ni) {
     	String location = "findNodepoolByRule";
     	NodePool np = null;
+    	NodePool testnp;
     	try {
     		String name1 = ni.getCanonicalName();
     		String name2 = ni.getShortName();
         	String ip = ni.getIp();
         	logger.info(location, jobid, mapRules.size(), name1, name2, ip);
         	for(String noderule : listRules) {
-        		np = mapRules.get(noderule);
+        		testnp = mapRules.get(noderule);
         		// match name with domain
         		if(name1.matches(noderule)) {
+        		  np = testnp;
         			logger.info(location, jobid, "match by name: ", noderule, name1, np.getId());
         			break;
         		}
@@ -1249,6 +1251,7 @@ public class Scheduler
         		}
         		// match name without domain
         		if(name2.matches(noderule)) {
+              np = testnp;
         			logger.info(location, jobid, "match by name: ", noderule, name2, np.getId());
         			break;
         		}
@@ -1257,6 +1260,7 @@ public class Scheduler
         		}
         		// match ip
         		if(ip.matches(noderule)) {
+              np = testnp;
         			logger.info(location, jobid, "match by ip: ", noderule, ip,  np.getId());
         			break;
         		}
