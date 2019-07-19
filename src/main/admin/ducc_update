@@ -46,6 +46,7 @@ import fnmatch
 import re
 import shutil
 import subprocess
+import pwd
 
 global preserveFiles
 global preserveDirectories
@@ -215,6 +216,7 @@ def check_ducc(runtime):
     print 'checking for ducc running, may take a few minutes...'
     cmd = [ os.path.join(runtime,'admin/check_ducc') ]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1, universal_newlines=True)
+    foundDucc = 'Found ' + find_ducc_uid(os.path.join(runtime,'admin'))
     while True:
         output = p.stdout.readline()
         if output == '' and p.poll() is not None:
@@ -222,11 +224,21 @@ def check_ducc(runtime):
         if output:
             line = output.strip()
             #print line
-            if('Found ducc' in line):
-                print "ERROR - DUCC appears to be running ... please run '" + os.path.join(runtime,'admin/stop_ducc') + " -a'"
+            if foundDucc in line:
+                print "ERROR - DUCC appears to be running: " + line 
+                print "Please run '" + os.path.join(runtime,'admin/stop_ducc') + " --all'"
                 exit(1)
     rc = p.poll()
     return rc
+
+#-----------------------------------------------------------------------------------------
+# The "ducc" userid is the user that installed DUCC and created this directory
+#-----------------------------------------------------------------------------------------
+def find_ducc_uid(dir):
+    my_stat = os.stat(dir)
+    my_uid = my_stat.st_uid
+    pwdinfo = pwd.getpwuid(my_uid)
+    return pwdinfo.pw_name
     
 #=========================================================================================
 # Main program:
@@ -266,8 +278,6 @@ rtime   = sys.argv[1]
 tarfile = sys.argv[2]
 runtime = os.path.realpath(rtime)
 
-check_ducc(runtime)
-
 if not os.path.exists(tarfile):
     print "ERROR - Missing tar file", tarfile
     exit(1)
@@ -287,6 +297,18 @@ if not os.path.exists(runtime):
     exit(0)
 
 #-----------------------------------------------------------------------------------------
+# Check if appears to be a valid DUCC installation
+#-----------------------------------------------------------------------------------------
+if not os.path.exists(os.path.join(runtime, 'resources/ducc.properties')):
+    print "ERROR - Not a valid DUCC runtime directory:", runtime
+    exit(1)
+
+#-----------------------------------------------------------------------------------------
+# Run the check_ducc script and quit if DUCC is running
+#-----------------------------------------------------------------------------------------
+check_ducc(runtime)
+
+#-----------------------------------------------------------------------------------------
 # Check if invoked from inside the runtime
 # Probably OK if from admin, but to be safe ...
 #-----------------------------------------------------------------------------------------
@@ -294,16 +316,6 @@ if not os.path.exists(runtime):
 curdir = os.path.realpath(os.environ['PWD'])
 if curdir.startswith(runtime) and curdir != runtime:
     print "ERROR - Cannot run from inside the runtime"
-    exit(1)
-
-#-----------------------------------------------------------------------------------------
-# Check if appears to be a valid (stopped) DUCC installation
-#-----------------------------------------------------------------------------------------
-if not os.path.exists(os.path.join(runtime, 'resources/ducc.properties')):
-    print "ERROR - Not a valid DUCC runtime directory:", runtime
-    exit(1)
-if os.path.exists(os.path.join(runtime, 'state/ducc.pids')):
-    print "ERROR - DUCC appears to be running ... please run '" + rtime + "/admin/stop_ducc -a'"
     exit(1)
 
 oversion = get_oversion(runtime)
