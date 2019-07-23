@@ -22,7 +22,9 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.orchestrator.utilities.CliVersion;
 import org.apache.uima.ducc.orchestrator.utilities.MemorySpecification;
@@ -124,7 +126,19 @@ public class Validate {
 			String reason = createReason("invalid", key, value);
 			addError(properties,reason);
 			retVal = false;
-		}	
+		}
+		// Check if a valid class name
+    DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+    DuccProperties props = null;
+    try {
+      props = duccSchedulerClasses.getClasses().get(value);
+    } catch (Exception e) {
+    }
+    if (props == null) {
+      String reason = createReason("unknown", key, value);
+      addError(properties,reason);
+      retVal = false;
+    }
 		return retVal;
 	}
 	
