@@ -82,15 +82,13 @@ def usage():
     print "   -DDUCC_DESRIPTION=user-description-string"
     print "       The default description is the program name (viaducc or java_viaducc) with arguments"
     print ""
-    print "   -DDUCC_NO_CANCEL_ON_INTERRUPT"
-    print "       To disable process cancellation when the submitting process terminates."
+    print "   -DDUCC_ATTACH_CONSOLE"
+    print "       Connects the remote process to local console. Remote process terminated if submitting process stops."
     print ""
     print "   When invoked as 'viaducc' the command is executed in a DUCC-managed resource"
-    print "with the console (bi-directionally) redirected to the submitter's console."
     print ""
     print "   When invokded as 'java_viaducc' an appropriate JRE is found and the class"
-    print "is executed as a java class in a DUCC-managed resource, with the console"
-    print "bi-directionally redirected to the submitter's console."
+    print "is executed as a java class in a DUCC-managed resource."
     print ""
     print "Notes for java_viaducc:"
     print ""
@@ -213,7 +211,7 @@ def main():
     ducc_class = 'fixed'
     java_cmd   = None
     ducc_env   = ''
-    enable_cancel = True
+    enable_attach = False
     ducc_desc  = os.path.basename(sys.argv[0])
 
     # remember to add the '=' at the end if following value
@@ -222,7 +220,7 @@ def main():
     p_jvm_dir   = '-DJAVA_BIN='
     p_ducc_home = '-DDUCC_HOME='
     p_env       = '-DDUCC_ENVIRONMENT='
-    p_no_int    = '-DDUCC_NO_CANCEL_ON_INTERRUPT'
+    p_attach    = '-DDUCC_ATTACH_CONSOLE'
     p_desc      = '-DDUCC_DESCRIPTION='
 
     need_java = False
@@ -260,8 +258,8 @@ def main():
             ducc_desc = arg[len(p_desc):]
             ducc_desc_set = True
 
-        elif (arg.startswith(p_no_int) ):
-            enable_cancel = False
+        elif (arg.startswith(p_attach) ):
+            enable_attach = True
 
         else:
             ducc_args.append("'" + arg + "'")
@@ -301,9 +299,10 @@ def main():
     # execute from somebody else's ducc so let's be sure we point at the right one
     os.environ['DUCC_HOME'] = ducc_home
     CMD = ducc_home + '/bin/ducc_process_submit'
-    CMD = CMD +       ' --attach_console'
+    CMD = CMD +       ' --wait_for_completion'
     CMD = CMD +       ' --process_memory_size ' + str(ducc_mem_size)
     CMD = CMD +       ' --scheduling_class ' + ducc_class
+
     if ducc_desc_set:
         CMD = CMD +       ' --description %r' % ducc_desc
     else:
@@ -312,8 +311,8 @@ def main():
         else:
             CMD = CMD +        ' --description viaducc'
 
-    CMD = CMD +       ' --wait_for_completion'
-    if (enable_cancel):
+    if enable_attach:
+        CMD = CMD +       ' --attach_console'
         CMD = CMD +       ' --cancel_on_interrupt'
     CMD = CMD +       ' --working_directory ' + os.getcwd()
     CMD = CMD +       ducc_env
