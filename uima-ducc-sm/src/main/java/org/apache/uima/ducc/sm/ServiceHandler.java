@@ -343,13 +343,15 @@ public class ServiceHandler
 
     /**
      * This is called when an endpoint is referenced as a dependent service from a job or a service.
-     * It is called only when a new job or service is first discovred in the OR map.
+     * It is called only when a new job or service is first discovered in the OR map.
      */
     protected Map<String, ServiceSet> resolveDependencies(DuccWorkJob w, ServiceDependency s)
     {
-    	//String methodName = "resolveDependencies";
+    	String methodName = "resolveDependencies";
     	DuccId id = w.getDuccId();
         String[] deps = w.getServiceDependencies();
+        
+        logger.info(methodName, id, deps.length);
 
         // New services, if any are discovered
         // Put them into the global map of known services if needed and up the ref count
@@ -358,6 +360,7 @@ public class ServiceHandler
         for ( String dep : deps ) {
             ServiceSet sset = serviceStateHandler.getServiceByUrl(dep);
             if ( sset == null ) {
+            	logger.info(methodName, id, dep, "Service is unknown");
                 s.addMessage(dep, "Service is unknown.");
                 s.setState(ServiceState.NotAvailable);
                 fatal = true;
@@ -370,7 +373,7 @@ public class ServiceHandler
             jobServices.clear();
         } else {
             for ( ServiceSet sset : jobServices.values() ) {
-                // If service is unregistered and then rerigistered while the job is running it may have lost
+                // If service is unregistered and then re-registered while the job is running it may have lost
                 // its connections, which we insure we always have here.
                 serviceStateHandler.putServiceForJob(w.getDuccId(), sset);
                 sset.reference(id);     // might start it if it's not running
@@ -1535,7 +1538,7 @@ public class ServiceHandler
          private Map<Long,    ServiceSet>  servicesByImplementor           = new HashMap<Long, ServiceSet>();
 
 //         // For each job, the collection of services it is dependent upon
-//         // DUccId is a Job Id (or id for serice that has dependencies)
+//         // DUccId is a Job Id (or id for service that has dependencies)
          private Map<DuccId, Map<Long, ServiceSet>>  servicesByJob = new HashMap<DuccId, Map<Long, ServiceSet>>();
 
          /*

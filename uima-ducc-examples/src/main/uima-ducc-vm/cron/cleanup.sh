@@ -18,21 +18,21 @@
 # under the License.
 # -----------------------------------------------------------------------
 
-# handle /home/duccy/spool/
+# handle /home/ducc/spool/
 
-togo=`find /home/duccy/spool/* -mtime +21 -user duccy`
+togo=`find /home/ducc/spool/* -mtime +21 -user ducc`
 echo Removing $togo
-`find /home/duccy/spool/* -mtime +21 -user duccy | xargs -i rm -rf {}`
+`find /home/ducc/spool/* -mtime +21 -user ducc | xargs -i rm -rf {}`
 
-# handle /home/duccy/ducc/logs/
+# handle /home/ducc/ducc/logs/
 
-togo=`find /home/duccy/ducc/logs/* -mtime +21 -user duccy`
+togo=`find /home/ducc/ducc/logs/* -mtime +21 -user ducc`
 echo Removing $togo
-`find /home/duccy/ducc/logs/* -mtime +21 -user duccy | xargs -i rm -rf {}`
+`find /home/ducc/ducc/logs/* -mtime +21 -user ducc | xargs -i rm -rf {}`
 
 # handle /tmp/UIMA*
 
-togo=`find /tmp -mtime +21 -user duccy`
+togo=`find /tmp -mtime +21 -user ducc`
 echo Removing $togo
-`find /tmp -mtime +21 -user duccy | xargs -i rm -rf {}`
+`find /tmp -mtime +21 -user ducc | xargs -i rm -rf {}`
 
