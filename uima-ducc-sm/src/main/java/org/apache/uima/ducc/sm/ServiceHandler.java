@@ -351,7 +351,7 @@ public class ServiceHandler
     	DuccId id = w.getDuccId();
         String[] deps = w.getServiceDependencies();
         
-        logger.info(methodName, id, deps.length);
+        logger.debug(methodName, id, deps.length);
 
         // New services, if any are discovered
         // Put them into the global map of known services if needed and up the ref count
@@ -360,7 +360,7 @@ public class ServiceHandler
         for ( String dep : deps ) {
             ServiceSet sset = serviceStateHandler.getServiceByUrl(dep);
             if ( sset == null ) {
-            	logger.info(methodName, id, dep, "Service is unknown");
+            	logger.debug(methodName, id, dep, "Service is unknown");
                 s.addMessage(dep, "Service is unknown.");
                 s.setState(ServiceState.NotAvailable);
                 fatal = true;
