@@ -124,6 +124,17 @@ public class DuccDaemonRuntimeProperties {
 		return;
 	}
 	
+	private void putBootProperty(Properties bootProperties, String key, String value) {
+		if(key != null) {
+			if(value != null) {
+				bootProperties.put(key, value);
+			}
+			else {
+				bootProperties.put(key, "?");
+			}
+		}
+	}
+	
 	public void boot(DaemonName daemonName, String jmxUrl) {
 		Properties bootProperties = new Properties();
 		String daemonNameText = daemonName.toString();
@@ -144,12 +155,12 @@ public class DuccDaemonRuntimeProperties {
 		catch(Exception e) {
 			e.printStackTrace();
 		}
-		bootProperties.put(DuccDaemonRuntimeProperties.keyDaemonName, daemonNameText);
-		bootProperties.put(DuccDaemonRuntimeProperties.keyBootTime, bootTime);
-		bootProperties.put(DuccDaemonRuntimeProperties.keyJmxUrl, jmxUrl);
-		bootProperties.put(DuccDaemonRuntimeProperties.keyNodeIpAddress, nodeIpAddress);
-		bootProperties.put(DuccDaemonRuntimeProperties.keyNodeName, nodeName);
-		bootProperties.put(DuccDaemonRuntimeProperties.keyPid, pid);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyDaemonName, daemonNameText);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyBootTime, bootTime);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyJmxUrl, jmxUrl);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyNodeIpAddress, nodeIpAddress);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyNodeName, nodeName);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyPid, pid);
 		getInstance().put(daemonName, bootProperties);
 	}
 	
@@ -206,12 +217,12 @@ public class DuccDaemonRuntimeProperties {
 		catch(Exception e) {
 			e.printStackTrace();
 		}
-		bootProperties.put(DuccDaemonRuntimeProperties.keyDaemonName, name);
-		bootProperties.put(DuccDaemonRuntimeProperties.keyBootTime, bootTime);
-		bootProperties.put(DuccDaemonRuntimeProperties.keyJmxUrl, jmxUrl);
-		bootProperties.put(DuccDaemonRuntimeProperties.keyNodeIpAddress, nodeIpAddress);
-		bootProperties.put(DuccDaemonRuntimeProperties.keyNodeName, nodeName);
-		bootProperties.put(DuccDaemonRuntimeProperties.keyPid, pid);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyDaemonName, name);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyBootTime, bootTime);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyJmxUrl, jmxUrl);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyNodeIpAddress, nodeIpAddress);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyNodeName, nodeName);
+		putBootProperty(bootProperties, DuccDaemonRuntimeProperties.keyPid, pid);
 		getInstance().putAgent(name, bootProperties);
 	}
 }
