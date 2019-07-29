@@ -82,7 +82,8 @@ class Helper():
     
     #####
     
-    hostname = socket.gethostname().split('.')[0]
+    #hostname = socket.gethostname().split('.')[0]
+    hostname = socket.gethostname()
     port = '61617'
     
     dictService = {
