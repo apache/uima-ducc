@@ -90,6 +90,7 @@ import org.apache.uima.ducc.ws.state.monitoring.INodeState;
 import org.apache.uima.ducc.ws.state.monitoring.NodeState;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
+import org.apache.uima.ducc.ws.utils.DnsHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 import org.eclipse.jetty.server.Request;
@@ -1997,6 +1998,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			if(!machines.isEmpty()) {
 				Map<String, Long> allocatedMap = Distiller.getMap();
 				for(Entry<MachineInfo, NodeId> entry : machines.entrySet()) {
+					if(!DnsHelper.isKnownHost(entry.getValue())) {
+						continue; // skip host if not known to nameserver
+					}
 					MachineInfo machineInfo = entry.getKey();
 					SizeBytes sb = new SizeBytes(Type.Bytes, 0);
 					if(DuccMachinesDataHelper.isUp(machineInfo)) {
