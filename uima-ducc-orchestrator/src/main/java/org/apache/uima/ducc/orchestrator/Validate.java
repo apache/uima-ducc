@@ -19,10 +19,10 @@
 package org.apache.uima.ducc.orchestrator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
@@ -38,7 +38,7 @@ import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
-import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
+import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 
@@ -111,34 +111,17 @@ public class Validate {
 			return false;
 		}	
 		JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
-		String key;
-		String value;
 		//
 		retVal = integer(retVal,
 				properties,
 				JobSpecificationProperties.key_process_pipeline_count,
 				IDuccSchedulingInfo.defaultThreadsPerProcess,
 				IDuccSchedulingInfo.minThreadsPerProcess);
-		// scheduling class
-		key = JobRequestProperties.key_scheduling_class;
-		value = (String) properties.get(key);
-		if(value == null) {
-			String reason = createReason("invalid", key, value);
-			addError(properties,reason);
-			retVal = false;
-		}
-		// Check if a valid class name
-    DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-    DuccProperties props = null;
-    try {
-      props = duccSchedulerClasses.getClasses().get(value);
-    } catch (Exception e) {
-    }
-    if (props == null) {
-      String reason = createReason("unknown", key, value);
-      addError(properties,reason);
-      retVal = false;
-    }
+		
+		// check scheduling class - change to a fixed class if debugging
+    boolean fixit = properties.containsKey(JobSpecificationProperties.key_process_debug);
+		retVal = validate_scheduling_class(retVal, properties, fixit);
+		
 		return retVal;
 	}
 	
@@ -158,32 +141,37 @@ public class Validate {
 	}
 		
 	public static boolean request(SubmitReservationDuccEvent duccEvent) {
-		boolean retVal = true;
 		if (!validate_cli_version(duccEvent)) {
 			return false;
 		}	
 		ReservationRequestProperties properties = (ReservationRequestProperties) duccEvent.getProperties();
-		String key;
-		String value;
-		// memory size
-		key = ReservationRequestProperties.key_memory_size;
+		// Check memory size
+		String key = ReservationRequestProperties.key_memory_size;
 		String memorySize = (String) properties.get(key);
 		MemorySpecification memorySpecification = new MemorySpecification(memorySize);
-		value = memorySpecification.getSize();
+		String value = memorySpecification.getSize();
 		if(value == null) {
 			String reason = createReason("invalid", key, value);
 			addError(properties,reason);
-			retVal = false;
+			return false;
 		}
-		// scheduling class
-		key = ReservationRequestProperties.key_scheduling_class;
-		value = (String) properties.get(key);
-		if(value == null) {
-			String reason = createReason("invalid", key, value);
-			addError(properties,reason);
-			retVal = false;
-		}
-		return retVal;
+		
+		// Check if class is valid
+    try {
+        String[] reserveClasses = DuccSchedulerClasses.getInstance().getReserveClasses();
+        key = SpecificationProperties.key_scheduling_class;
+        String schedulingClass = properties.getProperty(key);
+        if (!Arrays.asList(reserveClasses).contains(schedulingClass)) {
+          String reason = createReason("invalid as not one of the reserve classes", key, schedulingClass);
+          addError(properties,reason);
+          return false;
+        }
+    } catch (Exception e) {
+      addError(properties, e.toString());
+      return false;
+    }
+		
+    return true;
 	}
 	
 	public static boolean request(CancelReservationDuccEvent duccEvent, DuccWorkReservation duccWorkReservation) {
@@ -219,25 +207,18 @@ public class Validate {
 		boolean retVal = true;
 		if (!validate_cli_version(duccEvent)) {
 			return false;
-		}		
+		}
+		//TODO - why is this the same as the job request ?
 		JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
-		String key;
-		String value;
-		//
+
 		retVal = integer(retVal,
 				properties,
 				JobSpecificationProperties.key_process_pipeline_count,
 				IDuccSchedulingInfo.defaultThreadsPerProcess,
 				IDuccSchedulingInfo.minThreadsPerProcess);
-		// scheduling class
-		key = ServiceRequestProperties.key_scheduling_class;
-		value = (String) properties.get(key);
-		if(value == null) {
-			String reason = createReason("invalid", key, value);
-			addError(properties,reason);
-			retVal = false;
-		}
-		return retVal;
+		
+    // check scheduling class
+    return validate_scheduling_class(retVal, properties, true);
 	}
 	
 	public static boolean request(CancelServiceDuccEvent duccEvent) {
@@ -257,5 +238,52 @@ public class Validate {
 		addError(ev.getProperties(),reason);
 		logger.warn("validate_cli_request", null, reason);
 		return false;
+	}
+	
+	// Scheduling class must be specified and valid
+	// Change a preemptable class to fixed if an AP or service
+	private static boolean validate_scheduling_class(boolean retVal, SpecificationProperties properties, boolean fixit) {
+	  if (!retVal) {
+	    return false;
+	  }
+	  String key = SpecificationProperties.key_scheduling_class;
+    String schedulingClass = properties.getProperty(key);
+    if (schedulingClass == null) {  // Should never happen as default value set earlier by OrchestratorHelper
+      String reason = createReason("invalid", key, schedulingClass);
+      addError(properties,reason);
+      return false;
+    }
+    
+    // Check if a valid class name
+    DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+    boolean isPreemptable;
+    try {
+      isPreemptable = duccSchedulerClasses.isPreemptable(schedulingClass);
+    } catch (IllegalArgumentException e) {   // Must be an unknown class
+      String reason = createReason("unknown", key, schedulingClass);
+      addError(properties,reason);
+      return false;
+    } catch (Exception e) {
+      addError(properties, e.toString());   // Invalid class configuration
+      return false;
+    }
+    
+    // Check if must be changed
+    if (isPreemptable && fixit) {
+      String fixedClass = null;
+      try {
+        fixedClass = duccSchedulerClasses.getDebugClassSpecificName(schedulingClass);
+      } catch (Exception e) {
+      }
+      if (fixedClass == null) {
+        addError(properties, "Invalid class configuration - all classes must have a debug (fixed) entry");
+        return false;
+      }
+      properties.setProperty(key, fixedClass);
+      String reason = createReason("changed preemptable class to", key, fixedClass);
+      addWarning(properties,reason);
+    }
+    
+    return true;
 	}
 }

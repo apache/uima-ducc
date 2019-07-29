@@ -24,8 +24,6 @@ import java.util.List;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
-import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.transport.event.ServiceDisableEvent;
 import org.apache.uima.ducc.transport.event.ServiceEnableEvent;
 import org.apache.uima.ducc.transport.event.ServiceIgnoreEvent;
@@ -443,27 +441,8 @@ public class DuccServiceApi
 
             check_heap_size(UiOption.ProcessExecutableArgs.pname());
 
-        } else {
+         } else {
             throw new IllegalArgumentException("Invalid service endpoint: " + endpoint);
-        }
-
-        // Check if falsely using a fair-share class; set the default if missing
-        String scheduling_class = cli_props.getProperty(UiOption.SchedulingClass.pname());
-        boolean isPreemptableClass = false;
-        try {
-            DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-            if (scheduling_class != null) {
-                isPreemptableClass = duccSchedulerClasses.isPreemptable(scheduling_class);
-            } else {
-                cli_props.setProperty(UiOption.SchedulingClass.pname(), duccSchedulerClasses.getDebugClassDefaultName());
-            }
-        } catch (IllegalArgumentException e) {
-          throw e;    // Unknown scheduling class
-        } catch (Exception e) {
-            throw new IllegalConfigurationException("Error in DUCC configuration files - see administrator", e);
-        }
-        if (isPreemptableClass) {
-            throw new IllegalArgumentException("Invalid pre-emptable scheduling class: " + scheduling_class);
         }
 
         // work out stuff I'm dependent upon

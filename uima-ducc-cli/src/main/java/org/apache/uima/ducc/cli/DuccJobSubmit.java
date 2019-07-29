@@ -29,8 +29,6 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.cli.aio.AllInOneLauncher;
 import org.apache.uima.ducc.common.exception.DuccRuntimeException;
-import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
-import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
@@ -229,37 +227,8 @@ public class DuccJobSubmit
 			
 		}
     }
-    /*
-     * If preemptable change to a non-preemptable scheduling class.
-     * If none provided use the default fixed class
-     */
-    protected void transform_scheduling_class(CliBase base, Properties props)
-            throws Exception
-    {
-    	 String scheduling_class = null;
-         String user_scheduling_class = null;
-         String pname = UiOption.SchedulingClass.pname();
-        try {
-            DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-            if (props.containsKey(pname)) {
-                user_scheduling_class = props.getProperty(pname);
-                if (duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
-                    scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
-                }
-            } else {
-                scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
-            }
-        } catch (Exception e) {
-            throw new IllegalConfigurationException("Error in DUCC configuration files - see administrator", e);
-        }
-         if (scheduling_class != null) {
-              props.setProperty(pname, scheduling_class);
-              String text = pname+"="+scheduling_class+" -- was "+user_scheduling_class;
-              base.message(text);
-         }
-    }
 
-    private void check_descriptor_options() {
+  private void check_descriptor_options() {
 		boolean isDDjob = jobRequestProperties.containsKey(UiOption.ProcessDD.pname());
 		boolean isPPjob = jobRequestProperties.containsKey(UiOption.ProcessDescriptorCM.pname())
 				|| jobRequestProperties.containsKey(UiOption.ProcessDescriptorAE.pname())
@@ -305,8 +274,7 @@ public class DuccJobSubmit
                 props.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");
                 props.setProperty(UiOption.ProcessFailuresLimit.pname(), "1");
 
-                // Alter scheduling class?
-                transform_scheduling_class(this, props);
+                // Scheduling class now checked in OR's Validate
             }
 
             do_debug = UiOption.DriverDebug.pname();

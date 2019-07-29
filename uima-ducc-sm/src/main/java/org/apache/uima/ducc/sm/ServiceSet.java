@@ -43,6 +43,7 @@ import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -173,6 +174,8 @@ public class ServiceSet
     //  Swapped these 2 values  UIMA-5244
     String archive_key = IStateServices.SvcMetaProps.is_archived.columnName();
     String archive_flag  = "true";
+    
+    private String warning = "";  // May hold class-change msg
 
     //
     // Constructor for a registered service
@@ -185,6 +188,9 @@ public class ServiceSet
         this.meta_props = meta;
         this.id = id;
 
+        // Check for valid scheduling class here (was in the CLI)
+        validateSchedulingClass(props);
+        
         this.service_state = ServiceState.Stopped;
         this.linger_time = props.getLongProperty(UiOption.ServiceLinger.pname(), linger_time);
         this.key = meta.getProperty(IStateServices.SvcMetaProps.endpoint.pname());
@@ -260,6 +266,10 @@ public class ServiceSet
     	return key;
     }
     
+    String getWarning() {
+      return warning;
+    }
+    
     // UIMA-4258
     // Get potentially pending instances from meta and stash them away for a bit
     // Used in hot-start to remap instance ids to ducc ids
@@ -312,6 +322,34 @@ public class ServiceSet
             this.endpoint = ep.substring(ndx+1);
         }
 
+    }
+
+    // Check if a valid class name & if must be changed to a fixed one
+    private void validateSchedulingClass(DuccProperties properties) {
+      DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+      String key = UiOption.SchedulingClass.pname();
+      String schedulingClass = properties.getProperty(key);
+      try {
+        if (schedulingClass == null) {
+          properties.setProperty(key, duccSchedulerClasses.getDebugClassDefaultName());
+          return;
+        }
+        //if (!duccSchedulerClasses.getClasses().containsKey(schedulingClass)) {
+        //  throw new IllegalArgumentException("Unknown scheduling_class: " + schedulingClass);
+        //}
+        if (duccSchedulerClasses.isPreemptable(schedulingClass)) {
+          String fixedClass = duccSchedulerClasses.getDebugClassSpecificName(schedulingClass);
+          if (fixedClass == null) {
+            throw new IllegalArgumentException("Invalid class configuration - all classes must have a debug (fixed) entry");
+          }
+          properties.setProperty(key, fixedClass);
+          warning = " (changed preemptable " + key + " to " + fixedClass + ")";
+        }
+      } catch (IllegalArgumentException e) {
+        throw e;
+      } catch (Exception e) {
+        throw new IllegalArgumentException(e);
+      }
     }
 
     synchronized Long[] getImplementors()

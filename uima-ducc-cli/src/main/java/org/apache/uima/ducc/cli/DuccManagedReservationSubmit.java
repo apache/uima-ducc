@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
-import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
@@ -154,25 +152,6 @@ public class DuccManagedReservationSubmit
      */
     public boolean execute() throws Exception
     {
-        // If the specified scheduling class is pre-emptable, change to a fixed one if possible
-        String pname = UiOption.SchedulingClass.pname();
-        String scheduling_class = serviceRequestProperties.getProperty(pname);
-        if (scheduling_class != null) {
-            try {
-                DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-                if (duccSchedulerClasses.isPreemptable(scheduling_class)) {
-                    String np_scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(scheduling_class);
-                    if (np_scheduling_class != null) {
-                        serviceRequestProperties.setProperty(pname, np_scheduling_class);
-                        String msg = "Changed the scheduling_class from " + scheduling_class + " to the non-preemptable " + np_scheduling_class;
-                        message(msg);
-                    }
-                }
-            } catch (Exception e) {
-                throw new IllegalConfigurationException("Error in DUCC configuration files - see administrator", e);
-            }
-        }
-
         // Could omit this if not a java process
         check_heap_size(UiOption.ProcessExecutableArgs.pname());
 

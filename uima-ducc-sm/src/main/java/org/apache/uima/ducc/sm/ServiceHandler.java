@@ -1089,7 +1089,7 @@ public class ServiceHandler
     {
     	String methodName = "register";
 
-        String error = null;
+        String error;
         boolean must_deregister = false;
 
         String url = meta.getProperty("endpoint");
@@ -1114,6 +1114,7 @@ public class ServiceHandler
         } catch ( Exception e ) {
             error = ("Internal error; unable to store service descriptor. " + url);
             logger.error(methodName, id, e);
+            return ServiceManagerComponent.makeResponse(false, error, url, id.getFriendly());
         }
 
 
@@ -1128,12 +1129,11 @@ public class ServiceHandler
             //                 }
         }
 
-        if ( error == null ) {
-            serviceStateHandler.registerService(id.getFriendly(), url, sset);
-            return ServiceManagerComponent.makeResponse(true, "Registered", url, id.getFriendly());
-        } else {
-            return ServiceManagerComponent.makeResponse(false, error, url, id.getFriendly());
-        }
+        serviceStateHandler.registerService(id.getFriendly(), url, sset);
+        
+        // Include warning of class change if any
+        String msg = "Registered" + sset.getWarning();
+        return ServiceManagerComponent.makeResponse(true, msg, url, id.getFriendly());
     }
 
     synchronized ServiceReplyEvent modify(ServiceModifyEvent ev)
