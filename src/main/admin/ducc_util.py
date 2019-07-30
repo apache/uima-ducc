@@ -556,7 +556,7 @@ class DuccUtil(DuccBase):
         cmd = '/bin/hostname'
         if(node == 'localhost'):
             req = self.get_hostname()
-        ssh_cmd = 'ssh -q -o BatchMode=yes -o ConnectTimeout=10'+' '+node+" "+cmd
+        ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=10'+' '+node+" "+cmd
         resp = self.popen(ssh_cmd)
         lines = resp.readlines()
         if(len(lines)== 1):
@@ -564,21 +564,19 @@ class DuccUtil(DuccBase):
             line = line.strip();
             rsp = line.split('.')[0]
             if(req == rsp):
-                is_operational = True;
-        if(not is_operational):
-            if(verbosity):
-                print 'ssh not operational - unexpected results'
-                print ssh_cmd
-                for line in lines:
-                    print line
-        return is_operational
+                return True;
+        if(verbosity):
+            print 'ssh not operational - unexpected results from:', ssh_cmd
+            for line in lines:
+                print '>>>>>',line
+        return False
 
     # like popen, only it spawns via ssh
     # Skip use of ssh?
     # NOTE: Current callers always have do_wait True
     def ssh(self, host, do_wait, *CMD):
         cmd = ' '.join(CMD)
-        # Some callers quote the string which is OK for ssh but not the direct call
+                # Some callers quote the string which is OK for ssh but not the direct call
         if cmd[0] == "'" and cmd[-1] == "'":
             cmd = cmd[1:len(cmd)-2]
         if ( do_wait ):

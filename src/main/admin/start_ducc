@@ -69,15 +69,15 @@ class StartDucc(DuccUtil):
 
     def start_component(self, args):
 
-        ducc, component, or_parms = args
+        component, or_parms = args
         msgs = []
-
-        node = self.ducc_properties.get('ducc.head')
-        
+                
         com = component
         if ( com.find('@') >= 0 ):            
             com, node = com.split('@')
-            
+        else:
+            node = self.ducc_properties.get('ducc.head')
+
         if (com in self.local_components):
             node = self.localhost
 
@@ -87,9 +87,11 @@ class StartDucc(DuccUtil):
             if (com in ['db', 'database']):
                 msgs.append(('Unmanaged component', component))
                 return msgs
-            
+
+        if com == 'ag':
+            com = 'agent'
         if ((com in self.default_components) or ( com == 'agent')) :
-            msgs.append((node, 'Starting', com))
+            msgs.append(('Starting', com, 'on', node))
         else:
             msgs.append(('Unrecognized component', component))
             return msgs
@@ -102,11 +104,16 @@ class StartDucc(DuccUtil):
 
         if ( node == 'local' ):
             node = self.localhost
+        else:
+            if not self.ssh_operational(node):
+                msgs.append(('>>>>> ERROR - cannot ssh to', node))
+                return msgs
 
         lines = self.ssh(node, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', com, '-b', or_parms, '-d', str(time.time()), '--nodup', "'")
 
         # we'll capture anything that the python shell spews because it may be useful, and then drop the
         # pipe when we see a PID message
+        pid = None
         while 1:
             line = lines.readline().strip()
             if ( not line ):
@@ -114,13 +121,24 @@ class StartDucc(DuccUtil):
             #msgs.append(('[]', line))
             if ( line.startswith('PID') ):
                 toks = line.split(' ')    # get the PID
-                msgs.append(('     PID', toks[1]))
-                #self.pids_daemons.put(com + '@' + node, toks[1])
+                pid = toks[1]
                 lines.close()
                 break
             if ( line.startswith('WARN') ):
                 msgs.append(('    ', line))
-            
+                pid = '?'
+
+            sshmsgs = self.ssh_ok(node, line )
+            if ( sshmsgs != None ):
+                for m in sshmsgs:
+                    print '[S]', m
+        
+        if not pid:
+            msgs.append(('ERROR - failed to start', com, 'on', node))
+            return msgs;
+        if pid != '?':
+            msgs.append(('Started', com, 'on', node, 'with PID', pid))
+
         #if ( com in self.default_components ):           # tracks where the management processes are
         #    self.pidlock.acquire()
         #    self.pids_daemons.put(com, com + '@' + node)
@@ -130,48 +148,6 @@ class StartDucc(DuccUtil):
         
         return msgs
 
-    def start_one_agent(self, args):
-
-        host = args[0]
-        msgs = []
-        spacer = '   '
-        msgs.append((host, ""))
-        lines = self.ssh(host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c' 'agent', '-b', '-d', str(time.time()), '--nodup', "'")
-        for line in lines:
-            line = line.strip()
-            # print '[]', host, line
-            # msgs.append(('[l]', line))
-            if ( line.startswith('PID') ):
-                toks = line.split(' ')
-                pid = toks[1]
-                #self.pidlock.acquire()
-                #self.pids_agents.put('agent@' + host, pid)
-                #self.pidlock.release()
-
-                lines.close()
-                msgs.append((spacer, 'DUCC Agent started PID', pid))
-                break
-
-            if ( 'tty' in line ):
-                # ssh junk if mesg is set
-                continue
-
-            toks = line.split()
-
-            sshmsgs = self.ssh_ok(host, line )
-            if ( sshmsgs != None ):
-                for m in sshmsgs:
-                    print '[S]', m
-            
-            if ( toks[0] == 'NOTOK' ):
-                msgs.append((spacer, 'NOTOK Not started:', ' '.join(toks[1:])))
-            else:
-                msgs.append((spacer, line))
-
-        self.db_acct_start(host,'agent')
-        
-        return msgs
-      
     def verify_required_directories(self):        
         for dir in ('history', 'state', 'logs'):
             d = self.DUCC_HOME + '/' + dir
@@ -205,7 +181,7 @@ class StartDucc(DuccUtil):
         print "        component name with a destination node, use the notation component@nodename."
         print "        Multiple components may be specified:"
         print ""
-        print "        start_ducc -c sm -c pm -c rm@node1 -c or@node2 -c agent@remote1 -c agent@remote2"
+        print "        start_ducc -c sm -c pm -c rm@node1 -c or@node2 -c agent@remote1 -c ag@remote2"
         print ""
         print "        Components include:"
         print "          rm - resource manager"
@@ -213,7 +189,7 @@ class StartDucc(DuccUtil):
         print "          pm - process manager"
         print "          sm - services manager"
         print "          ws - web server"
-        print "          agent - node agent"     
+        print "          ag or agent - node agent"     
         print '          head = { or, pm, rm, sm, ws, db, broker }'   
         print ""
         print "    --nothreading"
@@ -408,8 +384,7 @@ class StartDucc(DuccUtil):
             for com in components:
                 if ( com in ('or') ):
                     try:
-                        self.threadpool.invoke(self.start_component, ducc, com, or_parms)
-                        #self.start_component(ducc, com, or_parms)
+                        self.threadpool.invoke(self.start_component, com, or_parms)
                     except:
                         self.threadpool.quit()
                         print sys.exc_info()[0], "DUCC may not be started correctly."
@@ -420,12 +395,13 @@ class StartDucc(DuccUtil):
         if(self.is_reliable_backup()):
             print '********** "backup" head node -> not starting agents'
         else:
-            print "Starting", n_nodes, "agents"    
+            if n_nodes > 0:
+                print "Starting", n_nodes, "agents"    
             for (nodefile, nodelist) in nodes.items():
                 print '********** Starting agents from file', nodefile
                 try:
                     for node in nodelist:
-                        self.threadpool.invoke(self.start_one_agent, node)
+                        self.threadpool.invoke(self.start_component, 'agent@'+node, None)
                 except:
                     self.threadpool.quit()
                     print sys.exc_info()[0], "DUCC may not be started correctly."
@@ -439,8 +415,7 @@ class StartDucc(DuccUtil):
                     pass     # already started
                 else:
                     try:
-                        self.threadpool.invoke(self.start_component, ducc, com, or_parms)
-                        #self.start_component(ducc, com, or_parms)
+                        self.threadpool.invoke(self.start_component, com, or_parms)
                     except:
                         self.threadpool.quit()
                         print sys.exc_info()[0], "DUCC may not be started correctly."
