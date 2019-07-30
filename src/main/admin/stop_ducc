@@ -391,12 +391,11 @@ class StopDucc(DuccUtil):
                     output(msg)
                     self._exit()
             else:
-                msg = 'invalid component: '+c
+                msg = 'invalid component syntax: '+c
                 output(msg)
                 self._exit()
+            # Convert to the internal shortname if valid
             if(dc in self.shortname):
-                component = dc
-            elif(dc in self.components):
                 component = self.shortname[dc]
             else:
                 msg = 'invalid component: '+c
@@ -460,7 +459,7 @@ class StopDucc(DuccUtil):
         return pid
     
     def acct_stop(self,node,component):
-        print 'stop: '+component+'@'+node
+        print 'db_acct_stop: '+component+'@'+node
         self.db_acct_stop(node,component)
         
     # target=kill
@@ -543,6 +542,7 @@ class StopDucc(DuccUtil):
         for item in list:
             node = item[0]
             com = item[1]
+            # Use the short names for DB recording but the external long names for DuccAdmin
             self.acct_stop(node,com)
             component = self.longname[com]
             if(component == self.c_broker):
@@ -552,7 +552,6 @@ class StopDucc(DuccUtil):
                 stop_db = True
                 continue
             else:
-                component = self.longname[com]
                 admin = admin+component+'@'+node+' '
         # issue command
         admin = admin.split()
@@ -565,9 +564,11 @@ class StopDucc(DuccUtil):
                 self.ducc_admin('--stop',item)
         # stop broker
         if(stop_broker):
+            print 'stop: broker'
             self.stop_broker()
         # stop database
         if(stop_db):
+            print 'stop: database'
             self.db_stop()
     
     # only agent component allowed
