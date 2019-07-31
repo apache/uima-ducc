@@ -63,7 +63,7 @@ public class AgentEventListener implements DuccEventDelegateListener {
 	ProcessLifecycleController lifecycleController = null;
 	// On startup of the Agent we may need to do cleanup of cgroups.
 	// This cleanup will happen once right after processing of the first OR publication.
-	private boolean cleanupPhase = true;  
+	//private boolean cleanupPhase = true;  
 	private AtomicLong lastSequence = new AtomicLong();
 	private volatile boolean forceInventoryUpdateDueToSequence = false;
 	
@@ -270,6 +270,7 @@ public class AgentEventListener implements DuccEventDelegateListener {
 				String message = "sequence="+sequence+" "+"type="+dhs+" "+"producer="+host+" "+"jobs="+jobs+" "+"reservations="+reservations+" "+"tid="+tid;
 				switch(dhs) {
 				case master:
+				case unspecified:
 					// Issue info and process master type publication
 					logger.info(location, null, "accept=Yes"+" "+message);
 					break;
