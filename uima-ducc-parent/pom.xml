@@ -852,6 +852,7 @@ ${uimaDUCCNoticeText}
 		  <plugin>
 			<groupId>org.codehaus.mojo</groupId>
 			<artifactId>buildnumber-maven-plugin</artifactId>
+			<version>1.4</version>
 			<executions>
 			  <execution>
 				<phase>validate</phase>
