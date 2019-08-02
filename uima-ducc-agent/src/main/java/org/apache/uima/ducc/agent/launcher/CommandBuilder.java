@@ -24,39 +24,35 @@ import org.apache.uima.internal.util.ArrayUtils;
 
 public class CommandBuilder {
 
-	private static final String ducclingPath = Utils.resolvePlaceholderIfExists(
-			System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
-			System.getProperties());
-	
-	public CommandBuilder() {
-		
-	}
-	private static boolean useDuccling(ManagedProcess process) {
-		if ( process.isAgentProcess() || Utils.isWindows()) {
-			return false;
-		}
-		// On non-windows check if we should spawn the process via ducc_ling
-		String useDuccling = System
-				.getProperty("ducc.agent.launcher.use.ducc_spawn");
-		return ("true".equalsIgnoreCase(useDuccling) ? true : false );
-	}
+  private static final String ducclingPath = Utils.resolvePlaceholderIfExists(
+          System.getProperty("ducc.agent.launcher.ducc_spawn_path"), System.getProperties());
 
-	public static String[] deployableStopCommand(ICommandLine cmdLine, ManagedProcess process) {
-		String[] cmd;
-		// Duccling, with no logging, always run by ducc, no need for
-		// workingdir
-		String[] ducclingNolog = new String[] { ducclingPath, "-u",
-				process.getOwner(), "--" };
-		
-		if ( useDuccling(process) ) {
-			cmd = (String[]) ArrayUtils.combine( ducclingNolog,
-					(String[]) ArrayUtils.combine(new String[] { cmdLine.getExecutable() },
-					cmdLine.getCommandLine()));
-		} else {
-			cmd = (String[]) ArrayUtils.combine(
-					new String[] { cmdLine.getExecutable() },
-					cmdLine.getCommandLine());
-		}
-		return cmd;
-	}
+  public CommandBuilder() {
+
+  }
+
+  private static boolean useDuccling(ManagedProcess process) {
+    if (process.isAgentProcess() || Utils.isWindows()) {
+      return false;
+    }
+    // On non-windows check if we should spawn the process via ducc_ling
+    String useDuccling = System.getProperty("ducc.agent.launcher.use.ducc_spawn");
+    return ("true".equalsIgnoreCase(useDuccling) ? true : false);
+  }
+
+  public static String[] deployableStopCommand(ICommandLine cmdLine, ManagedProcess process) {
+    String[] cmd;
+    // Duccling, with no logging, always run by ducc, no need for
+    // workingdir
+    String[] ducclingNolog = new String[] { ducclingPath, "-u", process.getOwner(), "--" };
+
+    if (useDuccling(process)) {
+      cmd = (String[]) ArrayUtils.combine(ducclingNolog, (String[]) ArrayUtils
+              .combine(new String[] { cmdLine.getExecutable() }, cmdLine.getCommandLine()));
+    } else {
+      cmd = (String[]) ArrayUtils.combine(new String[] { cmdLine.getExecutable() },
+              cmdLine.getCommandLine());
+    }
+    return cmd;
+  }
 }

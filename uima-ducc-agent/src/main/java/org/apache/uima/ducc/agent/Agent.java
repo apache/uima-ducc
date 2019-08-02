@@ -28,18 +28,26 @@ import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 
-
 public interface Agent extends ProcessLifecycleController {
-	public static final String DUCC_NODE_METRICS_ENDPOINT="ducc.agent.node.metrics.endpoint";
-	public static final String COMPONENT_NAME="Agent";
-	
-	public NodeIdentity getIdentity();
-	
-	public Map<DuccId, IDuccProcess> getInventoryCopy();
-	public Map<DuccId,IDuccProcess> getInventoryRef();
-	public boolean isRogueProcess(String uid, Set<NodeUsersCollector.ProcessInfo> processList, NodeUsersCollector.ProcessInfo cpi ) throws Exception;	
-	public void copyAllUserReservations(TreeMap<String,NodeUsersInfo> map);
-	public RogueProcessReaper getRogueProcessReaper();
-    public boolean isManagedProcess(Set<NodeUsersCollector.ProcessInfo> processList, NodeUsersCollector.ProcessInfo cpi);
-    public int getOSPageSize();
+  public static final String DUCC_NODE_METRICS_ENDPOINT = "ducc.agent.node.metrics.endpoint";
+
+  public static final String COMPONENT_NAME = "Agent";
+
+  public NodeIdentity getIdentity();
+
+  public Map<DuccId, IDuccProcess> getInventoryCopy();
+
+  public Map<DuccId, IDuccProcess> getInventoryRef();
+
+  public boolean isRogueProcess(String uid, Set<NodeUsersCollector.ProcessInfo> processList,
+          NodeUsersCollector.ProcessInfo cpi) throws Exception;
+
+  public void copyAllUserReservations(TreeMap<String, NodeUsersInfo> map);
+
+  public RogueProcessReaper getRogueProcessReaper();
+
+  public boolean isManagedProcess(Set<NodeUsersCollector.ProcessInfo> processList,
+          NodeUsersCollector.ProcessInfo cpi);
+
+  public int getOSPageSize();
 }

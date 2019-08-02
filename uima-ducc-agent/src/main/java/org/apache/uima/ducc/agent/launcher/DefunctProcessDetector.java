@@ -31,81 +31,87 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppin
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class DefunctProcessDetector implements Runnable {
-	ManagedProcess childProcess;
-	DuccLogger logger;
-	public DefunctProcessDetector(ManagedProcess process, DuccLogger logger) {
-		childProcess = process;
-		this.logger = logger;
-	}
-	private  boolean isDefunctProcess(String pid) throws Exception {
-		boolean zombie = false;
-		InputStreamReader in = null;
-		String[] command = {
-				"/bin/ps",
-				"-ef",
-				pid};
-		try {
-			ProcessBuilder pb = new ProcessBuilder();
-			pb.command(command);
+  ManagedProcess childProcess;
 
-			pb.redirectErrorStream(true);
-			java.lang.Process childProcess = pb.start();
-			in = new InputStreamReader(childProcess.getInputStream());
-			BufferedReader reader = new BufferedReader(in);
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				// the ps line will have string <defunct> if the 
-				// process is a zombie
-				zombie = (line.indexOf("defunct") > 0);
-				if ( zombie ) {
-   				   logger.info("DefunctProcessDetector.isDefunctProcess", null, "Process with PID:"+pid+" Is Defunct - OS reports:"+line);
-				    break;
-				}
-			}
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (Exception e) {
-				}
-			}
-		}
-		return zombie;
-	}
+  DuccLogger logger;
 
-	public void run() {
-		try {
-			if (isDefunctProcess(childProcess.getPid())) {
-				logger.info("DefunctProcessDetector.run()", childProcess.getDuccProcess().getDuccId(), "Process with PID:"+childProcess.getPid()+" Is Defunct - Changing State to Stopped");
-				childProcess.getDuccProcess().setProcessState(ProcessState.Stopped);
-				childProcess.getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.Defunct.name());
-			} else {
-				logger.debug("DefunctProcessDetector.run()", childProcess.getDuccProcess().getDuccId(), "Process with PID:"+childProcess.getPid()+" Not Defunct");
+  public DefunctProcessDetector(ManagedProcess process, DuccLogger logger) {
+    childProcess = process;
+    this.logger = logger;
+  }
 
-			}
-		} catch( Exception e) {
-			logger.error("DefunctProcessDetector.run()", childProcess.getDuccProcess().getDuccId(), e);
-		}
-		
-	}
-	public static void main(String[] args) {
-		try {
-			DuccLogger logger = new DuccLogger(DefunctProcessDetector.class);
-			DuccIdFactory factory = new DuccIdFactory();
-			DuccId duccId = factory.next();
-			NodeIdentity nid = new NodeIdentity();
-			IDuccProcess process = new DuccProcess(duccId, nid);
-			ManagedProcess p = new ManagedProcess(process, null);
-			process.setProcessState(ProcessState.Initializing);
-			process.setPID(args[0]);
-			p.setPid(args[0]);
-			DefunctProcessDetector detector = new DefunctProcessDetector(p, logger);
-			detector.run();
-		} catch( Exception e) {
-			e.printStackTrace();
-		}
-	}
+  private boolean isDefunctProcess(String pid) throws Exception {
+    boolean zombie = false;
+    InputStreamReader in = null;
+    String[] command = { "/bin/ps", "-ef", pid };
+    try {
+      ProcessBuilder pb = new ProcessBuilder();
+      pb.command(command);
+
+      pb.redirectErrorStream(true);
+      java.lang.Process childProcess = pb.start();
+      in = new InputStreamReader(childProcess.getInputStream());
+      BufferedReader reader = new BufferedReader(in);
+      String line = null;
+      while ((line = reader.readLine()) != null) {
+        // the ps line will have string <defunct> if the
+        // process is a zombie
+        zombie = (line.indexOf("defunct") > 0);
+        if (zombie) {
+          logger.info("DefunctProcessDetector.isDefunctProcess", null,
+                  "Process with PID:" + pid + " Is Defunct - OS reports:" + line);
+          break;
+        }
+      }
+    } catch (Exception e) {
+      throw e;
+    } finally {
+      if (in != null) {
+        try {
+          in.close();
+        } catch (Exception e) {
+        }
+      }
+    }
+    return zombie;
+  }
+
+  public void run() {
+    try {
+      if (isDefunctProcess(childProcess.getPid())) {
+        logger.info("DefunctProcessDetector.run()", childProcess.getDuccProcess().getDuccId(),
+                "Process with PID:" + childProcess.getPid()
+                        + " Is Defunct - Changing State to Stopped");
+        childProcess.getDuccProcess().setProcessState(ProcessState.Stopped);
+        childProcess.getDuccProcess()
+                .setReasonForStoppingProcess(ReasonForStoppingProcess.Defunct.name());
+      } else {
+        logger.debug("DefunctProcessDetector.run()", childProcess.getDuccProcess().getDuccId(),
+                "Process with PID:" + childProcess.getPid() + " Not Defunct");
+
+      }
+    } catch (Exception e) {
+      logger.error("DefunctProcessDetector.run()", childProcess.getDuccProcess().getDuccId(), e);
+    }
+
+  }
+
+  public static void main(String[] args) {
+    try {
+      DuccLogger logger = new DuccLogger(DefunctProcessDetector.class);
+      DuccIdFactory factory = new DuccIdFactory();
+      DuccId duccId = factory.next();
+      NodeIdentity nid = new NodeIdentity();
+      IDuccProcess process = new DuccProcess(duccId, nid);
+      ManagedProcess p = new ManagedProcess(process, null);
+      process.setProcessState(ProcessState.Initializing);
+      process.setPID(args[0]);
+      p.setPid(args[0]);
+      DefunctProcessDetector detector = new DefunctProcessDetector(p, logger);
+      detector.run();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
 }

@@ -26,43 +26,41 @@ import java.util.concurrent.Callable;
 import org.apache.uima.ducc.common.node.metrics.NodeLoadAverage;
 import org.apache.uima.ducc.common.node.metrics.UptimeNodeLoadAverage;
 
-public class NodeLoadAverageCollector implements
-		Callable<NodeLoadAverage> {
+public class NodeLoadAverageCollector implements Callable<NodeLoadAverage> {
 
-	public NodeLoadAverageCollector() {
-	}
+  public NodeLoadAverageCollector() {
+  }
 
-	public NodeLoadAverage call() throws Exception {
-		return collect();
-	}
+  public NodeLoadAverage call() throws Exception {
+    return collect();
+  }
 
-	private NodeLoadAverage collect() throws Exception {
-		InputStream stream = null;
-		BufferedReader reader = null;
-		UptimeNodeLoadAverage uptimeLoadAverage = new UptimeNodeLoadAverage();
-		ProcessBuilder pb = new ProcessBuilder("uptime");
-		;
-		pb.redirectErrorStream(true);
-		Process proc = pb.start();
-		// spawn uptime command and scrape the output
-		stream = proc.getInputStream();
-		reader = new BufferedReader(new InputStreamReader(stream));
-		String line;
-		String regex = "\\s+";
-		String filter = "load average:";
-		// read the next line from ps output
-		while ((line = reader.readLine()) != null) {
-			int pos = 0;
-			if ((pos = line.indexOf(filter)) > -1) {
-				String la = line.substring(pos + filter.length()).replaceAll(
-						regex, "");
-				String[] averages = la.split(",");
-				uptimeLoadAverage.setLoadAvg1(averages[0]);
-				uptimeLoadAverage.setLoadAvg5(averages[1]);
-				uptimeLoadAverage.setLoadAvg15(averages[2]);
-			}
-		}
-		proc.waitFor();
-		return uptimeLoadAverage;
-	}
+  private NodeLoadAverage collect() throws Exception {
+    InputStream stream = null;
+    BufferedReader reader = null;
+    UptimeNodeLoadAverage uptimeLoadAverage = new UptimeNodeLoadAverage();
+    ProcessBuilder pb = new ProcessBuilder("uptime");
+    ;
+    pb.redirectErrorStream(true);
+    Process proc = pb.start();
+    // spawn uptime command and scrape the output
+    stream = proc.getInputStream();
+    reader = new BufferedReader(new InputStreamReader(stream));
+    String line;
+    String regex = "\\s+";
+    String filter = "load average:";
+    // read the next line from ps output
+    while ((line = reader.readLine()) != null) {
+      int pos = 0;
+      if ((pos = line.indexOf(filter)) > -1) {
+        String la = line.substring(pos + filter.length()).replaceAll(regex, "");
+        String[] averages = la.split(",");
+        uptimeLoadAverage.setLoadAvg1(averages[0]);
+        uptimeLoadAverage.setLoadAvg5(averages[1]);
+        uptimeLoadAverage.setLoadAvg15(averages[2]);
+      }
+    }
+    proc.waitFor();
+    return uptimeLoadAverage;
+  }
 }

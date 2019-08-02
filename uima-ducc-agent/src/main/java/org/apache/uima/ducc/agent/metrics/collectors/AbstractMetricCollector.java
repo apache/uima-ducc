@@ -23,13 +23,20 @@ import java.io.RandomAccessFile;
 
 public abstract class AbstractMetricCollector implements MetricCollector {
   private int howManyFields;
+
   protected int[] metricFieldOffsets;
+
   protected int[] metricFieldLengths;
+
   protected byte[] metricFileContents = new byte[1024];
+
   protected RandomAccessFile metricFile;
+
   private int mField;
+
   private int fieldOffset;
-  private int currentOffset=0;
+
+  private int currentOffset = 0;
 
   public AbstractMetricCollector(RandomAccessFile metricFile, int howMany, int offset) {
     this.howManyFields = howMany;
@@ -38,22 +45,24 @@ public abstract class AbstractMetricCollector implements MetricCollector {
     metricFieldOffsets = new int[howMany];
     metricFieldLengths = new int[howMany];
   }
+
   public void parseMetricFile() throws IOException {
     metricFile.seek(0);
     metricFile.read(metricFileContents);
-    if ( fieldOffset > 0 ) {
-      //  Advance the pointer just beyond the field name
+    if (fieldOffset > 0) {
+      // Advance the pointer just beyond the field name
       while (metricFileContents[currentOffset] != ' ') {
         ++currentOffset;
       }
     }
-    int currentFieldIndx=0;
-    while( currentFieldIndx++ < howManyFields ) {
+    int currentFieldIndx = 0;
+    while (currentFieldIndx++ < howManyFields) {
       readNextField();
     }
   }
+
   private void readNextField() {
- // Skip column padding.
+    // Skip column padding.
     while (metricFileContents[currentOffset] == ' ') {
       ++currentOffset;
     }

@@ -26,22 +26,22 @@ import org.apache.uima.ducc.common.agent.metrics.memory.DuccProcessResidentMemor
 import org.apache.uima.ducc.common.agent.metrics.memory.ProcessResidentMemory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
+public class ProcessResidentMemoryCollector implements Callable<ProcessResidentMemory> {
+  private String containerId = null;
 
-public class ProcessResidentMemoryCollector 
-		implements Callable<ProcessResidentMemory> {
-	private String containerId=null;
-	private CGroupsManager cgm=null;
+  private CGroupsManager cgm = null;
 
-	public ProcessResidentMemoryCollector(DuccLogger logger, CGroupsManager mgr, String jobId) {
-		this.containerId = jobId;
-		this.cgm = mgr;
-	}
+  public ProcessResidentMemoryCollector(DuccLogger logger, CGroupsManager mgr, String jobId) {
+    this.containerId = jobId;
+    this.cgm = mgr;
+  }
 
-	public ProcessResidentMemory call() throws Exception {
-		return new DuccProcessResidentMemory(collect());
-	}
-	private long collect() throws Exception{
-		// use cgroups manager to collect rss usage
-		return cgm.getUsageForMemoryStat(CgroupMemoryStat.RSS,containerId);
-	}
+  public ProcessResidentMemory call() throws Exception {
+    return new DuccProcessResidentMemory(collect());
+  }
+
+  private long collect() throws Exception {
+    // use cgroups manager to collect rss usage
+    return cgm.getUsageForMemoryStat(CgroupMemoryStat.RSS, containerId);
+  }
 }

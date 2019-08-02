@@ -24,17 +24,16 @@ import java.util.concurrent.Callable;
 import org.apache.uima.ducc.common.agent.metrics.cpu.DuccNodeCpuUsage;
 import org.apache.uima.ducc.common.agent.metrics.cpu.NodeCpuUsage;
 
-
 public class NodeCpuUtilizationCollector extends AbstractMetricCollector
-implements Callable<NodeCpuUsage>{
-	
-	public NodeCpuUtilizationCollector(RandomAccessFile fileHandle,
-			int howMany, int offset) {
-		super(fileHandle, howMany, offset);
-	}
-	public NodeCpuUsage call() throws Exception {
-		super.parseMetricFile();
-		return new DuccNodeCpuUsage(super.metricFileContents,
-				super.metricFieldOffsets, super.metricFieldLengths);
-	}
+        implements Callable<NodeCpuUsage> {
+
+  public NodeCpuUtilizationCollector(RandomAccessFile fileHandle, int howMany, int offset) {
+    super(fileHandle, howMany, offset);
+  }
+
+  public NodeCpuUsage call() throws Exception {
+    super.parseMetricFile();
+    return new DuccNodeCpuUsage(super.metricFileContents, super.metricFieldOffsets,
+            super.metricFieldLengths);
+  }
 }

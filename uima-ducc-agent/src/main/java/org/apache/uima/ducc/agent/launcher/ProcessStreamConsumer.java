@@ -27,70 +27,76 @@ import java.io.PrintStream;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
-
 public class ProcessStreamConsumer extends Thread {
-	public static final String LS = System.getProperty("line.separator");
+  public static final String LS = System.getProperty("line.separator");
 
-	private InputStream is;
-	private PrintStream os;
-	DuccLogger logger;
-	private DuccId workDuccId;
-	
-	private StringBuffer errStreamBuffer = new StringBuffer();
-	public ProcessStreamConsumer(DuccLogger logger, ThreadGroup threadGroup,
-				final String threadName, InputStream is, PrintStream os, DuccId workDuccId) {
-		super(threadGroup, threadName);
-		this.os = os;
-		this.is = is;
-		this.logger = logger;
-		setDaemon(true);
-		this.workDuccId = workDuccId;
-	}
+  private InputStream is;
+
+  private PrintStream os;
+
+  DuccLogger logger;
+
+  private DuccId workDuccId;
+
+  private StringBuffer errStreamBuffer = new StringBuffer();
+
+  public ProcessStreamConsumer(DuccLogger logger, ThreadGroup threadGroup, final String threadName,
+          InputStream is, PrintStream os, DuccId workDuccId) {
+    super(threadGroup, threadName);
+    this.os = os;
+    this.is = is;
+    this.logger = logger;
+    setDaemon(true);
+    this.workDuccId = workDuccId;
+  }
+
   public String getDataFromStream() {
     return errStreamBuffer.toString();
   }
-	public void run() {
-		try {
 
-			InputStreamReader in = new InputStreamReader(is);
-			BufferedReader reader = new BufferedReader(in);
-			String line;
-			while ((line = reader.readLine()) != null) {
-				line += LS;
-				if ( "StdErrorReader".equals(Thread.currentThread().getName())) {
-					logger.error("ProcessStreamConsumer.run()", workDuccId, line.trim());
-					os.print("ERR>>>"+line);
-					// Save stderr stream into a local buffer. When the process exits unexpectedly
-					// errors will be copied to a Process object.
-					errStreamBuffer.append(line.trim());  
-				} else {
-					logger.info("ProcessStreamConsumer.run()", workDuccId, line.trim());
-					os.print("OUT>>>"+line);
-				}
-				// Check if duccling redirected its output streams to a log. If so, it would put
-				// out a marker that starts with "1200 Redirecting stdout". This is a clue to
-				// stop consuming from the process streams. Just close streams and
-				// return.
-				if (line.trim().startsWith("1200 Redirecting stdout")) {
-					break;
-				}
-			}
-		} catch (Exception x) {
-		} finally {
-			try {
-				os.flush();
-			} catch (Exception e) {
-				System.out.println("Caught Exception While Flushing "
-						+ Thread.currentThread().getName() + " Output Stream");
-			}
-			try {
-				if (is != null) {
-					is.close();
-				}
-				logger.debug("ProcessStreamConsumer.run()", workDuccId, "Stream Consumer Thread Terminated - Process Streams Redirected to a Log");
-			} catch (IOException e) {
-				// ignore
-			}
-		}
-	}
+  public void run() {
+    try {
+
+      InputStreamReader in = new InputStreamReader(is);
+      BufferedReader reader = new BufferedReader(in);
+      String line;
+      while ((line = reader.readLine()) != null) {
+        line += LS;
+        if ("StdErrorReader".equals(Thread.currentThread().getName())) {
+          logger.error("ProcessStreamConsumer.run()", workDuccId, line.trim());
+          os.print("ERR>>>" + line);
+          // Save stderr stream into a local buffer. When the process exits unexpectedly
+          // errors will be copied to a Process object.
+          errStreamBuffer.append(line.trim());
+        } else {
+          logger.info("ProcessStreamConsumer.run()", workDuccId, line.trim());
+          os.print("OUT>>>" + line);
+        }
+        // Check if duccling redirected its output streams to a log. If so, it would put
+        // out a marker that starts with "1200 Redirecting stdout". This is a clue to
+        // stop consuming from the process streams. Just close streams and
+        // return.
+        if (line.trim().startsWith("1200 Redirecting stdout")) {
+          break;
+        }
+      }
+    } catch (Exception x) {
+    } finally {
+      try {
+        os.flush();
+      } catch (Exception e) {
+        System.out.println("Caught Exception While Flushing " + Thread.currentThread().getName()
+                + " Output Stream");
+      }
+      try {
+        if (is != null) {
+          is.close();
+        }
+        logger.debug("ProcessStreamConsumer.run()", workDuccId,
+                "Stream Consumer Thread Terminated - Process Streams Redirected to a Log");
+      } catch (IOException e) {
+        // ignore
+      }
+    }
+  }
 }

@@ -25,28 +25,30 @@ import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 
-
 public class ProcessReaperTask extends TimerTask {
 
   private NodeAgent agent;
+
   private DuccLogger logger;
-  
-  
+
   public ProcessReaperTask(NodeAgent agent, DuccLogger logger) {
     this.agent = agent;
     this.logger = logger;
   }
+
   public void run() {
-    if ( agent.deployedProcesses.size() > 0 ) {
-      logger.warn("ProcessReaperTask.run()", null, "Agent timed out waiting for a Ping Message. Assuming network connectivity problem and killing all running JPs");
+    if (agent.deployedProcesses.size() > 0) {
+      logger.warn("ProcessReaperTask.run()", null,
+              "Agent timed out waiting for a Ping Message. Assuming network connectivity problem and killing all running JPs");
       Iterator<ManagedProcess> it = agent.deployedProcesses.iterator();
-      while( it.hasNext()) {
+      while (it.hasNext()) {
         ManagedProcess mp = it.next();
         mp.kill();
-        mp.getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.AgentTimedOutWaitingForORState.toString());
+        mp.getDuccProcess().setReasonForStoppingProcess(
+                ReasonForStoppingProcess.AgentTimedOutWaitingForORState.toString());
         String pid = mp.getDuccProcess().getPID();
         agent.stopProcess(mp.getDuccProcess());
-        logger.info("ProcessReaperTask.run()", null, "Agent calling stopProcess:"+pid);
+        logger.info("ProcessReaperTask.run()", null, "Agent calling stopProcess:" + pid);
       }
     }
   }

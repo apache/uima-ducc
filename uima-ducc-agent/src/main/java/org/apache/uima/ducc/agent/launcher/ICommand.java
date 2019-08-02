@@ -20,6 +20,6 @@ package org.apache.uima.ducc.agent.launcher;
 
 import java.util.concurrent.Callable;
 
-public interface ICommand extends Callable<Integer>{
-	
+public interface ICommand extends Callable<Integer> {
+
 }

@@ -25,26 +25,26 @@ import org.apache.uima.ducc.common.agent.metrics.cpu.DuccProcessCpuUsage;
 import org.apache.uima.ducc.common.agent.metrics.cpu.ProcessCpuUsage;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
-public class ProcessCpuUsageCollector implements
-		Callable<ProcessCpuUsage> {
-	private String containerId=null;
-	private CGroupsManager cgm=null;
-	
-	public ProcessCpuUsageCollector(DuccLogger logger, CGroupsManager mgr, String jobId ) {
-		this.containerId = jobId;
-		this.cgm = mgr;
-	}
+public class ProcessCpuUsageCollector implements Callable<ProcessCpuUsage> {
+  private String containerId = null;
 
-	public ProcessCpuUsage call() throws Exception {
-		try {
-			return new DuccProcessCpuUsage(collect());
-		} catch (Exception e) {
-			throw e;
-		}
-	}
-	
-	private long collect() throws Exception{
-		// use cgroups manager to collect cpu usage
-		return cgm.getCpuUsage(containerId);
-	}
+  private CGroupsManager cgm = null;
+
+  public ProcessCpuUsageCollector(DuccLogger logger, CGroupsManager mgr, String jobId) {
+    this.containerId = jobId;
+    this.cgm = mgr;
+  }
+
+  public ProcessCpuUsage call() throws Exception {
+    try {
+      return new DuccProcessCpuUsage(collect());
+    } catch (Exception e) {
+      throw e;
+    }
+  }
+
+  private long collect() throws Exception {
+    // use cgroups manager to collect cpu usage
+    return cgm.getCpuUsage(containerId);
+  }
 }

@@ -24,20 +24,21 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.ProcessStopDuccEvent;
 import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 
+public class ProcessEventListener implements DuccEventDelegateListener {
 
-public class ProcessEventListener implements DuccEventDelegateListener{
+  // private DuccEventDispatcher eventDispatcher;
+  private ManagedService service;
 
-	//private DuccEventDispatcher eventDispatcher;
-	private ManagedService service;
-	
-	public ProcessEventListener(ManagedService service) {
-		this.service = service;
-	}
-	public void setDuccEventDispatcher(DuccEventDispatcher eventDispatcher) {
-		//this.eventDispatcher = eventDispatcher;
-	}
-	public void onProcessStop(@Body ProcessStopDuccEvent event) {
-		service.stopService();
-	}
+  public ProcessEventListener(ManagedService service) {
+    this.service = service;
+  }
+
+  public void setDuccEventDispatcher(DuccEventDispatcher eventDispatcher) {
+    // this.eventDispatcher = eventDispatcher;
+  }
+
+  public void onProcessStop(@Body ProcessStopDuccEvent event) {
+    service.stopService();
+  }
 
 }

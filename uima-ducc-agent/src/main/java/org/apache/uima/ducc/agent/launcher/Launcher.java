@@ -35,126 +35,134 @@ import org.apache.uima.ducc.transport.event.common.DuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 
-
 public class Launcher {
-    private ExecutorService executorService = null;
-    private DuccIdFactory duccIdFactory = new DuccIdFactory();
-    public Launcher() {
-    	executorService = Executors.newCachedThreadPool();
-    }
-    /**
-     * This method is used to launch multiple Agents on the same physical machine. It allows
-     * to scale up Agents on a single machine to simulate load. Each Agent instance will 
-     * assume a given name and IP address.
-     * 
-     * @param cmdLine - defines the command line used to exec Agent process
-     * @param howMany - how many Agents to exec
-     * @param ip - initial IP address to assign to first Agent instance. Subsequent Agent instances
-     *             will have this IP incremented as in XXX.XXX.XXX.XX+1,XXX.XXX.XXX.XX+2, etc
-     * @param nodeName - name of the physical machine. The Agents will be assigned this name plus 
-     *                   a suffix as in watson-1, watson-2, etc
-     * @throws Exception
-     */
-    public void start(ICommandLine cmdLine, int howMany, String ip, String nodeName) throws Exception {
-        //	Launch as many agents as requested  
-        for( int i=0; i < howMany; i++ ) {
-            String host = nodeName;
-            //	Append suffix to node name for each Agent instance
-            if ( host.indexOf(".") > -1 ) {
-                String tmp = host.substring(0,host.indexOf("."));
-                host = tmp+"-"+String.valueOf(i+1)+host.substring(host.indexOf("."));
-            } else {
-                host = host+"-"+String.valueOf(i+1);
-            }
-            launchProcess(host, ip, cmdLine);
-            //	Increment IP address for the next Agent
-            int uip = Integer.parseInt(ip.substring(ip.lastIndexOf(".")+1, ip.length()));
-            ip = ip.substring(0,ip.lastIndexOf(".")+1).concat(String.valueOf(uip+1));
-        }
+  private ExecutorService executorService = null;
 
-    }
-	
-    /**
-     * Submit request to exec a process. The process will be exec'd in a separate thread.
-     * 
-     * @param process
-     * @param commandLine
+  private DuccIdFactory duccIdFactory = new DuccIdFactory();
 
-     * @throws Exception
-     */
-    public ManagedProcess launchProcess(NodeAgent agent, NodeIdentity nodeIdentity,IDuccProcess process, ICommandLine commandLine,ProcessLifecycleObserver observer, ManagedProcess managedProcess) 
-    		throws Exception {
-        //	Instantiate executor that will actually exec the process using java's ProcessBuilder
-        DuccCommandExecutor executor = 
-            new DuccCommandExecutor(agent, commandLine, nodeIdentity.getCanonicalName(),nodeIdentity.getIp(), managedProcess);
-        Future<?> future = executorService.submit(executor);
-        //	if we are launching a process, save the future object returned from Executor above
-    	managedProcess.setFuture(future);
-        return managedProcess;
-    }
-    /**
-     * Submit request to exec a process. The process will be exec'd in a separate thread.
-     * 
-     * @param process
-     * @param commandLine
+  public Launcher() {
+    executorService = Executors.newCachedThreadPool();
+  }
 
-     * @throws Exception
-     */
-    public void launchOSCommand(ICommand command) {
-    	try {
-            executorService.submit(command);
-    	} catch( Exception e) {
-    		e.printStackTrace();
-    	}
-        
+  /**
+   * This method is used to launch multiple Agents on the same physical machine. It allows to scale
+   * up Agents on a single machine to simulate load. Each Agent instance will assume a given name
+   * and IP address.
+   * 
+   * @param cmdLine
+   *          - defines the command line used to exec Agent process
+   * @param howMany
+   *          - how many Agents to exec
+   * @param ip
+   *          - initial IP address to assign to first Agent instance. Subsequent Agent instances
+   *          will have this IP incremented as in XXX.XXX.XXX.XX+1,XXX.XXX.XXX.XX+2, etc
+   * @param nodeName
+   *          - name of the physical machine. The Agents will be assigned this name plus a suffix as
+   *          in watson-1, watson-2, etc
+   * @throws Exception
+   */
+  public void start(ICommandLine cmdLine, int howMany, String ip, String nodeName)
+          throws Exception {
+    // Launch as many agents as requested
+    for (int i = 0; i < howMany; i++) {
+      String host = nodeName;
+      // Append suffix to node name for each Agent instance
+      if (host.indexOf(".") > -1) {
+        String tmp = host.substring(0, host.indexOf("."));
+        host = tmp + "-" + String.valueOf(i + 1) + host.substring(host.indexOf("."));
+      } else {
+        host = host + "-" + String.valueOf(i + 1);
+      }
+      launchProcess(host, ip, cmdLine);
+      // Increment IP address for the next Agent
+      int uip = Integer.parseInt(ip.substring(ip.lastIndexOf(".") + 1, ip.length()));
+      ip = ip.substring(0, ip.lastIndexOf(".") + 1).concat(String.valueOf(uip + 1));
     }
-    /**
-     * This method is used for simulation only. It enables launching an agent with 
-     * a given name and IP address which are different from a physical node name
-     * and IP address. With that multiple agents can be launched on the same 
-     * physical machine simulating a cluster of nodes.
-     * 
-     */
-    public void launchProcess(String host, String ip, ICommandLine cmdLine) throws Exception {
-        IDuccProcess process = 
-            new DuccProcess(duccIdFactory.next(), new NodeIdentity(ip, host));
-        process.setProcessType(ProcessType.Pop);
-        ManagedProcess managedProcess = new ManagedProcess(process, cmdLine, true);
-        DuccCommandExecutor executor = 
-            new DuccCommandExecutor(cmdLine, host, ip, managedProcess);
-        executorService.submit(executor);
-    }
-    public static void main(String[] args) {
-        try {
-            int howMany = Integer.parseInt(args[0]);   // how many agent processes to launch
-            String ip = System.getProperty(IDuccUser.EnvironmentVariable.DUCC_IP.value());
-            String nodeName = InetAddress.getLocalHost().getHostName();
-            Launcher launcher = new Launcher();
-            JavaCommandLine cmdLine = new JavaCommandLine("java");
-            String duccHome = Utils.findDuccHome();
-            cmdLine.addOption("-Dducc.deploy.configuration="+duccHome+"/resources/ducc.properties");
-            cmdLine.addOption("-Dducc.deploy.components=agent");
-            cmdLine.addOption("-Djava.library.path=" + duccHome +"/lib/sigar");
-            cmdLine.addOption("-DDUCC_HOME=" + duccHome);
-			
-            // System.out.println("Spawning with classpath: \n" + System.getProperty("java.class.path"));
-            // cmdLine.setClasspath(duccHome+"/lib/*:" + 
-            //                      duccHome+"/lib/apache-activemq-5.5.0/*:" + 
-            //                      duccHome+"/lib/apache-camel-2.7.1/*:" + 
-            //                      duccHome+"/lib/commons-collections-3.2.1/*:" + 
-            //                      duccHome+"/lib/apache-commons-lang-2.6/*:" + 
-            //                      duccHome+"/lib/apache-log4j-1.2.16/*:" + 
-            //                      duccHome+"/lib/guava-r09/*:" + 
-            //                      duccHome+"/lib/joda-time-1.6/*:" + 
-            //                      duccHome+"/lib/sigar/*:" + 
-            //                      duccHome+"/lib/springframework-3.0.5/*:");
 
-            cmdLine.setClasspath(System.getProperty("java.class.path"));
-            cmdLine.setClassName("org.apache.uima.ducc.agent.common.main.DuccService");
-            launcher.start(cmdLine, howMany, ip, nodeName);
-        } catch( Exception e) {
-            e.printStackTrace();
-        }
+  }
+
+  /**
+   * Submit request to exec a process. The process will be exec'd in a separate thread.
+   * 
+   * @param process
+   * @param commandLine
+   * 
+   * @throws Exception
+   */
+  public ManagedProcess launchProcess(NodeAgent agent, NodeIdentity nodeIdentity,
+          IDuccProcess process, ICommandLine commandLine, ProcessLifecycleObserver observer,
+          ManagedProcess managedProcess) throws Exception {
+    // Instantiate executor that will actually exec the process using java's ProcessBuilder
+    DuccCommandExecutor executor = new DuccCommandExecutor(agent, commandLine,
+            nodeIdentity.getCanonicalName(), nodeIdentity.getIp(), managedProcess);
+    Future<?> future = executorService.submit(executor);
+    // if we are launching a process, save the future object returned from Executor above
+    managedProcess.setFuture(future);
+    return managedProcess;
+  }
+
+  /**
+   * Submit request to exec a process. The process will be exec'd in a separate thread.
+   * 
+   * @param process
+   * @param commandLine
+   * 
+   * @throws Exception
+   */
+  public void launchOSCommand(ICommand command) {
+    try {
+      executorService.submit(command);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+
+  }
+
+  /**
+   * This method is used for simulation only. It enables launching an agent with a given name and IP
+   * address which are different from a physical node name and IP address. With that multiple agents
+   * can be launched on the same physical machine simulating a cluster of nodes.
+   * 
+   */
+  public void launchProcess(String host, String ip, ICommandLine cmdLine) throws Exception {
+    IDuccProcess process = new DuccProcess(duccIdFactory.next(), new NodeIdentity(ip, host));
+    process.setProcessType(ProcessType.Pop);
+    ManagedProcess managedProcess = new ManagedProcess(process, cmdLine, true);
+    DuccCommandExecutor executor = new DuccCommandExecutor(cmdLine, host, ip, managedProcess);
+    executorService.submit(executor);
+  }
+
+  public static void main(String[] args) {
+    try {
+      int howMany = Integer.parseInt(args[0]); // how many agent processes to launch
+      String ip = System.getProperty(IDuccUser.EnvironmentVariable.DUCC_IP.value());
+      String nodeName = InetAddress.getLocalHost().getHostName();
+      Launcher launcher = new Launcher();
+      JavaCommandLine cmdLine = new JavaCommandLine("java");
+      String duccHome = Utils.findDuccHome();
+      cmdLine.addOption("-Dducc.deploy.configuration=" + duccHome + "/resources/ducc.properties");
+      cmdLine.addOption("-Dducc.deploy.components=agent");
+      cmdLine.addOption("-Djava.library.path=" + duccHome + "/lib/sigar");
+      cmdLine.addOption("-DDUCC_HOME=" + duccHome);
+
+      // System.out.println("Spawning with classpath: \n" + System.getProperty("java.class.path"));
+      // cmdLine.setClasspath(duccHome+"/lib/*:" +
+      // duccHome+"/lib/apache-activemq-5.5.0/*:" +
+      // duccHome+"/lib/apache-camel-2.7.1/*:" +
+      // duccHome+"/lib/commons-collections-3.2.1/*:" +
+      // duccHome+"/lib/apache-commons-lang-2.6/*:" +
+      // duccHome+"/lib/apache-log4j-1.2.16/*:" +
+      // duccHome+"/lib/guava-r09/*:" +
+      // duccHome+"/lib/joda-time-1.6/*:" +
+      // duccHome+"/lib/sigar/*:" +
+      // duccHome+"/lib/springframework-3.0.5/*:");
+
+      cmdLine.setClasspath(System.getProperty("java.class.path"));
+      cmdLine.setClassName("org.apache.uima.ducc.agent.common.main.DuccService");
+      launcher.start(cmdLine, howMany, ip, nodeName);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
 }

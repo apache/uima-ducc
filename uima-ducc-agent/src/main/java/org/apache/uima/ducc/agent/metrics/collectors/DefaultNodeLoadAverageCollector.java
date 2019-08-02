@@ -24,20 +24,18 @@ import java.util.concurrent.Callable;
 import org.apache.uima.ducc.common.node.metrics.DefaultNodeLoadAverageInfo;
 import org.apache.uima.ducc.common.node.metrics.NodeLoadAverage;
 
+public class DefaultNodeLoadAverageCollector implements Callable<NodeLoadAverage>, Serializable {
 
-public class DefaultNodeLoadAverageCollector  
-    implements Callable<NodeLoadAverage>, Serializable {
-  
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	
-    public DefaultNodeLoadAverageCollector() {
-    }
-    public NodeLoadAverage call() throws Exception {
-        return new DefaultNodeLoadAverageInfo(new double[] {0.0,0.0,0.0});
-    }
+  /**
+  * 
+  */
+  private static final long serialVersionUID = 1L;
 
+  public DefaultNodeLoadAverageCollector() {
+  }
+
+  public NodeLoadAverage call() throws Exception {
+    return new DefaultNodeLoadAverageInfo(new double[] { 0.0, 0.0, 0.0 });
+  }
 
 }

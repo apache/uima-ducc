@@ -26,26 +26,27 @@ import org.apache.uima.ducc.common.agent.metrics.swap.DuccProcessMemoryPageLoadU
 import org.apache.uima.ducc.common.agent.metrics.swap.ProcessMemoryPageLoadUsage;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
-public class ProcessMajorFaultCollector implements
-		Callable<ProcessMemoryPageLoadUsage> {
-	private CGroupsManager cgm=null;
-	private String containerId=null;
-	
-	public ProcessMajorFaultCollector(DuccLogger logger, CGroupsManager mgr, String containerId ) {
-		this.cgm = mgr;
-		this.containerId = containerId;
-	}
+public class ProcessMajorFaultCollector implements Callable<ProcessMemoryPageLoadUsage> {
+  private CGroupsManager cgm = null;
 
-	public ProcessMemoryPageLoadUsage call() throws Exception {
-		try {
-			return new DuccProcessMemoryPageLoadUsage(collect());
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-	}
-	private long collect() throws Exception{
-		// use cgroups manager to collect rss usage
-		return cgm.getUsageForMemoryStat(CgroupMemoryStat.FAULTS,containerId);
-	}
+  private String containerId = null;
+
+  public ProcessMajorFaultCollector(DuccLogger logger, CGroupsManager mgr, String containerId) {
+    this.cgm = mgr;
+    this.containerId = containerId;
+  }
+
+  public ProcessMemoryPageLoadUsage call() throws Exception {
+    try {
+      return new DuccProcessMemoryPageLoadUsage(collect());
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw e;
+    }
+  }
+
+  private long collect() throws Exception {
+    // use cgroups manager to collect rss usage
+    return cgm.getUsageForMemoryStat(CgroupMemoryStat.FAULTS, containerId);
+  }
 }

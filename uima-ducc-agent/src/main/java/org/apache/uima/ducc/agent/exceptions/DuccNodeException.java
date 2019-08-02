@@ -21,6 +21,7 @@ package org.apache.uima.ducc.agent.exceptions;
 public class DuccNodeException extends Exception {
 
   private static final long serialVersionUID = -5548490125536576177L;
+
   public DuccNodeException(String msg) {
     super(msg);
   }

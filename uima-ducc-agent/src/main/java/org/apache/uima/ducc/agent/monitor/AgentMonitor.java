@@ -26,33 +26,36 @@ import org.apache.uima.ducc.common.ANodeStability;
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
-
-public class AgentMonitor extends ANodeStability{
-  //private NodeAgent agent;
+public class AgentMonitor extends ANodeStability {
+  // private NodeAgent agent;
   private ProcessReaperTask reaperTask;
+
   DuccLogger logger;
+
   public AgentMonitor(NodeAgent agent, DuccLogger logger, int nodeStability, int agentMetricsRate) {
     super(nodeStability, agentMetricsRate);
-    //this.agent = agent;
+    // this.agent = agent;
     this.logger = logger;
-    reaperTask = new ProcessReaperTask(agent,logger);
+    reaperTask = new ProcessReaperTask(agent, logger);
   }
 
   public void nodeDeath(Map<Node, Node> nodes) {
-    logger.warn("AgentMonitor.nodeDeath", null,"Agent detected a network/borker problem. Proceeding to shutdown JPs");
+    logger.warn("AgentMonitor.nodeDeath", null,
+            "Agent detected a network/borker problem. Proceeding to shutdown JPs");
     Thread t = new Thread(reaperTask);
     t.setDaemon(true);
     t.start();
   }
 
   public void missedNode(Node n, int c) {
-    logger.info("missedNode",null,"Agent missed a ping ("+c+")");
+    logger.info("missedNode", null, "Agent missed a ping (" + c + ")");
   }
 
   public void ping(Node node) {
     super.nodeArrives(node);
   }
-  
-  public void nodeRecovers(Node n) {}
-  
+
+  public void nodeRecovers(Node n) {
+  }
+
 }

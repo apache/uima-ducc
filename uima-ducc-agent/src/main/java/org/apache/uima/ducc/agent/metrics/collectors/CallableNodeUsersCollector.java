@@ -23,6 +23,6 @@ import java.util.concurrent.Callable;
 
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 
-public interface CallableNodeUsersCollector extends Callable<TreeMap<String,NodeUsersInfo>>{
+public interface CallableNodeUsersCollector extends Callable<TreeMap<String, NodeUsersInfo>> {
 
 }

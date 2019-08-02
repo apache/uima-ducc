@@ -21,25 +21,32 @@ package org.apache.uima.ducc.agent.processors;
 import org.apache.camel.Exchange;
 
 public class ProcessLifecycleProcessor extends BaseProcessor {
-  
-  //private static final String windowsCommandSeparator = "&";
-  //private static final String nixCommandSeparator = " ; ";
-	public ProcessLifecycleProcessor() {
-		super();
-	}
-	/**
-	 * Method called by Camel if a message is of type:
 
-	 * <ul> StartProcessEvent</ul>
-	 * <ul> StopProcessEvent</ul>
-	 * <ul> PurgeProcessEvent</ul>
-	 * 
-	 * This method checks if a message contains this host name (or IP) as a target. If this agent
-	 * is not a target, the message is ignored.
-	 * 
-	 */
-	public void process(final Exchange e) throws Exception {
-	  System.out.println("... Agent Received Request");
-	}
+  // private static final String windowsCommandSeparator = "&";
+  // private static final String nixCommandSeparator = " ; ";
+  public ProcessLifecycleProcessor() {
+    super();
+  }
+
+  /**
+   * Method called by Camel if a message is of type:
+   * 
+   * <ul>
+   * StartProcessEvent
+   * </ul>
+   * <ul>
+   * StopProcessEvent
+   * </ul>
+   * <ul>
+   * PurgeProcessEvent
+   * </ul>
+   * 
+   * This method checks if a message contains this host name (or IP) as a target. If this agent is
+   * not a target, the message is ignored.
+   * 
+   */
+  public void process(final Exchange e) throws Exception {
+    System.out.println("... Agent Received Request");
+  }
 
 }

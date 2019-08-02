@@ -22,21 +22,22 @@ import org.apache.camel.Exchange;
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 
-
 public class DefaultProcessMetricsProcessor implements ProcessMetricsProcessor {
-   // private NodeAgent agent;
-   // private IDuccProcess process;
-    
-	public DefaultProcessMetricsProcessor( IDuccProcess process, NodeAgent agent) {
-	//	this.agent = agent;
-	//	this.process = process;
-	}
-	public void process(Exchange arg0) throws Exception {
-	}
-	@Override
-	public void stop() {
-		// TODO Auto-generated method stub
-		
-	}
+  // private NodeAgent agent;
+  // private IDuccProcess process;
+
+  public DefaultProcessMetricsProcessor(IDuccProcess process, NodeAgent agent) {
+    // this.agent = agent;
+    // this.process = process;
+  }
+
+  public void process(Exchange arg0) throws Exception {
+  }
+
+  @Override
+  public void stop() {
+    // TODO Auto-generated method stub
+
+  }
 
 }

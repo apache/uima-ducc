@@ -26,26 +26,27 @@ import org.apache.uima.ducc.common.agent.metrics.swap.DuccProcessSwapSpaceUsage;
 import org.apache.uima.ducc.common.agent.metrics.swap.ProcessSwapSpaceUsage;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
-public class ProcessSwapUsageCollector implements
-		Callable<ProcessSwapSpaceUsage> {
-	private CGroupsManager cgm=null;
-	private String containerId=null;
+public class ProcessSwapUsageCollector implements Callable<ProcessSwapSpaceUsage> {
+  private CGroupsManager cgm = null;
 
-	public ProcessSwapUsageCollector(DuccLogger logger, CGroupsManager mgr, String jobId ) {
-		this.containerId = jobId;
-		this.cgm = mgr;
-	}
+  private String containerId = null;
 
-	public ProcessSwapSpaceUsage call() throws Exception {
-		try {
-			return new DuccProcessSwapSpaceUsage(collect());
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-	}
-	private long collect() throws Exception{
-		// use cgroups manager to collect rss usage
-		return cgm.getUsageForMemoryStat(CgroupMemoryStat.SWAP,containerId);
-	}
+  public ProcessSwapUsageCollector(DuccLogger logger, CGroupsManager mgr, String jobId) {
+    this.containerId = jobId;
+    this.cgm = mgr;
+  }
+
+  public ProcessSwapSpaceUsage call() throws Exception {
+    try {
+      return new DuccProcessSwapSpaceUsage(collect());
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw e;
+    }
+  }
+
+  private long collect() throws Exception {
+    // use cgroups manager to collect rss usage
+    return cgm.getUsageForMemoryStat(CgroupMemoryStat.SWAP, containerId);
+  }
 }

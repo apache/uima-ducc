@@ -24,7 +24,6 @@ import org.apache.camel.Processor;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 
-
 public interface NodeInventoryProcessor extends Processor {
-	public Map<DuccId, IDuccProcess> getInventory();
+  public Map<DuccId, IDuccProcess> getInventory();
 }

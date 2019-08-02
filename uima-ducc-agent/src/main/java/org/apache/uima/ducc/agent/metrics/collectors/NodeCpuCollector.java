@@ -26,51 +26,48 @@ import java.util.concurrent.Callable;
 
 import org.apache.uima.ducc.common.node.metrics.NodeCpuInfo;
 
-
-
 public class NodeCpuCollector implements Callable<NodeCpuInfo> {
 
   public NodeCpuInfo call() throws Exception {
     OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
     return new NodeCpuInfo(osBean.getAvailableProcessors(), String.valueOf(getCPULoad()));
   }
-	private double getCPULoad() throws Exception {
-		double cpu = 0.0;
-		InputStreamReader in = null;
-		String[] command = {
-				"/bin/sh",
-				"-c",
-				"/bin/grep 'cpu' /proc/stat | /bin/awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'" };
-		try {
-			ProcessBuilder pb = new ProcessBuilder();
-			pb.command(command);
 
-			pb.redirectErrorStream(true);
-			Process swapCollectorProcess = pb.start();
-			in = new InputStreamReader(swapCollectorProcess.getInputStream());
-			BufferedReader reader = new BufferedReader(in);
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				System.out.println(line);
-				try {
-					cpu = Double.parseDouble(line.trim());
-				} catch (NumberFormatException e) {
-					cpu = 0;
-					e.printStackTrace();
-				}
-			}
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (Exception e) {
-				}
+  private double getCPULoad() throws Exception {
+    double cpu = 0.0;
+    InputStreamReader in = null;
+    String[] command = { "/bin/sh", "-c",
+        "/bin/grep 'cpu' /proc/stat | /bin/awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'" };
+    try {
+      ProcessBuilder pb = new ProcessBuilder();
+      pb.command(command);
 
-			}
-		}
+      pb.redirectErrorStream(true);
+      Process swapCollectorProcess = pb.start();
+      in = new InputStreamReader(swapCollectorProcess.getInputStream());
+      BufferedReader reader = new BufferedReader(in);
+      String line = null;
+      while ((line = reader.readLine()) != null) {
+        System.out.println(line);
+        try {
+          cpu = Double.parseDouble(line.trim());
+        } catch (NumberFormatException e) {
+          cpu = 0;
+          e.printStackTrace();
+        }
+      }
+    } catch (Exception e) {
+      throw e;
+    } finally {
+      if (in != null) {
+        try {
+          in.close();
+        } catch (Exception e) {
+        }
 
-		return cpu;
-	}
+      }
+    }
+
+    return cpu;
+  }
 }

@@ -79,6 +79,7 @@ public class AgentConfiguration {
   DuccLogger logger = new DuccLogger(this.getClass(), "Agent");
 
   NodeAgent agent = null;
+
   NodeMetricsProcessor nodeMetricsProcessor;
 
   // fetch the name of an endpoint where the JM expects incoming requests
@@ -94,11 +95,13 @@ public class AgentConfiguration {
   private RouteBuilder inventoryRouteBuilder;
 
   private ServerSocket serviceStateUpdateServer = null;
-  
+
   private Thread serverThread = null;
-  /* Deprecated
-  @Value("#{ systemProperties['ducc.agent.launcher.thread.pool.size'] }")
-  String launcherThreadPoolSize;
+  /*
+   * Deprecated
+   * 
+   * @Value("#{ systemProperties['ducc.agent.launcher.thread.pool.size'] }") String
+   * launcherThreadPoolSize;
    */
 
   @Value("#{ systemProperties['ducc.agent.launcher.process.stop.timeout'] }")
@@ -127,7 +130,6 @@ public class AgentConfiguration {
   @Value("#{ systemProperties['ducc.agent.launcher.cgroups.retry.delay.factor'] }")
   public String retryDelayFactor;
 
-
   @Autowired
   DuccTransportConfiguration agentTransport;
 
@@ -137,7 +139,8 @@ public class AgentConfiguration {
   @Autowired
   CommonConfiguration common;
 
-  DefaultNodeInventoryProcessor inventoryProcessor=null;
+  DefaultNodeInventoryProcessor inventoryProcessor = null;
+
   /**
    * Creates {@code AgentEventListener} that will handle incoming messages.
    *
@@ -235,11 +238,10 @@ public class AgentConfiguration {
           final AgentEventListener delegate) {
     return new RouteBuilder() {
       public void configure() {
-        onException(Throwable.class).maximumRedeliveries(0)
-                .handled(false)
+        onException(Throwable.class).maximumRedeliveries(0).handled(false)
                 .process(new ErrorProcessor());
         from(common.agentRequestEndpoint).routeId("IncomingRequestsRoute")
-        // .process(new DebugProcessor())
+                // .process(new DebugProcessor())
                 .bean(delegate);
       }
     };
@@ -267,11 +269,11 @@ public class AgentConfiguration {
                 .process(new ErrorProcessor()).stop();
 
         from(common.managedProcessStateUpdateEndpoint).routeId("ManageProcessStateUpdateRoute")
-        .choice().when(filter).bean(delegate).end();
+                .choice().when(filter).bean(delegate).end();
       }
     };
   }
-  
+
   public class DebugProcessor implements Processor {
 
     public void process(Exchange exchange) throws Exception {
@@ -323,7 +325,7 @@ public class AgentConfiguration {
         sb.append(entry.getKey()).append("=").append(entry.getValue()).append("\n");
       }
       logger.info("StateUpdateDebugProcessor.process", null, "Headers:\n\t" + sb.toString());
-      logger.info("StateUpdateDebugProcessor.process", null, "Body:"+exchange.getIn().getBody());
+      logger.info("StateUpdateDebugProcessor.process", null, "Body:" + exchange.getIn().getBody());
     }
   }
 
@@ -393,61 +395,64 @@ public class AgentConfiguration {
     return new Launcher();
   }
 
-  public DuccEventDispatcher getCommonProcessDispatcher(CamelContext camelContext) throws Exception {
+  public DuccEventDispatcher getCommonProcessDispatcher(CamelContext camelContext)
+          throws Exception {
     return agentTransport.duccEventDispatcher(logger, common.managedServiceEndpoint, camelContext);
   }
 
   public DuccEventDispatcher getORDispatcher(CamelContext camelContext) throws Exception {
-	    return agentTransport.duccEventDispatcher(logger, common.nodeInventoryEndpoint, camelContext);
+    return agentTransport.duccEventDispatcher(logger, common.nodeInventoryEndpoint, camelContext);
   }
 
   public int getNodeInventoryPublishDelay() {
-	  return Integer.parseInt(common.nodeInventoryPublishRate);
+    return Integer.parseInt(common.nodeInventoryPublishRate);
   }
+
   /**
    * Starts state update server to handle AP service state update.
    * 
-   * @param State update handler
+   * @param State
+   *          update handler
    * @throws Exception
    */
   private void startAPServiceStateUpdateSocketServer(final AgentEventListener l) throws Exception {
-	int port = Utils.findFreePort();
-	
-  	serviceStateUpdateServer = new ServerSocket(port);
-  	// Publish State Update Port for AP's. This port will be added to the AP
-  	// environment before a launch
-  	System.setProperty("AGENT_AP_STATE_UPDATE_PORT",String.valueOf(port));
-  	// spin a server thread which will handle AP state update messages
-  	serverThread = new Thread( new Runnable() {
-  		public void run() {
-  			
-  			while(!agent.isStopping()) {
-  		  		try {
-  		  			Socket client = serviceStateUpdateServer.accept();
-  		  			// AP connected, get its status report. Handling of the status
-  		  			// will be done in a dedicated thread to allow concurrent processing.
-  		  			// When handling of the state update is done, the socket will be closed
-  		  			ServiceUpdateWorkerThread worker = new ServiceUpdateWorkerThread(client, l);
-  		  			worker.start();
-  		  		} catch( SocketException e) {
-  		  			// ignore, clients can come and go
-  		  		} catch( Exception e) {
-  		  			logger.error("startAPServiceStateUpdateSocketServer", null, e);
-  		  		} finally {
-  		  		}
-  		  		
-  		  	}
-  			logger.info("startAPServiceStateUpdateSocketServer", null, "State Update Server Stopped");
-  		}
-  	});
-  	serverThread.start();
-  	logger.info("startSocketServer", null, "Started AP Service State Update Server on Port"+port);
+    int port = Utils.findFreePort();
+
+    serviceStateUpdateServer = new ServerSocket(port);
+    // Publish State Update Port for AP's. This port will be added to the AP
+    // environment before a launch
+    System.setProperty("AGENT_AP_STATE_UPDATE_PORT", String.valueOf(port));
+    // spin a server thread which will handle AP state update messages
+    serverThread = new Thread(new Runnable() {
+      public void run() {
+
+        while (!agent.isStopping()) {
+          try {
+            Socket client = serviceStateUpdateServer.accept();
+            // AP connected, get its status report. Handling of the status
+            // will be done in a dedicated thread to allow concurrent processing.
+            // When handling of the state update is done, the socket will be closed
+            ServiceUpdateWorkerThread worker = new ServiceUpdateWorkerThread(client, l);
+            worker.start();
+          } catch (SocketException e) {
+            // ignore, clients can come and go
+          } catch (Exception e) {
+            logger.error("startAPServiceStateUpdateSocketServer", null, e);
+          } finally {
+          }
+
+        }
+        logger.info("startAPServiceStateUpdateSocketServer", null, "State Update Server Stopped");
+      }
+    });
+    serverThread.start();
+    logger.info("startSocketServer", null, "Started AP Service State Update Server on Port" + port);
   }
+
   @Bean
   public NodeAgent nodeAgent() throws Exception {
     try {
-    	
-    	
+
       camelContext = common.camelContext();
       camelContext.disableJMX();
 
@@ -455,19 +460,19 @@ public class AgentConfiguration {
       // optionally configures Camel Context for JMS. Checks the 'agentRequestEndpoint' to
       // to determine type of transport. If the the endpoint starts with "activemq:", a
       // special ActiveMQ component will be activated to enable JMS transport
-      agentTransport.configureJMSTransport(logger,common.agentRequestEndpoint, camelContext);
+      agentTransport.configureJMSTransport(logger, common.agentRequestEndpoint, camelContext);
       AgentEventListener delegateListener = agentDelegateListener(agent);
 
       agent.setAgentEventListener(delegateListener);
-      
+
       agent.setStateChangeEndpoint(common.daemonsStateChangeEndpoint);
 
       // Create server to receive status update from APs. The JPs report their status
       // via a Camel Mina-based route. The APs report to a different port handled
       // by the code below. The APs pass in status as String whereas the JPs pass in
       // status as DuccEvent. The Camel Mina-based route cannot serve both. Mina route
-      // must be configured differently to accept String in a body. 
-  	  startAPServiceStateUpdateSocketServer(delegateListener);
+      // must be configured differently to accept String in a body.
+      startAPServiceStateUpdateSocketServer(delegateListener);
 
       if (common.managedProcessStateUpdateEndpointType != null
               && common.managedProcessStateUpdateEndpointType.equalsIgnoreCase("socket")) {
@@ -485,15 +490,15 @@ public class AgentConfiguration {
               .addRoutes(this.routeBuilderForManagedProcessStateUpdate(agent, delegateListener));
       camelContext.addRoutes(this.routeBuilderForIncomingRequests(agent, delegateListener));
 
-      inventoryRouteBuilder =
-    		  (this.routeBuilderForNodeInventoryPost(agent,
-    	              common.nodeInventoryEndpoint, Integer.parseInt(common.nodeInventoryPublishRate)));
+      inventoryRouteBuilder = (this.routeBuilderForNodeInventoryPost(agent,
+              common.nodeInventoryEndpoint, Integer.parseInt(common.nodeInventoryPublishRate)));
 
       camelContext.addRoutes(inventoryRouteBuilder);
 
-      logger.info("nodeAgent", null, "------- Agent Initialized - Identity Name:"
-              + agent.getIdentity().getCanonicalName() + " IP:" + agent.getIdentity().getIp()
-              + " JP State Update Endpoint:" + common.managedProcessStateUpdateEndpoint);
+      logger.info("nodeAgent", null,
+              "------- Agent Initialized - Identity Name:" + agent.getIdentity().getCanonicalName()
+                      + " IP:" + agent.getIdentity().getIp() + " JP State Update Endpoint:"
+                      + common.managedProcessStateUpdateEndpoint);
       return agent;
 
     } catch (Exception e) {
@@ -501,39 +506,44 @@ public class AgentConfiguration {
     }
     return null;
   }
+
   public String getInventoryUpdateEndpoint() {
-	  return common.nodeInventoryEndpoint;
+    return common.nodeInventoryEndpoint;
   }
+
   public void startNodeMetrics(NodeAgent agent) throws Exception {
 
-  	  nodeMetricsProcessor.setAgent(agent);
-	  metricsRouteBuilder = this.routeBuilderForNodeMetricsPost(agent, common.nodeMetricsEndpoint,
-              Integer.parseInt(common.nodeMetricsPublishRate));
-      camelContext.addRoutes(metricsRouteBuilder);
+    nodeMetricsProcessor.setAgent(agent);
+    metricsRouteBuilder = this.routeBuilderForNodeMetricsPost(agent, common.nodeMetricsEndpoint,
+            Integer.parseInt(common.nodeMetricsPublishRate));
+    camelContext.addRoutes(metricsRouteBuilder);
 
   }
+
   public void stopRoutes() throws Exception {
-	  serviceStateUpdateServer.close();
-	  List<RouteDefinition> routes = 
-			  camelContext.getRouteDefinitions();
-	  for( RouteDefinition rd : routes ) {
-		  logger.info("AgentConfigureation.stopRoutes", null,"Stopping route:"+rd.getLabel()+" : "+rd.getId());
-		  rd.stop();
-		  logger.info("AgentConfigureation.stopRoutes", null,"Stopped route:"+rd.getLabel()+" : "+rd.getId());
-	  }
-	//  camelContext.stop();
-	//  logger.info("AgentConfigureation.stopRoutes", null,"Camel Context stopped");
+    serviceStateUpdateServer.close();
+    List<RouteDefinition> routes = camelContext.getRouteDefinitions();
+    for (RouteDefinition rd : routes) {
+      logger.info("AgentConfigureation.stopRoutes", null,
+              "Stopping route:" + rd.getLabel() + " : " + rd.getId());
+      rd.stop();
+      logger.info("AgentConfigureation.stopRoutes", null,
+              "Stopped route:" + rd.getLabel() + " : " + rd.getId());
+    }
+    // camelContext.stop();
+    // logger.info("AgentConfigureation.stopRoutes", null,"Camel Context stopped");
 
   }
+
   @Bean
   @PostConstruct
   public NodeMetricsProcessor nodeMetricsProcessor() throws Exception {
     if (Utils.isLinux()) {
-   	  nodeMetricsProcessor = new LinuxNodeMetricsProcessor();
-	  ((LinuxNodeMetricsProcessor)nodeMetricsProcessor).initMemInfo("/proc/meminfo");
-	  ((LinuxNodeMetricsProcessor)nodeMetricsProcessor).initLoadAvg("/proc/loadavg");
+      nodeMetricsProcessor = new LinuxNodeMetricsProcessor();
+      ((LinuxNodeMetricsProcessor) nodeMetricsProcessor).initMemInfo("/proc/meminfo");
+      ((LinuxNodeMetricsProcessor) nodeMetricsProcessor).initLoadAvg("/proc/loadavg");
     } else {
-    	nodeMetricsProcessor = new DefaultNodeMetricsProcessor();
+      nodeMetricsProcessor = new DefaultNodeMetricsProcessor();
     }
     return nodeMetricsProcessor;
   }
@@ -549,52 +559,55 @@ public class AgentConfiguration {
   }
 
   public DefaultNodeInventoryProcessor nodeInventoryProcessor(NodeAgent agent) {
-	  if ( Objects.isNull(inventoryProcessor) ) {
-		  inventoryProcessor = new DefaultNodeInventoryProcessor(agent, inventoryPublishRateSkipCount);
-	  }
+    if (Objects.isNull(inventoryProcessor)) {
+      inventoryProcessor = new DefaultNodeInventoryProcessor(agent, inventoryPublishRateSkipCount);
+    }
     return inventoryProcessor;
   }
 
   public void stopInventoryRoute() {
-	    stopRoute(inventoryRouteBuilder.getRouteCollection(),">>>> Agent Stopped Publishing Inventory");
+    stopRoute(inventoryRouteBuilder.getRouteCollection(),
+            ">>>> Agent Stopped Publishing Inventory");
   }
 
   public void stopMetricsRoute() {
-    stopRoute(metricsRouteBuilder.getRouteCollection(),">>>> Agent Stopped Publishing Metrics");
-//    try {
-//      RoutesDefinition rsd = metricsRouteBuilder.getRouteCollection();
-//      for (RouteDefinition rd : rsd.getRoutes()) {
-//        camelContext.stopRoute(rd.getId());
-//        camelContext.removeRoute(rd.getId());
-//        logger.error(methodName, null, ">>>> Agent Stopped Metrics Publishing");
-//      }
-//
-//    } catch (Exception e) {
-//      logger.error(methodName, null, e);
-//    }
+    stopRoute(metricsRouteBuilder.getRouteCollection(), ">>>> Agent Stopped Publishing Metrics");
+    // try {
+    // RoutesDefinition rsd = metricsRouteBuilder.getRouteCollection();
+    // for (RouteDefinition rd : rsd.getRoutes()) {
+    // camelContext.stopRoute(rd.getId());
+    // camelContext.removeRoute(rd.getId());
+    // logger.error(methodName, null, ">>>> Agent Stopped Metrics Publishing");
+    // }
+    //
+    // } catch (Exception e) {
+    // logger.error(methodName, null, e);
+    // }
   }
 
   public void stopRoute(RoutesDefinition rsd, String logMsg) {
-	    String methodName = "stopRoute";
-	    try {
-	      for (RouteDefinition rd : rsd.getRoutes()) {
-	        camelContext.stopRoute(rd.getId());
-	        camelContext.removeRoute(rd.getId());
-	        logger.info(methodName, null, logMsg);
-	      }
+    String methodName = "stopRoute";
+    try {
+      for (RouteDefinition rd : rsd.getRoutes()) {
+        camelContext.stopRoute(rd.getId());
+        camelContext.removeRoute(rd.getId());
+        logger.info(methodName, null, logMsg);
+      }
 
-	    } catch (Exception e) {
-	      logger.error(methodName, null, e);
-	    }
-	  }
-  public void stop() {
-	  try {
-		  serviceStateUpdateServer.close();
-		  
-	  } catch( Exception e) {
-		  
-	  }
+    } catch (Exception e) {
+      logger.error(methodName, null, e);
+    }
   }
+
+  public void stop() {
+    try {
+      serviceStateUpdateServer.close();
+
+    } catch (Exception e) {
+
+    }
+  }
+
   private class DuccNodeFilter implements Predicate {
     private NodeAgent agent = null;
 
@@ -613,9 +626,10 @@ public class AgentConfiguration {
       } else {
         try {
           String nodes = (String) exchange.getIn().getHeader(DuccExchange.TARGET_NODES_HEADER_NAME);
-          logger.trace(methodName, null, ">>>>>>>>> Agent: [" + agent.getIdentity().getIp()
-                  + "] Received a Message. Is Agent target for message:" + result
-                  + ". Target Agents:" + nodes);
+          logger.trace(methodName, null,
+                  ">>>>>>>>> Agent: [" + agent.getIdentity().getIp()
+                          + "] Received a Message. Is Agent target for message:" + result
+                          + ". Target Agents:" + nodes);
           result = Utils.isTargetNodeForMessage(nodes, agent.getIdentity().getNodeIdentities());
         } catch (Throwable e) {
           e.printStackTrace();
@@ -625,32 +639,36 @@ public class AgentConfiguration {
       return result;
     }
   }
-  
+
   class ServiceUpdateWorkerThread extends Thread {
-	  private Socket socket;
-	  private AgentEventListener updateHandler;
-	  ServiceUpdateWorkerThread(Socket socket, AgentEventListener l) {
-		  this.socket = socket;
-		  updateHandler = l;
-	  }
-	  
-	  public void run() {
-		  try {
-			  logger.info("nodeAgent.ServiceUpdateWorkerThread.run()", null,">>>>> Agent Reading from Service Socket");
-			  DataInputStream dis = new DataInputStream(socket.getInputStream());
-			  String state = dis.readUTF();
-			  updateHandler.onProcessStateUpdate(state);
-			  logger.info("nodeAgent.ServiceUpdateWorkerThread.run()", null,">>>>> Agent Received State Update:"+state);
-		  } catch( Exception e) {
-			  logger.error("nodeAgent.ServiceUpdateWorkerThread.run()", null,e);
-		  } finally {
-			  try {
-				  socket.close();
-			  } catch(Exception e) {
-				  logger.error("nodeAgent.ServiceUpdateWorkerThread.run()", null,e);
-			  }
-		  }
-	  }
+    private Socket socket;
+
+    private AgentEventListener updateHandler;
+
+    ServiceUpdateWorkerThread(Socket socket, AgentEventListener l) {
+      this.socket = socket;
+      updateHandler = l;
+    }
+
+    public void run() {
+      try {
+        logger.info("nodeAgent.ServiceUpdateWorkerThread.run()", null,
+                ">>>>> Agent Reading from Service Socket");
+        DataInputStream dis = new DataInputStream(socket.getInputStream());
+        String state = dis.readUTF();
+        updateHandler.onProcessStateUpdate(state);
+        logger.info("nodeAgent.ServiceUpdateWorkerThread.run()", null,
+                ">>>>> Agent Received State Update:" + state);
+      } catch (Exception e) {
+        logger.error("nodeAgent.ServiceUpdateWorkerThread.run()", null, e);
+      } finally {
+        try {
+          socket.close();
+        } catch (Exception e) {
+          logger.error("nodeAgent.ServiceUpdateWorkerThread.run()", null, e);
+        }
+      }
+    }
   }
 
 }

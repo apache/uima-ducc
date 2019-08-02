@@ -21,6 +21,7 @@ package org.apache.uima.ducc.agent.event;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 
 public interface ProcessLifecycleObserver {
-	public void onProcessExit(IDuccProcess process);
-	public void onJPInitTimeout(IDuccProcess process, long timeout);
+  public void onProcessExit(IDuccProcess process);
+
+  public void onJPInitTimeout(IDuccProcess process, long timeout);
 }

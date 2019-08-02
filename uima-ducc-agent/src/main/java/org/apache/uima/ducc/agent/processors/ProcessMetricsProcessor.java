@@ -21,5 +21,5 @@ package org.apache.uima.ducc.agent.processors;
 import org.apache.camel.Processor;
 
 public interface ProcessMetricsProcessor extends Processor {
-	public void stop();
+  public void stop();
 }

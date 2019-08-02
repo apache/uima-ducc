@@ -22,7 +22,6 @@ import java.util.concurrent.Callable;
 
 import org.apache.uima.ducc.common.agent.metrics.memory.NodeMemory;
 
-
-public interface CallableMemoryCollector extends Callable<NodeMemory>{
+public interface CallableMemoryCollector extends Callable<NodeMemory> {
 
 }

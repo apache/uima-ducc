@@ -21,39 +21,50 @@ package org.apache.uima.ducc.agent.launcher;
 import java.io.Serializable;
 
 public class ManagedServiceInfo implements Serializable {
-	public enum ServiceState { STARTING, INITIALIZING, READY, FAILED, STOPPING, STOPPED, KILLED };
+  public enum ServiceState {
+    STARTING, INITIALIZING, READY, FAILED, STOPPING, STOPPED, KILLED
+  };
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private String pid;
-	private ServiceState state;
-	/**
-	 * @return the state
-	 */
-	public ServiceState getState() {
-		return state;
-	}
-	/**
-	 * @param state the state to set
-	 */
-	public void setState(ServiceState state) {
-		this.state = state;
-	}
-	/**
-	 * @return the pid
-	 */
-	public String getPid() {
-		return pid;
-	}
-	/**
-	 * @param pid the pid to set
-	 */
-	public void setPid(String pid) {
-		this.pid = pid;
-	}
-	public String toString() {
-		return "PID:"+getPid()+" State:"+getState();
-	}
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+
+  private String pid;
+
+  private ServiceState state;
+
+  /**
+   * @return the state
+   */
+  public ServiceState getState() {
+    return state;
+  }
+
+  /**
+   * @param state
+   *          the state to set
+   */
+  public void setState(ServiceState state) {
+    this.state = state;
+  }
+
+  /**
+   * @return the pid
+   */
+  public String getPid() {
+    return pid;
+  }
+
+  /**
+   * @param pid
+   *          the pid to set
+   */
+  public void setPid(String pid) {
+    this.pid = pid;
+  }
+
+  public String toString() {
+    return "PID:" + getPid() + " State:" + getState();
+  }
 }

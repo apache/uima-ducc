@@ -20,9 +20,10 @@ package org.apache.uima.ducc.agent.deploy;
 
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
-
 public interface ManagedService {
-	public void stopService();
-	public void killService();
-	public void onServiceStateChange(ProcessState serviceState);
+  public void stopService();
+
+  public void killService();
+
+  public void onServiceStateChange(ProcessState serviceState);
 }

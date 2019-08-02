@@ -21,6 +21,7 @@ package org.apache.uima.ducc.agent.exceptions;
 public class DuccNodeInitializationException extends DuccNodeException {
 
   private static final long serialVersionUID = -2742893598112795349L;
+
   public DuccNodeInitializationException(String msg) {
     super(msg);
   }

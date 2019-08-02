@@ -40,68 +40,67 @@ import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 
+public class DefaultNodeMetricsProcessor extends BaseProcessor implements NodeMetricsProcessor {
+  private NodeAgent agent;
 
-public class DefaultNodeMetricsProcessor extends BaseProcessor implements
-		NodeMetricsProcessor {
-	private  NodeAgent agent;
-	
-	private ExecutorService pool = Executors.newFixedThreadPool(1);
-	
-	DuccLogger logger = DuccLogger.getLogger(this.getClass(), Agent.COMPONENT_NAME);
-	
-	/*
-	public DefaultNodeMetricsProcessor(final NodeAgent agent) throws Exception {
-		this.agent = agent;
-	}
-	*/
-	public void setAgent(NodeAgent agent ) {
-		this.agent = agent;
-	}
-	public void process(Exchange exchange) throws Exception {
-	  String methodName = "process";
-	  try {
+  private ExecutorService pool = Executors.newFixedThreadPool(1);
 
-	    DefaultNodeMemoryCollector collector = new DefaultNodeMemoryCollector();
-	    Future<NodeMemory> nmiFuture = pool.submit(collector);
+  DuccLogger logger = DuccLogger.getLogger(this.getClass(), Agent.COMPONENT_NAME);
 
-	    DefaultNodeLoadAverageCollector loadAvgCollector = 
-	            new DefaultNodeLoadAverageCollector();
-	    Future<NodeLoadAverage> loadFuture = pool.submit(loadAvgCollector);
+  /*
+   * public DefaultNodeMetricsProcessor(final NodeAgent agent) throws Exception { this.agent =
+   * agent; }
+   */
+  public void setAgent(NodeAgent agent) {
+    this.agent = agent;
+  }
 
-	    NodeCpuCollector cpuCollector = new NodeCpuCollector();
-//	    Future<NodeCpuInfo> cpuFuture = pool.submit(cpuCollector);
+  public void process(Exchange exchange) throws Exception {
+    String methodName = "process";
+    try {
 
-	    NodeCpuInfo cpuInfo = new NodeCpuInfo(agent.numProcessors, cpuCollector.call().getCurrentLoad());
-	    
-	    NodeUsersCollector nodeUsersCollector = new NodeUsersCollector(agent, logger);
-	    Future<TreeMap<String,NodeUsersInfo>> nuiFuture = pool.submit(nodeUsersCollector);
-		boolean cpuReportingEnabled = agent.cgroupsManager.isCpuReportingEnabled();
+      DefaultNodeMemoryCollector collector = new DefaultNodeMemoryCollector();
+      Future<NodeMemory> nmiFuture = pool.submit(collector);
 
-	    NodeMetrics nodeMetrics = 
-	            new NodeMetrics(agent.getIdentity(), nmiFuture.get(), loadFuture.get(), 
-	                    cpuInfo, nuiFuture.get(), cpuReportingEnabled);
-	    if ( agent.isStopping()) {
-	    	nodeMetrics.disableNode();  // sends Unavailable status to clients (RM,WS)
-	    	logger.info(methodName, null,">>>>>>>>>>>>>>>>> Agent publishing State="+nodeMetrics.getNodeStatus()+" in Outgoing NodeMetrics");
-	    }
-	    //Node node = new DuccNode(new NodeIdentity(), nodeMetrics);
-	    // jrc 2011-07-30 I think this needs to be agent.getIdentity(), not create a new identity.
-	    Node node = new DuccNode(agent.getIdentity(), nodeMetrics, agent.useCgroups);
-		
-	    // Make the agent aware how much memory is available on the node. Do this once.
-		if ( agent.getNodeInfo() == null ) {
-			agent.setNodeInfo(node);
-		}
-	    logger.info(methodName, null, "... Agent "+node.getNodeIdentity().getCanonicalName()+" Posting Users:"+
-	            node.getNodeMetrics().getNodeUsersMap().size());
-	    
-	    NodeMetricsUpdateDuccEvent event = new NodeMetricsUpdateDuccEvent(node,agent.getInventoryRef().size());
-	    exchange.getIn().setBody(event, NodeMetricsUpdateDuccEvent.class);
+      DefaultNodeLoadAverageCollector loadAvgCollector = new DefaultNodeLoadAverageCollector();
+      Future<NodeLoadAverage> loadFuture = pool.submit(loadAvgCollector);
 
-	  } catch( Exception e) {
-	    e.printStackTrace();
-	  }
+      NodeCpuCollector cpuCollector = new NodeCpuCollector();
+      // Future<NodeCpuInfo> cpuFuture = pool.submit(cpuCollector);
 
-	}
+      NodeCpuInfo cpuInfo = new NodeCpuInfo(agent.numProcessors,
+              cpuCollector.call().getCurrentLoad());
+
+      NodeUsersCollector nodeUsersCollector = new NodeUsersCollector(agent, logger);
+      Future<TreeMap<String, NodeUsersInfo>> nuiFuture = pool.submit(nodeUsersCollector);
+      boolean cpuReportingEnabled = agent.cgroupsManager.isCpuReportingEnabled();
+
+      NodeMetrics nodeMetrics = new NodeMetrics(agent.getIdentity(), nmiFuture.get(),
+              loadFuture.get(), cpuInfo, nuiFuture.get(), cpuReportingEnabled);
+      if (agent.isStopping()) {
+        nodeMetrics.disableNode(); // sends Unavailable status to clients (RM,WS)
+        logger.info(methodName, null, ">>>>>>>>>>>>>>>>> Agent publishing State="
+                + nodeMetrics.getNodeStatus() + " in Outgoing NodeMetrics");
+      }
+      // Node node = new DuccNode(new NodeIdentity(), nodeMetrics);
+      // jrc 2011-07-30 I think this needs to be agent.getIdentity(), not create a new identity.
+      Node node = new DuccNode(agent.getIdentity(), nodeMetrics, agent.useCgroups);
+
+      // Make the agent aware how much memory is available on the node. Do this once.
+      if (agent.getNodeInfo() == null) {
+        agent.setNodeInfo(node);
+      }
+      logger.info(methodName, null, "... Agent " + node.getNodeIdentity().getCanonicalName()
+              + " Posting Users:" + node.getNodeMetrics().getNodeUsersMap().size());
+
+      NodeMetricsUpdateDuccEvent event = new NodeMetricsUpdateDuccEvent(node,
+              agent.getInventoryRef().size());
+      exchange.getIn().setBody(event, NodeMetricsUpdateDuccEvent.class);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+  }
 
 }

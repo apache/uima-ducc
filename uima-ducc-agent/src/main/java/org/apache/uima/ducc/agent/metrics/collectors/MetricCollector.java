@@ -21,5 +21,5 @@ package org.apache.uima.ducc.agent.metrics.collectors;
 import java.io.IOException;
 
 public interface MetricCollector {
-  public void parseMetricFile()  throws IOException;
+  public void parseMetricFile() throws IOException;
 }

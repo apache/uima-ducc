@@ -22,26 +22,26 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.agent.processors.LinuxNodeMetricsProcessor;
 
-
-
 public class NodeMetricsGenerator {
 
-  public NodeMetricsGenerator( int refreshRate, int timeToLive) {
+  public NodeMetricsGenerator(int refreshRate, int timeToLive) {
 
   }
-  protected LinuxNodeMetricsProcessor configure( CamelContext context, String brokerUrl, final String ducc_node_metrics_endpoint) throws Exception {
+
+  protected LinuxNodeMetricsProcessor configure(CamelContext context, String brokerUrl,
+          final String ducc_node_metrics_endpoint) throws Exception {
 
     context.addRoutes(new RouteBuilder() {
       public void configure() {
-//        from("timer:nodeMetricsTimer?fixedRate=true&period=" + refreshRate).startupOrder(3)
-//                .setHeader(DuccExchange.Event, constant(DuccExchange.NodeStatsEvent))
-//                .setHeader(DuccExchange.DUCCNODENAME, constant(NodeAgent.getI().getHostname()))
-//                .setHeader(DuccExchange.DUCCNODEIP, constant(NodeAgent.getAgentInfo().getIp()))
-//                .process(nodeMetricsProcessor).to(
-//                		ducc_node_metrics_endpoint+"?explicitQosEnabled=true&timeToLive="+timeToLive);
+        // from("timer:nodeMetricsTimer?fixedRate=true&period=" + refreshRate).startupOrder(3)
+        // .setHeader(DuccExchange.Event, constant(DuccExchange.NodeStatsEvent))
+        // .setHeader(DuccExchange.DUCCNODENAME, constant(NodeAgent.getI().getHostname()))
+        // .setHeader(DuccExchange.DUCCNODEIP, constant(NodeAgent.getAgentInfo().getIp()))
+        // .process(nodeMetricsProcessor).to(
+        // ducc_node_metrics_endpoint+"?explicitQosEnabled=true&timeToLive="+timeToLive);
       }
     });
-   // return nodeMetricsProcessor;
+    // return nodeMetricsProcessor;
     return null;
   }
 }
