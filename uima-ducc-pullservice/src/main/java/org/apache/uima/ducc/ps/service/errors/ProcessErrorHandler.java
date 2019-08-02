@@ -23,14 +23,16 @@ import org.apache.uima.ducc.ps.service.errors.Thresholds.Threshold;
 
 public class ProcessErrorHandler implements IErrorHandler {
 
-	private Threshold threshold;
-	public ProcessErrorHandler(Threshold threshold) {
-		this.threshold = threshold;
-	}
-	@Override
-	public Action handle() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  private Threshold threshold;
+
+  public ProcessErrorHandler(Threshold threshold) {
+    this.threshold = threshold;
+  }
+
+  @Override
+  public Action handle() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
 }

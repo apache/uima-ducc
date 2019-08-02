@@ -26,10 +26,10 @@ import org.apache.uima.ducc.ps.sd.task.error.TaskProtocolException;
 import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 
 public interface TaskProtocolHandler extends Lifecycle {
-	 public String  initialize(Properties props) throws TaskProtocolException;
+  public String initialize(Properties props) throws TaskProtocolException;
 
-    // The JP/Service sends IMetaCasTransaction object which includes  
-    // the protocol state: GET, ACK, END
-    public void handle(IMetaTaskTransaction wi) throws TaskProtocolException;
+  // The JP/Service sends IMetaCasTransaction object which includes
+  // the protocol state: GET, ACK, END
+  public void handle(IMetaTaskTransaction wi) throws TaskProtocolException;
 
 }

@@ -214,48 +214,48 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
    * @throws Exception
    */
   private IMetaTaskTransaction callGet(IMetaTaskTransaction transaction) throws Exception {
-	  transaction.setType(Type.Get);
-	  if (logger.isLoggable(Level.FINE)) {
-		  logger.log(Level.FINE, "ProtocolHandler calling GET");
-	  }
-	  IMetaTaskTransaction metaTransaction = null;
+    transaction.setType(Type.Get);
+    if (logger.isLoggable(Level.FINE)) {
+      logger.log(Level.FINE, "ProtocolHandler calling GET");
+    }
+    IMetaTaskTransaction metaTransaction = null;
 
-	  while (running) {
-		  metaTransaction = sendAndReceive(transaction);
-		  if (metaTransaction.getMetaTask() != null
-				  && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
-			  return metaTransaction;
-		  }
+    while (running) {
+      metaTransaction = sendAndReceive(transaction);
+      if (metaTransaction.getMetaTask() != null
+              && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
+        return metaTransaction;
+      }
 
-		  // If the first thread to get the lock poll for work and unlock when work found
-		  // If don't immediately get the lock then wait for the lock to be released when
-		  // work becomes available,
-		  // and immediately release the lock and loop back to retry
-		  boolean firstLocker = noWorkLock.tryLock();
-		  if (!firstLocker) {
-			  noWorkLock.lock();
-			  noWorkLock.unlock();
-			  continue;
-		  }
+      // If the first thread to get the lock poll for work and unlock when work found
+      // If don't immediately get the lock then wait for the lock to be released when
+      // work becomes available,
+      // and immediately release the lock and loop back to retry
+      boolean firstLocker = noWorkLock.tryLock();
+      if (!firstLocker) {
+        noWorkLock.lock();
+        noWorkLock.unlock();
+        continue;
+      }
 
-		  // If the first one here hold the lock and sleep before retrying
-		  if (logger.isLoggable(Level.INFO)) {
-			  logger.log(Level.INFO, "Driver is out of tasks - waiting for "
-					  + noTaskStrategy.getWaitTimeInMillis() + "ms before trying again ");
-		  }
-		  while (running) {
-			  noTaskStrategy.handleNoTaskSupplied();
-			  metaTransaction = sendAndReceive(transaction);
-			  if (metaTransaction.getMetaTask() != null
-					  && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
-				  noWorkLock.unlock();
-				  return metaTransaction;
-			  }
-		  }
-	  } 
-	  noWorkLock.unlock();
+      // If the first one here hold the lock and sleep before retrying
+      if (logger.isLoggable(Level.INFO)) {
+        logger.log(Level.INFO, "Driver is out of tasks - waiting for "
+                + noTaskStrategy.getWaitTimeInMillis() + "ms before trying again ");
+      }
+      while (running) {
+        noTaskStrategy.handleNoTaskSupplied();
+        metaTransaction = sendAndReceive(transaction);
+        if (metaTransaction.getMetaTask() != null
+                && metaTransaction.getMetaTask().getUserSpaceTask() != null) {
+          noWorkLock.unlock();
+          return metaTransaction;
+        }
+      }
+    }
+    noWorkLock.unlock();
 
-	  return metaTransaction; // When shutting down
+    return metaTransaction; // When shutting down
   }
 
   /**
@@ -439,7 +439,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
         retryThread.interrupt();
       }
     } catch (Exception ee) {
-    } 
+    }
     waitForWorkerThreadsToComplete();
     if (logger.isLoggable(Level.INFO)) {
       logger.log(Level.INFO, this.getClass().getName() + " stop() called");
@@ -455,7 +455,7 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
     logger.log(Level.INFO, this.getClass().getName() + " quiesceAndStop() called");
     // change state of transport to not running but keep connection open
     // so that other threads can quiesce (send results)
-//    transport.stop(true);
+    // transport.stop(true);
 
     quiescing = true;
     running = false;
@@ -477,13 +477,14 @@ public class DefaultServiceProtocolHandler implements IServiceProtocolHandler {
   }
 
   private void waitForWorkerThreadsToComplete() {
-	  try {
-		  // wait for process threads to terminate
-		  stopLatch.await();
-	  } catch (Exception e) {
-		  e.printStackTrace();
-	  }
+    try {
+      // wait for process threads to terminate
+      stopLatch.await();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
+
   @Override
   public void start() {
     running = true;

@@ -19,5 +19,5 @@
 package org.apache.uima.ducc.ps.service;
 
 public interface IServiceComponent {
-	
+
 }

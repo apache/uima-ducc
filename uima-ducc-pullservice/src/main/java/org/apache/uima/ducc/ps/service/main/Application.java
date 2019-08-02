@@ -20,5 +20,5 @@
 package org.apache.uima.ducc.ps.service.main;
 
 public interface Application {
-	public void onServiceStop();
+  public void onServiceStop();
 }

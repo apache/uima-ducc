@@ -23,16 +23,16 @@ import org.apache.uima.ducc.ps.service.IServiceComponent;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.metrics.IWindowStats;
 
-
 public class DefaultErrorHandler implements IServiceErrorHandler {
-	
-	@Override
-	public Action handleProcessError(Exception e, IServiceComponent source, IWindowStats stats) {
-		return Action.TERMINATE;
-	}
-	@Override
-	public Action handle(Exception e, IServiceComponent source) {
-		return Action.TERMINATE;	
-	 }
-	
+
+  @Override
+  public Action handleProcessError(Exception e, IServiceComponent source, IWindowStats stats) {
+    return Action.TERMINATE;
+  }
+
+  @Override
+  public Action handle(Exception e, IServiceComponent source) {
+    return Action.TERMINATE;
+  }
+
 }

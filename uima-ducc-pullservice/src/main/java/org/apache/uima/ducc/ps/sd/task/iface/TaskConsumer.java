@@ -22,8 +22,11 @@ package org.apache.uima.ducc.ps.sd.task.iface;
 import java.io.Serializable;
 
 public interface TaskConsumer extends Serializable {
-	public String getType();
-    public String getHostName();
-    public String getPid();
-    public String getThreadId();
+  public String getType();
+
+  public String getHostName();
+
+  public String getPid();
+
+  public String getThreadId();
 }

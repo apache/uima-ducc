@@ -25,13 +25,13 @@ import org.apache.uima.ducc.ps.service.Lifecycle;
 import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
 import org.apache.uima.ducc.ps.service.transport.IServiceTransport;
 
-public interface IServiceProtocolHandler extends Callable<String>, IServiceComponent, Lifecycle{
+public interface IServiceProtocolHandler extends Callable<String>, IServiceComponent, Lifecycle {
 
-	// IServiceProcessor implements process()
-	public void setServiceProcessor(IServiceProcessor processor);
-	
-	public void setTransport(IServiceTransport transport);
-	
-	public boolean initialized();
-	
+  // IServiceProcessor implements process()
+  public void setServiceProcessor(IServiceProcessor processor);
+
+  public void setTransport(IServiceTransport transport);
+
+  public boolean initialized();
+
 }

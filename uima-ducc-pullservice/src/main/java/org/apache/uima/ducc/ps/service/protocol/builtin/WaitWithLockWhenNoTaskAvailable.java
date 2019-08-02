@@ -29,44 +29,51 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 public class WaitWithLockWhenNoTaskAvailable implements INoTaskAvailableStrategy {
-	private int waitTime;   
-	private final ReentrantLock lock = new ReentrantLock();
-	Logger logger = UIMAFramework.getLogger(WaitWithLockWhenNoTaskAvailable.class);
-	public WaitWithLockWhenNoTaskAvailable(int waitTimeInMillis) {
-		this.waitTime = waitTimeInMillis;
-		logger.log(Level.INFO, ">>>>>>>> Service Wait Time For Task:"+waitTimeInMillis+" ms");
-	}
-	/**
-	 * This methods is called when a service is stopping. There is no
-	 * need to wait. We want to stop as soon as possible so we just
-	 * interrupt the lock which might be blocking in await()
-	 */
-	@Override
-	public void interrupt() {
-		lock.unlock();
-	}
-	
-	@Override
-	public void handleNoTaskSupplied() {
-		Condition waitAwhileCondition = lock.newCondition();
-		try {
-			lock.lock();
-			// wait only if wait time > 0. Indefinite wait is not supported. If waitTime=0, it means no wait
-			if ( waitTime > 0 ) {
-				try {
-					waitAwhileCondition.await(waitTime, TimeUnit.MILLISECONDS);
-				} catch( InterruptedException e) {
-					System.out.println("DefaultNoTaskAvailableStrategy.handleNoTaskSupplied() - Waiting interrupted "+" Thread:"+Thread.currentThread().getId());
-				}
-			}
-		} finally {
-			lock.unlock();
+  private int waitTime;
 
-		}
-	}
-	@Override
-	public long getWaitTimeInMillis() {
-		return waitTime;
-	}
-	
+  private final ReentrantLock lock = new ReentrantLock();
+
+  Logger logger = UIMAFramework.getLogger(WaitWithLockWhenNoTaskAvailable.class);
+
+  public WaitWithLockWhenNoTaskAvailable(int waitTimeInMillis) {
+    this.waitTime = waitTimeInMillis;
+    logger.log(Level.INFO, ">>>>>>>> Service Wait Time For Task:" + waitTimeInMillis + " ms");
+  }
+
+  /**
+   * This methods is called when a service is stopping. There is no need to wait. We want to stop as
+   * soon as possible so we just interrupt the lock which might be blocking in await()
+   */
+  @Override
+  public void interrupt() {
+    lock.unlock();
+  }
+
+  @Override
+  public void handleNoTaskSupplied() {
+    Condition waitAwhileCondition = lock.newCondition();
+    try {
+      lock.lock();
+      // wait only if wait time > 0. Indefinite wait is not supported. If waitTime=0, it means no
+      // wait
+      if (waitTime > 0) {
+        try {
+          waitAwhileCondition.await(waitTime, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+          System.out.println(
+                  "DefaultNoTaskAvailableStrategy.handleNoTaskSupplied() - Waiting interrupted "
+                          + " Thread:" + Thread.currentThread().getId());
+        }
+      }
+    } finally {
+      lock.unlock();
+
+    }
+  }
+
+  @Override
+  public long getWaitTimeInMillis() {
+    return waitTime;
+  }
+
 }

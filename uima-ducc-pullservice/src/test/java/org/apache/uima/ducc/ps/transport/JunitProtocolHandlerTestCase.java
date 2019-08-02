@@ -47,133 +47,137 @@ import org.junit.Before;
 
 public class JunitProtocolHandlerTestCase extends Client {
 
-	CountDownLatch threadsReady;
-	CountDownLatch stopLatch;
-	  @Before
-	  public void setUp() throws Exception {
-		  System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP,"true");
-	  }
-	  @After
-	  public void tearDown() throws Exception {
-		  
-	  }
-	private IServiceTransport initializeTransport() throws Exception {
-		int scaleout = 1;
-    	ITargetURI targetUrl = new HttpTargetURI("http://localhost:"+super.getPort()+"/"+super.getApp());
-    	DefaultRegistryClient registryClient =
-    			new DefaultRegistryClient(targetUrl);
+  CountDownLatch threadsReady;
 
-    	HttpServiceTransport transport = 
-    			new HttpServiceTransport(registryClient, scaleout);
-    	transport.initialize();
-    	return transport;
-	}
-	   // TODO Currently this test hangs
-	   //@Test
-	    public void testProtocolHandlerBasicConnectivity() throws Exception
-	    {
-		   int scaleout = 2;
-		   
-		   threadsReady = new CountDownLatch(scaleout);
-		   stopLatch = new CountDownLatch(scaleout);
-		   
-		   IServiceTransport transport =
-				   initializeTransport();
-			String analysisEngineDescriptor = "TestAAE";
+  CountDownLatch stopLatch;
 
-		   UimaServiceProcessor processor =
-				   new UimaServiceProcessor(analysisEngineDescriptor);
-		   ServiceMockup service = 
-				   new ServiceMockup(transport, processor, stopLatch);
-	       INoTaskAvailableStrategy waitStrategy = 
-					new DefaultNoTaskAvailableStrategy(1000);
-		   DefaultServiceProtocolHandler protocolHandler =
-				   new DefaultServiceProtocolHandler.Builder()
-				   .withProcessor(processor)
-				   .withService(service)
-				   .withNoTaskStrategy(waitStrategy)
-				   .withTransport(transport)
-				   .withDoneLatch(stopLatch)
-				   .withInitCompleteLatch(threadsReady)
-				   .build();
-				   
-		   service.setProtocolHandler(protocolHandler);
-		   
-		   service.initialize();
+  @Before
+  public void setUp() throws Exception {
+    System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP, "true");
+  }
 
-		   service.start();
-		   
-//	        assertThat("Response Code", http.getResponseCode(), (equal((HttpStatus.OK_200)));
-	    }
-	   
-	   private class ServiceMockup implements IService {
-		   private CountDownLatch stopLatch;
-		   private IServiceTransport transport;
-		   private IServiceProtocolHandler protocolHandler;
-		   private IServiceProcessor processor;
-		   private int scaleout = 2;
-		   ScheduledThreadPoolExecutor threadPool;
-		   
-		   public ServiceMockup(IServiceTransport transport, IServiceProcessor processor, CountDownLatch stopLatch) {
-			   this.transport = transport;
-			  
-			   this.processor = processor;
-			   this.stopLatch = stopLatch;
-		   }
-		   public void setProtocolHandler( IServiceProtocolHandler protocolHandler) {
-			   this.protocolHandler = protocolHandler;
-		   }
-		@Override
-		public void start() throws ServiceException {
-			try {
-				stopLatch.await();
-			} catch(InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-			
-		}
+  @After
+  public void tearDown() throws Exception {
 
-		@Override
-		public void stop() {
-			threadPool.shutdown();
-			protocolHandler.stop();
-			transport.stop(false);
-			processor.stop();
-		}
-		@Override
-		public void quiesceAndStop() {
-			protocolHandler.quiesceAndStop();
-			threadPool.shutdown();
-			transport.stop(true);
-			processor.stop();
-		}
-		@Override
-		public void initialize() throws ServiceInitializationException {
+  }
 
-			List<Future<String>> threadHandleList = new ArrayList<Future<String>>();
-			threadPool = new ScheduledThreadPoolExecutor(scaleout, new ServiceThreadFactory());
+  private IServiceTransport initializeTransport() throws Exception {
+    int scaleout = 1;
+    ITargetURI targetUrl = new HttpTargetURI(
+            "http://localhost:" + super.getPort() + "/" + super.getApp());
+    DefaultRegistryClient registryClient = new DefaultRegistryClient(targetUrl);
 
-			// Create and start worker threads that pull Work Items from a client
-			for (int j = 0; j < scaleout; j++) {
-				threadHandleList.add(threadPool.submit(protocolHandler));
-			}
-			try {
-				// wait until all process threads initialize
-				threadsReady.await();
+    HttpServiceTransport transport = new HttpServiceTransport(registryClient, scaleout);
+    transport.initialize();
+    return transport;
+  }
 
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				threadPool.shutdownNow();
-				throw new ServiceInitializationException(
-						"Service interrupted during initialization - shutting down process threads");
-			}
-		}
+  // TODO Currently this test hangs
+  // @Test
+  public void testProtocolHandlerBasicConnectivity() throws Exception {
+    int scaleout = 2;
 
-		@Override
-		public String getType() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-		   
-	   }
+    threadsReady = new CountDownLatch(scaleout);
+    stopLatch = new CountDownLatch(scaleout);
+
+    IServiceTransport transport = initializeTransport();
+    String analysisEngineDescriptor = "TestAAE";
+
+    UimaServiceProcessor processor = new UimaServiceProcessor(analysisEngineDescriptor);
+    ServiceMockup service = new ServiceMockup(transport, processor, stopLatch);
+    INoTaskAvailableStrategy waitStrategy = new DefaultNoTaskAvailableStrategy(1000);
+    DefaultServiceProtocolHandler protocolHandler = new DefaultServiceProtocolHandler.Builder()
+            .withProcessor(processor).withService(service).withNoTaskStrategy(waitStrategy)
+            .withTransport(transport).withDoneLatch(stopLatch).withInitCompleteLatch(threadsReady)
+            .build();
+
+    service.setProtocolHandler(protocolHandler);
+
+    service.initialize();
+
+    service.start();
+
+    // assertThat("Response Code", http.getResponseCode(), (equal((HttpStatus.OK_200)));
+  }
+
+  private class ServiceMockup implements IService {
+    private CountDownLatch stopLatch;
+
+    private IServiceTransport transport;
+
+    private IServiceProtocolHandler protocolHandler;
+
+    private IServiceProcessor processor;
+
+    private int scaleout = 2;
+
+    ScheduledThreadPoolExecutor threadPool;
+
+    public ServiceMockup(IServiceTransport transport, IServiceProcessor processor,
+            CountDownLatch stopLatch) {
+      this.transport = transport;
+
+      this.processor = processor;
+      this.stopLatch = stopLatch;
+    }
+
+    public void setProtocolHandler(IServiceProtocolHandler protocolHandler) {
+      this.protocolHandler = protocolHandler;
+    }
+
+    @Override
+    public void start() throws ServiceException {
+      try {
+        stopLatch.await();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+
+    }
+
+    @Override
+    public void stop() {
+      threadPool.shutdown();
+      protocolHandler.stop();
+      transport.stop(false);
+      processor.stop();
+    }
+
+    @Override
+    public void quiesceAndStop() {
+      protocolHandler.quiesceAndStop();
+      threadPool.shutdown();
+      transport.stop(true);
+      processor.stop();
+    }
+
+    @Override
+    public void initialize() throws ServiceInitializationException {
+
+      List<Future<String>> threadHandleList = new ArrayList<Future<String>>();
+      threadPool = new ScheduledThreadPoolExecutor(scaleout, new ServiceThreadFactory());
+
+      // Create and start worker threads that pull Work Items from a client
+      for (int j = 0; j < scaleout; j++) {
+        threadHandleList.add(threadPool.submit(protocolHandler));
+      }
+      try {
+        // wait until all process threads initialize
+        threadsReady.await();
+
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        threadPool.shutdownNow();
+        throw new ServiceInitializationException(
+                "Service interrupted during initialization - shutting down process threads");
+      }
+    }
+
+    @Override
+    public String getType() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+  }
 }

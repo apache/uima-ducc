@@ -21,46 +21,46 @@ package org.apache.uima.ducc.ps.service.transport.target;
 import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 
 public class SocketTargetURI implements ITargetURI {
-	String target;
-	
-	public SocketTargetURI(String target) {
-		this.target = target;
-	}
-	
-	@Override
-	public String getProtocol() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  String target;
 
-	@Override
-	public String getNodename() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  public SocketTargetURI(String target) {
+    this.target = target;
+  }
 
-	@Override
-	public String getPort() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public String getProtocol() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	@Override
-	public String getContext() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public String getNodename() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	@Override
-	public String asString() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public String getPort() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	@Override
-	public String getDescription() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public String getContext() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String asString() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String getDescription() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
 }

@@ -104,7 +104,7 @@ public class HttpServiceTransport implements IServiceTransport {
   private volatile boolean log = true;
 
   private AtomicLong xstreamTime = new AtomicLong();
- 
+
   public HttpServiceTransport(IRegistryClient registryClient, int scaleout)
           throws ServiceException {
     this.registryClient = registryClient;
@@ -342,9 +342,9 @@ public class HttpServiceTransport implements IServiceTransport {
                 simulatedException);
         mockExceptionGenerator.throwSimulatedException();
       } else {
-//    	  if ( stopping ) {
-//    		  throw new TransportException("Service is Stopping ");
-//    	  }
+        // if ( stopping ) {
+        // throw new TransportException("Service is Stopping ");
+        // }
         transaction = doPost(postMethod, localXStream);
       }
     } catch (IOException | URISyntaxException ex) {
@@ -387,10 +387,10 @@ public class HttpServiceTransport implements IServiceTransport {
             + " stop() called - mode:" + (quiesce == true ? "quiesce" : "stop"));
     logger.log(Level.INFO, this.getClass().getName() + " stop() called");
     if (!quiesce && cMgr != null) {
-        System.out.println(Utils.getTimestamp() + ">>>>>>> "
-                + Utils.getShortClassname(this.getClass()) + " stopping connection mgr");
+      System.out.println(Utils.getTimestamp() + ">>>>>>> "
+              + Utils.getShortClassname(this.getClass()) + " stopping connection mgr");
 
-      //cMgr.shutdown();
+      // cMgr.shutdown();
       System.out.println(Utils.getTimestamp() + ">>>>>>> "
               + Utils.getShortClassname(this.getClass()) + " stopped connection mgr");
       logger.log(Level.INFO, this.getClass().getName() + " stopped connection mgr");

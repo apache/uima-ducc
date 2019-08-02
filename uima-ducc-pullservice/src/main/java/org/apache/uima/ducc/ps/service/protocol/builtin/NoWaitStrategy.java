@@ -23,18 +23,18 @@ import org.apache.uima.ducc.ps.service.protocol.INoTaskAvailableStrategy;
 
 public class NoWaitStrategy implements INoTaskAvailableStrategy {
 
-	@Override
-	public void handleNoTaskSupplied() {
-		// No Op
-	}
+  @Override
+  public void handleNoTaskSupplied() {
+    // No Op
+  }
 
-	@Override
-	public void interrupt() {
-	}
+  @Override
+  public void interrupt() {
+  }
 
-	@Override
-	public long getWaitTimeInMillis() {
-		return 1;  // !zero
-	}
+  @Override
+  public long getWaitTimeInMillis() {
+    return 1; // !zero
+  }
 
 }

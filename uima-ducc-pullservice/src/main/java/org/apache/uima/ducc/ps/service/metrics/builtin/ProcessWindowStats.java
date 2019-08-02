@@ -22,29 +22,31 @@ package org.apache.uima.ducc.ps.service.metrics.builtin;
 import org.apache.uima.ducc.ps.service.metrics.IWindowStats;
 
 public class ProcessWindowStats implements IWindowStats {
-	private final long errorCount;
-	private final long successCount;
-	private final long errorsSinceLastSuccess;
-	
-	public ProcessWindowStats(long errorCount, long successCount, long errorsSinceLastSuccess)  {
-		this.errorCount = errorCount;
-		this.successCount = successCount;
-		this.errorsSinceLastSuccess = errorsSinceLastSuccess;
-	}
+  private final long errorCount;
 
-	@Override
-	public long getErrorCount() {
-		return errorCount;
-	}
+  private final long successCount;
 
-	@Override
-	public long getSuccessCount() {
-		return successCount;
-	}
+  private final long errorsSinceLastSuccess;
 
-	@Override
-	public long getErrorCountSinceLastSuccess() {
-		return errorsSinceLastSuccess;
-	}
+  public ProcessWindowStats(long errorCount, long successCount, long errorsSinceLastSuccess) {
+    this.errorCount = errorCount;
+    this.successCount = successCount;
+    this.errorsSinceLastSuccess = errorsSinceLastSuccess;
+  }
+
+  @Override
+  public long getErrorCount() {
+    return errorCount;
+  }
+
+  @Override
+  public long getSuccessCount() {
+    return successCount;
+  }
+
+  @Override
+  public long getErrorCountSinceLastSuccess() {
+    return errorsSinceLastSuccess;
+  }
 
 }

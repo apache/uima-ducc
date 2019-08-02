@@ -17,7 +17,6 @@
  * under the License.
 */
 
-
 package org.apache.uima.ducc.ps.sd.iface;
 
 import java.util.Properties;
@@ -26,13 +25,19 @@ import org.apache.uima.ducc.ps.sd.DriverException;
 import org.apache.uima.ducc.ps.sd.task.iface.TaskAllocatorCallbackListener;
 
 public interface ServiceDriver extends Lifecycle {
-	public static String Application = "driver.application.name";
-	public static String Port = "driver.server.port";
-	public static String MaxThreads = "driver.server.max.threads";
-    public static String DriverTaskRetryCount = "driver.task.retry.count";
-    public static String DriverTaskWaitTime = "driver.task.wait.time.millis";
-    
-	public String initialize(Properties props) throws DriverException;
-	public TaskAllocatorCallbackListener getTaskAllocator();
-	public void setTaskAllocator(TaskAllocatorCallbackListener taskAllocator);
+  public static String Application = "driver.application.name";
+
+  public static String Port = "driver.server.port";
+
+  public static String MaxThreads = "driver.server.max.threads";
+
+  public static String DriverTaskRetryCount = "driver.task.retry.count";
+
+  public static String DriverTaskWaitTime = "driver.task.wait.time.millis";
+
+  public String initialize(Properties props) throws DriverException;
+
+  public TaskAllocatorCallbackListener getTaskAllocator();
+
+  public void setTaskAllocator(TaskAllocatorCallbackListener taskAllocator);
 }

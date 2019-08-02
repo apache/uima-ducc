@@ -23,24 +23,24 @@ import java.util.UUID;
 import org.apache.uima.ducc.ps.sd.task.iface.ITask;
 
 public class SimpleTask implements ITask {
-	private String task;
-	
-	SimpleTask(String serializedTask) {
-		task = serializedTask;
-	}
-	
-	public boolean isEmpty() {
-		return task == null;
-	}
+  private String task;
 
-	@Override
-	public String asString() {
-		return task;
-	}
+  SimpleTask(String serializedTask) {
+    task = serializedTask;
+  }
 
-	@Override
-	public String getMetadata() {
-		return UUID.randomUUID().toString();
-	}
+  public boolean isEmpty() {
+    return task == null;
+  }
+
+  @Override
+  public String asString() {
+    return task;
+  }
+
+  @Override
+  public String getMetadata() {
+    return UUID.randomUUID().toString();
+  }
 
 }

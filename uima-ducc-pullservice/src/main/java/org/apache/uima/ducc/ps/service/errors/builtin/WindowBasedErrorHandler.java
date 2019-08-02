@@ -25,66 +25,70 @@ import org.apache.uima.ducc.ps.service.IServiceComponent;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler;
 import org.apache.uima.ducc.ps.service.metrics.IWindowStats;
 
-public class WindowBasedErrorHandler implements IServiceErrorHandler  {
+public class WindowBasedErrorHandler implements IServiceErrorHandler {
 
-	private int errorThreshold=1; 
-	private int windowSize = 1;
-	private long errorCount=0;
-	private long errorSequences[];
-	
+  private int errorThreshold = 1;
 
-	public WindowBasedErrorHandler withMaxFrameworkErrors(int maxFrameworkError) {
-		this.errorThreshold = maxFrameworkError;
-		return this;
-	}
-	public WindowBasedErrorHandler withProcessErrorWindow(int errorWindow ) {
-		this.windowSize = errorWindow;
-		return this;
-	}
-	public WindowBasedErrorHandler build() {
-		if (windowSize >= errorThreshold && errorThreshold > 1) {
-		   errorSequences = new long[errorThreshold - 1];
-		   Arrays.fill(errorSequences, -windowSize);
-		}
-		return this;
-	}
+  private int windowSize = 1;
 
-	public boolean exceededErrorWindow(long taskCount) {
-		if (errorThreshold == 0) {
-			return false;
-		}
-		++errorCount;
+  private long errorCount = 0;
 
-		// If no window check if total errors have REACHED the threshold
-		if (errorSequences == null) {
-			return (errorCount >= errorThreshold);
-		}
-		// Insert in array by replacing one that is outside the window.
-		int i = errorThreshold - 1;
-		while (--i >= 0) {
-			if (errorSequences[i] <= taskCount - windowSize) {
-				errorSequences[i] = taskCount;
-				return false;
-			}
-		}
-		// If insert fails then have reached threshold.
-		// Should not be called again after returning true as may return false!
-		// But may be called again if no action specified, but then it doesn't matter.
-		return true;
-	}
+  private long errorSequences[];
 
-	@Override
-	public Action handleProcessError(Exception e, IServiceComponent source, IWindowStats stats) {
-		Action action = Action.CONTINUE;
-		if ( exceededErrorWindow(stats.getSuccessCount()) ) {
-			action = Action.TERMINATE;
-		}
-		return action;
-	}
-	@Override
-	public Action handle(Exception e, IServiceComponent source) {
-		return Action.TERMINATE;	
-	 }
-	
+  public WindowBasedErrorHandler withMaxFrameworkErrors(int maxFrameworkError) {
+    this.errorThreshold = maxFrameworkError;
+    return this;
+  }
+
+  public WindowBasedErrorHandler withProcessErrorWindow(int errorWindow) {
+    this.windowSize = errorWindow;
+    return this;
+  }
+
+  public WindowBasedErrorHandler build() {
+    if (windowSize >= errorThreshold && errorThreshold > 1) {
+      errorSequences = new long[errorThreshold - 1];
+      Arrays.fill(errorSequences, -windowSize);
+    }
+    return this;
+  }
+
+  public boolean exceededErrorWindow(long taskCount) {
+    if (errorThreshold == 0) {
+      return false;
+    }
+    ++errorCount;
+
+    // If no window check if total errors have REACHED the threshold
+    if (errorSequences == null) {
+      return (errorCount >= errorThreshold);
+    }
+    // Insert in array by replacing one that is outside the window.
+    int i = errorThreshold - 1;
+    while (--i >= 0) {
+      if (errorSequences[i] <= taskCount - windowSize) {
+        errorSequences[i] = taskCount;
+        return false;
+      }
+    }
+    // If insert fails then have reached threshold.
+    // Should not be called again after returning true as may return false!
+    // But may be called again if no action specified, but then it doesn't matter.
+    return true;
+  }
+
+  @Override
+  public Action handleProcessError(Exception e, IServiceComponent source, IWindowStats stats) {
+    Action action = Action.CONTINUE;
+    if (exceededErrorWindow(stats.getSuccessCount())) {
+      action = Action.TERMINATE;
+    }
+    return action;
+  }
+
+  @Override
+  public Action handle(Exception e, IServiceComponent source) {
+    return Action.TERMINATE;
+  }
 
 }

@@ -22,11 +22,13 @@ import java.io.Serializable;
 
 public interface IMetaTaskKeys extends Serializable {
 
-	// System assigned key, e.g. a CAS sequence number
-	public String getSystemKey();			
-	public void setSystemKey(String value);
+  // System assigned key, e.g. a CAS sequence number
+  public String getSystemKey();
 
-	// User provided key, e.g. getDocumentText()
-	public String getUserKey();
-	public void setUserKey(String value);
+  public void setSystemKey(String value);
+
+  // User provided key, e.g. getDocumentText()
+  public String getUserKey();
+
+  public void setUserKey(String value);
 }

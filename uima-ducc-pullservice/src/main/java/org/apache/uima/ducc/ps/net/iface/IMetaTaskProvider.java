@@ -21,13 +21,16 @@ package org.apache.uima.ducc.ps.net.iface;
 import java.io.Serializable;
 
 public interface IMetaTaskProvider extends Serializable {
-	
-	public String getProviderKey();
-	public void setProviderKey(String value);
-	
-	public String getProviderName();
-	public void setProviderName(String value);
-	
-	public int getProviderPort();
-	public void setProviderPort(int value);
+
+  public String getProviderKey();
+
+  public void setProviderKey(String value);
+
+  public String getProviderName();
+
+  public void setProviderName(String value);
+
+  public int getProviderPort();
+
+  public void setProviderPort(int value);
 }

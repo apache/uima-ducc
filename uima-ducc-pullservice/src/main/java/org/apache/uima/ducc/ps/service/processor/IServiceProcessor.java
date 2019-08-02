@@ -21,18 +21,18 @@ package org.apache.uima.ducc.ps.service.processor;
 import org.apache.uima.ducc.ps.service.IServiceComponent;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 
-public interface IServiceProcessor extends IServiceComponent{
+public interface IServiceProcessor extends IServiceComponent {
 
-	public void initialize() throws ServiceInitializationException;
-	
-	// deserialize task, process and return result (performance metrics or Exception).
-	public IProcessResult process(String serializedTask);
-	
-	public void stop();
-	
-	public void setScaleout(int scaleout);
-	
-	public int getScaleout();
-	
-	public void setErrorHandlerWindow(int maxErrors, int windowSize);
+  public void initialize() throws ServiceInitializationException;
+
+  // deserialize task, process and return result (performance metrics or Exception).
+  public IProcessResult process(String serializedTask);
+
+  public void stop();
+
+  public void setScaleout(int scaleout);
+
+  public int getScaleout();
+
+  public void setErrorHandlerWindow(int maxErrors, int windowSize);
 }

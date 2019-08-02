@@ -19,5 +19,5 @@
 package org.apache.uima.ducc.ps.service.registry;
 
 public interface IRegistryClient {
-	public String lookUp(String currentTarget) throws RegistryNotAvailableException;
+  public String lookUp(String currentTarget) throws RegistryNotAvailableException;
 }

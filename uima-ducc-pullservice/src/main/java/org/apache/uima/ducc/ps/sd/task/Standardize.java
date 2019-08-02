@@ -20,115 +20,14 @@ package org.apache.uima.ducc.ps.sd.task;
 
 public class Standardize {
 
-	public enum Label {
-		workitem,
-		statistics,
-		memory,
-		free,
-		tasks,
-		futures,
-		collectionReaderCfg,
-		collectionReaderXml,
-		userClasspath,
-		workItemTimeout,
-		jobdir,
-		jobid,
-		deallocate,
-		text,
-		limit,
-		classname,
-		exception,
-		instance,
-		id,
-		skip,
-		dispatched,
-		deadline,
-		sum,
-		count,
-		total,
-		name,
-		key,
-		value,
-		size,
-		status,
-		add,
-		puts,
-		gets,
-		reason,
-		enter,
-		exit,
-		dispatch,
-		done,
-		error,
-		preempt,
-		retry,
-		avg,
-		min,
-		max,
-		stddev,
-		removed,
-		isKillJob,
-		isKillProcess,
-		isKillWorkItem,
-		current,
-		request,
-		result,
-		remainder,
-		jdObject,
-		jdState,
-		directory,
-		node,
-		ip,
-		pidName,
-		pid,
-		tid,
-		crFetches,
-		crTotal,
-		retrys,
-		preemptions,
-		endSuccess,
-		endFailure,
-		finishedMillisMax,
-		finishedMillisMin,
-		finishedMillisAvg,
-		runningMillisMax,
-		runningMillisMin,
-		todMostRecentStart,
-		state,
-		event,
-		curr,
-		prev,
-		hash,
-		loaded,
-		loading,
-		seqNo,
-		transNo,
-		remote,
-		action,
-		type,
-		AckMsecs,
-		EndMsecs,
-		killJob,
-		killProcess,
-		killWorkItem,
-		investmentMillis,
-		operatingMillis,
-		endAvg,
-		endCount,
-		aboveAvgMillis,
-		aboveAvgCount,
-		aboveAvg,
-		skewAvg,
-		skewCount,
-		runMax,
-		runMin,
-		;
-		
-		Label() {
-		}
-		
-		public String get() {
-			return this+"=";
-		}
-	}
+  public enum Label {
+    workitem, statistics, memory, free, tasks, futures, collectionReaderCfg, collectionReaderXml, userClasspath, workItemTimeout, jobdir, jobid, deallocate, text, limit, classname, exception, instance, id, skip, dispatched, deadline, sum, count, total, name, key, value, size, status, add, puts, gets, reason, enter, exit, dispatch, done, error, preempt, retry, avg, min, max, stddev, removed, isKillJob, isKillProcess, isKillWorkItem, current, request, result, remainder, jdObject, jdState, directory, node, ip, pidName, pid, tid, crFetches, crTotal, retrys, preemptions, endSuccess, endFailure, finishedMillisMax, finishedMillisMin, finishedMillisAvg, runningMillisMax, runningMillisMin, todMostRecentStart, state, event, curr, prev, hash, loaded, loading, seqNo, transNo, remote, action, type, AckMsecs, EndMsecs, killJob, killProcess, killWorkItem, investmentMillis, operatingMillis, endAvg, endCount, aboveAvgMillis, aboveAvgCount, aboveAvg, skewAvg, skewCount, runMax, runMin,;
+
+    Label() {
+    }
+
+    public String get() {
+      return this + "=";
+    }
+  }
 }

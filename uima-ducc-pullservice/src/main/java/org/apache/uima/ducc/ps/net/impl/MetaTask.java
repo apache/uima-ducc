@@ -22,102 +22,109 @@ import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 public class MetaTask implements IMetaTask {
 
-	private static final long serialVersionUID = 1L;
-	
-	private String systemKey = (new Integer(-1)).toString();
-	private String userKey = null;
-	private String performanceMetrics = null;
-	private Object userSpaceTask = null;
-	private Object userSpaceException = null;
-    private String appData = null;
-	/////
-	
-	public MetaTask(int seqNo, String documentText, Object userSpaceTask) {
-		setSeqNo(seqNo);
-		setDocumentText(documentText);
-		setUserSpaceTask(userSpaceTask);
-	}
-	public int getSeqNo() {
-		return Integer.parseInt(getSystemKey());
-	}
-	public String getAppData() {
-		return appData;
-	}
-	public void setAppData(String value) {
-		appData = value;
-	}
+  private static final long serialVersionUID = 1L;
 
-	public void setSeqNo(int value) {
-		setSystemKey(Integer.toString(value));
-	}
-	
-	public String getDocumentText() {
-		return getUserKey();
-	}
-	
-	public void setDocumentText(String value) {
-		setUserKey(value);
-	}
-	
-	public String getSerializedTask() {
-		return (String)getUserSpaceTask();
-	}
-	
-	public void setSerializedTask(String value) {
-		setUserSpaceTask(value);
-	}
-	
-	/////
-	
-	@Override
-	public String getSystemKey() {
-		return systemKey;
-	}
+  private String systemKey = (new Integer(-1)).toString();
 
-	@Override
-	public void setSystemKey(String value) {
-		systemKey = value;
-	}
+  private String userKey = null;
 
-	@Override
-	public String getUserKey() {
-		return userKey;
-	}
+  private String performanceMetrics = null;
 
-	@Override
-	public void setUserKey(String value) {
-		userKey = value;
-	}
+  private Object userSpaceTask = null;
 
-	@Override
-	public String getPerformanceMetrics() {
-		return performanceMetrics;
-	}
+  private Object userSpaceException = null;
 
-	@Override
-	public void setPerformanceMetrics(String serializedMetrics) {
-		performanceMetrics = serializedMetrics;
-	}
+  private String appData = null;
+  /////
 
-	@Override
-	public Object getUserSpaceTask() {
-		return userSpaceTask;
-	}
+  public MetaTask(int seqNo, String documentText, Object userSpaceTask) {
+    setSeqNo(seqNo);
+    setDocumentText(documentText);
+    setUserSpaceTask(userSpaceTask);
+  }
 
-	@Override
-	public void setUserSpaceTask(Object value) {
-		userSpaceTask = value;
-	}
+  public int getSeqNo() {
+    return Integer.parseInt(getSystemKey());
+  }
 
-	@Override
-	public Object getUserSpaceException() {
-		return userSpaceException;
-	}
+  public String getAppData() {
+    return appData;
+  }
 
-	@Override
-	public void setUserSpaceException(Object value) {
-		userSpaceException = value;
-	}
+  public void setAppData(String value) {
+    appData = value;
+  }
 
-	
+  public void setSeqNo(int value) {
+    setSystemKey(Integer.toString(value));
+  }
+
+  public String getDocumentText() {
+    return getUserKey();
+  }
+
+  public void setDocumentText(String value) {
+    setUserKey(value);
+  }
+
+  public String getSerializedTask() {
+    return (String) getUserSpaceTask();
+  }
+
+  public void setSerializedTask(String value) {
+    setUserSpaceTask(value);
+  }
+
+  /////
+
+  @Override
+  public String getSystemKey() {
+    return systemKey;
+  }
+
+  @Override
+  public void setSystemKey(String value) {
+    systemKey = value;
+  }
+
+  @Override
+  public String getUserKey() {
+    return userKey;
+  }
+
+  @Override
+  public void setUserKey(String value) {
+    userKey = value;
+  }
+
+  @Override
+  public String getPerformanceMetrics() {
+    return performanceMetrics;
+  }
+
+  @Override
+  public void setPerformanceMetrics(String serializedMetrics) {
+    performanceMetrics = serializedMetrics;
+  }
+
+  @Override
+  public Object getUserSpaceTask() {
+    return userSpaceTask;
+  }
+
+  @Override
+  public void setUserSpaceTask(Object value) {
+    userSpaceTask = value;
+  }
+
+  @Override
+  public Object getUserSpaceException() {
+    return userSpaceException;
+  }
+
+  @Override
+  public void setUserSpaceException(Object value) {
+    userSpaceException = value;
+  }
+
 }

@@ -30,116 +30,124 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 public class RemoteStateObserver implements IServiceMonitor {
-	private static final String SERVICE_JMX_PORT = "SERVICE_JMX_PORT=";
-	private static final String SERVICE_UNIQUE_ID= "DUCC_PROCESS_UNIQUEID=";
-	private static final String SERVICE_STATE = "DUCC_PROCESS_STATE=";
-	private static final String SERVICE_DATA = "SERVICE_DATA=";
-	private static final String SEPARATOR = ",";
-	private ServiceConfiguration serviceConfiguration;
-	private Logger logger;
-	private String currentState = IServiceState.State.Starting.toString();
-	public RemoteStateObserver(ServiceConfiguration serviceConfiguration, Logger logger) {
-		this.serviceConfiguration = serviceConfiguration;
-		this.logger = logger;
-		Properties serviceProps = new Properties();
+  private static final String SERVICE_JMX_PORT = "SERVICE_JMX_PORT=";
 
-		sendStateUpdate(currentState, serviceProps);
-	}
+  private static final String SERVICE_UNIQUE_ID = "DUCC_PROCESS_UNIQUEID=";
 
-	private Socket connect() throws IOException {
-		int statusUpdatePort = -1;
+  private static final String SERVICE_STATE = "DUCC_PROCESS_STATE=";
 
-		String port = serviceConfiguration.getMonitorPort();
-		try {
-			statusUpdatePort = Integer.valueOf(port);
-		} catch (NumberFormatException nfe) {
-			return null; 
-		}
-	    logger.log(Level.INFO, "Service Connecting Socket to localhost Monitor on port:" + statusUpdatePort);
-		String localhost = null;
-		// establish socket connection to an agent where this process will report its
-		// state
-		return new Socket(localhost, statusUpdatePort);
+  private static final String SERVICE_DATA = "SERVICE_DATA=";
 
-	}
+  private static final String SEPARATOR = ",";
 
-	private void sendStateUpdate(String state, Properties additionalData){
-		DataOutputStream out = null;
-		Socket socket = null;
-		// if this process is not launched by an agent, the update port will be missing
-		// Dont send updates.
-		if (serviceConfiguration.getMonitorPort() == null || serviceConfiguration.getDuccProcessUniqueId() == null) {
-			return;
-		}
-		try {
-			socket = connect();
-			if ( socket == null ) {
-				return;
-			}
-			if ( additionalData == null ) {
-				additionalData = new Properties();
-			} 
-			// Agent needs process unique ID to identify it within inventory.
-			// The unique id was added as an env var by an agent before this
-			// process was launched.
-			StringBuilder sb = new StringBuilder()
-			   .append(SERVICE_UNIQUE_ID)
-			   .append(serviceConfiguration.getDuccProcessUniqueId())
-			   .append(SEPARATOR)
-			   .append(SERVICE_STATE)
-			   .append(state);
-			if ( serviceConfiguration.getServiceJmxConnectURL() != null && 
-					!serviceConfiguration.getServiceJmxConnectURL().trim().isEmpty()) {
-				sb.append(SEPARATOR).
-				append(SERVICE_JMX_PORT).
-                append(serviceConfiguration.getServiceJmxConnectURL().trim());
-			}
-			out = new DataOutputStream(socket.getOutputStream());
-			out.writeUTF(sb.toString());
-			out.flush();
-		} catch (Exception e) {
-			
-		} finally {
-			try {
-				if (out != null) {
-					out.close();
-				}
-				if (socket != null) {
-					socket.close();
-				}
-			} catch( IOException ee) {
-				
-			}
-		
-		}
+  private ServiceConfiguration serviceConfiguration;
 
-	}
+  private Logger logger;
 
-	@Override
-	public void initialize() {
-		
-	}
+  private String currentState = IServiceState.State.Starting.toString();
 
-	@Override
-	public void onStateChange(String state, Properties additionalData) {
-		sendStateUpdate(state, additionalData);
-	}
-	@Override
-	public void onStateChange(Properties additionalData) {
-		sendStateUpdate(currentState, additionalData);
-	}
+  public RemoteStateObserver(ServiceConfiguration serviceConfiguration, Logger logger) {
+    this.serviceConfiguration = serviceConfiguration;
+    this.logger = logger;
+    Properties serviceProps = new Properties();
 
-	@Override
-	public void stop() {
-		
-	}
-	public static void main(String[] args) {
+    sendStateUpdate(currentState, serviceProps);
+  }
 
-	}
+  private Socket connect() throws IOException {
+    int statusUpdatePort = -1;
 
-	@Override
-	public void start() {
-		// TODO Auto-generated method stub
-		
-	}
+    String port = serviceConfiguration.getMonitorPort();
+    try {
+      statusUpdatePort = Integer.valueOf(port);
+    } catch (NumberFormatException nfe) {
+      return null;
+    }
+    logger.log(Level.INFO,
+            "Service Connecting Socket to localhost Monitor on port:" + statusUpdatePort);
+    String localhost = null;
+    // establish socket connection to an agent where this process will report its
+    // state
+    return new Socket(localhost, statusUpdatePort);
+
+  }
+
+  private void sendStateUpdate(String state, Properties additionalData) {
+    DataOutputStream out = null;
+    Socket socket = null;
+    // if this process is not launched by an agent, the update port will be missing
+    // Dont send updates.
+    if (serviceConfiguration.getMonitorPort() == null
+            || serviceConfiguration.getDuccProcessUniqueId() == null) {
+      return;
+    }
+    try {
+      socket = connect();
+      if (socket == null) {
+        return;
+      }
+      if (additionalData == null) {
+        additionalData = new Properties();
+      }
+      // Agent needs process unique ID to identify it within inventory.
+      // The unique id was added as an env var by an agent before this
+      // process was launched.
+      StringBuilder sb = new StringBuilder().append(SERVICE_UNIQUE_ID)
+              .append(serviceConfiguration.getDuccProcessUniqueId()).append(SEPARATOR)
+              .append(SERVICE_STATE).append(state);
+      if (serviceConfiguration.getServiceJmxConnectURL() != null
+              && !serviceConfiguration.getServiceJmxConnectURL().trim().isEmpty()) {
+        sb.append(SEPARATOR).append(SERVICE_JMX_PORT)
+                .append(serviceConfiguration.getServiceJmxConnectURL().trim());
+      }
+      out = new DataOutputStream(socket.getOutputStream());
+      out.writeUTF(sb.toString());
+      out.flush();
+    } catch (Exception e) {
+
+    } finally {
+      try {
+        if (out != null) {
+          out.close();
+        }
+        if (socket != null) {
+          socket.close();
+        }
+      } catch (IOException ee) {
+
+      }
+
+    }
+
+  }
+
+  @Override
+  public void initialize() {
+
+  }
+
+  @Override
+  public void onStateChange(String state, Properties additionalData) {
+    sendStateUpdate(state, additionalData);
+  }
+
+  @Override
+  public void onStateChange(Properties additionalData) {
+    sendStateUpdate(currentState, additionalData);
+  }
+
+  @Override
+  public void stop() {
+
+  }
+
+  public static void main(String[] args) {
+
+  }
+
+  @Override
+  public void start() {
+    // TODO Auto-generated method stub
+
+  }
 }

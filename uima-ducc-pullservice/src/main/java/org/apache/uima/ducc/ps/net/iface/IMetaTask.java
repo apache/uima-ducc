@@ -21,19 +21,23 @@ package org.apache.uima.ducc.ps.net.iface;
 import java.io.Serializable;
 
 public interface IMetaTask extends IMetaTaskKeys, Serializable {
-	
-	// Performance metrics
-	public String getPerformanceMetrics();
-	public void setPerformanceMetrics(String serializedMetrics);
-	
-	// Task (accessible in user space only)
-	public Object getUserSpaceTask();
-	public void setUserSpaceTask(Object value);
-	
-	// Exception (accessible in user space only)
-	public Object getUserSpaceException();
-	public void setUserSpaceException(Object value);
-	
-	public String getAppData();
-	public void setAppData(String value);
+
+  // Performance metrics
+  public String getPerformanceMetrics();
+
+  public void setPerformanceMetrics(String serializedMetrics);
+
+  // Task (accessible in user space only)
+  public Object getUserSpaceTask();
+
+  public void setUserSpaceTask(Object value);
+
+  // Exception (accessible in user space only)
+  public Object getUserSpaceException();
+
+  public void setUserSpaceException(Object value);
+
+  public String getAppData();
+
+  public void setAppData(String value);
 }

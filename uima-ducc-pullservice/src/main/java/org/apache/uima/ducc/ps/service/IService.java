@@ -22,6 +22,7 @@ package org.apache.uima.ducc.ps.service;
 import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 
 public interface IService extends Lifecycle {
-	public void initialize() throws ServiceInitializationException;
-	public String getType();
+  public void initialize() throws ServiceInitializationException;
+
+  public String getType();
 }

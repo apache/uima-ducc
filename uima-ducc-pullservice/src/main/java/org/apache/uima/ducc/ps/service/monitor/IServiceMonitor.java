@@ -22,21 +22,19 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.ps.service.IServiceComponent;
 
-public interface IServiceMonitor extends IServiceComponent{
-	
+public interface IServiceMonitor extends IServiceComponent {
 
-	// Called to connect to a remote Observer. 
-	public void initialize();
+  // Called to connect to a remote Observer.
+  public void initialize();
 
-	public void start(); 
+  public void start();
 
-	public void stop(); 
-	
-	// called on service state change. The additionalData may include process
-	// specific details like JMX Connect String, PID, etc
-	public void onStateChange(String state, Properties additionalData);
-	
-	public void onStateChange( Properties additionalData);
+  public void stop();
 
-	
+  // called on service state change. The additionalData may include process
+  // specific details like JMX Connect String, PID, etc
+  public void onStateChange(String state, Properties additionalData);
+
+  public void onStateChange(Properties additionalData);
+
 }

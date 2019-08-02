@@ -18,22 +18,24 @@
 */
 package org.apache.uima.ducc.ps.net.iface;
 
-
 /**
- * An interface for storing MetaCAS 
- * and CasManager status together
+ * An interface for storing MetaCAS and CasManager status together
  */
 public interface IMetaMetaTask {
 
-	public boolean isExhausted();
-	public void setExhausted(boolean value);
-	
-	public boolean isPremature();
-	public void setPremature(boolean value);
-	
-	public boolean isKillJob();
-	public void setKillJob(boolean value);
-	
-	public IMetaTask getMetaCas();
-	public void setMetaCas(IMetaTask value);
+  public boolean isExhausted();
+
+  public void setExhausted(boolean value);
+
+  public boolean isPremature();
+
+  public void setPremature(boolean value);
+
+  public boolean isKillJob();
+
+  public void setKillJob(boolean value);
+
+  public IMetaTask getMetaCas();
+
+  public void setMetaCas(IMetaTask value);
 }

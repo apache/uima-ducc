@@ -27,14 +27,17 @@ import org.apache.uima.ducc.ps.service.errors.ServiceInitializationException;
 import com.thoughtworks.xstream.XStream;
 
 public interface IServiceTransport extends IServiceComponent {
-	// called by Protocal Handler. Any errors will be handled
-	// by instance of IServiceErrorHandler
-//	public IMetaTaskTransaction dispatch(String request) throws TransportException;
-	public IMetaTaskTransaction dispatch(String serializedRequest, ThreadLocal<HashMap<Long, XStream>> localXStream) throws TransportException;
+  // called by Protocal Handler. Any errors will be handled
+  // by instance of IServiceErrorHandler
+  // public IMetaTaskTransaction dispatch(String request) throws TransportException;
+  public IMetaTaskTransaction dispatch(String serializedRequest,
+          ThreadLocal<HashMap<Long, XStream>> localXStream) throws TransportException;
 
-	// initialize transport
-	public void initialize() throws ServiceInitializationException; 
-	// stop transport
-	public void stop(boolean quiesce); 
-	public void addRequestorInfo(IMetaTaskTransaction transaction);
+  // initialize transport
+  public void initialize() throws ServiceInitializationException;
+
+  // stop transport
+  public void stop(boolean quiesce);
+
+  public void addRequestorInfo(IMetaTaskTransaction transaction);
 }

@@ -24,30 +24,33 @@ import com.thoughtworks.xstream.security.AnyTypePermission;
 import com.thoughtworks.xstream.security.NoTypePermission;
 
 public class XStreamUtils {
-	
-	private static void initXStreanSecurity(XStream xStream) {
-		XStream.setupDefaultSecurity(xStream);
-		xStream.addPermission(NoTypePermission.NONE);
-		xStream.addPermission(AnyTypePermission.ANY);
-	}
-	public static String marshall( Object targetToMarshall) throws Exception {
-        synchronized(XStreamUtils.class) {
-    		XStream xStream = new XStream(new DomDriver());
-    		initXStreanSecurity(xStream);
-            return xStream.toXML(targetToMarshall); 
-        }
-	}
-	public static Object unmarshall( String targetToUnmarshall) throws Exception {
-        synchronized(XStreamUtils.class) {
-    		XStream xStream = new XStream(new DomDriver());
-    		initXStreanSecurity(xStream);
-    		//System.out.println("Recv'd:"+targetToUnmarshall);
-    		return xStream.fromXML(targetToUnmarshall);
-        }
-	}
-	public static XStream getXStreamInstance() {
-		XStream xStream = new XStream(new DomDriver());
-		initXStreanSecurity(xStream);
-		return xStream;
-	}
+
+  private static void initXStreanSecurity(XStream xStream) {
+    XStream.setupDefaultSecurity(xStream);
+    xStream.addPermission(NoTypePermission.NONE);
+    xStream.addPermission(AnyTypePermission.ANY);
+  }
+
+  public static String marshall(Object targetToMarshall) throws Exception {
+    synchronized (XStreamUtils.class) {
+      XStream xStream = new XStream(new DomDriver());
+      initXStreanSecurity(xStream);
+      return xStream.toXML(targetToMarshall);
+    }
+  }
+
+  public static Object unmarshall(String targetToUnmarshall) throws Exception {
+    synchronized (XStreamUtils.class) {
+      XStream xStream = new XStream(new DomDriver());
+      initXStreanSecurity(xStream);
+      // System.out.println("Recv'd:"+targetToUnmarshall);
+      return xStream.fromXML(targetToUnmarshall);
+    }
+  }
+
+  public static XStream getXStreamInstance() {
+    XStream xStream = new XStream(new DomDriver());
+    initXStreanSecurity(xStream);
+    return xStream;
+  }
 }

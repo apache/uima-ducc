@@ -19,7 +19,6 @@
 
 package org.apache.uima.ducc.ps.service.dgen;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,51 +28,50 @@ import org.apache.uima.ducc.ps.service.dgen.iface.IDuccGeneratorUimaAggregateCom
 
 public class DuccUimaAggregate implements IDuccGeneratorUimaAggregate {
 
-	/**
-	 * please increment this sUID when removing or modifying a field 
-	 */
-	private static final long serialVersionUID = 1L;
+  /**
+   * please increment this sUID when removing or modifying a field
+   */
+  private static final long serialVersionUID = 1L;
 
-	private List<IDuccGeneratorUimaAggregateComponent> components = new ArrayList<IDuccGeneratorUimaAggregateComponent>();
-	
-	private int threadCount = 1;
-	private String flowController;
-	
-	public DuccUimaAggregate(ServiceConfiguration serviceConfiguration, List<IDuccGeneratorUimaAggregateComponent> components) {
-		if ( serviceConfiguration.getThreadCount() == null || serviceConfiguration.getThreadCount().trim().isEmpty()) {
-			setThreadCount(1);
-		} else {
-			setThreadCount(Integer.valueOf(serviceConfiguration.getThreadCount()));
-		}
-		setFlowController(serviceConfiguration.getJpFlowController());
-		setComponents(components);
-	}
-	
-	
-	public List<IDuccGeneratorUimaAggregateComponent> getComponents() {
-		return components;
-	}
-	
-	
-	public void setComponents(List<IDuccGeneratorUimaAggregateComponent> components) {
-		this.components = components;
-	}
-	
-	public int getThreadCount() {
-		return threadCount;
-	}
+  private List<IDuccGeneratorUimaAggregateComponent> components = new ArrayList<IDuccGeneratorUimaAggregateComponent>();
 
-	
-	public void setThreadCount(int threadCount) {
-		this.threadCount = threadCount;
-	}
+  private int threadCount = 1;
 
-	public String getFlowController() {
-		return flowController;
-	}
+  private String flowController;
 
-	
-	public void setFlowController(String flowController) {
-		this.flowController = flowController;
-	}
+  public DuccUimaAggregate(ServiceConfiguration serviceConfiguration,
+          List<IDuccGeneratorUimaAggregateComponent> components) {
+    if (serviceConfiguration.getThreadCount() == null
+            || serviceConfiguration.getThreadCount().trim().isEmpty()) {
+      setThreadCount(1);
+    } else {
+      setThreadCount(Integer.valueOf(serviceConfiguration.getThreadCount()));
+    }
+    setFlowController(serviceConfiguration.getJpFlowController());
+    setComponents(components);
+  }
+
+  public List<IDuccGeneratorUimaAggregateComponent> getComponents() {
+    return components;
+  }
+
+  public void setComponents(List<IDuccGeneratorUimaAggregateComponent> components) {
+    this.components = components;
+  }
+
+  public int getThreadCount() {
+    return threadCount;
+  }
+
+  public void setThreadCount(int threadCount) {
+    this.threadCount = threadCount;
+  }
+
+  public String getFlowController() {
+    return flowController;
+  }
+
+  public void setFlowController(String flowController) {
+    this.flowController = flowController;
+  }
 }

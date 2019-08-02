@@ -19,12 +19,15 @@
 
 package org.apache.uima.ducc.ps.service.dgen.iface;
 
-public interface IDuccGeneratorUimaReferenceByName extends IDuccGeneratorUimaDeployableConfiguration {
+public interface IDuccGeneratorUimaReferenceByName
+        extends IDuccGeneratorUimaDeployableConfiguration {
 
-	public String getReferenceByName();
-	public void setReferenceByName(String referenceByName);
-	
-	public int getThreadCount();
-	public void setThreadCount(int threadCount);
+  public String getReferenceByName();
+
+  public void setReferenceByName(String referenceByName);
+
+  public int getThreadCount();
+
+  public void setThreadCount(int threadCount);
 
 }

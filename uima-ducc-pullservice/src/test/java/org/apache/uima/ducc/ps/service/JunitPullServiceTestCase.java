@@ -47,12 +47,14 @@ public class JunitPullServiceTestCase extends Client {
 
   @Before
   public void setUp() throws Exception {
-	  System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP,"true");
+    System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP, "true");
   }
+
   @After
   public void tearDown() throws Exception {
-	  
+
   }
+
   @Test
   public void testPullService() throws Exception {
     System.out.println("----------------- testPullService -------------------");
@@ -303,4 +305,3 @@ public class JunitPullServiceTestCase extends Client {
   }
 
 }
-

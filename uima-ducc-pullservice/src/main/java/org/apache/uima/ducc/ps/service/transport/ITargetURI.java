@@ -19,10 +19,15 @@
 package org.apache.uima.ducc.ps.service.transport;
 
 public interface ITargetURI {
-	public String asString(); // stringified target, http://localhost:8080/SomeApp
-	public String getProtocol();  // http, tcp, ...
-	public String getNodename();
-	public String getPort();
-	public String getContext();   // for http, this would be a servlet context
-	public String getDescription();
+  public String asString(); // stringified target, http://localhost:8080/SomeApp
+
+  public String getProtocol(); // http, tcp, ...
+
+  public String getNodename();
+
+  public String getPort();
+
+  public String getContext(); // for http, this would be a servlet context
+
+  public String getDescription();
 }

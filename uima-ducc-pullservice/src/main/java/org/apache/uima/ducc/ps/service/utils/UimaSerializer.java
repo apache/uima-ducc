@@ -42,16 +42,17 @@ import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-
 public class UimaSerializer {
-	private static final String LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
-	private static final String EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
-	private static final String EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
+  private static final String LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+
+  private static final String EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
+
+  private static final String EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
+
   /**
    * Utility method for serializing a CAS to an XMI String
    */
-  public String serializeCasToXmi(CAS aCAS)
-          throws Exception {
+  public String serializeCasToXmi(CAS aCAS) throws Exception {
     Writer writer = new StringWriter();
     try {
       XMLSerializer xmlSer = new XMLSerializer(writer, false);
@@ -64,53 +65,54 @@ public class UimaSerializer {
       writer.close();
     }
   }
+
   private void secureXmlReader(XMLReader xmlReader) {
-	    try {
-	        xmlReader.setFeature(EXTERNAL_GENERAL_ENTITIES, false);
-	      } catch (SAXNotRecognizedException e) {
-	        UIMAFramework.getLogger().log(Level.WARNING, 
-	            "XMLReader didn't recognize feature " + EXTERNAL_GENERAL_ENTITIES);
-	      } catch (SAXNotSupportedException e) {
-	        UIMAFramework.getLogger().log(Level.WARNING, 
-	            "XMLReader doesn't support feature " + EXTERNAL_GENERAL_ENTITIES);
-	      }
+    try {
+      xmlReader.setFeature(EXTERNAL_GENERAL_ENTITIES, false);
+    } catch (SAXNotRecognizedException e) {
+      UIMAFramework.getLogger().log(Level.WARNING,
+              "XMLReader didn't recognize feature " + EXTERNAL_GENERAL_ENTITIES);
+    } catch (SAXNotSupportedException e) {
+      UIMAFramework.getLogger().log(Level.WARNING,
+              "XMLReader doesn't support feature " + EXTERNAL_GENERAL_ENTITIES);
+    }
 
-	      try {
-	        xmlReader.setFeature(EXTERNAL_PARAMETER_ENTITIES, false);
-	      } catch (SAXNotRecognizedException e) {
-	        UIMAFramework.getLogger().log(Level.WARNING, 
-	            "XMLReader didn't recognize feature " + EXTERNAL_PARAMETER_ENTITIES);
-	      } catch (SAXNotSupportedException e) {
-	        UIMAFramework.getLogger().log(Level.WARNING, 
-	            "XMLReader doesn't support feature " + EXTERNAL_PARAMETER_ENTITIES);
-	      }
+    try {
+      xmlReader.setFeature(EXTERNAL_PARAMETER_ENTITIES, false);
+    } catch (SAXNotRecognizedException e) {
+      UIMAFramework.getLogger().log(Level.WARNING,
+              "XMLReader didn't recognize feature " + EXTERNAL_PARAMETER_ENTITIES);
+    } catch (SAXNotSupportedException e) {
+      UIMAFramework.getLogger().log(Level.WARNING,
+              "XMLReader doesn't support feature " + EXTERNAL_PARAMETER_ENTITIES);
+    }
 
-	      try {
-	        xmlReader.setFeature(LOAD_EXTERNAL_DTD,false);
-	      } catch (SAXNotRecognizedException e) {
-	        UIMAFramework.getLogger().log(Level.WARNING, 
-	            "XMLReader didn't recognized feature " + LOAD_EXTERNAL_DTD);
-	      } catch (SAXNotSupportedException e) {
-	        UIMAFramework.getLogger().log(Level.WARNING, 
-	            "XMLReader doesn't support feature " + LOAD_EXTERNAL_DTD);
-	      }
+    try {
+      xmlReader.setFeature(LOAD_EXTERNAL_DTD, false);
+    } catch (SAXNotRecognizedException e) {
+      UIMAFramework.getLogger().log(Level.WARNING,
+              "XMLReader didn't recognized feature " + LOAD_EXTERNAL_DTD);
+    } catch (SAXNotSupportedException e) {
+      UIMAFramework.getLogger().log(Level.WARNING,
+              "XMLReader doesn't support feature " + LOAD_EXTERNAL_DTD);
+    }
 
   }
-  /** 
-   * Utility method for deserializing a CAS from an XMI String
-   * Does both processing of requests arriving to this service
-   *   and responses returning to this service, or to a client. 
-   */
-  public void deserializeCasFromXmi(String anXmlStr, CAS aCAS)
-          throws FactoryConfigurationError, ParserConfigurationException, SAXException, IOException {
 
-	XMLReader xmlReader = XMLReaderFactory.createXMLReader();
-	secureXmlReader(xmlReader);
+  /**
+   * Utility method for deserializing a CAS from an XMI String Does both processing of requests
+   * arriving to this service and responses returning to this service, or to a client.
+   */
+  public void deserializeCasFromXmi(String anXmlStr, CAS aCAS) throws FactoryConfigurationError,
+          ParserConfigurationException, SAXException, IOException {
+
+    XMLReader xmlReader = XMLReaderFactory.createXMLReader();
+    secureXmlReader(xmlReader);
     Reader reader = new StringReader(anXmlStr);
     XmiCasDeserializer deser = new XmiCasDeserializer(aCAS.getTypeSystem());
     ContentHandler handler = deser.getXmiCasHandler(aCAS);
     xmlReader.setContentHandler(handler);
     xmlReader.parse(new InputSource(reader));
   }
-  
+
 }

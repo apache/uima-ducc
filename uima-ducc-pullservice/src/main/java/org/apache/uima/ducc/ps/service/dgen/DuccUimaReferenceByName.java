@@ -19,40 +19,38 @@
 
 package org.apache.uima.ducc.ps.service.dgen;
 
-
 import org.apache.uima.ducc.ps.service.dgen.iface.IDuccGeneratorUimaReferenceByName;
 
 public class DuccUimaReferenceByName implements IDuccGeneratorUimaReferenceByName {
 
-	/**
-	 * please increment this sUID when removing or modifying a field 
-	 */
-	private static final long serialVersionUID = 1L;
+  /**
+   * please increment this sUID when removing or modifying a field
+   */
+  private static final long serialVersionUID = 1L;
 
-	private String referenceByName;
-	
-	private int threadCount = 1;
-	
-	public DuccUimaReferenceByName(int threadCount,String ddName) {
-		setThreadCount(threadCount);
-		setReferenceByName(ddName);
-	}
-	
-	public String getReferenceByName() {
-		return referenceByName;
-	}
-	
-	public void setReferenceByName(String referenceByName) {
-		this.referenceByName = referenceByName;
-	}
-	
-	public int getThreadCount() {
-		return threadCount;
-	}
+  private String referenceByName;
 
-	
-	public void setThreadCount(int threadCount) {
-		this.threadCount = threadCount;
-	}
+  private int threadCount = 1;
+
+  public DuccUimaReferenceByName(int threadCount, String ddName) {
+    setThreadCount(threadCount);
+    setReferenceByName(ddName);
+  }
+
+  public String getReferenceByName() {
+    return referenceByName;
+  }
+
+  public void setReferenceByName(String referenceByName) {
+    this.referenceByName = referenceByName;
+  }
+
+  public int getThreadCount() {
+    return threadCount;
+  }
+
+  public void setThreadCount(int threadCount) {
+    this.threadCount = threadCount;
+  }
 
 }

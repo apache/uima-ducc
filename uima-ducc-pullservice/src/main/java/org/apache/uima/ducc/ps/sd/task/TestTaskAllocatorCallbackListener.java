@@ -39,73 +39,83 @@ import org.apache.uima.util.Logger;
 /*
  * Creates tasks/work from an input file or sends a fixed string every time.
  */
-public class TestTaskAllocatorCallbackListener implements
-		TaskAllocatorCallbackListener {
-	Logger logger = UIMAFramework.getLogger(TestTaskAllocatorCallbackListener.class);
-	private static UimaSerializer uimaSerializer = new UimaSerializer();
-	private AtomicLong seqno = new AtomicLong(0);
-    private BufferedReader inf;
-    private String text = "Some Text";
-	public TestTaskAllocatorCallbackListener() throws FileNotFoundException {
-	    String taskFilename = System.getProperty("TestTaskFile");
-	    if (taskFilename != null) {
-	        File taskFile = new File(taskFilename);
-	        inf = new BufferedReader(new FileReader(taskFile));
-	    }
-	}
-	private String serialize(CAS cas) throws Exception {
-		String serializedCas = uimaSerializer.serializeCasToXmi(cas);
-		return serializedCas;
-	}
-	public ITask getTask(TaskConsumer taskConsumer) {
-		logger.log(Level.INFO,"getSerializedCAS() Call "+seqno.incrementAndGet()
-		        + " - from "+taskConsumer.getType()+":"+taskConsumer.getHostName()+"-"+taskConsumer.getPid()+"-"+taskConsumer.getThreadId() );
-		String serializedCas = null;
-		try {
-			CAS cas = null;
-			cas = CasCreationUtils.createCas(new TypeSystemDescription_impl(), null, null);
-			cas.setDocumentLanguage("en");
-			if (inf != null) {
-			    text = inf.readLine();
-			    if (text == null) {
-			        inf.close();
-			        inf = null;
-			    }
-			}
-			if (text == null) {
-			    logger.log(Level.INFO," ... no work avaialble");
-			    return null;
-			}
-			logger.log(Level.INFO,"delivering: " + text);
-			cas.setDocumentText(text);
-//			cas.setDocumentText("100 "+seqno.incrementAndGet()+" 1000 0");
+public class TestTaskAllocatorCallbackListener implements TaskAllocatorCallbackListener {
+  Logger logger = UIMAFramework.getLogger(TestTaskAllocatorCallbackListener.class);
 
-			serializedCas = serialize(cas);
-			cas.reset();
-			cas.release();
+  private static UimaSerializer uimaSerializer = new UimaSerializer();
 
-		} catch( Exception e) {
-			logger.log(Level.WARNING,"Error",e);
-		}
+  private AtomicLong seqno = new AtomicLong(0);
 
-		return new SimpleTask(serializedCas);
-	}
+  private BufferedReader inf;
 
-	public synchronized void onTaskSuccess(TaskConsumer taskConsumer, String appdata, String processResult) {
-		logger.log(Level.INFO,"onTaskSuccess() Starting");
-		//List<Properties> breakdown = metrics.get();
-		//System.out.println("\tmetrics: "+processResult);
-		System.out.println("----------appdata: "+appdata);
-//		for( Properties p : breakdown ) {
-//			StringBuffer sb = new StringBuffer();
-//			sb.append("AE Name: ").append(p.get("uniqueName")).append(" Analysis Time: ").append(p.get("analysisTime"));
-//			System.out.println("\tmetrics: "+taskConsumer.toString()+" -- "+sb.toString());
-//		}
-		logger.log(Level.INFO,"onTaskSuccess() Completed");
-	}
+  private String text = "Some Text";
 
-	public void onTaskFailure(TaskConsumer taskConsumer, String appdata, String processError) {
-		logger.log(Level.INFO,"onTaskFailure) Called");
-	}
+  public TestTaskAllocatorCallbackListener() throws FileNotFoundException {
+    String taskFilename = System.getProperty("TestTaskFile");
+    if (taskFilename != null) {
+      File taskFile = new File(taskFilename);
+      inf = new BufferedReader(new FileReader(taskFile));
+    }
+  }
+
+  private String serialize(CAS cas) throws Exception {
+    String serializedCas = uimaSerializer.serializeCasToXmi(cas);
+    return serializedCas;
+  }
+
+  public ITask getTask(TaskConsumer taskConsumer) {
+    logger.log(Level.INFO,
+            "getSerializedCAS() Call " + seqno.incrementAndGet() + " - from "
+                    + taskConsumer.getType() + ":" + taskConsumer.getHostName() + "-"
+                    + taskConsumer.getPid() + "-" + taskConsumer.getThreadId());
+    String serializedCas = null;
+    try {
+      CAS cas = null;
+      cas = CasCreationUtils.createCas(new TypeSystemDescription_impl(), null, null);
+      cas.setDocumentLanguage("en");
+      if (inf != null) {
+        text = inf.readLine();
+        if (text == null) {
+          inf.close();
+          inf = null;
+        }
+      }
+      if (text == null) {
+        logger.log(Level.INFO, " ... no work avaialble");
+        return null;
+      }
+      logger.log(Level.INFO, "delivering: " + text);
+      cas.setDocumentText(text);
+      // cas.setDocumentText("100 "+seqno.incrementAndGet()+" 1000 0");
+
+      serializedCas = serialize(cas);
+      cas.reset();
+      cas.release();
+
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Error", e);
+    }
+
+    return new SimpleTask(serializedCas);
+  }
+
+  public synchronized void onTaskSuccess(TaskConsumer taskConsumer, String appdata,
+          String processResult) {
+    logger.log(Level.INFO, "onTaskSuccess() Starting");
+    // List<Properties> breakdown = metrics.get();
+    // System.out.println("\tmetrics: "+processResult);
+    System.out.println("----------appdata: " + appdata);
+    // for( Properties p : breakdown ) {
+    // StringBuffer sb = new StringBuffer();
+    // sb.append("AE Name: ").append(p.get("uniqueName")).append(" Analysis Time:
+    // ").append(p.get("analysisTime"));
+    // System.out.println("\tmetrics: "+taskConsumer.toString()+" -- "+sb.toString());
+    // }
+    logger.log(Level.INFO, "onTaskSuccess() Completed");
+  }
+
+  public void onTaskFailure(TaskConsumer taskConsumer, String appdata, String processError) {
+    logger.log(Level.INFO, "onTaskFailure) Called");
+  }
 
 }

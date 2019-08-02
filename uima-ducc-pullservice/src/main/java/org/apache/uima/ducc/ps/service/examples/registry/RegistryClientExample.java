@@ -24,15 +24,16 @@ import org.apache.uima.ducc.ps.service.registry.RegistryNotAvailableException;
 
 public class RegistryClientExample implements IRegistryClient {
 
-	private String targetURL;
-	
-	public RegistryClientExample(String targetURL) {
-		this.targetURL = targetURL;
-	}
-	@Override
-	public String lookUp(String currentTarget) throws RegistryNotAvailableException {
+  private String targetURL;
 
-		return targetURL;
-	}
+  public RegistryClientExample(String targetURL) {
+    this.targetURL = targetURL;
+  }
+
+  @Override
+  public String lookUp(String currentTarget) throws RegistryNotAvailableException {
+
+    return targetURL;
+  }
 
 }

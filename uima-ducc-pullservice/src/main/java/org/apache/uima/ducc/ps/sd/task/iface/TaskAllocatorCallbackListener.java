@@ -19,8 +19,10 @@
 
 package org.apache.uima.ducc.ps.sd.task.iface;
 
-public interface TaskAllocatorCallbackListener  {
-	public ITask getTask(TaskConsumer taskConsumer);
-    public void onTaskSuccess(TaskConsumer taskConsumer, String appdata, String processResult);
-    public void onTaskFailure(TaskConsumer taskConsumer, String appdata, String processError);
+public interface TaskAllocatorCallbackListener {
+  public ITask getTask(TaskConsumer taskConsumer);
+
+  public void onTaskSuccess(TaskConsumer taskConsumer, String appdata, String processResult);
+
+  public void onTaskFailure(TaskConsumer taskConsumer, String appdata, String processError);
 }

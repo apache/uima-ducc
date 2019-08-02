@@ -21,6 +21,6 @@ package org.apache.uima.ducc.ps.service.errors;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler.Action;
 
 public interface IErrorHandler {
-	
-	public Action handle();
+
+  public Action handle();
 }

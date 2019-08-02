@@ -22,15 +22,18 @@ import org.apache.uima.ducc.ps.service.errors.ServiceException;
 import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 
 public class TargetURIFactory {
-	private TargetURIFactory() {}
-	
-	public static ITargetURI newTarget(String targetAsString) throws ServiceException {
-		if ( targetAsString.toLowerCase().startsWith("http:")) {
-			return new HttpTargetURI(targetAsString);
-		} else if ( targetAsString.toLowerCase().startsWith("tcp:")) {
-			return new SocketTargetURI(targetAsString);
-		} else {
-			throw new ServiceException("Registry provider unsupported URL protocol - Expected either tcp or http - Instead got "+targetAsString);
-		}
-	}
+  private TargetURIFactory() {
+  }
+
+  public static ITargetURI newTarget(String targetAsString) throws ServiceException {
+    if (targetAsString.toLowerCase().startsWith("http:")) {
+      return new HttpTargetURI(targetAsString);
+    } else if (targetAsString.toLowerCase().startsWith("tcp:")) {
+      return new SocketTargetURI(targetAsString);
+    } else {
+      throw new ServiceException(
+              "Registry provider unsupported URL protocol - Expected either tcp or http - Instead got "
+                      + targetAsString);
+    }
+  }
 }

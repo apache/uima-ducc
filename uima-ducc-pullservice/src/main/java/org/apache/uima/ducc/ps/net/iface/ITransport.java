@@ -20,5 +20,5 @@ package org.apache.uima.ducc.ps.net.iface;
 
 public interface ITransport {
 
-	public void sendAndReceive(IMetaTaskTransaction metaCastransaction) throws TimeoutException;
+  public void sendAndReceive(IMetaTaskTransaction metaCastransaction) throws TimeoutException;
 }

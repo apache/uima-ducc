@@ -26,7 +26,8 @@ import org.apache.uima.ducc.ps.sd.task.iface.TaskProtocolHandler;
 import org.apache.uima.ducc.ps.sd.task.transport.TaskTransportException;
 
 public interface TaskTransportHandler extends Lifecycle {
-	
-	public String initialize(Properties properties) throws TaskTransportException;
-	public void setTaskProtocolHandler(TaskProtocolHandler taskProtocolHandler);
+
+  public String initialize(Properties properties) throws TaskTransportException;
+
+  public void setTaskProtocolHandler(TaskProtocolHandler taskProtocolHandler);
 }

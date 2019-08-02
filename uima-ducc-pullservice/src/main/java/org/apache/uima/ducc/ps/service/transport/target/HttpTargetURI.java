@@ -22,53 +22,57 @@ import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 
 public class HttpTargetURI implements ITargetURI {
 
-	String target;
-	String targetContext;
-	String targetPort;
-	String protocol;
-	String targetDescription="";
-	
-	public HttpTargetURI(String target) {
-		this.target = target;
-		
-		int pos = target.indexOf("//");
-		protocol = target.substring(0, pos-1);
-        int ipEndPos = target.indexOf(":", pos);
-        String jdIP = target.substring(pos+2,ipEndPos);
-        int portEndPos = target.indexOf("/", ipEndPos);
-        targetContext = target.substring(portEndPos+1);
-        targetPort = target.substring(ipEndPos+1, portEndPos);
+  String target;
 
+  String targetContext;
 
-	}
+  String targetPort;
 
-	@Override
-	public String getProtocol() {
-		return protocol;
-	}
+  String protocol;
 
-	@Override
-	public String getNodename() {
-		return null;
-	}
+  String targetDescription = "";
 
-	@Override
-	public String getPort() {
-		return targetPort;
-	}
+  public HttpTargetURI(String target) {
+    this.target = target;
 
-	@Override
-	public String getContext() {
-		return targetContext;
-	}
-	
-	@Override
-	public String asString() {
-		return target;
-	}
-	@Override
-	public String getDescription() {
-		return targetDescription;
-	}
+    int pos = target.indexOf("//");
+    protocol = target.substring(0, pos - 1);
+    int ipEndPos = target.indexOf(":", pos);
+    String jdIP = target.substring(pos + 2, ipEndPos);
+    int portEndPos = target.indexOf("/", ipEndPos);
+    targetContext = target.substring(portEndPos + 1);
+    targetPort = target.substring(ipEndPos + 1, portEndPos);
+
+  }
+
+  @Override
+  public String getProtocol() {
+    return protocol;
+  }
+
+  @Override
+  public String getNodename() {
+    return null;
+  }
+
+  @Override
+  public String getPort() {
+    return targetPort;
+  }
+
+  @Override
+  public String getContext() {
+    return targetContext;
+  }
+
+  @Override
+  public String asString() {
+    return target;
+  }
+
+  @Override
+  public String getDescription() {
+    return targetDescription;
+  }
 
 }

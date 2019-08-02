@@ -23,6 +23,7 @@ import java.util.List;
 import org.apache.uima.ducc.ps.service.processor.uima.utils.PerformanceMetrics;
 
 public interface IServiceResultSerializer {
-	public String serialize(List<PerformanceMetrics>  toSerialize) throws Exception;
-	public List<PerformanceMetrics> deserialize(String toDeserialize) throws Exception;
+  public String serialize(List<PerformanceMetrics> toSerialize) throws Exception;
+
+  public List<PerformanceMetrics> deserialize(String toDeserialize) throws Exception;
 }

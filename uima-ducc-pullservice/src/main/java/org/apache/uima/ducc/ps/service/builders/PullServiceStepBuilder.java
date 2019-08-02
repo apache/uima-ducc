@@ -31,128 +31,147 @@ import org.apache.uima.ducc.ps.service.processor.uima.UimaServiceProcessor;
 import org.apache.uima.ducc.ps.service.registry.IRegistryClient;
 
 public final class PullServiceStepBuilder {
-	private PullServiceStepBuilder() {}
-	private static Application app;
-	public static ServiceProcessorStep newBuilder() {
-		return newBuilder(null);
-	}
-	public static ServiceProcessorStep newBuilder(Application application) {
-		app = application;
-		return new ServiceSteps();
-	}
-	private static class ServiceSteps implements ServiceProcessorStep, RegistryStep, OptionalsStep, BuildStep {
-		private IServiceProcessor serviceProcessor;
-		private IRegistryClient registryClient;
-		
-		// uniqueId is provided by an agent when launching this process. Must be
-		// echoed when reporting process state
-		//private String uniqueId;
-		private int scaleout = 1;
-		private String serviceType;
-		private String clientURL;
-		private int waitTimeInMillis;
-		
-		@Override
-		public IService build() {
-			PullService service = null;
-			if ( Objects.nonNull(app)) {
-				service = new PullService(serviceType, app);
-			} else {
-				service = new PullService(serviceType);
-			}
-			 
-			service.setScaleout(scaleout);
-			service.setWaitTime(waitTimeInMillis);
-			if ( registryClient == null ) {
-				service.setClientURL(clientURL);	
-			} else {
-				service.setRegistryClient(registryClient);	
-			}
+  private PullServiceStepBuilder() {
+  }
 
-			service.setServiceProcessor(serviceProcessor);
+  private static Application app;
 
-			return service;
-		}
-	
-		@Override
-		public OptionalsStep withScaleout(int scaleout) {
-			this.scaleout = scaleout;
-			return this;
-		}
-		@Override
-		public OptionalsStep withType(String type) {
-			this.serviceType = type;
-			return this;
-		}
-		@Override
-		public OptionalsStep withWaitOnNoTask(int waitTimeInMillis) {
-			this.waitTimeInMillis = waitTimeInMillis;
-			return this;
-		}
-		@Override
-		public BuildStep withOptionalsDone() {
-			return this;
-		}
-		@Override
-		public OptionalsStep withRegistry(IRegistryClient registry) {
-			this.registryClient = registry;
-			return this;
-		}
-		@Override
-		public OptionalsStep withClientURL(String clientURL) {
-			this.clientURL = clientURL;
-			return this;
-		}
-		@Override
-		public RegistryStep withProcessor(IServiceProcessor processor) {
-			this.serviceProcessor = processor;
-			return this;
-		}
-		
-	}
-	
-	public interface ServiceProcessorStep {
-		public RegistryStep withProcessor(IServiceProcessor processor);
-	}
-	public interface RegistryStep {
-		public OptionalsStep withRegistry(IRegistryClient registry);
-		public OptionalsStep withClientURL(String clientURL);
-	}
-	public interface OptionalsStep {
-		public OptionalsStep withScaleout(int scaleout);
-		public OptionalsStep withType(String type);
-		public OptionalsStep withWaitOnNoTask(int waitTimeInMillis);
-		public BuildStep withOptionalsDone();
-	}
-	public interface BuildStep {
-		IService build();
-	}
-	public static void main(String[] args) {
-//		// the actual URL may be provided by a Registry.
-//		ITargetURI clientTarget = 
-//				new HttpTargetURI("http://localhost:8080/TAS");
-//		ITargetURI monitorTarget = 
-//				new SocketTargetURI("tcp://localhost:12000");
-		int scaleout = 1;
-		String analysisEngineDescriptor = args[0];
-		
-		IServiceProcessor processor =
-				new UimaServiceProcessor(analysisEngineDescriptor);
-		
-		IService service = PullServiceStepBuilder.newBuilder()
-			.withProcessor(processor)
-			.withClientURL("http://localhost:8080/TAS")
-			.withType("Note Service")
-			.withScaleout(scaleout)
-			.withOptionalsDone()
-			.build();
-		
-		try {
-			service.initialize();
-			service.start();
-		} catch(ServiceInitializationException  | ServiceException | ExecutionException e) {
-			
-		} 
-	}
+  public static ServiceProcessorStep newBuilder() {
+    return newBuilder(null);
+  }
+
+  public static ServiceProcessorStep newBuilder(Application application) {
+    app = application;
+    return new ServiceSteps();
+  }
+
+  private static class ServiceSteps
+          implements ServiceProcessorStep, RegistryStep, OptionalsStep, BuildStep {
+    private IServiceProcessor serviceProcessor;
+
+    private IRegistryClient registryClient;
+
+    // uniqueId is provided by an agent when launching this process. Must be
+    // echoed when reporting process state
+    // private String uniqueId;
+    private int scaleout = 1;
+
+    private String serviceType;
+
+    private String clientURL;
+
+    private int waitTimeInMillis;
+
+    @Override
+    public IService build() {
+      PullService service = null;
+      if (Objects.nonNull(app)) {
+        service = new PullService(serviceType, app);
+      } else {
+        service = new PullService(serviceType);
+      }
+
+      service.setScaleout(scaleout);
+      service.setWaitTime(waitTimeInMillis);
+      if (registryClient == null) {
+        service.setClientURL(clientURL);
+      } else {
+        service.setRegistryClient(registryClient);
+      }
+
+      service.setServiceProcessor(serviceProcessor);
+
+      return service;
+    }
+
+    @Override
+    public OptionalsStep withScaleout(int scaleout) {
+      this.scaleout = scaleout;
+      return this;
+    }
+
+    @Override
+    public OptionalsStep withType(String type) {
+      this.serviceType = type;
+      return this;
+    }
+
+    @Override
+    public OptionalsStep withWaitOnNoTask(int waitTimeInMillis) {
+      this.waitTimeInMillis = waitTimeInMillis;
+      return this;
+    }
+
+    @Override
+    public BuildStep withOptionalsDone() {
+      return this;
+    }
+
+    @Override
+    public OptionalsStep withRegistry(IRegistryClient registry) {
+      this.registryClient = registry;
+      return this;
+    }
+
+    @Override
+    public OptionalsStep withClientURL(String clientURL) {
+      this.clientURL = clientURL;
+      return this;
+    }
+
+    @Override
+    public RegistryStep withProcessor(IServiceProcessor processor) {
+      this.serviceProcessor = processor;
+      return this;
+    }
+
+  }
+
+  public interface ServiceProcessorStep {
+    public RegistryStep withProcessor(IServiceProcessor processor);
+  }
+
+  public interface RegistryStep {
+    public OptionalsStep withRegistry(IRegistryClient registry);
+
+    public OptionalsStep withClientURL(String clientURL);
+  }
+
+  public interface OptionalsStep {
+    public OptionalsStep withScaleout(int scaleout);
+
+    public OptionalsStep withType(String type);
+
+    public OptionalsStep withWaitOnNoTask(int waitTimeInMillis);
+
+    public BuildStep withOptionalsDone();
+  }
+
+  public interface BuildStep {
+    IService build();
+  }
+
+  public static void main(String[] args) {
+    // // the actual URL may be provided by a Registry.
+    // ITargetURI clientTarget =
+    // new HttpTargetURI("http://localhost:8080/TAS");
+    // ITargetURI monitorTarget =
+    // new SocketTargetURI("tcp://localhost:12000");
+    int scaleout = 1;
+    String analysisEngineDescriptor = args[0];
+
+    IServiceProcessor processor = new UimaServiceProcessor(analysisEngineDescriptor);
+
+    IService service = PullServiceStepBuilder.newBuilder().withProcessor(processor)
+            .withClientURL("http://localhost:8080/TAS").withType("Note Service")
+            .withScaleout(scaleout).withOptionalsDone().build();
+
+    try {
+      service.initialize();
+      service.start();
+    } catch (ServiceInitializationException | ServiceException | ExecutionException e) {
+
+    }
+  }
 
 }

@@ -23,18 +23,17 @@ import java.util.List;
 import org.apache.uima.ducc.ps.service.processor.IServiceResultSerializer;
 import org.apache.uima.ducc.ps.service.transport.XStreamUtils;
 
-public class UimaResultDefaultSerializer implements IServiceResultSerializer{
+public class UimaResultDefaultSerializer implements IServiceResultSerializer {
 
-	
+  @Override
+  public String serialize(List<PerformanceMetrics> casMetrics) throws Exception {
 
-	@Override
-	public String serialize(List<PerformanceMetrics> casMetrics) throws Exception {
-		
-		return XStreamUtils.marshall(casMetrics);
-	}
-	@Override
-	public List<PerformanceMetrics> deserialize(String casMetrics) throws Exception {
-		return (List<PerformanceMetrics>)XStreamUtils.unmarshall(casMetrics);
-	}
+    return XStreamUtils.marshall(casMetrics);
+  }
+
+  @Override
+  public List<PerformanceMetrics> deserialize(String casMetrics) throws Exception {
+    return (List<PerformanceMetrics>) XStreamUtils.unmarshall(casMetrics);
+  }
 
 }

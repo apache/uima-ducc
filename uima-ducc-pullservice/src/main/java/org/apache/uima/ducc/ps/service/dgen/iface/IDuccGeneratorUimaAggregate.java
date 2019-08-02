@@ -19,17 +19,19 @@
 
 package org.apache.uima.ducc.ps.service.dgen.iface;
 
-
 import java.util.List;
 
 public interface IDuccGeneratorUimaAggregate extends IDuccGeneratorUimaDeployableConfiguration {
 
-	public List<IDuccGeneratorUimaAggregateComponent> getComponents();
-	public void setComponents(List<IDuccGeneratorUimaAggregateComponent> components);
-	
-	public int getThreadCount();
-	public void setThreadCount(int threadCount);
-	
-	public String getFlowController();
-	public void setFlowController(String flowController);
+  public List<IDuccGeneratorUimaAggregateComponent> getComponents();
+
+  public void setComponents(List<IDuccGeneratorUimaAggregateComponent> components);
+
+  public int getThreadCount();
+
+  public void setThreadCount(int threadCount);
+
+  public String getFlowController();
+
+  public void setFlowController(String flowController);
 }

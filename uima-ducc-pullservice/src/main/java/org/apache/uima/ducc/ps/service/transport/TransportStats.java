@@ -22,37 +22,38 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.ducc.ps.service.metrics.IWindowStats;
 
-public class TransportStats implements IWindowStats{
+public class TransportStats implements IWindowStats {
 
-	private AtomicLong errorCount = new AtomicLong();
-	private AtomicLong successCount = new AtomicLong();
-	private AtomicLong errorCountSinceLastSuccess = new AtomicLong();
-	
-	
+  private AtomicLong errorCount = new AtomicLong();
 
-	public synchronized void incrementErrorCount() {
-		errorCount.incrementAndGet();
-		errorCountSinceLastSuccess.incrementAndGet();
-	}
-	public synchronized void incrementSuccessCount() {
-		successCount.incrementAndGet();
-		// reset
-		errorCountSinceLastSuccess.set(0);
-	}
-	
-	@Override
-	public long getErrorCount() {
-		return errorCount.get();
-	}
+  private AtomicLong successCount = new AtomicLong();
 
-	@Override
-	public long getSuccessCount() {
-		return successCount.get();
-	}
+  private AtomicLong errorCountSinceLastSuccess = new AtomicLong();
 
-	@Override
-	public long getErrorCountSinceLastSuccess() {
-		return errorCountSinceLastSuccess.get();
-	}
+  public synchronized void incrementErrorCount() {
+    errorCount.incrementAndGet();
+    errorCountSinceLastSuccess.incrementAndGet();
+  }
+
+  public synchronized void incrementSuccessCount() {
+    successCount.incrementAndGet();
+    // reset
+    errorCountSinceLastSuccess.set(0);
+  }
+
+  @Override
+  public long getErrorCount() {
+    return errorCount.get();
+  }
+
+  @Override
+  public long getSuccessCount() {
+    return successCount.get();
+  }
+
+  @Override
+  public long getErrorCountSinceLastSuccess() {
+    return errorCountSinceLastSuccess.get();
+  }
 
 }

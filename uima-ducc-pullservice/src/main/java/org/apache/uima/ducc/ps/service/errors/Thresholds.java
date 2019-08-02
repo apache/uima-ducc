@@ -19,24 +19,30 @@
 package org.apache.uima.ducc.ps.service.errors;
 
 public class Thresholds {
-	
-	private Thresholds() {}
-	
-	public static Threshold newThreshold(long maxErrors, long windowSize) {
-		return new Threshold(maxErrors, windowSize);
-	}
-	public static class Threshold {
-		private long maxErrors;
-		private long windowSize;
-		public Threshold(long maxErrors, long windowSize) {
-			this.maxErrors = maxErrors;
-			this.windowSize = windowSize;
-		}
-		public long getMaxErrors() {
-			return maxErrors;
-		}
-		public long getWindow() {
-			return windowSize;
-		}
-	}
+
+  private Thresholds() {
+  }
+
+  public static Threshold newThreshold(long maxErrors, long windowSize) {
+    return new Threshold(maxErrors, windowSize);
+  }
+
+  public static class Threshold {
+    private long maxErrors;
+
+    private long windowSize;
+
+    public Threshold(long maxErrors, long windowSize) {
+      this.maxErrors = maxErrors;
+      this.windowSize = windowSize;
+    }
+
+    public long getMaxErrors() {
+      return maxErrors;
+    }
+
+    public long getWindow() {
+      return windowSize;
+    }
+  }
 }

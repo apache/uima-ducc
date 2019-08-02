@@ -26,27 +26,28 @@ import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction.Hint;
 
 public class TransactionHelper {
 
-//	private static Logger logger = Logger.getLogger(TransactionHelper.class, IComponent.Id.JD.name());
-	
-	public static void addResponseHint(IMetaTaskTransaction trans, Hint hint) {
-		String location = "addResponseHint";
-		if(trans != null) {
-			if(hint != null) {
-				List<Hint> hints = trans.getResponseHints();
-				if(hints == null) {
-					hints = new ArrayList<Hint>();
-					trans.setResponseHints(hints);
-				}
-				if(!hints.contains(hint)) {
-					hints.add(hint);
-//					IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
-//					MessageBuffer mb = new MessageBuffer();
-//					mb.append(Standardize.Label.node.get()+rwp.getNodeName());
-//					mb.append(Standardize.Label.pid.get()+rwp.getPid());
-//					mb.append(Standardize.Label.value.get()+hint);
-//					logger.debug(location, ILogger.null_id, mb.toString());
-				}
-			}
-		}
-	}
+  // private static Logger logger = Logger.getLogger(TransactionHelper.class,
+  // IComponent.Id.JD.name());
+
+  public static void addResponseHint(IMetaTaskTransaction trans, Hint hint) {
+    String location = "addResponseHint";
+    if (trans != null) {
+      if (hint != null) {
+        List<Hint> hints = trans.getResponseHints();
+        if (hints == null) {
+          hints = new ArrayList<Hint>();
+          trans.setResponseHints(hints);
+        }
+        if (!hints.contains(hint)) {
+          hints.add(hint);
+          // IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
+          // MessageBuffer mb = new MessageBuffer();
+          // mb.append(Standardize.Label.node.get()+rwp.getNodeName());
+          // mb.append(Standardize.Label.pid.get()+rwp.getPid());
+          // mb.append(Standardize.Label.value.get()+hint);
+          // logger.debug(location, ILogger.null_id, mb.toString());
+        }
+      }
+    }
+  }
 }

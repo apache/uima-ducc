@@ -66,14 +66,17 @@ public class JunitTransportTestCase {
       return new HashMap<Long, XStream>();
     }
   };
+
   @Before
   public void setUp() throws Exception {
-	  System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP,"true");
+    System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP, "true");
   }
+
   @After
   public void tearDown() throws Exception {
-	  
+
   }
+
   private int getJettyPort() {
     while (true) {
       ServerSocket socket = null;

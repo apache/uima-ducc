@@ -21,63 +21,67 @@ package org.apache.uima.ducc.ps.service.processor.uima.utils;
 
 public class PerformanceMetrics {
 
-	private String name;
-	private String uniqueName;
-	private long analysisTime;
-	private long numberOfTasksProcessed;;
-	
-	/**
-	 * Creates a performance metrics instance
-	 * 
-	 */
-	public PerformanceMetrics(String name, String uimaContextPath, long analysisTime, long taskCount) {
-		this.name = name;
-		this.uniqueName = uimaContextPath;
-		this.analysisTime = analysisTime;
-		this.numberOfTasksProcessed = taskCount;
-	}
+  private String name;
 
-	/**
-	 * Gets the local name of the component as specified in the aggregate
-	 * 
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
+  private String uniqueName;
 
-	/**
-	 * Gets the unique name of the component reflecting its location in the
-	 * aggregate hierarchy
-	 * 
-	 * @return the unique name
-	 */
-	public String getUniqueName() {
-		if (uniqueName != null && uniqueName.trim().length() > 0 && !uniqueName.trim().equals("Components")) {
-			// if ( !uimaContextPath.endsWith(getName())) {
-			// return uimaContextPath+"/"+getName();
-			// }
-			return uniqueName;
-		} else {
-			return getName();
-		}
-	}
+  private long analysisTime;
 
-	/**
-	 * Gets the elapsed time the CAS spent analyzing this component
-	 * 
-	 * @return time in milliseconds
-	 */
-	public long getAnalysisTime() {
-		return analysisTime;
-	}
+  private long numberOfTasksProcessed;;
 
-	/**
-	 * Gets how many tasks have been processed so far
-	 * 
-	 * @return number of tasks processed so far
-	 */
-	public long getNumberOfTasksProcessed() {
-		return numberOfTasksProcessed;
-	}
+  /**
+   * Creates a performance metrics instance
+   * 
+   */
+  public PerformanceMetrics(String name, String uimaContextPath, long analysisTime,
+          long taskCount) {
+    this.name = name;
+    this.uniqueName = uimaContextPath;
+    this.analysisTime = analysisTime;
+    this.numberOfTasksProcessed = taskCount;
+  }
+
+  /**
+   * Gets the local name of the component as specified in the aggregate
+   * 
+   * @return the name
+   */
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * Gets the unique name of the component reflecting its location in the aggregate hierarchy
+   * 
+   * @return the unique name
+   */
+  public String getUniqueName() {
+    if (uniqueName != null && uniqueName.trim().length() > 0
+            && !uniqueName.trim().equals("Components")) {
+      // if ( !uimaContextPath.endsWith(getName())) {
+      // return uimaContextPath+"/"+getName();
+      // }
+      return uniqueName;
+    } else {
+      return getName();
+    }
+  }
+
+  /**
+   * Gets the elapsed time the CAS spent analyzing this component
+   * 
+   * @return time in milliseconds
+   */
+  public long getAnalysisTime() {
+    return analysisTime;
+  }
+
+  /**
+   * Gets how many tasks have been processed so far
+   * 
+   * @return number of tasks processed so far
+   */
+  public long getNumberOfTasksProcessed() {
+    return numberOfTasksProcessed;
+  }
 }

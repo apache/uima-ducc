@@ -25,40 +25,51 @@ import org.apache.uima.ducc.ps.net.impl.TransactionId;
 
 public interface IMetaTaskTransaction extends IMetaTaskProvider, IMetaTaskRequester, Serializable {
 
-	public enum Type { Get, Ack, End , InvestmentReset };
-	
-	public Type getType();
-	public void setType(Type value);
+  public enum Type {
+    Get, Ack, End, InvestmentReset
+  };
 
-	public enum Hint { 
-		Blacklisted,	// the requesting JP has been blacklisted (no workitems will ever be assigned)
-		Killed, 		// the JD  has been killed
-		Exhausted,		// the workitems have all been processed (successfully or otherwise)
-		Premature,		// the available workitems have all been processed (successfully or otherwise)
-		Rejected,		// the request has been rejected
-		};
-	
-	public List<Hint> getResponseHints();
-	public void setResponseHints(List<Hint> value);
-	
-	public enum Direction { Request, Response };
-	
-	public Direction getDirection();
-	public void setDirection(Direction value);
-	
-	public TransactionId getTransactionId();
-	public void setTransactionId(TransactionId value);
+  public Type getType();
 
-	public IMetaTask getMetaTask();
-	public void setMetaTask(IMetaTask value);
-	
-	/*
-	 * Initializing - driver is not yet ready to deliver work items
-	 * Active - driver is ready or delivering work items
-	 * Ended - driver is finished delivering work items
-	 */
-	public enum JdState { Prelaunch, Initializing, Active, Ended };
-	
-	public JdState getJdState();
-	public void setJdState(JdState value);
+  public void setType(Type value);
+
+  public enum Hint {
+    Blacklisted, // the requesting JP has been blacklisted (no workitems will ever be assigned)
+    Killed, // the JD has been killed
+    Exhausted, // the workitems have all been processed (successfully or otherwise)
+    Premature, // the available workitems have all been processed (successfully or otherwise)
+    Rejected, // the request has been rejected
+  };
+
+  public List<Hint> getResponseHints();
+
+  public void setResponseHints(List<Hint> value);
+
+  public enum Direction {
+    Request, Response
+  };
+
+  public Direction getDirection();
+
+  public void setDirection(Direction value);
+
+  public TransactionId getTransactionId();
+
+  public void setTransactionId(TransactionId value);
+
+  public IMetaTask getMetaTask();
+
+  public void setMetaTask(IMetaTask value);
+
+  /*
+   * Initializing - driver is not yet ready to deliver work items Active - driver is ready or
+   * delivering work items Ended - driver is finished delivering work items
+   */
+  public enum JdState {
+    Prelaunch, Initializing, Active, Ended
+  };
+
+  public JdState getJdState();
+
+  public void setJdState(JdState value);
 }

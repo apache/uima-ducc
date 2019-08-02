@@ -20,12 +20,13 @@ package org.apache.uima.ducc.ps.service.errors;
 
 public class ServiceException extends Exception {
 
-	private static final long serialVersionUID = 1L;
-	
-	public ServiceException(String msg, Exception cause) {
-		super(msg, cause);
-	}
-	public ServiceException(String msg) {
-		super(msg);
-	}
+  private static final long serialVersionUID = 1L;
+
+  public ServiceException(String msg, Exception cause) {
+    super(msg, cause);
+  }
+
+  public ServiceException(String msg) {
+    super(msg);
+  }
 }

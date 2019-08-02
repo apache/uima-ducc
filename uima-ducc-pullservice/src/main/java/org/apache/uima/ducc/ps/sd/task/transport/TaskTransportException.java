@@ -20,31 +20,31 @@
 package org.apache.uima.ducc.ps.sd.task.transport;
 
 public class TaskTransportException extends Exception {
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	public TaskTransportException() {
-		// TODO Auto-generated constructor stub
-	}
+  public TaskTransportException() {
+    // TODO Auto-generated constructor stub
+  }
 
-	public TaskTransportException(String message) {
-		super(message);
-		// TODO Auto-generated constructor stub
-	}
+  public TaskTransportException(String message) {
+    super(message);
+    // TODO Auto-generated constructor stub
+  }
 
-	public TaskTransportException(Throwable cause) {
-		super(cause);
-		// TODO Auto-generated constructor stub
-	}
+  public TaskTransportException(Throwable cause) {
+    super(cause);
+    // TODO Auto-generated constructor stub
+  }
 
-	public TaskTransportException(String message, Throwable cause) {
-		super(message, cause);
-		// TODO Auto-generated constructor stub
-	}
+  public TaskTransportException(String message, Throwable cause) {
+    super(message, cause);
+    // TODO Auto-generated constructor stub
+  }
 
-	public TaskTransportException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-		// TODO Auto-generated constructor stub
-	}
+  public TaskTransportException(String message, Throwable cause, boolean enableSuppression,
+          boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+    // TODO Auto-generated constructor stub
+  }
 
 }

@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.ps.service;
 
 public interface IScaleable {
-	public void setScaleout(int howManyThreads);
-	public int getScaleout();
+  public void setScaleout(int howManyThreads);
+
+  public int getScaleout();
 }

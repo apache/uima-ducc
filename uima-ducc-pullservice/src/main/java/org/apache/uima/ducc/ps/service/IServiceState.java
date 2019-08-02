@@ -19,7 +19,8 @@
 package org.apache.uima.ducc.ps.service;
 
 public interface IServiceState {
-	public enum State {Starting, Initializing, Running, FailedInitialization, Stopping, Stopped};
-	
+  public enum State {
+    Starting, Initializing, Running, FailedInitialization, Stopping, Stopped
+  };
 
 }

@@ -20,6 +20,7 @@
 package org.apache.uima.ducc.ps.sd.iface;
 
 public interface Lifecycle {
-	public String start() throws Exception;
-	public void stop() throws Exception;
+  public String start() throws Exception;
+
+  public void stop() throws Exception;
 }

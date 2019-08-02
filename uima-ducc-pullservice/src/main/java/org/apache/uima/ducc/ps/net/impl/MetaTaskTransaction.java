@@ -23,174 +23,180 @@ import java.util.List;
 import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 import org.apache.uima.ducc.ps.net.iface.IMetaTaskTransaction;
 
-
 public class MetaTaskTransaction implements IMetaTaskTransaction {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	private TransactionId transactionId = null;
-	
-	private Type type = null;
-	private Direction direction = null;
-	
-	private List<Hint> hints = null;
-	
-	private String providerKey = null;
-	private String providerName = null;
-	private int providerPort = 0;
-	
-	private String requesterNodeName = null;
-	private String requesterAddress = null;
-	private String requesterPidName = null;
-	private int requesterPid = 0;
-	private int requesterTid = 0;
-	
-	private IMetaTask metaTask = null;
-	
-	private JdState jdState = null;
-	
-	public MetaTaskTransaction() {
-		transactionId = new TransactionId(0,0);
-	}
-	
-	@Override
-	public String getProviderKey() {
-		return providerKey;
-	}
-	
-	@Override
-	public void setProviderKey(String value) {
-		providerKey = value;
-	}
-	
-	@Override
-	public String getProviderName() {
-		return providerName;
-	}
+  private TransactionId transactionId = null;
 
-	@Override
-	public void setProviderName(String value) {
-		providerName = value;
-	}
+  private Type type = null;
 
-	@Override
-	public int getProviderPort() {
-		return providerPort;
-	}
+  private Direction direction = null;
 
-	@Override
-	public void setProviderPort(int value) {
-		providerPort = value;
-	}
+  private List<Hint> hints = null;
 
-	@Override
-	public String getRequesterNodeName() {
-		return requesterNodeName;
-	}
+  private String providerKey = null;
 
-	@Override
-	public void setRequesterNodeName(String value) {
-		requesterNodeName = value;
-	}
+  private String providerName = null;
 
-	@Override
-	public String getRequesterAddress() {
-		return requesterAddress;
-	}
+  private int providerPort = 0;
 
-	@Override
-	public void setRequesterAddress(String value) {
-		requesterAddress = value;
-	}
+  private String requesterNodeName = null;
 
-	@Override
-	public String getRequesterProcessName() {
-		return requesterPidName;
-	}
+  private String requesterAddress = null;
 
-	@Override
-	public void setRequesterProcessName(String value) {
-		requesterPidName = value;
-	}
-	
-	@Override
-	public int getRequesterProcessId() {
-		return requesterPid;
-	}
+  private String requesterPidName = null;
 
-	@Override
-	public void setRequesterProcessId(int value) {
-		requesterPid = value;
-	}
+  private int requesterPid = 0;
 
-	@Override
-	public int getRequesterThreadId() {
-		return requesterTid;
-	}
+  private int requesterTid = 0;
 
-	@Override
-	public void setRequesterThreadId(int value) {
-		requesterTid = value;
-	}
+  private IMetaTask metaTask = null;
 
-	@Override
-	public Type getType() {
-		return type;
-	}
+  private JdState jdState = null;
 
-	@Override
-	public void setType(Type value) {
-		type = value;
-	}
+  public MetaTaskTransaction() {
+    transactionId = new TransactionId(0, 0);
+  }
 
-	@Override
-	public Direction getDirection() {
-		return direction;
-	}
+  @Override
+  public String getProviderKey() {
+    return providerKey;
+  }
 
-	@Override
-	public void setDirection(Direction value) {
-		direction = value;
-	}
+  @Override
+  public void setProviderKey(String value) {
+    providerKey = value;
+  }
 
-	@Override
-	public List<Hint> getResponseHints() {
-		return hints;
-	}
+  @Override
+  public String getProviderName() {
+    return providerName;
+  }
 
-	@Override
-	public void setResponseHints(List<Hint> value) {
-		hints = value;
-	}
+  @Override
+  public void setProviderName(String value) {
+    providerName = value;
+  }
 
-	@Override
-	public TransactionId getTransactionId() {
-		return transactionId;
-	}
+  @Override
+  public int getProviderPort() {
+    return providerPort;
+  }
 
-	@Override
-	public void setTransactionId(TransactionId value) {
-		transactionId = value;
-	}
+  @Override
+  public void setProviderPort(int value) {
+    providerPort = value;
+  }
 
-	@Override
-	public IMetaTask getMetaTask() {
-		return metaTask;
-	}
+  @Override
+  public String getRequesterNodeName() {
+    return requesterNodeName;
+  }
 
-	@Override
-	public void setMetaTask(IMetaTask value) {
-		metaTask = value;
-	}
+  @Override
+  public void setRequesterNodeName(String value) {
+    requesterNodeName = value;
+  }
 
-	@Override
-	public JdState getJdState() {
-		return jdState;
-	}
+  @Override
+  public String getRequesterAddress() {
+    return requesterAddress;
+  }
 
-	@Override
-	public void setJdState(JdState value) {
-		jdState = value;
-	}
+  @Override
+  public void setRequesterAddress(String value) {
+    requesterAddress = value;
+  }
+
+  @Override
+  public String getRequesterProcessName() {
+    return requesterPidName;
+  }
+
+  @Override
+  public void setRequesterProcessName(String value) {
+    requesterPidName = value;
+  }
+
+  @Override
+  public int getRequesterProcessId() {
+    return requesterPid;
+  }
+
+  @Override
+  public void setRequesterProcessId(int value) {
+    requesterPid = value;
+  }
+
+  @Override
+  public int getRequesterThreadId() {
+    return requesterTid;
+  }
+
+  @Override
+  public void setRequesterThreadId(int value) {
+    requesterTid = value;
+  }
+
+  @Override
+  public Type getType() {
+    return type;
+  }
+
+  @Override
+  public void setType(Type value) {
+    type = value;
+  }
+
+  @Override
+  public Direction getDirection() {
+    return direction;
+  }
+
+  @Override
+  public void setDirection(Direction value) {
+    direction = value;
+  }
+
+  @Override
+  public List<Hint> getResponseHints() {
+    return hints;
+  }
+
+  @Override
+  public void setResponseHints(List<Hint> value) {
+    hints = value;
+  }
+
+  @Override
+  public TransactionId getTransactionId() {
+    return transactionId;
+  }
+
+  @Override
+  public void setTransactionId(TransactionId value) {
+    transactionId = value;
+  }
+
+  @Override
+  public IMetaTask getMetaTask() {
+    return metaTask;
+  }
+
+  @Override
+  public void setMetaTask(IMetaTask value) {
+    metaTask = value;
+  }
+
+  @Override
+  public JdState getJdState() {
+    return jdState;
+  }
+
+  @Override
+  public void setJdState(JdState value) {
+    jdState = value;
+  }
 
 }

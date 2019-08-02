@@ -20,12 +20,12 @@ package org.apache.uima.ducc.ps.service.errors;
 
 public class InvalidOverrideParameterException extends Exception {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4948849140814646049L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -4948849140814646049L;
 
-	public InvalidOverrideParameterException(String msg) {
-		super(msg);
-	}
+  public InvalidOverrideParameterException(String msg) {
+    super(msg);
+  }
 }

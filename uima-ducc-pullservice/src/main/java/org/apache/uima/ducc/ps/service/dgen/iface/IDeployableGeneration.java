@@ -21,13 +21,8 @@ package org.apache.uima.ducc.ps.service.dgen.iface;
 
 public interface IDeployableGeneration {
 
-	public String generate(Boolean createUniqueFilename	) throws Exception;
-	
-	public String generate(
-			String directory,
-			String id,
-			Integer dgenThreadCount,
-			String ddName,
-			Boolean createUniqueFilename
-			) throws Exception;
+  public String generate(Boolean createUniqueFilename) throws Exception;
+
+  public String generate(String directory, String id, Integer dgenThreadCount, String ddName,
+          Boolean createUniqueFilename) throws Exception;
 }

@@ -18,15 +18,16 @@
 */
 package org.apache.uima.ducc.ps.service.errors;
 
-public class ServiceInitializationException extends Exception{
+public class ServiceInitializationException extends Exception {
 
-	private static final long serialVersionUID = 1L;
-	public ServiceInitializationException(String msg) {
-		super(msg);
-	}
-	public ServiceInitializationException(String msg, Exception e) {
-		super(msg,e);
-	}
-	
-	
+  private static final long serialVersionUID = 1L;
+
+  public ServiceInitializationException(String msg) {
+    super(msg);
+  }
+
+  public ServiceInitializationException(String msg, Exception e) {
+    super(msg, e);
+  }
+
 }

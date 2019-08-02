@@ -17,17 +17,17 @@
  * under the License.
 */
 
-
 package org.apache.uima.ducc.ps.sd.task.error;
 
 public class TaskProtocolException extends Exception {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	public TaskProtocolException(String cause) {
-		super(cause);
-	}
-	public TaskProtocolException(Exception cause) {
-		super(cause);
-	}
+  public TaskProtocolException(String cause) {
+    super(cause);
+  }
+
+  public TaskProtocolException(Exception cause) {
+    super(cause);
+  }
 }

@@ -19,13 +19,13 @@
 package org.apache.uima.ducc.ps.service.metrics;
 
 public interface IWindowStats {
-    // failure count
-    public long getErrorCount();
- 
-    // successful
-    public long getSuccessCount();
- 
-    // how many failures since last success
-    public long getErrorCountSinceLastSuccess();
-    
+  // failure count
+  public long getErrorCount();
+
+  // successful
+  public long getSuccessCount();
+
+  // how many failures since last success
+  public long getErrorCountSinceLastSuccess();
+
 }

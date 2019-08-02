@@ -25,34 +25,37 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 public class DefaultNoTaskAvailableStrategy implements INoTaskAvailableStrategy {
-	private long waitTime;   
-	Logger logger = UIMAFramework.getLogger(DefaultNoTaskAvailableStrategy.class);
-	public DefaultNoTaskAvailableStrategy(long waitTimeInMillis) {
-		this.waitTime = waitTimeInMillis;
-		logger.log(Level.INFO, ">>>>>>>> Service Wait Time For Task:"+waitTimeInMillis+" ms");
-	}
-	/**
-	 * This methods is called when a service is stopping. There is no
-	 * need to wait. We want to stop as soon as possible so we just
-	 * interrupt the thread which might be blocking in sleep()
-	 */
-	@Override
-	public void interrupt() {
-		Thread.currentThread().interrupt();
-	}
-	
-	@Override
-	public void handleNoTaskSupplied() {
-		try {
-			Thread.sleep(waitTime);
-		} catch(InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
+  private long waitTime;
 
-	}
-	@Override
-	public long getWaitTimeInMillis() {
-		return waitTime;
-	}
-	
+  Logger logger = UIMAFramework.getLogger(DefaultNoTaskAvailableStrategy.class);
+
+  public DefaultNoTaskAvailableStrategy(long waitTimeInMillis) {
+    this.waitTime = waitTimeInMillis;
+    logger.log(Level.INFO, ">>>>>>>> Service Wait Time For Task:" + waitTimeInMillis + " ms");
+  }
+
+  /**
+   * This methods is called when a service is stopping. There is no need to wait. We want to stop as
+   * soon as possible so we just interrupt the thread which might be blocking in sleep()
+   */
+  @Override
+  public void interrupt() {
+    Thread.currentThread().interrupt();
+  }
+
+  @Override
+  public void handleNoTaskSupplied() {
+    try {
+      Thread.sleep(waitTime);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+
+  }
+
+  @Override
+  public long getWaitTimeInMillis() {
+    return waitTime;
+  }
+
 }

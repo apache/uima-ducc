@@ -29,49 +29,57 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 public class AbstractServiceProcessor {
-	
-	public static final String CLASSPATH_SWITCH_PROP = "ClasspathSwitch";
 
-	// Map to store DuccUimaSerializer instances. Each has affinity to a thread
-	protected Map<Long, UimaSerializer> serializerMap = new HashMap<>();
-	protected AtomicLong errorCount = new AtomicLong();
-	protected AtomicLong successCount = new AtomicLong();
-	protected AtomicLong errorCountSinceLastSuccess = new AtomicLong();
-	protected int maxErrors=1;  // default is to fail on 1st error
-	protected int windowSize=1;
-    protected int DEFAULT_INIT_DELAY=30000;
+  public static final String CLASSPATH_SWITCH_PROP = "ClasspathSwitch";
 
+  // Map to store DuccUimaSerializer instances. Each has affinity to a thread
+  protected Map<Long, UimaSerializer> serializerMap = new HashMap<>();
 
-	protected IServiceErrorHandler getErrorHandler(Logger logger) {
-		logger.log(Level.INFO, "Error Handler Configuration: threshold="+maxErrors+" windowSize="+windowSize);
-		// concrete implementation of this abstract class should
-		// provide a way to set maxErrors and windowSize. The IServiceProcessor
-		// provides a setter method for overriding default values 
-		return new WindowBasedErrorHandler().
-				withMaxFrameworkErrors(maxErrors).
-				withProcessErrorWindow(windowSize).build();
+  protected AtomicLong errorCount = new AtomicLong();
 
-	}
+  protected AtomicLong successCount = new AtomicLong();
 
-	protected void delay(Logger logger, long howLong) {
-		long delay = DEFAULT_INIT_DELAY;
-		if ( System.getProperty("ducc.service.init.delay") != null ) {
-			delay = Long.parseLong(System.getProperty("ducc.service.init.delay").trim());
-		}
-		logger.log(Level.INFO, "Wait for the initialized state to propagate to the SM " +
-		          "so any processing errors are not treates as initialization failures - delay="+delay);
-		try {
-			Thread.sleep(delay);
-		} catch (InterruptedException e1) {
-		}
+  protected AtomicLong errorCountSinceLastSuccess = new AtomicLong();
 
-	}
-	protected UimaSerializer getUimaSerializer() {
-		
-	   	return serializerMap.get(Thread.currentThread().getId());
-	}
+  protected int maxErrors = 1; // default is to fail on 1st error
 
-	protected void stop() throws Exception {
-	
-	}
+  protected int windowSize = 1;
+
+  protected int DEFAULT_INIT_DELAY = 30000;
+
+  protected IServiceErrorHandler getErrorHandler(Logger logger) {
+    logger.log(Level.INFO,
+            "Error Handler Configuration: threshold=" + maxErrors + " windowSize=" + windowSize);
+    // concrete implementation of this abstract class should
+    // provide a way to set maxErrors and windowSize. The IServiceProcessor
+    // provides a setter method for overriding default values
+    return new WindowBasedErrorHandler().withMaxFrameworkErrors(maxErrors)
+            .withProcessErrorWindow(windowSize).build();
+
+  }
+
+  protected void delay(Logger logger, long howLong) {
+    long delay = DEFAULT_INIT_DELAY;
+    if (System.getProperty("ducc.service.init.delay") != null) {
+      delay = Long.parseLong(System.getProperty("ducc.service.init.delay").trim());
+    }
+    logger.log(Level.INFO,
+            "Wait for the initialized state to propagate to the SM "
+                    + "so any processing errors are not treates as initialization failures - delay="
+                    + delay);
+    try {
+      Thread.sleep(delay);
+    } catch (InterruptedException e1) {
+    }
+
+  }
+
+  protected UimaSerializer getUimaSerializer() {
+
+    return serializerMap.get(Thread.currentThread().getId());
+  }
+
+  protected void stop() throws Exception {
+
+  }
 }

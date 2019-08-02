@@ -21,12 +21,14 @@ package org.apache.uima.ducc.ps.service.errors;
 import org.apache.uima.ducc.ps.service.IServiceComponent;
 import org.apache.uima.ducc.ps.service.metrics.IWindowStats;
 
-public interface IServiceErrorHandler extends IServiceComponent{
-	public enum Action {TERMINATE, CONTINUE};
-	
-	public Action handleProcessError(Exception e, IServiceComponent source, IWindowStats stats);
- 
-	// Handle framework errors 
-	public Action handle(Exception e, IServiceComponent source);
-	
+public interface IServiceErrorHandler extends IServiceComponent {
+  public enum Action {
+    TERMINATE, CONTINUE
+  };
+
+  public Action handleProcessError(Exception e, IServiceComponent source, IWindowStats stats);
+
+  // Handle framework errors
+  public Action handle(Exception e, IServiceComponent source);
+
 }

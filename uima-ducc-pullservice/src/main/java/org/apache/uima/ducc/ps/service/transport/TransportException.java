@@ -20,16 +20,18 @@ package org.apache.uima.ducc.ps.service.transport;
 
 public class TransportException extends Exception {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	public TransportException(Exception e) {
-		super(e);
-	}
-	public TransportException(String msg) {
-		super(msg);
-	}
-	public TransportException( String msg,Exception e) {
-		super(msg, e);
-	}
-	
+  public TransportException(Exception e) {
+    super(e);
+  }
+
+  public TransportException(String msg) {
+    super(msg);
+  }
+
+  public TransportException(String msg, Exception e) {
+    super(msg, e);
+  }
+
 }

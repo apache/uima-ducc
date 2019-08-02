@@ -25,36 +25,39 @@ import org.apache.uima.ducc.ps.service.processor.IServiceProcessor;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
-public class CustomProcessorExample implements IServiceProcessor{
+public class CustomProcessorExample implements IServiceProcessor {
 
-	private Logger logger = UIMAFramework.getLogger(CustomProcessorExample.class);
-	@Override
-	public void initialize() throws ServiceInitializationException {
-		logger.log(Level.INFO,"... initialize() called");
-	}
+  private Logger logger = UIMAFramework.getLogger(CustomProcessorExample.class);
 
-	@Override
-	public IProcessResult process(String serializedTask) {
-		logger.log(Level.INFO,"... process() called");
-		return new SuccessResultExample("");
-	}
+  @Override
+  public void initialize() throws ServiceInitializationException {
+    logger.log(Level.INFO, "... initialize() called");
+  }
 
-	@Override
-	public void stop() {
-		logger.log(Level.INFO,"... stop() called");
+  @Override
+  public IProcessResult process(String serializedTask) {
+    logger.log(Level.INFO, "... process() called");
+    return new SuccessResultExample("");
+  }
 
-	}
-	public void setScaleout(int howManyThreads) {
-		logger.log(Level.INFO,"... setScaleout() called");
-	}
-	public int getScaleout() {
-		logger.log(Level.INFO,"... getScaleout() called");
-		return 1;
-	}
+  @Override
+  public void stop() {
+    logger.log(Level.INFO, "... stop() called");
 
-	@Override
-	public void setErrorHandlerWindow(int maxErrors, int windowSize) {
-		logger.log(Level.INFO,"... setErrorHandlerWindow() called");
+  }
 
-	}
+  public void setScaleout(int howManyThreads) {
+    logger.log(Level.INFO, "... setScaleout() called");
+  }
+
+  public int getScaleout() {
+    logger.log(Level.INFO, "... getScaleout() called");
+    return 1;
+  }
+
+  @Override
+  public void setErrorHandlerWindow(int maxErrors, int windowSize) {
+    logger.log(Level.INFO, "... setErrorHandlerWindow() called");
+
+  }
 }

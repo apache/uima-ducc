@@ -22,59 +22,60 @@ import org.apache.uima.ducc.ps.net.iface.IMetaMetaTask;
 import org.apache.uima.ducc.ps.net.iface.IMetaTask;
 
 /**
- * An implementation for storing MetaCAS 
- * and CasManager status together
+ * An implementation for storing MetaCAS and CasManager status together
  */
 
 public class MetaMetaTask implements IMetaMetaTask {
 
-	private boolean exhausted;
-	private boolean premature;
-	private boolean killJob;
-	
-	private IMetaTask metaCas;
-	
-	public MetaMetaTask() {
-	}
-	
-	@Override
-	public boolean isExhausted() {
-		return exhausted;
-	}
+  private boolean exhausted;
 
-	@Override
-	public void setExhausted(boolean value) {
-		exhausted = value;
-	}
+  private boolean premature;
 
-	@Override
-	public boolean isPremature() {
-		return premature;
-	}
+  private boolean killJob;
 
-	@Override
-	public void setPremature(boolean value) {
-	premature = value;
-	}
+  private IMetaTask metaCas;
 
-	@Override
-	public boolean isKillJob() {
-		return killJob;
-	}
+  public MetaMetaTask() {
+  }
 
-	@Override
-	public void setKillJob(boolean value) {
-		killJob = value;
-	}
+  @Override
+  public boolean isExhausted() {
+    return exhausted;
+  }
 
-	@Override
-	public IMetaTask getMetaCas() {
-		return metaCas;
-	}
+  @Override
+  public void setExhausted(boolean value) {
+    exhausted = value;
+  }
 
-	@Override
-	public void setMetaCas(IMetaTask value) {
-		metaCas = value;
-	}
+  @Override
+  public boolean isPremature() {
+    return premature;
+  }
+
+  @Override
+  public void setPremature(boolean value) {
+    premature = value;
+  }
+
+  @Override
+  public boolean isKillJob() {
+    return killJob;
+  }
+
+  @Override
+  public void setKillJob(boolean value) {
+    killJob = value;
+  }
+
+  @Override
+  public IMetaTask getMetaCas() {
+    return metaCas;
+  }
+
+  @Override
+  public void setMetaCas(IMetaTask value) {
+    metaCas = value;
+  }
 
 }

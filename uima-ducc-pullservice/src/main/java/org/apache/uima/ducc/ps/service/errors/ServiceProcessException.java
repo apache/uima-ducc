@@ -19,14 +19,16 @@
 package org.apache.uima.ducc.ps.service.errors;
 
 public class ServiceProcessException extends RuntimeException {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	public ServiceProcessException(String msg) {
-		super(msg);
-	}
-	public ServiceProcessException(String msg, Exception e) {
-		super(msg, e);
-	}
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+
+  public ServiceProcessException(String msg) {
+    super(msg);
+  }
+
+  public ServiceProcessException(String msg, Exception e) {
+    super(msg, e);
+  }
 }

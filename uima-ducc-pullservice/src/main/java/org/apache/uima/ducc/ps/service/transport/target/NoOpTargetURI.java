@@ -22,34 +22,34 @@ import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 
 public class NoOpTargetURI implements ITargetURI {
 
-	@Override
-	public String asString() {
-		return "";
-	}
+  @Override
+  public String asString() {
+    return "";
+  }
 
-	@Override
-	public String getProtocol() {
-		return "";
-	}
+  @Override
+  public String getProtocol() {
+    return "";
+  }
 
-	@Override
-	public String getNodename() {
-		return "";
-	}
+  @Override
+  public String getNodename() {
+    return "";
+  }
 
-	@Override
-	public String getPort() {
-		return "";
-	}
+  @Override
+  public String getPort() {
+    return "";
+  }
 
-	@Override
-	public String getContext() {
-		return "";
-	}
+  @Override
+  public String getContext() {
+    return "";
+  }
 
-	@Override
-	public String getDescription() {
-		return "";
-	}
+  @Override
+  public String getDescription() {
+    return "";
+  }
 
 }

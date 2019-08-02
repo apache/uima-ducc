@@ -38,14 +38,17 @@ public class JUnitServiceWrapperTestCase extends Client {
     // sending READY to a monitor
     System.setProperty("ducc.service.init.delay", "3000");
   }
+
   @Before
   public void setUp() throws Exception {
-	 System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP,"true");
+    System.setProperty(AbstractServiceProcessor.CLASSPATH_SWITCH_PROP, "true");
   }
+
   @After
   public void tearDown() throws Exception {
-	  
+
   }
+
   @Test
   public void testPullServiceWrapperNoTask() throws Exception {
     // make client return null task in response to GET

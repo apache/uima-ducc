@@ -21,19 +21,24 @@ package org.apache.uima.ducc.ps.net.iface;
 import java.io.Serializable;
 
 public interface IMetaTaskRequester extends Serializable {
-	
-	public String getRequesterNodeName();
-	public void setRequesterNodeName(String value);
-	
-	public String getRequesterAddress();
-	public void setRequesterAddress(String value);
-	
-	public String getRequesterProcessName();
-	public void setRequesterProcessName(String value);
-	
-	public int getRequesterProcessId();
-	public void setRequesterProcessId(int value);
-	
-	public int getRequesterThreadId();
-	public void setRequesterThreadId(int value);
+
+  public String getRequesterNodeName();
+
+  public void setRequesterNodeName(String value);
+
+  public String getRequesterAddress();
+
+  public void setRequesterAddress(String value);
+
+  public String getRequesterProcessName();
+
+  public void setRequesterProcessName(String value);
+
+  public int getRequesterProcessId();
+
+  public void setRequesterProcessId(int value);
+
+  public int getRequesterThreadId();
+
+  public void setRequesterThreadId(int value);
 }

@@ -20,16 +20,16 @@ package org.apache.uima.ducc.ps.service.transport;
 
 public class ConnectionLostException extends RuntimeException {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-	public ConnectionLostException(String msg) {
-		super(msg);
-	}
-	
-	public ConnectionLostException(String msg, Exception e) {
-		super(msg, e);
-	}
+  public ConnectionLostException(String msg) {
+    super(msg);
+  }
+
+  public ConnectionLostException(String msg, Exception e) {
+    super(msg, e);
+  }
 }

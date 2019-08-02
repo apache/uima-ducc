@@ -21,14 +21,15 @@ package org.apache.uima.ducc.ps.service.registry;
 import org.apache.uima.ducc.ps.service.transport.ITargetURI;
 
 public class DefaultRegistryClient implements IRegistryClient {
-	private String target;
-	
-	public DefaultRegistryClient(ITargetURI targetUrl) {
-		this.target = targetUrl.asString();
-	}
-	@Override
-	public String lookUp(String currentTarget) throws RegistryNotAvailableException {
-		return target;
-	}
+  private String target;
+
+  public DefaultRegistryClient(ITargetURI targetUrl) {
+    this.target = targetUrl.asString();
+  }
+
+  @Override
+  public String lookUp(String currentTarget) throws RegistryNotAvailableException {
+    return target;
+  }
 
 }

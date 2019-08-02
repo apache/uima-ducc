@@ -73,8 +73,8 @@ public class Client {
 
   private int maxThreads = 50;
 
-  private long howLongToBlock=60000;
-  
+  private long howLongToBlock = 60000;
+
   private volatile boolean print = true;
 
   private static UimaSerializer uimaSerializer = new UimaSerializer();
@@ -131,39 +131,41 @@ public class Client {
 
     return httpPort;
   }
+
   public void startJetty(boolean block, long howLong2Block) throws Exception {
-	    this.block = block;
-	    this.howLongToBlock = howLong2Block;
-	    QueuedThreadPool threadPool = new QueuedThreadPool();
-	    if (maxThreads < threadPool.getMinThreads()) {
-	      System.out.println("Invalid value for jetty MaxThreads(" + maxThreads
-	              + ") - it should be greater or equal to " + threadPool.getMinThreads()
-	              + ". Defaulting to jettyMaxThreads=" + threadPool.getMaxThreads());
-	      threadPool.setMaxThreads(threadPool.getMinThreads());
-	    } else {
-	      threadPool.setMaxThreads(maxThreads);
-	    }
+    this.block = block;
+    this.howLongToBlock = howLong2Block;
+    QueuedThreadPool threadPool = new QueuedThreadPool();
+    if (maxThreads < threadPool.getMinThreads()) {
+      System.out.println("Invalid value for jetty MaxThreads(" + maxThreads
+              + ") - it should be greater or equal to " + threadPool.getMinThreads()
+              + ". Defaulting to jettyMaxThreads=" + threadPool.getMaxThreads());
+      threadPool.setMaxThreads(threadPool.getMinThreads());
+    } else {
+      threadPool.setMaxThreads(maxThreads);
+    }
 
-	    server = new Server(threadPool);
+    server = new Server(threadPool);
 
-	    // Server connector
-	    ServerConnector connector = new ServerConnector(server);
-	    System.out.println(">>>> Jetty Acceptors:" + connector.getAcceptors());
+    // Server connector
+    ServerConnector connector = new ServerConnector(server);
+    System.out.println(">>>> Jetty Acceptors:" + connector.getAcceptors());
 
-	    connector.setPort(getJettyPort());
-	    server.setConnectors(new Connector[] { connector });
-	    System.out.println("launching Jetty on Port:" + connector.getPort());
-	    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-	    context.setContextPath("/");
-	    server.setHandler(context);
+    connector.setPort(getJettyPort());
+    server.setConnectors(new Connector[] { connector });
+    System.out.println("launching Jetty on Port:" + connector.getPort());
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+    server.setHandler(context);
 
-	    context.addServlet(new ServletHolder(new TaskHandlerServlet()), "/" + app);
+    context.addServlet(new ServletHolder(new TaskHandlerServlet()), "/" + app);
 
-	    server.start();
-	    System.out.println("Jetty Started - Waiting for Messages ...");
+    server.start();
+    System.out.println("Jetty Started - Waiting for Messages ...");
   }
+
   public void startJetty(boolean block) throws Exception {
-	  startJetty(block, 30000);
+    startJetty(block, 30000);
   }
 
   @After
@@ -248,7 +250,8 @@ public class Client {
         String nodeName = request.getHeader("Hostname");
         String threadID = request.getHeader("ThreadID");
         String pid = request.getHeader("PID");
-      //   System.out.println( "Sender ID:::Node IP"+nodeIP+" Node Name:"+nodeName+" PID:"+pid+" ThreadID:"+threadID);
+        // System.out.println( "Sender ID:::Node IP"+nodeIP+" Node Name:"+nodeName+" PID:"+pid+"
+        // ThreadID:"+threadID);
 
         IMetaTaskTransaction imt = null;
         long t1 = System.currentTimeMillis();
@@ -349,7 +352,8 @@ public class Client {
         // String body = XStreamUtils.marshall(imt);
         String body = localXStream.get().get(Thread.currentThread().getId()).toXML(imt);
         if (block) {
-        	System.out.println("............. Client Blocking for "+howLongToBlock+" ms - Forcing Timeout");
+          System.out.println(
+                  "............. Client Blocking for " + howLongToBlock + " ms - Forcing Timeout");
           synchronized (this) {
             this.wait(howLongToBlock);
           }

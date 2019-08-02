@@ -18,13 +18,15 @@
 */
 package org.apache.uima.ducc.ps.service.registry;
 
-public class RegistryNotAvailableException extends RuntimeException{
+public class RegistryNotAvailableException extends RuntimeException {
 
-	private static final long serialVersionUID = 1L;
-	public RegistryNotAvailableException(String msg) {
-		super(msg);
-	}
-	public RegistryNotAvailableException(String msg, Exception e) {
-		super(msg, e);
-	}
+  private static final long serialVersionUID = 1L;
+
+  public RegistryNotAvailableException(String msg) {
+    super(msg);
+  }
+
+  public RegistryNotAvailableException(String msg, Exception e) {
+    super(msg, e);
+  }
 }

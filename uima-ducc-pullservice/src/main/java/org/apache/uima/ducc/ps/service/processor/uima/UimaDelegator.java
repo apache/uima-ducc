@@ -48,92 +48,96 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 public class UimaDelegator {
-	private CasPool casPool = null;
-	private ResourceManager rm = UIMAFramework.newDefaultResourceManager();
-	private static Object platformMBeanServer;
-	private boolean deserializeFromXMI;
+  private CasPool casPool = null;
 
-	static {
-		// try to get platform MBean Server (Java 1.5 only)
-		try {
-			Class<?> managementFactory = Class.forName("java.lang.management.ManagementFactory");
-			Method getPlatformMBeanServer = managementFactory.getMethod("getPlatformMBeanServer", new Class[0]);
-			platformMBeanServer = getPlatformMBeanServer.invoke(null, (Object[]) null);
-		} catch (Exception e) {
-			platformMBeanServer = null;
-		}
-	}
+  private ResourceManager rm = UIMAFramework.newDefaultResourceManager();
 
-	public void initialize(ResourceSpecifier rSpecifier, int scaleout, boolean deserialize,
-			ThreadLocal<AnalysisEngine> threadLocal) throws Exception {
+  private static Object platformMBeanServer;
 
-		HashMap<String, Object> paramsMap = new HashMap<>();
-		paramsMap.put(Resource.PARAM_RESOURCE_MANAGER, rm);
-		paramsMap.put(AnalysisEngine.PARAM_MBEAN_SERVER, platformMBeanServer);
-		deserializeFromXMI = deserialize;
+  private boolean deserializeFromXMI;
 
-		AnalysisEngine ae = UIMAFramework.produceAnalysisEngine(rSpecifier, paramsMap);
-		// pin AE instance to this thread
-		threadLocal.set(ae);
+  static {
+    // try to get platform MBean Server (Java 1.5 only)
+    try {
+      Class<?> managementFactory = Class.forName("java.lang.management.ManagementFactory");
+      Method getPlatformMBeanServer = managementFactory.getMethod("getPlatformMBeanServer",
+              new Class[0]);
+      platformMBeanServer = getPlatformMBeanServer.invoke(null, (Object[]) null);
+    } catch (Exception e) {
+      platformMBeanServer = null;
+    }
+  }
 
-		synchronized (UimaDelegator.class) {
-			if (casPool == null) {
-				initializeCasPool(ae.getAnalysisEngineMetaData(), scaleout);
-			}
-		}
-	}
+  public void initialize(ResourceSpecifier rSpecifier, int scaleout, boolean deserialize,
+          ThreadLocal<AnalysisEngine> threadLocal) throws Exception {
 
-	public List<PerformanceMetrics> process(String serializedTask, ThreadLocal<AnalysisEngine> threadLocal)
-			throws Exception {
-		List<PerformanceMetrics> delta = null;
-		CAS cas = casPool.getCas();
-		try {
-			if (deserializeFromXMI) {
-				deserializeCasFromXmi(serializedTask, cas);
-			} else {
-				cas.setDocumentText(serializedTask);
-				cas.setDocumentLanguage("en");
+    HashMap<String, Object> paramsMap = new HashMap<>();
+    paramsMap.put(Resource.PARAM_RESOURCE_MANAGER, rm);
+    paramsMap.put(AnalysisEngine.PARAM_MBEAN_SERVER, platformMBeanServer);
+    deserializeFromXMI = deserialize;
 
-			}
+    AnalysisEngine ae = UIMAFramework.produceAnalysisEngine(rSpecifier, paramsMap);
+    // pin AE instance to this thread
+    threadLocal.set(ae);
 
-			// check out AE instance pinned to this thread
-			AnalysisEngine ae = threadLocal.get();
+    synchronized (UimaDelegator.class) {
+      if (casPool == null) {
+        initializeCasPool(ae.getAnalysisEngineMetaData(), scaleout);
+      }
+    }
+  }
 
-			List<PerformanceMetrics> preProcessMetrics = UimaMetricsGenerator.get(ae);
-			ae.process(cas);
-			List<PerformanceMetrics> postProcessMetrics = UimaMetricsGenerator.get(ae);
-			delta = UimaMetricsGenerator.getDelta(postProcessMetrics, preProcessMetrics);
-		} finally {
-			if (cas != null) {
-				casPool.releaseCas(cas);
-			}
-		}
-		return delta;
+  public List<PerformanceMetrics> process(String serializedTask,
+          ThreadLocal<AnalysisEngine> threadLocal) throws Exception {
+    List<PerformanceMetrics> delta = null;
+    CAS cas = casPool.getCas();
+    try {
+      if (deserializeFromXMI) {
+        deserializeCasFromXmi(serializedTask, cas);
+      } else {
+        cas.setDocumentText(serializedTask);
+        cas.setDocumentLanguage("en");
 
-	}
+      }
 
-	public void deserializeCasFromXmi(String anXmlStr, CAS aCAS)
-			throws FactoryConfigurationError, SAXException, IOException {
+      // check out AE instance pinned to this thread
+      AnalysisEngine ae = threadLocal.get();
 
-		XMLReader xmlReader = XMLUtils.createXMLReader();
-		Reader reader = new StringReader(anXmlStr);
-		XmiCasDeserializer deser = new XmiCasDeserializer(aCAS.getTypeSystem());
-		ContentHandler handler = deser.getXmiCasHandler(aCAS);
-		xmlReader.setContentHandler(handler);
-		xmlReader.parse(new InputSource(reader));
-	}
+      List<PerformanceMetrics> preProcessMetrics = UimaMetricsGenerator.get(ae);
+      ae.process(cas);
+      List<PerformanceMetrics> postProcessMetrics = UimaMetricsGenerator.get(ae);
+      delta = UimaMetricsGenerator.getDelta(postProcessMetrics, preProcessMetrics);
+    } finally {
+      if (cas != null) {
+        casPool.releaseCas(cas);
+      }
+    }
+    return delta;
 
-	public void stop(ThreadLocal<AnalysisEngine> threadLocal) {
-		AnalysisEngine ae = threadLocal.get();
-		if (ae != null) {
-			ae.destroy();
-		}
-	}
+  }
 
-	private void initializeCasPool(AnalysisEngineMetaData analysisEngineMetadata, int scaleout)
-			throws ResourceInitializationException {
-		Properties props = new Properties();
-		props.setProperty(UIMAFramework.CAS_INITIAL_HEAP_SIZE, "1000");
-		casPool = new CasPool(scaleout, analysisEngineMetadata, rm);
-	}
+  public void deserializeCasFromXmi(String anXmlStr, CAS aCAS)
+          throws FactoryConfigurationError, SAXException, IOException {
+
+    XMLReader xmlReader = XMLUtils.createXMLReader();
+    Reader reader = new StringReader(anXmlStr);
+    XmiCasDeserializer deser = new XmiCasDeserializer(aCAS.getTypeSystem());
+    ContentHandler handler = deser.getXmiCasHandler(aCAS);
+    xmlReader.setContentHandler(handler);
+    xmlReader.parse(new InputSource(reader));
+  }
+
+  public void stop(ThreadLocal<AnalysisEngine> threadLocal) {
+    AnalysisEngine ae = threadLocal.get();
+    if (ae != null) {
+      ae.destroy();
+    }
+  }
+
+  private void initializeCasPool(AnalysisEngineMetaData analysisEngineMetadata, int scaleout)
+          throws ResourceInitializationException {
+    Properties props = new Properties();
+    props.setProperty(UIMAFramework.CAS_INITIAL_HEAP_SIZE, "1000");
+    casPool = new CasPool(scaleout, analysisEngineMetadata, rm);
+  }
 }

@@ -25,39 +25,46 @@ import java.util.Objects;
 import org.apache.uima.ducc.ps.service.errors.IServiceErrorHandler.Action;
 import org.apache.uima.ducc.ps.service.processor.IProcessResult;
 
-public class UimaProcessResult implements IProcessResult{
-	private String metrics;
-	private Exception exception;
-	private Action action;
-	
-	UimaProcessResult(String pm) {
-		this.metrics = pm;
-	}
-	UimaProcessResult(Exception exception, Action action) {
-		this.exception = exception;
-		this.action = action;
-		
-	}
-	@Override
-	public boolean terminateProcess() {
-		return Action.TERMINATE.equals(action);
-	}
-	@Override
-	public String getResult() {
-		return metrics;
-	}
-	@Override
-	public String getError() {
-		if ( Objects.isNull(exception)) {
-			return null;
-		}
-		StringWriter sw = new StringWriter();
-		exception.printStackTrace(new PrintWriter(sw));
-		return sw.toString();
-	}
-	@Override
-	public Exception getExceptionObject() {
-		return exception;
-	}
+public class UimaProcessResult implements IProcessResult {
+  private String metrics;
+
+  private Exception exception;
+
+  private Action action;
+
+  UimaProcessResult(String pm) {
+    this.metrics = pm;
+  }
+
+  UimaProcessResult(Exception exception, Action action) {
+    this.exception = exception;
+    this.action = action;
+
+  }
+
+  @Override
+  public boolean terminateProcess() {
+    return Action.TERMINATE.equals(action);
+  }
+
+  @Override
+  public String getResult() {
+    return metrics;
+  }
+
+  @Override
+  public String getError() {
+    if (Objects.isNull(exception)) {
+      return null;
+    }
+    StringWriter sw = new StringWriter();
+    exception.printStackTrace(new PrintWriter(sw));
+    return sw.toString();
+  }
+
+  @Override
+  public Exception getExceptionObject() {
+    return exception;
+  }
 
 }

@@ -26,47 +26,48 @@ import org.apache.uima.UIMAFramework;
 import org.apache.uima.util.Level;
 
 /**
- * Factory for creating process threads. 
+ * Factory for creating process threads.
  * 
  *
  */
 public class ServiceThreadFactory implements ThreadFactory {
-	  private static final String THREAD_POOL = "[ServiceThreadPool ";
+  private static final String THREAD_POOL = "[ServiceThreadPool ";
 
-    private boolean isDaemon=false;
-    private String threadNamePrefix=null;
-    
-    public static AtomicInteger poolIdGenerator = new AtomicInteger(1);
-    
- 	@Override
-	public Thread newThread(final Runnable r) {
+  private boolean isDaemon = false;
 
-	    Thread newThread = null;
-	    try {
-	      newThread = new Thread(new Runnable() {
-	        public void run() {
-	          if ( threadNamePrefix == null ) {
-	               threadNamePrefix = THREAD_POOL+poolIdGenerator+"] " + " Process Thread";
-	          } 
-	          Thread.currentThread().setName( threadNamePrefix +" - "                 
-	                          + Thread.currentThread().getId());
-	          try {
+  private String threadNamePrefix = null;
 
-	        	  // Call given Worker (Runnable) run() method and block. This call blocks until the
-	            // TaskExecutor is terminated.
-	            r.run();
-	            
-	            UIMAFramework.getLogger().log(Level.INFO, "Thread "+Thread.currentThread().getName()+" ["+Thread.currentThread().getId()+"] Terminating");
-	          } catch (Throwable e) {
-	        	 throw e;
-	          } 
-	        }
-	      });
-	    } catch (Exception e) {
-	    	 UIMAFramework.getLogger().log(Level.WARNING, "", e);
-	    }
-		newThread.setDaemon(isDaemon);
-		return newThread;
-	}
+  public static AtomicInteger poolIdGenerator = new AtomicInteger(1);
+
+  @Override
+  public Thread newThread(final Runnable r) {
+
+    Thread newThread = null;
+    try {
+      newThread = new Thread(new Runnable() {
+        public void run() {
+          if (threadNamePrefix == null) {
+            threadNamePrefix = THREAD_POOL + poolIdGenerator + "] " + " Process Thread";
+          }
+          Thread.currentThread().setName(threadNamePrefix + " - " + Thread.currentThread().getId());
+          try {
+
+            // Call given Worker (Runnable) run() method and block. This call blocks until the
+            // TaskExecutor is terminated.
+            r.run();
+
+            UIMAFramework.getLogger().log(Level.INFO, "Thread " + Thread.currentThread().getName()
+                    + " [" + Thread.currentThread().getId() + "] Terminating");
+          } catch (Throwable e) {
+            throw e;
+          }
+        }
+      });
+    } catch (Exception e) {
+      UIMAFramework.getLogger().log(Level.WARNING, "", e);
+    }
+    newThread.setDaemon(isDaemon);
+    return newThread;
+  }
 
 }

@@ -26,25 +26,29 @@ import java.util.Properties;
 import org.apache.uima.ducc.ps.net.iface.IPerformanceMetrics;
 
 public class PerformanceMetrics implements IPerformanceMetrics {
-	private static final long serialVersionUID = 1L;
-	private List<Properties> perfMetrics;
-	public List<Properties> get() {
-		return perfMetrics;
-	}
-	public void set(List<Properties> metrics) {
-		perfMetrics = metrics;
-	}
-    public String toString() {
-    	StringBuilder sb = new StringBuilder();
-    	if ( perfMetrics != null && !perfMetrics.isEmpty()) {
-    		for( Properties p : perfMetrics ) {
-    			Enumeration<Object> keys = p.keys();
-    			while( keys.hasMoreElements() ) {
-    				String key = (String)keys.nextElement();
-    				sb.append(key).append(":").append(p.getProperty(key)).append("\t");
-    			}
-    		}
-    	} 
-    	return sb.toString();
+  private static final long serialVersionUID = 1L;
+
+  private List<Properties> perfMetrics;
+
+  public List<Properties> get() {
+    return perfMetrics;
+  }
+
+  public void set(List<Properties> metrics) {
+    perfMetrics = metrics;
+  }
+
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    if (perfMetrics != null && !perfMetrics.isEmpty()) {
+      for (Properties p : perfMetrics) {
+        Enumeration<Object> keys = p.keys();
+        while (keys.hasMoreElements()) {
+          String key = (String) keys.nextElement();
+          sb.append(key).append(":").append(p.getProperty(key)).append("\t");
+        }
+      }
     }
+    return sb.toString();
+  }
 }

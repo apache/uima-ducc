@@ -23,36 +23,40 @@ import java.io.StringWriter;
 
 import org.apache.uima.ducc.ps.service.processor.IProcessResult;
 
-public class SuccessResultExample implements IProcessResult{
+public class SuccessResultExample implements IProcessResult {
 
-	private Exception exception;
-	private String success;
-	
-	public SuccessResultExample(String success) {
-		this.success = success;
-	}
-	public SuccessResultExample(Exception exception) {
-		this.exception = exception;
-	}
-	@Override
-	public boolean terminateProcess() {
-		return false;
-	}
+  private Exception exception;
 
-	@Override
-	public String getResult() {
-		return success;
-	}
+  private String success;
 
-	@Override
-	public String getError() {
-		StringWriter stackTraceBuffer = new StringWriter();
-		exception.printStackTrace(new PrintWriter(stackTraceBuffer));		
-		return stackTraceBuffer.toString();
-	}
-	@Override
-	public Exception getExceptionObject() {
-		return exception;
-	}
+  public SuccessResultExample(String success) {
+    this.success = success;
+  }
+
+  public SuccessResultExample(Exception exception) {
+    this.exception = exception;
+  }
+
+  @Override
+  public boolean terminateProcess() {
+    return false;
+  }
+
+  @Override
+  public String getResult() {
+    return success;
+  }
+
+  @Override
+  public String getError() {
+    StringWriter stackTraceBuffer = new StringWriter();
+    exception.printStackTrace(new PrintWriter(stackTraceBuffer));
+    return stackTraceBuffer.toString();
+  }
+
+  @Override
+  public Exception getExceptionObject() {
+    return exception;
+  }
 
 }

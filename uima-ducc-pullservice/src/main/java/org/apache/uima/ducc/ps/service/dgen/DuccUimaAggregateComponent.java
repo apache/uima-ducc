@@ -18,43 +18,40 @@
 */
 package org.apache.uima.ducc.ps.service.dgen;
 
-
 import java.util.List;
 
 import org.apache.uima.ducc.ps.service.dgen.iface.IDuccGeneratorUimaAggregateComponent;
 
 public class DuccUimaAggregateComponent implements IDuccGeneratorUimaAggregateComponent {
 
-	/**
-	 * please increment this sUID when removing or modifying a field 
-	 */
-	private static final long serialVersionUID = 1L;
-	private String descriptor;
-	private List<String> overrides;
-	
-	public DuccUimaAggregateComponent(String descriptor, List<String> overrides) {
-		setDescriptor(descriptor);
-		setOverrides(overrides);
-	}
-	
-	
-	public String getDescriptor() {
-		return this.descriptor;
-	}
+  /**
+   * please increment this sUID when removing or modifying a field
+   */
+  private static final long serialVersionUID = 1L;
 
-	
-	public void setDescriptor(String descriptor) {
-		this.descriptor = descriptor;
-	}
+  private String descriptor;
 
-	
-	public List<String> getOverrides() {
-		return this.overrides;
-	}
+  private List<String> overrides;
 
-	
-	public void setOverrides(List<String> overrides) {
-		this.overrides = overrides;
-	}
+  public DuccUimaAggregateComponent(String descriptor, List<String> overrides) {
+    setDescriptor(descriptor);
+    setOverrides(overrides);
+  }
+
+  public String getDescriptor() {
+    return this.descriptor;
+  }
+
+  public void setDescriptor(String descriptor) {
+    this.descriptor = descriptor;
+  }
+
+  public List<String> getOverrides() {
+    return this.overrides;
+  }
+
+  public void setOverrides(List<String> overrides) {
+    this.overrides = overrides;
+  }
 
 }

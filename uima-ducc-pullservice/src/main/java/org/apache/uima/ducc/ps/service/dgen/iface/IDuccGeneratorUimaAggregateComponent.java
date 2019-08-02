@@ -19,15 +19,16 @@
 
 package org.apache.uima.ducc.ps.service.dgen.iface;
 
-
 import java.io.Serializable;
 import java.util.List;
 
 public interface IDuccGeneratorUimaAggregateComponent extends Serializable {
 
-	public String getDescriptor();
-	public void setDescriptor(String descriptor);
-	
-	public List<String> getOverrides();
-	public void setOverrides(List<String> overrides);
+  public String getDescriptor();
+
+  public void setDescriptor(String descriptor);
+
+  public List<String> getOverrides();
+
+  public void setOverrides(List<String> overrides);
 }

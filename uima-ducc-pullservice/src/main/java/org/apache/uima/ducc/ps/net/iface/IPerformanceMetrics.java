@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Properties;
 
 public interface IPerformanceMetrics extends Serializable {
-	public void set(List<Properties> metrics);
-	public List<Properties> get();
+  public void set(List<Properties> metrics);
+
+  public List<Properties> get();
 }

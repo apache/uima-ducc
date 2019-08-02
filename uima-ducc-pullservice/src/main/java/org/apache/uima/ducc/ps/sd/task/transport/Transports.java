@@ -22,10 +22,12 @@ package org.apache.uima.ducc.ps.sd.task.transport;
 import org.apache.uima.ducc.ps.sd.task.transport.iface.TaskTransportHandler;
 
 public class Transports {
-	public enum TransportType {HTTP}; //, JMS, JAVA};
+  public enum TransportType {
+    HTTP
+  }; // , JMS, JAVA};
 
-	public static TaskTransportHandler newHttpTransport() {
-		return new HttpTaskTransportHandler();
-	}
+  public static TaskTransportHandler newHttpTransport() {
+    return new HttpTaskTransportHandler();
+  }
 
 }
