@@ -366,7 +366,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletAuthenticatorNotes";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		String uid = DuccCookies.getUid(request);
+		String uid = DuccCookies.getLoginUid(request);
 		String notes = duccAuthenticator.getNotes(uid);
 		if(notes != null) {
 			sb.append(notes);

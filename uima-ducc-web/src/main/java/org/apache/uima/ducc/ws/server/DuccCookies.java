@@ -71,7 +71,8 @@ public class DuccCookies {
 	private static final String filter_users_style = "filter_users_style";
 	private static final String role = "role";
 	
-	private static final String uid = "uid";
+	private static final String key_uid = "uid";
+	private static final String key_loginToken = "loginToken";
 	
 	public static final String cookieStyleTable = duccCookiePrefix+table_style;
 	public static final String cookieStyleDate = duccCookiePrefix+date_style;
@@ -80,7 +81,8 @@ public class DuccCookies {
 	public static final String cookieStyleFilterUsers = duccCookiePrefix+filter_users_style;
 	public static final String cookieRole = duccCookiePrefix+role;
 	
-	public static final String cookieUid = duccCookiePrefix+uid;
+	public static final String cookieUid = duccCookiePrefix+key_uid;
+	public static final String cookieLoginToken = duccCookiePrefix+key_loginToken;
 	
 	public static final String valueStyleDateLong = "long";
 	public static final String valueStyleDateMedium = "medium";
@@ -103,6 +105,12 @@ public class DuccCookies {
 	public static final String valueRoleAdministrator = "administrator";
 	public static final String valueRoleUser = "user";
 
+	public static final int seconds_per_minute = 60;
+	public static final int seconds_per_hour = 60*seconds_per_minute;
+	public static final int seconds_per_day = 24*seconds_per_hour;
+	public static final int seconds_per_year = 365*seconds_per_day;
+	public static final int seconds_per_century = 100*seconds_per_year;
+	
 	protected static final String getCookieKey(String name) {
 		return duccCookiePrefix+"name";
 	}
@@ -137,18 +145,19 @@ public class DuccCookies {
 		return getCookie(null,request,name);
 	}
 	
-	protected static void putCookie(HttpServletResponse response, String name, String value) {
+	protected static void putCookie(HttpServletResponse response, String name, String value, int expiry) {
 		String methodName = "putCookie";
 		Cookie cookie = new Cookie(name, value);
 		cookie.setPath(cookieUri);
+		cookie.setMaxAge(expiry);
 		response.addCookie(cookie);
 		duccLogger.trace(methodName, null, messages.fetchLabel("name")+name+" "+messages.fetchLabel("value")+value);
 	}
 	
-	protected static void expireCookie(HttpServletResponse response, String name, String value) {
-		String methodName = "expireCookie";
+	protected static void putCookie(HttpServletResponse response, String name, String value) {
+		String methodName = "putCookie";
 		Cookie cookie = new Cookie(name, value);
-		cookie.setMaxAge(0);
+		cookie.setPath(cookieUri);
 		response.addCookie(cookie);
 		duccLogger.trace(methodName, null, messages.fetchLabel("name")+name+" "+messages.fetchLabel("value")+value);
 	}
@@ -272,16 +281,58 @@ public class DuccCookies {
 		return role;
 	}
 	
-	public static String getUid(HttpServletRequest request) {
-		String location = "getUid";
-		String uid = null;
+	public static String getLoginUid(HttpServletRequest request) {
+		String location = "getLoginUid";
+		String loginUid = null;
 		try {
 			String cookie = getCookie(null,request,cookieUid);
-			uid = cookie;
-			duccLogger.debug(location, jobid, cookieUid+":"+uid);
+			loginUid = cookie;
+			duccLogger.debug(location, jobid, cookieUid+":"+loginUid);
 		}
 		catch(Exception e) {
 		}
-		return uid;
+		return loginUid;
 	}
+	
+	public static void setLoginUid(HttpServletResponse response, String value) {
+		String location = "setLoginUid";
+		try {
+			putCookie(response, cookieUid, value);
+			duccLogger.debug(location, jobid, cookieUid+":"+value);
+		}
+		catch(Exception e) {
+		}
+	}
+	
+	public static String getLoginToken(HttpServletRequest request) {
+		String location = "getLoginToken";
+		String loginToken = null;
+		try {
+			String cookie = getCookie(null,request,cookieLoginToken);
+			loginToken = cookie;
+			duccLogger.debug(location, jobid, cookieLoginToken+":"+loginToken);
+		}
+		catch(Exception e) {
+		}
+		return loginToken;
+	}
+	
+	public static void setLoginToken(HttpServletResponse response, String value) {
+		setLoginToken(response, value, seconds_per_century);
+	}
+	
+	public static void expireLoginToken(HttpServletResponse response) {
+		setLoginToken(response, "expired", 0);
+	}
+	
+	private static void setLoginToken(HttpServletResponse response, String value, int expiry) {
+		String location = "setLoginToken";
+		try {
+			putCookie(response, cookieLoginToken, value, expiry);
+			duccLogger.debug(location, jobid, cookieLoginToken+":"+value);
+		}
+		catch(Exception e) {
+		}
+	}
+	
 }

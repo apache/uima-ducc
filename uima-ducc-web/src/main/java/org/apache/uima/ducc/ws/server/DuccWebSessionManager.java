@@ -19,13 +19,17 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.security.SecureRandom;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.database.login.DbUserLogin;
+
+/*
+ * Class to manage user login/logout, in coordination with browser and cookies
+ */
 
 public class DuccWebSessionManager {
 	
@@ -38,20 +42,14 @@ public class DuccWebSessionManager {
 		return instance;
 	}
 	
+	private static DbUserLogin dbUserLogin = new DbUserLogin(duccLogger);
+	
 	private static SecureRandom sr = new SecureRandom();
 	
-	public static final String ducc_user_id = "ducc.user.id";
-	public static final String ducc_validation_id = "ducc.validation.id";
-	
 	private static final int SEGMENTS = 8;
-	
-	private class IdSet {
-		public String sessionId;
-		public String validationId;
-	}
-	
-	private ConcurrentHashMap<String,IdSet> map = new ConcurrentHashMap<String,IdSet>();
 
+	// Token given to browser.  When present upon subsequent calls
+	// user is considered logged-in.
 	private String generateValidationId() {
 		StringBuffer sb = new StringBuffer();
 		sb.append(sr.nextLong());
@@ -62,167 +60,98 @@ public class DuccWebSessionManager {
 		return sb.toString();
 	}
 	
-	private void iRemove(String method, String userId, IdSet idSet) {
-		String location = "iRemove"+"."+method;
-		if(idSet != null) {
-			duccLogger.info(location, jobid, "uid:"+userId);
-			duccLogger.info(location, jobid, "sid:"+idSet.sessionId);
-			duccLogger.info(location, jobid, "vid:"+idSet.validationId);
-		}
-	}
-	
-	private void iPut(String method, String userId, IdSet idSet) {
-		String location = "iPut"+"."+method;
-		if(idSet != null) {
-			duccLogger.info(location, jobid, "uid:"+userId);
-			duccLogger.info(location, jobid, "sid:"+idSet.sessionId);
-			duccLogger.info(location, jobid, "vid:"+idSet.validationId);
-		}
-	}
-	
-	public void login(HttpServletRequest request, String userId) {
+	// login user
+	public void login(HttpServletRequest request, HttpServletResponse response, String userId) {
 		String location = "login";
 		if(request == null) {
 			duccLogger.debug(location, jobid, "request is null");
+			return;
+		}
+		if(response == null) {
+			duccLogger.debug(location, jobid, "response is null");
 			return;
 		}
 		if(userId == null) {
 			duccLogger.debug(location, jobid, "userId is null");
 			return;
 		}
-		HttpSession session = request.getSession();
-		if(session == null) {
-			duccLogger.debug(location, jobid, "session is null");
-			return;
-		}
-		String sessionId =  session.getId();
-		if(sessionId == null) {
-			duccLogger.debug(location, jobid, "sessionId is null");
-			return;
-		}
-		iRemove(location, userId, map.get(userId));
+		// generate validation id
 		String validationId = generateValidationId();
-		session.setAttribute(ducc_validation_id, validationId);
-		session.setAttribute(ducc_user_id, userId);
-		IdSet idSet = new IdSet();
-		idSet.validationId = validationId;
-		idSet.sessionId = sessionId;
-		map.put(userId, idSet);
-		iPut(location, userId, map.get(userId));
+		// tell browser
+		DuccCookies.setLoginUid(response, userId);
+		DuccCookies.setLoginToken(response, validationId);
+		duccLogger.debug(location, jobid, userId, validationId);
+		// tell database
+		dbUserLogin.addOrReplace(userId, validationId);
 		return;
 	}
 	
-	public boolean logout(HttpServletRequest request) {
+	// louout user
+	public boolean logout(HttpServletRequest request, HttpServletResponse response, String userId) {
 		String location = "logout";
 		boolean retVal = false;
 		if(request == null) {
 			duccLogger.debug(location, jobid, "request is null");
 			return retVal;
 		}
-		HttpSession session = request.getSession();
-		if(session == null) {
-			duccLogger.debug(location, jobid, "session is null");
+		if(response == null) {
+			duccLogger.debug(location, jobid, "response is null");
 			return retVal;
 		}
-		String userId = (String) session.getAttribute(ducc_user_id);
 		if(userId == null) {
 			duccLogger.debug(location, jobid, "userId is null");
 			return retVal;
 		}
-		String validationId = (String) session.getAttribute(ducc_validation_id);
-		if(validationId == null) {
-			duccLogger.debug(location, jobid, "validationId is null");
-			return retVal;
-		}
-		String sessionId =  session.getId();
-		if(sessionId == null) {
-			duccLogger.debug(location, jobid, "sessionId is null");
-			return retVal;
-		}
-		IdSet idSet = map.get(userId);
-		if(idSet == null) {
-			duccLogger.debug(location, jobid, "idSet is null");
-			return retVal;
-		}
-		if(!validationId.equals(idSet.validationId)) {
-			duccLogger.debug(location, jobid, "given:"+validationId);
-			duccLogger.debug(location, jobid, "known:"+idSet.validationId);
-			duccLogger.debug(location, jobid, "validation mismatch!");
-			return retVal;
-		}
-		if(!sessionId.equals(idSet.sessionId)) {
-			duccLogger.debug(location, jobid, "given:"+sessionId);
-			duccLogger.debug(location, jobid, "known:"+idSet.sessionId);
-			duccLogger.debug(location, jobid, "session mismatch!");
-			return retVal;
-		}
-		session.removeAttribute(ducc_validation_id);
-		session.removeAttribute(ducc_user_id);
-		map.remove(userId);
-		iRemove(location, userId, idSet);
-		retVal = true;
+		retVal = isAuthentic(request);
+		// tell browser
+		DuccCookies.expireLoginToken(response);
+		// tell database
+		dbUserLogin.delete(userId);
 		return retVal;
 	}
 	
-	public boolean isAuthentic(HttpServletRequest request) {
-		String location = "isAuthentic";
-		if(request == null) {
-			duccLogger.debug(location, jobid, "request is null");
-			return false;
+	// check token from db with token present by browser cookie
+	private boolean stringCompare(String s1, String s2) {
+		boolean retVal = false;
+		if(s1 != null) {
+			if(s2 != null) {
+				retVal = s1.equals(s2);
+			}
 		}
-		HttpSession session = request.getSession();
-		if(session == null) {
-			duccLogger.debug(location, jobid, "session is null");
-			return false;
-		}
-		String userId = (String) session.getAttribute(ducc_user_id);
-		if(userId == null) {
-			duccLogger.debug(location, jobid, "userId is null");
-			return false;
-		}
-		String validationId = (String) session.getAttribute(ducc_validation_id);
-		if(validationId == null) {
-			duccLogger.debug(location, jobid, "validationId is null");
-			return false;
-		}
-		String sessionId =  session.getId();
-		if(sessionId == null) {
-			duccLogger.debug(location, jobid, "sessionId is null");
-			return false;
-		}
-		IdSet idSet = map.get(userId);
-		if(idSet == null) {
-			duccLogger.debug(location, jobid, "idSet is null");
-			return false;
-		}
-		if(!validationId.equals(idSet.validationId)) {
-			duccLogger.debug(location, jobid, "given:"+validationId);
-			duccLogger.debug(location, jobid, "known:"+idSet.validationId);
-			duccLogger.debug(location, jobid, "validation mismatch!");
-			return false;
-		}
-		if(!sessionId.equals(idSet.sessionId)) {
-			duccLogger.debug(location, jobid, "given:"+sessionId);
-			duccLogger.debug(location, jobid, "known:"+idSet.sessionId);
-			duccLogger.debug(location, jobid, "session mismatch!");
-			return false;
-		}
-		return true;
+		return retVal;
 	}
 	
+	// check if browser userid+token match same in db
+	public boolean isAuthentic(HttpServletRequest request) {
+		String location = "isAuthentic";
+		boolean retVal = false;
+		if(request == null) {
+			duccLogger.debug(location, jobid, "request is null");
+			return false;
+		}
+		String userId = getUserId(request);
+		// fetch browser
+		String s1 = DuccCookies.getLoginToken(request);
+		duccLogger.debug(location, jobid, "cookie  ", retVal, userId, s1);
+		// fetch database
+		String s2 = dbUserLogin.fetch(userId);
+		duccLogger.debug(location, jobid, "database", retVal, userId, s2);
+		// compare
+		retVal = stringCompare(s1,s2);
+		return retVal;
+	}
+	
+	// fetch userid from browser
 	public String getUserId(HttpServletRequest request) {
-		String retVal = null;
 		String location = "getUserId";
+		String retVal = null;
 		if(request == null) {
 			duccLogger.debug(location, jobid, "request is null");
 			return retVal;
 		}
-		HttpSession session = request.getSession();
-		if(session == null) {
-			duccLogger.debug(location, jobid, "session is null");
-			return retVal;
-		}
-		retVal = (String) session.getAttribute(ducc_user_id);
+		// fetch browser
+		retVal = DuccCookies.getLoginUid(request);
+		duccLogger.debug(location, jobid, retVal);
 		return retVal;
 	}
 }

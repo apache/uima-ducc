@@ -95,7 +95,7 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		try {
 			userId = duccWebSessionManager.getUserId(request);
-			boolean result = duccWebSessionManager.logout(request);
+			boolean result = duccWebSessionManager.logout(request, response, userId);
 			if(result) {
 				duccLogger.info(methodName, jobid, messages.fetch("logout ")+userId+" "+messages.fetch("success"));
 				sb.append("success");
@@ -168,7 +168,7 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 				if(ducc_runmode_pw.length() > 0) {
 					if(password != null) {
 						if(password.equals(ducc_runmode_pw)) {
-							duccWebSessionManager.login(request, userId);
+							duccWebSessionManager.login(request,response,userId);
 							sb.append("success");
 						}
 					}
@@ -201,7 +201,7 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 					IAuthenticationResult result2 = duccAuthenticator.isGroupMember(userId, domain, role);
 					duccLogger.debug(methodName, jobid, messages.fetch("login ")+userId+" "+"group reason: "+result2.getReason());
 					if(result1.isSuccess() && result2.isSuccess()) {
-						duccWebSessionManager.login(request, userId);
+						duccWebSessionManager.login(request,response,userId);
 						duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("success"));
 						sb.append("success");
 					}
