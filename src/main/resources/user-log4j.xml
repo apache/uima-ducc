@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+-->
+
+<!-- This config file should be used by the JD and JP and log to the console -->
+
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+  <appender name="console" class="org.apache.log4j.ConsoleAppender"> 
+    <param name="Target" value="System.out"/> 
+    <layout class="org.apache.log4j.PatternLayout"> 
+      <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - T[%X{TID}] %X{METHOD} %m%n"/> 
+    </layout> 
+  </appender> 
+
+  <!-- All DUCC classes  -->
+  <category name="org.apache.uima.ducc" additivity="false">
+    <priority value="info"/>
+    <appender-ref ref="console" /> 
+  </category>
+
+  <category name="org.apache.activemq">
+    <priority value="warn"/>
+  </category>
+
+  <category name="org.springframework">
+    <priority value="warn"/>
+  </category>
+
+  <category name="org.apache.camel">
+    <priority value="warn"/>
+  </category>
+  
+  <category name="org.apache.camel.impl.converter">
+    <priority value="error"/>
+  </category>
+
+  <!-- cassandra client -->
+  <category name="com.datastax.driver">
+    <priority value="warn"/>
+  </category>
+
+  <!-- Disable the Logging initialized msgs -->
+  <category name="org.eclipse.jetty.util.log" additivity="false">
+    <priority value="warn"/>
+  </category>
+
+   <!-- User code -->
+  <root> 
+    <priority value = "info" /> 
+    <appender-ref ref="console" /> 
+  </root>
+  
+</log4j:configuration>

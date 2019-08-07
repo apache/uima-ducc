@@ -29,13 +29,6 @@
     </layout> 
   </appender> 
   
-  <appender name="3rd-party" class="org.apache.log4j.ConsoleAppender"> 
-    <param name="Target" value="System.out"/> 
-    <layout class="org.apache.log4j.PatternLayout"> 
-      <param name="ConversionPattern" value="%d{DATE} %5p %c{1} - J[%X{JID}] T[%X{TID}] %X{METHOD} %m%n"/> 
-    </layout> 
-  </appender> 
-  
   <appender name="jd-log" class="org.apache.log4j.ConsoleAppender"> 
     <param name="Target" value="System.out"/> 
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -59,7 +52,7 @@
   
   <appender name="system-events-log" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/system-events.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/${DUCC_NODENAME}.system-events.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -67,66 +60,17 @@
     </layout> 
   </appender> 
   
-  <appender name="rmlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
+  <!-- This should be used by all daemons -->
+  <appender name="ducc-log" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/rm.log"/>
-    <param name="maxBackupIndex" value="5" />
-    <param name="maxFileSize" value="10MB" />
-    <layout class="org.apache.log4j.PatternLayout"> 
-      <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1}- %X{JID} %X{METHOD} %m%n"/> 
-    </layout> 
-  </appender> 
-  
-  <appender name="orlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
-    <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/or.log"/>
-    <param name="maxBackupIndex" value="5" />
-    <param name="maxFileSize" value="10MB" />
-    <layout class="org.apache.log4j.PatternLayout"> 
-      <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %X{JID} %X{METHOD} %m%n"/> 
-    </layout> 
-  </appender> 
-  
-  <appender name="smlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
-    <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/sm.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/${DUCC_NODENAME}.${ducc.deploy.components}.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %X{JID} T[%X{TID}] %X{METHOD} %m%n"/> 
     </layout> 
   </appender> 
-
-  <appender name="pmlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
-    <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/pm.log"/>
-    <param name="maxBackupIndex" value="5" />
-    <param name="maxFileSize" value="10MB" />
-    <layout class="org.apache.log4j.PatternLayout"> 
-      <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %X{JID} %X{METHOD} %m%n"/> 
-    </layout> 
-  </appender> 
-
-  <appender name="wslog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
-    <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/daemons/${DUCC_NODENAME}/ws.log"/>
-    <param name="maxBackupIndex" value="5" />
-    <param name="maxFileSize" value="10MB" />
-    <layout class="org.apache.log4j.PatternLayout"> 
-      <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %X{JID} %X{METHOD} %m%n"/> 
-    </layout> 
-  </appender> 
-  
-  <appender name="jdout" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
-    <param name="append" value="true"/>
-    <param name="file" value="${ducc.process.log.dir}/jd.out.log"/>
-    <param name="maxBackupIndex" value="5" />
-    <param name="maxFileSize" value="10MB" />
-    <layout class="org.apache.log4j.PatternLayout"> 
-      <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - T[%X{TID}] %X{METHOD} %m%n"/> 
-    </layout> 
-  </appender> 
-  
+    
   <appender name="jderr" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
     <param name="file" value="${ducc.process.log.dir}/jd.err.log"/>
@@ -137,19 +81,9 @@
     </layout> 
   </appender> 
 
-  <appender name="agentlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
-    <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/agents/${DUCC_NODENAME}.${ducc.deploy.components}.log"/>
-    <param name="maxBackupIndex" value="5" />
-    <param name="maxFileSize" value="10MB" />
-    <layout class="org.apache.log4j.PatternLayout"> 
-      <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - J[%X{JID}] T[%X{TID}] %X{METHOD} %m%n"/> 
-    </layout> 
-  </appender> 
-
   <appender name="db-loader-log" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/db.loader.log"/>
+    <param name="file" value="${DUCC_HOME}/logs/${DUCC_NODENAME}.db.loader.log"/>
     <param name="maxBackupIndex" value="20" />
     <param name="maxFileSize" value="20MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -164,58 +98,53 @@
   
    <category name="org.apache.uima.ducc.rm" additivity="false">
      <priority value="info"/>
-     <appender-ref ref="rmlog" /> 
+     <appender-ref ref="ducc-log" /> 
    </category>
 
    <!-- Please keep these for reference as they focus on specific components of interest during debug. -->
    <!-- category name="org.apache.uima.ducc.rm.JobManagerConverter" additivity="true">
      <priority value="info"/>
-     <appender-ref ref="rmlog" /> 
+     <appender-ref ref="ducc-log" /> 
    </category>
 
    <category name="org.apache.uima.ducc.rm.NodeStability" additivity="true">
      <priority value="debug"/>
-     <appender-ref ref="rmlog" /> 
+     <appender-ref ref="ducc-log" /> 
    </category>
 
    <category name="org.apache.uima.ducc.rm.ResourceManagerComponent" additivity="true">
      <priority value="info"/>
-     <appender-ref ref="rmlog" /> 
+     <appender-ref ref="ducc-log" /> 
    </category -->
 
    <category name="org.apache.uima.ducc.orchestrator" additivity="false">
      <priority value="info"/>
-     <appender-ref ref="orlog" /> 
+     <appender-ref ref="ducc-log" /> 
    </category>
 
    <category name="org.apache.uima.ducc.agent" additivity="false">
      <priority value="info"/>
-     <appender-ref ref="agentlog" />
+     <appender-ref ref="ducc-log" />
    </category>
 
    <category name="org.apache.uima.ducc.agent.deploy" additivity="false">
      <priority value="info"/>
-     <appender-ref ref="agentlog" />
-   </category>
-
-   <category name="org.apache.uima.ducc.jd" additivity="false">
-     <priority value="info"/>
-     <appender-ref ref="jdout" />
+     <appender-ref ref="ducc-log" />
    </category>
 
    <category name="org.apache.uima.ducc.sm" additivity="false">
      <priority value="info"/>
-     <appender-ref ref="smlog" /> 
+     <appender-ref ref="ducc-log" /> 
    </category>
 
    <category name="org.apache.uima.ducc.pm" additivity="false">
      <priority value="info"/>
-     <appender-ref ref="pmlog" /> 
+     <appender-ref ref="ducc-log" /> 
    </category>
 
    <category name="org.apache.uima.ducc.ws" additivity="false">
      <priority value="info"/>
-     <appender-ref ref="wslog" /> 
+     <appender-ref ref="ducc-log" /> 
    </category>
 
    <category name="org.apache.uima.ducc.user.err" additivity="true">
@@ -237,12 +166,12 @@
 
    <category name="org.apache.camel">
      <priority value="warn"/>
-     <appender-ref ref="3rd-party" /> 
+     <appender-ref ref="ducc-log" /> 
    </category>
    
    <category name="org.apache.camel.impl.converter">
      <priority value="error"/>
-     <appender-ref ref="3rd-party" /> 
+     <appender-ref ref="ducc-log" /> 
    </category>
 
    <category name="org.apache.uima.ducc.cli" additivity="false">
@@ -275,16 +204,33 @@
      <appender-ref ref="db-loader-log" /> 
    </category>
    
+   <!-- This is invoked from scripts, not by any of the daemons -->
+   <category name="org.apache.uima.ducc.database.lifetime" additivity="false">
+     <priority value="info"/>
+     <appender-ref ref="console" /> 
+   </category>
+   
+   <!-- This is invoked from scripts, not by any of the daemons -->
+   <category name="org.apache.uima.ducc.common.main" additivity="false">
+     <priority value="info"/>
+     <appender-ref ref="console" /> 
+   </category>
+   
    <!-- This should catch the use of any DUCC classes not explicitly specified above -->
    <category name="org.apache.uima.ducc" additivity="false">
      <priority value="info"/>
-     <appender-ref ref="console" /> 
+     <appender-ref ref="ducc-log" /> 
+   </category>
+
+   <!-- Disable the Logging initialized msgs -->
+   <category name="org.eclipse.jetty.util.log" additivity="false">
+     <priority value="warn"/>
    </category>
 
    <!-- This should be used by all non-DUCC 3rd-party code -->
   <root> 
     <priority value = "info" /> 
-    <appender-ref ref="3rd-party" /> 
+    <appender-ref ref="ducc-log" /> 
   </root>
   
 </log4j:configuration>

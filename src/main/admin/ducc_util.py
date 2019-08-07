@@ -1425,6 +1425,8 @@ class DuccUtil(DuccBase):
                 head_ip = ducc_head
             else:
                 head_ip = self.get_ip_address(ducc_head)
+            # Check if "reliable" ... i.e. ducc.head is the virtual ip in the keepalived conf file
+            # If so check if this node is connected to the virtual ip   
             if(self.is_reliable_eligible(head_ip)):
                 text = 'cmd: ', '/sbin/ip', 'addr', 'list'
                 debug(label, text)
@@ -1560,11 +1562,10 @@ class DuccUtil(DuccBase):
         if(manage_database):
             dir_db_state = self.DUCC_HOME + '/state/database/'+dbhost
             self.makedirs(dir_db_state)
-            dir_db_logs = self.DUCC_HOME + '/logs/database/'+dbhost
+            self.db_pidfile = dir_db_state+ '/cassandra.pid'
+            dir_db_logs = self.DUCC_HOME + '/logs'
             self.makedirs(dir_db_logs)
-
-        self.db_pidfile = dir_db_state+ '/cassandra.pid'
-        self.db_logfile = dir_db_logs + '/cassandra.console'
+            self.db_logfile = dir_db_logs + '/' + dbhost + '.cassandra.console'
         
         self.pid_file_agents  = self.DUCC_HOME + '/state/agents/ducc.pids'
         self.pid_file_daemons  = self.DUCC_HOME + '/state/daemons/'+self.get_node_name()+'/ducc.pids'

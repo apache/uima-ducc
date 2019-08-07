@@ -43,6 +43,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.apache.log4j.Level;
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
@@ -146,7 +147,7 @@ public class DuccAdmin extends AbstractDuccComponent implements
 
     public DuccLogger getLogger()
     {
-        return new DuccLogger("Admin");
+        return new DuccLogger(DuccAdmin.class);
     }
 
 	/**

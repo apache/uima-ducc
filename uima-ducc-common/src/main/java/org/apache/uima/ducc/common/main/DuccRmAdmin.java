@@ -167,7 +167,7 @@ public class DuccRmAdmin
      */
     public DuccLogger getLogger()
     {
-        DuccLogger ret = new DuccLogger("admin");
+        DuccLogger ret = new DuccLogger(DuccRmAdmin.class);
         ret.setLevel(Level.OFF);      // jrc UIMA-4358 disable logging for RM admin because
                                       // scripting has to scrape stdout and the log gets in the way
         return ret;

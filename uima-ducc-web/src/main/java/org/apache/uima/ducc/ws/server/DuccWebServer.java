@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.jasper.servlet.JspServlet;
 import org.apache.tomcat.InstanceManager;
 import org.apache.tomcat.SimpleInstanceManager;
 import org.apache.tomcat.util.scan.StandardJarScanner;
@@ -36,9 +35,9 @@ import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.InetHelper;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.DuccPlugins;
-import org.eclipse.jetty.annotations.ServletContainerInitializersStarter;
 import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.jsp.JettyJspServlet;
 import org.eclipse.jetty.plus.annotation.ContainerInitializer;
@@ -369,7 +368,9 @@ public class DuccWebServer {
         if(requestLogRetainDays > 0) {
 			String requestLogTimeZone = "GMT";
 			String requestLogFmt = "yyyy_MM_dd";
-			String requestLogFile = DuccWebServerHelper.getDuccWebLogsDir()+requestLogFmt+".request.log";
+			// Put request log in shared logs/webserver dir with host as part of the filename
+			String fname = InetHelper.getHostName() + "." + requestLogFmt + ".request.log";
+			String requestLogFile = DuccWebServerHelper.getDuccWebLogsDir() + fname;
 			NCSARequestLog requestLog = new NCSARequestLog();
 		    requestLog.setFilename(requestLogFile);
 		    requestLog.setFilenameDateFormat(requestLogFmt);

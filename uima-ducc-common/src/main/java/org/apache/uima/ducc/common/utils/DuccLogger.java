@@ -50,17 +50,21 @@ public class DuccLogger
 
     private static String daemonComponent = null;
     
-    private static DuccLoggingThread log_thread = null;
+    //private static DuccLoggingThread log_thread = null;
     private static LinkedBlockingQueue<DuccLoggingEvent> events = null;
     private static AtomicBoolean threaded = new AtomicBoolean(false);
-    private static boolean watchdogStarted = false;
-
+    
+    // If a daemon use watchdog and configure with log4j.xml
+    // If a JD & JP which run as the user don't use watchdog and default config user-log4j.xml
+    private static boolean isJob = System.getProperty("ducc.deploy.JobDirectory") != null;
+    private static boolean watchdogStarted = isJob;
+    
     private final static String DEFAULT_COMPONENT = "DUCC";
     private static List<Logger> nonDuccLoggers = new ArrayList<Logger>();
 
     private boolean debug = System.getProperty("log4j.debug") != null;    // Use the log4j debugging flag
 
-    static synchronized protected void initLogger()
+/*    static synchronized protected void initLogger()
     {
         if ( log_thread == null ) {
             events = new LinkedBlockingQueue<DuccLoggingEvent>();
@@ -69,7 +73,7 @@ public class DuccLogger
             log_thread.setDaemon(true);
             log_thread.start();
         }
-    }
+    }*/
 
     static public void setDaemonComponent(String value) {
     	daemonComponent = value;
@@ -176,13 +180,21 @@ public class DuccLogger
     public DuccLogger(String claz, String requestComponent)
     {
         // initLogger();
-
         // UIMA-4186, use log4j API for configuration
         String ducc_home = System.getProperty("DUCC_HOME");
         if ( ducc_home == null ) { 
             System.out.println("WARNING: Cannot find system property DUCC_HOME to configure ducc logger.  Using default log4j configurator.");
         } else {
-            if ( ! watchdogStarted ) {
+            if (isJob) {
+              // Set a default configuration for JD & JP if none provided
+              String usersValue = System.getProperty("log4j.configuration");
+              if (usersValue == null) {
+                usersValue = "file:" + System.getProperty("DUCC_HOME") + "/resources/user-log4j.xml";
+                System.setProperty("log4j.configuration", usersValue);
+              }
+              isJob = false;  // No need to check again
+            }
+            if ( !watchdogStarted ) {
             	// Explicitly set the config file since the search for the default uses 
             	// ClassLoader.getSystemResource() so may find one in the user's classpath
                 // UIMA-5183 First check for a node-specific configuration file
@@ -196,7 +208,8 @@ public class DuccLogger
                         System.out.println("DuccLogger will use configuration file: " + configFile);
                     }
                 }
-            	String usersValue = System.setProperty("log4j.configuration", "file:" + configFile);
+                // Change the system property, configure, and then restore any users value
+                String usersValue = System.setProperty("log4j.configuration", "file:" + configFile);
                 DOMConfigurator.configureAndWatch(configFile);
                 if (usersValue == null) {
                 	System.clearProperty("log4j.configuration");
@@ -214,7 +227,7 @@ public class DuccLogger
 
         ErrorHandler errHandler = new DuccLogErrorHandler(this);
         @SuppressWarnings("rawtypes")
-		Enumeration appenders = logger.getAllAppenders();
+        Enumeration appenders = logger.getAllAppenders();
         while (appenders.hasMoreElements() ) {
             Appender app = (Appender) appenders.nextElement();
             app.setErrorHandler(errHandler);
@@ -674,7 +687,7 @@ public class DuccLogger
         }        
     }
 
-    static class DuccLoggingThread
+ /*   static class DuccLoggingThread
         extends Thread
     {
         public void run()
@@ -694,7 +707,7 @@ public class DuccLogger
             }
         }
     }
-
+*/
     static class DuccLogErrorHandler
         implements ErrorHandler
     {

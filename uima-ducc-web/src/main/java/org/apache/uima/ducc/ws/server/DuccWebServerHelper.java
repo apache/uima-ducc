@@ -26,7 +26,6 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.InetHelper;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.standardize.WsStandardize;
 
@@ -37,8 +36,7 @@ public class DuccWebServerHelper {
 	private static DuccId jobid = null;
 	
 	public static String getDuccWebLogsDir() {
-		String hostname = InetHelper.getHostName();
-		String retVal = IDuccEnv.DUCC_LOGS_DIR+"daemons"+File.separator+hostname+File.separator+"webserver"+File.separator;
+		String retVal = IDuccEnv.DUCC_LOGS_DIR + "webserver " + File.separator;
 		return retVal;
 	}
 	
