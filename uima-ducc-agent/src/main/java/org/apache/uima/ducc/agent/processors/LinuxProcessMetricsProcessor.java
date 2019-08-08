@@ -199,26 +199,19 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
   private long getCpuTime(long totalCpuUsageInNanos) throws Exception {
     long cp = -1;
     if (agent.useCgroups) {
-      if (managedProcess.getDuccProcess().getProcessState().equals(ProcessState.Running)
-              || managedProcess.getDuccProcess().getProcessState()
-                      .equals(ProcessState.Initializing)) {
-
-        long timeRunning = 1;
-        if (process.getTimeWindowInit() != null) {
-          timeRunning = process.getTimeWindowInit().getElapsedMillis();
-        }
-        if (process.getTimeWindowRun() != null) {
-          timeRunning += process.getTimeWindowRun().getElapsedMillis();
-        }
-        long totalCpuUsageInMillis = totalCpuUsageInNanos / 1000000;
-        // normalize time in running state into seconds
-        percentCPU = Math.round(100 * ((totalCpuUsageInMillis * 1.0) / (timeRunning * 1.0)));
-
-        cp = percentCPU;
-
-      } else {
-        cp = percentCPU;
+      long timeRunning = 1;
+      if (process.getTimeWindowInit() != null) {
+        timeRunning = process.getTimeWindowInit().getElapsedMillis();
       }
+      if (process.getTimeWindowRun() != null) {
+        timeRunning += process.getTimeWindowRun().getElapsedMillis();
+      }
+      long totalCpuUsageInMillis = totalCpuUsageInNanos / 1000000;
+      // normalize time in running state into seconds
+      percentCPU = Math.round(100 * ((totalCpuUsageInMillis * 1.0) / (timeRunning * 1.0)));
+
+      cp = percentCPU;
+
     }
 
     return cp;
