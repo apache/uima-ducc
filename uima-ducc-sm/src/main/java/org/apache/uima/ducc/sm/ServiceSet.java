@@ -1497,7 +1497,12 @@ public class ServiceSet
                     logger.info(methodName, id, "Instance", inst_id, "stopped by SM.  Not restarting.");
                 } else {
                     // An instance stopped and we (SM) didn't ask it to - by definition this is failure no matter how it exits.
-                    
+ 
+                  // If the RM purges the instance on a node failure the service should not be penalized UIMA-6111
+                  if (jct == JobCompletionType.ResourcesUnavailable) {
+                    logger.info(methodName, id, "Instance purged by RM (node died?) - prior state[", old_state, 
+                            "] current state[", state, "] completion[", jct, "]");
+                  } else {
                     switch ( old_state ) {
                         case WaitingForServices:
                         case WaitingForResources:
@@ -1515,6 +1520,7 @@ public class ServiceSet
                             logger.info(methodName, id, "Instance stopped unexpectedly: prior state[", old_state, " completion[", jct, "]");
                             break;
                     }
+                  }
 
                     if ( excessiveFailures() ) { 
                         String disable_reason = null;
