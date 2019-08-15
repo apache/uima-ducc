@@ -25,67 +25,65 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class WsLog {
 
-	private static DuccId duccId = null;
-	
-	public static void enter(DuccLogger logger, String mName) {
-		logger.trace(mName, duccId, "enter");
-	}
-	
-	public static void exit(DuccLogger logger, String mName) {
-		logger.trace(mName, duccId, "exit");
-	}
-	
-	public static void info(DuccLogger logger, String mName, String text) {
-		logger.info(mName, duccId, text);
-	}
-	
-	public static void info(DuccLogger logger, String mName, DuccId duccId, String text) {
-		logger.info(mName, duccId, text);
-	}
-	
-	public static void debug(DuccLogger logger, String mName, DuccId duccid, String text) {
-		logger.debug(mName, duccid, text);
-	}
-	
-	public static void debug(DuccLogger logger, String mName, String text) {
-		logger.debug(mName, duccId, text);
-	}
-	
-	public static void debug(DuccLogger logger, String mName, Exception e) {
-		logger.debug(mName, duccId, e);
-	}
-	
-	public static void debug(DuccLogger logger, String mName, Throwable t) {
-		logger.debug(mName, duccId, t);
-	}
-	
-	public static void trace(DuccLogger logger, String mName, String text) {
-		logger.trace(mName, duccId, text);
-	}
-	
-	public static void trace(DuccLogger logger, String mName, Exception e) {
-		logger.trace(mName, duccId, e);
-	}
-	
-	public static void trace(DuccLogger logger, String mName, Throwable t) {
-		logger.trace(mName, duccId, t);
-	}
-	
-	public static void error(DuccLogger logger, String mName, Exception e) {
-		logger.error(mName, duccId, e);
-	}
-	
-	public static void error(DuccLogger logger, String mName, Throwable t) {
-		logger.error(mName, duccId, t);
-	}
-	
-	public static void error(DuccLogger logger, String mName, String text) {
-		logger.error(mName, duccId, text);
-	}
-	
-	public static void warn(DuccLogger logger, String mName, String text) {
-		logger.warn(mName, duccId, text);
-	}
+  private static DuccId duccId = null;
+
+  public static void enter(DuccLogger logger, String mName) {
+    logger.trace(mName, duccId, "enter");
+  }
+
+  public static void exit(DuccLogger logger, String mName) {
+    logger.trace(mName, duccId, "exit");
+  }
+
+  public static void info(DuccLogger logger, String mName, String text) {
+    logger.info(mName, duccId, text);
+  }
+
+  public static void info(DuccLogger logger, String mName, DuccId duccId, String text) {
+    logger.info(mName, duccId, text);
+  }
+
+  public static void debug(DuccLogger logger, String mName, DuccId duccid, String text) {
+    logger.debug(mName, duccid, text);
+  }
+
+  public static void debug(DuccLogger logger, String mName, String text) {
+    logger.debug(mName, duccId, text);
+  }
+
+  public static void debug(DuccLogger logger, String mName, Exception e) {
+    logger.debug(mName, duccId, e);
+  }
+
+  public static void debug(DuccLogger logger, String mName, Throwable t) {
+    logger.debug(mName, duccId, t);
+  }
+
+  public static void trace(DuccLogger logger, String mName, String text) {
+    logger.trace(mName, duccId, text);
+  }
+
+  public static void trace(DuccLogger logger, String mName, Exception e) {
+    logger.trace(mName, duccId, e);
+  }
+
+  public static void trace(DuccLogger logger, String mName, Throwable t) {
+    logger.trace(mName, duccId, t);
+  }
+
+  public static void error(DuccLogger logger, String mName, Exception e) {
+    logger.error(mName, duccId, e);
+  }
+
+  public static void error(DuccLogger logger, String mName, Throwable t) {
+    logger.error(mName, duccId, t);
+  }
+
+  public static void error(DuccLogger logger, String mName, String text) {
+    logger.error(mName, duccId, text);
+  }
+
+  public static void warn(DuccLogger logger, String mName, String text) {
+    logger.warn(mName, duccId, text);
+  }
 }
-
-

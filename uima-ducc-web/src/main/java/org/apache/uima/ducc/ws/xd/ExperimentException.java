@@ -19,10 +19,10 @@
 package org.apache.uima.ducc.ws.xd;
 
 public class ExperimentException extends Exception {
-	
-	private static final long serialVersionUID = 1L;
-	
-	public ExperimentException(String text) {
-		super(text);
-	}
+
+  private static final long serialVersionUID = 1L;
+
+  public ExperimentException(String text) {
+    super(text);
+  }
 }

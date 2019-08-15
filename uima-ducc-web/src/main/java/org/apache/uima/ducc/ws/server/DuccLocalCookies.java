@@ -19,15 +19,19 @@
 package org.apache.uima.ducc.ws.server;
 
 public class DuccLocalCookies {
-	
-	private static final String application = DuccCookies.duccCookiePrefix;
-	private static final String max = DuccCookies.max;
-	private static final String users = DuccCookies.users;
-	
-	private static final String experiments = "experiments";
-	
-	public static final String cookieExperimentsMax = application+experiments+max;
-	public static final String cookieExperimentsUsers = application+experiments+users;
-	//public static final String cookieExperimentsUsersQualifier = application+join+experiments+users+qualifier;
-	
+
+  private static final String application = DuccCookies.duccCookiePrefix;
+
+  private static final String max = DuccCookies.max;
+
+  private static final String users = DuccCookies.users;
+
+  private static final String experiments = "experiments";
+
+  public static final String cookieExperimentsMax = application + experiments + max;
+
+  public static final String cookieExperimentsUsers = application + experiments + users;
+  // public static final String cookieExperimentsUsersQualifier =
+  // application+join+experiments+users+qualifier;
+
 }

@@ -23,13 +23,21 @@ package org.apache.uima.ducc.ws.xd;
  * See com.ibm.bluej.system.driver/src/com/ibm/bluej/system/driver/TaskState.java 
  */
 public class Task {
-	  public int taskId = 0;
-    public int parentId = 0;
-    public String name = null;
-    public String type = null;
-    public String status = null;
-    public String startTime = null;
-    public long runTime = 0;
-    public int[] subTasks = new int[0];
-    public long[] duccId = new long[0];
+  public int taskId = 0;
+
+  public int parentId = 0;
+
+  public String name = null;
+
+  public String type = null;
+
+  public String status = null;
+
+  public String startTime = null;
+
+  public long runTime = 0;
+
+  public int[] subTasks = new int[0];
+
+  public long[] duccId = new long[0];
 }

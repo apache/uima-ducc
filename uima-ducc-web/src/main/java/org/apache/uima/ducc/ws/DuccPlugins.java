@@ -33,98 +33,93 @@ import org.apache.uima.ducc.ws.xd.ExperimentsRegistryManager;
 import org.eclipse.jetty.server.Handler;
 
 public class DuccPlugins {
-	
-	private static DuccLogger logger = DuccLogger.getLogger(DuccPlugins.class);
-	private static DuccId jobid = null;
-	
-	private static DuccPlugins instance = new DuccPlugins();
-	
-	public static DuccPlugins getInstance() {
-		return instance;
-	}
-	
-	private static ExperimentsRegistryManager experimentsRegistryManager = ExperimentsRegistryManager.getInstance();
 
-	/**
-	 * The restore methods are called during boot of the web server.
-	 * This is an opportunity to have local mods plug-in for
-	 * processing that may be desirable relative to each Job,
-	 * Reservation, and Service during the restoration from history.
-	 */
-	
-	public void restore(IDuccWorkJob job) {
-		String location = "restore";
-		try {
-			if(job != null) {
-				String user = job.getStandardInfo().getUser();
-				String directory = job.getStandardInfo().getLogDirectory();
-				logger.info(location, jobid, "user", user, "directory", directory);
-				experimentsRegistryManager.initialize(user, directory);
-			}
-		}
-		catch(Throwable t) {
-			logger.error(location, jobid, t);
-		}
-	}
-	
-	public void restore(IDuccWorkReservation reservation) {
-		String location = "restore";
-		try {
-			//loc mods here
-		}
-		catch(Throwable t) {
-			logger.error(location, jobid, t);
-		}
-	}
-	
-	public void restore(IDuccWorkService service) {
-		String location = "restore";
-		try {
-			// Also process managed reservations in case the experiment has only these.
-		    if(service != null && service.getServiceDeploymentType() == ServiceDeploymentType.other) {
-		        String user = service.getStandardInfo().getUser();
-		        String directory = service.getStandardInfo().getLogDirectory();
-		        experimentsRegistryManager.initialize(user, directory);
-		    }
-		}
-		catch(Throwable t) {
-			logger.error(location, jobid, t);
-		}
-	}
-	
-	/**
-	 * The update method is called for each Orchestrator publication.
-	 * This is an opportunity to have local mods plug-in for
-	 * processing that may be desirable relative to each Job,
-	 * Reservation, and Service within the published map.
-	 */
-	
-	public void update(IDuccWorkMap dwm) {
-		String location = "update";
-		try {
-			experimentsRegistryManager.update(dwm);
-		}
-		catch(Throwable t) {
-			logger.error(location, jobid, t);
-		}
-	}
-	
-	/**
-	 * The gethandlers method is called during boot of the web server.
-	 * This is an opportunity to have local mods plug-in for
-	 * processing that may be desirable relative to http/s requests.
-	 */
-	
-	public ArrayList<Handler> gethandlers(DuccWebServer duccWebServer) {
-		String location = "gethandlers";
-		ArrayList<Handler> handlersList = new ArrayList<Handler> ();
-		try {
-			HandlerExperimentsServlets handlerExperimentsServlets = new HandlerExperimentsServlets(duccWebServer);
-			handlersList.add(handlerExperimentsServlets);
-		}
-		catch(Throwable t) {
-			logger.error(location, jobid, t);
-		}
-		return handlersList;
-	}
+  private static DuccLogger logger = DuccLogger.getLogger(DuccPlugins.class);
+
+  private static DuccId jobid = null;
+
+  private static DuccPlugins instance = new DuccPlugins();
+
+  public static DuccPlugins getInstance() {
+    return instance;
+  }
+
+  private static ExperimentsRegistryManager experimentsRegistryManager = ExperimentsRegistryManager
+          .getInstance();
+
+  /**
+   * The restore methods are called during boot of the web server. This is an opportunity to have
+   * local mods plug-in for processing that may be desirable relative to each Job, Reservation, and
+   * Service during the restoration from history.
+   */
+
+  public void restore(IDuccWorkJob job) {
+    String location = "restore";
+    try {
+      if (job != null) {
+        String user = job.getStandardInfo().getUser();
+        String directory = job.getStandardInfo().getLogDirectory();
+        logger.info(location, jobid, "user", user, "directory", directory);
+        experimentsRegistryManager.initialize(user, directory);
+      }
+    } catch (Throwable t) {
+      logger.error(location, jobid, t);
+    }
+  }
+
+  public void restore(IDuccWorkReservation reservation) {
+    String location = "restore";
+    try {
+      // loc mods here
+    } catch (Throwable t) {
+      logger.error(location, jobid, t);
+    }
+  }
+
+  public void restore(IDuccWorkService service) {
+    String location = "restore";
+    try {
+      // Also process managed reservations in case the experiment has only these.
+      if (service != null && service.getServiceDeploymentType() == ServiceDeploymentType.other) {
+        String user = service.getStandardInfo().getUser();
+        String directory = service.getStandardInfo().getLogDirectory();
+        experimentsRegistryManager.initialize(user, directory);
+      }
+    } catch (Throwable t) {
+      logger.error(location, jobid, t);
+    }
+  }
+
+  /**
+   * The update method is called for each Orchestrator publication. This is an opportunity to have
+   * local mods plug-in for processing that may be desirable relative to each Job, Reservation, and
+   * Service within the published map.
+   */
+
+  public void update(IDuccWorkMap dwm) {
+    String location = "update";
+    try {
+      experimentsRegistryManager.update(dwm);
+    } catch (Throwable t) {
+      logger.error(location, jobid, t);
+    }
+  }
+
+  /**
+   * The gethandlers method is called during boot of the web server. This is an opportunity to have
+   * local mods plug-in for processing that may be desirable relative to http/s requests.
+   */
+
+  public ArrayList<Handler> gethandlers(DuccWebServer duccWebServer) {
+    String location = "gethandlers";
+    ArrayList<Handler> handlersList = new ArrayList<Handler>();
+    try {
+      HandlerExperimentsServlets handlerExperimentsServlets = new HandlerExperimentsServlets(
+              duccWebServer);
+      handlersList.add(handlerExperimentsServlets);
+    } catch (Throwable t) {
+      logger.error(location, jobid, t);
+    }
+    return handlersList;
+  }
 }

@@ -19,20 +19,26 @@
 package org.apache.uima.ducc.ws.server;
 
 public class DuccLocalConstants {
-	
-	public static final String duccContext = "/ducc-servlet";
-	
-	public static final String duccContextExperimentCancelRequest = duccContext+"/experiment-cancel-request";
-	
-	public static final String duccContextExperiments = duccContext+"/experiments-data";
-	public static final String duccContextExperimentDetails = duccContext+"/experiment-details-data";
-	public static final String duccContextExperimentDetailsDirectory = duccContext+"/experiment-details-directory";
-	public static final String duccContextExperimentDetailsJobs = duccContext+"/experiment-details-jobs-data";
-	
-	public static final String duccContextJsonExperiments = duccContext+"/json-format-aaData-experiments";
-	public static final String duccContextJsonExperimentDetails = duccContext+"/json-format-aaData-experiment-details";
-	public static final String duccContextJsonExperimentDetailsJobs = duccContext+"/json-format-aaData-experiment-details-jobs";
-	
-	public static final int maximumRecordsExperiments = 4096;
-	public static final int defaultRecordsExperiments = 16;
+
+  public static final String duccContext = "/ducc-servlet";
+
+  public static final String duccContextExperimentCancelRequest = duccContext + "/experiment-cancel-request";
+
+  public static final String duccContextExperiments = duccContext + "/experiments-data";
+
+  public static final String duccContextExperimentDetails = duccContext + "/experiment-details-data";
+
+  public static final String duccContextExperimentDetailsDirectory = duccContext + "/experiment-details-directory";
+
+  public static final String duccContextExperimentDetailsJobs = duccContext + "/experiment-details-jobs-data";
+
+  public static final String duccContextJsonExperiments = duccContext + "/json-format-aaData-experiments";
+
+  public static final String duccContextJsonExperimentDetails = duccContext + "/json-format-aaData-experiment-details";
+
+  public static final String duccContextJsonExperimentDetailsJobs = duccContext + "/json-format-aaData-experiment-details-jobs";
+
+  public static final int maximumRecordsExperiments = 4096;
+
+  public static final int defaultRecordsExperiments = 16;
 }

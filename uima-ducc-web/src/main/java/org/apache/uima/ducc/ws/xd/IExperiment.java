@@ -21,18 +21,31 @@ package org.apache.uima.ducc.ws.xd;
 import java.util.ArrayList;
 
 public interface IExperiment extends Comparable<Object> {
-	public void setId(String value);
-	public String getId();
-	public String getUser();
-	public String getDirectory();
-	public ArrayList<Task> getTasks();
-	public ArrayList<String> getJobIds();
-	public String getStartDate();
-	public long getStartTime();
-	public boolean isActive();
-	public Jed.Status getStatus();
-	public void setFileDate(long value);
-	public long getFileDate();
-    public int getVersion();
-    public boolean isStale();
+  public void setId(String value);
+
+  public String getId();
+
+  public String getUser();
+
+  public String getDirectory();
+
+  public ArrayList<Task> getTasks();
+
+  public ArrayList<String> getJobIds();
+
+  public String getStartDate();
+
+  public long getStartTime();
+
+  public boolean isActive();
+
+  public Jed.Status getStatus();
+
+  public void setFileDate(long value);
+
+  public long getFileDate();
+
+  public int getVersion();
+
+  public boolean isStale();
 }

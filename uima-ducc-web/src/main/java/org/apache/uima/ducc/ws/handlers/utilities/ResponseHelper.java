@@ -23,50 +23,48 @@ import org.apache.uima.ducc.ws.log.WsLog;
 import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
 
 public class ResponseHelper {
-	
-  //NOTE - this variable used to hold the class name before WsLog was simplified
-	private static DuccLogger cName = DuccLogger.getLogger(ResponseHelper.class);
-	
-	public static String trStart(int counter) {
-		if((counter % 2) > 0) {
-			return "<tr class=\"ducc-row-odd\">";
-		}
-		else {
-			return "<tr class=\"ducc-row-even\">";
-		}
-	}
 
-	public static String trEnd(int counter) {
-		return "</tr>";
-	}
+  // NOTE - this variable used to hold the class name before WsLog was simplified
+  private static DuccLogger cName = DuccLogger.getLogger(ResponseHelper.class);
 
-	public static String getTimeStamp(DateStyle dateStyle, String date) {
-		String mName = "getTimeStamp";
-		StringBuffer sb = new StringBuffer();
-		if(date != null) {
-			sb.append(date);
-			if(date.trim().length() > 0) {
-				try {
-					switch(dateStyle) {
-					case Long:
-						break;
-					case Medium:
-						String day = sb.substring(sb.length()-4);
-						sb.delete(0, 5);
-						sb.delete(sb.lastIndexOf(":"), sb.length());
-						sb.append(day);
-						break;
-					case Short:
-						sb.delete(0, 5);
-						sb.delete(sb.lastIndexOf(":"), sb.length());
-						break;
-					}
-				}
-				catch(Exception e) {
-					WsLog.error(cName, mName, e);
-				}
-			}
-		}
-		return sb.toString();
-	}
+  public static String trStart(int counter) {
+    if ((counter % 2) > 0) {
+      return "<tr class=\"ducc-row-odd\">";
+    } else {
+      return "<tr class=\"ducc-row-even\">";
+    }
+  }
+
+  public static String trEnd(int counter) {
+    return "</tr>";
+  }
+
+  public static String getTimeStamp(DateStyle dateStyle, String date) {
+    String mName = "getTimeStamp";
+    StringBuffer sb = new StringBuffer();
+    if (date != null) {
+      sb.append(date);
+      if (date.trim().length() > 0) {
+        try {
+          switch (dateStyle) {
+            case Long:
+              break;
+            case Medium:
+              String day = sb.substring(sb.length() - 4);
+              sb.delete(0, 5);
+              sb.delete(sb.lastIndexOf(":"), sb.length());
+              sb.append(day);
+              break;
+            case Short:
+              sb.delete(0, 5);
+              sb.delete(sb.lastIndexOf(":"), sb.length());
+              break;
+          }
+        } catch (Exception e) {
+          WsLog.error(cName, mName, e);
+        }
+      }
+    }
+    return sb.toString();
+  }
 }

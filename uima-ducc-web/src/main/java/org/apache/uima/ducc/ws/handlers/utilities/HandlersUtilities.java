@@ -41,169 +41,162 @@ import org.apache.uima.ducc.ws.server.DuccLocalCookies;
 import org.apache.uima.ducc.ws.xd.IExperiment;
 
 public class HandlersUtilities {
-	
-	public static IDuccWorkJob getJob(DuccId duccId) {
-		IDuccWorkJob retVal = null;
-		DuccData duccData = DuccData.getInstance();
-		ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = duccData.getSortedJobs();
-		if(sortedJobs.size()> 0) {
-			Iterator<Entry<JobInfo, JobInfo>> iterator = sortedJobs.entrySet().iterator();
-			while(iterator.hasNext()) {
-				JobInfo jobInfo = iterator.next().getValue();
-				DuccWorkJob job = jobInfo.getJob();
-				DuccId jobid = job.getDuccId();
-				if(jobid.equals(duccId)) {
-					retVal = job;
-					break;
-				}
-			}
-		}
-		return retVal;
-	}
-	
-	public static ArrayList<String> getExperimentsUsers(HttpServletRequest request) {
-		String cookie = DuccCookies.getCookie(request,DuccLocalCookies.cookieExperimentsUsers);
-		return getUsers(cookie);
-	}
-	
-	public static int getExperimentsMax(HttpServletRequest request) {
-		int maxRecords = DuccLocalConstants.defaultRecordsExperiments;
-		try {
-			String cookie = DuccCookies.getCookie(request,DuccLocalCookies.cookieExperimentsMax);
-			int reqRecords = Integer.parseInt(cookie);
-			if(reqRecords <= DuccLocalConstants.maximumRecordsExperiments) {
-				if(reqRecords > 0) {
-					maxRecords = reqRecords;
-				}
-			}
-		}
-		catch(Exception e) {
-		}
-		return maxRecords;
-	}
-	
-	private static ArrayList<String> getUsers(String usersString) {
-		ArrayList<String> userRecords = new ArrayList<String>();
-		try {
-			String[] users = usersString.split("\\s+");
-			if(users != null) {
-				for(String user : users) {
-					user = user.trim();
-					if(user.length() > 0) {
-						if(!userRecords.contains(user)) {
-							userRecords.add(user);
-						}
-					}
-				}
-			}
-		}
-		catch(Exception e) {
-		}
-		return userRecords;
-	}
-	
-	public static final boolean isListable(HttpServletRequest request, ArrayList<String> users, int maxRecords, int counter, IExperiment handle) {
-		boolean list = false;
-		DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
-		if(!users.isEmpty()) {
-			String user = handle.getUser();
-			switch(filterUsersStyle) {
-			case IncludePlusActive:
-				if(handle.isActive()) {
-					list = true;
-				}
-				else if(users.contains(user)) {
-					if(maxRecords > 0) {
-						if (counter < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				break;
-			case ExcludePlusActive:
-				if(handle.isActive()) {
-					list = true;
-				}
-				else if(!users.contains(user)) {
-					if(maxRecords > 0) {
-						if (counter < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				break;
-			case Include:
-				if(users.contains(user)) {
-					if(maxRecords > 0) {
-						if (counter < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				break;
-			case Exclude:
-				if(!users.contains(user)) {
-					if(maxRecords > 0) {
-						if (counter < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				break;
-			}	
-		}
-		else {
-			if(handle.isActive()) {
-				list = true;
-			}
-			else if(maxRecords > 0) {
-				if (counter < maxRecords) {
-					list = true;
-				}
-			}
-		}
-		return list;
-	}
 
-	public static boolean isIgnorable(Throwable t) {
-		boolean retVal = false;
-		try {
-			String rcm = ExceptionUtils.getMessage(t).trim();
-			if(rcm.endsWith("java.io.IOException: Broken pipe")) {
-				retVal = true;
-			}
-		}
-		catch(Throwable throwable) {
-		}
-		return retVal;
-	}
-	
-	private static String inFormat = "yyyy.MM.dd-HH:mm:ss";
-	private static SimpleDateFormat inSdf = new SimpleDateFormat(inFormat);
+  public static IDuccWorkJob getJob(DuccId duccId) {
+    IDuccWorkJob retVal = null;
+    DuccData duccData = DuccData.getInstance();
+    ConcurrentSkipListMap<JobInfo, JobInfo> sortedJobs = duccData.getSortedJobs();
+    if (sortedJobs.size() > 0) {
+      Iterator<Entry<JobInfo, JobInfo>> iterator = sortedJobs.entrySet().iterator();
+      while (iterator.hasNext()) {
+        JobInfo jobInfo = iterator.next().getValue();
+        DuccWorkJob job = jobInfo.getJob();
+        DuccId jobid = job.getDuccId();
+        if (jobid.equals(duccId)) {
+          retVal = job;
+          break;
+        }
+      }
+    }
+    return retVal;
+  }
 
-	public static String reFormatDate(DateStyle dateStyle, String inDate) {
-		String outDate = inDate;
-		try { 
-			Date date = inSdf.parse(inDate);
-	        long millis = date.getTime();
-	        String unformattedDate = TimeStamp.simpleFormat(""+millis);
-	        outDate = ResponseHelper.getTimeStamp(dateStyle, unformattedDate);
-		}
-		catch(Exception e) {
-			
-		}
-		return outDate;
-	}
+  public static ArrayList<String> getExperimentsUsers(HttpServletRequest request) {
+    String cookie = DuccCookies.getCookie(request, DuccLocalCookies.cookieExperimentsUsers);
+    return getUsers(cookie);
+  }
 
-	public static long getMillis(String inDate) {
-		long millis = 0;
-		try {
-			Date date = inSdf.parse(inDate);
-	        millis = date.getTime();
-		}
-		catch(Exception e) {
-			
-		}
-		return millis;
-	}
+  public static int getExperimentsMax(HttpServletRequest request) {
+    int maxRecords = DuccLocalConstants.defaultRecordsExperiments;
+    try {
+      String cookie = DuccCookies.getCookie(request, DuccLocalCookies.cookieExperimentsMax);
+      int reqRecords = Integer.parseInt(cookie);
+      if (reqRecords <= DuccLocalConstants.maximumRecordsExperiments) {
+        if (reqRecords > 0) {
+          maxRecords = reqRecords;
+        }
+      }
+    } catch (Exception e) {
+    }
+    return maxRecords;
+  }
+
+  private static ArrayList<String> getUsers(String usersString) {
+    ArrayList<String> userRecords = new ArrayList<String>();
+    try {
+      String[] users = usersString.split("\\s+");
+      if (users != null) {
+        for (String user : users) {
+          user = user.trim();
+          if (user.length() > 0) {
+            if (!userRecords.contains(user)) {
+              userRecords.add(user);
+            }
+          }
+        }
+      }
+    } catch (Exception e) {
+    }
+    return userRecords;
+  }
+
+  public static final boolean isListable(HttpServletRequest request, ArrayList<String> users,
+          int maxRecords, int counter, IExperiment handle) {
+    boolean list = false;
+    DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
+    if (!users.isEmpty()) {
+      String user = handle.getUser();
+      switch (filterUsersStyle) {
+        case IncludePlusActive:
+          if (handle.isActive()) {
+            list = true;
+          } else if (users.contains(user)) {
+            if (maxRecords > 0) {
+              if (counter < maxRecords) {
+                list = true;
+              }
+            }
+          }
+          break;
+        case ExcludePlusActive:
+          if (handle.isActive()) {
+            list = true;
+          } else if (!users.contains(user)) {
+            if (maxRecords > 0) {
+              if (counter < maxRecords) {
+                list = true;
+              }
+            }
+          }
+          break;
+        case Include:
+          if (users.contains(user)) {
+            if (maxRecords > 0) {
+              if (counter < maxRecords) {
+                list = true;
+              }
+            }
+          }
+          break;
+        case Exclude:
+          if (!users.contains(user)) {
+            if (maxRecords > 0) {
+              if (counter < maxRecords) {
+                list = true;
+              }
+            }
+          }
+          break;
+      }
+    } else {
+      if (handle.isActive()) {
+        list = true;
+      } else if (maxRecords > 0) {
+        if (counter < maxRecords) {
+          list = true;
+        }
+      }
+    }
+    return list;
+  }
+
+  public static boolean isIgnorable(Throwable t) {
+    boolean retVal = false;
+    try {
+      String rcm = ExceptionUtils.getMessage(t).trim();
+      if (rcm.endsWith("java.io.IOException: Broken pipe")) {
+        retVal = true;
+      }
+    } catch (Throwable throwable) {
+    }
+    return retVal;
+  }
+
+  private static String inFormat = "yyyy.MM.dd-HH:mm:ss";
+
+  private static SimpleDateFormat inSdf = new SimpleDateFormat(inFormat);
+
+  public static String reFormatDate(DateStyle dateStyle, String inDate) {
+    String outDate = inDate;
+    try {
+      Date date = inSdf.parse(inDate);
+      long millis = date.getTime();
+      String unformattedDate = TimeStamp.simpleFormat("" + millis);
+      outDate = ResponseHelper.getTimeStamp(dateStyle, unformattedDate);
+    } catch (Exception e) {
+
+    }
+    return outDate;
+  }
+
+  public static long getMillis(String inDate) {
+    long millis = 0;
+    try {
+      Date date = inSdf.parse(inDate);
+      millis = date.getTime();
+    } catch (Exception e) {
+
+    }
+    return millis;
+  }
 }

@@ -21,5 +21,5 @@ package org.apache.uima.ducc.ws.xd;
 import java.util.ArrayList;
 
 public class TaskArray {
-	public ArrayList<Task> tasks = new ArrayList<Task>();
+  public ArrayList<Task> tasks = new ArrayList<Task>();
 }
