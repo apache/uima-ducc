@@ -303,7 +303,6 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 		ArrayList<String> users = HandlersUtilities.getExperimentsUsers(request);
 		
 		int counter = -1;
-		int nListed = 0;
 		
 		for(Entry<IExperiment, String> entry: map.entrySet()) {
 			
@@ -312,7 +311,6 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
 			if(HandlersUtilities.isListable(request, users, maxRecords, counter, experiment)) {
 				
-			  ++nListed;
 				int COLS = 7;
 				StringBuffer[] cbList = new StringBuffer[COLS];
 				for(int i=0; i < COLS; i++) {
@@ -402,7 +400,6 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 				sb.append(row);
 			}
 		}
-		WsLog.trace(cName, mName, "!! listing "+nListed+" of "+map.size()+" experiments");
 		
 		/////
 		
@@ -931,7 +928,6 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 		if(experiment != null) {
 			ArrayList<Task> tasks = experiment.getTasks();
 			if(tasks != null) {
-			  WsLog.trace(cName, mName, "!! "+id+": "+tasks.size()+" tasks");
 				int counter = -1;
 				StringBuffer[] cbList;
 				StringBuffer row;
@@ -994,7 +990,6 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 			sb.append("not found");
 			sb.append("</td>");
 			sb.append("</tr>");
-			WsLog.trace(cName, mName, "!! "+id+": not found");
 		}
 		
 		response.getWriter().println(sb);
@@ -1028,7 +1023,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 				sb.append("</b>");
 			}
 		}
-		WsLog.debug(cName, mName, "!! "+id+": -> "+experiment==null?"?":experiment.getDirectory());
+		
 		response.getWriter().println(sb);
 		
 		handled = true;
