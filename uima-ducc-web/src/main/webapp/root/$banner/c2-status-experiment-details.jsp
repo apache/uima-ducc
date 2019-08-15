@@ -16,12 +16,18 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<!--
-Insert Experiments button -- could be made optional
-Imported by $banner/c0-menu.jsp
--->
-<HTML>
-<BODY>
-<li><a href="experiments.html">Experiments</a></li>
-</BODY>
-</HTML>
+<div>
+<b><big><span class="idtitle" id="identity"></span></big></b>
+<form name="form_selectors" style="margin-bottom:0;">
+<table>
+<tr>
+<td valign="top" align="right" title="The time of last Orchestrator publication">Updated:&nbsp
+<td valign="top"><span class="timestamptitle" id="timestamp_area"></span>
+</tr>
+<tr>
+<td valign="top" align="right" title="The percentage of shares inuse">Utilization:&nbsp
+<td valign="top"><span class="utilizationtitle" id="utilization_area">?</span>
+</tr>
+</table>
+</form>
+</div> 

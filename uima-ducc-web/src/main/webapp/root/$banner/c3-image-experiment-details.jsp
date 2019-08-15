@@ -16,12 +16,8 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<!--
-Insert Experiments button -- could be made optional
-Imported by $banner/c0-menu.jsp
--->
-<HTML>
-<BODY>
-<li><a href="experiments.html">Experiments</a></li>
-</BODY>
-</HTML>
+<div>
+<b><big><span class="subtitle">Experiment Details</span></big></b>
+<br>
+<img src="opensources/images/120px-Brno-Stary_Liskovec_vlajka.svg.png" height="64" style="border:3px solid #ffff7a" alt="logo">
+</div> 

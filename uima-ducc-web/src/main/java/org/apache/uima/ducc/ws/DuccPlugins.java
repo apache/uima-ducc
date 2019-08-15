@@ -26,7 +26,10 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
+import org.apache.uima.ducc.ws.handlers.experiments.HandlerExperimentsServlets;
 import org.apache.uima.ducc.ws.server.DuccWebServer;
+import org.apache.uima.ducc.ws.xd.ExperimentsRegistryManager;
 import org.eclipse.jetty.server.Handler;
 
 public class DuccPlugins {
@@ -40,6 +43,8 @@ public class DuccPlugins {
 		return instance;
 	}
 	
+	private static ExperimentsRegistryManager experimentsRegistryManager = ExperimentsRegistryManager.getInstance();
+
 	/**
 	 * The restore methods are called during boot of the web server.
 	 * This is an opportunity to have local mods plug-in for
@@ -50,7 +55,12 @@ public class DuccPlugins {
 	public void restore(IDuccWorkJob job) {
 		String location = "restore";
 		try {
-			//loc mods here
+			if(job != null) {
+				String user = job.getStandardInfo().getUser();
+				String directory = job.getStandardInfo().getLogDirectory();
+				logger.info(location, jobid, "user", user, "directory", directory);
+				experimentsRegistryManager.initialize(user, directory);
+			}
 		}
 		catch(Throwable t) {
 			logger.error(location, jobid, t);
@@ -70,7 +80,12 @@ public class DuccPlugins {
 	public void restore(IDuccWorkService service) {
 		String location = "restore";
 		try {
-			//loc mods here
+			// Also process managed reservations in case the experiment has only these.
+		    if(service != null && service.getServiceDeploymentType() == ServiceDeploymentType.other) {
+		        String user = service.getStandardInfo().getUser();
+		        String directory = service.getStandardInfo().getLogDirectory();
+		        experimentsRegistryManager.initialize(user, directory);
+		    }
 		}
 		catch(Throwable t) {
 			logger.error(location, jobid, t);
@@ -87,7 +102,7 @@ public class DuccPlugins {
 	public void update(IDuccWorkMap dwm) {
 		String location = "update";
 		try {
-			//loc mods here
+			experimentsRegistryManager.update(dwm);
 		}
 		catch(Throwable t) {
 			logger.error(location, jobid, t);
@@ -104,7 +119,8 @@ public class DuccPlugins {
 		String location = "gethandlers";
 		ArrayList<Handler> handlersList = new ArrayList<Handler> ();
 		try {
-			//loc mods here
+			HandlerExperimentsServlets handlerExperimentsServlets = new HandlerExperimentsServlets(duccWebServer);
+			handlersList.add(handlerExperimentsServlets);
 		}
 		catch(Throwable t) {
 			logger.error(location, jobid, t);
