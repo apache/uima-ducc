@@ -81,6 +81,10 @@ if (table_style.equals("scroll")) {
 </td>
 </table>
 <!-- *********************** /table ************************ -->
+<!-- *********************** table ************************* -->
+<%@ include file="$banner/t2-alerts.jsp" %>
+<%@ include file="$banner/t2-messages.jsp" %>
+<!-- *********************** /table ************************ -->
 <!-- ####################### /common ####################### -->
 <div id=identify_experiment_details_area>
 </div>

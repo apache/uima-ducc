@@ -169,50 +169,52 @@ function ducc_experiments_users()
         }       
 }
 
+// Declare the global variables holding the last-use time
 var ms_load_experiment_details_data = +new Date() - ms_reload_min;
-var wip_experiment_details_data = false;
 
-function ducc_load_experiment_details_data()
-{
-    var fname = "ducc_load_experiment_details_data"
+// Construct 3 variables from the type arg:
+// - the name of the last-use variable - e.g. ms_load_experiment_details_data
+// - the servlet - e.g. /ducc-servlet/experiment-details-data
+// - the result areas - e.g. : #loading_experiment_details_area #experiment_details_area"
+//
+// Drop thw work-in-progress check as the ms_reload_min check should block any simultaneous requests ... how do they occur?
+// TODO - standardize the names of the result areas & servlets so this can be shared by other pages
+
+function ducc_load_data(type) {
+    var fname = 'ducc_load_data/' + type;
     var data = null;
+
+    // Check if too soon after the last use
     var ms_now = +new Date();
-    if (ms_now < ms_load_experiment_details_data + ms_reload_min) {
+    ms_load = eval('ms_load_' + type + '_data');
+    if (ms_now < ms_load + ms_reload_min) {
         return;
     }
-    ms_load_experiment_details_data = ms_now;
-    if(wip_experiment_details_data) {
-        ducc_console_warn(fname+" already in progress...")
-        return;
-    }
-    wip_experiment_details_data = true;
+    eval('ms_load_' + type + '_data = ms_now');
+
     try {
         data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
-        $("#loading_experiment_details_area").html(data);
-        var servlet = "/ducc-servlet/experiment-details-data"+location.search;
+	load_area = "#loading_" + type + "_area";
+        $(load_area).html(data);
+	type2 = type.replace(/_/g, '-');
+        var servlet = "/ducc-servlet/" + type2 + "-data" + location.search;
         var tomsecs = ms_timeout;
         $.ajax({
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
-            wip_experiment_details_data = false;
-            $("#experiment_details_area").html(data);
-            data = "";
-            $("#loading_experiment_details_area").html(data);
+	    data_area = "#" + type + "_area";
+            $(data_area).html(data);
             ducc_load_common();
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
-            wip_experiment_details_data = false;
-            data = "";
-            $("#loading_experiment_details_area").html(data);
             ducc_console_fail(fname, textStatus);
         });
     } catch(err) {
-        wip_experiment_details_data = false;
-        data = "";
-        $("#loading_experiment_details_area").html(data);
         ducc_error(fname,err);
     }
+    $(load_area).html("");
+
 }
 
 function ducc_init_experiment_details_data()
@@ -279,7 +281,8 @@ function ducc_init_local(type)
                         ducc_init_identify_experiment_details();
                         ducc_init_experiment_details_data();
                         ducc_load_identify_experiment_details();
-                        ducc_load_experiment_details_data();
+                        //ducc_load_experiment_details_data();
+		        ducc_load_data("experiment_details");
                 }
         }
         catch(err) {
@@ -296,7 +299,8 @@ function ducc_update_page_local(type)
                 }
                 if(type == "experiment-details") {
                         ducc_load_identify_experiment_details();
-                        ducc_load_experiment_details_data();
+                        //ducc_load_experiment_details_data();
+                        ducc_load_data("experiment_details");
                 }
         }
         catch(err) {
