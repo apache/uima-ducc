@@ -960,9 +960,10 @@ implements Orchestrator {
 						dbDuccWorks.upsertSpecification(specificationType, id, tp);
 					}
 					catch(ResourceUnavailableForJobDriverException e) {
-						String error_message = messages.fetch(" type=system error, text=job driver node unavailable.");
+						String error_message = messages.fetch(" type=system error, text=all job driver allocations in-use or node unavailable.");
 						logger.error(methodName, null, error_message);
 						submitError(properties, error_message);
+						logger.error(methodName, null, e, e.toString());
 					}
 				}
 				else {
