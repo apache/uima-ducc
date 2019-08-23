@@ -268,7 +268,17 @@ class DuccUtil(DuccBase):
         self.db_password_guest = dbprops.get('db_password_guest')
         if ( self.db_password_guest == None ):
             self.db_password_guest = 'guest'
-                
+    
+    def db_password(self):
+        if(self.db_password == None):
+            self.db_configure()
+        return self.db_password
+    
+    def db_password_guest(self):
+        if(self.db_password == None):
+            self.db_configure()
+        return self.db_password_guest
+    
     # does the database process exist?  
     def db_process_alive(self):
         if ( not os.path.exists(self.db_pidfile) ):
@@ -556,15 +566,15 @@ class DuccUtil(DuccBase):
         cmd = '/bin/hostname'
         if(node == 'localhost'):
             req = self.get_hostname()
-        ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=10'+' '+node+" "+cmd
+        ssh_cmd = 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=10'+' '+node+" "+cmd
         resp = self.popen(ssh_cmd)
         lines = resp.readlines()
-        if(len(lines)== 1):
-            line = lines[0]
-            line = line.strip();
-            rsp = line.split('.')[0]
-            if(req == rsp):
-                return True;
+        for line in lines:
+            if(node in line):
+                return True
+        print 'not found: ', node
+        for line in lines:
+            print line
         if(verbosity):
             print 'ssh not operational - unexpected results from:', ssh_cmd
             for line in lines:
@@ -582,11 +592,11 @@ class DuccUtil(DuccBase):
         if ( do_wait ):
             if 'false' == self.ssh_enabled:
                 return self.popen(cmd)
-            return self.popen('ssh -q -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
+            return self.popen('ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
         else:
             if 'false' == self.ssh_enabled:
                 return self.spawn(cmd)
-            return self.spawn('ssh -q -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
+            return self.spawn('ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=10', host, cmd)
 
 
     def set_classpath(self):
@@ -1533,6 +1543,7 @@ class DuccUtil(DuccBase):
         DuccBase.__init__(self, merge)
 
         self.db_disabled = '--disabled--'
+        self.db_password = None
         self.duccling = None
         self.broker_url = 'tcp://localhost:61616'
         self.broker_protocol = 'tcp'
@@ -1572,8 +1583,6 @@ class DuccUtil(DuccBase):
         self.set_classpath()
         self.os_pagesize = self.get_os_pagesize()
         self.update_properties()
-
-        self.db_configure()
         
         manage_broker = self.ducc_properties.get('ducc.broker.automanage')
         self.automanage_broker = False

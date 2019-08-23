@@ -392,6 +392,7 @@ public class DuccWebServer {
         DuccHandlerProxy duccHandlerProxy = new DuccHandlerProxy();
         DuccHandlerViz duccHandlerViz = new DuccHandlerViz();
         DuccHandlerUserAuthentication duccHandlerUserAuthentication = new DuccHandlerUserAuthentication();
+        DuccHandlerRsync duccHandlerRsync = new DuccHandlerRsync();
         SessionHandler sessionHandler = new SessionHandler();
         handlers.addHandler(sessionHandler);
         handlers.addHandler(duccHandlerUserAuthentication);
@@ -406,6 +407,7 @@ public class DuccWebServer {
         for(Handler handler: localHandlers) {
         	handlers.addHandler(handler);
         }
+        handlers.addHandler(duccHandlerRsync);
         handlers.addHandler(duccHandlerJson);
         handlers.addHandler(duccHandlerProxy);
         handlers.addHandler(duccHandlerClassic);

@@ -47,7 +47,16 @@ class DuccRsync(DuccUtil):
     key_ducc_head_reliable_list = 'ducc.head.reliable.list'
     
     rsync_cmd = 'rsync'
-    rsync_flags = '-avz --delete --ignore-errors'
+    rsync_flags = '-e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" -avz --links --delete --ignore-errors --timeout 20'
+    
+    symlink_cmd = 'rsync'
+    symlink_flags = '-e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" -vz --links --delete --ignore-errors --timeout 20'
+
+    ssh_cmd = 'ssh'
+    ssh_flags = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+     
+    mkdir_cmd = 'mkdir'
+    mkdir_flags = '-p'
     
     head_dirs_list = [
         'admin', 
@@ -93,17 +102,23 @@ class DuccRsync(DuccUtil):
         'README',
         'RELEASE_NOTES.html',
         'resources', 
-        'resources.private/ducc-broker-credentials.properties',   
+        #'resources.private',   
         #'state',
-        'state/duccling.version',
         #'webserver', 
         ]   
+    
+    agent_files_list = [
+        'resources.private/ducc-broker-credentials.properties',  
+        'state/duccling.version', 
+        ]
     
     dual_dirs_list = head_dirs_list 
     
     head_dirs  = ' '.join(head_dirs_list)
     agent_dirs = ' '.join(agent_dirs_list)
     dual_dirs  = ' '.join(dual_dirs_list)
+    
+    agent_files = ' '.join(agent_files_list)
     
     def __init__(self):
         DuccUtil.__init__(self, self.merge)
@@ -200,16 +215,20 @@ class DuccRsync(DuccUtil):
 
     # update nodes that are head+agent
     def update_dual(self,user):
+        rc = 0
         if(self.head_nodes != None):
             if(self.agent_nodes != None):
                 for node in self.head_nodes:
                     if(node in self.agent_nodes):
                         if(self.args.debug):
                             print 'update head+agent: '+node
-                        self.rsync(node,user,self.dual_dirs)
+                        self.mkdir(node,user)
+                        rc = self.rsync_dirs(node,user,self.dual_dirs)
+        return rc
                                 
     # update nodes that are head only
     def update_heads(self,user):
+        rc = 0
         update = True
         if(self.head_nodes != None):
             for node in self.head_nodes:
@@ -220,10 +239,13 @@ class DuccRsync(DuccUtil):
                 if(update):
                     if(self.args.debug):
                         print 'update head: '+node
-                    self.rsync(node,user,self.head_dirs)
+                    self.mkdir(node,user)
+                    rc = self.rsync_dirs(node,user,self.head_dirs)
+        return rc
     
     # update nodes that are agent only
     def update_agents(self,user):
+        rc = 0
         update = True
         if(self.agent_nodes != None):
             for node in self.agent_nodes:
@@ -234,10 +256,32 @@ class DuccRsync(DuccUtil):
                 if(update):
                     if(self.args.debug):
                         print 'update agent: '+node
-                    self.rsync(node,user,self.agent_dirs)
-                    
-    # update the specified node, subdirs
-    def rsync(self,node,user,subdirs):
+                    self.mkdir(node,user)
+                    rc = self.rsync_dirs(node,user,self.agent_dirs)
+                    if(rc == 0):
+                        rc = self.rsync_files(node,user,self.agent_files)
+        return rc
+    
+    # update the specified node dirs
+    def mkdir(self,node,user):
+        rc = 0
+        rmt = self.mkdir_cmd+' '+self.mkdir_flags+' '+DUCC_HOME
+        cmd = self.ssh_cmd+' '+self.ssh_flags+' '+user+'@'+node+' '+rmt
+        proc = subprocess.Popen(cmd, shell=True, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        lines = []
+        for line in proc.stdout:
+            lines.append(line.strip())
+        proc.wait()
+        rc = proc.returncode
+        if(rc != 0):
+            self.rsync_display(rc, cmd, lines)
+        elif(self.args.debug):
+            self.rsync_display(rc, cmd, lines)
+        return rc
+    
+    # update the specified node dirs
+    def rsync_dirs(self,node,user,subdirs):
+        rc = 0
         for subdir in subdirs.split():
             if(not self.args.quiet):
                 print 'rsync '+user+' '+node+' '+subdir
@@ -250,15 +294,75 @@ class DuccRsync(DuccUtil):
             proc.wait()
             rc = proc.returncode
             if(rc != 0):
-                self.rsync_display(cmd, lines)
+                self.rsync_display(rc, cmd, lines)
+                break
             elif(self.args.debug):
-                self.rsync_display(cmd, lines)
+                self.rsync_display(rc, cmd, lines)
+        self.symlink(user,node)
+        return rc
     
-    def rsync_display(self, cmd, lines):
-        print cmd
+    # update the specified node files
+    def rsync_files(self,node,user,subfiles):
+        rc = 0
+        for subfile in subfiles.split():
+            if(not self.args.quiet):
+                print 'rsync '+user+' '+node+' '+subfile
+            file = os.path.join(DUCC_HOME,subfile)
+            # head = abs path of this script (.../admin)
+            head, tail = os.path.split(file)
+            rmt = self.mkdir_cmd+' '+self.mkdir_flags+' '+head
+            cmd = self.ssh_cmd+' '+self.ssh_flags+' '+user+'@'+node+' '+rmt
+            proc = subprocess.Popen(cmd, shell=True, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            lines = []
+            for line in proc.stdout:
+                lines.append(line.strip())
+            proc.wait()
+            rc = proc.returncode
+            if(rc != 0):
+                self.rsync_display(rc, cmd, lines)
+                break
+            elif(self.args.debug):
+                self.rsync_display(rc, cmd, lines)
+            # rsync file
+            cmd = self.rsync_cmd+' '+self.rsync_flags+' '+file+' '+user+'@'+node+':'+head
+            proc = subprocess.Popen(cmd, shell=True, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            lines = []
+            for line in proc.stdout:
+                lines.append(line.strip())
+            proc.wait()
+            rc = proc.returncode
+            if(rc != 0):
+                self.rsync_display(rc, cmd, lines)
+                break
+            elif(self.args.debug):
+                self.rsync_display(rc, cmd, lines)
+        self.symlink(user,node)
+        return rc
+    
+    def rsync_display(self, rc, cmd, lines):
+        print rc, cmd
         for line in lines:
             print line
-        
+    
+    def symlink(self,user,node):
+        # head = abs path of this script (.../admin)
+        head, tail = os.path.split(sys.argv[0])
+        # ducc_home = abs path of DUCC_HOME
+        ducc_home, tail = os.path.split(head)
+        if(len(ducc_home) > 0):
+            user_home = os.path.expanduser('~')
+            ducc_runtime = os.path.join(user_home,'ducc_runtime')
+            rmt = 'ln -s '+ducc_home+' '+ducc_runtime
+            cmd = self.ssh_cmd+' '+self.ssh_flags+' '+user+'@'+node+' '+rmt
+            proc = subprocess.Popen(cmd, shell=True, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            lines = []
+            for line in proc.stdout:
+                lines.append(line.strip())
+            proc.wait()
+            rc = proc.returncode
+            #if(rc != 0):
+                #self.rsync_display(rc, cmd, lines)
+    
     # do rsync of dir(s) from present node to peer(s)
     def main(self, argv):    
         try:
@@ -268,9 +372,13 @@ class DuccRsync(DuccUtil):
             self.resolve_head_nodes()
             self.resolve_agent_nodes()
             user = find_ducc_uid()
-            self.update_dual(user)
-            self.update_heads(user)
-            self.update_agents(user)
+            rc = 0
+            if(rc == 0):
+                rc = self.update_dual(user)
+            if(rc == 0):
+                rc = self.update_heads(user)
+            if(rc == 0):
+                rc = self.update_agents(user)
         except Exception,e:
             print e
         
