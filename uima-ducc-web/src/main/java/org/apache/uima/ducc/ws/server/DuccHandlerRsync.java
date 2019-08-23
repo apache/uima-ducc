@@ -171,14 +171,12 @@ public class DuccHandlerRsync extends DuccAbstractHandler {
 		duccLogger.debug(methodName, null,request.toString());
 		duccLogger.debug(methodName, null,"getRequestURI():"+request.getRequestURI());
 		String reqURI = request.getRequestURI()+"";
-		if(reqURI.startsWith(duccContext)) {
+    if(reqURI.startsWith(duccinator_update)) {
 			response.setContentType("text/html;charset=utf-8");
 			response.setStatus(HttpServletResponse.SC_OK);
 			baseRequest.setHandled(true);
-			if(reqURI.startsWith(duccinator_update)) {
-				handleDuccServletDuccinatorUpdate(target, baseRequest, request, response);
-				//DuccWebUtil.noCache(response);
-			}
+			handleDuccServletDuccinatorUpdate(target, baseRequest, request, response);
+			//DuccWebUtil.noCache(response);
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
