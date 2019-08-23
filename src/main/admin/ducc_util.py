@@ -1583,6 +1583,8 @@ class DuccUtil(DuccBase):
         self.set_classpath()
         self.os_pagesize = self.get_os_pagesize()
         self.update_properties()
+
+        self.db_configure()
         
         manage_broker = self.ducc_properties.get('ducc.broker.automanage')
         self.automanage_broker = False
