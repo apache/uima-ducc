@@ -313,7 +313,7 @@ check_ducc(runtime)
 # Probably OK if from admin, but to be safe ...
 #-----------------------------------------------------------------------------------------
 
-curdir = os.path.realpath(os.environ['PWD'])
+curdir = os.getcwd()
 if curdir.startswith(runtime) and curdir != runtime:
     print "ERROR - Cannot run from inside the runtime"
     exit(1)
