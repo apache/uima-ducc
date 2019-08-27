@@ -24,9 +24,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.ws.DuccHead;
 import org.apache.uima.ducc.ws.server.nodeviz.NodeViz;
 import org.eclipse.jetty.server.Request;
 
@@ -35,6 +37,8 @@ public class DuccHandlerViz extends DuccAbstractHandler {
 	private static DuccLogger duccLogger = DuccLogger.getLogger(DuccHandlerClassic.class);
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
+	
+	private static IDuccHead dh = DuccHead.getInstance();
 	
 	public final String vizNodes 				= duccContextViz+"-nodes";
 	
@@ -51,10 +55,21 @@ public class DuccHandlerViz extends DuccAbstractHandler {
 		String methodName = "handleServletVizNodes";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		
+		String data = null;
 		
-		//String data = "<html><p>"+methodName+" not yet implemented</p></html>";
-		String data = viz.getVisualization();
-		
+		if(dh.is_ducc_head_backup()) {
+			StringBuffer sb = new StringBuffer();
+			sb.append("<tr>");
+			sb.append("<td>");
+			sb.append(messages.fetch("no data - not master"));
+			sb.append("</td>");
+			sb.append("</tr>");
+			data = sb.toString();
+		}
+		else {
+			data = viz.getVisualization();
+		}
+				
 		duccLogger.debug(methodName, jobid, data);
 		response.getWriter().println(data);
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
