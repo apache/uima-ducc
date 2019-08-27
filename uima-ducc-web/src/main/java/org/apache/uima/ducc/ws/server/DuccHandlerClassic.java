@@ -1713,12 +1713,12 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					// Boot Time
 					String bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
 					sb.append("<td>");
-					sb.append(bootTime);
+					sb.append(toDash(bootTime));
 					sb.append("</td>");
 					// Host IP
 					String hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
 					sb.append("<td>");
-					sb.append(hostIP);
+					sb.append(toDash(hostIP));
 					sb.append("</td>");	
 					// Host Name
 					String hostName = machineInfo.getName();
@@ -1728,7 +1728,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					// PID
 					String pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
 					sb.append("<td>");
-					sb.append(pid);
+					sb.append(toDash(pid));
 					sb.append("</td>");
 					// Publication Size (last)
 					String publicationSizeLast = machineInfo.getPublicationSizeLast();

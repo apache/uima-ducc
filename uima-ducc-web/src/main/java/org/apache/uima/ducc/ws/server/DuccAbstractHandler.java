@@ -188,7 +188,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public String toDash(String value) {
 		String retVal = "-";
 		if(value != null) {
-			if(value.length() > 0) {
+			if(value.trim().length() > 0) {
 				retVal = value;
 			}
 		}
