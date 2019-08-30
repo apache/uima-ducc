@@ -36,7 +36,7 @@ public class DuccWebServerHelper {
 	private static DuccId jobid = null;
 	
 	public static String getDuccWebLogsDir() {
-		String retVal = IDuccEnv.DUCC_LOGS_DIR + "webserver " + File.separator;
+		String retVal = IDuccEnv.DUCC_LOGS_DIR + "webserver" + File.separator;
 		return retVal;
 	}
 	
