@@ -258,17 +258,26 @@ class DuccUtil(DuccBase):
         else:
             self.db_bypass = False
 
-        dbprops = Properties()
-        dbprops.load(self.DUCC_HOME + '/resources.private/ducc.private.properties')
-        self.db_password = dbprops.get('db_password')
-        if ( self.db_password == None ):
-            print "bypassing database because no password is set."
-            self.db_bypass = True
-
-        self.db_password_guest = dbprops.get('db_password_guest')
-        if ( self.db_password_guest == None ):
-            self.db_password_guest = 'guest'
+        fdir = 'resources.private'
+        fname = 'ducc.private.properties'
+        fpath = os.path.join(self.DUCC_HOME,fdir,fname)
+        if(os.path.isfile(fpath)):
+            dbprops = Properties()
+            dbprops.load(fpath)
+            self.db_password = dbprops.get('db_password')
+            if ( self.db_password == None ):
+                print 'bypassing database because no password is set.'
+                self.db_bypass = True
     
+            self.db_password_guest = dbprops.get('db_password_guest')
+            if ( self.db_password_guest == None ):
+                self.db_password_guest = 'guest'
+        else:
+            self.db_password == None
+            self.db_password_guest == None
+            print 'bypassing database because '+fname+' not found.'
+            self.db_bypass = True
+            
     def db_password(self):
         if(self.db_password == None):
             self.db_configure()
