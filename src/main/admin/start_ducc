@@ -127,7 +127,10 @@ class StartDucc(DuccUtil):
             if ( line.startswith('WARN') ):
                 msgs.append(('    ', line))
                 pid = '?'
-
+            if ( line.startswith('NOTOK') ):
+                msgs.append(('    ', line))
+                pid = '?'
+                
             sshmsgs = self.ssh_ok(node, line )
             if ( sshmsgs != None ):
                 for m in sshmsgs:
