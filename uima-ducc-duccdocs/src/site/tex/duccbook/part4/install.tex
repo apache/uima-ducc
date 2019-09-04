@@ -93,10 +93,10 @@ Single system installation:
   
 Additional requirements for multiple system installation:
 
-\begin{itemize}
-  \item All systems must have a shared filesystem (such as NFS or GPFS) and common user credentials.
-        The \$DUCC\_HOME directory must be located on a shared filesystem.
-\end{itemize}
+There are two separate modes of operation: using a shared filesystem or not.
+In both cases all host systems must have common user credentials (e.g. userids, groupids).
+If using a shared filesystem then it too must have common user credentials and the
+the \$DUCC\_HOME directory must be located there.
   
 Additional requirements for running multiple user processes with their own credentials.
 
@@ -207,12 +207,13 @@ If building from source, Maven places the documentation in
 Any user ID can be used to run a single-system DUCC, but ``ducc'' userid is recommended.
 This user will employ cgroups as well as launching and running processes with the credentials of the submitting user.
 
-If multiple nodes are going to be added later, the ducc runtime tree should be installed
+If multiple nodes are going to be added later, the ducc runtime tree can be installed
 on a shared filesystem so that it can be mounted on the additional nodes.
+If not using a shared filesystem, ducc\_rsync on the ducc head node can be used
+to propagate the ducc runtime tree to the additional nodes.
 
 Verification submits a very simple UIMA pipeline for execution under DUCC.  Once this is shown to be
 working, one may proceed installing additional features.
-
 
 \section{Minimal Hardware Requirements for Single System Installation}
 \begin{itemize}
@@ -241,8 +242,8 @@ workloads.
         This creates a directory with a name of the form ``apache-uima-ducc-[version]''.
   
         This directory contains the full DUCC runtime which
-        you may use ``in place'' but it is highly recommended that you move it
-        into a standard location on a shared filesystem; for example, under ducc's HOME directory:
+        you may use ``in place'', or move to a standard location on a shared filesystem; 
+        for example, under ducc's HOME directory:
 \begin{verbatim}
 mv apache-uima-ducc-[version] /home/ducc/ducc_runtime
 \end{verbatim}
@@ -400,9 +401,38 @@ $HOME/ducc/logs/job-id
    \hyperref[sec:install.prerequisites]{\em prerequisites}.
    \fi
 
-   \$DUCC\_HOME must be on a shared filesystem and mounted at the same location
-   on all DUCC nodes.
+   \$DUCC\_HOME must be at the same location on all DUCC nodes, and can be on a shared filesystem.
 
+   On the additional nodes, setup user ducc .ssh/authorized\_keys to allow passwordless ssh from the
+   DUCC head node.
+   
+   If not using a shared filesystem for \$DUCC\_HOME then use admin/ducc\_rsync to populate the additional node(s).
+   Once populated, use admin/start\_ducc to start the agent(s) on the additional node(s).
+   
+   Example:
+   
+   \begin{verbatim}
+    [ducc@ducc-master-3 admin]$ ./ducc_rsync --agent-nodes ducc-worker-901
+	Merging /opt/ducc/install/ducc/apache-uima-ducc-3.0.0/resources/default.ducc.properties with /opt/ducc/install/ducc/apache-uima-ducc-3.0.0/resources/site.ducc.properties into /opt/ducc/install/ducc/apache-uima-ducc-3.0.0/resources/ducc.properties
+	rsync ducc ducc-worker-901 admin
+	rsync ducc ducc-worker-901 apache-uima
+	rsync ducc ducc-worker-901 bin
+	rsync ducc ducc-worker-901 cron
+	rsync ducc ducc-worker-901 docs
+	rsync ducc ducc-worker-901 duccling
+	rsync ducc ducc-worker-901 examples
+	rsync ducc ducc-worker-901 INSTALL
+	rsync ducc ducc-worker-901 issuesFixed
+	rsync ducc ducc-worker-901 lib
+	rsync ducc ducc-worker-901 LICENSE
+	rsync ducc ducc-worker-901 NOTICE
+	rsync ducc ducc-worker-901 README
+	rsync ducc ducc-worker-901 RELEASE_NOTES.html
+	rsync ducc ducc-worker-901 resources
+	rsync ducc ducc-worker-901 resources.private/ducc-broker-credentials.properties
+	rsync ducc ducc-worker-901 state/duccling.version
+   \end{verbatim}
+   
    If user's home directories are on local filesystems the location for user logfiles
    should be specified to be on a shared filesystem. 
 
@@ -449,7 +479,7 @@ $DUCC_HOME/resources/ducc.nodes.
     their submitters, and in the worse case, can introduce security problems into the system.
 
     ducc\_ling can either be installed on a local disk on every system in the DUCC cluster, 
-    or on a shared-filesystem that does not suppress setuid-root permissions on client nodes.
+    or on a shared filesystem that does not suppress setuid-root permissions on client nodes.
     The path to ducc\_ling must be the same on each DUCC node. 
     The default path configuration is
     \${DUCC\_HOME}/admin/\$\{os.arch\}/ in order to handle clusters with mixed OS platforms.
@@ -470,7 +500,7 @@ $DUCC_HOME/resources/ducc.nodes.
         \item ./build\_duccling
      \end{enumerate}
 
-     Then, as user {\em root} on the shared filesystem, {\em cd \$DUCC\_HOME/admin}, and for each unique OS architecture:
+     Then, as user {\em root}, {\em cd \$DUCC\_HOME/admin}, and for each unique OS architecture:
      \begin{enumerate}
         \item chown ducc.ducc \$\{os.arch\}
         \\ (set directory ownership to be user ducc, group ducc)
