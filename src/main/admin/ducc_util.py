@@ -30,6 +30,7 @@ import resource
 import time
 import platform
 import httplib
+import socket
 
 from threading import *
 import traceback
@@ -196,7 +197,8 @@ class DuccUtil(DuccBase):
         merger = DUCC_HOME + '/admin/ducc_props_manager'
         CMD = [merger, '--merge', base_props, '--with', site_props, '--to', run_props]
         CMD = ' '.join(CMD)
-        print 'Merging', base_props, 'with', site_props, 'into', run_props
+        #print 'Merging', base_props, 'with', site_props, 'into', run_props
+        print 'Merging site properties into ducc.properties'
         os.system(CMD)
 
     def check_properties(self):
@@ -506,6 +508,7 @@ class DuccUtil(DuccBase):
                     return True
         return False        
 
+    # Set ACTIVEMQ_DATA_DIR the same as in start_broker to put the logs & pid with the daemon logs
     def stop_broker(self):
 
         broker_host = self.localhost
@@ -518,7 +521,8 @@ class DuccUtil(DuccBase):
         CMD = CMD + ' --jmxurl service:jmx:rmi:///jndi/rmi://' + broker_host + ':' + broker_jmx + '/jmxrmi' 
         CMD = CMD + ' ' + broker_name
         CMD = 'JAVA_HOME=' + self.java_home() + ' ' + CMD
-        print '--------------------', CMD
+        CMD = 'ACTIVEMQ_DATA_DIR=' + self.DUCC_HOME + '/logs/' + self.localhost + ' ' + CMD
+        print 'CMD:', CMD
         lines = self.ssh(broker_host, True, CMD)
         for l in lines:
             pass       # throw away junk from ssh
@@ -581,9 +585,6 @@ class DuccUtil(DuccBase):
         for line in lines:
             if(node in line):
                 return True
-        print 'not found: ', node
-        for line in lines:
-            print line
         if(verbosity):
             print 'ssh not operational - unexpected results from:', ssh_cmd
             for line in lines:
@@ -715,138 +716,26 @@ class DuccUtil(DuccBase):
             return False
         return True
     
-    # determine if string represent an integer
-    def is_int(self,string):
-        result = True
-        try:
-            number = int(string)
-        except:
-            result = False
-        return result
-    
-    # transform hostname into ip address
-    def get_ip_address(self,hostname):
-        label = 'get_ip_address'
-        result = None
-        try:
-            # get virtual ip address from keepalived.conf
-            result = self.get_virtual_ipaddress()
-            if(result == None):
-                # get virtual ip address from nameserver
-                p = subprocess.Popen(['/usr/bin/nslookup', hostname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                output, err = p.communicate()
-                #print hostname, output, err
-                name = None
-                for line in output.splitlines():
-                    tokens = line.split()
-                    if(len(tokens) == 2):
-                        t0 = tokens[0]
-                        t1 = tokens[1]
-                        if(t0 == 'Address:'):
-                            if(name != None):
-                                result = t1
-                                break
-                        elif(t0 == 'Name:'):
-                            name = t1
-        except Exception as e:
-            print e
-        debug(label, str(result))
-        return result
-    
-    # get ducc.head.reliable.list
-    def get_head_node_list(self):
-        head_node_list = []
-        # add ducc.head.reliable.list node(s)
-        ducc_head_list = self.ducc_properties.get("ducc.head.reliable.list")
-        if(ducc_head_list != None):
-            ducc_head_nodes = ducc_head_list.split()
-            if(len(ducc_head_nodes)== 0):
-                pass
-            elif(len(ducc_head_nodes)== 1):
-                print '>>> ERROR - "ducc.head.reliable.list" missing or invalid.'
-                sys.exit(1);
-            else:
-                head_node_list = ducc_head_nodes
-        return head_node_list
-    
-    # get all possible hostnames & ip addresses for a head node
-    def get_head_node_list_variations(self):
-        # start with ducc.head.reliable.list node(s)
-        head_node_list = self.get_head_node_list()
-        # add ducc.head node
-        ducc_head = self.ducc_properties.get("ducc.head")
-        if(ducc_head == None):
-            print '>>> ERROR - "ducc.head" missing or invalid.'
-            sys.exit(1);
-        ducc_head_nodes = ducc_head.split()
-        if(len(ducc_head_nodes) != 1):
-            print '>>> ERROR - "ducc.head" missing or invalid.'
-            sys.exit(1);
-        head_node = ducc_head_nodes[0]
-        if(not head_node in head_node_list):
-            head_node_list.append(head_node)
-        # add short names
-        list = head_node_list
-        for node in list:
-            short_name = node.split('.')[0]
-            if(not self.is_int(short_name)):
-                if(not short_name in head_node_list):
-                    head_node_list.append(short_name)
-        # add ip addresses
-        list = head_node_list
-        for node in list:
-            ip = self.get_ip_address(node)
-            if(ip != None):
-                if(not ip in head_node_list):
-                    head_node_list.append(ip)
-        #
-        debug('head_node_list: ', head_node_list)
-        return head_node_list
-    
-    # drop domain and whitespace
-    def normalize(self,name):
-        result = name
-        if(name != None):
-            result = name
-            result = result.strip()
-            result = result.split('.')[0]
-        return result
-    
-    # get current host's name
-    def get_node_name(self):
-        node_name = 'unknown'
-        cmd = '/bin/hostname'
-        resp = self.popen(cmd)
-        lines = resp.readlines()
-        if(len(lines)== 1):
-            name = lines[0]
-            node_name = self.normalize(name)
-        debug('node_name: ', node_name)
-        return node_name
-    
+    # Check if the node's name or ip matches one of the head nodes
     def is_head_node(self):
-        retVal = False
-        head_node_list = self.get_head_node_list_variations()
-        node = self.get_node_name()
-        if(node in head_node_list):
-            retVal = True
-        return retVal
+        head_node_list = self.head_nodes
+        node = self.localhost
+        if (node in head_node_list):
+            return True
+        node_ip = socket.gethostbyname(node)
+        for hnode in head_node_list:
+            if socket.gethostbyname(hnode) == node_ip:
+                return True
+        return False
     
-    # Exit if this is not the head node.  Ignore the domain as uname sometimes drops it.
+    # Exit if this is not a head node
     # Also check that ssh to this node works
     # Also restrict operations to the userid that installed ducc
     def verify_head(self):
-        head_node_list = self.get_head_node_list_variations()
-        node = self.get_node_name()
-        if(node in head_node_list):
-            pass
-        else:
-            ip = self.get_ip_address(node)
-            if(ip in head_node_list):
-                pass
-            else:
-                print ">>> ERROR - "+node+" not configured as head node."
-                sys.exit(1);
+        node = self.localhost
+        if (not self.is_head_node()):
+            print ">>> ERROR - " + node + " is not one of the configured head nodes " + str(self.head_nodes)
+            sys.exit(1);
         if(self.ssh_operational(node)):
             text = "ssh is operational to "+node
             #print text
@@ -1146,16 +1035,17 @@ class DuccUtil(DuccBase):
     def clean_shutdown(self):
         DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDUCC_HOME=' + self.DUCC_HOME
-        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
+        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_head
         self.spawn(self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccAdmin', '--killAll')
 
     def ducc_admin(self,option,target):
         DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDUCC_HOME=' + self.DUCC_HOME
-        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
+        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_head
         java_class = 'org.apache.uima.ducc.common.main.DuccAdmin'
         cmd = self.java()+' '+DUCC_JVM_OPTS+' '+java_class+' '+option+' '+target
-        print cmd
+        debug('ducc_admin', cmd)
+        print 'ducc_admin: ', option, target
         self.spawn(self.java(), DUCC_JVM_OPTS, java_class, option, target)
         
     def get_os_pagesize(self):
@@ -1367,102 +1257,24 @@ class DuccUtil(DuccBase):
         use_threading = False
 
     def installed(self):
-        head = self.ducc_properties.get('ducc.head')
+        head = self.ducc_head
         if ( head == '<head-node>' ):
             return False
         return True
 
-    keepalived_conf = '/etc/keepalived/keepalived.conf'
-
-    def get_virtual_ipaddress(self):
-        state = 0
-        vip = None
-        if ( os.path.exists(self.keepalived_conf) ):
-            with open(self.keepalived_conf) as f:
-                for line in f:
-                    tokens = line.split(' ')
-                    if(tokens == None):
-                        pass
-                    elif(len(tokens) == 0):
-                        pass
-                    elif(tokens[0] == '!'):
-                        pass
-                    else:
-                        for token in tokens:
-                            token = token.strip()
-                            if(len(token) == 0):
-                                continue
-                            elif(token == '#'):
-                                break
-                            if(state == 0):
-                                if(token == 'virtual_ipaddress'):
-                                    state = 1
-                            elif(state == 1):
-                                if(token == '{'):
-                                    state = 2
-                            elif(state == 2):
-                                vip = token
-                                state = 3
-                            elif(state == 3):
-                                if(token == '}'):
-                                    state = 4
-                            else:
-                                pass
-        return vip
-
-    # eligible when keepalived config comprises the ip
-    def is_reliable_eligible(self, ip):
-        retVal = False
-        if ( os.path.exists(self.keepalived_conf) ):
-            with open(self.keepalived_conf) as f:
-                for line in f:
-                    if ip in line:
-                        retVal = True
-                        break
-        return retVal
-    
-    def is_valid_ip_address(self,address):
-        retVal = False
-        try:
-            list = address.split('.')
-            for item in list:
-                int(item)
-            retVal = True
-        except Exception as e:
-            pass
-        return retVal
-    
-    # master when current node keepalived answers for head node ip
-    # backup when current node keepalived does not answer for head ip, but is capable in config
-    # unspecified otherwise
-    def get_reliable_state(self):
-        label = 'get_reliable_state'
-        result = 'unspecified'
-        try:
-            ducc_head = self.ducc_properties.get('ducc.head')
-            if(self.is_valid_ip_address(ducc_head)):
-                head_ip = ducc_head
-            else:
-                head_ip = self.get_ip_address(ducc_head)
-            # Check if "reliable" ... i.e. ducc.head is the virtual ip in the keepalived conf file
-            # If so check if this node is connected to the virtual ip   
-            if(self.is_reliable_eligible(head_ip)):
-                text = 'cmd: ', '/sbin/ip', 'addr', 'list'
-                debug(label, text)
-                p = subprocess.Popen(['/sbin/ip', 'addr', 'list'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                output, err = p.communicate()
-                text = "output: "+output
-                debug(label, text)
-                if(head_ip in output):
-                    result = 'master'
-                else:
-                    result = 'backup'
-        except Exception as e:
-            print e
-        return result
-    
-    def is_reliable_backup(self):
-        return self.get_reliable_state() == 'backup'
+    # Check if not reliable or if this is the currently active head node
+    # If reliable test if the ducc.head's IP address is one of our addresses
+    def is_active(self):
+        label = 'is_active'
+        if (not self.reliable):
+            return True
+        text = 'cmd: ', '/sbin/ip', 'addr', 'list'
+        debug(label, text)
+        p = subprocess.Popen(['/sbin/ip', 'addr', 'list'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, err = p.communicate()
+        debug(label, "output: "+output)
+        head_ip = socket.gethostbyname(self.ducc_head)
+        return (head_ip in output)
     
     def db_normalize_component(self,component):
         com = component
@@ -1515,6 +1327,7 @@ class DuccUtil(DuccBase):
         text = out
         debug(label,text)
     
+    # Line format is: <host>.<component>=<state>
     def _db_get_tuple(self,line):
         retVal = None
         try:
@@ -1562,24 +1375,28 @@ class DuccUtil(DuccBase):
         self.local_components = ['rm', 'pm', 'sm', 'or', 'ws', 'broker']
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
 
-        if ( self.localhost == self.ducc_properties.get("ducc.head")):
-            self.is_ducc_head = True
+        # Get the only head node, or if  a "reliable" installation the virtual head node & all head nodes
+        self.ducc_head = self.ducc_properties.get('ducc.head')
+        ducc_head_list = self.ducc_properties.get('ducc.head.reliable.list')
+        if (ducc_head_list != None and len(string.strip(ducc_head_list)) != 0):
+            self.reliable = True
+            self.head_nodes = ducc_head_list.split()
+            if (len(self.head_nodes) <= 1):
+                print '>>> ERROR - "ducc.head.reliable.list" must be empty or have more than one entry'
+                sys.exit(1);
+        else:
+            self.reliable = False
+            self.head_nodes = [ self.ducc_head ]
 
         os.environ['DUCC_NODENAME'] = self.localhost    # to match java code's implicit property so script and java match
-
-        dbhost = self.get_db_host()
-        if ( dbhost == None ):
-            dbhost = self.ducc_properties.get('ducc.head')
-        if ( dbhost == None ):
-            dbhost = 'localhost'
-
 
         manage_database = self.ducc_properties.get('ducc.database.automanage')
         self.automanage_database = False
         if (manage_database in ('t', 'true', 'T', 'True')) :
             self.automanage_database = True     
-
-        if(manage_database):
+            dbhost = self.get_db_host()
+            if ( dbhost == None ):
+                dbhost = self.ducc_head
             dir_db_state = self.DUCC_HOME + '/state/database/'+dbhost
             self.makedirs(dir_db_state)
             self.db_pidfile = dir_db_state+ '/cassandra.pid'
@@ -1587,8 +1404,8 @@ class DuccUtil(DuccBase):
             self.makedirs(dir_db_logs)
             self.db_logfile = dir_db_logs + '/' + dbhost + '.cassandra.console'
         
-        self.pid_file_agents  = self.DUCC_HOME + '/state/agents/ducc.pids'
-        self.pid_file_daemons  = self.DUCC_HOME + '/state/daemons/'+self.get_node_name()+'/ducc.pids'
+        #self.pid_file_agents  = self.DUCC_HOME + '/state/agents/ducc.pids'
+        #self.pid_file_daemons  = self.DUCC_HOME + '/state/daemons/'+self.localhosty+'/ducc.pids'
         self.set_classpath()
         self.os_pagesize = self.get_os_pagesize()
         self.update_properties()

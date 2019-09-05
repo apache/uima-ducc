@@ -37,8 +37,10 @@ def find_ducc_home():
     DUCC_HOME = me[:ndx]          # split from 0 to ndx
     return DUCC_HOME
 
+# Get the name of the node --- note that some os.uname's return the fullname 
 def find_localhost():
-    return os.uname()[1]                
+    name = os.uname()[1]
+    return name.split('.')[0]
 
 def which(file):
     for p in os.environ["PATH"].split(":"):

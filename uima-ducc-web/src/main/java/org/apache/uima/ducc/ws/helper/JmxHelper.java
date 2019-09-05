@@ -73,7 +73,7 @@ public abstract class JmxHelper {
 			logger.debug(location, jobid, id);
 		}
 		catch(Exception e) {
-			logger.error(location, jobid, e);
+			logger.warn(location, jobid, e.toString(), "failed to connect to", url);
 			throw e;
 		}
 		
@@ -103,6 +103,8 @@ public abstract class JmxHelper {
 			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");
 		} 
 		catch(Exception e) {
+		  // TODO this happens every time?? because of the later disconnect ??
+		  logger.debug("getJmxData", jobid, this.getClass().getSimpleName(), "Failed to get Jmx data containing the PID -", e.toString());
 			connect();
 			mbsc = getMBSC();
 			o = mbsc.getAttribute(new ObjectName("java.lang:type=Runtime"), "Name");

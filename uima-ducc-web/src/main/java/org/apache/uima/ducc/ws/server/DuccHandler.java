@@ -49,6 +49,7 @@ import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
+import org.apache.uima.ducc.common.head.DuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState;
@@ -88,7 +89,6 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccDataHelper;
-import org.apache.uima.ducc.ws.DuccHead;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
@@ -3402,6 +3402,9 @@ public class DuccHandler extends DuccAbstractHandler {
 	private void handleDuccServletClusterReliableStatus(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
+	  if (!dh.is_ducc_head_reliable()) {   // Omit label if not reliable
+	    return;
+	  }
 		String methodName = "handleDuccServletClusterReliableStatus";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
@@ -3424,6 +3427,9 @@ public class DuccHandler extends DuccAbstractHandler {
 	private void handleDuccServletClusterReliableLabel(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
 	throws IOException, ServletException
 	{
+	  if (!dh.is_ducc_head_reliable()) {   // Omit label if not reliable
+	    return;
+	  }
 		String methodName = "handleDuccServletClusterReliableLabel";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();

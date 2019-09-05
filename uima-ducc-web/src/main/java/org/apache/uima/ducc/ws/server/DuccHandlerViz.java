@@ -24,11 +24,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.uima.ducc.common.head.DuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.ws.DuccHead;
 import org.apache.uima.ducc.ws.server.nodeviz.NodeViz;
 import org.eclipse.jetty.server.Request;
 

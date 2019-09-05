@@ -20,6 +20,7 @@ package org.apache.uima.ducc.rm.persistence.access;
 
 import java.util.Map;
 
+import org.apache.uima.ducc.common.head.DuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.persistence.rm.IDbJob;
 import org.apache.uima.ducc.common.persistence.rm.IDbShare;
@@ -28,7 +29,6 @@ import org.apache.uima.ducc.common.persistence.rm.IRmPersistence.RmNodes;
 import org.apache.uima.ducc.common.persistence.rm.RmPersistenceFactory;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.rm.DuccHead;
 import org.apache.uima.ducc.rm.scheduler.SchedConstants;
 
 public class PersistenceAccess implements IPersistenceAccess {

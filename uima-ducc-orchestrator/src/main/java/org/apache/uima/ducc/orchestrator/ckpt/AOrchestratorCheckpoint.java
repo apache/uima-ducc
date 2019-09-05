@@ -20,12 +20,12 @@ package org.apache.uima.ducc.orchestrator.ckpt;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.uima.ducc.common.head.DuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.orchestrator.DuccHead;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 
 public abstract class AOrchestratorCheckpoint {

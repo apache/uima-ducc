@@ -40,6 +40,7 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.crypto.CryptoException;
+import org.apache.uima.ducc.common.head.DuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadState;
 import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadTransition;

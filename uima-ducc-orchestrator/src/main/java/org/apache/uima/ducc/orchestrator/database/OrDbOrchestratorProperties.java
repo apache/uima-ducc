@@ -20,11 +20,11 @@ package org.apache.uima.ducc.orchestrator.database;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.uima.ducc.common.head.DuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.database.DbOrchestratorProperties;
-import org.apache.uima.ducc.orchestrator.DuccHead;
 
 /**
  * Class for logging purposes only.

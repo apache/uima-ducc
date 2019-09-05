@@ -99,9 +99,10 @@ class CheckDucc(DuccUtil):
 
                 signal = self.kill_signal
                 
-                if(self.is_reliable_backup()):
-                    if ( component == 'agent' ):
-                        continue
+                # Don't kill agents if a backup node (kill has been disabled as stop_ducc should be used)
+                if (signal != None and not self.is_active() and component == 'agent' ):
+                    print 'Ignoring agent as not the master head node'
+                    continue
                     
                 if ( component == 'orchestrator' ):
                     component = 'or'
@@ -386,8 +387,8 @@ class CheckDucc(DuccUtil):
     
                     checked[node] = node
                     self.threadpool.invoke(self.check_node, node)
-            # check backup head node(s)
-            for node in self.get_head_node_list():
+            # check head node(s)
+            for node in self.head_nodes:
                 if(not node in checked):
                     checked[node] = node
                     self.threadpool.invoke(self.check_node, node)

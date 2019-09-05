@@ -29,7 +29,7 @@ features =  [ 'stop_ducc from head node only',
 
 import sys
 
-version_min = [2, 7]
+version_min = [2, 6]
 version_info = sys.version_info
 version_error = False
 if(version_info[0] < version_min[0]):
@@ -308,11 +308,11 @@ class StopDucc(DuccUtil):
     def head(self):
         text = str(self.args.head)
         debug(self._mn(),text)
-        # get list of tuples from DB: 
-        # [ host, component, state ]
+        # get list of tuples from DB:  [ host, component, state ]
+        # exclude non-automanged br & db & exclude db if not the active/master node
         db_list = self.get_db_list()
         list = []
-        this_node = self.get_node_name()
+        this_node = self.localhost
         for item in db_list:
             node = item[0]
             component = item[1]
@@ -320,6 +320,8 @@ class StopDucc(DuccUtil):
                 continue
             if(component == self.n_db):
                 if(not self.automanage_database):
+                    continue
+                if (not self.is_active()):
                     continue
             if(component == self.n_br):
                 if(not self.automanage_broker):
@@ -381,7 +383,7 @@ class StopDucc(DuccUtil):
         for c in self.args.component:
             parts = c.split('@')
             if len(parts) == 1:
-                dn = self.get_node_name()
+                dn = self.localhost
                 dc = parts[0]
             elif len(parts) == 2:
                 dn = parts[1]
@@ -436,11 +438,20 @@ class StopDucc(DuccUtil):
     
     # validate user specified list
     def validate_list(self,list):
+        is_backup = not self.is_active()
         for item in list:
             node = item[0]
             component = item[1]
             self.validate_automanage(component)
             self.validate_db(node, component)
+            if (component == 'ag' and is_backup):
+                msg = 'cannot stop agents from the backup node.'
+                output(msg)
+                self._exit()
+            if (component == 'db' and is_backup):
+                msg = 'cannot stop database from the backup node.'
+                output(msg)
+                self._exit()
     
     # in: tuples of (component,pid,user) and a desired component
     # out: the pid of the desired component, if found 
@@ -459,12 +470,11 @@ class StopDucc(DuccUtil):
         return pid
     
     def acct_stop(self,node,component):
-        print 'db_acct_stop: '+component+'@'+node
+        print 'db_acct: Stopped '+component+'@'+node
         self.db_acct_stop(node,component)
         
     # target=kill
     def kill(self,count,tid,node,component,signal):
-        self.acct_stop(node,component)
         verbosity=False
         ssh = self.ssh_operational(node,verbosity)
         state = 'state=pending'
@@ -484,6 +494,7 @@ class StopDucc(DuccUtil):
                     process='pid='+str(pid)+' '
             else:
                 state='state=find DUCC process failed'
+            self.acct_stop(node,component)
         else:
             state = 'state=ssh failure'
         msg = pfx+process+state
@@ -512,7 +523,7 @@ class StopDucc(DuccUtil):
     def filter_remote_head(self,list):
         list_remote_head = []
         list_remainder = []
-        this_node = self.get_node_name()
+        this_node = self.localhost
         for item in list:
             node = item[0]
             com = item[1]
@@ -534,58 +545,41 @@ class StopDucc(DuccUtil):
         if(len(list_remote_head)>0):
             signal = self.sig15
             self.kill_threads(list_remote_head, signal)
-        # update database + build admin string
-        admin = ''
+        # stop the local daemons
         stop_db = False
         stop_broker = False
-        # pass 1 remove db,br
+        # pass 1 - stop all but broker & database 
         for item in list:
             node = item[0]
             com = item[1]
+            state = item[2]
+            if (item[2] == 'Stop'):
+                print 'WARN: '+com+' already recorded as stopped'
             # Use the short names for DB recording but the external long names for DuccAdmin
-            self.acct_stop(node,com)
             component = self.longname[com]
             if(component == self.c_broker):
                 stop_broker = True
                 continue
-            elif(component == self.c_database):
+            if(component == self.c_database):
                 stop_db = True
                 continue
-            else:
-                admin = admin+component+'@'+node+' '
-        # issue command
-        admin = admin.split()
-        for item in admin:
+            item = component+'@'+node
             if(qflag):
-                print 'quiesce: '+item
                 self.ducc_admin('--quiesce',item)
             else:
-                print 'stop: '+item
                 self.ducc_admin('--stop',item)
-        # stop broker
+            self.acct_stop(node,com)
+
+        # Finally stop broker & database if requested
+        node = self.localhost
         if(stop_broker):
-            print 'stop: broker'
+            print 'Stopping: broker'
             self.stop_broker()
-        # stop database
+            self.acct_stop(node,self.c_br)
         if(stop_db):
-            print 'stop: database'
+            print 'Stopping: database'
             self.db_stop()
-    
-    # only agent component allowed
-    def agent_only(self,list):
-        for item in list:
-            component = item[1]
-            if(component != self.n_ag):
-                'invalid component='+component
-                self._exit()
-            
-    # if this command is not running from a head node, 
-    # then complain and exit
-    def enforce_location_limits(self,list):
-        if(not self.is_head_node()):
-            msg = 'cannot run from non-head node.'
-            output(msg)
-            self._exit()
+            self.acct_stop(node,self.c_db)
     
     # multi-thread lock to obtain thread id
     lock_tid = Lock()
@@ -609,6 +603,9 @@ class StopDucc(DuccUtil):
     
     # main
     def main(self,argv):
+        if(not self.is_head_node()):
+            output('Must be run from a head node.')
+            self._exit()
         self.get_args()
         self.threads_prep()
         # get list of nodes+daemons
@@ -626,10 +623,9 @@ class StopDucc(DuccUtil):
             self._help()
         text = str(list)
         debug(self._mn(),text)
-        # disallow br/db unless DUCC managed
+        # disallow br & db unless DUCC managed and db & agents if not the master
         self.validate_list(list)
-        # allow only from head node, except for stop of local agent
-        self.enforce_location_limits(list)
+    
         # perform action
         if(self.args.kill):
             signal = self.sig9

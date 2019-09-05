@@ -28,6 +28,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.head.DuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadState;
 import org.apache.uima.ducc.common.head.IDuccHead.DuccHeadTransition;
@@ -237,7 +238,7 @@ implements ProcessManager {
       
       
 		DuccHeadTransition dh_transition = getDuccHead().transition();
-		logger.info(methodName, jobid, dh_transition);
+		//logger.info(methodName, jobid, dh_transition);
 		switch(dh_transition) {
 		case master_to_backup:
 			stateChange(EventType.SWITCH_TO_BACKUP);

@@ -42,6 +42,10 @@ class Ducc(DuccUtil):
             print 'OK'
             return 
 
+        if (not self.automanage_database):
+            print 'Database is not automanaged; not starting it.'
+            return
+
         # check for the pid to see if the DB is running.
         if ( self.db_process_alive() ) :
             print 'Database is already running.'
@@ -107,10 +111,11 @@ class Ducc(DuccUtil):
             ' -DDUCC_BROKER_CREDENTIALS_FILE=' + broker_credentials + \
             ' ' + broker_memory_opts
         os.environ['ACTIVEMQ_HOME'] = broker_home
+        os.environ['ACTIVEMQ_DATA_DIR'] = self.DUCC_HOME + '/logs/' + self.localhost
 
         print 'ACTIVEMQ_OPTS:', os.environ['ACTIVEMQ_OPTS']
         print 'ACTIVEMQ_HOME:', os.environ['ACTIVEMQ_HOME']
-        
+        print 'ACTIVEMQ_DATA_DIR:', os.environ['ACTIVEMQ_DATA_DIR']
         self.verify_limits()
         
         here = os.getcwd()
@@ -139,15 +144,14 @@ class Ducc(DuccUtil):
 
         # ducc-head needs to be in system properties before the ducc daemon reads ducc.properties
         # to insure it can be substituted properly
-        ducc_head = self.ducc_properties.get('ducc.head')
         ducc_home = self.DUCC_HOME
         CLASSPATH = os.environ['CLASSPATH']
 
         jvm_opts = []
         jvm_opts.append('-Dos.page.size=' + self.os_pagesize)
-        jvm_opts.append('-Dducc.deploy.configuration=' + self.DUCC_HOME + '/resources/ducc.properties')
-        jvm_opts.append('-Dducc.head=' + ducc_head)
-        jvm_opts.append('-Dlog4j.configuration=file://' + self.DUCC_HOME + '/resources/log4j.xml')
+        jvm_opts.append('-Dducc.deploy.configuration=' + ducc_home + '/resources/ducc.properties')
+        jvm_opts.append('-Dducc.head=' + self.ducc_head)
+        jvm_opts.append('-Dlog4j.configuration=file://' + ducc_home + '/resources/log4j.xml')
 
         service = 'org.apache.uima.ducc.common.main.DuccService'
         for c in complist:
@@ -178,7 +182,7 @@ class Ducc(DuccUtil):
 
                     return
 
-                jvm_opts.append('-Djava.library.path=' + self.DUCC_HOME) 
+                jvm_opts.append('-Djava.library.path=' + ducc_home) 
                 if ( self.agent_jvm_args != None ):
                     jvm_opts.append(self.agent_jvm_args)
 
@@ -198,7 +202,7 @@ class Ducc(DuccUtil):
                 
             if ( c == 'ws' ):
                 here = os.getcwd()
-                os.chdir(self.DUCC_HOME + '/webserver')
+                os.chdir(ducc_home + '/webserver')
                 if ( self.ws_jvm_args != None ):
                     jvm_opts.append(self.ws_jvm_args)
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')

@@ -29,11 +29,11 @@ import java.util.Random;
 
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.SizeBytes;
+import org.apache.uima.ducc.common.head.DuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.orchestrator.DuccHead;
 import org.apache.uima.ducc.orchestrator.ckpt.OrchestratorCheckpoint;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdHostProperties;
 import org.apache.uima.ducc.orchestrator.jd.scheduler.JdReservation;

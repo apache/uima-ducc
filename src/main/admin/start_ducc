@@ -28,7 +28,6 @@ import traceback
 
 from ducc_util import DuccUtil
 from properties import Properties
-from local_hooks import verify_slave_node
 from local_hooks import verify_master_node
 from ducc        import Ducc
 from ducc_util import ThreadPool
@@ -244,11 +243,6 @@ class StartDucc(DuccUtil):
         nodefiles = []
         components = []
         or_parms = self.ducc_properties.get('ducc.orchestrator.start.type')
-        #if(not self.is_reliable_backup()):
-        #    self.pids_agents = Properties()
-        #    self.pids_agents.load_if_exists(self.pid_file_agents)
-        #self.pids_daemons = Properties()
-        #self.pids_daemons.load_if_exists(self.pid_file_daemons)
         
         try:
             opts, args = getopt.getopt(argv, 'c:mn:sh?v', ['component=', 'help', 'nodelist=', 'cold', 'warm', 'nothreading'])
@@ -311,8 +305,8 @@ class StartDucc(DuccUtil):
 
         self.verify_required_directories()
 
+        # If this fails local_hooks.py should report the reason
         if ( not verify_master_node(self.ducc_properties) ):
-            print 'FAIL: Cannot run javac to run java verification'
             return
 
         # make sure all the nodefiles exist and are readable
@@ -340,9 +334,13 @@ class StartDucc(DuccUtil):
         if ( not self.verify_limits() ):
             print "Limits too low to run DUCC"
             sys.exit(1)
-        
-        if ( self.automanage_database ):
-            if ( 'db' in components ):
+
+        is_active_head_node = self.is_active();
+
+        if ( self.automanage_database and 'db' in components ):
+            if (not is_active_head_node):
+                print 'DB can only be automanaged from the active head node'
+            else:
                 try:
                     if ( not self.db_start() ):
                         print "Failed to start or connect to the database."
@@ -377,7 +375,7 @@ class StartDucc(DuccUtil):
             print 'ActiveMQ broker is required but cannot be found on', self.broker_host + ':' + self.broker_port
             sys.exit(1)
 
-        ducc = Ducc()
+        #ducc = Ducc()
     
         self.threadpool = ThreadPool(n_nodes + 5)      # a few more for the head processes
         #self.pidlock = threading.Lock()
@@ -394,8 +392,8 @@ class StartDucc(DuccUtil):
                         sys.exit(1)
                     # give 'or' a small head start
                     time.sleep(2)
-        
-        if(self.is_reliable_backup()):
+
+        if (not is_active_head_node):
             print '********** "backup" head node -> not starting agents'
         else:
             if n_nodes > 0:
@@ -425,12 +423,6 @@ class StartDucc(DuccUtil):
                         sys.exit(1)
 
         self.threadpool.quit()
-
-        #if(not self.is_reliable_backup()):
-        #    if ( len(self.pids_agents) > 0 ):
-        #        self.pids_agents.write(self.pid_file_agents)
-        #if ( len(self.pids_daemons) > 0 ):
-        #    self.pids_daemons.write(self.pid_file_daemons)
         return
 
 if __name__ == "__main__":

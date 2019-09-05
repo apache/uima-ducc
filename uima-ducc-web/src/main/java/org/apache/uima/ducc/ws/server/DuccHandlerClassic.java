@@ -43,6 +43,7 @@ import org.apache.uima.ducc.common.SizeBytes;
 import org.apache.uima.ducc.common.SizeBytes.Type;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
+import org.apache.uima.ducc.common.head.DuccHead;
 import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.ComponentHelper;
@@ -69,7 +70,6 @@ import org.apache.uima.ducc.transport.event.common.JdReservationBean;
 import org.apache.uima.ducc.ws.Distiller;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
-import org.apache.uima.ducc.ws.DuccHead;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.DuccMachinesDataHelper;
 import org.apache.uima.ducc.ws.Info;
@@ -1495,15 +1495,16 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				else {
 					status = DuccHandlerUtils.down();
 				}
-				if(DuccPropertiesHelper.isDatabaseAutomanaged()) {
+				// Get DB host list or wsName if the DB host is the same 
+				hostName = useWS(wsHostName, databaseHelper.getHostListString());
+				if(DuccPropertiesHelper.isDatabaseAutomanaged() && hostName.equals(wsHostName)) {
 					bootTime = getTimeStamp(DuccCookies.getDateStyle(request),databaseHelper.getStartTime());
-					hostName = useWS(wsHostName, databaseHelper.getHostListString());
 					hostIP = useWS(wsHostName, hostName, wsHostIP);
 					pid = ""+databaseHelper.getPID();
 				}
 				else {
+				  // Not automanaged or not on the same node as the WS
 					bootTime = "-";
-					hostName = useWS(wsHostName, databaseHelper.getHostListString());
 					String[] hostList = hostName.split("\\s+");
 					String[] ipList = InetHelper.getIP(hostList);
 					StringBuffer sbuf = new StringBuffer();

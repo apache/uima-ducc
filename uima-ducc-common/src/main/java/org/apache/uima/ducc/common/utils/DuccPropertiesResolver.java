@@ -82,7 +82,9 @@ public class DuccPropertiesResolver {
     }
     
     public static final String ducc_head = "ducc.head";
-    
+
+    public static final String ducc_head_reliable_list = "ducc.head.reliable.list";    
+
     public static final String ducc_security_home = "ducc.security.home";
     
     public static final String ducc_private_resources = "ducc.private.resources";

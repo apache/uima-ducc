@@ -279,7 +279,7 @@ class AutoStart(DuccUtil):
     
     def insert(self):
         python_script = os.path.join(self.DUCC_HOME,'admin','db_autostart_insert.py')
-        node = self.get_node_name()
+        node = self.localhost
         component = 'ag'
         cmd = [ python_script, '--host', node, '--name', component]
         text = str(cmd)

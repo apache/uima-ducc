@@ -41,7 +41,6 @@ public interface IDuccHead {
 	};
 	
 	public String get_ducc_head_mode();
-	public boolean is_ducc_head_unspecified();
 	public boolean is_ducc_head_reliable();
 	public boolean is_ducc_head_master();
 	public boolean is_ducc_head_virtual_master();
