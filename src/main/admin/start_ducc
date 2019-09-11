@@ -306,9 +306,10 @@ class StartDucc(DuccUtil):
         self.verify_required_directories()
 
         # If this fails local_hooks.py should report the reason
-        if ( not verify_master_node(self.ducc_properties) ):
-            return
-
+        if(self.is_head_node()):
+            if ( not verify_master_node(self.ducc_properties) ):
+                return
+                
         # make sure all the nodefiles exist and are readable
         ok = True
         nodes = {}

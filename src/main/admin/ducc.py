@@ -174,13 +174,15 @@ class Ducc(DuccUtil):
                     print 'NOT_OK Cannot proceed because of ducc_ling problems.'
                     return
 
-                if ( not verify_slave_node(localdate, self.ducc_properties) ):
-                    # we assume that verify_local_node is spewing a line of the form
-                    #    NOTOK error message
-                    # if all is not fine
-                    print '0 ONE RETURNS'
-
-                    return
+                if(self.is_head_node()):
+                    pass
+                else:
+                    if ( not verify_slave_node(localdate, self.ducc_properties) ):
+                        # we assume that verify_local_node is spewing a line of the form
+                        #    NOTOK error message
+                        # if all is not fine
+                        print '0 ONE RETURNS'
+                        return
 
                 jvm_opts.append('-Djava.library.path=' + ducc_home) 
                 if ( self.agent_jvm_args != None ):
