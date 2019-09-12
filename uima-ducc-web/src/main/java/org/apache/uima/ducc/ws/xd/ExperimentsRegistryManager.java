@@ -151,7 +151,7 @@ public class ExperimentsRegistryManager {
     try {
       String fileName = ExperimentsRegistryUtilities.getStateFilePath(directory);
       long date = ExperimentsRegistryUtilities.getFileDate(user, fileName);
-      WsLog.info(cName, mName, "Reading " + fileName + " date: " + date);
+      WsLog.debug(cName, mName, "Reading " + fileName + " date: " + date);
       String contents = ExperimentsRegistryUtilities.getFileContents(user, fileName);
       if (contents != null) {
         // Version may precede the initial '[' and may be on a separate line
