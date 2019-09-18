@@ -14,6 +14,7 @@
 /ducc-servlet/login-link
 /ducc-servlet/logout-link
 /ducc-servlet/authenticator-password-checked
+/ducc-servlet/duccinator-update
 /favicon.ico
 /uima.ico
 /login.html
