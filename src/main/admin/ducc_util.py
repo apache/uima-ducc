@@ -292,6 +292,8 @@ class DuccUtil(DuccBase):
     
     # does the database process exist?  
     def db_process_alive(self):
+        if (not self.automanage_database):
+            return False
         if ( not os.path.exists(self.db_pidfile) ):
             return False
 
@@ -312,6 +314,8 @@ class DuccUtil(DuccBase):
         return False
 
     def db_process_kill(self,code):
+        if (not self.automanage_database):
+            return False
         if ( not os.path.exists(self.db_pidfile) ):
             return False
 
@@ -349,7 +353,9 @@ class DuccUtil(DuccBase):
             if(verbose):
                 print 'No database location defined.'
             return False
-
+        if (not self.automanage_database):
+            return False
+        
         if ( not os.path.exists(self.db_pidfile) ):
             if(verbose):
                 print 'Database pid file does not exist.  Checking DB connectivity.'
