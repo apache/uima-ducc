@@ -40,10 +40,8 @@ class CheckDucc(DuccUtil):
         self.badnodes = []
 
     def validate(self, checkdate):
-    	if(self.is_head_node()):
-        	pass
-       	else:
-        	verify_slave_node(checkdate, self.ducc_properties)
+        if (not self.is_head_node()):
+            verify_slave_node(checkdate, self.ducc_properties)
         self.check_clock_skew(checkdate)
         self.verify_jvm()
         self.verify_limits()
@@ -111,9 +109,9 @@ class CheckDucc(DuccUtil):
                     component = 'or'
                     
                 if ( component == 'database' ):
-                	if ( signal != None ):
-                		if ( self.kill_db9 == False ):
-                			signal = '-QUIT'
+                    if ( signal != None ):
+                        if ( self.kill_db9 == False ):
+                            signal = '-QUIT'
 
                 process_id = found_user + ' ' + component + '@' + node + ' PID ' + pid 
                 if ( signal != None ) :
@@ -315,10 +313,10 @@ class CheckDucc(DuccUtil):
         if ( jvm == None ):
             print 'WARN: ducc.jvm is not specified in ducc.properties. Default is simply "java" which may not work on all nodes.'
 
-		if(self.is_head_node()):
-	        if ( not verify_master_node(self.ducc_properties) ):
-	            print 'FAIL: Cannot verify master mode'
-	            return
+        if (self.is_head_node()):
+            if ( not verify_master_node(self.ducc_properties) ):
+                print 'FAIL: Cannot verify master mode'
+                return
 
         if ( not self.verify_activemq() ):
             print 'ActiveMQ broker is not running on', self.broker_protocol + "://" + self.broker_host + ':' + self.broker_port
@@ -327,8 +325,8 @@ class CheckDucc(DuccUtil):
 
         # init the PID file
         #if(not self.is_reliable_backup()):
-        #	self.pids_agents = Properties()
-        #	self.pids_agents.load_if_exists(self.pid_file_agents)
+        #    self.pids_agents = Properties()
+        #    self.pids_agents.load_if_exists(self.pid_file_agents)
         #self.pids_daemons = Properties()
         #self.pids_daemons.load_if_exists(self.pid_file_daemons)
         
