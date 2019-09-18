@@ -21,6 +21,7 @@ package org.apache.uima.ducc.sampleapps;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.uima.cas.CAS;
@@ -30,13 +31,11 @@ import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Progress;
 import org.apache.uima.util.ProgressImpl;
 
-import com.google.common.collect.Lists;
-
 
 public class LinesFromFileCR extends CollectionReader_ImplBase {
 
   public static final String PARAM_FILENAME = "Filename";
-  private List<String> lines = Lists.newArrayList();
+  private List<String> lines = new ArrayList<>();
   private int lineCount = 0;
   private String filename;
 

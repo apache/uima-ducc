@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -31,11 +32,9 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.resource.ResourceInitializationException;
 
-import com.google.common.collect.Lists;
-
 public class CommandLineRunnerAE extends JCasAnnotator_ImplBase {
 
-  private List<Process> processes = Lists.newLinkedList();
+  private List<Process> processes = new ArrayList<>();
   private String[] envp;
   private String   lastStderrLine;
 
