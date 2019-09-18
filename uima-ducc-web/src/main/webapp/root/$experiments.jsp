@@ -17,11 +17,11 @@ specific language governing permissions and limitations
 under the License.
 -->
 <!--
-Insert Experiments button -- could be made optional
+when the webserver starts this file is replaced by one that displays or omits the Experiments button
 Imported by $banner/c0-menu.jsp
 -->
 <HTML>
-<BODY>
-<li><a href="experiments.html">Experiments</a></li>
-</BODY>
+<!--
+<BODY><li><a href="experiments.html">Experiments</a></li></BODY>
+-->
 </HTML>

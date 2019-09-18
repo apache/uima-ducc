@@ -34,6 +34,6 @@ under the License.
 <li><a href="system.machines.html">Machines</a></li>
 </ul>
 <li><a href="viz.html">Viz</a></li>
-<%@ include file="../site.jsp" %>
+<%@ include file="../$experiments.jsp" %>
 </ul>
 </div> 

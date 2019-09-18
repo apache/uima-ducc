@@ -32,6 +32,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.ws.log.WsLog;
+import org.apache.uima.ducc.ws.server.DuccWebProperties;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
@@ -52,10 +53,18 @@ public class ExperimentsRegistryManager {
 
   private AtomicLong updateCounter = new AtomicLong(0);
 
+  private boolean enabled;   // true if Experiments button is enabled/displayed
+
   public static ExperimentsRegistryManager getInstance() {
     return instance;
   }
 
+  private ExperimentsRegistryManager() {
+    String ducc_experiments = DuccWebProperties.get().getProperty("ducc.experiments", "false");
+    enabled = ducc_experiments.equalsIgnoreCase("true");
+    WsLog.info(cName, "<constructor>", "Experiments enabled: " + enabled);
+  }
+  
   public TreeMap<IExperiment, String> getMapByStatus() {
     TreeMap<IExperiment, String> mapInverse = new TreeMap<IExperiment, String>();
     synchronized (map) {
@@ -136,6 +145,8 @@ public class ExperimentsRegistryManager {
 
   public void initialize(String user, String directory) {
     String mName = "initialize";
+    if (!enabled) 
+      return;
     if (user == null) {
       WsLog.warn(cName, mName, "missing user");
     } else if (directory == null) {
@@ -234,10 +245,9 @@ public class ExperimentsRegistryManager {
     }
   }
 
-  private boolean timeToPrune() {
+  // Prune if map is large or after every 3rd update
+  private boolean timeToPrune(int size) {
     boolean retVal = false;
-    TreeMap<Long, String> mapByDate = getMapByDate();
-    int size = mapByDate.size();
     if (size > MAX_CACHE_SIZE) {
       retVal = true;
     }
@@ -247,12 +257,15 @@ public class ExperimentsRegistryManager {
     return retVal;
   }
 
+  // Keep an experiment if it is active or if cache has room
+  // i.e. prune entries with the oldest start-time if not active and cache is full
+  // ?? could prune a long-running active one ??
   private void prune() {
     String mName = "prune";
     WsLog.enter(cName, mName);
     try {
       TreeMap<Long, String> mapByDate = getMapByDate();
-      if (timeToPrune()) {
+      if (timeToPrune(mapByDate.size())) {
         int cacheCount = 0;
         for (Entry<Long, String> entry : mapByDate.entrySet()) {
           String key = entry.getValue();
@@ -279,6 +292,8 @@ public class ExperimentsRegistryManager {
 
   public void update(IDuccWorkMap dwm) {
     String mName = "update";
+    if (!enabled) 
+      return;
     WsLog.enter(cName, mName);
     try {
       if (dwm == null) {

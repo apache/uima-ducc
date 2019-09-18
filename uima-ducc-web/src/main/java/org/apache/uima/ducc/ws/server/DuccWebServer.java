@@ -310,18 +310,23 @@ public class DuccWebServer {
     } catch (IOException e) {
       logger.error(methodName, jobid, e);
     }
-
     jspHandler.addServlet(DefaultServlet.class, "/");
 
     ResourceHandler resourceHandler = new ResourceHandler();
     resourceHandler.setDirectoriesListed(true);
     rootDir = DuccWebServerHelper.getDuccWebRoot();
     resourceHandler.setResourceBase(rootDir);
+    
+    String welcomePage = getWelcomePage();
+    jspHandler.setWelcomeFiles(new String[] { welcomePage });
+    resourceHandler.setWelcomeFiles(new String[] { welcomePage });
 
     jspHandler.setAttribute("org.eclipse.jetty.containerInitializers", jspInitializers());
     jspHandler.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
+    
+    // Create $runmode.jsp file (display a test pattern if ducc.runmode = Test)
+    Properties properties = DuccWebProperties.get();
     try {
-      Properties properties = DuccWebProperties.get();
       String ducc_runmode = properties.getProperty("ducc.runmode", "Production");
       logger.debug(methodName, null, "ducc.runmode:" + ducc_runmode);
       logger.debug(methodName, null, "rootdir:" + rootDir);
@@ -343,6 +348,26 @@ public class DuccWebServer {
     } catch (Exception e) {
       logger.info(methodName, null, e);
     }
+    
+    // Create $experiments.jsp file (include the Experiments button if ducc.experiments = true)
+    try {
+      String ducc_experiments = properties.getProperty("ducc.experiments", "false");
+      String text;
+      if (ducc_experiments.equalsIgnoreCase("true")) {
+        text = "<HTML><BODY><li><a href=\"experiments.html\">Experiments</a></li></BODY></HTML>";
+      } else {
+        text = "<html></html>";
+      }
+      File $experimentsFile = new File(rootDir, "$experiments.jsp");
+      logger.debug(methodName, null, "path:", $experimentsFile.getAbsolutePath(), "experiments:", ducc_experiments);
+      $experimentsFile.delete();
+      PrintWriter out = new PrintWriter($experimentsFile);
+      out.println(text);
+      out.close();
+    } catch (Exception e) {
+      logger.info(methodName, null, e);
+    }
+    
     //
     HandlerList handlers = new HandlerList();
 
@@ -381,10 +406,6 @@ public class DuccWebServer {
     SessionHandler sessionHandler = new SessionHandler();
     handlers.addHandler(sessionHandler);
     handlers.addHandler(duccHandlerUserAuthentication);
-
-    String welcomePage = getWelcomePage();
-    jspHandler.setWelcomeFiles(new String[] { welcomePage });
-    resourceHandler.setWelcomeFiles(new String[] { welcomePage });
 
     DuccHandlerHttpRequestFilter httpRequestFilter = new DuccHandlerHttpRequestFilter(this);
     handlers.addHandler(httpRequestFilter);
