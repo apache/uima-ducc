@@ -48,8 +48,13 @@ public class CommandLineRunnerAE extends JCasAnnotator_ImplBase {
     String user= System.getenv("USER");
     String home= System.getenv("HOME");
     String lang= System.getenv("LANG");
-    String jobid=System.getenv("JobId");
-    envp = (env+" CLASSPATH="+cp+" USER="+user+" HOME="+home+" LANG="+lang+" DUCC_JOBID="+jobid).split("\\s+");
+    String jobid=System.getenv("DUCC_JOBID");
+    
+    // Must not pass a null environment element to Runtime.exec
+    if (env == null) {
+      env = "";
+    }
+    envp = (env+" CLASSPATH="+cp+" USER="+user+" HOME="+home+" LANG="+lang+" DUCC_JOBID="+jobid).trim().split("\\s+");
   }
   
   @Override
