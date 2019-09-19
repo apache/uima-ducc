@@ -236,10 +236,10 @@ public class UimaUtils {
 			// "\" with ".". We will use the ae
 			// descriptor name as AE key in the aggregate
 			if (key.indexOf("/") != -1) {
-				key = key.replaceAll("/", ".");
+				key = key.replace("/", ".");
 			}
 			if (key.indexOf("\\") != -1) {
-				key = key.replaceAll("\\\\", ".");
+				key = key.replace("\\", ".");
 			}
 			key = key.substring(key.lastIndexOf(".") + 1);
 			desc.getDelegateAnalysisEngineSpecifiersWithImports().put(key,
