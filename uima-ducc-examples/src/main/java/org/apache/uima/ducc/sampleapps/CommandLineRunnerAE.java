@@ -18,13 +18,11 @@
 
  package org.apache.uima.ducc.sampleapps;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.uima.UimaContext;
 import org.apache.uima.analysis_component.JCasAnnotator_ImplBase;
@@ -34,9 +32,7 @@ import org.apache.uima.resource.ResourceInitializationException;
 
 public class CommandLineRunnerAE extends JCasAnnotator_ImplBase {
 
-  private List<Process> processes = new ArrayList<>();
   private String[] envp;
-  private String   lastStderrLine;
 
   @Override
   public void initialize(UimaContext aContext) throws ResourceInitializationException {
@@ -76,106 +72,48 @@ public class CommandLineRunnerAE extends JCasAnnotator_ImplBase {
 
   public void runCommand(String command, String[] envp) throws IOException {
     System.out.println("Running: " + command);
-    Runtime rt = Runtime.getRuntime();
-    Process pr = rt.exec(command, envp);
-
-    StdoutReader sr = new StdoutReader();
-    sr.initialize(pr);
-    (new Thread(sr)).start();
-    processes.add(pr);
+    
+    // NOTE - Runtime.exec doesn't handle quoted arguments
+    
+    // Parse the cmd by matching double or single quoted strings or non-white-space sequences
+    String regex = "\"([^\"]*)\"|'([^']*)'|(\\S+)";
+    Matcher m = Pattern.compile(regex).matcher(command);
+    ArrayList<String> args = new ArrayList<>();
+    while (m.find()) {
+      if (m.group(1) != null) {
+        args.add(m.group(1));           // double-quoted
+      } else if (m.group(2) != null) {
+        args.add(m.group(2));           // single quoted
+      } else {
+        args.add(m.group(3));           // not quoted
+      }
+    }
+    
+    // Run the command with all output to stdout
+    ProcessBuilder pb = new ProcessBuilder(args);
+    pb.redirectErrorStream(true);
+    pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+    Process pr = pb.start();    
+    
+    // Log the PID
     try {
       Class<? extends Process> cl = pr.getClass();
-      Field field;
-      field = cl.getDeclaredField("pid");
+      Field field = cl.getDeclaredField("pid");
       field.setAccessible(true);
-      Object pidObject = field.get(pr);
-      System.out.println("AE: started PID=" + (Integer) pidObject);
-    } catch (NoSuchFieldException e1) {
-      e1.printStackTrace();
-    } catch (SecurityException e1) {
-      e1.printStackTrace();
-    } catch (IllegalArgumentException e) {
-      e.printStackTrace();
-    } catch (IllegalAccessException e) {
+      System.out.println("AE: started PID=" + (Integer) field.get(pr));
+    } catch (Exception e) {
       e.printStackTrace();
     }
 
-    StderrReader ser = new StderrReader();
-    ser.initialize(pr);
-    (new Thread(ser)).start();
-
+    // Wait for the process to complete
     try {
       pr.waitFor();
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
     int exitValue = pr.exitValue();
-    for (Iterator<Process> iter = processes.listIterator(); iter.hasNext(); ) {
-      Process p = iter.next();
-      if (p == pr) {
-          iter.remove();
-      }
-    }
     if (exitValue != 0) {
-      throw new RuntimeException("Exit code=" + exitValue +" stderr=" + lastStderrLine);
-    }
-  }
-  
-    class StdoutReader
-    implements Runnable
-  {
-    private Process mypr; 
-    public void initialize(Process pr) {
-      mypr = pr;
-    }
-
-    @Override
-    public void run() {
-      String line;
-
-      BufferedReader br = new BufferedReader(new InputStreamReader(mypr.getInputStream()));
-      try {
-        while( (line = br.readLine()) != null)
-        {
-//           if(line.equals("exit")) {
-//             break;
-//           }
-           System.out.println(line);
-        }
-        br.close();
-      } catch (IOException e) {
-        // exit the loop and the thread terminates ?
-      }
-      
-    }
-  }
-    
-    class StderrReader
-    implements Runnable
-  {
-    private Process mypr; 
-    public void initialize(Process pr) {
-      mypr = pr;
-    }
-
-    @Override
-    public void run() {
-//      String line;
-
-      BufferedReader br = new BufferedReader(new InputStreamReader(mypr.getErrorStream()));
-      try {
-        while( (lastStderrLine = br.readLine()) != null)
-        {
-//           if(line.equals("exit")) {
-//             break;
-//           }
-           System.out.println(lastStderrLine);
-        }
-        br.close();
-      } catch (IOException e) {
-        // exit the loop and the thread terminates ?
-      }
-      
+      throw new RuntimeException("Exit code=" + exitValue);
     }
   }
 
