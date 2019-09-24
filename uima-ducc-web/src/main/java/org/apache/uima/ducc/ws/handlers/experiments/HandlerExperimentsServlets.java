@@ -78,8 +78,6 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
   private static ExperimentsRegistryManager experimentsRegistryManager = ExperimentsRegistryManager
           .getInstance();
 
-  private static DuccData duccData = DuccData.getInstance();
-
   protected boolean terminateEnabled = true;
 
   public HandlerExperimentsServlets(DuccWebServer duccWebServer) {
@@ -335,6 +333,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
               String disabled = "";
               String resourceOwnerUserid = experiment.getUser();
               if (!HandlersHelper.isUserAuthorized(request, resourceOwnerUserid)) {
+                // Set the disabled attribute and a hover for the greyed-out button
                 disabled = "disabled title=\"Hint: use Login to enable\"";
               }
               String p0 = "'" + id + "'";
@@ -512,9 +511,9 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
   }
 
   public enum ExperimentDetailsColumns {
-    Id(0), Name(1), Parent(2), State(3), Type(4), StepStart(5), StepDuration(6), DuccId(
-            7), DuccDuration(
-                    8), Total(9), Done(10), Error(11), Dispatch(12), Retry(13), Preempt(14);
+    Id(0), Name(1), Parent(2), State(3), Type(4), StepStart(5), StepDuration(6), DuccId(7), 
+    DuccDuration(8), Total(9), Done(10), Error(11), Dispatch(12), Retry(13), Preempt(14);
+    
     private int index;
 
     ExperimentDetailsColumns(int index) {
@@ -651,18 +650,15 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
       case Java:
       case Trainer:
         for (int duccId : duccIdList) {
+          String link;
           if (duccId < 0) {
             String parm = "" + (0 - duccId);
-            String displayId = "r" + parm;
-            String link = "<a href=\"reservation.details.html?id=" + parm + "\">" + displayId
-                    + "</a>";
-            db.append(link + " ");
+            link = "<a href=\"reservation.details.html?id=" + parm + "\">" + parm + "</a> ";
           } else {
             String parm = "" + (0 + duccId);
-            String displayId = "j" + parm;
-            String link = "<a href=\"job.details.html?id=" + parm + "\">" + displayId + "</a>";
-            db.append(link + " ");
+            link = "<a href=\"job.details.html?id=" + parm + "\">" + parm + "</a> ";
           }
+          db.append(link);
         }
         break;
       case Other:
@@ -697,6 +693,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
         cbList[index].append(projection);
       }
     } catch (Exception e) {
+      WsLog.error(cName, "edDuccDuration", e);
     }
     cbList[index].append("</td>");
   }
@@ -760,6 +757,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     int index = ExperimentDetailsColumns.Dispatch.getIndex();
     cbList[index].append("<td valign=\"bottom\" align=\"right\">");
     try {
+      DuccData duccData = DuccData.getInstance();
       if (duccData.isLive(job.getDuccId())) {
         int dispatch = 0;
         int unassigned = job.getSchedulingInfo().getCasQueuedMap().size();
@@ -820,6 +818,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
   private void edTaskDuccFirst(StringBuffer[] cbList, IExperiment experiment, Task task,
           HttpServletRequest request, IdBundle idBundle, long now) {
+    DuccData duccData = DuccData.getInstance();
     int[] duccIdList = idBundle.getList();
     // WsLog.info(cName, "edTaskDuccFirst", "!! #ids = "+duccIdList.length);
     edId(cbList, task);
@@ -868,6 +867,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
   private void edTaskDuccNext(StringBuffer[] cbList, Task task, HttpServletRequest request,
           IdBundle idBundle, long now) {
+    DuccData duccData = DuccData.getInstance();
     int[] duccIdList = idBundle.getList();
     // WsLog.info(cName, "edTaskDuccNext", "!! #ids = "+duccIdList.length);
     addPlaceholder(cbList, ExperimentDetailsColumns.Id.getIndex());

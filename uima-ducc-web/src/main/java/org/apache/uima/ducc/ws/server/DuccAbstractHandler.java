@@ -106,8 +106,9 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public String dir_home = Utils.findDuccHome();
 	public String dir_resources = "resources";
 
-	protected boolean terminateEnabled = true;
-	protected boolean buttonsEnabled = true;
+	// Always true so could be removed ?
+	protected boolean terminateEnabled = true;   // Display Terminate button for running Jobs, Managed Reservations & Experiments
+	protected boolean buttonsEnabled = true;     // Display Enable/Stop buttons for services
 
 	public static final String valueStateTypeAll = "all";
 	public static final String valueStateTypeActive = "active";

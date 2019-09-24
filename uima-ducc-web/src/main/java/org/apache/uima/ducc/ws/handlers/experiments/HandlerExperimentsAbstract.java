@@ -44,8 +44,6 @@ public abstract class HandlerExperimentsAbstract extends AbstractHandler {
   // NOTE - this variable used to hold the class name before WsLog was simplified
   private static DuccLogger cName = DuccLogger.getLogger(HandlerExperimentsAbstract.class);
 
-  private static DuccData duccData = DuccData.getInstance();
-
   public final String duccContext = DuccLocalConstants.duccContext;
 
   protected DuccWebServer duccWebServer = null;
@@ -116,6 +114,7 @@ public abstract class HandlerExperimentsAbstract extends AbstractHandler {
 
   public String getDispatch(IDuccWorkJob job) {
     String retVal = "";
+    DuccData duccData = DuccData.getInstance();
     if (duccData.isLive(job.getDuccId())) {
       int unassigned = job.getSchedulingInfo().getCasQueuedMap().size();
       try {
