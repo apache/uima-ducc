@@ -104,7 +104,7 @@ if (table_style.equals("scroll")) {
 	<th title="The state of this experiment subtask">State</th>
 	<th title="The type for this experiment subtask">Type</th>
 	<th title="The start time of this experiment subtask">Step<br>Start</th>
-	<th title="The duration time of this experiment subtask">Step<br>Duration</th>
+	<th title="The duration time of this experiment subtask" class="sorttable_numeric">Step<br>Duration</th>
 	<th title="The DUCC Id(s) for this experiment subtask, if any">DUCC Id</th>
 	<th title="The duration time of this DUCC subtask">DUCC<br>Duration</th>
 	<th title="The total number of work items for this job">Total</th>

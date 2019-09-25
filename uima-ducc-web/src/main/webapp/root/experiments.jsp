@@ -97,7 +97,7 @@ if (table_style.equals("scroll")) {
 	<tr class="ducc-header">
 	<th class="ducc-col-terminate"></th>
 	<th title="The time this experiment was first launched">Start</th>
-	<th title="The duration time of this experiment">Duration</th>
+	<th title="The duration time of this experiment" class="sorttable_numeric">Duration</th>
 	<th title="The directory owner for this experiment">User</th>
 	<th title="The number of tasks for this experiment">Tasks</th>
 	<th title="The state of this experiment">State</th>
@@ -122,7 +122,7 @@ if (table_style.equals("classic")) {
 		<tr class="ducc-head">
 		<th class="ducc-col-terminate"></th>
 		<th title="The time this experiment was first launched">Start</th>
-		<th title="The duration time of this experiment">Duration</th>
+		<th title="The duration time of this experiment" class="sorttable_numeric">Duration</th>
 		<th title="The directory owner for this experiment">User</th>
 		<th title="The number of tasks for this experiment">Tasks</th>
 		<th title="The state of this experiment">State</th>
