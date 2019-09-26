@@ -41,7 +41,7 @@ if (table_style.equals("scroll")) {
 			"aaSorting": [],
 			"aoColumnDefs": [ { "bSortable": false, "aTargets": [ 0 ] } ],
 			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
-									$('td:eq(0)', nRow).css( "text-align", "right" );
+					$('td:eq(0)', nRow).css( "text-align", "right" );
                              		$('td:eq(1)', nRow).css( "text-align", "right" );
                              		$('td:eq(3)', nRow).css( "text-align", "right" );
                              		$('td:eq(8)', nRow).css( "text-align", "right" );
