@@ -26,6 +26,8 @@ under the License.
 <%
 if (table_style.equals("scroll")) {
 %>  
+  <!-- Drop the sAjaxSource entry as it caused a superfluous request without a row id -->
+  <!-- Also drop the bSortable:false for the 1st column (the experiment id)           -->
   <script type="text/javascript" charset="utf-8">
 	var oTable;
 	$(document).ready(function() {
@@ -35,10 +37,8 @@ if (table_style.equals("scroll")) {
 			"bFilter": true,
 			"sScrollX": "100%",
 			"sScrollY": "600px",
-       		"bInfo": false,
-			"sAjaxSource": "ducc-servlet/json-format-aaData-experiment-details",
+	       		"bInfo": false,
 			"aaSorting": [],
-			"aoColumnDefs": [ { "bSortable": false, "aTargets": [ 0 ] } ],
 			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
                              		return nRow;
 			},
@@ -92,10 +92,10 @@ if (table_style.equals("scroll")) {
 <%
 if (table_style.equals("scroll")) {
 %>
-	<div id=loading_experiment_details_area>
-	</div>
-	<table id="experiment-details-table" width="100%">
+	<table width="100%">
 	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Experiment Details</b><br><i><small>click column heading to sort</small></i></caption>
+	</table>
+	<table id="experiment-details-table" width="100%">
 	<thead>
 	<tr class="ducc-header">
 	<th title="The id for this experiment subtask" class="sorttable_numeric">Id</th>
@@ -124,8 +124,6 @@ if (table_style.equals("scroll")) {
 <%
 if (table_style.equals("classic")) {
 %>
-	<div id=loading_experiment_details_area>
-	</div>
 	<table width="100%">
    	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Experiment Details</b><br><i><small>click column heading to sort</small></i></caption>
    	<tr>

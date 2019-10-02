@@ -27,6 +27,7 @@ under the License.
 <%
 if (table_style.equals("scroll")) {
 %>  
+  <!-- Drop the sAjaxSource entry as it caused a superfluous request -->
   <script type="text/javascript" charset="utf-8">
 	var oTable;
 	$(document).ready(function() {
@@ -37,8 +38,7 @@ if (table_style.equals("scroll")) {
 			"bFilter": true,
 			"sScrollX": "100%",
 			"sScrollY": "600px",
-       		"bInfo": false,
-			"sAjaxSource": "ducc-servlet/json-format-aaData-experiments",
+			"bInfo": false,
 			"aaSorting": [],
 			"aoColumnDefs": [ { "bSortable": false, "aTargets": [ 0 ] } ],
 			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
@@ -111,7 +111,7 @@ if (table_style.equals("scroll")) {
 	<th title="The directory for this experiment">Directory</th>
 	</tr>
 	</thead>
-	<tbody id="experiments_list_area">
+	<tbody id="experiments_area">
 	</tbody>
 	</table>
 <%
@@ -136,7 +136,7 @@ if (table_style.equals("classic")) {
 		<th title="The directory for this experiment">Directory</th>
 		</tr>
 		</thead>
-		<tbody id="experiments_list_area">
+		<tbody id="experiments_area">
    		</tbody>
 	  </table>
    	</table>

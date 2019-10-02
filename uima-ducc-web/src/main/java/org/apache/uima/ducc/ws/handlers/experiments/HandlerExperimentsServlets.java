@@ -35,7 +35,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 import org.apache.uima.ducc.ws.handlers.utilities.HandlersUtilities;
-import org.apache.uima.ducc.ws.handlers.utilities.ResponseHelper;
 import org.apache.uima.ducc.ws.log.WsLog;
 import org.apache.uima.ducc.ws.server.DuccCookies;
 import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
@@ -44,6 +43,9 @@ import org.apache.uima.ducc.ws.server.DuccWebServer;
 import org.apache.uima.ducc.ws.server.DuccWebUtil;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
+import org.apache.uima.ducc.ws.utils.FormatServlet;
+import org.apache.uima.ducc.ws.utils.FormatServletClassic;
+import org.apache.uima.ducc.ws.utils.FormatServletScroll;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.apache.uima.ducc.ws.xd.ExperimentsRegistryManager;
 import org.apache.uima.ducc.ws.xd.IExperiment;
@@ -51,10 +53,6 @@ import org.apache.uima.ducc.ws.xd.Jed;
 import org.apache.uima.ducc.ws.xd.Jed.Status;
 import org.apache.uima.ducc.ws.xd.Task;
 import org.eclipse.jetty.server.Request;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
@@ -106,52 +104,29 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
         }
       }
     }
+    
+    // If not yet set get the elapsed time since it started
+    if (runTime == 0) {
+      String startDate = experiment.getStartDate();
+      if (startDate != null) {
+        long millisStart = HandlersUtilities.getMillis(startDate);
+        long millisEnd = System.currentTimeMillis();
+        runTime = millisEnd - millisStart;
+      }
+    }
     return runTime;
   }
 
-  private String getDuration(HttpServletRequest request, IExperiment experiment) {
-    Status experimentStatus = experiment.getStatus();
-    String durationUntitled = "";
-    long runTime = getRunTime(request, experiment);
-    if (runTime > 0) {
-      durationUntitled = FormatHelper.duration(runTime, Precision.Whole);
-    } else {
-      switch (experimentStatus) {
-        case Running:
-          try {
-            String startDate = "";
-            if (experiment.getStartDate() != null) {
-              startDate = experiment.getStartDate();
-            }
-            long millisStart = HandlersUtilities.getMillis(startDate);
-            long millisEnd = System.currentTimeMillis();
-            if (millisStart > 0) {
-              runTime = millisEnd - millisStart;
-              durationUntitled = FormatHelper.duration(runTime, Precision.Whole);
-            }
-          } catch (Exception e) {
-            // no worries
-          }
-          break;
-        default:
-          break;
-      }
-    }
-    String health = " class=\"health_black\" ";
-    switch (experimentStatus) {
-      case Running:
-        health = " class=\"health_green\" ";
-        break;
-      default:
-        break;
-    }
+  private String fmtDuration(IExperiment experiment, long runTime) {
     StringBuffer db = new StringBuffer();
+    Status experimentStatus = experiment.getStatus();
+    String health = experimentStatus==Status.Running ? "class=\"health_green\"" : "class=\"health_black\"";
     db.append("<span " + health
-            + "title=\"Time (ddd:hh:mm:ss) elapsed for task, including all child tasks\">");
-    db.append(durationUntitled);
+            + "title=\"Time (ddd:hh:mm:ss) elapsed for task, including all child tasks and restarts\">");
+    String duration = FormatHelper.duration(runTime, Precision.Whole);
+    db.append(duration);
     db.append("</span>");
-    String duration = db.toString();
-    return duration;
+    return db.toString();
   }
 
   private String getUser(HttpServletRequest request, IExperiment experiment) {
@@ -197,133 +172,35 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return directoryLink;
   }
 
-  private boolean handleServletJsonExperiments(String target, Request baseRequest,
-          HttpServletRequest request, HttpServletResponse response) throws Exception {
-    String mName = "handleServletJsonExperiments";
-    WsLog.enter(cName, mName);
-
-    boolean handled = false;
-
-    JsonObject jsonResponse = new JsonObject();
-    JsonArray data = new JsonArray();
-
-    TreeMap<IExperiment, String> map = experimentsRegistryManager.getMapByStatus();
-
-    int maxRecords = HandlersUtilities.getExperimentsMax(request);
-    ArrayList<String> users = HandlersUtilities.getExperimentsUsers(request);
-
-    int counter = 0;
-
-    for (Entry<IExperiment, String> entry : map.entrySet()) {
-
-      IExperiment experiment = entry.getKey();
-
-      if (HandlersUtilities.isListable(request, users, maxRecords, counter, experiment)) {
-        counter++;
-        JsonArray row = new JsonArray();
-        // 00 Terminate
-        String terminate = "";
-        if (terminateEnabled) {
-          Status experimentStatus = experiment.getStatus();
-          switch (experimentStatus) {
-            case Running:
-              String id = experiment.getId();
-              String directory = experiment.getDirectory();
-              String disabled = "";
-              String resourceOwnerUserid = experiment.getUser();
-              if (!HandlersHelper.isUserAuthorized(request, resourceOwnerUserid)) {
-                disabled = "disabled title=\"Hint: use Login to enable\"";
-              }
-              String p0 = "'" + id + "'";
-              String p1 = "'" + directory + "'";
-              terminate = "<input type=\"button\" onclick=\"ducc_confirm_terminate_experiment(" + p0
-                      + "," + p1 + ")\" value=\"Terminate\" " + disabled + "/>";
-            default:
-              break;
-          }
-        }
-        row.add(new JsonPrimitive(terminate));
-        // 01 Start
-        String startDate = getStartDate(request, experiment);
-        row.add(new JsonPrimitive(startDate));
-        // 02 Duration
-        String duration = getDuration(request, experiment);
-        row.add(new JsonPrimitive(duration));
-        // 03 User
-        String user = getUser(request, experiment);
-        row.add(new JsonPrimitive(user));
-        // 04 Tasks
-        String tasks = getTasks(request, experiment);
-        row.add(new JsonPrimitive(tasks));
-        // 05 State
-        String state = getState(request, experiment);
-        row.add(new JsonPrimitive(state));
-        // 06 Directory (link)
-        String directoryLink = getDirectoryLink(request, experiment);
-        row.add(new JsonPrimitive(directoryLink));
-        // Row
-        data.add(row);
-      }
-    }
-
-    if (counter == 0) {
-      JsonArray row = new JsonArray();
-      row.add(new JsonPrimitive("no data"));
-      row.add(new JsonPrimitive(""));
-      row.add(new JsonPrimitive(""));
-      row.add(new JsonPrimitive(""));
-      row.add(new JsonPrimitive(""));
-      row.add(new JsonPrimitive(""));
-      data.add(row);
-    }
-
-    jsonResponse.add("aaData", data);
-
-    String json = jsonResponse.toString();
-    WsLog.debug(cName, mName, json);
-    response.getWriter().println(json);
-    response.setContentType("application/json");
-
-    handled = true;
-
-    WsLog.exit(cName, mName);
-    return handled;
-  }
-
-  private boolean handleServletExperiments(String target, Request baseRequest,
+  private boolean handleServletExperiments(String tableStyle, Request baseRequest,
           HttpServletRequest request, HttpServletResponse response) throws Exception {
     String mName = "handleServletExperiments";
     WsLog.enter(cName, mName);
 
     boolean handled = false;
 
-    StringBuffer sb = new StringBuffer();
+    FormatServlet fmt = tableStyle.equals("scroll") ? new FormatServletScroll() : new FormatServletClassic();
 
     TreeMap<IExperiment, String> map = experimentsRegistryManager.getMapByStatus();
 
     int maxRecords = HandlersUtilities.getExperimentsMax(request);
+    
     ArrayList<String> users = HandlersUtilities.getExperimentsUsers(request);
-
-    int counter = -1;
 
     for (Entry<IExperiment, String> entry : map.entrySet()) {
 
-      counter++;
       IExperiment experiment = entry.getKey();
 
-      if (HandlersUtilities.isListable(request, users, maxRecords, counter, experiment)) {
+      boolean fullTable = fmt.numRows() >= maxRecords;
+      
+      if (HandlersUtilities.isListable(request, users, fullTable, experiment)) {
 
-        int COLS = 7;
-        StringBuffer[] cbList = new StringBuffer[COLS];
-        for (int i = 0; i < COLS; i++) {
-          cbList[i] = new StringBuffer();
-        }
+        // Format each row with:  Terminate-Button Start Duration User Tasks State Directory
+        // (Column headings defined in expeiments.jsp)
 
-        int index = -1;
-
-        // 00 Terminate
+        fmt.startRow();
+        
         String terminate = "";
-        index++;
         if (terminateEnabled) {
           Status experimentStatus = experiment.getStatus();
           switch (experimentStatus) {
@@ -344,78 +221,34 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
               break;
           }
         }
-        cbList[index].append("<td valign=\"bottom\" align=\"right\">");
-        cbList[index].append(terminate);
-        cbList[index].append("</td>");
+        fmt.addElemR(terminate);
+        fmt.addElemL(getStartDate(request, experiment));
 
-        // 01 Start
-        String startDate = getStartDate(request, experiment);
-        index++;
-        cbList[index].append("<td valign=\"bottom\">");
-        cbList[index].append(startDate);
-        cbList[index].append("</td>");
-
-        // 02 Duration
-        String duration = getDuration(request, experiment);
+        // Get experiment runtime in msecs from JED to use as the numeric sort key
         long runTime = getRunTime(request, experiment);
-        index++;
-        String sort = "sorttable_customkey=\"" + runTime + "\"";
-        cbList[index].append("<td valign=\"bottom\" " + sort + " align=\"right\">");
-        cbList[index].append(duration);
-        cbList[index].append("</td>");
+        String duration = fmtDuration(experiment, runTime);
+        fmt.addElemR(duration, runTime);
 
-        // 03 User
-        String user = getUser(request, experiment);
-        index++;
-        cbList[index].append("<td valign=\"bottom\">");
-        cbList[index].append(user);
-        cbList[index].append("</td>");
+        fmt.addElemL(getUser(request, experiment));
+        fmt.addElemR(getTasks(request, experiment));
+        fmt.addElemL(getState(request, experiment));
+        fmt.addElemL(getDirectoryLink(request, experiment));
 
-        // 04 Tasks
-        String tasks = getTasks(request, experiment);
-        index++;
-        cbList[index].append("<td valign=\"bottom\" align=\"right\">");
-        cbList[index].append(tasks);
-        cbList[index].append("</td>");
-
-        // 05 State
-        String state = getState(request, experiment);
-        index++;
-        cbList[index].append("<td valign=\"bottom\">");
-        cbList[index].append(state);
-        cbList[index].append("</td>");
-
-        // 06 Directory (link)
-        String directoryLink = getDirectoryLink(request, experiment);
-        index++;
-        cbList[index].append("<td valign=\"bottom\">");
-        cbList[index].append(directoryLink);
-        cbList[index].append("</td>");
-
-        /////
-
-        StringBuffer row = new StringBuffer();
-
-        row.append(ResponseHelper.trStart(counter));
-        for (int i = 0; i < COLS; i++) {
-          row.append(cbList[i]);
-        }
-        row.append(ResponseHelper.trEnd(counter));
-        sb.append(row);
+        fmt.endRow();
       }
     }
 
     /////
 
-    if (sb.length() == 0) {
-      sb.append("<tr>");
-      sb.append("<td>");
-      sb.append("not found");
-      sb.append("</td>");
-      sb.append("</tr>");
+    if (fmt.numRows() == 0) {
+      fmt.startRow();
+      fmt.addElemL("");
+      fmt.addElemL("not found");
+      fmt.pad(5);   // DataTables needs all 7 elements for column alignment
+      fmt.endRow();
     }
 
-    response.getWriter().println(sb);
+    fmt.send(response);;
 
     handled = true;
 
@@ -423,146 +256,8 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return handled;
   }
 
-  private boolean handleServletJsonExperimentDetails(String target, Request baseRequest,
-          HttpServletRequest request, HttpServletResponse response) throws Exception {
-    String mName = "handleServletJsonExperimentDetails";
-    WsLog.enter(cName, mName);
-
-    boolean handled = false;
-
-    WsLog.exit(cName, mName);
-    return handled;
-  }
-
-  private enum IdType {
-    Job, Reservation, None
-  };
-
-  private class IdBundle {
-
-    private IdType idType = IdType.None;
-
-    private int[] idList = new int[0];
-
-    public IdBundle() {
-    }
-
-    public IdBundle(IdType type, int[] list) {
-      idType = type;
-      idList = list;
-    }
-
-    public IdType getType() {
-      return idType;
-    }
-
-    public int[] getList() {
-      return idList;
-    }
-  }
-
-  private class IdListIterator {
-
-    private ArrayList<Long> reservations = new ArrayList<Long>();
-
-    private ArrayList<Long> jobs = new ArrayList<Long>();
-
-    public IdListIterator(Task task) {
-      if (task != null) {
-        long[] duccIdList = task.duccId;
-        for (long duccId : duccIdList) {
-          if (duccId < 0) {
-            Long r = new Long(duccId);
-            reservations.add(r);
-          } else {
-            Long j = new Long(duccId);
-            jobs.add(j);
-          }
-        }
-      }
-    }
-
-    public IdBundle getNext() {
-      IdBundle retVal = new IdBundle();
-      if (reservations.size() > 0) {
-        int[] list = new int[1];
-        Long r = reservations.remove(0);
-        list[0] = r.intValue();
-        retVal = new IdBundle(IdType.Reservation, list);
-      } else if (jobs.size() > 0) {
-        int[] list = new int[1];
-        Long j = jobs.remove(0);
-        list[0] = j.intValue();
-        retVal = new IdBundle(IdType.Job, list);
-      }
-      return retVal;
-    }
-
-    public boolean isEmpty() {
-      boolean retVal = true;
-      if (reservations.size() > 0) {
-        retVal = false;
-      }
-      if (jobs.size() > 0) {
-        retVal = false;
-      }
-      return retVal;
-    }
-  }
-
-  public enum ExperimentDetailsColumns {
-    Id(0), Name(1), Parent(2), State(3), Type(4), StepStart(5), StepDuration(6), DuccId(7), 
-    DuccDuration(8), Total(9), Done(10), Error(11), Dispatch(12), Retry(13), Preempt(14);
-    
-    private int index;
-
-    ExperimentDetailsColumns(int index) {
-      this.index = index;
-    }
-
-    public int getIndex() {
-      return index;
-    }
-
-    public static int getCols() {
-      return Preempt.getIndex() + 1;
-    }
-  }
-
-  private void addPlaceholder(StringBuffer[] cbList, int index) {
-    cbList[index].append("<td>");
-    cbList[index].append("</td>");
-  }
-
-  private void edId(StringBuffer[] cbList, Task task) {
-    long taskId = task.taskId;
-    int index = ExperimentDetailsColumns.Id.getIndex();
-    cbList[index].append("<td align=\"right\">");
-    cbList[index].append("" + taskId);
-    cbList[index].append("</td>");
-  }
-
-  private void edName(StringBuffer[] cbList, Task task) {
-    String name = "";
-    if (task.name != null) {
-      name = task.name;
-    }
-    int index = ExperimentDetailsColumns.Name.getIndex();
-    cbList[index].append("<td>");
-    cbList[index].append(name);
-    cbList[index].append("</td>");
-  }
-
-  private void edParent(StringBuffer[] cbList, Task task) {
-    long taskParentId = task.parentId;
-    int index = ExperimentDetailsColumns.Parent.getIndex();
-    cbList[index].append("<td align=\"right\">");
-    cbList[index].append("" + taskParentId);
-    cbList[index].append("</td>");
-  }
-
-  private void edState(StringBuffer[] cbList, IExperiment experiment, Task task) {
-    String mName = "edState";
+  private String decorateState(IExperiment experiment, Task task) {
+    String mName = "decorateState";
     String state = "";
     if (task.status != null) {
       state = task.status;
@@ -589,424 +284,182 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
         }
       }
     }
-    int index = ExperimentDetailsColumns.State.getIndex();
-    cbList[index].append("<td>");
-    cbList[index].append(state);
-    cbList[index].append("</td>");
+    return state;
   }
-
-  private void edType(StringBuffer[] cbList, Task task) {
-    String type = "";
-    if (task.type != null) {
-      type = task.type;
-    }
-    int index = ExperimentDetailsColumns.Type.getIndex();
-    cbList[index].append("<td>");
-    cbList[index].append(type);
-    cbList[index].append("</td>");
-  }
-
-  private void edStepStart(StringBuffer[] cbList, Task task, HttpServletRequest request) {
+  
+  private String decorateStepStart(Task task, HttpServletRequest request) {
     String startTime = "";
     if (task.startTime != null) {
       startTime = task.startTime;
-      //
       DateStyle dateStyle = DuccCookies.getDateStyle(request);
       startTime = HandlersUtilities.reFormatDate(dateStyle, startTime);
-      //
     }
-    int index = ExperimentDetailsColumns.StepStart.getIndex();
-    cbList[index].append("<td>");
-    cbList[index].append(startTime);
-    cbList[index].append("</td>");
+    return startTime;
   }
-
-  private void edStepDuration(StringBuffer[] cbList, Task task, HttpServletRequest request) {
+  
+  private String decorateStepDuration(Task task) {
     String displayRunTime = "";
     long runTime = task.runTime;
     if (runTime > 0) {
       displayRunTime = FormatHelper.duration(runTime, Precision.Whole);
     }
-    String sort = "sorttable_customkey=\"" + runTime + "\"";
-    int index = ExperimentDetailsColumns.StepDuration.getIndex();
-    cbList[index].append("<td " + sort + " align=\"right\">");
-    cbList[index].append(
-            "<span title=\"Time (ddd:hh:mm:ss) elapsed for task, including all child tasks\">");
-    cbList[index].append(displayRunTime);
-    cbList[index].append("</span>");
-    cbList[index].append("</td>");
+    return "<span title=\"Time (ddd:hh:mm:ss) elapsed for task, including all child tasks\">" + displayRunTime + "</span>";
   }
-
-  private void edDuccId(StringBuffer[] cbList, Task task, int[] duccIdList) {
-    // WsLog.info(cName, "edDuccId", "!! #ids = "+duccIdList.length);
-    StringBuffer db = new StringBuffer();
-    String type = "";
-    if (task.type != null) {
-      type = task.type;
+  
+  private String decorateDuccId(Task task, long duccId) {
+    String link;
+    if (duccId < 0) {
+      String parm = Long.toString(0 - duccId);
+      link = "<a href=\"reservation.details.html?id=" + parm + "\">" + parm + "</a> ";
+    } else {
+      String parm = Long.toString(duccId);
+      link = "<a href=\"job.details.html?id=" + parm + "\">" + parm + "</a> ";
     }
-    Jed.Type jedType = Jed.Type.getEnum(type);
-    switch (jedType) {
-      case DuccJob:
-      case Java:
-      case Trainer:
-        for (int duccId : duccIdList) {
-          String link;
-          if (duccId < 0) {
-            String parm = "" + (0 - duccId);
-            link = "<a href=\"reservation.details.html?id=" + parm + "\">" + parm + "</a> ";
-          } else {
-            String parm = "" + (0 + duccId);
-            link = "<a href=\"job.details.html?id=" + parm + "\">" + parm + "</a> ";
-          }
-          db.append(link);
-        }
-        break;
-      case Other:
-      default:
-        break;
-    }
-    String duccLinks = db.toString().trim();
-    int index = ExperimentDetailsColumns.DuccId.getIndex();
-    cbList[index].append("<td>");
-    cbList[index].append(duccLinks);
-    cbList[index].append("</td>");
+    return link;
   }
-
-  private void edDuccDuration(StringBuffer[] cbList, Task task, HttpServletRequest request,
+  
+  private String decorateDuccDuration(Task task, HttpServletRequest request,
           IDuccWorkJob job, long now) {
-    int index = ExperimentDetailsColumns.DuccDuration.getIndex();
-    cbList[index].append("<td valign=\"bottom\" align=\"right\">");
+    StringBuffer sbuff = new StringBuffer();
     try {
       if (job.isCompleted()) {
         String duration = getDuration(request, job);
         String decoratedDuration = decorateDuration(request, job, duration);
-        cbList[index].append("<span>");
-        cbList[index].append(decoratedDuration);
-        cbList[index].append("</span>");
+        sbuff.append("<span>");
+        sbuff.append(decoratedDuration);
+        sbuff.append("</span>");
       } else {
         String duration = getDuration(request, job, now);
         String decoratedDuration = decorateDuration(request, job, duration);
-        cbList[index].append("<span class=\"health_green\"" + ">");
-        cbList[index].append(decoratedDuration);
-        cbList[index].append("</span>");
+        sbuff.append("<span class=\"health_green\"" + ">");
+        sbuff.append(decoratedDuration);
+        sbuff.append("</span>");
         String projection = getProjection(request, job);
-        cbList[index].append(projection);
+        sbuff.append(projection);
       }
     } catch (Exception e) {
-      WsLog.error(cName, "edDuccDuration", e);
+      WsLog.error(cName, "decorateDuccDuration", e);
     }
-    cbList[index].append("</td>");
+    return sbuff.toString();
   }
 
-  private void edDuccDuration(StringBuffer[] cbList, Task task, HttpServletRequest request,
-          IDuccWork dw, long now) {
-    int index = ExperimentDetailsColumns.DuccDuration.getIndex();
-    cbList[index].append("<td valign=\"bottom\" align=\"right\">");
+  private String decorateDuccDuration(Task task, HttpServletRequest request, IDuccWork dw, long now) {
+    StringBuffer sbuff = new StringBuffer();
     try {
       if (dw.isCompleted()) {
         String duration = getDuration(request, dw);
-        cbList[index].append("<span>");
-        cbList[index].append(duration);
-        cbList[index].append("</span>");
+        sbuff.append("<span>");
+        sbuff.append(duration);
+        sbuff.append("</span>");
       } else {
         String duration = getDuration(request, dw, now);
-        cbList[index].append("<span class=\"health_green\"" + ">");
-        cbList[index].append(duration);
-        cbList[index].append("</span>");
+        sbuff.append("<span class=\"health_green\"" + ">");
+        sbuff.append(duration);
+        sbuff.append("</span>");
       }
     } catch (Exception e) {
     }
-    cbList[index].append("</td>");
+    return sbuff.toString();
   }
 
-  private void edTotal(StringBuffer[] cbList, Task task, HttpServletRequest request,
-          IDuccWorkJob job) {
-    int index = ExperimentDetailsColumns.Total.getIndex();
-    cbList[index].append("<td valign=\"bottom\" align=\"right\">");
-    try {
-      cbList[index].append(job.getSchedulingInfo().getWorkItemsTotal());
-    } catch (Exception e) {
-    }
-    cbList[index].append("</td>");
-  }
-
-  private void edDone(StringBuffer[] cbList, Task task, HttpServletRequest request,
-          IDuccWorkJob job) {
-    int index = ExperimentDetailsColumns.Done.getIndex();
-    cbList[index].append("<td valign=\"bottom\" align=\"right\">");
-    try {
-      cbList[index].append(job.getSchedulingInfo().getWorkItemsCompleted());
-    } catch (Exception e) {
-    }
-    cbList[index].append("</td>");
-  }
-
-  private void edError(StringBuffer[] cbList, Task task, HttpServletRequest request,
-          IDuccWorkJob job) {
-    int index = ExperimentDetailsColumns.Error.getIndex();
-    cbList[index].append("<td valign=\"bottom\" align=\"right\">");
-    try {
-      cbList[index].append(buildErrorLink(job));
-    } catch (Exception e) {
-    }
-    cbList[index].append("</td>");
-  }
-
-  private void edDispatch(StringBuffer[] cbList, Task task, HttpServletRequest request,
-          IDuccWorkJob job) {
-    int index = ExperimentDetailsColumns.Dispatch.getIndex();
-    cbList[index].append("<td valign=\"bottom\" align=\"right\">");
-    try {
-      DuccData duccData = DuccData.getInstance();
-      if (duccData.isLive(job.getDuccId())) {
-        int dispatch = 0;
-        int unassigned = job.getSchedulingInfo().getCasQueuedMap().size();
-        try {
-          dispatch = Integer.parseInt(job.getSchedulingInfo().getWorkItemsDispatched())
-                  - unassigned;
-        } catch (Exception e) {
-        }
-        cbList[index].append(dispatch);
+  private void edTaskDucc(FormatServlet fmt, IExperiment experiment, Task task,
+          HttpServletRequest request, long duccId, long now) {
+    DuccData duccData = DuccData.getInstance();
+    
+    // Format first 7 columns: 
+    //   Id Name Parent State Type Step-Start Step-Duration
+    fmt.addElemR(task.taskId);
+    fmt.addElemL(task.name);
+    fmt.addElemR(task.parentId);
+    fmt.addElemL(decorateState(experiment, task));
+    fmt.addElemL(task.type);
+    fmt.addElemL(decorateStepStart(task, request));
+    fmt.addElemR(decorateStepDuration(task), task.runTime);
+  
+    // Format next 8 columns for DUCC jobs or next 2 for DUCC managed reservations (with padding)
+    //    DuccId Ducc-Duration Total Done Error Dispatch Retry Preempt
+    // (Column headings defined in experiment.details.jsp)
+    if (duccId > 0) {
+      DuccId jDuccId = new DuccId(duccId);
+      IDuccWorkJob job = duccData.getJob(jDuccId);
+      
+      fmt.addElemL(decorateDuccId(task, duccId));                     // DUCC ID
+      fmt.addElemR(decorateDuccDuration(task, request, job, now));    // DUCC duration
+      fmt.addElemR(job.getSchedulingInfo().getWorkItemsTotal());      // Total
+      fmt.addElemR(job.getSchedulingInfo().getWorkItemsCompleted());  // Done
+      fmt.addElemR(buildErrorLink(job));                              // Error
+      fmt.addElemR(getDispatch(job));                                 // Dispatch
+      fmt.addElemR(job.getSchedulingInfo().getWorkItemsRetry());      // Retry
+      fmt.addElemR(job.getSchedulingInfo().getWorkItemsPreempt());    // Preempt
+    } else {
+      if (duccId < 0) {
+        DuccId rDuccId = new DuccId(-duccId);
+        IDuccWork dw = duccData.getReservation(rDuccId);
+        
+        fmt.addElemL(decorateDuccId(task, duccId));
+        fmt.addElemR(decorateDuccDuration(task, request, dw, now));
       } else {
-        cbList[index].append("0");
+        fmt.pad(2);  // duccId == 0 => pad last 8
       }
-    } catch (Exception e) {
-    }
-    cbList[index].append("</td>");
-  }
-
-  private void edRetry(StringBuffer[] cbList, Task task, HttpServletRequest request,
-          IDuccWorkJob job) {
-    int index = ExperimentDetailsColumns.Retry.getIndex();
-    cbList[index].append("<td valign=\"bottom\" align=\"right\">");
-    try {
-      cbList[index].append(job.getSchedulingInfo().getWorkItemsRetry());
-    } catch (Exception e) {
-    }
-    cbList[index].append("</td>");
-  }
-
-  private void edPreempt(StringBuffer[] cbList, Task task, HttpServletRequest request,
-          IDuccWorkJob job) {
-    int index = ExperimentDetailsColumns.Preempt.getIndex();
-    cbList[index].append("<td valign=\"bottom\" align=\"right\">");
-    try {
-      cbList[index].append(job.getSchedulingInfo().getWorkItemsPreempt());
-    } catch (Exception e) {
-    }
-    cbList[index].append("</td>");
-  }
-
-  private void edTaskNonDucc(StringBuffer[] cbList, IExperiment experiment, Task task,
-          HttpServletRequest request) {
-    edId(cbList, task);
-    edName(cbList, task);
-    edParent(cbList, task);
-    edState(cbList, experiment, task);
-    edType(cbList, task);
-    edStepStart(cbList, task, request);
-    edStepDuration(cbList, task, request);
-    addPlaceholder(cbList, ExperimentDetailsColumns.DuccId.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.DuccDuration.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.Total.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.Done.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.Error.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.Dispatch.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.Retry.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.Preempt.getIndex());
-  }
-
-  private void edTaskDuccFirst(StringBuffer[] cbList, IExperiment experiment, Task task,
-          HttpServletRequest request, IdBundle idBundle, long now) {
-    DuccData duccData = DuccData.getInstance();
-    int[] duccIdList = idBundle.getList();
-    // WsLog.info(cName, "edTaskDuccFirst", "!! #ids = "+duccIdList.length);
-    edId(cbList, task);
-    edName(cbList, task);
-    edParent(cbList, task);
-    edState(cbList, experiment, task);
-    edType(cbList, task);
-    edStepStart(cbList, task, request);
-    edStepDuration(cbList, task, request);
-    edDuccId(cbList, task, duccIdList);
-    switch (idBundle.getType()) {
-      case Job:
-        DuccId jDuccId = new DuccId(duccIdList[0]);
-        IDuccWorkJob dwj = duccData.getJob(jDuccId);
-        edDuccDuration(cbList, task, request, dwj, now);
-        edTotal(cbList, task, request, dwj);
-        edDone(cbList, task, request, dwj);
-        edError(cbList, task, request, dwj);
-        edDispatch(cbList, task, request, dwj);
-        edRetry(cbList, task, request, dwj);
-        edPreempt(cbList, task, request, dwj);
-        break;
-      case Reservation:
-        int id = 0 - duccIdList[0];
-        DuccId rDuccId = new DuccId(id);
-        IDuccWork dw = duccData.getReservation(rDuccId);
-        edDuccDuration(cbList, task, request, dw, now);
-        addPlaceholder(cbList, ExperimentDetailsColumns.Total.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Done.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Error.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Dispatch.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Retry.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Preempt.getIndex());
-        break;
-      default:
-        addPlaceholder(cbList, ExperimentDetailsColumns.DuccDuration.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Total.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Done.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Error.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Dispatch.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Retry.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Preempt.getIndex());
-        break;
+      fmt.pad(6);   // Finish with 6 place-holders
     }
   }
 
-  private void edTaskDuccNext(StringBuffer[] cbList, Task task, HttpServletRequest request,
-          IdBundle idBundle, long now) {
-    DuccData duccData = DuccData.getInstance();
-    int[] duccIdList = idBundle.getList();
-    // WsLog.info(cName, "edTaskDuccNext", "!! #ids = "+duccIdList.length);
-    addPlaceholder(cbList, ExperimentDetailsColumns.Id.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.Name.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.Parent.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.State.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.Type.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.StepStart.getIndex());
-    addPlaceholder(cbList, ExperimentDetailsColumns.StepDuration.getIndex());
-    edDuccId(cbList, task, duccIdList);
-    switch (idBundle.getType()) {
-      case Job:
-        DuccId duccId = new DuccId(duccIdList[0]);
-        IDuccWorkJob job = duccData.getJob(duccId);
-        edDuccDuration(cbList, task, request, job, now);
-        edTotal(cbList, task, request, job);
-        edDone(cbList, task, request, job);
-        edError(cbList, task, request, job);
-        edDispatch(cbList, task, request, job);
-        edRetry(cbList, task, request, job);
-        edPreempt(cbList, task, request, job);
-        break;
-      case Reservation:
-        int id = 0 - duccIdList[0];
-        DuccId rDuccId = new DuccId(id);
-        IDuccWork dw = duccData.getReservation(rDuccId);
-        edDuccDuration(cbList, task, request, dw, now);
-        addPlaceholder(cbList, ExperimentDetailsColumns.Total.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Done.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Error.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Dispatch.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Retry.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Preempt.getIndex());
-        break;
-      default:
-        addPlaceholder(cbList, ExperimentDetailsColumns.DuccDuration.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Total.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Done.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Error.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Dispatch.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Retry.getIndex());
-        addPlaceholder(cbList, ExperimentDetailsColumns.Preempt.getIndex());
-        break;
+/*  private String reverse(long[] ids, int ix) {
+    if (ix == 0) {
+      return "";
     }
-  }
-
-  private StringBuffer[] getCbList() {
-    int COLS = ExperimentDetailsColumns.getCols();
-    StringBuffer[] cbList = new StringBuffer[COLS];
-    for (int i = 0; i < COLS; i++) {
-      cbList[i] = new StringBuffer();
+    StringBuffer sb = new StringBuffer();
+    while (--ix >= 0) {
+      sb.append(',').append(Long.toString(ids[ix]));
     }
-    return cbList;
-  }
-
-  private boolean handleServletExperimentDetails(String target, Request baseRequest,
+    return sb.substring(1);  // Skip the first , 
+  }*/
+  
+  private boolean handleServletExperimentDetails(String tableStyle, Request baseRequest,
           HttpServletRequest request, HttpServletResponse response) throws Exception {
     String mName = "handleServletExperimentDetails";
     WsLog.enter(cName, mName);
 
     boolean handled = false;
 
-    StringBuffer sb = new StringBuffer();
-
     String id = request.getParameter("id");
-
+    
     IExperiment experiment = experimentsRegistryManager.getById(id);
 
     long now = System.currentTimeMillis();
 
+    FormatServlet fmt = tableStyle.equals("scroll") ? new FormatServletScroll() : new FormatServletClassic();
+    
     if (experiment != null) {
       ArrayList<Task> tasks = experiment.getTasks();
       if (tasks != null) {
-        int counter = -1;
-        StringBuffer[] cbList;
-        StringBuffer row;
         for (Task task : tasks) {
-          String type = "";
-          if (task.type != null) {
-            type = task.type;
-          }
+          long latestDuccId = 0;
+          String type = (task.type != null) ? task.type : "";
           Jed.Type jedType = Jed.Type.getEnum(type);
-          switch (jedType) {
-            case DuccJob:
-            case Java:
-            case Trainer:
-              counter++;
-              cbList = getCbList();
-              IdListIterator idListIterator = new IdListIterator(task);
-              edTaskDuccFirst(cbList, experiment, task, request, idListIterator.getNext(), now);
-              row = new StringBuffer();
-              row.append(ResponseHelper.trStart(counter));
-              for (int i = 0; i < cbList.length; i++) {
-                row.append(cbList[i]);
-              }
-              row.append(ResponseHelper.trEnd(counter));
-              sb.append(row);
-              while (!idListIterator.isEmpty()) {
-                counter++;
-                cbList = getCbList();
-                edTaskDuccNext(cbList, task, request, idListIterator.getNext(), now);
-                row = new StringBuffer();
-                row.append(ResponseHelper.trStart(counter));
-                for (int i = 0; i < cbList.length; i++) {
-                  row.append(cbList[i]);
-                }
-                row.append(ResponseHelper.trEnd(counter));
-                sb.append(row);
-              }
-              break;
-            default:
-              counter++;
-              cbList = getCbList();
-              edTaskNonDucc(cbList, experiment, task, request);
-              row = new StringBuffer();
-              row.append(ResponseHelper.trStart(counter));
-              for (int i = 0; i < cbList.length; i++) {
-                row.append(cbList[i]);
-              }
-              row.append(ResponseHelper.trEnd(counter));
-              sb.append(row);
-              break;
+          if (jedType == Jed.Type.DuccJob || jedType == Jed.Type.Java) {
+              long[] duccIds = task.duccId;
+              int nIds = duccIds.length;
+              latestDuccId = nIds == 0 ? 0 : duccIds[--nIds];
+              //String otherIds = reverse(duccIds, nIds);
           }
+          fmt.startRow();
+          edTaskDucc(fmt, experiment, task, request, latestDuccId, now);
+          fmt.endRow();
         }
       }
     }
 
-    /////
-
-    if (sb.length() == 0) {
-      sb.append("<tr>");
-      sb.append("<td>");
-      sb.append("not found");
-      sb.append("</td>");
-      sb.append("</tr>");
+    if (fmt.numRows() == 0) {
+      fmt.startRow();
+      fmt.addElemL("not found");
+      fmt.pad(14);   // DataTables needs all 15 elements for column alignment
+      fmt.endRow();
     }
 
-    response.getWriter().println(sb);
-
+    fmt.send(response);
+    
     handled = true;
 
     WsLog.exit(cName, mName);
@@ -1098,14 +551,19 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     if (handled) {
     } else if (reqURI.startsWith(duccContextExperimentDetailsDirectory)) {
       handled = handleServletExperimentDetailsDirectory(target, baseRequest, request, response);
-    } else if (reqURI.startsWith(duccContextExperimentDetails)) {
-      handled = handleServletExperimentDetails(target, baseRequest, request, response);
+      
     } else if (reqURI.startsWith(duccContextExperiments)) {
-      handled = handleServletExperiments(target, baseRequest, request, response);
-    } else if (reqURI.startsWith(duccContextJsonExperimentDetails)) {
-      handled = handleServletJsonExperimentDetails(target, baseRequest, request, response);
+      handled = handleServletExperiments("classic", baseRequest, request, response);
+      
     } else if (reqURI.startsWith(duccContextJsonExperiments)) {
-      handled = handleServletJsonExperiments(target, baseRequest, request, response);
+      handled = handleServletExperiments("scroll", baseRequest, request, response);
+      
+    } else if (reqURI.startsWith(duccContextExperimentDetails)) {
+      handled = handleServletExperimentDetails("classic", baseRequest, request, response);
+      
+    } else if (reqURI.startsWith(duccContextJsonExperimentDetails)) {
+      handled = handleServletExperimentDetails("scroll", baseRequest, request, response);
+
     } else if (reqURI.startsWith(duccContextExperimentCancelRequest)) {
       handled = handleServletExperimentCancelRequest(target, baseRequest, request, response);
     }

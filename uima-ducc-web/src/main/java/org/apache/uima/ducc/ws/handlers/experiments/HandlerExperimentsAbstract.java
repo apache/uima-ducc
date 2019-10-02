@@ -56,45 +56,7 @@ public abstract class HandlerExperimentsAbstract extends AbstractHandler {
     return HandlersUtilities.isIgnorable(t);
   }
 
-  public String getFmtDuration(IDuccWorkJob job, HttpServletRequest request, long now) {
-    String retVal = "";
-    StringBuffer tb = new StringBuffer();
-    if (job.isCompleted()) {
-      String duration = getDuration(request, job);
-      String decoratedDuration = decorateDuration(request, job, duration);
-      tb.append("<span>");
-      tb.append(decoratedDuration);
-      tb.append("</span>");
-      retVal = tb.toString();
-    } else {
-      String duration = getDuration(request, job, now);
-      String decoratedDuration = decorateDuration(request, job, duration);
-      tb.append("<span class=\"health_green\"" + ">");
-      tb.append(decoratedDuration);
-      tb.append("</span>");
-      String projection = getProjection(request, job);
-      tb.append(projection);
-      retVal = tb.toString();
-    }
-    return retVal;
-  }
-
-  public String getLink(IDuccWorkJob job) {
-    String retVal = "";
-    String parm = job.getDuccId().toString();
-    String displayId = "j" + parm;
-    String link = "<a href=\"job.details.html?id=" + parm + "\">" + displayId + "</a>";
-    retVal = link;
-    return retVal;
-  }
-
-  public String getTotal(IDuccWorkJob job) {
-    String retVal = "";
-    String total = job.getSchedulingInfo().getWorkItemsTotal();
-    retVal = total;
-    return retVal;
-  }
-
+  // Not used ?
   public String getDone(IDuccWorkJob job) {
     String retVal = "";
     String done = job.getSchedulingInfo().getWorkItemsCompleted();
@@ -129,31 +91,13 @@ public abstract class HandlerExperimentsAbstract extends AbstractHandler {
     return retVal;
   }
 
-  public String getError(IDuccWorkJob job) {
-    String retVal = "";
-    retVal = buildErrorLink(job);
-    return retVal;
-  }
-
-  public String getRetry(IDuccWorkJob job) {
-    String retVal = "";
-    retVal = job.getSchedulingInfo().getWorkItemsRetry();
-    return retVal;
-  }
-
-  public String getPreempt(IDuccWorkJob job) {
-    String retVal = "";
-    retVal = job.getSchedulingInfo().getWorkItemsPreempt();
-    return retVal;
-  }
-
   public String buildErrorLink(IDuccWorkJob job) {
     return (buildErrorLink(job, null));
   }
 
   public final String duccLogData = duccContext + "/log-data";
 
-  public String buildErrorLink(IDuccWorkJob job, String name) {
+  private String buildErrorLink(IDuccWorkJob job, String name) {
     String retVal = job.getSchedulingInfo().getWorkItemsError();
     if (!retVal.equals("0")) {
       String errorCount = retVal;
@@ -197,7 +141,7 @@ public abstract class HandlerExperimentsAbstract extends AbstractHandler {
     return retVal;
   }
 
-  public String getDuration(DuccId jobId, String millisV2, String millisV1) {
+  private String getDuration(DuccId jobId, String millisV2, String millisV1) {
     String retVal = "";
     try {
       long d2 = Long.parseLong(millisV2);
@@ -262,7 +206,7 @@ public abstract class HandlerExperimentsAbstract extends AbstractHandler {
     return retVal;
   }
 
-  public double getAvgMillisPerWorkItem(HttpServletRequest request, IDuccWorkJob job) {
+  private double getAvgMillisPerWorkItem(HttpServletRequest request, IDuccWorkJob job) {
     double avgMillis = 0;
     IDuccSchedulingInfo schedulingInfo = job.getSchedulingInfo();
     IDuccPerWorkItemStatistics perWorkItemStatistics = schedulingInfo.getPerWorkItemStatistics();
@@ -272,7 +216,7 @@ public abstract class HandlerExperimentsAbstract extends AbstractHandler {
     return avgMillis;
   }
 
-  public String getCompletion(HttpServletRequest request, IDuccWorkJob job) {
+  private String getCompletion(HttpServletRequest request, IDuccWorkJob job) {
     String retVal = "";
     try {
       String tVal = job.getStandardInfo().getDateOfCompletion();
@@ -283,7 +227,7 @@ public abstract class HandlerExperimentsAbstract extends AbstractHandler {
     return retVal;
   }
 
-  public String getCompletion(HttpServletRequest request, IDuccWorkReservation reservation) {
+  private String getCompletion(HttpServletRequest request, IDuccWorkReservation reservation) {
     String retVal = "";
     try {
       String tVal = reservation.getStandardInfo().getDateOfCompletion();
@@ -294,7 +238,7 @@ public abstract class HandlerExperimentsAbstract extends AbstractHandler {
     return retVal;
   }
 
-  public String getTimeStamp(HttpServletRequest request, DuccId jobId, String millis) {
+  private String getTimeStamp(HttpServletRequest request, DuccId jobId, String millis) {
     return getTimeStamp(DuccCookies.getDateStyle(request), getTimeStamp(jobId, millis));
   }
 
@@ -309,7 +253,7 @@ public abstract class HandlerExperimentsAbstract extends AbstractHandler {
     return retVal;
   }
 
-  public String getTimeStamp(DateStyle dateStyle, String date) {
+  private String getTimeStamp(DateStyle dateStyle, String date) {
     String mName = "getTimeStamp";
     StringBuffer sb = new StringBuffer();
     if (date != null) {

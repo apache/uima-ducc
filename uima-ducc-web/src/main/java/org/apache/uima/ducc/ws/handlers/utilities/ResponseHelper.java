@@ -35,7 +35,7 @@ public class ResponseHelper {
     }
   }
 
-  public static String trEnd(int counter) {
+  public static String trEnd() {
     return "</tr>";
   }
 

@@ -101,7 +101,7 @@ public class HandlersUtilities {
   }
 
   public static final boolean isListable(HttpServletRequest request, ArrayList<String> users,
-          int maxRecords, int counter, IExperiment handle) {
+          boolean fullTable, IExperiment handle) {
     boolean list = false;
     DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
     if (!users.isEmpty()) {
@@ -111,50 +111,32 @@ public class HandlersUtilities {
           if (handle.isActive()) {
             list = true;
           } else if (users.contains(user)) {
-            if (maxRecords > 0) {
-              if (counter < maxRecords) {
-                list = true;
-              }
-            }
+            list = !fullTable;   // Add to list if table not full
           }
           break;
         case ExcludePlusActive:
           if (handle.isActive()) {
             list = true;
           } else if (!users.contains(user)) {
-            if (maxRecords > 0) {
-              if (counter < maxRecords) {
-                list = true;
-              }
-            }
+            list = !fullTable; 
           }
           break;
         case Include:
           if (users.contains(user)) {
-            if (maxRecords > 0) {
-              if (counter < maxRecords) {
-                list = true;
-              }
-            }
+            list = !fullTable;
           }
           break;
         case Exclude:
           if (!users.contains(user)) {
-            if (maxRecords > 0) {
-              if (counter < maxRecords) {
-                list = true;
-              }
-            }
+            list = !fullTable;
           }
           break;
       }
     } else {
       if (handle.isActive()) {
         list = true;
-      } else if (maxRecords > 0) {
-        if (counter < maxRecords) {
-          list = true;
-        }
+      } else {
+        list = !fullTable;
       }
     }
     return list;

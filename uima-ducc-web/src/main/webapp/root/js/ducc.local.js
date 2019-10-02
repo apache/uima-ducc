@@ -5,82 +5,6 @@ function ducc_load_experiments_head()
         ducc_experiments_users();
 }
 
-var ms_load_experiments_data = +new Date() - ms_reload_min;
-
-function ducc_load_experiments_data()
-{
-        var ms_now = +new Date();
-        if(ms_now < ms_load_experiments_data + ms_reload_min) {
-                return;
-        }
-        ms_load_experiments_data = ms_now;
-        var table_style = ducc_preferences_get("table_style");
-        if(table_style == "scroll") {
-                ducc_load_scroll_experiments_data()
-        }
-        else {
-                ducc_load_classic_experiments_data()
-        }
-}
-
-function ducc_load_classic_experiments_data()
-{
-        try {
-                $.ajax(
-                {
-                        url : "/ducc-servlet/experiments-data",
-                        success : function (data) 
-                        {
-                                $("#experiments_list_area").html(data);
-                                ducc_timestamp();
-                                ducc_authentication();
-                                ducc_utilization();
-                        }
-                });
-        }
-        catch(err) {
-                ducc_error("ducc_load_classic_experiments_data",err);
-        }       
-}
-
-function ducc_load_scroll_experiments_data()
-{
-        try {
-                oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-experiments",ducc_load_scroll_experiments_callback);
-        }
-        catch(err) {
-                ducc_error("ducc_load_scroll_experiments_data",err);
-        }       
-}
-
-function ducc_load_scroll_experiments_callback() 
-{
-        try {
-                ducc_timestamp();
-                ducc_authentication();
-                ducc_utilization();
-                oTable.fnAdjustColumnSizing();
-        }
-        catch(err) {
-                ducc_error("ducc_load_scroll_experiments_callback",err);
-        }       
-}
-
-function ducc_init_experiments_data()
-{
-        try {
-                data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
-                $("#experiments_list_area").html(data);
-                data = "...?"
-                $("#timestamp_area").html(data);
-                data = "...?"
-                $("#authentication_area").html(data);
-        }
-        catch(err) {
-                ducc_error("ducc_init_experiments_data",err);
-        }       
-}
-
 function ducc_experiments_max_records() 
 {
         try {
@@ -171,39 +95,47 @@ function ducc_experiments_users()
 
 // Declare the global variables holding the last-use time
 var ms_load_experiment_details_data = +new Date() - ms_reload_min;
+var ms_load_experiments_data        = +new Date() - ms_reload_min;
 
-// Construct 3 variables from the type arg:
+// Load data based on table-style
+//
+// Construct 3 variables from the type arg: ('experiments' or 'experiment_details')
 // - the name of the last-use variable - e.g. ms_load_experiment_details_data
-// - the servlet - e.g. /ducc-servlet/experiment-details-data
-// - the result areas - e.g. : #loading_experiment_details_area #experiment_details_area"
+// - the servlet                       - e.g. /ducc-servlet/experiment-details-data
+// - the result areas                  - e.g. #experiment_details_area
 //
 // Drop thw work-in-progress check as the ms_reload_min check should block any simultaneous requests ... how do they occur?
-// TODO - standardize the names of the result areas & servlets so this can be shared by other pages
 
 function ducc_load_data(type) {
-    var fname = 'ducc_load_data/' + type;
-    var data = null;
-
     // Check if too soon after the last use
     var ms_now = +new Date();
-    ms_load = eval('ms_load_' + type + '_data');
+    type_ = type.replace(/-/g, '_');
+    ms_load = eval('ms_load_' + type_ + '_data');
     if (ms_now < ms_load + ms_reload_min) {
         return;
     }
-    eval('ms_load_' + type + '_data = ms_now');
+    eval('ms_load_' + type_ + '_data = ms_now');
 
+    var table_style = ducc_preferences_get("table_style");
+    if (table_style == "scroll") {
+	ducc_load_scroll_data(type);
+    } else {
+	ducc_load_classic_data(type);
+    }
+}
+
+function ducc_load_classic_data(type) {
+    var fname = 'ducc_load_classic_data/' + type;
+    var data = null;
     try {
-        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
-	load_area = "#loading_" + type + "_area";
-        $(load_area).html(data);
-	type2 = type.replace(/_/g, '-');
-        var servlet = "/ducc-servlet/" + type2 + "-data" + location.search;
+        var servlet = "/ducc-servlet/" + type + "-data" + location.search;
         var tomsecs = ms_timeout;
         $.ajax({
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
-	    data_area = "#" + type + "_area";
+	    type_ = type.replace(/-/g, '_');
+	    data_area = "#" + type_ + "_area";
             $(data_area).html(data);
             ducc_load_common();
             ducc_console_success(fname);
@@ -213,35 +145,43 @@ function ducc_load_data(type) {
     } catch(err) {
         ducc_error(fname,err);
     }
-    $(load_area).html("");
-
 }
 
-function ducc_init_experiment_details_data()
+function ducc_load_scroll_data(type)
+{
+        try {
+                oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-" + type + location.search,ducc_load_scroll_callback);
+        }
+        catch(err) {
+                ducc_error("ducc_load_scroll_data/"+type,err);
+        }       
+}
+
+function ducc_load_scroll_callback() 
+{
+        try {
+                ducc_load_common();
+                oTable.fnAdjustColumnSizing();
+        }
+        catch(err) {
+                ducc_error("ducc_load_scroll_callback",err);
+        }       
+}
+
+function ducc_init_data(type)
 {
         try {
                 data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
-                $("#experiment_details_area").html(data);
-                data = "...?"
-                $("#jobs_list_area").html(data);
+	        type_ = type.replace(/-/g, '_');
+	        data_area = "#" + type_ + "_area";
+                $(data_area).html(data);
                 data = "...?"
                 $("#timestamp_area").html(data);
                 data = "...?"
                 $("#authentication_area").html(data);
         }
         catch(err) {
-                ducc_error("ducc_init_experiment_details_data",err);
-        }
-}
-
-function ducc_init_identify_experiment_details()
-{
-        try {
-                data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
-                $("#identify_experiment_details_area").html(data);
-        }
-        catch(err) {
-                ducc_error("ducc_init_identify_experiment_details",err);
+                ducc_error("ducc_init_data",err);
         }
 }
 
@@ -267,22 +207,21 @@ function ducc_init_local(type)
 {
         try {
                 if(type == "experiments") {
+		        // If enter key is pressed refresh the page
                         $(document).keypress(function(e) {
                         if(e.which == 13) {
                                 ducc_load_experiments_head();
-                                ducc_load_experiments_data();
+                                ducc_load_data(type);
                         }
                         });
-                        ducc_init_experiments_data();
+		        ducc_init_data(type);
                         ducc_load_experiments_head();
-                        ducc_load_experiments_data();
+		        ducc_load_data(type);
                 }
                 if(type == "experiment-details") {
-                        ducc_init_identify_experiment_details();
-                        ducc_init_experiment_details_data();
+                        ducc_init_data(type);
                         ducc_load_identify_experiment_details();
-                        //ducc_load_experiment_details_data();
-		        ducc_load_data("experiment_details");
+		        ducc_load_data(type);
                 }
         }
         catch(err) {
@@ -295,12 +234,11 @@ function ducc_update_page_local(type)
         try {
                 if(type == "experiments") {
                         ducc_load_experiments_head();
-                        ducc_load_experiments_data();
+                        ducc_load_data(type);
                 }
                 if(type == "experiment-details") {
                         ducc_load_identify_experiment_details();
-                        //ducc_load_experiment_details_data();
-                        ducc_load_data("experiment_details");
+                        ducc_load_data(type);
                 }
         }
         catch(err) {
