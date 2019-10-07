@@ -23,10 +23,12 @@ package org.apache.uima.ducc.ws.xd;
  * See com.ibm.bluej.system.driver/src/com/ibm/bluej/system/driver/TaskState.java 
  */
 public class Task {
+  public String pathId;
+  
   public int taskId = 0;
 
   public int parentId = 0;
-
+  
   public String name = null;
 
   public String type = null;

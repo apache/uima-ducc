@@ -366,11 +366,12 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
           HttpServletRequest request, long duccId, long now) {
     DuccData duccData = DuccData.getInstance();
     
-    // Format first 7 columns: 
-    //   Id Name Parent State Type Step-Start Step-Duration
+    // Format first 8 columns: 
+    //   Path-ID Id Parent Name State Type Step-Start Step-Duration
+    fmt.addElemL(task.pathId);
     fmt.addElemR(task.taskId);
-    fmt.addElemL(task.name);
     fmt.addElemR(task.parentId);
+    fmt.addElemL(task.name);
     fmt.addElemL(decorateState(experiment, task));
     fmt.addElemL(task.type);
     fmt.addElemL(decorateStepStart(task, request));
@@ -454,7 +455,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     if (fmt.numRows() == 0) {
       fmt.startRow();
       fmt.addElemL("not found");
-      fmt.pad(14);   // DataTables needs all 15 elements for column alignment
+      fmt.pad(15);   // DataTables needs all 16 elements for column alignment
       fmt.endRow();
     }
 
