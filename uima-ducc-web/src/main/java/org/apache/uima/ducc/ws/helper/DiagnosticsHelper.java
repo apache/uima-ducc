@@ -29,7 +29,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DiagnosticsHelper extends Thread {
 	
-	private static DuccLogger duccLogger = DuccLogger.getLogger(DiagnosticsHelper .class.getName(), null);
+	private static DuccLogger duccLogger = DuccLogger.getLogger(DiagnosticsHelper .class.getName(), "WS");
 	private static DuccId jobid = null;
 	
 	private static File devNull = new File("/dev/null");

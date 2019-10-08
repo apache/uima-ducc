@@ -31,7 +31,7 @@ import org.apache.uima.ducc.ws.utils.alien.EffectiveUser;
 
 public class AlienTextFile extends AlienAbstract {	
 	
-	private static DuccLogger duccLogger = DuccLogger.getLogger(AlienTextFile.class.getName(), null);
+	private static DuccLogger duccLogger = DuccLogger.getLogger(AlienTextFile.class.getName(), "WS");
 	
 	private static String command_du = "/usr/bin/du";
 	private static String flag_dash_b = "-b";

@@ -302,7 +302,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletHome";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		sb.append(dir_home);
+		String ducc_ws_display_home = "ducc.ws.display.home";
+		String text = DuccPropertiesResolver.getInstance().getProperty(ducc_ws_display_home);
+		if(text == null) {
+			text = dir_home;
+		}
+		sb.append(text);
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
