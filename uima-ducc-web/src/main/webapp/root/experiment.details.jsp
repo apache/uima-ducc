@@ -28,18 +28,25 @@ if (table_style.equals("scroll")) {
 %>  
   <!-- Drop the sAjaxSource entry as it caused a superfluous request without a row id -->
   <!-- Also drop the bSortable:false for the 1st column (the experiment id)           -->
+  <!-- Options:									      -->
+  <!--	Processing - display Processing message					      -->		
+  <!--	dom        - positions the various controls that DataTables adds to the table -->
+  <!--		     (Length,Filtering,pRocessing,Table,Information,Paging)	      -->
+  <!--	             Colvis - reserves a row (avoids "Processing" page bounce)        -->
+  
   <script type="text/javascript" charset="utf-8">
 	var oTable;
 	$(document).ready(function() {
 		oTable = $('#experiment-details-table').dataTable( {
-			"bProcessing": true,
-			"bPaginate": false,
-			"bFilter": true,
-			"sScrollX": "100%",
-			"sScrollY": "600px",
-	       		"bInfo": false,
-			"aaSorting": [],
-			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
+			dom: 'Clfrtip',
+			processing: true,
+			paging: false,
+			searching: true,
+			scrollX: "100%",
+			scrollY: "600px",
+	       		info: false,
+			order: [],
+			rowCallback  : function(nRow,aData,iDisplayIndex) {
                              		return nRow;
 			},
 		} );
@@ -98,9 +105,10 @@ if (table_style.equals("scroll")) {
 	<table id="experiment-details-table" width="100%">
 	<thead>
 	<tr class="ducc-header">
+	<th title="The path id for this experiment subtask">Path Id</th>
 	<th title="The id for this experiment subtask" class="sorttable_numeric">Id</th>
-	<th title="The name for this experiment subtask">Name</th>
 	<th title="The parent id for this experiment subtask" class="sorttable_numeric">Parent</th>
+	<th title="The name for this experiment subtask">Name</th>
 	<th title="The state of this experiment subtask">State</th>
 	<th title="The type for this experiment subtask">Type</th>
 	<th title="The start time of this experiment subtask">Step<br>Start</th>
@@ -131,15 +139,16 @@ if (table_style.equals("classic")) {
       <table class="sortable">
 		<thead>
 		<tr class="ducc-head">
+		<th title="The path id for this experiment subtask">Path Id</th>
 		<th title="The id for this experiment subtask" class="sorttable_numeric">Id</th>
-        <th title="The name for this experiment subtask">Name</th>
-        <th title="The parent id for this experiment subtask" class="sorttable_numeric">Parent</th>
-        <th title="The state of this experiment subtask">State</th>
-        <th title="The type for this experiment subtask">Type</th>
-        <th title="The start time of this experiment subtask">Step<br>Start</th>
-        <th class="sorttable_numeric" title="The duration time of this experiment subtask">Step<br>Duration</th>
+		<th title="The parent id for this experiment subtask" class="sorttable_numeric">Parent</th>
+		<th title="The name for this experiment subtask">Name</th>
+		<th title="The state of this experiment subtask">State</th>
+		<th title="The type for this experiment subtask">Type</th>
+		<th title="The start time of this experiment subtask">Step<br>Start</th>
+		<th class="sorttable_numeric" title="The duration time of this experiment subtask">Step<br>Duration</th>
 		<th title="The DUCC Id(s) for this experiment subtask, if any">DUCC Id</th>
-		 <th class="sorttable_numeric" title="The duration time of this DUCC subtask">DUCC<br>Duration</th>
+		<th class="sorttable_numeric" title="The duration time of this DUCC subtask">DUCC<br>Duration</th>
 		<th title="The total number of work items for this job">Total</th>
 		<th title="The number of work items that completed successfully">Done</th>
 		<th title="The number of work items that failed to complete successfully">Error</th>

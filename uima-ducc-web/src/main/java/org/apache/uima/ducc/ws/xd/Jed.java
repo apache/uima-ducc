@@ -22,7 +22,7 @@ public class Jed {
 
   public enum Type {
 
-    DuccJob, Java, File, Exec, Trainer, Sequential, Parallel, ParallelData, SetPhase, Other;
+    Ducc_Job, Java, File, Exec, Trainer, Sequential, Sequential_Data, Parallel, Parallel_Data, Set_Phase, Other;
 
     private static String DUCC_JOB = "DUCC_JOB";
 
@@ -33,14 +33,8 @@ public class Jed {
     public static Type getEnum(String value) {
       Type retVal = Other;
       if (value == null) {
-      } else if (DUCC_JOB.equalsIgnoreCase(value)) {
-        retVal = DuccJob;
-      } else if (PARALLEL_DATA.equalsIgnoreCase(value)) {
-        retVal = ParallelData;
-      } else if (SET_PHASE.equalsIgnoreCase(value)) {
-        retVal = SetPhase;
-      } else if (DuccJob.name().equalsIgnoreCase(value)) {
-        retVal = DuccJob;
+      } else if (Ducc_Job.name().equalsIgnoreCase(value)) {
+        retVal = Ducc_Job;
       } else if (Java.name().equalsIgnoreCase(value)) {
         retVal = Java;
       } else if (File.name().equalsIgnoreCase(value)) {
@@ -51,12 +45,14 @@ public class Jed {
         retVal = Trainer;
       } else if (Sequential.name().equalsIgnoreCase(value)) {
         retVal = Sequential;
-      } else if (ParallelData.name().equalsIgnoreCase(value)) {
-        retVal = ParallelData;
+      } else if (Sequential_Data.name().equalsIgnoreCase(value)) {
+        retVal = Sequential_Data; 
+      } else if (Parallel_Data.name().equalsIgnoreCase(value)) {
+        retVal = Parallel_Data;
       } else if (Parallel.name().equalsIgnoreCase(value)) {
         retVal = Parallel;
-      } else if (SetPhase.name().equalsIgnoreCase(value)) {
-        retVal = SetPhase;
+      } else if (Set_Phase.name().equalsIgnoreCase(value)) {
+        retVal = Set_Phase;
       }
       return retVal;
     }
@@ -66,8 +62,9 @@ public class Jed {
       if (value != null) {
         switch (value) {
           case Parallel:
-          case ParallelData:
+          case Parallel_Data:
           case Sequential:
+          case Sequential_Data:
             retVal = false;
             break;
           default:

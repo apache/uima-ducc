@@ -36,7 +36,7 @@ public class Experiment implements IExperiment {
   private String id = UUID.randomUUID().toString();
 
   private int version;
-
+  
   public Experiment(String user, String directory, long date, int version, ArrayList<Task> tasks)
           throws Exception {
     initialize(user, directory, date, version, tasks);
@@ -80,11 +80,17 @@ public class Experiment implements IExperiment {
     return directory;
   }
 
+  // Create an array indexed by taskId-1
   @Override
-  public ArrayList<Task> getTasks() {
-    return tasks;
+  public Task[] getTasks() {
+    int size = tasks==null ? 0 : tasks.size();
+    Task[] tasksArray = new Task[size];
+    for (Task task : tasks) {
+      tasksArray[task.taskId-1] = task;
+    }
+    return tasksArray;
   }
-
+  
   @Override
   public ArrayList<String> getJobIds() {
     ArrayList<String> jobIds = new ArrayList<String>();
@@ -93,7 +99,7 @@ public class Experiment implements IExperiment {
         if (task.type != null) {
           Jed.Type jedType = Jed.Type.getEnum(task.type);
           switch (jedType) {
-            case DuccJob:
+            case Ducc_Job:
             case Java:
             case Trainer:
               long[] duccIdList = task.duccId;
@@ -137,7 +143,7 @@ public class Experiment implements IExperiment {
   @Override
   public Jed.Status getStatus() {
     Jed.Status retVal = Jed.Status.Unknown;
-    ArrayList<Task> tasks = getTasks();
+    Task[] tasks = getTasks();
     if (tasks != null) {
       boolean canceled = false;
       boolean failed = false;
@@ -341,5 +347,4 @@ public class Experiment implements IExperiment {
     }
     return retVal;
   }
-
 }

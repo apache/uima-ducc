@@ -29,7 +29,7 @@ public interface IExperiment extends Comparable<Object> {
 
   public String getDirectory();
 
-  public ArrayList<Task> getTasks();
+  public Task[] getTasks();
 
   public ArrayList<String> getJobIds();
 

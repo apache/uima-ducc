@@ -42,4 +42,6 @@ public class Task {
   public int[] subTasks = new int[0];
 
   public long[] duccId = new long[0];
+  
+  public boolean rerun = false;  // Note - this is NOT in the Experiment.state file
 }

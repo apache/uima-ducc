@@ -34,7 +34,8 @@ if(!String.startsWith) {
 var oTable;
 var display_table_style;
 
-var ms_reload_min = 5000;
+// Ignore any repeat requests less tha 1 sec apart
+var ms_reload_min = 1000;
 
 var ms_timeout = 25000;
 

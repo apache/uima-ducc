@@ -106,7 +106,7 @@ var ms_load_experiments_data        = +new Date() - ms_reload_min;
 //
 // Drop thw work-in-progress check as the ms_reload_min check should block any simultaneous requests ... how do they occur?
 
-function ducc_load_data(type) {
+function ducc_load_data(type, params) {
     // Check if too soon after the last use
     var ms_now = +new Date();
     type_ = type.replace(/-/g, '_');
@@ -115,20 +115,23 @@ function ducc_load_data(type) {
         return;
     }
     eval('ms_load_' + type_ + '_data = ms_now');
-
+    if (params == undefined) {
+	params = location.search;
+    }
     var table_style = ducc_preferences_get("table_style");
     if (table_style == "scroll") {
-	ducc_load_scroll_data(type);
+	ducc_load_scroll_data(type, params);
     } else {
-	ducc_load_classic_data(type);
+	ducc_load_classic_data(type, params);
     }
 }
 
-function ducc_load_classic_data(type) {
+function ducc_load_classic_data(type, params) {
     var fname = 'ducc_load_classic_data/' + type;
     var data = null;
+
     try {
-        var servlet = "/ducc-servlet/" + type + "-data" + location.search;
+        var servlet = "/ducc-servlet/" + type + "-data" + params
         var tomsecs = ms_timeout;
         $.ajax({
             url: servlet,
@@ -147,10 +150,10 @@ function ducc_load_classic_data(type) {
     }
 }
 
-function ducc_load_scroll_data(type)
+function ducc_load_scroll_data(type, params)
 {
         try {
-                oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-" + type + location.search,ducc_load_scroll_callback);
+                oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-" + type + params, ducc_load_scroll_callback);
         }
         catch(err) {
                 ducc_error("ducc_load_scroll_data/"+type,err);
@@ -243,5 +246,15 @@ function ducc_update_page_local(type)
         }
         catch(err) {
                 ducc_error("ducc_update_page_local",err);
+        }       
+}
+
+function ducc_toggle_task_state(expid, taskid)
+{
+        try {
+                ducc_load_data("experiment-details", "?id="+expid+"&taskid="+taskid);
+        }
+        catch(err) {
+                ducc_error("ducc_toggle_task_state",err);
         }       
 }

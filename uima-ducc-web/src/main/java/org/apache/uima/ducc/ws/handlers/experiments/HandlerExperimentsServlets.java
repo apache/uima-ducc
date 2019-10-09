@@ -94,13 +94,11 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
   private long getRunTime(HttpServletRequest request, IExperiment experiment) {
     long runTime = 0;
-    if (experiment.getTasks() != null) {
-      ArrayList<Task> tasks = experiment.getTasks();
-      for (Task task : tasks) {
-        if (task.parentId == 0) {
-          if (task.runTime > runTime) {
-            runTime = task.runTime;
-          }
+    Task[] tasks = experiment.getTasks();
+    for (Task task : tasks) {
+      if (task.parentId == 0) {
+        if (task.runTime > runTime) {
+          runTime = task.runTime;
         }
       }
     }
@@ -135,14 +133,6 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
       user = experiment.getUser();
     }
     return user;
-  }
-
-  private String getTasks(HttpServletRequest request, IExperiment experiment) {
-    String tasks = "0";
-    if (experiment.getTasks() != null) {
-      tasks = "" + experiment.getTasks().size();
-    }
-    return tasks;
   }
 
   private String getState(HttpServletRequest request, IExperiment experiment) {
@@ -201,25 +191,22 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
         fmt.startRow();
         
         String terminate = "";
-        if (terminateEnabled) {
-          Status experimentStatus = experiment.getStatus();
-          switch (experimentStatus) {
-            case Running:
-              String id = experiment.getId();
-              String directory = experiment.getDirectory();
-              String disabled = "";
-              String resourceOwnerUserid = experiment.getUser();
-              if (!HandlersHelper.isUserAuthorized(request, resourceOwnerUserid)) {
-                // Set the disabled attribute and a hover for the greyed-out button
-                disabled = "disabled title=\"Hint: use Login to enable\"";
-              }
-              String p0 = "'" + id + "'";
-              String p1 = "'" + directory + "'";
-              terminate = "<input type=\"button\" onclick=\"ducc_confirm_terminate_experiment(" + p0
-                      + "," + p1 + ")\" value=\"Terminate\" " + disabled + "/>";
-            default:
-              break;
-          }
+        Status experimentStatus = experiment.getStatus();
+        switch (experimentStatus) {
+          case Running:
+            String id = experiment.getId();
+            String directory = experiment.getDirectory();
+            String disabled = "";
+            String resourceOwnerUserid = experiment.getUser();
+            if (!HandlersHelper.isUserAuthorized(request, resourceOwnerUserid)) {
+              // Set the disabled attribute and a hover for the greyed-out button
+              disabled = "disabled title=\"Hint: use Login to enable\"";
+            }
+            terminate = "<input type=\"button\"" + 
+                        " onclick=\"ducc_confirm_terminate_experiment('" + id + "','" + directory + "')\"" +
+                        " value=\"Terminate\" " + disabled + "/>";
+          default:
+            break;
         }
         fmt.addElemR(terminate);
         fmt.addElemL(getStartDate(request, experiment));
@@ -230,7 +217,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
         fmt.addElemR(duration, runTime);
 
         fmt.addElemL(getUser(request, experiment));
-        fmt.addElemR(getTasks(request, experiment));
+        fmt.addElemR(experiment.getTasks().length);
         fmt.addElemL(getState(request, experiment));
         fmt.addElemL(getDirectoryLink(request, experiment));
 
@@ -256,32 +243,43 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return handled;
   }
 
-  private String decorateState(IExperiment experiment, Task task) {
+  private String decorateState(IExperiment experiment, Task task, boolean isRestartable) {
     String mName = "decorateState";
     String state = "";
     if (task.status != null) {
       state = task.status;
-      String type = task.type;
-      boolean leaf = Jed.Type.isLeaf(type);
-      if (leaf) {
-        Jed.Status status = Jed.Status.getEnum(state);
-        switch (status) {
-          case Running:
-            if (experiment.isStale()) {
-              state = "<span class=\"health_red\">Unknown";
-              WsLog.info(cName, mName, experiment.getDirectory() + " " + "stale:" + task.taskId);
-            } else {
-              state = "<span class=\"health_green\">Running";
+      Jed.Status status = Jed.Status.getEnum(state);
+      switch (status) {
+        case Running:
+          if (experiment.isStale()) {
+            state = "<span class=\"health_red\">Unknown";
+            WsLog.info(cName, mName, experiment.getDirectory() + " " + "stale:" + task.taskId);
+          } else {
+            state = "<span class=\"health_green\">Running";
+          }
+          break;
+        case Failed:
+        case DependencyFailed:
+        case Canceled:
+          state = "<span class=\"health_red\"" + ">" + state + "</span>";
+          break;
+        case Completed:
+        case Done:
+          // If experiment can be restarted display a toggle button
+          if (isRestartable) {
+            String color = "";
+            if (task.rerun) {
+              state = "Rerun";
+              color = " style='background-color:palegreen'";
             }
-            break;
-          case Failed:
-          case DependencyFailed:
-          case Canceled:
-            state = "<span class=\"health_red\"" + ">" + state + "</span>";
-            break;
-          default:
-            break;
-        }
+            state = "<input type=\"button\"" + color
+                    + " onclick=\"ducc_toggle_task_state('" + experiment.getId() + "','" + task.taskId + "')\""
+                    + " title=\"Click to toggle state\"" 
+                    + " value=\"" + state + "\" />";
+          }
+          break;
+        default:
+          break;
       }
     }
     return state;
@@ -363,7 +361,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
   }
 
   private void edTaskDucc(FormatServlet fmt, IExperiment experiment, Task task,
-          HttpServletRequest request, long duccId, long now) {
+          HttpServletRequest request, long duccId, long now, boolean isRestartable) {
     DuccData duccData = DuccData.getInstance();
     
     // Format first 8 columns: 
@@ -372,7 +370,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     fmt.addElemR(task.taskId);
     fmt.addElemR(task.parentId);
     fmt.addElemL(task.name);
-    fmt.addElemL(decorateState(experiment, task));
+    fmt.addElemL(decorateState(experiment, task, isRestartable));
     fmt.addElemL(task.type);
     fmt.addElemL(decorateStepStart(task, request));
     fmt.addElemR(decorateStepDuration(task), task.runTime);
@@ -427,26 +425,43 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     String id = request.getParameter("id");
     
     IExperiment experiment = experimentsRegistryManager.getById(id);
-
+    
     long now = System.currentTimeMillis();
 
     FormatServlet fmt = tableStyle.equals("scroll") ? new FormatServletScroll() : new FormatServletClassic();
     
     if (experiment != null) {
-      ArrayList<Task> tasks = experiment.getTasks();
+      // Check if the experiment can be restarted, i.e.
+      // launched by DUCC, stopped, and owned by the logged-in user
+      // ?? Could be an experiment attribute?
+      boolean duccLaunched = true;  // TODO ... FIX!
+      boolean isRestartable = duccLaunched 
+              && experiment.getStatus() != Jed.Status.Running 
+              && HandlersHelper.isUserAuthorized(request, experiment.getUser());
+
+      Task[] tasks = experiment.getTasks();
       if (tasks != null) {
+        // Check if given a task whose state is to be toggled between Completed & Rerun
+        String toggleTask = request.getParameter("taskid");
+        if (toggleTask != null) {
+          WsLog.info(cName, mName, "!! id = '"+id+"' taskid = '"+toggleTask+"'");
+          int toggle = Integer.parseInt(toggleTask);
+          Task task = tasks[toggle-1];
+          task.rerun = !task.rerun;
+          markSubtasks(tasks, toggle, task.rerun);
+        }
         for (Task task : tasks) {
           long latestDuccId = 0;
           String type = (task.type != null) ? task.type : "";
           Jed.Type jedType = Jed.Type.getEnum(type);
-          if (jedType == Jed.Type.DuccJob || jedType == Jed.Type.Java) {
+          if (jedType == Jed.Type.Ducc_Job || jedType == Jed.Type.Java) {
               long[] duccIds = task.duccId;
               int nIds = duccIds.length;
               latestDuccId = nIds == 0 ? 0 : duccIds[--nIds];
               //String otherIds = reverse(duccIds, nIds);
           }
           fmt.startRow();
-          edTaskDucc(fmt, experiment, task, request, latestDuccId, now);
+          edTaskDucc(fmt, experiment, task, request, latestDuccId, now, isRestartable);
           fmt.endRow();
         }
       }
@@ -467,6 +482,17 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return handled;
   }
 
+  // Mark each child with the same rerun state as the parent.
+  // Note that children ALWAYS have a larger taskId
+  private void markSubtasks(Task[] tasks, int parentId, boolean rerun) {
+    for (int childId = parentId + 1; childId <= tasks.length; ++childId) {
+      if (tasks[childId-1].parentId == parentId) {
+        tasks[childId-1].rerun = rerun;
+        markSubtasks(tasks, childId, rerun);
+      }
+    }
+  }
+  
   private boolean handleServletExperimentDetailsDirectory(String target, Request baseRequest,
           HttpServletRequest request, HttpServletResponse response) throws Exception {
     String mName = "handleServletExperimentDetailsDirectory";
