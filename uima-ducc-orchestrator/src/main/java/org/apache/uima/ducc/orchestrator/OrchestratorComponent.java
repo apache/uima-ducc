@@ -849,7 +849,7 @@ implements Orchestrator {
 	}
 	private boolean isSignatureValid(Properties properties) {
 		String methodName = "isSignatureValid";
-		boolean retVal = true;
+		boolean retVal = false;
 		try {
 			if(orchestratorCommonArea.isSignatureRequired()) {
 			  // Check that the signature is valid
