@@ -625,6 +625,12 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
         System.out.println("reservations: "+reservations);
     }
 
+    @Override
+    public IDuccWorkService restoreArbitraryProcess(long friendlyId) throws Exception {
+      // TODO untested!!
+      return restoreService(friendlyId);
+    }
+
     ///// </tool>
 
 }

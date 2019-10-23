@@ -44,6 +44,7 @@ public interface IHistoryPersistenceManager
 	public void                       saveService(IDuccWorkService duccWorkService) throws Exception;
 	public IDuccWorkService           restoreService(long friendly_id)              throws Exception;
 	public List<IDuccWorkService>     restoreServices(long max)                     throws Exception;
+	public IDuccWorkService           restoreArbitraryProcess(long friendlyId)      throws Exception;
 	public List<IDuccWorkService>     restoreArbitraryProcesses(long max)           throws Exception;
 	
     public boolean checkpoint(DuccWorkMap work, Map<DuccId, DuccId> processToJob)   throws Exception;

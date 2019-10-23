@@ -20,6 +20,8 @@ package org.apache.uima.ducc.ws.xd;
 
 import java.util.ArrayList;
 
+import org.apache.uima.ducc.common.utils.id.DuccId;
+
 public interface IExperiment extends Comparable<Object> {
   public void setId(String value);
 
@@ -48,4 +50,13 @@ public interface IExperiment extends Comparable<Object> {
   public int getVersion();
 
   public boolean isStale();
+
+  // Set the DuccId of the AP that launched the experiment
+  public void setJedDuccId(DuccId duccId);
+  
+  // Return the DuccId of the AP that launched the experiment, or null
+  public DuccId getJedDuccId();
+  
+  // Update the Experiment.state file indicating the tasks to be rerun
+  public boolean updateStateFile();
 }

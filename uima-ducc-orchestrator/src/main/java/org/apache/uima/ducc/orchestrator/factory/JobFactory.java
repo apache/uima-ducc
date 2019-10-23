@@ -458,27 +458,24 @@ public class JobFactory implements IJobFactory {
 		jobRequestProperties.normalize();
 		DuccId jobid = job.getDuccId();
 		DuccType duccType = job.getDuccType();
-        // Service Deployment Type
-        if(jobRequestProperties.containsKey(ServiceRequestProperties.key_service_type_custom)) {
-			job.setServiceDeploymentType(ServiceDeploymentType.custom);
-		}
-        else if(jobRequestProperties.containsKey(ServiceRequestProperties.key_service_type_other)) {
-			job.setServiceDeploymentType(ServiceDeploymentType.other);
-		}
-        else if(jobRequestProperties.containsKey(ServiceRequestProperties.key_service_type_uima)) {
-			job.setServiceDeploymentType(ServiceDeploymentType.uima);
-		}
-        else {
-        	job.setServiceDeploymentType(ServiceDeploymentType.unspecified);
-        }
-        // Service Id
-        String serviceId = null;
-        if(jobRequestProperties.containsKey(ServiceRequestProperties.key_service_id)) {
-        	serviceId = jobRequestProperties.getProperty(ServiceRequestProperties.key_service_id);
-        }
-        job.setServiceId(serviceId);
-
-		// sweep out leftover logging trash
+    // Service Deployment Type
+    if (jobRequestProperties.containsKey(ServiceRequestProperties.key_service_type_custom)) {
+      job.setServiceDeploymentType(ServiceDeploymentType.custom);
+    } else if (jobRequestProperties.containsKey(ServiceRequestProperties.key_service_type_other)) {
+      job.setServiceDeploymentType(ServiceDeploymentType.other);
+    } else if (jobRequestProperties.containsKey(ServiceRequestProperties.key_service_type_uima)) {
+      job.setServiceDeploymentType(ServiceDeploymentType.uima);
+    } else {
+      job.setServiceDeploymentType(ServiceDeploymentType.unspecified);
+    }
+    // Service Id
+    String serviceId = null;
+    if (jobRequestProperties.containsKey(ServiceRequestProperties.key_service_id)) {
+      serviceId = jobRequestProperties.getProperty(ServiceRequestProperties.key_service_id);
+    }
+    job.setServiceId(serviceId);
+    
+    // sweep out leftover logging trash
 		logSweeper(jobRequestProperties.getProperty(JobRequestProperties.key_log_directory), job.getDuccId());
 		// log
 		jobRequestProperties.specification(logger, job.getDuccId());
@@ -508,6 +505,7 @@ public class JobFactory implements IJobFactory {
 			}
 			standardInfo.setNotifications(notificationsArray);
 		}
+
 		// scheduling info
 		DuccSchedulingInfo schedulingInfo = new DuccSchedulingInfo();
 		job.setSchedulingInfo(schedulingInfo);
@@ -526,6 +524,13 @@ public class JobFactory implements IJobFactory {
 
 		if (job.getDuccType() == DuccType.Job){
 		    checkSchedulingLimits(job, schedulingInfo);
+		} else {
+		  // HACK - Check if a JED AP ... duccType is "service" !!!
+		  // HACK - experiment directory MUST = log directoery
+	    String args = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_executable_args);
+	    if (args != null && args.contains(" com.ibm.watsonx.framework.jed.Driver ")) {
+	      standardInfo.setExperimentDirectory(standardInfo.getLogDirectory());
+	    }
 		}
 
 		// process_initialization_time_max (in minutes)
@@ -678,6 +683,7 @@ public class JobFactory implements IJobFactory {
 			executableProcessCommandLine.getArguments().addAll(process_executable_arguments);
 		}
 		// process_initialization_failures_cap
+		// ?? These are not set for APs or SPs ??
 		String failures_cap = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_initialization_failures_cap);
 		try {
 			long process_failures_cap = Long.parseLong(failures_cap);

@@ -18,30 +18,43 @@
 */
 package org.apache.uima.ducc.ws.xd;
 
+import com.google.gson.annotations.Expose;
+
 /*
- * This represents the "Expose"d fields written by JED in the Experiment.state file
- * See com.ibm.bluej.system.driver/src/com/ibm/bluej/system/driver/TaskState.java 
+ * The "exposed" fields are those exposed and saved by JED in the Experiment.state file
+ * See TaskState in the com.ibm.watsonx.framework.jed project 
  */
 public class Task {
+  
+  @Expose
   public String pathId;
   
-  public int taskId = 0;
+  @Expose
+  public int taskId;
 
-  public int parentId = 0;
+  @Expose
+  public int parentId;
   
-  public String name = null;
+  @Expose
+  public String name;
 
-  public String type = null;
+  @Expose
+  public String type;
 
-  public String status = null;
+  @Expose
+  public String status;
 
-  public String startTime = null;
+  @Expose
+  public String startTime;
 
-  public long runTime = 0;
+  @Expose
+  public long runTime;
 
-  public int[] subTasks = new int[0];
+  @Expose
+  public int[] subTasks;
 
-  public long[] duccId = new long[0];
+  @Expose
+  public long[] duccId;
   
   public boolean rerun = false;  // Note - this is NOT in the Experiment.state file
 }

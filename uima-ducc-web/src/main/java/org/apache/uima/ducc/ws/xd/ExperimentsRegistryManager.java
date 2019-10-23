@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.ws.xd;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -106,8 +108,21 @@ public class ExperimentsRegistryManager {
 
   private void replace(String directory, Experiment experiment) {
     String mName = "replace";
+    
+    // Keep the same id
     String id = map.get(directory).getId();
     experiment.setId(id);
+    
+    // Keep latest JED id ... and umask in case this is not the JED AP
+    DuccId oldDuccId = map.get(directory).getJedDuccId();
+    long oldNum = oldDuccId==null? 0 : oldDuccId.getFriendly();
+    DuccId newDuccId = experiment.getJedDuccId();
+    long newNum = newDuccId==null? 0 : newDuccId.getFriendly();
+    if (oldNum > newNum) {
+      experiment.setJedDuccId(oldDuccId);
+      experiment.umask = ((Experiment)map.get(directory)).umask;   // Ugh - should update rather than replace ??
+    }
+    
     map.put(directory, experiment);
     WsLog.debug(cName, mName, directory);
   }
@@ -143,22 +158,34 @@ public class ExperimentsRegistryManager {
     }
   }
 
-  public void initialize(String user, String directory) {
-    String mName = "initialize";
-    if (!enabled) 
-      return;
-    if (user == null) {
-      WsLog.warn(cName, mName, "missing user");
-    } else if (directory == null) {
-      WsLog.warn(cName, mName, "missing directory");
-    } else {
-      String parent = ExperimentsRegistryUtilities.upOne(directory);
-      update(user, parent, false);
-    }
+  // Called by DuccPlugins when web-server boots
+  public void initialize(IDuccWork dw) {
+    IDuccStandardInfo stdInfo = dw.getStandardInfo();
+    if (stdInfo != null) {
+      String user = stdInfo.getUser();
+      String directory = stdInfo.getLogDirectory();
+      String experimentDirectory = stdInfo.getExperimentDirectory();
+      if (experimentDirectory != null) {
+        update(user, experimentDirectory, false, dw);
+      } else {
+        directory = ExperimentsRegistryUtilities.upOne(directory);
+        update(user, directory, false, null);
+      }
+    }      
   }
-
-  private void update(String user, String directory) {
+  
+  // DuccWork provided only for the AP that launches JED
+  private void update(String user, String directory, IDuccWork work) {
     String mName = "update";
+    
+    // "normalize" directory name
+    try {
+      directory = new File(directory).getCanonicalPath();
+    } catch (IOException e) {
+      WsLog.error(cName, mName, "Failed to create canonical name for " + directory + "\n" + e);
+      return;
+    }
+
     try {
       String fileName = ExperimentsRegistryUtilities.getStateFilePath(directory);
       long date = ExperimentsRegistryUtilities.getFileDate(user, fileName);
@@ -187,13 +214,16 @@ public class ExperimentsRegistryManager {
         }.getType();
         try {
           ArrayList<Task> taskArray = gson.fromJson(sr, tasksType);
-          Experiment experiment = new Experiment(user, directory, date, version, taskArray);
+          Experiment experiment = new Experiment(user, directory, date, version, taskArray, work);
           put(directory, experiment);
         } catch (JsonParseException e) {
           WsLog.warn(cName, mName,
                   "Ignoring " + fileName + " as has Json syntax error " + e.getMessage());
         }
       } else {
+        if (work != null) {
+          WsLog.warn(cName, mName, "State file missing or inaccessible in " + directory + " for JED AP " + work.getDuccId());
+        }
         WsLog.trace(cName, mName, "state file missing or inaccessible in " + directory);
         remove(directory);
       }
@@ -203,14 +233,17 @@ public class ExperimentsRegistryManager {
   }
 
   private void update(String user, String directory, boolean overwrite) {
+    update(user, directory, overwrite, null);
+  }
+  
+  private void update(String user, String directory, boolean overwrite, IDuccWork work) {
     String mName = "update";
-    WsLog.enter(cName, mName);
     try {
       if (overwrite) {
-        update(user, directory);
+        update(user, directory, work);
       } else {
         if (!containsKey(directory)) {
-          update(user, directory);
+          update(user, directory, work);
         } else {
           WsLog.trace(cName, mName, "duplicate directory: " + directory);
         }
@@ -219,7 +252,6 @@ public class ExperimentsRegistryManager {
     } catch (Exception e) {
       WsLog.error(cName, mName, e);
     }
-    // WsLog.exit(cName, mName);
   }
 
   private void check() {
@@ -290,6 +322,7 @@ public class ExperimentsRegistryManager {
     // WsLog.exit(cName, mName);
   }
 
+  // Called by DuccPlugins for each OR publication
   public void update(IDuccWorkMap dwm) {
     String mName = "update";
     if (!enabled) 
@@ -325,8 +358,13 @@ public class ExperimentsRegistryManager {
             if (stdInfo != null) {
               String user = stdInfo.getUser();
               String directory = stdInfo.getLogDirectory();
-              String parent = ExperimentsRegistryUtilities.upOne(directory);
-              update(user, parent, true);
+              String experimentDirectory = stdInfo.getExperimentDirectory();
+              if (experimentDirectory != null) {
+                update(user, experimentDirectory, true, job);
+              } else {
+                directory = ExperimentsRegistryUtilities.upOne(directory);
+                update(user, directory, true, null);
+              }
             }
           }
         }

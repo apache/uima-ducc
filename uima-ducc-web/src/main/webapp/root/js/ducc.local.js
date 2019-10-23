@@ -188,10 +188,13 @@ function ducc_init_data(type)
         }
 }
 
-function ducc_load_identify_experiment_details()
+function ducc_load_identify_experiment_details(params)
 {
+    if (params == undefined) {
+	params = "";
+    }
         try {
-                server_url= "/ducc-servlet/experiment-details-directory"+location.search;
+                server_url= "/ducc-servlet/experiment-details-directory"+location.search+params;
                 $.ajax(
                 {
                         url : server_url,
@@ -257,4 +260,50 @@ function ducc_toggle_task_state(expid, taskid)
         catch(err) {
                 ducc_error("ducc_toggle_task_state",err);
         }       
+}
+
+function ducc_restart_experiment()
+{
+        try {
+                ducc_load_identify_experiment_details("&restart=true");
+                ducc_load_data("experiment-details");
+        }
+        catch(err) {
+                ducc_error("ducc_restart_experiment",err);
+        }       
+}
+
+function ducc_terminate_experiment(id)
+{	
+	try {
+		$.jGrowl(" Pending termination...");
+		$.ajax(
+		{
+			type: 'POST',
+			url : "/ducc-servlet/experiment-cancel-request"+"?id="+id,
+			success : function (data) 
+			{
+			$.jGrowl(data, { life: 6000 });
+			setTimeout(function(){window.close();}, 5000);
+			}
+		});
+		setTimeout(function(){window.close();}, 5000);
+	}
+	catch(err) {
+		ducc_error("ducc_terminate_experiment",err);
+	}	
+	return false;
+}
+
+function ducc_confirm_terminate_experiment(id,directory)
+{
+	try {
+		var result=confirm("Terminate experiment "+directory+"?");
+		if (result==true) {
+  			ducc_terminate_experiment(id);
+  		}
+  	}
+	catch(err) {
+		ducc_error("ducc_confirm_terminate_experiment",err);
+	}
 }

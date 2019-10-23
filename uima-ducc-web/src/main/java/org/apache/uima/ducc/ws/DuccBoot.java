@@ -305,7 +305,7 @@ public class DuccBoot extends Thread {
             return;                               // Nothing to do if this fails
 		}
 
-        logger.info(location, jobid, messages.fetchLabel("Number of services fetched from history"), duccWorkServices.size());
+        logger.info(location, jobid, messages.fetchLabel("Number of APs fetched from history"), duccWorkServices.size());
 
         int restored = 0;
         int nExperiments = 0;

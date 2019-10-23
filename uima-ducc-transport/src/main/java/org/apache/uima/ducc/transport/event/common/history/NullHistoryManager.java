@@ -101,6 +101,12 @@ public class NullHistoryManager
 		return  new ArrayList<IDuccWorkService>();
 	}
     
+  public IDuccWorkService restoreArbitraryProcess(long duccId)
+          throws Exception
+    {
+      return null;
+    }
+  
     public List<IDuccWorkService> restoreArbitraryProcesses(long max)
         	throws Exception
     {

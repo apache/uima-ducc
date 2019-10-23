@@ -82,7 +82,7 @@ public class Jed {
 
   public enum Status {
 
-    Running, Completed, Done, Canceled, Failed, DependencyFailed, Ignored, Unknown, Other;
+    Running, Restarting, Completed, Done, Canceled, Failed, DependencyFailed, Ignored, Unknown, Other;
 
     private static String Dependency_Failed = "Dependency-Failed";
 
@@ -97,6 +97,8 @@ public class Jed {
         retVal = DependencyFailed;
       } else if (Running.name().equalsIgnoreCase(value)) {
         retVal = Running;
+      } else if (Restarting.name().equalsIgnoreCase(value)) {
+        retVal = Restarting;
       } else if (Completed.name().equalsIgnoreCase(value)) {
         retVal = Completed;
       } else if (Done.name().equalsIgnoreCase(value)) {

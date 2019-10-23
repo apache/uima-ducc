@@ -23,7 +23,6 @@ under the License.
   <title>ducc-mon</title>
   <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
   <%@ include file="$imports.jsp" %>
-  <script src="js/ducc.experiments.js"></script>
 <%
 if (table_style.equals("scroll")) {
 %>  

@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.uima.ducc.common.IDuccUser;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -180,4 +181,65 @@ public class DuccAsUser {
 		
 		return retVal.toString();
 	}
+	
+	/**
+	 * Similar to duckling method but can set the environment
+	 * 
+	 * @param userid      - userid to run as
+	 * @param environment - Map of environment entries for the process (use System.getenv() to inherit)
+	 * @param command     - command and arguments
+	 * @return            - console output
+	 */
+  public static String execute(String userid, Map<String, String> environment, String... comamnd) {
+
+    String methodName = "execute";
+
+    StringBuffer retVal = new StringBuffer();
+
+    String c_launcher_path = Utils.resolvePlaceholderIfExists(System.getProperty("ducc.agent.launcher.ducc_spawn_path"), System.getProperties());
+
+    ArrayList<String> cmd = new ArrayList<String>();
+    cmd.add(c_launcher_path);
+    cmd.add("-u");
+    cmd.add(userid);
+    cmd.add("--");
+    for (String arg : comamnd) {
+      cmd.add(arg);
+    }
+    ProcessBuilder pb = new ProcessBuilder(cmd);
+    Map<String, String> env = pb.environment();
+    env.clear();
+    if (environment != null) {
+      env.putAll(environment);      // Use provided environment 
+    }
+    
+    if (duccLogger.isDebug()) {
+      duccLogger.debug(methodName, null, "cmd: " + cmd);
+      for (Entry<String, String> envEntry : env.entrySet()) {
+        duccLogger.debug(methodName, null, "ENV:", envEntry.getKey() + "=" + envEntry.getValue());
+      }
+    }
+    
+    try {
+      pb.redirectErrorStream(true);
+      Process proc = pb.start();
+      String line;
+      BufferedReader stdout = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+      while ((line = stdout.readLine()) != null) {
+        if (line.startsWith(magicString)) {   // Ignore all "duccling" lines up thru this one
+          break;
+        }
+      }
+      while ((line = stdout.readLine()) != null) {
+        retVal.append(line+"\n");
+      }
+      stdout.close();
+      proc.waitFor();
+    } catch (Exception e) {
+      duccLogger.info(methodName, null, e);
+    }
+
+    return retVal.toString();
+  }
+
 }

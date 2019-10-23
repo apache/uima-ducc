@@ -527,7 +527,7 @@ public class HistoryManagerDb
                 summarizeJob(h, w, "J");
                 break;
             case Service:
-            case Pop:       
+            case Pop:   
                 break;
             case Reservation:
                 break;
@@ -544,7 +544,7 @@ public class HistoryManagerDb
      * Part of history management, recover the indicated job from history.
      */
     @SuppressWarnings("unchecked")
-	<T> T restoreWork(Class<T> cl, String tablename, long friendly_id)
+	<T> T restoreWork(Class<T> cl, String tablename, String type, long friendly_id)
         throws Exception
     {
     	String methodName = "restoreWork";
@@ -552,7 +552,7 @@ public class HistoryManagerDb
         DbHandle h = null;
 
         h = dbManager.open();
-        String cql = "SELECT WORK FROM " + tablename + " WHERE DUCC_ID=" + Long.toString(friendly_id);
+        String cql = "SELECT WORK FROM " + tablename + " WHERE TYPE='" + type +"' AND DUCC_ID=" + Long.toString(friendly_id);
         ResultSet rs = h.execute(cql);
         for ( Row r : rs ) {
             logger.info(methodName, null, "----- Restoring", friendly_id); 
@@ -636,7 +636,7 @@ public class HistoryManagerDb
     public IDuccWorkJob restoreJob(long friendly_id)
         throws Exception
     {
-        return (IDuccWorkJob) restoreWork(IDuccWorkJob.class, JOB_HISTORY_TABLE, friendly_id);
+        return (IDuccWorkJob) restoreWork(IDuccWorkJob.class, JOB_HISTORY_TABLE, "job", friendly_id);
     }
     
     /**
@@ -667,7 +667,7 @@ public class HistoryManagerDb
 	public IDuccWorkReservation restoreReservation(long duccid)
         throws Exception
     {
-        return (IDuccWorkReservation) restoreWork(IDuccWorkReservation.class, RES_HISTORY_TABLE, duccid);
+        return (IDuccWorkReservation) restoreWork(IDuccWorkReservation.class, RES_HISTORY_TABLE, "reservation", duccid);
     }
 	
     /**
@@ -694,14 +694,21 @@ public class HistoryManagerDb
 
 	
     /**
-     * Part of history management, recover ths indicated service instance from history.
+     * Part of history management, recover the indicated service instance from history.
      */
 	public IDuccWorkService restoreService(long duccid)
 		throws Exception
     {
-        return (IDuccWorkService) restoreWork(IDuccWorkService.class, SVC_HISTORY_TABLE, duccid);
+        return (IDuccWorkService) restoreWork(IDuccWorkService.class, SVC_HISTORY_TABLE, "service", duccid);
 	}
 	
+  /**
+   * Restore an AP instance from history.
+   */
+  public IDuccWorkService restoreArbitraryProcess(long duccid) throws Exception {
+    return (IDuccWorkService) restoreWork(IDuccWorkService.class, SVC_HISTORY_TABLE, "AP", duccid);
+  }
+	 
     /**
      * Part of history management, recover ths indicated service instances from history.
      */

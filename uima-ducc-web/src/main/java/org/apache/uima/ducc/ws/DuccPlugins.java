@@ -22,6 +22,11 @@ import java.util.ArrayList;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.cmdline.ICommandLine;
+import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
+import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
@@ -57,10 +62,7 @@ public class DuccPlugins {
     String location = "restore";
     try {
       if (job != null) {
-        String user = job.getStandardInfo().getUser();
-        String directory = job.getStandardInfo().getLogDirectory();
-        logger.info(location, jobid, "user", user, "directory", directory);
-        experimentsRegistryManager.initialize(user, directory);
+        experimentsRegistryManager.initialize(job);
       }
     } catch (Throwable t) {
       logger.error(location, jobid, t);
@@ -80,10 +82,9 @@ public class DuccPlugins {
     String location = "restore";
     try {
       // Also process managed reservations in case the experiment has only these.
+      // Note: APs are saved in DB as services of type "other"
       if (service != null && service.getServiceDeploymentType() == ServiceDeploymentType.other) {
-        String user = service.getStandardInfo().getUser();
-        String directory = service.getStandardInfo().getLogDirectory();
-        experimentsRegistryManager.initialize(user, directory);
+        experimentsRegistryManager.initialize(service);
       }
     } catch (Throwable t) {
       logger.error(location, jobid, t);

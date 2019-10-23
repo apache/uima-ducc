@@ -18,12 +18,27 @@
 */
 package org.apache.uima.ducc.ws.xd;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.UUID;
 
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.ws.authentication.DuccAsUser;
+import org.apache.uima.ducc.ws.log.WsLog;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 public class Experiment implements IExperiment {
+  
+  private static DuccLogger logger = DuccLogger.getLogger(Experiment.class);
 
   private String user = null;
 
@@ -36,28 +51,21 @@ public class Experiment implements IExperiment {
   private String id = UUID.randomUUID().toString();
 
   private int version;
-  
-  public Experiment(String user, String directory, long date, int version, ArrayList<Task> tasks)
-          throws Exception {
-    initialize(user, directory, date, version, tasks);
-  }
 
-  private void initialize(String user, String directory, long fileDate, int version,
-          ArrayList<Task> tasks) throws Exception {
-    if (user == null) {
-      throw new ExperimentException("missing user");
-    }
-    if (directory == null) {
-      throw new ExperimentException("missing directory");
-    }
-    if (tasks == null) {
-      throw new ExperimentException("missing tasks");
-    }
+  private DuccId jedDuccId;
+
+  public String umask;
+  
+  public Experiment(String user, String directory, long fileDate, int version, ArrayList<Task> tasks, IDuccWork work) {
     this.user = user;
     this.directory = directory;
     this.fileDate = fileDate;
     this.version = version;
     this.tasks = tasks;
+    if (work != null) {
+      this.jedDuccId = work.getDuccId();
+      this.umask = work.getStandardInfo().getUmask();
+    }
   }
 
   @Override
@@ -80,6 +88,16 @@ public class Experiment implements IExperiment {
     return directory;
   }
 
+  @Override
+  public void setJedDuccId(DuccId duccId) {
+    this.jedDuccId = duccId;
+  }
+
+  @Override
+  public DuccId getJedDuccId() {
+    return jedDuccId;
+  }
+  
   // Create an array indexed by taskId-1
   @Override
   public Task[] getTasks() {
@@ -132,6 +150,7 @@ public class Experiment implements IExperiment {
     boolean retVal = false;
     switch (getStatus()) {
       case Running:
+      case Restarting:
         retVal = true;
         break;
       default:
@@ -149,6 +168,7 @@ public class Experiment implements IExperiment {
       boolean failed = false;
       boolean running = false;
       boolean done = false;
+      boolean restarting = false;
       for (Task task : tasks) {
         if (task.parentId == 0 && task.status != null) {
           Jed.Status status = Jed.Status.getEnum(task.status);
@@ -158,6 +178,9 @@ public class Experiment implements IExperiment {
               break;
             case Running:
               running = true;
+              break;
+            case Restarting:
+              restarting = true;
               break;
             case Failed:
             case DependencyFailed:
@@ -177,6 +200,8 @@ public class Experiment implements IExperiment {
       // But if JED appears to have been killed while running change state to Unknown
       if (running) {
         retVal = isStale() ? Jed.Status.Unknown : Jed.Status.Running;
+      } else if (restarting) {
+        retVal = Jed.Status.Restarting;
       } else if (failed) {
         retVal = Jed.Status.Failed;
       } else if (canceled) {
@@ -190,6 +215,61 @@ public class Experiment implements IExperiment {
     return retVal;
   }
 
+  /*
+   * Set status of the top-level task(s) to "Restarting",
+   * clear status of all rerun tasks selected to be rerun,
+   + then rewrite the Experiment.state file
+   */
+  @Override
+  public boolean updateStateFile() {
+    Task[] tasks = getTasks();
+    if (tasks == null) {
+      return true;
+    }
+    for (Task task : tasks) {
+      if (task.parentId == 0) {
+        task.status = "Restarting";
+      } else if (task.rerun) {
+        // Indicate that task has not yet started
+        task.status = null;
+        task.startTime = null;
+        task.runTime = 0;
+      }
+    }
+    return writeStateFile();
+  }
+  
+  /*
+   * Write the state as a temporary file, 
+   * as the user copy it to the output directory,
+   * delete the temp file.
+   */
+  private boolean writeStateFile() {
+    File tempFile = null;
+    Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
+    try {
+      tempFile = File.createTempFile("experiment", jedDuccId.toString());
+      FileWriter out = new FileWriter(tempFile);
+      String text = gson.toJson(tasks);
+      out.write(text);
+      out.close();
+    } catch (IOException e) {
+      WsLog.error(logger, "writeExperiment", "Failed to write experiment state as " + tempFile + " - " + e);
+      return false;
+    }
+
+    File stateFile = new File(directory, "Experiment.state");
+    HashMap<String, String> environment = new HashMap<String, String>();
+    environment.put("DUCC_UMASK", umask);
+    String sysout = DuccAsUser.execute(user, environment, "/bin/cp", tempFile.getAbsolutePath(), stateFile.getAbsolutePath());
+    if (sysout.length() == 0) {
+      tempFile.delete();
+      return true;
+    }
+    WsLog.error(logger, "writeExperiment", "Failed to copy experiment state file\n" + sysout);
+    return false;
+  }
+  
   private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd-HH:mm:ss");
 
   private static long getMillis(String dateString) {
@@ -347,4 +427,5 @@ public class Experiment implements IExperiment {
     }
     return retVal;
   }
+
 }

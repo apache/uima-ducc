@@ -41,7 +41,8 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 	private String workingDirectory = null;
 	private String[] notifications = null;
 	private long processInitializationTimeMax = 0;
-    private String umask = null;;
+  private String umask = null;
+  private String experimentDirectory;;
 
 	public String getUser() {
 		return user;
@@ -297,6 +298,16 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 			return false;
 		return true;
 	}
+
+  @Override
+  public String getExperimentDirectory() {
+    return experimentDirectory;
+  }
+
+  @Override
+  public void setExperimentDirectory(String experimentDirectory) {
+    this.experimentDirectory = experimentDirectory;
+  }
 
 	// **********
 
