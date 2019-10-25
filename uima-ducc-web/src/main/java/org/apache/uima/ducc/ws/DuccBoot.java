@@ -20,7 +20,6 @@ package org.apache.uima.ducc.ws;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.HashSet;
 import java.util.List;
 
 import org.apache.uima.ducc.common.IDuccEnv;
@@ -57,8 +56,6 @@ public class DuccBoot extends Thread {
     duccBoot.initialize();
     duccBoot.start();
   }
-
-  private HashSet<String> experimentsFound;
 
   public void run() {
     String location = "run";
@@ -103,25 +100,14 @@ public class DuccBoot extends Thread {
 
     logger.info(location, jobid, messages.fetchLabel("Number of Reservations fetched from history"), duccWorkReservations.size());
 
-    int restored = 0;
-    int nExperiments = 0;
     for (IDuccWorkReservation duccWorkReservation : duccWorkReservations) {
       try {
         logger.debug(location, duccWorkReservation.getDuccId(), messages.fetchLabel("restore"));
         duccData.putIfNotPresent(duccWorkReservation);
-        String directory = duccWorkReservation.getStandardInfo().getLogDirectory();
-        if (experimentsFound.add(directory)) {
-          duccPlugins.restore(duccWorkReservation);
-          nExperiments++;
-        }
-        restored++;
+        duccPlugins.restore(duccWorkReservation);
       } catch (Throwable t) {
         logger.warn(location, duccWorkReservation.getDuccId(), t);
       }
-    }
-    logger.info(location, null, messages.fetch("Reservations restored: " + restored));
-    if (nExperiments > 0) {
-      logger.info(location, null, messages.fetch("Experiments found: " + nExperiments));
     }
   }
 
@@ -171,26 +157,15 @@ public class DuccBoot extends Thread {
 
     logger.info(location, jobid, messages.fetchLabel("Number of Jobs fetched from history"), duccWorkJobs.size());
 
-    int restored = 0;
-    int nExperiments = 0;
     for (IDuccWorkJob duccWorkJob : duccWorkJobs) {
       fixup(duccWorkJob);
       try {
         logger.debug(location, duccWorkJob.getDuccId(), messages.fetchLabel("restore"));
         duccData.putIfNotPresent(duccWorkJob);
-        String directory = duccWorkJob.getStandardInfo().getLogDirectory();
-        if (experimentsFound.add(directory)) {
-          duccPlugins.restore(duccWorkJob);
-          nExperiments++;
-        }
-        restored++;
+        duccPlugins.restore(duccWorkJob);
       } catch (Throwable t) {
         logger.warn(location, duccWorkJob.getDuccId(), t);
       }
-    }
-    logger.info(location, null, messages.fetch("Jobs restored: " + restored));
-    if (nExperiments > 0) {
-      logger.info(location, null, messages.fetch("Experiments found: " + nExperiments));
     }
   }
 
@@ -208,25 +183,14 @@ public class DuccBoot extends Thread {
 
     logger.info(location, jobid, messages.fetchLabel("Number of services fetched from history"), duccWorkServices.size());
 
-    int restored = 0;
-    int nExperiments = 0;
     for (IDuccWorkService duccWorkService : duccWorkServices) {
       try {
         logger.debug(location, duccWorkService.getDuccId(), messages.fetchLabel("restore"));
         duccData.putIfNotPresent(duccWorkService);
-        String directory = duccWorkService.getStandardInfo().getLogDirectory();
-        if (experimentsFound.add(directory)) {
-          duccPlugins.restore(duccWorkService);
-          nExperiments++;
-        }
-        restored++;
+        duccPlugins.restore(duccWorkService);
       } catch (Throwable t) {
         logger.warn(location, duccWorkService.getDuccId(), t);
       }
-    }
-    logger.info(location, null, messages.fetch("Services restored: " + restored));
-    if (nExperiments > 0) {
-      logger.info(location, null, messages.fetch("Experiments found: " + nExperiments));
     }
   }
 
@@ -244,25 +208,14 @@ public class DuccBoot extends Thread {
 
     logger.info(location, jobid, messages.fetchLabel("Number of APs fetched from history"), duccWorkServices.size());
 
-    int restored = 0;
-    int nExperiments = 0;
     for (IDuccWorkService duccWorkService : duccWorkServices) {
       try {
         logger.debug(location, duccWorkService.getDuccId(), messages.fetchLabel("restore"));
         duccData.putIfNotPresent(duccWorkService);
-        String directory = duccWorkService.getStandardInfo().getLogDirectory();
-        if (experimentsFound.add(directory)) {
-          duccPlugins.restore(duccWorkService);
-          nExperiments++;
-        }
-        restored++;
+        duccPlugins.restore(duccWorkService);   // Filtering of duplicates must be handled later
       } catch (Throwable t) {
         logger.warn(location, duccWorkService.getDuccId(), t);
       }
-    }
-    logger.info(location, null, messages.fetch("Services restored: " + restored));
-    if (nExperiments > 0) {
-      logger.info(location, null, messages.fetch("Experiments found: " + nExperiments));
     }
   }
 
@@ -270,7 +223,7 @@ public class DuccBoot extends Thread {
     String location = "initialize";
     long limit = getLimit();
     if (limit > 0) {
-      logger.info(location, jobid, messages.fetchLabel("max history limit") + limit);
+      logger.info(location, jobid, messages.fetchLabel("max history limit"), limit);
       maxJobs = limit;
       maxReservations = limit;
       maxServices = limit;
@@ -279,16 +232,14 @@ public class DuccBoot extends Thread {
 
   private void restore() {
     String location = "restore";
-    logger.info(location, jobid, messages.fetchLabel("History directory") + IDuccEnv.DUCC_HISTORY_DIR);
+    logger.info(location, jobid, messages.fetchLabel("History directory"), IDuccEnv.DUCC_HISTORY_DIR);
     IHistoryPersistenceManager hpm = HistoryFactory.getInstance(this.getClass().getName());
     DuccData.reset();
     DuccData duccData = DuccData.getInstance();
-    experimentsFound = new HashSet<String>(); // Lets the restore methods avoid inspecting already-found experiments
     restoreReservations(hpm, duccData);
     restoreJobs(hpm, duccData);
     restoreServices(hpm, duccData);
     restoreArbitraryProcesses(hpm, duccData);
-    experimentsFound = null;
     duccData.report();
   }
 }

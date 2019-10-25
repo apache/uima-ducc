@@ -23,10 +23,12 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -34,7 +36,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.ws.log.WsLog;
-import org.apache.uima.ducc.ws.server.DuccWebProperties;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
@@ -48,133 +49,99 @@ public class ExperimentsRegistryManager {
   private static Gson gson = new Gson();
 
   private static ExperimentsRegistryManager instance = new ExperimentsRegistryManager();
+  
+  private static String stateFileName = "Experiment.state";
 
   private int MAX_CACHE_SIZE = 4096;
 
-  private TreeMap<String, IExperiment> map = new TreeMap<String, IExperiment>();
+  private Set<String> seenDirs = new HashSet<String>();   // Set of directories seen when booting or during an OR publication
 
-  private AtomicLong updateCounter = new AtomicLong(0);
-
-  private boolean enabled;   // true if Experiments button is enabled/displayed
+  private Map<String, IExperiment> experimentsByDir = new ConcurrentHashMap<String,IExperiment>();
 
   public static ExperimentsRegistryManager getInstance() {
     return instance;
   }
 
-  private ExperimentsRegistryManager() {
-    String ducc_experiments = DuccWebProperties.get().getProperty("ducc.experiments", "false");
-    enabled = ducc_experiments.equalsIgnoreCase("true");
-    WsLog.info(cName, "<constructor>", "Experiments enabled: " + enabled);
+  public IExperiment getExperiment(String directory) {
+    return experimentsByDir.get(directory);
   }
   
-  public TreeMap<IExperiment, String> getMapByStatus() {
-    TreeMap<IExperiment, String> mapInverse = new TreeMap<IExperiment, String>();
-    synchronized (map) {
-      for (Entry<String, IExperiment> entry : map.entrySet()) {
-        mapInverse.put(entry.getValue(), entry.getKey());
-      }
-    }
-    return mapInverse;
-  }
-
-  private TreeMap<Long, String> getMapByDate() {
-    TreeMap<Long, String> mapByDate = new TreeMap<Long, String>();
-    synchronized (map) {
-      for (Entry<String, IExperiment> entry : map.entrySet()) {
-        IExperiment experiment = entry.getValue();
-        Long key = new Long(experiment.getStartTime());
-        String value = experiment.getId();
-        mapByDate.put(key, value);
-      }
-    }
-    return mapByDate;
-  }
-
-  public IExperiment getById(String id) {
-    IExperiment retVal = null;
-    if (id != null) {
-      synchronized (map) {
-        for (Entry<String, IExperiment> entry : map.entrySet()) {
-          IExperiment experiment = entry.getValue();
-          if (id.equals(experiment.getId())) {
-            retVal = experiment;
-            break;
-          }
+  // Called by DuccPlugins with work restored from the DB when web-server boots
+  public void initialize(IDuccWork dw) {
+    //String mName = "initialize";
+    IDuccStandardInfo stdInfo = dw.getStandardInfo();
+    if (stdInfo != null) {
+      String experimentDirectory = stdInfo.getExperimentDirectory();
+      if (experimentDirectory != null) {
+        // Is a JED AP so check that we have the duccId of the latest AP even if not the first seen
+        seenDirs.add(experimentDirectory);
+        update(stdInfo.getUser(), experimentDirectory, dw);
+      } else {
+        // May be one of the tasks from a local or ducc-launched JED so process only the first
+        String logDirectory = stdInfo.getLogDirectory();
+        String parent = new File(logDirectory).getParent();
+        if (seenDirs.add(parent)) {
+          update(stdInfo.getUser(), parent, null);
         }
       }
     }
-    return retVal;
   }
 
-  private void replace(String directory, Experiment experiment) {
-    String mName = "replace";
-    
-    // Keep the same id
-    String id = map.get(directory).getId();
-    experiment.setId(id);
-    
-    // Keep latest JED id ... and umask in case this is not the JED AP
-    DuccId oldDuccId = map.get(directory).getJedDuccId();
-    long oldNum = oldDuccId==null? 0 : oldDuccId.getFriendly();
-    DuccId newDuccId = experiment.getJedDuccId();
-    long newNum = newDuccId==null? 0 : newDuccId.getFriendly();
-    if (oldNum > newNum) {
-      experiment.setJedDuccId(oldDuccId);
-      experiment.umask = ((Experiment)map.get(directory)).umask;   // Ugh - should update rather than replace ??
+  // Called by DuccPlugins for each OR publication
+  public void update(IDuccWorkMap dwm) {
+    String mName = "update";
+    if (dwm == null) {
+      WsLog.warn(cName, mName, "missing map");
+      return;
     }
-    
-    map.put(directory, experiment);
-    WsLog.debug(cName, mName, directory);
-  }
-
-  private void add(String directory, Experiment experiment) {
-    String mName = "add";
-    map.put(directory, experiment);
-    WsLog.debug(cName, mName, directory);
-  }
-
-  private void put(String directory, Experiment experiment) {
-    synchronized (map) {
-      if (map.containsKey(directory)) {
-        replace(directory, experiment);
-      } else {
-        add(directory, experiment);
+    seenDirs.clear();   // Clear set of visited dirs before every update
+    try {
+      // Inspect all jobs
+      for (DuccId duccId : dwm.getJobKeySet()) {
+        IDuccWork job = dwm.findDuccWork(duccId);
+        if (job != null) {
+          IDuccStandardInfo stdInfo = job.getStandardInfo();
+          if (stdInfo != null) {
+            String user = stdInfo.getUser();
+            String logDirectory = stdInfo.getLogDirectory();
+            String parent = new File(logDirectory).getParent();
+            if (seenDirs.add(parent)) {  // Process the first job with this parent dir
+              update(user, parent, null);
+            }
+          }
+        }
       }
-    }
-  }
 
-  private void remove(String directory) {
-    String mName = "remove";
-    synchronized (map) {
-      map.remove(directory);
-
-    }
-    WsLog.debug(cName, mName, directory);
-  }
-
-  private boolean containsKey(String directory) {
-    synchronized (map) {
-      return map.containsKey(directory);
-    }
-  }
-
-  // Called by DuccPlugins when web-server boots
-  public void initialize(IDuccWork dw) {
-    IDuccStandardInfo stdInfo = dw.getStandardInfo();
-    if (stdInfo != null) {
-      String user = stdInfo.getUser();
-      String directory = stdInfo.getLogDirectory();
-      String experimentDirectory = stdInfo.getExperimentDirectory();
-      if (experimentDirectory != null) {
-        update(user, experimentDirectory, false, dw);
-      } else {
-        directory = ExperimentsRegistryUtilities.upOne(directory);
-        update(user, directory, false, null);
+      // Inspect managed reservations ... check if a JED AP
+      for (DuccId duccId : dwm.getManagedReservationKeySet()) {
+        IDuccWork work = dwm.findDuccWork(duccId);
+        if (work != null) {
+          IDuccStandardInfo stdInfo = work.getStandardInfo();
+          if (stdInfo != null) {
+            String user = stdInfo.getUser();
+            String experimentDirectory = stdInfo.getExperimentDirectory();
+            if (experimentDirectory != null) {
+              // Even if have seen this dir earlier we must check that we have the duccId of the latest AP
+              // JED tasks usually have a log dir 1 level below the exp dir
+              seenDirs.add(experimentDirectory);  // This prevents processing of any of its child jobs
+              update(user, experimentDirectory, work);
+            } else {
+              String logDirectory = stdInfo.getLogDirectory();
+              String parent = new File(logDirectory).getParent();
+              if (seenDirs.add(parent)) {    // Process the first AP with this parent dir
+                update(user, parent, null);  // (unless already seen as a JED exp dir)
+              }
+            }
+          }
+        }
       }
-    }      
+      prune();  // if list too large
+    } catch (Exception e) {
+      WsLog.error(cName, mName, e);
+    }
   }
   
-  // DuccWork provided only for the AP that launches JED
+  // Load or refresh the experiment
   private void update(String user, String directory, IDuccWork work) {
     String mName = "update";
     
@@ -186,194 +153,91 @@ public class ExperimentsRegistryManager {
       return;
     }
 
-    try {
-      String fileName = ExperimentsRegistryUtilities.getStateFilePath(directory);
-      long date = ExperimentsRegistryUtilities.getFileDate(user, fileName);
-      WsLog.debug(cName, mName, "Reading " + fileName + " date: " + date);
-      String contents = ExperimentsRegistryUtilities.getFileContents(user, fileName);
-      if (contents != null) {
-        // Version may precede the initial '[' and may be on a separate line
-        int version = 0;
-        int offset = contents.indexOf('[');
-        if (offset > 0) {
-          String s = contents.substring(0, offset).trim();
-          try {
-            version = Integer.parseInt(s);
-          } catch (NumberFormatException e) {
-            WsLog.warn(cName, mName, "Invalid version '" + s + "' in state file : " + fileName);
-            return;
-          }
-          contents = contents.substring(offset);
-        }
-        if (offset < 0) {
-          WsLog.warn(cName, mName, "Invalid syntax (missing '[') in state file : " + fileName);
-          return;
-        }
-        StringReader sr = new StringReader(contents);
-        Type tasksType = new TypeToken<ArrayList<Task>>() {
-        }.getType();
-        try {
-          ArrayList<Task> taskArray = gson.fromJson(sr, tasksType);
-          Experiment experiment = new Experiment(user, directory, date, version, taskArray, work);
-          put(directory, experiment);
-        } catch (JsonParseException e) {
-          WsLog.warn(cName, mName,
-                  "Ignoring " + fileName + " as has Json syntax error " + e.getMessage());
-        }
-      } else {
-        if (work != null) {
-          WsLog.warn(cName, mName, "State file missing or inaccessible in " + directory + " for JED AP " + work.getDuccId());
-        }
-        WsLog.trace(cName, mName, "state file missing or inaccessible in " + directory);
-        remove(directory);
-      }
-    } catch (Exception e) {
-      WsLog.error(cName, mName, e);
+    File stateFile = new File(directory, stateFileName);
+    long fileTime = ExperimentsRegistryUtilities.getFileTime(user, stateFile);
+    if (fileTime == 0) {
+      return;           // File not found
     }
-  }
-
-  private void update(String user, String directory, boolean overwrite) {
-    update(user, directory, overwrite, null);
+    
+    // Check if state file is newer than any existing one
+    // If newer refresh it, otherwise just update the JED duccId in case it is a newer AP
+    IExperiment existingExperiment = experimentsByDir.get(directory);
+    if (existingExperiment != null) {
+      if (fileTime <= existingExperiment.getFileDate()) {
+        if (work != null) {
+          existingExperiment.updateJedId(work.getDuccId()); 
+        }
+        return;
+      }
+    }
+    
+    // Load or reload changed state file
+    String contents = ExperimentsRegistryUtilities.readFile(user, stateFile);
+    if (contents == null) {
+      WsLog.warn(cName, mName, "State file not found " + stateFile.getAbsolutePath());
+      return;
+    }
+    // Ignore version prefix - old non-prefixed files had a larger "stale" threshold
+    int offset = contents.indexOf('[');
+    if (offset > 0) {
+      contents = contents.substring(offset);
+    }
+    // Load from a Json array of Tasks
+    StringReader sr = new StringReader(contents);
+    Type typeOfTaskList = new TypeToken<ArrayList<Task>>(){}.getType();
+    try {
+      ArrayList<Task> taskArray = gson.fromJson(sr, typeOfTaskList);
+      IExperiment experiment = new Experiment(user, directory, fileTime, taskArray, work);
+      IExperiment oldExperiment = experimentsByDir.put(directory, experiment);
+      if (oldExperiment != null) {
+        experiment.updateJedId(oldExperiment.getJedDuccId());    // Ensure the new instance has the latest DuccId
+      }
+    } catch (JsonParseException e) {
+      WsLog.warn(cName, mName, "Ignoring " + stateFile + " as has Json syntax error " + e.getMessage());
+    }
   }
   
-  private void update(String user, String directory, boolean overwrite, IDuccWork work) {
-    String mName = "update";
-    try {
-      if (overwrite) {
-        update(user, directory, work);
-      } else {
-        if (!containsKey(directory)) {
-          update(user, directory, work);
-        } else {
-          WsLog.trace(cName, mName, "duplicate directory: " + directory);
-        }
-      }
-
-    } catch (Exception e) {
-      WsLog.error(cName, mName, e);
+  // Create map ordered by experiment: active, newest start date, directory
+  public TreeMap<IExperiment, String> getMapByStatus() {
+    TreeMap<IExperiment, String> mapInverse = new TreeMap<IExperiment, String>();
+    for (Entry<String, IExperiment> entry : experimentsByDir.entrySet()) {
+      mapInverse.put(entry.getValue(), entry.getKey());
     }
+    return mapInverse;
   }
 
-  private void check() {
-    String mName = "check";
-    try {
-      ArrayList<IExperiment> list = new ArrayList<IExperiment>();
-      synchronized (map) {
-        for (Entry<String, IExperiment> entry : map.entrySet()) {
-          IExperiment experiment = entry.getValue();
-          if (experiment.isActive()) {
-            list.add(experiment);
-          }
-        }
-      }
-      for (IExperiment experiment : list) {
-        String user = experiment.getUser();
-        String directory = experiment.getDirectory();
-        WsLog.debug(cName, mName, "user: " + user + " " + "dirextory: " + directory);
-        update(experiment.getUser(), experiment.getDirectory(), true);
-      }
-    } catch (Exception e) {
-      WsLog.error(cName, mName, e);
+  // Create map from file last update time to directory ordered oldest first
+  private TreeMap<Long, String> getMapByDate() {
+    TreeMap<Long, String> mapByDate = new TreeMap<Long, String>();
+    for (Entry<String, IExperiment> entry : experimentsByDir.entrySet()) {
+      IExperiment experiment = entry.getValue();
+      mapByDate.put(experiment.getFileDate(), entry.getKey());
     }
+    return mapByDate;
   }
 
-  // Prune if map is large or after every 3rd update
-  private boolean timeToPrune(int size) {
-    boolean retVal = false;
-    if (size > MAX_CACHE_SIZE) {
-      retVal = true;
-    }
-    if ((updateCounter.get() % 3) == 0) {
-      retVal = true;
-    }
-    return retVal;
-  }
-
-  // Keep an experiment if it is active or if cache has room
-  // i.e. prune entries with the oldest start-time if not active and cache is full
-  // ?? could prune a long-running active one ??
+  // Keep all active experiments plus the newer inactive ones.
+  // i.e. prune inactive entries with the oldest start-time
   private void prune() {
     String mName = "prune";
-    WsLog.enter(cName, mName);
-    try {
-      TreeMap<Long, String> mapByDate = getMapByDate();
-      if (timeToPrune(mapByDate.size())) {
-        int cacheCount = 0;
-        for (Entry<Long, String> entry : mapByDate.entrySet()) {
-          String key = entry.getValue();
-          IExperiment experiment = getById(key);
-          if (experiment != null) {
-            if (experiment.isActive()) {
-              cacheCount++;
-            } else {
-              if (cacheCount < MAX_CACHE_SIZE) {
-                cacheCount++;
-              } else {
-                String directory = experiment.getDirectory();
-                remove(directory);
-              }
-            }
-          }
-        }
-      }
-    } catch (Exception e) {
-      WsLog.error(cName, mName, e);
-    }
-    // WsLog.exit(cName, mName);
-  }
-
-  // Called by DuccPlugins for each OR publication
-  public void update(IDuccWorkMap dwm) {
-    String mName = "update";
-    if (!enabled) 
+    int excess = experimentsByDir.size() - MAX_CACHE_SIZE;
+    if (excess <= 0) {
       return;
-    WsLog.enter(cName, mName);
-    try {
-      if (dwm == null) {
-        WsLog.warn(cName, mName, "missing map");
-      } else {
-        updateCounter.incrementAndGet();
-        Iterator<DuccId> iterator = dwm.getJobKeySet().iterator();
-        while (iterator.hasNext()) {
-          DuccId duccId = iterator.next();
-          IDuccWork job = dwm.findDuccWork(duccId);
-          if (job != null) {
-            IDuccStandardInfo stdInfo = job.getStandardInfo();
-            if (stdInfo != null) {
-              String user = stdInfo.getUser();
-              String directory = stdInfo.getLogDirectory();
-              String parent = ExperimentsRegistryUtilities.upOne(directory);
-              update(user, parent, true);
-            }
-          }
-        }
-
-        // Also process managed reservations in case the experiment has only these.
-        iterator = dwm.getManagedReservationKeySet().iterator();
-        while (iterator.hasNext()) {
-          DuccId duccId = iterator.next();
-          IDuccWork job = dwm.findDuccWork(duccId);
-          if (job != null) {
-            IDuccStandardInfo stdInfo = job.getStandardInfo();
-            if (stdInfo != null) {
-              String user = stdInfo.getUser();
-              String directory = stdInfo.getLogDirectory();
-              String experimentDirectory = stdInfo.getExperimentDirectory();
-              if (experimentDirectory != null) {
-                update(user, experimentDirectory, true, job);
-              } else {
-                directory = ExperimentsRegistryUtilities.upOne(directory);
-                update(user, directory, true, null);
-              }
-            }
-          }
+    }
+    // Create map sorted by filetime, oldest first and discard the first "excess" inactive entries
+    WsLog.info(cName, mName, "Pruning " + excess + " old experiments");
+    TreeMap<Long, String> mapByDate = getMapByDate();
+    for (String directory : mapByDate.values()) {
+      IExperiment experiment = experimentsByDir.get(directory);
+      if (!experiment.isActive()) {
+        WsLog.info(cName, mName, "Pruned " + directory + " filetime " + experiment.getFileDate());
+        experimentsByDir.remove(directory);
+        if (--excess <= 0) {
+          break;
         }
       }
-      check();
-      prune();
-    } catch (Exception e) {
-      WsLog.error(cName, mName, e);
     }
-    // WsLog.exit(cName, mName);
+    WsLog.info(cName, mName, "Pruned map size: " + experimentsByDir.size());
   }
+
 }

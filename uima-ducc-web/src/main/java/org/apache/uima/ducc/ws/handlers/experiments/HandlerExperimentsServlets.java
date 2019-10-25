@@ -22,8 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -49,9 +47,9 @@ import org.apache.uima.ducc.ws.utils.FormatServletClassic;
 import org.apache.uima.ducc.ws.utils.FormatServletScroll;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.apache.uima.ducc.ws.utils.HandlersHelper.AuthorizationStatus;
+import org.apache.uima.ducc.ws.xd.IExperiment;
 import org.apache.uima.ducc.ws.xd.ExperimentsRegistryManager;
 import org.apache.uima.ducc.ws.xd.ExperimentsRegistryUtilities;
-import org.apache.uima.ducc.ws.xd.IExperiment;
 import org.apache.uima.ducc.ws.xd.Jed;
 import org.apache.uima.ducc.ws.xd.Jed.Status;
 import org.apache.uima.ducc.ws.xd.Task;
@@ -95,7 +93,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
   private long getRunTime(HttpServletRequest request, IExperiment experiment) {
     long runTime = 0;
-    Task[] tasks = experiment.getTasks();
+    ArrayList<Task> tasks = experiment.getTasks();
     for (Task task : tasks) {
       if (task.parentId == 0) {
         if (task.runTime > runTime) {
@@ -157,8 +155,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
   private String getDirectoryLink(HttpServletRequest request, IExperiment experiment) {
     String directory = experiment.getDirectory();
-    String id = experiment.getId();
-    String href = "href=\"experiment.details.html?id=" + id + "\"";
+    String href = "href='experiment.details.html?dir=" + directory + "'";
     String directoryLink = "<a" + " " + href + " " + ">" + directory + "</a>";
     return directoryLink;
   }
@@ -172,15 +169,12 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
     FormatServlet fmt = tableStyle.equals("scroll") ? new FormatServletScroll() : new FormatServletClassic();
 
-    TreeMap<IExperiment, String> map = experimentsRegistryManager.getMapByStatus();
-
     int maxRecords = HandlersUtilities.getExperimentsMax(request);
     
     ArrayList<String> users = HandlersUtilities.getExperimentsUsers(request);
-
-    for (Entry<IExperiment, String> entry : map.entrySet()) {
-
-      IExperiment experiment = entry.getKey();
+    
+    // List experiments in "experiment" order: active, newest start-date, directory
+    for (IExperiment experiment : experimentsRegistryManager.getMapByStatus().keySet()) {
 
       boolean fullTable = fmt.numRows() >= maxRecords;
       
@@ -196,7 +190,6 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
         Status experimentStatus = experiment.getStatus();
         switch (experimentStatus) {
           case Running:
-            String id = experiment.getId();
             String directory = experiment.getDirectory();
             String disabled = "";
             String resourceOwnerUserid = experiment.getUser();
@@ -205,7 +198,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
               disabled = "disabled title=\"Hint: use Login to enable\"";
             }
             terminate = "<input type=\"button\"" + 
-                        " onclick=\"ducc_confirm_terminate_experiment('" + id + "','" + directory + "')\"" +
+                        " onclick=\"ducc_confirm_terminate_experiment('" + directory + "')\"" +
                         " value=\"Terminate\" " + disabled + "/>";
           default:
             break;
@@ -219,7 +212,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
         fmt.addElemR(duration, runTime);
 
         fmt.addElemL(getUser(request, experiment));
-        fmt.addElemR(experiment.getTasks().length);
+        fmt.addElemR(experiment.getTasks().size());
         fmt.addElemL(getState(request, experiment));
         fmt.addElemL(getDirectoryLink(request, experiment));
 
@@ -286,7 +279,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
               color = "background-color:PaleGreen;";
             }
             state = "<input type='button' style='" + color + "'"
-                    + " onclick=\"ducc_toggle_task_state('" + experiment.getId() + "','" + task.taskId + "')\""
+                    + " onclick=\"ducc_toggle_task_state('" + task.taskId + "')\""
                     + " title=\"Click to toggle state\"" 
                     + " value=\"" + state + "\" />";
           }
@@ -297,7 +290,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     }
     return state;
   }
-  
+
   private String decorateStepStart(Task task, HttpServletRequest request) {
     String startTime = "";
     if (task.startTime != null) {
@@ -434,15 +427,11 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     WsLog.enter(cName, mName);
 
     boolean handled = false;
-
-    String id = request.getParameter("id");
-    
-    IExperiment experiment = experimentsRegistryManager.getById(id);
-    
     long now = System.currentTimeMillis();
-
     FormatServlet fmt = tableStyle.equals("scroll") ? new FormatServletScroll() : new FormatServletClassic();
-    
+
+    String dir = request.getParameter("dir");
+    IExperiment experiment = experimentsRegistryManager.getExperiment(dir);
     if (experiment != null) {
       // Check if the experiment can be restarted, i.e.
       // launched by DUCC as a JED AP, stopped, and owned by the logged-in user
@@ -452,15 +441,15 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
       
       boolean isCanceled = experiment.getStatus() == Jed.Status.Canceled;
 
-      Task[] tasks = experiment.getTasks();
+      ArrayList<Task> tasks = experiment.getTasks();
       if (tasks != null) {
         // Check if given a task whose state is to be toggled between Completed & Rerun
         String toggleTask = request.getParameter("taskid");
         if (toggleTask != null) {
-          int toggle = Integer.parseInt(toggleTask);
-          Task task = tasks[toggle-1];
+          int toggleId = Integer.parseInt(toggleTask);
+          Task task = findTask(tasks, toggleId);
           task.rerun = !task.rerun;
-          markSubtasks(tasks, toggle, task.rerun);
+          markSubtasks(tasks, toggleId, task.rerun);
         }
         // Find the latest duccId to display for a task ... omit if not started or has been reset for a rerun
         for (Task task : tasks) {
@@ -498,13 +487,21 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return handled;
   }
 
+  private Task findTask(ArrayList<Task> tasks, int taskId) {
+    for (Task task : tasks) {
+      if (task.taskId == taskId) {
+        return task;
+      }
+    }
+    return null;   // Will cause an NPE ??
+  }
+  
   // Mark each child with the same rerun state as the parent.
-  // Note that children ALWAYS have a larger taskId
-  private void markSubtasks(Task[] tasks, int parentId, boolean rerun) {
-    for (int childId = parentId + 1; childId <= tasks.length; ++childId) {
-      if (tasks[childId-1].parentId == parentId) {
-        tasks[childId-1].rerun = rerun;
-        markSubtasks(tasks, childId, rerun);
+  private void markSubtasks(ArrayList<Task> tasks, int parentId, boolean rerun) {
+    for (Task task : tasks) {
+      if (task.parentId == parentId) {
+        task.rerun = rerun;
+        markSubtasks(tasks, task.taskId, rerun);
       }
     }
   }
@@ -516,15 +513,13 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
     StringBuffer sb = new StringBuffer();
 
-    String id = request.getParameter("id");
+    String directory = request.getParameter("dir");
 
     boolean restart = false;
 
-    IExperiment experiment = experimentsRegistryManager.getById(id);
+    IExperiment experiment = experimentsRegistryManager.getExperiment(directory);
 
-    if (experiment != null && experiment.getDirectory() != null) {
-      String directory = experiment.getDirectory();
-      
+    if (experiment != null) {
       // Display Terminate/Restart button if DUCC-launched && the owner logged in
       String button = null;
       if (experiment.getJedDuccId() != null &&
@@ -537,7 +532,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
                   + " title='experiment is restarting'>Restarting...</button>";
         } else if (status == Jed.Status.Running) {
           button = "<button style='background-color:LightPink;font-size:16px' "
-                  + "onclick=\"ducc_confirm_terminate_experiment('" + id + "','" + directory + "')\""
+                  + "onclick=\"ducc_confirm_terminate_experiment('" + directory + "')\""
                   + " title='click to terminate experiment'>TERMINATE</button>";
         } else {
           button = "<button style='background-color:PaleGreen;font-size:16px' "
@@ -576,15 +571,13 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
     StringBuffer sb = new StringBuffer();
 
-    String id = request.getParameter("id");
-
-    IExperiment experiment = experimentsRegistryManager.getById(id);
+    String directory = request.getParameter("dir");
+    IExperiment experiment = experimentsRegistryManager.getExperiment(directory);
 
     String resourceOwnerUserId = experiment.getUser();
 
-    String directory = experiment.getDirectory();
     String file = "DRIVER.running";
-    String path = directory + File.separator + file;
+    String path = new File(directory, file).getAbsolutePath();
 
     WsLog.info(cName, mName, path);
 
@@ -616,8 +609,9 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
           HttpServletResponse response) throws Exception {
     String mName = "handleDuccRequest";
     WsLog.enter(cName, mName);
-    String reqURI = request.getRequestURI() + "";
+    String reqURI = request.getRequestURI();
     boolean handled = false;
+    //if (reqURI.contains("experiment")) WsLog.info(cName, mName, "!! start "+reqURI);
     if (handled) {
     } else if (reqURI.startsWith(duccContextExperimentDetailsDirectory)) {
       handled = handleServletExperimentDetailsDirectory(target, baseRequest, request, response);
@@ -637,7 +631,8 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     } else if (reqURI.startsWith(duccContextExperimentCancelRequest)) {
       handled = handleServletExperimentCancelRequest(target, baseRequest, request, response);
     }
-
+    //if (reqURI.contains("experiment")) WsLog.info(cName, mName, "!! end   "+reqURI);
+    
     WsLog.exit(cName, mName);
     return handled;
   }

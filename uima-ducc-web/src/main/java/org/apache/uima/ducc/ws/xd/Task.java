@@ -24,7 +24,7 @@ import com.google.gson.annotations.Expose;
  * The "exposed" fields are those exposed and saved by JED in the Experiment.state file
  * See TaskState in the com.ibm.watsonx.framework.jed project 
  */
-public class Task {
+public class Task implements Comparable<Task> {
   
   @Expose
   public String pathId;
@@ -57,4 +57,9 @@ public class Task {
   public long[] duccId;
   
   public boolean rerun = false;  // Note - this is NOT in the Experiment.state file
+  
+  @Override
+  public int compareTo(Task that) {
+    return this.taskId - that.taskId;   // So can sort tasks for display
+  }
 }

@@ -18,11 +18,8 @@
 */
 package org.apache.uima.ducc.ws.xd;
 
-import java.io.BufferedReader;
-import java.io.Closeable;
 import java.io.File;
-import java.io.FileReader;
-import java.io.StringReader;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Map.Entry;
 
@@ -43,143 +40,47 @@ public class ExperimentsRegistryUtilities {
   // NOTE - this variable used to hold the class name before WsLog was simplified
   private static DuccLogger cName = DuccLogger.getLogger(ExperimentsRegistryUtilities.class);
 
-  private static String stateFileName = "Experiment.state";
-
-  public static String upOne(String directory) {
-    String retVal = directory;
-    if (directory != null) {
-      retVal = new File(directory).getParent();
+  /*
+   * Get the file timestamp ... return 0 if file doesn't exist
+   */
+  public static long getFileTime(String user, File stateFile) {
+    if (stateFile.canRead()) {
+      return stateFile.lastModified();
     }
-    return retVal;
-  }
-
-  public static String getStateFilePath(String directory) {
-    String retVal = new File(directory, stateFileName).getAbsolutePath();
-    return retVal;
-  }
-
-  private static void closer(Closeable object) {
-    String mName = "closer";
-    try {
-      object.close();
-    } catch (Exception e) {
-      WsLog.debug(cName, mName, e);
-    }
-  }
-
-  public static long getFileDate(IExperiment experiment) {
-    String mName = "getFileDate";
-    WsLog.enter(cName, mName);
-    String user = experiment.getUser();
-    String filename = getStateFilePath(experiment.getDirectory());
-    long retVal = getFileDate(user, filename);
-    return retVal;
-  }
-
-  public static long getFileDate(String user, String filename) {
-    String mName = "getFileDate";
-    WsLog.enter(cName, mName);
-    long retVal = getDomesticFileDate(user, filename);
-    if (retVal == 0) {
-      retVal = getAlienFileDate(user, filename);
-    }
-    WsLog.exit(cName, mName);
-    return retVal;
-  }
-
-  private static long getAlienFileDate(String user, String filename) {
-    String mName = "getAlienFileDate";
-    WsLog.enter(cName, mName);
-    long retVal = 0;
-    AlienFile alienFile = new AlienFile(user, filename);
-    // NOTE - should not need the "--" ... or this could be moved to AlienFile
-    String[] lines = alienFile.getResult(false, "--", "/bin/ls", "-l", "--time-style=+%s",
-            filename);
-    // Should have 1 line with secs-since-epoch in 6th token
-    if (lines.length == 1) {
-      String[] toks = lines[0].split("\\s+");
-      if (toks.length >= 6) {
-        retVal = Long.valueOf(toks[5]) * 1000;
+    // May be unreadable by DUCC or may not exist!
+    // Use duccling to get time in "date" style seconds
+    String[] cmd = { "/bin/ls", "-l", "--time-style=+%s", stateFile.getAbsolutePath() };
+    String result = DuccAsUser.execute(user, null, cmd);
+    String[] toks = result.split("\\s+");
+    // If file doesn't exist 6-th token will be part of an error msg
+    if (toks.length >= 6) {
+      try {
+        return Long.valueOf(toks[5]) * 1000;
+      } catch (NumberFormatException e) {
       }
     }
-    WsLog.exit(cName, mName);
-    return retVal;
-  }
+    return 0;
 
-  private static long getDomesticFileDate(String user, String filename) {
-    String mName = "getDomesticFileDate";
-    WsLog.enter(cName, mName);
-    long retVal = 0;
-    try {
-      File file = new File(filename);
-      retVal = file.lastModified();
-    } catch (Exception e) {
-      WsLog.trace(cName, mName, e);
-    }
-    WsLog.exit(cName, mName);
-    return retVal;
   }
 
   /*
-   * Returns null if file is missing or can't be read
+   * Read the Experiment.state file ... as the user if necessary
    */
-  public static String getFileContents(String user, String filename) {
-    String mName = "getFileContents";
-    WsLog.enter(cName, mName);
-    boolean canRead = ((new File(filename)).canRead());
-    String retVal = canRead ? getDomesticFileContents(user, filename)
-            : getAlienFileContents(user, filename);
-    WsLog.exit(cName, mName);
-    return retVal;
-  }
-
-  private static String getAlienFileContents(String user, String filename) {
-    String mName = "getAlienFileContents";
-    WsLog.enter(cName, mName);
-    String retVal = null;
+  public static String readFile(String user, File file) {
+    String mName = "readFile";
     try {
-      AlienFile alienFile = new AlienFile(user, filename);
-      retVal = alienFile.getString();
-    } catch (Throwable t) {
-      WsLog.trace(cName, mName, t);
-    }
-
-    WsLog.exit(cName, mName);
-    return retVal;
-  }
-
-  private static String getDomesticFileContents(String user, String filename) {
-    String mName = "getDomesticFileContents";
-    WsLog.enter(cName, mName);
-    String retVal = null;
-    FileReader fr = null;
-    BufferedReader br = null;
-    StringReader sr = null;
-    try {
-      fr = new FileReader(filename);
-      br = new BufferedReader(fr);
-      StringBuffer sb = new StringBuffer();
-      String line = br.readLine();
-      while (line != null) {
-        sb.append(line);
-        line = br.readLine();
+      if (file.canRead()) {
+        byte[] bytes = Files.readAllBytes(file.toPath());
+        return new String(bytes);
+      } else {
+        AlienFile alienFile = new AlienFile(user, file.getAbsolutePath());
+        return alienFile.getString();
       }
-      retVal = sb.toString();
     } catch (Exception e) {
-      WsLog.debug(cName, mName, e);
-    } finally {
-      if (br != null) {
-        closer(br);
-      }
-      if (fr != null) {
-        closer(fr);
-      }
-      if (sr != null) {
-        closer(sr);
-      }
+      WsLog.error(cName, mName, "Failed to read file " + file.getAbsoluteFile());
+      WsLog.error(cName, mName, e);
+      return null;
     }
-    WsLog.exit(cName, mName);
-    return retVal;
   }
 
   public static boolean launchJed(IExperiment experiment) {
@@ -249,8 +150,8 @@ public class ExperimentsRegistryUtilities {
         "--description",             "JED---" + dwj.getStandardInfo().getLogDirectory()
     };
     
-    // Update state file AFTER successfully restoring the JED AP from the DB
-    if (!experiment.updateStateFile()) {
+    // Update state file with the user's umask AFTER successfully restoring the JED AP from the DB
+    if (!experiment.updateStateFile(dwj.getStandardInfo().getUmask())) {
       return false;
     }
     

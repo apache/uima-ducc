@@ -22,41 +22,36 @@ import java.util.ArrayList;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
-public interface IExperiment extends Comparable<Object> {
-  public void setId(String value);
-
-  public String getId();
+public interface IExperiment extends Comparable<IExperiment> {
 
   public String getUser();
 
   public String getDirectory();
 
-  public Task[] getTasks();
-
-  public ArrayList<String> getJobIds();
+  public ArrayList<Task> getTasks();
 
   public String getStartDate();
-
-  public long getStartTime();
 
   public boolean isActive();
 
   public Jed.Status getStatus();
 
-  public void setFileDate(long value);
-
   public long getFileDate();
-
-  public int getVersion();
 
   public boolean isStale();
 
-  // Set the DuccId of the AP that launched the experiment
-  public void setJedDuccId(DuccId duccId);
-  
-  // Return the DuccId of the AP that launched the experiment, or null
+  /*
+   *  Return the DuccId of the AP that launched the experiment, or null
+   */
   public DuccId getJedDuccId();
   
-  // Update the Experiment.state file indicating the tasks to be rerun
-  public boolean updateStateFile();
+  /*
+   *  Update the DuccId of the AP that launched the experiment
+   */
+  public void updateJedId(DuccId duccId);
+  
+  /*
+   *  Update the Experiment.state file indicating the tasks to be rerun
+   */
+  public boolean updateStateFile(String umask);
 }

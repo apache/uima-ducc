@@ -22,17 +22,13 @@ import java.util.ArrayList;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.cmdline.ICommandLine;
-import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.IDuccProcess;
-import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
-import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.ws.handlers.experiments.HandlerExperimentsServlets;
+import org.apache.uima.ducc.ws.server.DuccWebProperties;
 import org.apache.uima.ducc.ws.server.DuccWebServer;
 import org.apache.uima.ducc.ws.xd.ExperimentsRegistryManager;
 import org.eclipse.jetty.server.Handler;
@@ -49,45 +45,41 @@ public class DuccPlugins {
     return instance;
   }
 
-  private static ExperimentsRegistryManager experimentsRegistryManager = ExperimentsRegistryManager
-          .getInstance();
+  // Do nothing if not enabled
+  private boolean experimentsEnabled;
 
+  private ExperimentsRegistryManager experimentsRegistryManager = null;
+
+  private DuccPlugins() {
+    String ducc_experiments = DuccWebProperties.get().getProperty("ducc.experiments", "false");
+    experimentsEnabled = ducc_experiments.equalsIgnoreCase("true");
+    if (experimentsEnabled) {
+      experimentsRegistryManager = ExperimentsRegistryManager.getInstance();
+    }
+  }
+  
   /**
    * The restore methods are called during boot of the web server. This is an opportunity to have
    * local mods plug-in for processing that may be desirable relative to each Job, Reservation, and
    * Service during the restoration from history.
+   * Note - exceptions are caught in DuccBoot
    */
 
   public void restore(IDuccWorkJob job) {
-    String location = "restore";
-    try {
-      if (job != null) {
-        experimentsRegistryManager.initialize(job);
-      }
-    } catch (Throwable t) {
-      logger.error(location, jobid, t);
+    if (experimentsRegistryManager != null) {
+      experimentsRegistryManager.initialize(job);
     }
   }
 
   public void restore(IDuccWorkReservation reservation) {
-    String location = "restore";
-    try {
-      // loc mods here
-    } catch (Throwable t) {
-      logger.error(location, jobid, t);
-    }
+    // Ignore unmanaged reservations
   }
 
   public void restore(IDuccWorkService service) {
-    String location = "restore";
-    try {
-      // Also process managed reservations in case the experiment has only these.
-      // Note: APs are saved in DB as services of type "other"
-      if (service != null && service.getServiceDeploymentType() == ServiceDeploymentType.other) {
-        experimentsRegistryManager.initialize(service);
-      }
-    } catch (Throwable t) {
-      logger.error(location, jobid, t);
+    // Also process managed reservations in case the experiment has only these.
+    // Note: APs are saved in DB as services of type "other"
+    if (experimentsRegistryManager != null && service.getServiceDeploymentType() == ServiceDeploymentType.other) {
+      experimentsRegistryManager.initialize(service);
     }
   }
 
@@ -100,7 +92,9 @@ public class DuccPlugins {
   public void update(IDuccWorkMap dwm) {
     String location = "update";
     try {
-      experimentsRegistryManager.update(dwm);
+      if (experimentsRegistryManager != null) {
+        experimentsRegistryManager.update(dwm);
+      }
     } catch (Throwable t) {
       logger.error(location, jobid, t);
     }
@@ -114,6 +108,9 @@ public class DuccPlugins {
   public ArrayList<Handler> gethandlers(DuccWebServer duccWebServer) {
     String location = "gethandlers";
     ArrayList<Handler> handlersList = new ArrayList<Handler>();
+    if (!experimentsEnabled) {
+      return handlersList;
+    }
     try {
       HandlerExperimentsServlets handlerExperimentsServlets = new HandlerExperimentsServlets(
               duccWebServer);

@@ -252,10 +252,10 @@ function ducc_update_page_local(type)
         }       
 }
 
-function ducc_toggle_task_state(expid, taskid)
+function ducc_toggle_task_state(taskid)
 {
         try {
-                ducc_load_data("experiment-details", "?id="+expid+"&taskid="+taskid);
+                ducc_load_data("experiment-details", location.search+"&taskid="+taskid);
         }
         catch(err) {
                 ducc_error("ducc_toggle_task_state",err);
@@ -273,14 +273,14 @@ function ducc_restart_experiment()
         }       
 }
 
-function ducc_terminate_experiment(id)
+function ducc_terminate_experiment(directory)
 {	
 	try {
 		$.jGrowl(" Pending termination...");
 		$.ajax(
 		{
 			type: 'POST',
-			url : "/ducc-servlet/experiment-cancel-request"+"?id="+id,
+			url : "/ducc-servlet/experiment-cancel-request"+"?dir="+directory,
 			success : function (data) 
 			{
 			$.jGrowl(data, { life: 6000 });
@@ -295,12 +295,12 @@ function ducc_terminate_experiment(id)
 	return false;
 }
 
-function ducc_confirm_terminate_experiment(id,directory)
+function ducc_confirm_terminate_experiment(directory)
 {
 	try {
 		var result=confirm("Terminate experiment "+directory+"?");
 		if (result==true) {
-  			ducc_terminate_experiment(id);
+  			ducc_terminate_experiment(directory);
   		}
   	}
 	catch(err) {
