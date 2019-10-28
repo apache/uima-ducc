@@ -51,7 +51,12 @@ public interface IExperiment extends Comparable<IExperiment> {
   public void updateJedId(DuccId duccId);
   
   /*
-   *  Update the Experiment.state file indicating the tasks to be rerun
+   *  Set or clear the Experiment restart status
    */
-  public boolean updateStateFile(String umask);
+  public void updateStatus(String restartJedId);
+  
+  /*
+   * Write the updated state file
+   */
+  public boolean writeStateFile(String umask);
 }

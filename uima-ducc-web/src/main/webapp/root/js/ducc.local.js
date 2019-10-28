@@ -116,7 +116,7 @@ function ducc_load_data(type, params) {
     }
     eval('ms_load_' + type_ + '_data = ms_now');
     if (params == undefined) {
-	params = location.search;
+	params ="";
     }
     var table_style = ducc_preferences_get("table_style");
     if (table_style == "scroll") {
@@ -131,7 +131,7 @@ function ducc_load_classic_data(type, params) {
     var data = null;
 
     try {
-        var servlet = "/ducc-servlet/" + type + "-data" + params
+        var servlet = "/ducc-servlet/" + type + "-data" + location.search + params
         var tomsecs = ms_timeout;
         $.ajax({
             url: servlet,
@@ -153,7 +153,7 @@ function ducc_load_classic_data(type, params) {
 function ducc_load_scroll_data(type, params)
 {
         try {
-                oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-" + type + params, ducc_load_scroll_callback);
+                oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-" + type + location.search + params, ducc_load_scroll_callback);
         }
         catch(err) {
                 ducc_error("ducc_load_scroll_data/"+type,err);
@@ -194,7 +194,7 @@ function ducc_load_identify_experiment_details(params)
 	params = "";
     }
         try {
-                server_url= "/ducc-servlet/experiment-details-directory"+location.search+params;
+                server_url= "/ducc-servlet/experiment-details-directory" + location.search + params;
                 $.ajax(
                 {
                         url : server_url,
@@ -255,7 +255,7 @@ function ducc_update_page_local(type)
 function ducc_toggle_task_state(taskid)
 {
         try {
-                ducc_load_data("experiment-details", location.search+"&taskid="+taskid);
+                ducc_load_data("experiment-details", "&taskid="+taskid);
         }
         catch(err) {
                 ducc_error("ducc_toggle_task_state",err);
@@ -266,7 +266,7 @@ function ducc_restart_experiment()
 {
         try {
                 ducc_load_identify_experiment_details("&restart=true");
-                ducc_load_data("experiment-details");
+                ducc_load_data("experiment-details", "&restart=true");
         }
         catch(err) {
                 ducc_error("ducc_restart_experiment",err);

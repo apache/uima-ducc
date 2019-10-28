@@ -49,7 +49,9 @@ public class Experiment implements IExperiment {
 
   private DuccId jedDuccId;
 
-  
+  private String restartJedId = null;  // ID of re-launched JED
+
+    
   public Experiment(String user, String directory, long fileDate, ArrayList<Task> tasks, IDuccWork work) {
     this.user = user;
     this.directory = directory;
@@ -108,16 +110,19 @@ public class Experiment implements IExperiment {
     return retVal;
   }
 
-  // TODO - the experiment status could be determined in the constructor
+  // TODO - the experiment status could be determined in the constructor but the restarting state can change
+  // The restarting state is NOT saved in the Experiment.state file
   @Override
   public Jed.Status getStatus() {
     Jed.Status retVal = Jed.Status.Unknown;
+    if (restartJedId != null) {
+      return Jed.Status.Restarting;
+    }
     if (tasks != null) {
       boolean canceled = false;
       boolean failed = false;
       boolean running = false;
       boolean done = false;
-      boolean restarting = false;
       for (Task task : tasks) {
         if (task.parentId == 0 && task.status != null) {
           Jed.Status status = Jed.Status.getEnum(task.status);
@@ -127,9 +132,6 @@ public class Experiment implements IExperiment {
               break;
             case Running:
               running = true;
-              break;
-            case Restarting:
-              restarting = true;
               break;
             case Failed:
             case DependencyFailed:
@@ -149,8 +151,6 @@ public class Experiment implements IExperiment {
       // But if JED appears to have been killed while running change state to Unknown
       if (running) {
         retVal = isStale() ? Jed.Status.Unknown : Jed.Status.Running;
-      } else if (restarting) {
-        retVal = Jed.Status.Restarting;
       } else if (failed) {
         retVal = Jed.Status.Failed;
       } else if (canceled) {
@@ -165,26 +165,26 @@ public class Experiment implements IExperiment {
   }
 
   /*
-   * Set status of the top-level task(s) to "Restarting",
-   * clear status of all rerun tasks selected to be rerun,
-   + then rewrite the Experiment.state file
+   * Set/clear the restarting status of the experiment
+   * When restarting is initially requested the ID is not available,
+   * it is provided when launchJed succeeds.
    */
   @Override
-  public boolean updateStateFile(String umask) {
-    if (tasks == null) {
-      return true;
-    }
-    for (Task task : tasks) {
-      if (task.parentId == 0) {
-        task.status = "Restarting";
-      } else if (task.rerun) {
-        // Indicate that task has not yet started
-        task.status = null;
-        task.startTime = null;
-        task.runTime = 0;
+  public void updateStatus(String restartJedId) {
+    String mName = "updateStatus";
+    WsLog.info(logger, mName, "Restart JED ID = " + restartJedId);
+    this.restartJedId  = restartJedId;
+    if (restartJedId != null) {
+      for (Task task : tasks) {
+        if (task.rerun) {
+          task.status = null;
+          if (Jed.Type.isLeaf(task.type)) { // Times are not accumulated for primitive tasks
+            task.startTime = null;
+            task.runTime = 0;
+          }
+        }
       }
     }
-    return writeStateFile(umask);
   }
   
   /*
@@ -192,7 +192,8 @@ public class Experiment implements IExperiment {
    * as the user copy it to the output directory,
    * delete the temp file.
    */
-  private boolean writeStateFile(String umask) {
+  @Override
+  public boolean writeStateFile(String umask) {
     File tempFile = null;
     Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
     try {
@@ -209,13 +210,18 @@ public class Experiment implements IExperiment {
     File stateFile = new File(directory, "Experiment.state");
     HashMap<String, String> environment = new HashMap<String, String>();
     environment.put("DUCC_UMASK", umask);
-    String sysout = DuccAsUser.execute(user, environment, "/bin/cp", tempFile.getAbsolutePath(), stateFile.getAbsolutePath());
-    if (sysout.length() == 0) {
+    // Synchronize with the check for a newer state file in ExperimentsRegistryManager to ensure that
+    // the file does not look newer that the in-memory Experiment
+    synchronized (this) {
+      String sysout = DuccAsUser.execute(user, environment, "/bin/cp", tempFile.getAbsolutePath(), stateFile.getAbsolutePath());
+      if (sysout.length() > 0) {
+        WsLog.error(logger, "writeExperiment", "Failed to copy experiment state file\n" + sysout);
+        return false;
+      }
+      fileDate = System.currentTimeMillis();   // Will be > actual filetime
       tempFile.delete();
       return true;
     }
-    WsLog.error(logger, "writeExperiment", "Failed to copy experiment state file\n" + sysout);
-    return false;
   }
   
   private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd-HH:mm:ss");

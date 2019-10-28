@@ -163,14 +163,20 @@ public class ExperimentsRegistryManager {
     // If newer refresh it, otherwise just update the JED duccId in case it is a newer AP
     IExperiment existingExperiment = experimentsByDir.get(directory);
     if (existingExperiment != null) {
-      if (fileTime <= existingExperiment.getFileDate()) {
+      // Synchronize the check for a newer state file with the rewrite of the file in Experiment.writeStateFile
+      // to ensure that the rewritten file does does not look newer that the in-memory Experiment
+      long existingFileTime;
+      synchronized (existingExperiment) {
+        existingFileTime = existingExperiment.getFileDate();
+      }
+      if (fileTime <= existingFileTime) {
         if (work != null) {
-          existingExperiment.updateJedId(work.getDuccId()); 
+          existingExperiment.updateJedId(work.getDuccId());
         }
         return;
       }
     }
-    
+
     // Load or reload changed state file
     String contents = ExperimentsRegistryUtilities.readFile(user, stateFile);
     if (contents == null) {

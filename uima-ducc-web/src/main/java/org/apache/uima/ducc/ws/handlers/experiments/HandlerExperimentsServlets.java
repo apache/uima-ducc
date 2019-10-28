@@ -144,6 +144,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
         health = "red";
         break;
       case Running:
+      case Restarting:
         health = "green";
         break;
       default:
@@ -238,7 +239,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return handled;
   }
 
-  // Note - could put the 2 boolean flags in the experiment ??
+  // TODO - Might be nice to mark the top-level tasks as "Restarting"
   private String decorateState(IExperiment experiment, Task task, boolean isRestartable, boolean isCanceled) {
     String mName = "decorateState";
     String state = "";
@@ -454,7 +455,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
         // Find the latest duccId to display for a task ... omit if not started or has been reset for a rerun
         for (Task task : tasks) {
           long latestDuccId = 0;
-          if (task.type != null) {
+          if (task.status != null && !task.rerun) {
             Jed.Type jedType = Jed.Type.getEnum(task.type);
             if (jedType == Jed.Type.Ducc_Job || jedType == Jed.Type.Java) {
               long[] duccIds = task.duccId;
@@ -480,6 +481,18 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     }
 
     fmt.send(response);
+    
+    // Restart the experiment AFTER the page has been generated
+    // Don't trigger on the restart state of the experiment as do't want to launch on every page refresh
+    // If restart fails clear the restarting state
+    boolean restart = request.getParameter("restart") != null;
+    if (restart) {
+      boolean ok = ExperimentsRegistryUtilities.launchJed(experiment);
+      if (!ok) {
+        WsLog.warn(cName, mName, "Failed to relaunch JED - reset state");
+        experiment.updateStatus(null);
+      }
+    }
     
     handled = true;
 
@@ -525,8 +538,14 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
       if (experiment.getJedDuccId() != null &&
         HandlersHelper.getAuthorizationStatus(request, experiment.getUser()) == AuthorizationStatus.LoggedInOwner) {
         restart = request.getParameter("restart") != null;
+        if (restart) {          // Update the state of the tasks for the restart ... DuccId not known yet
+          experiment.updateStatus("?");
+        }
         Status status = experiment.getStatus();
-        if (restart || status == Jed.Status.Restarting) {
+        // TODO - If still restarting should check if the restartJedId AP is actually running
+        // If not the launch must have failed for some reason, and we should reset the restart status.
+        // If the restart worked JED should have updated the state file and the Experiment object replaced.
+        if (status == Jed.Status.Restarting) {
           button = "<button style='background-color:Beige;font-size:16px' "
                   + "disabled"
                   + " title='experiment is restarting'>Restarting...</button>";
@@ -554,10 +573,6 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
     response.getWriter().println(sb);
     
-    if (restart) {
-      ExperimentsRegistryUtilities.launchJed(experiment);
-    }
-
     WsLog.exit(cName, mName);
     return true;
   }

@@ -24,12 +24,6 @@ public class Jed {
 
     Ducc_Job, Java, File, Exec, Trainer, Sequential, Sequential_Data, Parallel, Parallel_Data, Set_Phase, Other;
 
-    private static String DUCC_JOB = "DUCC_JOB";
-
-    private static String PARALLEL_DATA = "PARALLEL_DATA";
-
-    private static String SET_PHASE = "SET_PHASE";
-
     public static Type getEnum(String value) {
       Type retVal = Other;
       if (value == null) {
@@ -80,6 +74,8 @@ public class Jed {
     }
   }
 
+  // Note - the Restarting state is not saved in the Experiment.state file and is only applied to
+  // the state of the experiment ... not any individual tasks.
   public enum Status {
 
     Running, Restarting, Completed, Done, Canceled, Failed, DependencyFailed, Ignored, Unknown, Other;

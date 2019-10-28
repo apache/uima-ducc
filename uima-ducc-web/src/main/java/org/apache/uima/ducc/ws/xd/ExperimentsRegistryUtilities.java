@@ -128,6 +128,7 @@ public class ExperimentsRegistryUtilities {
     for (String arg : cmd.getArguments()) {
       args.append(arg).append(' ');
     }
+    args.append("--DRIVER.rerunTasks=~");   // Override any initial rerun list 
     StringBuilder envs = new StringBuilder();
     if (cmd instanceof ACommandLine) {
       for (Entry<String, String> ent : ((ACommandLine) cmd).getEnvironment().entrySet()) {
@@ -150,8 +151,8 @@ public class ExperimentsRegistryUtilities {
         "--description",             "JED---" + dwj.getStandardInfo().getLogDirectory()
     };
     
-    // Update state file with the user's umask AFTER successfully restoring the JED AP from the DB
-    if (!experiment.updateStateFile(dwj.getStandardInfo().getUmask())) {
+    // Write the state file with the user's umask AFTER successfully restoring the JED AP from the DB
+    if (!experiment.writeStateFile(dwj.getStandardInfo().getUmask())) {
       return false;
     }
     
@@ -161,7 +162,21 @@ public class ExperimentsRegistryUtilities {
     String sysout = DuccAsUser.execute(experiment.getUser(), null, submitCmd);
     WsLog.info(cName, mName, sysout);
     
-    return true;
+    // If launch failed clear the Experiment's "Restarting" state 
+    // Should report: "Managed Reservation ### submitted."
+    // If successful save the ID of JED
+    // If fails reset the status
+    boolean launched = sysout.startsWith("Managed Reservation");
+    if (launched) {
+      String[] toks = sysout.split("\\s+");
+      if (toks.length >= 3) {
+        experiment.updateStatus(toks[2]);
+      }
+    } else {
+      experiment.updateStatus(null);
+    }
+    
+    return launched;
   }
 
 }

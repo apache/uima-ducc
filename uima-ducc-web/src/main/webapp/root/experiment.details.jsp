@@ -133,12 +133,12 @@ if (table_style.equals("scroll")) {
 if (table_style.equals("classic")) {
 %>
 	<table width="100%">
-   	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Experiment Details</b><br><i><small>click column heading to sort</small></i></caption>
-   	<tr>
-    <td>
-      <table class="sortable">
-		<thead>
-		<tr class="ducc-head">
+   	  <caption title="Hint: use Preferences -> Table Style to alter format"><b>Experiment Details</b><br><i><small>click column heading to sort</small></i></caption>
+   	  <tr>
+          <td>
+          <table class="sortable">
+	    <thead>
+	      <tr class="ducc-head">
 		<th title="The path id for this experiment subtask">Path Id</th>
 		<th title="The id for this experiment subtask" class="sorttable_numeric">Id</th>
 		<th title="The parent id for this experiment subtask" class="sorttable_numeric">Parent</th>
@@ -155,10 +155,10 @@ if (table_style.equals("classic")) {
 		<th title="The number of work items currently dispatched (queued+operating)">Dis-<br>patch</th>
 		<th title="The number of work items that were retried, excluding preemptions">Retry</th>
 		<th title="The number of work items that were preempted">Pre-<br>empt</th>
-		</tr>
-		</thead>
-		<tbody id="experiment_details_area">
-   		</tbody>
+	      </tr>
+	    </thead>
+	    <tbody id="experiment_details_area">
+   	    </tbody>
 	  </table>
    	</table>
 <%
