@@ -56,13 +56,13 @@ public class ExperimentsRegistryManager {
 
   private Set<String> seenDirs = new HashSet<String>();   // Set of directories seen when booting or during an OR publication
 
-  private Map<String, IExperiment> experimentsByDir = new ConcurrentHashMap<String,IExperiment>();
+  private Map<String, Experiment> experimentsByDir = new ConcurrentHashMap<String,Experiment>();
 
   public static ExperimentsRegistryManager getInstance() {
     return instance;
   }
 
-  public IExperiment getExperiment(String directory) {
+  public Experiment getExperiment(String directory) {
     return experimentsByDir.get(directory);
   }
   
@@ -161,7 +161,7 @@ public class ExperimentsRegistryManager {
     
     // Check if state file is newer than any existing one
     // If newer refresh it, otherwise just update the JED duccId in case it is a newer AP
-    IExperiment existingExperiment = experimentsByDir.get(directory);
+    Experiment existingExperiment = experimentsByDir.get(directory);
     if (existingExperiment != null) {
       // Synchronize the check for a newer state file with the rewrite of the file in Experiment.writeStateFile
       // to ensure that the rewritten file does does not look newer that the in-memory Experiment
@@ -193,8 +193,8 @@ public class ExperimentsRegistryManager {
     Type typeOfTaskList = new TypeToken<ArrayList<Task>>(){}.getType();
     try {
       ArrayList<Task> taskArray = gson.fromJson(sr, typeOfTaskList);
-      IExperiment experiment = new Experiment(user, directory, fileTime, taskArray, work);
-      IExperiment oldExperiment = experimentsByDir.put(directory, experiment);
+      Experiment experiment = new Experiment(user, directory, fileTime, taskArray, work);
+      Experiment oldExperiment = experimentsByDir.put(directory, experiment);
       if (oldExperiment != null) {
         experiment.updateJedId(oldExperiment.getJedDuccId());    // Ensure the new instance has the latest DuccId
       }
@@ -204,9 +204,9 @@ public class ExperimentsRegistryManager {
   }
   
   // Create map ordered by experiment: active, newest start date, directory
-  public TreeMap<IExperiment, String> getMapByStatus() {
-    TreeMap<IExperiment, String> mapInverse = new TreeMap<IExperiment, String>();
-    for (Entry<String, IExperiment> entry : experimentsByDir.entrySet()) {
+  public TreeMap<Experiment, String> getMapByStatus() {
+    TreeMap<Experiment, String> mapInverse = new TreeMap<Experiment, String>();
+    for (Entry<String, Experiment> entry : experimentsByDir.entrySet()) {
       mapInverse.put(entry.getValue(), entry.getKey());
     }
     return mapInverse;
@@ -215,8 +215,8 @@ public class ExperimentsRegistryManager {
   // Create map from file last update time to directory ordered oldest first
   private TreeMap<Long, String> getMapByDate() {
     TreeMap<Long, String> mapByDate = new TreeMap<Long, String>();
-    for (Entry<String, IExperiment> entry : experimentsByDir.entrySet()) {
-      IExperiment experiment = entry.getValue();
+    for (Entry<String, Experiment> entry : experimentsByDir.entrySet()) {
+      Experiment experiment = entry.getValue();
       mapByDate.put(experiment.getFileDate(), entry.getKey());
     }
     return mapByDate;
@@ -234,7 +234,7 @@ public class ExperimentsRegistryManager {
     WsLog.info(cName, mName, "Pruning " + excess + " old experiments");
     TreeMap<Long, String> mapByDate = getMapByDate();
     for (String directory : mapByDate.values()) {
-      IExperiment experiment = experimentsByDir.get(directory);
+      Experiment experiment = experimentsByDir.get(directory);
       if (!experiment.isActive()) {
         WsLog.info(cName, mName, "Pruned " + directory + " filetime " + experiment.getFileDate());
         experimentsByDir.remove(directory);

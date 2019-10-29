@@ -83,7 +83,7 @@ public class ExperimentsRegistryUtilities {
     }
   }
 
-  public static boolean launchJed(IExperiment experiment) {
+  public static boolean launchJed(Experiment experiment) {
     String mName = "launchJed";
     
     IHistoryPersistenceManager hpm = HistoryFactory.getInstance(ExperimentsRegistryUtilities.class.getName());
@@ -128,7 +128,6 @@ public class ExperimentsRegistryUtilities {
     for (String arg : cmd.getArguments()) {
       args.append(arg).append(' ');
     }
-    args.append("--DRIVER.rerunTasks=~");   // Override any initial rerun list 
     StringBuilder envs = new StringBuilder();
     if (cmd instanceof ACommandLine) {
       for (Entry<String, String> ent : ((ACommandLine) cmd).getEnvironment().entrySet()) {
@@ -162,18 +161,15 @@ public class ExperimentsRegistryUtilities {
     String sysout = DuccAsUser.execute(experiment.getUser(), null, submitCmd);
     WsLog.info(cName, mName, sysout);
     
-    // If launch failed clear the Experiment's "Restarting" state 
     // Should report: "Managed Reservation ### submitted."
     // If successful save the ID of JED
-    // If fails reset the status
+    // If it fails return false and the status will be reset by the caller
     boolean launched = sysout.startsWith("Managed Reservation");
     if (launched) {
       String[] toks = sysout.split("\\s+");
       if (toks.length >= 3) {
-        experiment.updateStatus(toks[2]);
+        experiment.setRerunJedId(toks[2]);
       }
-    } else {
-      experiment.updateStatus(null);
     }
     
     return launched;

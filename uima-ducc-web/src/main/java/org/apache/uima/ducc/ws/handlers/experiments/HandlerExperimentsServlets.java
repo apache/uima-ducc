@@ -47,7 +47,7 @@ import org.apache.uima.ducc.ws.utils.FormatServletClassic;
 import org.apache.uima.ducc.ws.utils.FormatServletScroll;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.apache.uima.ducc.ws.utils.HandlersHelper.AuthorizationStatus;
-import org.apache.uima.ducc.ws.xd.IExperiment;
+import org.apache.uima.ducc.ws.xd.Experiment;
 import org.apache.uima.ducc.ws.xd.ExperimentsRegistryManager;
 import org.apache.uima.ducc.ws.xd.ExperimentsRegistryUtilities;
 import org.apache.uima.ducc.ws.xd.Jed;
@@ -81,7 +81,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     super.init(duccWebServer);
   }
 
-  private String getStartDate(HttpServletRequest request, IExperiment experiment) {
+  private String getStartDate(HttpServletRequest request, Experiment experiment) {
     String startDate = "";
     if (experiment.getStartDate() != null) {
       startDate = experiment.getStartDate();
@@ -91,7 +91,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return startDate;
   }
 
-  private long getRunTime(HttpServletRequest request, IExperiment experiment) {
+  private long getRunTime(HttpServletRequest request, Experiment experiment) {
     long runTime = 0;
     ArrayList<Task> tasks = experiment.getTasks();
     for (Task task : tasks) {
@@ -114,7 +114,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return runTime;
   }
 
-  private String fmtDuration(IExperiment experiment, long runTime) {
+  private String fmtDuration(Experiment experiment, long runTime) {
     StringBuffer db = new StringBuffer();
     Status experimentStatus = experiment.getStatus();
     String health = experimentStatus==Status.Running ? "class=\"health_green\"" : "class=\"health_black\"";
@@ -126,7 +126,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return db.toString();
   }
 
-  private String getUser(HttpServletRequest request, IExperiment experiment) {
+  private String getUser(HttpServletRequest request, Experiment experiment) {
     String user = "";
     if (experiment.getUser() != null) {
       user = experiment.getUser();
@@ -134,7 +134,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return user;
   }
 
-  private String getState(HttpServletRequest request, IExperiment experiment) {
+  private String getState(HttpServletRequest request, Experiment experiment) {
     String health;
     Status experimentStatus = experiment.getStatus();
     switch (experimentStatus) {
@@ -154,7 +154,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return state;
   }
 
-  private String getDirectoryLink(HttpServletRequest request, IExperiment experiment) {
+  private String getDirectoryLink(HttpServletRequest request, Experiment experiment) {
     String directory = experiment.getDirectory();
     String href = "href='experiment.details.html?dir=" + directory + "'";
     String directoryLink = "<a" + " " + href + " " + ">" + directory + "</a>";
@@ -175,7 +175,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     ArrayList<String> users = HandlersUtilities.getExperimentsUsers(request);
     
     // List experiments in "experiment" order: active, newest start-date, directory
-    for (IExperiment experiment : experimentsRegistryManager.getMapByStatus().keySet()) {
+    for (Experiment experiment : experimentsRegistryManager.getMapByStatus().keySet()) {
 
       boolean fullTable = fmt.numRows() >= maxRecords;
       
@@ -240,10 +240,14 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
   }
 
   // TODO - Might be nice to mark the top-level tasks as "Restarting"
-  private String decorateState(IExperiment experiment, Task task, boolean isRestartable, boolean isCanceled) {
+  private String decorateState(Experiment experiment, Task task, boolean isRestartable, boolean isCanceled) {
     String mName = "decorateState";
     String state = "";
-    if (task.status != null) {
+    if (task.status == null) {
+      if (task.rerun) {  // If status has been cleared the task may be about to be rerun
+        state = "<span class=\"health_green\">Rerun";
+      }
+    } else {
       state = task.status;
       // If experiment has been canceled change any "Running" tasks to "Canceled"
       Jed.Status status = Jed.Status.getEnum(state);
@@ -367,7 +371,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     return sbuff.toString();
   }
 
-  private void edTaskDucc(FormatServlet fmt, IExperiment experiment, Task task,
+  private void edTaskDucc(FormatServlet fmt, Experiment experiment, Task task,
           HttpServletRequest request, long duccId, long now, boolean isRestartable, boolean isCanceled) {
     DuccData duccData = DuccData.getInstance();
     
@@ -428,12 +432,18 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     WsLog.enter(cName, mName);
 
     boolean handled = false;
+    boolean restart = false;
     long now = System.currentTimeMillis();
     FormatServlet fmt = tableStyle.equals("scroll") ? new FormatServletScroll() : new FormatServletClassic();
 
     String dir = request.getParameter("dir");
-    IExperiment experiment = experimentsRegistryManager.getExperiment(dir);
+    Experiment experiment = experimentsRegistryManager.getExperiment(dir);
     if (experiment != null) {
+      // If restart requested update the tasks to be rerun
+      restart = request.getParameter("restart") != null;
+      if (restart) {
+        experiment.updateStatus();
+      }
       // Check if the experiment can be restarted, i.e.
       // launched by DUCC as a JED AP, stopped, and owned by the logged-in user
       boolean isRestartable = experiment.getJedDuccId() != null  
@@ -452,10 +462,12 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
           task.rerun = !task.rerun;
           markSubtasks(tasks, toggleId, task.rerun);
         }
-        // Find the latest duccId to display for a task ... omit if not started or has been reset for a rerun
+        // Find the latest duccId to display for a task ... omit if not started or is being rerun
+        // i.e. display it if has been run and is not marked to be rerun or is marked but not yet restarted
         for (Task task : tasks) {
           long latestDuccId = 0;
-          if (task.status != null && !task.rerun) {
+          // Omit if: task.status==null || (task.rerun && !isRestartable)
+          if (task.status != null && (!task.rerun || isRestartable)) {
             Jed.Type jedType = Jed.Type.getEnum(task.type);
             if (jedType == Jed.Type.Ducc_Job || jedType == Jed.Type.Java) {
               long[] duccIds = task.duccId;
@@ -485,12 +497,11 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     // Restart the experiment AFTER the page has been generated
     // Don't trigger on the restart state of the experiment as do't want to launch on every page refresh
     // If restart fails clear the restarting state
-    boolean restart = request.getParameter("restart") != null;
     if (restart) {
       boolean ok = ExperimentsRegistryUtilities.launchJed(experiment);
       if (!ok) {
-        WsLog.warn(cName, mName, "Failed to relaunch JED - reset state");
-        experiment.updateStatus(null);
+        WsLog.warn(cName, mName, "Failed to relaunch JED - reset the is-rerunning state");
+        experiment.setRerunJedId(null);
       }
     }
     
@@ -530,7 +541,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
     boolean restart = false;
 
-    IExperiment experiment = experimentsRegistryManager.getExperiment(directory);
+    Experiment experiment = experimentsRegistryManager.getExperiment(directory);
 
     if (experiment != null) {
       // Display Terminate/Restart button if DUCC-launched && the owner logged in
@@ -538,8 +549,8 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
       if (experiment.getJedDuccId() != null &&
         HandlersHelper.getAuthorizationStatus(request, experiment.getUser()) == AuthorizationStatus.LoggedInOwner) {
         restart = request.getParameter("restart") != null;
-        if (restart) {          // Update the state of the tasks for the restart ... DuccId not known yet
-          experiment.updateStatus("?");
+        if (restart) {           // Mark as "restarting" ... correct ID will be set later
+          experiment.setRerunJedId("");
         }
         Status status = experiment.getStatus();
         // TODO - If still restarting should check if the restartJedId AP is actually running
@@ -587,7 +598,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     StringBuffer sb = new StringBuffer();
 
     String directory = request.getParameter("dir");
-    IExperiment experiment = experimentsRegistryManager.getExperiment(directory);
+    Experiment experiment = experimentsRegistryManager.getExperiment(directory);
 
     String resourceOwnerUserId = experiment.getUser();
 

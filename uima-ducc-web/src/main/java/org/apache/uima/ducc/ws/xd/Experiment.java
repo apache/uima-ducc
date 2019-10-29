@@ -35,7 +35,7 @@ import org.apache.uima.ducc.ws.log.WsLog;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-public class Experiment implements IExperiment {
+public class Experiment implements Comparable<Experiment> {
   
   private static DuccLogger logger = DuccLogger.getLogger(Experiment.class);
 
@@ -47,9 +47,9 @@ public class Experiment implements IExperiment {
 
   private long fileDate = 0;
 
-  private DuccId jedDuccId;
+  private DuccId jedDuccId;   // ID of JED task that last launched this experiment
 
-  private String restartJedId = null;  // ID of re-launched JED
+  private String rerunJedId = null;  // ID of re-launched JED
 
     
   public Experiment(String user, String directory, long fileDate, ArrayList<Task> tasks, IDuccWork work) {
@@ -63,40 +63,33 @@ public class Experiment implements IExperiment {
     }
   }
 
-  @Override
   public String getUser() {
     return user;
   }
 
-  @Override
   public String getDirectory() {
     return directory;
   }
 
-  @Override
   public long getFileDate() {
     return fileDate;
   }
 
-  @Override
   public ArrayList<Task> getTasks() {
     return tasks;
   }
   
-  @Override
   public DuccId getJedDuccId() {
     return jedDuccId;
   }
   
   // Update the duccId for the JED AP if missing or is older
-  @Override
   public void updateJedId(DuccId duccId) {
     if (jedDuccId == null || jedDuccId.getFriendly() < duccId.getFriendly()) {
       jedDuccId = duccId;
     }
   }
   
-  @Override
   public boolean isActive() {
     boolean retVal = false;
     switch (getStatus()) {
@@ -112,10 +105,9 @@ public class Experiment implements IExperiment {
 
   // TODO - the experiment status could be determined in the constructor but the restarting state can change
   // The restarting state is NOT saved in the Experiment.state file
-  @Override
   public Jed.Status getStatus() {
     Jed.Status retVal = Jed.Status.Unknown;
-    if (restartJedId != null) {
+    if (rerunJedId != null) {
       return Jed.Status.Restarting;
     }
     if (tasks != null) {
@@ -165,40 +157,43 @@ public class Experiment implements IExperiment {
   }
 
   /*
-   * Set/clear the restarting status of the experiment
-   * When restarting is initially requested the ID is not available,
-   * it is provided when launchJed succeeds.
+   * Set the status of the tasks to be rerun
    */
-  @Override
-  public void updateStatus(String restartJedId) {
-    String mName = "updateStatus";
-    WsLog.info(logger, mName, "Restart JED ID = " + restartJedId);
-    this.restartJedId  = restartJedId;
-    if (restartJedId != null) {
-      for (Task task : tasks) {
-        if (task.rerun) {
-          task.status = null;
-          if (Jed.Type.isLeaf(task.type)) { // Times are not accumulated for primitive tasks
-            task.startTime = null;
-            task.runTime = 0;
-          }
+  public void updateStatus() {
+    for (Task task : tasks) {
+      if (task.rerun) {
+        task.status = null;
+        if (Jed.Type.isLeaf(task.type)) { // Times are not accumulated for primitive tasks
+          task.startTime = null;
+          task.runTime = 0;
         }
       }
     }
+    setRerunJedId("");  // Mark as "restarting" ... correct ID will be set later
+  }
+  
+  public void setRerunJedId(String rerunJedId) {
+    String mName = "setRerunJedId";
+    if (rerunJedId != null && this.rerunJedId != null && this.rerunJedId.length() > 0) {
+      WsLog.warn(logger, mName, "JED ID was " + this.rerunJedId + " but is now " + rerunJedId);
+    }
+    this.rerunJedId  = rerunJedId;
   }
   
   /*
-   * Write the state as a temporary file, 
+   * Write the state as a temporary file (starting with the version number)
    * as the user copy it to the output directory,
    * delete the temp file.
    */
-  @Override
   public boolean writeStateFile(String umask) {
+    int version = 1;
     File tempFile = null;
     Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
     try {
       tempFile = File.createTempFile("experiment", jedDuccId.toString());
       FileWriter out = new FileWriter(tempFile);
+      out.write(String.valueOf(version));
+      out.write('\n');
       String text = gson.toJson(tasks);
       out.write(text);
       out.close();
@@ -238,7 +233,6 @@ public class Experiment implements IExperiment {
     return retVal;
   }
 
-  @Override
   public String getStartDate() {
     String retVal = "";
     long experimentStartMillis = Long.MAX_VALUE;
@@ -259,7 +253,6 @@ public class Experiment implements IExperiment {
 
   private long staleTime = 1000 * 60 * 6;
 
-  @Override
   public boolean isStale() {
     // If the log lock file has been removed then the driver has stopped.
     // If the lock file is still present the driver may have been killed, so check the age of the state file.
@@ -291,7 +284,7 @@ public class Experiment implements IExperiment {
    * Sort active experiments first, then by start date (newest first) then by directory
    */
   @Override
-  public int compareTo(IExperiment that) {
+  public int compareTo(Experiment that) {
     // Booleans sort false before true so must reverse and compare that with this
     int retVal = new Boolean(that.isActive()).compareTo(new Boolean(this.isActive()));  // active first
     if (retVal == 0) {

@@ -38,7 +38,7 @@ import org.apache.uima.ducc.ws.server.DuccCookies;
 import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
 import org.apache.uima.ducc.ws.server.DuccLocalConstants;
 import org.apache.uima.ducc.ws.server.DuccLocalCookies;
-import org.apache.uima.ducc.ws.xd.IExperiment;
+import org.apache.uima.ducc.ws.xd.Experiment;
 
 public class HandlersUtilities {
 
@@ -101,7 +101,7 @@ public class HandlersUtilities {
   }
 
   public static final boolean isListable(HttpServletRequest request, ArrayList<String> users,
-          boolean fullTable, IExperiment handle) {
+          boolean fullTable, Experiment handle) {
     boolean list = false;
     DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
     if (!users.isEmpty()) {
