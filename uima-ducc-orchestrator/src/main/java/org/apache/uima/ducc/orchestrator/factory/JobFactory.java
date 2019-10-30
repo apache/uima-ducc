@@ -524,13 +524,6 @@ public class JobFactory implements IJobFactory {
 
 		if (job.getDuccType() == DuccType.Job){
 		    checkSchedulingLimits(job, schedulingInfo);
-		} else {
-		  // HACK - Check if a JED AP ... duccType is "service" !!!
-		  // HACK - experiment directory MUST = log directoery
-	    String args = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_executable_args);
-	    if (args != null && args.contains(" com.ibm.watsonx.framework.jed.Driver ")) {
-	      standardInfo.setExperimentDirectory(standardInfo.getLogDirectory());
-	    }
 		}
 
 		// process_initialization_time_max (in minutes)
@@ -681,6 +674,12 @@ public class JobFactory implements IJobFactory {
 			List<String> process_executable_arguments = QuotedOptions.tokenizeList(
 			        jobRequestProperties.getProperty(JobSpecificationProperties.key_process_executable_args), true);
 			executableProcessCommandLine.getArguments().addAll(process_executable_arguments);
+			
+			// JED check
+			String jedDir = executableProcessCommandLine.getEnvVar("DUCC_JED_DIR");
+			if (jedDir != null) {
+			  standardInfo.setExperimentDirectory(jedDir);
+			}
 		}
 		// process_initialization_failures_cap
 		// ?? These are not set for APs or SPs ??

@@ -477,6 +477,14 @@ public interface IUiOptions
             public String example()     { return "-a -t -l"; }
         },            
 
+        ProcessExecutableArgsRequired { 
+            public String pname()       { return JobSpecificationProperties.key_process_executable_args; }
+            public String argname()     { return "argument list"; }
+            public String description() { return "Blank-delimited list of required arguments."; }
+            public String example()     { return "test.properties --arg1=value1 --arg2=value2"; }
+            public boolean required()   { return true; }
+        },            
+
         ProcessInitializationTimeMax { 
             public String pname()       { return JobSpecificationProperties.key_process_initialization_time_max; }
             public String description() { return DuccUiConstants.desc_process_initialization_time_max; }
@@ -673,7 +681,14 @@ public interface IUiOptions
             public String argname()     { return "path"; }
             public String description() { return "The working directory set in each process. Default to current directory."; }
             public String deflt()       { return "."; }
-        },            
+        },
+        
+        OutputDirectory { 
+            public String pname()       { return JobSpecificationProperties.key_output_directory; }
+            public String argname()     { return "path"; }
+            public String description() { return "The output directory for the experiment."; }
+            public boolean required()   { return true; }
+        },
         ;
 
         public String  argname()   { return null; }  // the type of argument, if any

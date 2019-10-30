@@ -105,33 +105,31 @@ public abstract class CliBase implements IUiOptions {
   }
 
   /*
-   * Make the log directory absolute if necessary and check that it is usable.
+   * Make the directory absolute if necessary and check that it is usable.
    * If not provided it will have been given a default value.
    * UIMA-4617 Make it relative to the run-time working directory, not HOME
    */
-  String getLogDirectory(String working_directory) throws IOException {
-    String log_directory = cli_props.getProperty(UiOption.LogDirectory.pname());
-    File f;
-    if (log_directory.startsWith(File.separator)) {
-      f = new File(log_directory);
-    } else {
-      f = new File(working_directory, log_directory); // Relative to working directory
-      log_directory = f.getCanonicalPath();
-      cli_props.setProperty(UiOption.LogDirectory.pname(), log_directory);
+  String getDirectory(IUiOption uiopt, String working_directory) throws IOException {
+    String directory = cli_props.getProperty(uiopt.pname());
+    File f = new File(directory);
+    if (!f.isAbsolute()) {
+      f = new File(working_directory, directory); // Relative to working directory
+      directory = f.getCanonicalPath();
+      cli_props.setProperty(uiopt.pname(), directory);
     }
 
     /*
-     * make sure the logdir is actually legal.
+     * make sure the directory is actually legal. 
      * JD may also be creating it so to reduce any race or NFS delay blindly create and then test
      */
     f.mkdirs();
     if (!f.isDirectory() || !f.canWrite()) {
-      throw new IllegalArgumentException("Specified log_directory is not a writable directory: " + log_directory);
+      throw new IllegalArgumentException("Specified directory is not a writable directory: " + directory);
     }
 
-    return log_directory;
+    return directory;
   }
-
+  
   /*
    * Ensure the working directory exists and is absolute
    */
@@ -441,7 +439,9 @@ public abstract class CliBase implements IUiOptions {
       if (uiopt == UiOption.WorkingDirectory) {
         workingDir = getWorkingDirectory();
       } else if (uiopt == UiOption.LogDirectory) {
-        logDir = getLogDirectory(workingDir);
+        logDir = getDirectory(uiopt, workingDir);
+      } else if (uiopt == UiOption.OutputDirectory) {
+        getDirectory(uiopt, workingDir);
       } else if (uiopt == UiOption.Environment) {
         // If this request accepts the --environment option may need to augment it by
         // renaming LD_LIBRARY_PATH & propagating some user values

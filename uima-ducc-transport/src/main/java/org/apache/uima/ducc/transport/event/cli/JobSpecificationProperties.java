@@ -32,6 +32,7 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 	public static String key_notifications = "notifications";
 	public static String key_log_directory = "log_directory";
 	public static String key_working_directory = "working_directory";
+	public static String key_output_directory = "output_directory";
 	
 	public static String key_scheduling_priority = "scheduling_priority";
 	
@@ -93,6 +94,7 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 		key_notifications,
 		key_log_directory,
 		key_working_directory,
+		key_output_directory,
 		key_scheduling_priority,
 		key_jvm,
 		key_driver_jvm_args,
