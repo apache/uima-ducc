@@ -439,14 +439,14 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     String dir = request.getParameter("dir");
     Experiment experiment = experimentsRegistryManager.getExperiment(dir);
     if (experiment != null) {
-      // If restart requested update the tasks to be rerun
+      // If restart requested update the tasks to be rerun & set restarting flag
       restart = request.getParameter("restart") != null;
       if (restart) {
         experiment.updateStatus();
       }
       // Check if the experiment can be restarted, i.e.
       // launched by DUCC as a JED AP, stopped, and owned by the logged-in user
-      boolean isRestartable = experiment.getJedDuccId() != null  
+      boolean isRestartable = experiment.getJedId() > 0  
               && !experiment.isActive()
               && HandlersHelper.getAuthorizationStatus(request, experiment.getUser()) == AuthorizationStatus.LoggedInOwner;
       
@@ -501,7 +501,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
       boolean ok = ExperimentsRegistryUtilities.launchJed(experiment);
       if (!ok) {
         WsLog.warn(cName, mName, "Failed to relaunch JED - reset the is-rerunning state");
-        experiment.setRerunJedId(null);
+        experiment.setRestart(false);
       }
     }
     
@@ -546,11 +546,11 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     if (experiment != null) {
       // Display Terminate/Restart button if DUCC-launched && the owner logged in
       String button = null;
-      if (experiment.getJedDuccId() != null &&
+      if (experiment.getJedId() > 0 &&
         HandlersHelper.getAuthorizationStatus(request, experiment.getUser()) == AuthorizationStatus.LoggedInOwner) {
         restart = request.getParameter("restart") != null;
-        if (restart) {           // Mark as "restarting" ... correct ID will be set later
-          experiment.setRerunJedId("");
+        if (restart) {           // Mark as "restarting" ... so getStatus will reflect that
+          experiment.setRestart(true);
         }
         Status status = experiment.getStatus();
         // TODO - If still restarting should check if the restartJedId AP is actually running
@@ -561,7 +561,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
                   + "disabled"
                   + " title='experiment is restarting'>Restarting...</button>";
         } else if (status == Jed.Status.Running) {
-          button = "<button style='background-color:LightPink;font-size:16px' "
+          button = "<button style='background-color:Khaki;font-size:16px' "
                   + "onclick=\"ducc_confirm_terminate_experiment('" + directory + "')\""
                   + " title='click to terminate experiment'>TERMINATE</button>";
         } else {
@@ -576,12 +576,14 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
       sb.append(" ");
       sb.append(directory);
       if (button != null) {
-        sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+        sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
         sb.append(button);
+        sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+        long jedId = experiment.getJedId();
+        sb.append(" <a href='reservation.details.html?id=" + jedId + "' title='click to view the JED Managed Reservation'>" + jedId + "</a>");
       }
       sb.append("</b>");
     }
-
     response.getWriter().println(sb);
     
     WsLog.exit(cName, mName);

@@ -150,6 +150,9 @@ public class DuccJedSubmit extends CliBase {
     serviceRequestProperties.setProperty(UiOption.ServiceTypeOther.pname(), "");
     
     // Create the AP properties for the JED call
+    // Specify java, classpath, JED class, users's args
+    // Explictly override any internal setting of the outputBaseDirectory
+    // Augment the environment ... the OR checks for env-var DUCC_JED_DIR
     String javaHome = System.getProperty("java.home");
     serviceRequestProperties.setProperty(UiOption.ProcessExecutable.pname(), javaHome + "/bin/java");
     

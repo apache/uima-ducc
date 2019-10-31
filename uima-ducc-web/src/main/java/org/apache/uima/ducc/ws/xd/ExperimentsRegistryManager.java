@@ -169,9 +169,9 @@ public class ExperimentsRegistryManager {
       synchronized (existingExperiment) {
         existingFileTime = existingExperiment.getFileDate();
       }
-      if (fileTime <= existingFileTime) {
+      if (fileTime <= existingFileTime) {    // No need to reload, but update the jED ID if newer
         if (work != null) {
-          existingExperiment.updateJedId(work.getDuccId());
+          existingExperiment.updateJedId(work.getDuccId().getFriendly());
         }
         return;
       }
@@ -196,7 +196,7 @@ public class ExperimentsRegistryManager {
       Experiment experiment = new Experiment(user, directory, fileTime, taskArray, work);
       Experiment oldExperiment = experimentsByDir.put(directory, experiment);
       if (oldExperiment != null) {
-        experiment.updateJedId(oldExperiment.getJedDuccId());    // Ensure the new instance has the latest DuccId
+        experiment.updateJedId(oldExperiment.getJedId());    // Ensure the new instance has the latest DuccId
       }
     } catch (JsonParseException e) {
       WsLog.warn(cName, mName, "Ignoring " + stateFile + " as has Json syntax error " + e.getMessage());

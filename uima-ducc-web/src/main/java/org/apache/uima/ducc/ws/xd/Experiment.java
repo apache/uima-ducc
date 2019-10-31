@@ -27,7 +27,6 @@ import java.util.Date;
 import java.util.HashMap;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 import org.apache.uima.ducc.ws.log.WsLog;
@@ -47,9 +46,9 @@ public class Experiment implements Comparable<Experiment> {
 
   private long fileDate = 0;
 
-  private DuccId jedDuccId;   // ID of JED task that last launched this experiment
+  private long jedId = 0;   // ID of JED task that launched this experiment (0 => not DUCC launched)
 
-  private String rerunJedId = null;  // ID of re-launched JED
+  private boolean restarting = false;
 
     
   public Experiment(String user, String directory, long fileDate, ArrayList<Task> tasks, IDuccWork work) {
@@ -59,7 +58,7 @@ public class Experiment implements Comparable<Experiment> {
     this.tasks = tasks;
     tasks.sort(null);        // Sort tasks in taskId order for display
     if (work != null) {
-      this.jedDuccId = work.getDuccId();
+      this.jedId = work.getDuccId().getFriendly();
     }
   }
 
@@ -79,15 +78,30 @@ public class Experiment implements Comparable<Experiment> {
     return tasks;
   }
   
-  public DuccId getJedDuccId() {
-    return jedDuccId;
+  public long getJedId() {
+    return jedId;
   }
   
-  // Update the duccId for the JED AP if missing or is older
-  public void updateJedId(DuccId duccId) {
-    if (jedDuccId == null || jedDuccId.getFriendly() < duccId.getFriendly()) {
-      jedDuccId = duccId;
+  public void setJedId(long duccId) {
+    jedId = duccId;
+  }
+  
+  // Update the duccId for the JED AP if given a newer one
+  // Called when replacing an existing Experiment with an updated one or when only the JED ID needs updating
+  // Also may indicate that a restarted JED has checked in
+  public void updateJedId(long duccId) {
+    if (duccId > jedId) {
+      jedId = duccId;
     }
+  }
+  
+  // Unused
+  //  public boolean isRestarting() {
+  //    return restarting;
+  //  }
+  
+  public void setRestart(boolean restart) {
+    restarting = restart;
   }
   
   public boolean isActive() {
@@ -107,7 +121,7 @@ public class Experiment implements Comparable<Experiment> {
   // The restarting state is NOT saved in the Experiment.state file
   public Jed.Status getStatus() {
     Jed.Status retVal = Jed.Status.Unknown;
-    if (rerunJedId != null) {
+    if (restarting) {
       return Jed.Status.Restarting;
     }
     if (tasks != null) {
@@ -169,28 +183,15 @@ public class Experiment implements Comparable<Experiment> {
         }
       }
     }
-    setRerunJedId("");  // Mark as "restarting" ... correct ID will be set later
+    restarting = true;      // Will be cleared when the restarted AP updates the state file and replaces this object
   }
   
-  public void setRerunJedId(String rerunJedId) {
-    String mName = "setRerunJedId";
-    if (rerunJedId != null && this.rerunJedId != null && this.rerunJedId.length() > 0) {
-      WsLog.warn(logger, mName, "JED ID was " + this.rerunJedId + " but is now " + rerunJedId);
-    }
-    this.rerunJedId  = rerunJedId;
-  }
-  
-  /*
-   * Write the state as a temporary file (starting with the version number)
-   * as the user copy it to the output directory,
-   * delete the temp file.
-   */
   public boolean writeStateFile(String umask) {
     int version = 1;
     File tempFile = null;
     Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
     try {
-      tempFile = File.createTempFile("experiment", jedDuccId.toString());
+      tempFile = File.createTempFile("experiment", String.valueOf(jedId));
       FileWriter out = new FileWriter(tempFile);
       out.write(String.valueOf(version));
       out.write('\n');

@@ -89,18 +89,18 @@ public class ExperimentsRegistryUtilities {
     IHistoryPersistenceManager hpm = HistoryFactory.getInstance(ExperimentsRegistryUtilities.class.getName());
     IDuccWorkService service = null;
     try {
-      service = hpm.restoreArbitraryProcess(experiment.getJedDuccId().getFriendly());
+      service = hpm.restoreArbitraryProcess(experiment.getJedId());
       if (service == null) {
         // If relaunch is too quick DB may not have been updated so wait 10 secs and try again
         Thread.sleep(10000);
-        service = hpm.restoreArbitraryProcess(experiment.getJedDuccId().getFriendly());
+        service = hpm.restoreArbitraryProcess(experiment.getJedId());
         if (service == null) {
-          WsLog.error(cName, mName, "No entry found in DB for JED AP "+experiment.getJedDuccId());
+          WsLog.error(cName, mName, "No entry found in DB for JED AP "+experiment.getJedId());
           return false;
         }
       }
     } catch (Exception e) {
-      WsLog.error(cName, mName, "Failed to access DB for JED AP "+experiment.getJedDuccId());
+      WsLog.error(cName, mName, "Failed to access DB for JED AP "+experiment.getJedId());
       WsLog.error(cName, mName, e);
       return false;
     }
@@ -112,7 +112,7 @@ public class ExperimentsRegistryUtilities {
     IDuccWorkJob dwj = (IDuccWorkJob) service;
     ICommandLine cmd = dwj.getCommandLine();
     if (cmd == null) {
-      WsLog.info(cName, mName, "No cmdline for JED AP " + experiment.getJedDuccId());
+      WsLog.info(cName, mName, "No cmdline for JED AP " + experiment.getJedId());
       return false;
     }
 
@@ -145,9 +145,9 @@ public class ExperimentsRegistryUtilities {
         "--environment",             envs.toString(),
         "--log_directory",           dwj.getStandardInfo().getLogDirectory(),
         "--working_directory",       dwj.getStandardInfo().getWorkingDirectory(),
+        "--description",             dwj.getStandardInfo().getDescription(),
         "--scheduling_class",        dwj.getSchedulingInfo().getSchedulingClass(),
         "--process_memory_size",     dwj.getSchedulingInfo().getMemorySizeRequested(),
-        "--description",             "JED---" + dwj.getStandardInfo().getLogDirectory()
     };
     
     // Write the state file with the user's umask AFTER successfully restoring the JED AP from the DB
@@ -162,13 +162,14 @@ public class ExperimentsRegistryUtilities {
     WsLog.info(cName, mName, sysout);
     
     // Should report: "Managed Reservation ### submitted."
-    // If successful save the ID of JED
-    // If it fails return false and the status will be reset by the caller
+    // If successful save the ID of the JED AP
+    // If it fails return false and the restarting status will be reset by the caller
     boolean launched = sysout.startsWith("Managed Reservation");
     if (launched) {
       String[] toks = sysout.split("\\s+");
       if (toks.length >= 3) {
-        experiment.setRerunJedId(toks[2]);
+        long duccId = Long.parseLong(toks[2]);
+        experiment.setJedId(duccId);
       }
     }
     
