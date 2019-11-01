@@ -307,6 +307,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(text == null) {
 			text = dir_home;
 		}
+		else if(text.trim().isEmpty()) {
+			text = dir_home;
+		}
 		sb.append(text);
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
