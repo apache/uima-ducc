@@ -20,6 +20,7 @@ package org.apache.uima.ducc.transport.event.common;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
@@ -52,6 +53,7 @@ public class DuccProcess implements IDuccProcess {
 	 */
 	private static final long serialVersionUID = 1L;
 	private long dataVersion=1;
+	private long seqNo = 0; // each JP for a job gets a seqNo; first one is 0 and is special with respect to Initialization Failure
 	private DuccId duccId = null;
 	private Node  node = null;
 	private NodeIdentity  nodeIdentity = null;
@@ -81,12 +83,16 @@ public class DuccProcess implements IDuccProcess {
 	private long wiMillisInvestment;
 	private long currentCPU;
 	
+	private AtomicLong sequencer = new AtomicLong(0);
+	
 	public DuccProcess(DuccId duccId, NodeIdentity nodeIdentity) {
+		seqNo = sequencer.getAndIncrement();
 		setDuccId(duccId);
 		setNodeIdentity(nodeIdentity);
 	}
 	
 	public DuccProcess(DuccId duccId, Node node) {
+		seqNo = sequencer.getAndIncrement();
 		setDuccId(duccId);
 		setNode(node);
 		NodeIdentity nodeIdentity = node.getNodeIdentity();
@@ -94,17 +100,23 @@ public class DuccProcess implements IDuccProcess {
 	}
 	
 	public DuccProcess(DuccId duccId, NodeIdentity nodeIdentity, ProcessType processType) {
+		seqNo = sequencer.getAndIncrement();
 		setDuccId(duccId);
 		setNodeIdentity(nodeIdentity);
 		setProcessType(processType);
 	}
 	
 	public DuccProcess(DuccId duccId, Node node, ProcessType processType) {
+		seqNo = sequencer.getAndIncrement();
 		setDuccId(duccId);
 		setNode(node);
 		NodeIdentity nodeIdentity = node.getNodeIdentity();
 		setNodeIdentity(nodeIdentity);
 		setProcessType(processType);
+	}
+	
+	public long getSeqNo() {
+		return seqNo;
 	}
 	
 	public long getDataVersion() {

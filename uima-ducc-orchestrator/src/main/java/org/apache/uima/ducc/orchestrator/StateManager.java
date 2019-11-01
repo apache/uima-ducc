@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1538,6 +1539,26 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 
+	private DuccId getFirstFailedInitialization(DuccWorkJob job) {
+		String methodName = "getFirstFailedInitialization";
+		DuccId retVal = null;
+		try {
+			IDuccProcessMap processMap = job.getProcessMap();
+			ArrayList<DuccId> list = processMap.getFailedInitialization();
+			for(DuccId duccId : list) {
+				IDuccProcess process = processMap.getProcess(duccId);
+				if(process.getSeqNo() == 0) {
+					retVal = duccId;
+					break;
+				}
+			}
+		}
+		catch(Throwable t) {
+			logger.error(methodName, null, t);
+		}
+		return retVal;
+	}
+	
 	private void inventoryJob(IDuccWork duccWork, IDuccProcess inventoryProcess) {
 		String methodName = "inventoryJob";
 		DuccWorkJob job = (DuccWorkJob) duccWork;
@@ -1600,7 +1621,16 @@ public class StateManager {
 					}
 					long initFailureCount = job.getProcessInitFailureCount();
 					long startup_initialization_error_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_jd_startup_initialization_error_limit, 1);
-					if(initFailureCount >= startup_initialization_error_limit) {
+					DuccId pid = getFirstFailedInitialization(job);
+					if(pid != null) {
+						String reason = "process inititialization failure on first job process";
+						logger.warn(methodName, job.getDuccId(), pid, reason);
+						JobCompletionType jobCompletionType = JobCompletionType.CanceledBySystem;
+						Rationale rationale = new Rationale(reason);
+						ProcessDeallocationType processDeallocationType = ProcessDeallocationType.JobCanceled;
+						stateManager.jobTerminate(job, jobCompletionType, rationale, processDeallocationType);
+					}
+					else if(initFailureCount >= startup_initialization_error_limit) {
 						String reason = "process inititialization failure count["+initFailureCount+"] meets startup initialization error limit["+startup_initialization_error_limit+"]";
 						logger.warn(methodName, job.getDuccId(), reason);
 						JobCompletionType jobCompletionType = JobCompletionType.CanceledBySystem;

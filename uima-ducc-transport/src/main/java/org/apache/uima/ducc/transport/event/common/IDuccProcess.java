@@ -36,6 +36,8 @@ public interface IDuccProcess extends Serializable {
 	
 	public long getDataVersion();
 	
+	public long getSeqNo();
+	
 	public DuccId getDuccId();
 	public void setDuccId(DuccId duccId);
 	
