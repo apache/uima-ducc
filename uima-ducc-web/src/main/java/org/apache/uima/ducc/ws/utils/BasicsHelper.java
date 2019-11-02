@@ -41,4 +41,17 @@ public class BasicsHelper {
 		}
 		return retVal;
 	}
+	
+	public static boolean isSim() {
+		String location = "isSim";
+		DuccId jobid = null;
+		boolean retVal = false;
+		String ducc_sim_env = System.getenv("DUCC_SIM");
+		if(ducc_sim_env != null) {
+			logger.debug(location, jobid, ducc_sim_env);
+			Boolean bool = new Boolean(ducc_sim_env);
+			retVal = bool.booleanValue();
+		}
+		return retVal;
+	}
 }

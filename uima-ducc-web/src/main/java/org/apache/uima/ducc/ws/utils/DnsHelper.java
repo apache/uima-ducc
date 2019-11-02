@@ -28,7 +28,7 @@ public class DnsHelper {
 	
 	private static DuccLogger duccLogger = DuccLogger.getLogger(DnsHelper.class);
 	
-	public static boolean isKnowable() {
+	private static boolean isKnowable() {
 		String location = "isKnowable";
 		DuccId jobid = null;
 		boolean retVal = false;
@@ -50,7 +50,7 @@ public class DnsHelper {
 	//  0 = unknown
 	//  1 = known
 	
-	public static int isKnownHost(String hostname) {
+	private static int isKnownHost(String hostname) {
 		String location = "isKnownHost";
 		DuccId jobid = null;
 		int retVal = -1;
@@ -75,9 +75,14 @@ public class DnsHelper {
 	
 	public static boolean isKnownHost(NodeId nodeId) {
 		boolean retVal = true;
-		if(nodeId != null) {
-			if(isKnownHost(nodeId.getLongName()) == 0) {
-				retVal = false;
+		if(BasicsHelper.isSim()) {
+			retVal = true;
+		}
+		else {
+			if(nodeId != null) {
+				if(isKnownHost(nodeId.getLongName()) == 0) {
+					retVal = false;
+				}
 			}
 		}
 		return retVal;

@@ -316,6 +316,8 @@ class StartSim(DuccUtil):
         if ( len(argv) == 0 ):
             self.usage(None)
     
+        os.environ['DUCC_SIM'] = 'True'
+        
         node_config = None
         components = {}
         instances = {}
