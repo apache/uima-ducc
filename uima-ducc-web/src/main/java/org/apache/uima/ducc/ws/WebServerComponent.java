@@ -169,6 +169,7 @@ implements IWebServer {
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
 		File file = new File(DuccWebServerHelper.getDuccWebLogsDir());
 		file.mkdirs();
+		DuccMonitor.turn_on();
 		webServerStart();
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}

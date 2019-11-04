@@ -51,6 +51,7 @@ import org.apache.uima.ducc.ws.types.Ip;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.DatedNodeMetricsUpdateDuccEvent;
+import org.apache.uima.ducc.ws.utils.DnsHelper;
 
 /**
  * A class to manage information about machines comprising data
@@ -83,6 +84,29 @@ public class DuccMachinesData {
 	
 	public static DuccMachinesData getInstance() {
 		return duccMachinesData;
+	}
+	
+	/*
+	 * Remove obsolete machines (unknown to DNS) from maps
+	 */
+	public void cleanup() {
+		String location = "cleanup";
+		int counter = 0;
+		for(Entry<MachineInfo, NodeId> entry : sortedMachines.entrySet()) {
+			MachineInfo mi = entry.getKey();
+			if(!DnsHelper.isKnownHost(entry.getValue())) {
+				NodeId ni = sortedMachines.remove(mi);
+				unsortedMachines.remove(ni);
+				summaryMachines.remove(ni);
+				logger.info(location, jobid, ni.getLongName());
+			}
+			else {
+				logger.debug(location, jobid, mi.getName());
+			}
+		}
+		if(counter == 0) {
+			logger.trace(location, jobid, "nothing to do");
+		}
 	}
 	
 	public boolean isMachineSwapping(String ip) {
