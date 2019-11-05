@@ -43,8 +43,8 @@ public class DuccMonitor extends Thread {
 		String location = "turn_on";
 		try {
 			if(instance == null) {
-				instance.no_kill_i.set(true);
 				instance = new DuccMonitor();
+				instance.no_kill_i.set(true);
 				instance.start();
 				logger.info(location, jobid, "");
 			}
@@ -61,9 +61,12 @@ public class DuccMonitor extends Thread {
 	public static void turn_off() {
 		String location = "turn_off";
 		try {
-			instance.no_kill_i.set(false);
-			instance = null;
-			logger.info(location, jobid, "");
+			if(instance != null) {
+				instance.no_kill_i.set(false);
+				instance = null;
+				logger.info(location, jobid, "");
+			}
+			logger.debug(location, jobid, "");
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
