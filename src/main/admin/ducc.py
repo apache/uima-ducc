@@ -132,7 +132,7 @@ class Ducc(DuccUtil):
     def prepend_classpath(self, lib):
         os.environ['CLASSPATH'] = lib + ":" + os.environ['CLASSPATH'] 
 
-    def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate):
+    def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate, testcp):
 
         if ( component == 'all' ):
             component = 'rm,sm,pm,ws,orchestrator'
@@ -145,7 +145,15 @@ class Ducc(DuccUtil):
         # ducc-head needs to be in system properties before the ducc daemon reads ducc.properties
         # to insure it can be substituted properly
         ducc_home = self.DUCC_HOME
-        CLASSPATH = os.environ['CLASSPATH']
+        CLASSPATH = os.environ['CLASSPATH']            # Unused ??
+
+        if ( testcp != None ):
+            if testcp in os.environ:
+                xcp = os.environ[testcp]
+                self.prepend_classpath(xcp)
+                print "Classpath augmented with:", xcp
+            else:
+                print "WARNING -- No value assigned to environment variable '" + testcp + "'"
 
         jvm_opts = []
         jvm_opts.append('-Dos.page.size=' + self.os_pagesize)
@@ -280,10 +288,10 @@ class Ducc(DuccUtil):
     def usage(self, msg):
         print msg
         print 'Usage:'
-        print '   ducc.py -c <process> [-n <numagents>] [-b] [-d date] [-o rmmem] [arguments ...]'
+        print '   ducc.py -c <component> [-n <numagents>] [-b] [-d date] [-o rmmem] [arguments ...]'
         print '   ducc.py -k'
         print 'Where:'
-        print '   -c <component> is the name of the comp[onent to start, currently one of'
+        print '   -c <component> is the name of the component to start, currently one of'
         print '                agent rm sm pm ws orchestrator broker'
         print '                      -- or --'
         print '                all - to start all but the agents'
@@ -297,6 +305,7 @@ class Ducc(DuccUtil):
         print '   --nodup If specified, do not start a process if it appears to be already started.'
         print '   --or_parms [cold|warm]'
         print '   --simtest If specified, use unblocked broker for sim tests.'
+        print '   --testcp <envvar>   If specified, put contents of enviromnet variable <envvar> at the head of the classpath.'
         print '   arguments - any additional arguments to pass to the component.'
         sys.exit(1)
     
@@ -312,9 +321,10 @@ class Ducc(DuccUtil):
         nodup = False           # we allow duplicates unless asked not to
         localdate = time.time()
         simtest = False
+        testcp = None
 
         try:
-           opts, args = getopt.getopt(argv, 'bc:d:n:o:sk?v', ['or_parms=', 'nodup', 'simtest' ])
+           opts, args = getopt.getopt(argv, 'bc:d:n:o:sk?v', ['or_parms=', 'nodup', 'simtest', 'testcp=' ])
         except:
             self.usage('Bad arguments ' + ' '.join(argv))
     
@@ -339,6 +349,8 @@ class Ducc(DuccUtil):
                 nodup = True
             elif ( o == '--simtest' ):
                 simtest = True
+            elif ( o == '--testcp' ):
+                testcp = a
             elif ( o == '-v'):
                 self.version()
             else:
@@ -364,7 +376,7 @@ class Ducc(DuccUtil):
             return
 
         # fall-through, runs one of the ducc components proper
-        self.run_component(component, or_parms, numagents, rmoverride, background, nodup, localdate)
+        self.run_component(component, or_parms, numagents, rmoverride, background, nodup, localdate, testcp)
 
         return
 
