@@ -27,6 +27,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.uima.ducc.common.head.DuccHead;
+import org.apache.uima.ducc.common.head.IDuccHead;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
@@ -59,6 +61,8 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
   // NOTE - this variable used to hold the class name before WsLog was simplified
   private static DuccLogger cName = DuccLogger.getLogger(HandlerExperimentsServlets.class);
+  
+  private static IDuccHead dh = DuccHead.getInstance();
 
   public final int defaultRecordsExperiments = 16;
 
@@ -169,24 +173,34 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     boolean handled = false;
 
     FormatServlet fmt = tableStyle.equals("scroll") ? new FormatServletScroll() : new FormatServletClassic();
-
-    int maxRecords = HandlersUtilities.getExperimentsMax(request);
     
-    ArrayList<String> users = HandlersUtilities.getExperimentsUsers(request);
-    
-    // List experiments in "experiment" order: active, newest start-date, directory
-    for (Experiment experiment : experimentsRegistryManager.getMapByStatus().keySet()) {
+    // Display an empty page if a backup
+    if (dh.is_ducc_head_backup()) {
+      fmt.startRow();
+      fmt.addElemL("");
+      fmt.addElemL("no data - not master");
+      fmt.pad(5); // DataTables needs all 7 elements for column alignment
+      fmt.endRow();
 
-      boolean fullTable = fmt.numRows() >= maxRecords;
-      
-      if (HandlersUtilities.isListable(request, users, fullTable, experiment)) {
+    } else { // Master
+
+      int maxRecords = HandlersUtilities.getExperimentsMax(request);
+      ArrayList<String> users = HandlersUtilities.getExperimentsUsers(request);
+
+      // List experiments in "experiment" order: active, newest start-date, directory
+      for (Experiment experiment : experimentsRegistryManager.getMapByStatus().keySet()) {
+
+        boolean fullTable = fmt.numRows() >= maxRecords;
+
+        if (!HandlersUtilities.isListable(request, users, fullTable, experiment)) {
+          continue;
+        }
 
         // Format each row with:  Terminate-Button Start Duration User Tasks State Directory
         // Display Terminate button if experiment is Running - activated only if owned by the logged-in user.
         // (Column headings defined in expeiments.jsp)
-
         fmt.startRow();
-        
+
         String terminate = "";
         Status experimentStatus = experiment.getStatus();
         switch (experimentStatus) {
@@ -438,6 +452,15 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
     String dir = request.getParameter("dir");
     Experiment experiment = experimentsRegistryManager.getExperiment(dir);
+    
+    // May show nothing if experiment is missing or this is a backup node
+    // Unlikely to be called if a backup as the Experiments page should have been empty
+    String nodataMsg = "not found";
+    if (dh.is_ducc_head_backup()) {
+      experiment = null;
+      nodataMsg = "no data - not master";
+    }
+    
     if (experiment != null) {
       // If restart requested update the tasks to be rerun & set restarting flag
       restart = request.getParameter("restart") != null;
@@ -487,7 +510,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
     if (fmt.numRows() == 0) {
       fmt.startRow();
-      fmt.addElemL("not found");
+      fmt.addElemL(nodataMsg);
       fmt.pad(15);   // DataTables needs all 16 elements for column alignment
       fmt.endRow();
     }
@@ -543,7 +566,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
     Experiment experiment = experimentsRegistryManager.getExperiment(directory);
 
-    if (experiment != null) {
+    if (experiment != null && !dh.is_ducc_head_backup()) {
       // Display Terminate/Restart button if DUCC-launched && the owner logged in
       String button = null;
       if (experiment.getJedId() > 0 &&
