@@ -142,7 +142,7 @@
         
 		<maven.build.timestamp.format>MM-dd-yyyy HH:mm</maven.build.timestamp.format>
 		<ducc.version>${project.version}</ducc.version>
-		<org.springframework.version>4.3.9.RELEASE</org.springframework.version>
+		<org.springframework.version>4.3.19.RELEASE</org.springframework.version>
 		<org.apache.activemq.version>5.15.2</org.apache.activemq.version>
 		<org.apache.camel.version>2.19.3</org.apache.camel.version>
 		<org.apache.uima.version>2.10.2</org.apache.uima.version> <!--Same as uima-as-->
