@@ -144,7 +144,7 @@
 		<ducc.version>${project.version}</ducc.version>
 		<org.springframework.version>4.3.9.RELEASE</org.springframework.version>
 		<org.apache.activemq.version>5.15.2</org.apache.activemq.version>
-		<org.apache.camel.version>2.19.3</org.apache.camel.version>
+		<org.apache.camel.version>2.24.2</org.apache.camel.version>
 		<org.apache.uima.version>2.10.2</org.apache.uima.version> <!--Same as uima-as-->
 		<org.apache.uima.as.version>2.10.2</org.apache.uima.as.version>
 		<com.google.guava.version>18.0</com.google.guava.version>        <!-- updated from r09 for cassandra -->
