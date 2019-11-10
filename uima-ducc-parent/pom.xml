@@ -187,7 +187,7 @@
         <hdr.version>2.1.4</hdr.version>
         <!-- end of cassandra client -->
         <cassandra.server.version>3.11.3</cassandra.server.version>
-        <apache.httpcomponents.httpclient.version>4.3.5</apache.httpcomponents.httpclient.version>
+        <apache.httpcomponents.httpclient.version>4.3.6</apache.httpcomponents.httpclient.version>
 		<http.commons.client.version>4.5.3</http.commons.client.version>
 		<http.commons.client-cache.version>4.3.5</http.commons.client-cache.version>
 		<http.commons.core.version>4.4.6</http.commons.core.version>
