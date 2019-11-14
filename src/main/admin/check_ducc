@@ -24,6 +24,7 @@ import sys
 from time import time
 import getopt
 import signal
+import socket
 
 from ducc_util import DuccUtil
 from properties  import Properties
@@ -100,43 +101,15 @@ class CheckDucc(DuccUtil):
 
                 signal = self.kill_signal
                 
-                # Don't kill agents if a backup node (kill has been disabled as stop_ducc should be used)
-                if (signal != None and not self.is_active() and component == 'agent' ):
-                    print 'Ignoring agent as not the master head node'
-                    continue
-                    
                 if ( component == 'orchestrator' ):
                     component = 'or'
                     
-                if ( component == 'database' ):
-                    if ( signal != None ):
-                        if ( self.kill_db9 == False ):
-                            signal = '-QUIT'
-
-                process_id = found_user + ' ' + component + '@' + node + ' PID ' + pid 
-                if ( signal != None ) :
-                    if ( self.user != found_user ):
-                        messages.append((spacer, "Not killing someone else's process.", process_id))
-                    elif ( component == 'unknown-java' ):
-                        messages.append((spacer, 'Not killing non-ducc process', process_id))
-                    else:
-                        messages.append((spacer, 'Killing (' +  signal + ')', process_id))
-                        self.kill_process(node, proc, signal)
-                        if ( component == 'agent' ):
-                            self.pids_agents.delete(pid)
-                        else:
-                            self.pids_daemons.delete(pid)
-                        process_changes = True
-
+                if ( component == 'database' and not self.automanage_database ):
+                    automan = " (NOT auto-managed)"
                 else:
-                    messages.append((spacer, 'Found', process_id))
-                    #full_name = component + '@' + node
-                    #if ( component == 'agent' ):
-                    #    self.pids_agents.put(full_name, pid)
-                    #else:
-                    #    if ( component in self.default_components ):
-                    #        self.pids_daemons.put(full_name, pid)
-                    #        self.pids_daemons.put(component, full_name)
+                    automan = ""
+                process_id = found_user + ' ' + component + '@' + node + ' PID ' + pid + automan
+                messages.append((spacer, 'Found', process_id))
         else:
             messages.append((spacer, 'no processes found.'))
 
@@ -181,41 +154,18 @@ class CheckDucc(DuccUtil):
         print ""
         print "      check_ducc -n ../resources/ducc.nodes"
         print ""
-        #print "   For reliable DUCC agents will not be killed from backup head node. "
-        #print ""
-        #print "   Broker will not be killed when ducc.broker.automanage = false. "
-        #print "   Database will not be killed when ducc.database.automanage = false. "
-        #print ""
         print "Options:"
         print "    -n --nodelist nodefile"
         print "        Check for agents on the nodes in nodefile.  This option may be specified multiple time"
-        print "        for multiple nodefiles.  The 'local' node is always checked"
+        print "        for multiple nodefiles.  The head node(s) are always checked"
+        print ""
+        print "    --localonly"
+        print "        Check only this head node (used when updating a single head node on a local filesystem)"
         print ""
         print "    -c --configuration"
         print "        Do basic sanity checking on the configuration only.  Note that configuration checking is always"
         print "        performed with most options.  The [-c, --configuration] option does ONLY configuration checking."
         print ""
-        #print "    -k --kill"
-        #print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
-        #print "       uses kill -KILL (-9) for all daemons, except database which uses -QUIT (3),"
-        #print "       and only kills processes owned by the invoking user."
-        #print ""
-        #print "    --db-9"
-        #print "       Use signal -KILL (-9) to kill database, rather than the default -QUIT (-3)"
-        #print "" 
-        #print "    -i --int"
-        #print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
-        #print "       uses kill -INT (-2) and only kills processes owned by the invoking user."
-        #print "" 
-        #print "    -q --quit"
-        #print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
-        #print "       uses kill -QUIT (-3) and only kills processes owned by the invoking user."
-        #print "" 
-        #print "    -p --pids"
-        #print "       Rewrite the PID file. The PID file is always rewritten if any changes to processes are made.  Sometimes"
-        #print "       the PID file needs rebuilding.  This option causes the file to be rebuilt regardless of"
-        #print "       changes."
-        #print ""
         print "    -x localdate"
         print "       Validate the local installation, called via ssh usually. The date is the date on the calling machine."
         print ""
@@ -231,48 +181,30 @@ class CheckDucc(DuccUtil):
     def main(self, argv):
 
         try:
-            opts, args = getopt.getopt(argv, 'cn:x:h?v', ['configuration', 'nodelist=', 'verbose', 'nothreading', ])
-            #opts, args = getopt.getopt(argv, 'cikn:opqx:h?v', ['configuration', 'nodelist=', 'int', 'quit', 'kill', 'db-9', 'pids', 'verbose', 'nothreading', ])
+            opts, args = getopt.getopt(argv, 'cn:x:h?v', ['configuration', 'nodelist=', 'verbose', 'nothreading', 'localonly' ])
+
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
     
         nodefiles = []
         self.user = os.environ['LOGNAME']
-        self.kill_signal = None
-        self.kill_db9 = False
-        redo_pids = False
+        self.kill_signal = None      # Kill disabled ... now handled by stop_ducc
         process_changes = False
         do_validate = False
         checkdate = 0
         config_only = False
         verbose = False
+        local_only = False
 
         for ( o, a ) in opts:
             if o in ('-c', '--configuration'):
                 config_only = True
             elif o in ('-n', '--nodelist'):
                 nodefiles.append(a)
-            #elif o in ('-i', '--int'):
-            #    if ( self.kill_signal != None ):
-            #        print 'Conflicting kill signals: -INT and', self.kill_signal
-            #        return
-            #    self.kill_signal = '-INT'
-            #elif o in ('-q', '--quit'):
-            #    if ( self.kill_signal != None ):
-            #        print 'Conflicting kill signals: -QUIT and', self.kill_signal
-            #        return
-            #    self.kill_signal = '-QUIT'
-            #elif o in ('-k', '--kill'):
-            #    if ( self.kill_signal != None ):
-            #        print 'Conflicting kill signals: -KILL and', self.kill_signal
-            #        return
-            #    self.kill_signal = '-KILL'
-            #elif o in ('--db-9'):
-            #    self.kill_db9 = True
+            elif o in ( '--localonly' ):
+                local_only = True
             elif o in ( '--nothreading' ):
                 self.disable_threading()
-            #elif o in ('-p', '--pids'):
-            #    redo_pids = True
             elif o in ('-x'):
                 # intended to be called recursively from check_ducc, NOT from the command line
                 do_validate = True
@@ -285,6 +217,11 @@ class CheckDucc(DuccUtil):
                 print 'badarg', a
                 usage('bad arg: ' + a)               
 
+
+        if ( local_only ):
+            if ( len(nodefiles) > 0 ):
+                print "NOTOK: Cannot specify nodefiles with --localonly"
+                return
 
         if not self.installed():
             print "Head node is not initialized.  Have you run ducc_post_install?"
@@ -323,39 +260,23 @@ class CheckDucc(DuccUtil):
 
         self.verify_database() 
 
-        # init the PID file
-        #if(not self.is_reliable_backup()):
-        #    self.pids_agents = Properties()
-        #    self.pids_agents.load_if_exists(self.pid_file_agents)
-        #self.pids_daemons = Properties()
-        #self.pids_daemons.load_if_exists(self.pid_file_daemons)
-        
-        # read the nodelists
-        if ( len(nodefiles) == 0 ):
-            nodefiles = self.default_nodefiles
-            check_nodepools = True
-        else:
-            # if using other than the fully configured set of nodes we can't reliably check nodepools
-            # because anything other than the full set of nodes may be missing something
-            check_nodepools = False
-
-        nodes = {}
+        # Create the nodelists
+        nodesmap = {}
         n_nodes = 0
-        for nf in nodefiles:
-            n_nodes, nodes = self.read_nodefile(nf, nodes)
-
-        #
-        # add in the local host if needed, and the webserver node
-        #
-        localnodes = []
-        if ( not self.localhost in nodes ):
-            localnodes.append(self.localhost)
-
-        if ( not (self.webserver_node in ['localhost', self.localhost, None]) ):
-            localnodes.append(self.webserver_node)
-
-        if ( len(localnodes) > 0 ):
-            nodes['local'] = localnodes
+        if ( local_only ):
+            # Include just this head node
+            nodesmap['head'] = [ self.localhost ]
+            n_nodes = 1
+        else:
+            # Load the specified or default nodefiles
+            if ( len(nodefiles) == 0 ):
+                nodefiles = self.default_nodefiles
+            for nf in nodefiles:
+                n, nodesmap = self.read_nodefile(nf, nodesmap)
+                n_nodes += n
+            # Include all the head node(s)
+            nodesmap['head'] = self.head_nodes
+            n_nodes += len(self.head_nodes)
 
         self.verify_jvm()
 
@@ -368,30 +289,24 @@ class CheckDucc(DuccUtil):
                 print "OK: Class configuration checked"
             else:
                 print "NOTOK: Errors in class or node configuration."
-
             return
 
-        # checking starts here        
+        # checking starts here - reduce any full names to the short names without the domain
         print "Checking", n_nodes, "nodes"
-        self.threadpool = ThreadPool(n_nodes + 5)    # more for the head processes
+        self.threadpool = ThreadPool(n_nodes)    # n_nodes is >= number of unique nodes
         checked = {}
 
         signal.signal(signal.SIGINT, self.signalHandler)
 
         try:
-            for (nodefile, nodelist) in nodes.items():
+            for (nodefile, nodelist) in nodesmap.items():
                 if ( nodelist == None ):
                     # loading the nodes prints the necessary message
                     continue
                 for node in nodelist:
+                    node = node.split('.')[0]
                     if ( checked.has_key(node) ):
                         continue
-    
-                    checked[node] = node
-                    self.threadpool.invoke(self.check_node, node)
-            # check head node(s)
-            for node in self.head_nodes:
-                if(not node in checked):
                     checked[node] = node
                     self.threadpool.invoke(self.check_node, node)
         except:
@@ -400,31 +315,6 @@ class CheckDucc(DuccUtil):
             sys.exit(1)
 
         self.threadpool.quit()
-
-        #if ( self.kill_signal != None ):
-        #    if(self.automanage_broker):
-        #        print 'Stopping broker'
-        #        self.stop_broker()
-        #    else:
-        #        print 'Not stopping broker - not automanaged'
-        #    if(self.automanage_database):
-        #        print 'Stopping database'
-        #        self.db_stop()
-        #    else:
-        #        print 'Not stopping database - not automanaged'
-            
-        #if(not self.is_reliable_backup()):
-        #    if ( len(self.pids_agents) == 0):
-        #        if ( os.path.exists(self.pid_file_agents) ):
-        #            os.remove(self.pid_file_agents)
-        #    elif (process_changes or redo_pids):
-        #        self.pids_agents.write(self.pid_file_agents)
-                    
-        #if ( len(self.pids_daemons) == 0):
-        #    if ( os.path.exists(self.pid_file_daemons) ):
-        #        os.remove(self.pid_file_daemons)
-        #elif (process_changes or redo_pids):
-        #    self.pids_daemons.write(self.pid_file_daemons)
             
 if __name__ == "__main__":
     checker = CheckDucc()

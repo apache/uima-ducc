@@ -166,6 +166,12 @@ def update_directory(olddir, newdir, archdir):
     else:
         print "\n", " --- Processing folder:", olddir[lenRuntime:]
 
+    # Play safe by discarding all pyc files (note that the whole of the bin directory has been replaced)
+    # Some of these will be recreated later when ducc_props_manager is run
+    if olddir.endswith('admin'):
+        cmd = 'rm ' + olddir + '/*.pyc'
+        rc = os.system(cmd);
+
     subdirs = []
     preserveAll = os.path.basename(newdir) in preserveDirectories
     if not os.path.exists(archdir):
@@ -213,8 +219,13 @@ def update_directory(olddir, newdir, archdir):
 # Insure ducc not running
 #-----------------------------------------------------------------------------------------
 def check_ducc(runtime):
-    print 'checking for ducc running, may take a few minutes...'
-    cmd = [ os.path.join(runtime,'admin/check_ducc') ]
+    # Check just the local node if multi-headed AND installed on a local filesystem
+    if islocal(runtime):
+        cmd = [ os.path.join(runtime,'admin/check_ducc'), "--localonly" ]
+        print 'checking for ducc running on this node, may take a few minutes...'
+    else:
+        cmd = [ os.path.join(runtime,'admin/check_ducc') ]
+        print 'checking for ducc running, may take a few minutes...'
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1, universal_newlines=True)
     foundDucc = 'Found ' + find_ducc_uid(os.path.join(runtime,'admin'))
     while True:
@@ -225,11 +236,39 @@ def check_ducc(runtime):
             line = output.strip()
             #print line
             if foundDucc in line:
+                if "NOT auto-managed" in line:
+                    continue
                 print "ERROR - DUCC appears to be running: " + line 
                 print "Please run '" + os.path.join(runtime,'admin/stop_ducc') + " --all'"
                 exit(1)
     rc = p.poll()
     return rc
+
+#-----------------------------------------------------------------------------------------
+# Test if a reliable installation on a local filesystem
+# Should ideally check if multiple head-nodes are actually specified
+# but instead check just for the required key (or a prefix)
+#-----------------------------------------------------------------------------------------
+def islocal(runtime):
+    siteprops = runtime + '/resources/site.ducc.properties'
+    reliable = False
+    with open(siteprops) as f:
+        for line in f:
+            if line.startswith("ducc.head.reliable.list"):
+                reliable = True
+                break
+    if not reliable:
+        return False
+    ismounted = False;
+    # Check if any part of the runtime path (except '/') is a mount point ... probably a shared filesystem
+    path = runtime
+    while len(path) > 1:
+        if os.path.ismount(path):
+            print "This multi-head installation appears to be using a shared filesystem mounted at", path
+            return False
+        path,tail = os.path.split(path)
+    return True
+
 
 #-----------------------------------------------------------------------------------------
 # The "ducc" userid is the user that installed DUCC and created this directory
@@ -385,12 +424,13 @@ print "\n", " --- Files not replaced are left in the extract at", newducc
 #-----------------------------------------------------------------------------------------
 # Re-build ducc_ling
 # Since it needs ducc.properties run the merge from the admin directory
+# NOTE - this will be using the just-updated scripts in the admin directory 
 #-----------------------------------------------------------------------------------------
 print "\n", " --- Rebuilding ducc_ling"
 os.chdir(runtime + '/admin')
 rc = os.system('./ducc_props_manager --merge ../resources/default.ducc.properties --with ../resources/site.ducc.properties --to ../resources/ducc.properties')
 if (rc != 0):
-    print "ERROR - failed to create ducc.properties and to rebuild ducc_ling"
+    print "ERROR - failed to create ducc.properties so ducc_ling was not rebuilt"
     exit(9)
 rc = os.system('./build_duccling')
 if (rc != 0):
