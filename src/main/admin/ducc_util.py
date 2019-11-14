@@ -186,8 +186,9 @@ class DuccUtil(DuccBase):
         if ( self.broker_decoration != None ):
             self.broker_url = self.broker_url + '?' + self.broker_decoration
         
-        if ( self.webserver_node == None ):
-            self.webserver_node = self.localhost
+        # Obsolete ??
+        #if ( self.webserver_node == None ):
+        #    self.webserver_node = self.localhost
 
     def merge_properties(self):
         # first task, always, merge the properties so subsequent code can depend on their validity.
@@ -1024,8 +1025,9 @@ class DuccUtil(DuccBase):
                 continue
             nodes.append(node)
 
-        if ( self.webserver_node != 'localhost' ):           # might be configured somewhere else
-            nodes.append(self.webserver_node)
+        # obsolete ??
+        #if ( self.webserver_node != 'localhost' ):           # might be configured somewhere else
+        #    nodes.append(self.webserver_node)
 
         for node in nodes:                
             data = self.find_ducc_process(node, user)

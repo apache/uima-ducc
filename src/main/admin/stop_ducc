@@ -469,8 +469,10 @@ class StopDucc(DuccUtil):
                         break
         return pid
     
+    # Note - If this is called after submitting the stop request the autostart cron job may see
+    # that the daemon is down before the DB is updated and restart it!
     def acct_stop(self,node,component):
-        print 'db_acct: Stopped '+component+'@'+node
+        print 'db_acct: Recording '+component+'@'+node+' in DB as Stopped'
         self.db_acct_stop(node,component)
         
     # target=kill
@@ -490,11 +492,11 @@ class StopDucc(DuccUtil):
                 if(pid == None):
                     state='state=component not found'
                 else:
+                    self.acct_stop(node,component)
                     self.ssh(node, True, 'kill', '-'+str(signal), str(pid))
                     process='pid='+str(pid)+' '
             else:
                 state='state=find DUCC process failed'
-            self.acct_stop(node,component)
         else:
             state = 'state=ssh failure'
         msg = pfx+process+state
@@ -563,23 +565,23 @@ class StopDucc(DuccUtil):
             if(component == self.c_database):
                 stop_db = True
                 continue
+            self.acct_stop(node,com)
             item = component+'@'+node
             if(qflag):
                 self.ducc_admin('--quiesce',item)
             else:
                 self.ducc_admin('--stop',item)
-            self.acct_stop(node,com)
 
         # Finally stop broker & database if requested
         node = self.localhost
         if(stop_broker):
             print 'Stopping: broker'
-            self.stop_broker()
             self.acct_stop(node,self.c_br)
+            self.stop_broker()
         if(stop_db):
             print 'Stopping: database'
-            self.db_stop()
             self.acct_stop(node,self.c_db)
+            self.db_stop()
     
     # multi-thread lock to obtain thread id
     lock_tid = Lock()
