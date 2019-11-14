@@ -448,9 +448,9 @@ under the License.
       <outputDirectory>admin</outputDirectory>
       <fileMode>750</fileMode>
       <directoryMode>750</directoryMode>
-      <!--  exclude DuccHello.java. It will be copied separately
-            and given different permissions. Look below at <files>...</files>
-       -->      
+      <excludes>
+	<exclude>*.pyc</exclude>
+      </excludes>
     </fileSet>
 
     <fileSet>
@@ -458,7 +458,9 @@ under the License.
       <outputDirectory>bin</outputDirectory>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>
-      <includes />
+      <excludes>
+	<exclude>*.pyc</exclude>
+      </excludes>
     </fileSet>
 
     <fileSet>
