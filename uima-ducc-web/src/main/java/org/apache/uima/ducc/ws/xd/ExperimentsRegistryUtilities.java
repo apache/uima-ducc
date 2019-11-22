@@ -83,6 +83,23 @@ public class ExperimentsRegistryUtilities {
     }
   }
 
+  public static String readLink(String user, File link) {
+    String mName = "readLink";
+    try {
+      File file = link.getCanonicalFile();
+      if (file.exists()) {
+        return file.getAbsolutePath();
+      }
+    } catch (Exception e) {
+      WsLog.error(cName,  mName,  e);
+    }
+    // May be unreadable by DUCC or may not exist!
+    // Use duccling to get time in "date" style seconds
+    String[] cmd = { "/usr/bin/readlink", link.getAbsolutePath() };
+    String result = DuccAsUser.execute(user, null, cmd).trim();
+    return result.length()==0 ? null : result;
+  }
+  
   public static boolean launchJed(Experiment experiment) {
     String mName = "launchJed";
     
@@ -162,7 +179,7 @@ public class ExperimentsRegistryUtilities {
     WsLog.info(cName, mName, sysout);
     
     // Should report: "Managed Reservation ### submitted."
-    // If successful save the ID of the JED AP
+    // If successful save the ID of the JED AP (the JED "work" object for this AP should be in the next OR publication)
     // If it fails return false and the restarting status will be reset by the caller
     boolean launched = sysout.startsWith("Managed Reservation");
     if (launched) {

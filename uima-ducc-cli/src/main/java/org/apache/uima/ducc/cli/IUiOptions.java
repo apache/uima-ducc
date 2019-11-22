@@ -682,13 +682,7 @@ public interface IUiOptions
             public String description() { return "The working directory set in each process. Default to current directory."; }
             public String deflt()       { return "."; }
         },
-        
-        OutputDirectory { 
-            public String pname()       { return JobSpecificationProperties.key_output_directory; }
-            public String argname()     { return "path"; }
-            public String description() { return "The output directory for the experiment."; }
-            public boolean required()   { return true; }
-        },
+
         ;
 
         public String  argname()   { return null; }  // the type of argument, if any

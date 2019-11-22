@@ -46,19 +46,22 @@ public class Experiment implements Comparable<Experiment> {
 
   private long fileDate = 0;
 
-  private long jedId = 0;   // ID of JED task that launched this experiment (0 => not DUCC launched)
+  private long jedId = 0;   // ID of JED AP that launched this experiment (0 => not DUCC launched)
 
+  private IDuccWork jedWork = null;  // DUCC managed reservation running JED 
+  
   private boolean restarting = false;
 
     
-  public Experiment(String user, String directory, long fileDate, ArrayList<Task> tasks, IDuccWork work) {
+  public Experiment(String user, String directory, long fileDate, ArrayList<Task> tasks, IDuccWork jedWork) {
     this.user = user;
     this.directory = directory;
     this.fileDate = fileDate;
     this.tasks = tasks;
     tasks.sort(null);        // Sort tasks in taskId order for display
-    if (work != null) {
-      this.jedId = work.getDuccId().getFriendly();
+    if (jedWork != null) {
+      this.jedWork = jedWork;
+      this.jedId = jedWork.getDuccId().getFriendly();
     }
   }
 
@@ -86,12 +89,19 @@ public class Experiment implements Comparable<Experiment> {
     jedId = duccId;
   }
   
-  // Update the duccId for the JED AP if given a newer one
+  public IDuccWork getJedWork() {
+    return jedWork;
+  }
+  
+  // Update the AP & duccId for the JED AP if given a newer one
   // Called when replacing an existing Experiment with an updated one or when only the JED ID needs updating
   // Also may indicate that a restarted JED has checked in
-  public void updateJedId(long duccId) {
+  public void updateJedWork(IDuccWork work) {
+    if (work == null) return;
+    long duccId = work.getDuccId().getFriendly();
     if (duccId > jedId) {
       jedId = duccId;
+      jedWork = work;
     }
   }
   
@@ -186,7 +196,12 @@ public class Experiment implements Comparable<Experiment> {
     restarting = true;      // Will be cleared when the restarted AP updates the state file and replaces this object
   }
   
+  /*
+   * Update state file before re-launching JED
+   * Experiment has stopped but state file will be updated when JED starts
+   */
   public boolean writeStateFile(String umask) {
+    String mName = "writeStateFile";
     int version = 1;
     File tempFile = null;
     Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
@@ -199,7 +214,7 @@ public class Experiment implements Comparable<Experiment> {
       out.write(text);
       out.close();
     } catch (IOException e) {
-      WsLog.error(logger, "writeExperiment", "Failed to write experiment state as " + tempFile + " - " + e);
+      WsLog.error(logger, mName, "Failed to write experiment state as " + tempFile + " - " + e);
       return false;
     }
 
@@ -207,14 +222,14 @@ public class Experiment implements Comparable<Experiment> {
     HashMap<String, String> environment = new HashMap<String, String>();
     environment.put("DUCC_UMASK", umask);
     // Synchronize with the check for a newer state file in ExperimentsRegistryManager to ensure that
-    // the file does not look newer that the in-memory Experiment
+    // the file time in memory matches the actual file time
     synchronized (this) {
       String sysout = DuccAsUser.execute(user, environment, "/bin/cp", tempFile.getAbsolutePath(), stateFile.getAbsolutePath());
       if (sysout.length() > 0) {
-        WsLog.error(logger, "writeExperiment", "Failed to copy experiment state file\n" + sysout);
+        WsLog.error(logger, mName, "Failed to copy experiment state file\n" + sysout);
         return false;
       }
-      fileDate = System.currentTimeMillis();   // Will be > actual filetime
+      fileDate = ExperimentsRegistryUtilities.getFileTime(user, stateFile);
       tempFile.delete();
       return true;
     }
@@ -271,6 +286,11 @@ public class Experiment implements Comparable<Experiment> {
           }
         }
       }
+    }
+    // Check if DUCC thinks JED is still running
+    // (the JED process may have ended but the updated state file may not yet be visible to DUCC)
+    if (jedWork != null) {
+      return jedWork.isCompleted();
     }
     return true;
   }

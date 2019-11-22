@@ -474,6 +474,10 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
               && HandlersHelper.getAuthorizationStatus(request, experiment.getUser()) == AuthorizationStatus.LoggedInOwner;
       
       boolean isCanceled = experiment.getStatus() == Jed.Status.Canceled;
+      
+      //if (cName.isTrace()) WsLog.trace(cName, mName, experiment.getDirectory() + " AP: "+experiment.getJedId()
+      //        + " canrestart: "+isRestartable + " active: "+experiment.isActive() + " canceled: "+isCanceled
+      //        + " loggedin: "+HandlersHelper.getAuthorizationStatus(request, experiment.getUser()));
 
       ArrayList<Task> tasks = experiment.getTasks();
       if (tasks != null) {
@@ -569,8 +573,11 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     if (experiment != null && !dh.is_ducc_head_backup()) {
       // Display Terminate/Restart button if DUCC-launched && the owner logged in
       String button = null;
+      //if (cName.isTrace()) WsLog.trace(cName, mName, experiment.getDirectory() + " AP: " + experiment.getJedId() + 
+      //                                 " loggedin: " + HandlersHelper.getAuthorizationStatus(request, experiment.getUser()));
       if (experiment.getJedId() > 0 &&
         HandlersHelper.getAuthorizationStatus(request, experiment.getUser()) == AuthorizationStatus.LoggedInOwner) {
+        
         restart = request.getParameter("restart") != null;
         if (restart) {           // Mark as "restarting" ... so getStatus will reflect that
           experiment.setRestart(true);
@@ -658,8 +665,8 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
 
   private boolean handleDuccRequest(String target, Request baseRequest, HttpServletRequest request,
           HttpServletResponse response) throws Exception {
-    String mName = "handleDuccRequest";
-    WsLog.enter(cName, mName);
+    //String mName = "handleDuccRequest";
+    //WsLog.enter(cName, mName);
     String reqURI = request.getRequestURI();
     boolean handled = false;
     //if (reqURI.contains("experiment")) WsLog.info(cName, mName, "!! start "+reqURI);
@@ -684,23 +691,22 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
     }
     //if (reqURI.contains("experiment")) WsLog.info(cName, mName, "!! end   "+reqURI);
     
-    WsLog.exit(cName, mName);
+    //WsLog.exit(cName, mName);
     return handled;
   }
 
   public void handle(String target, Request baseRequest, HttpServletRequest request,
           HttpServletResponse response) throws IOException, ServletException {
     String mName = "handle";
-    WsLog.enter(cName, mName);
+    //WsLog.enter(cName, mName);
     try {
-      WsLog.debug(cName, mName, request.toString());
-      // WsLog.debug(cName, mName, "getRequestURI():"+request.getRequestURI());
       boolean handled = handleDuccRequest(target, baseRequest, request, response);
       if (handled) {
         response.setContentType("text/html;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
         baseRequest.setHandled(true);
         DuccWebUtil.noCache(response);
+        WsLog.debug(cName, mName, "handled "+request.toString());
       }
     } catch (Throwable t) {
       if (isIgnorable(t)) {
@@ -710,7 +716,7 @@ public class HandlerExperimentsServlets extends HandlerExperimentsAbstract {
         WsLog.error(cName, mName, t);
       }
     }
-    WsLog.exit(cName, mName);
+    //WsLog.exit(cName, mName);
   }
 
 }

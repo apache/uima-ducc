@@ -674,12 +674,6 @@ public class JobFactory implements IJobFactory {
 			List<String> process_executable_arguments = QuotedOptions.tokenizeList(
 			        jobRequestProperties.getProperty(JobSpecificationProperties.key_process_executable_args), true);
 			executableProcessCommandLine.getArguments().addAll(process_executable_arguments);
-			
-			// JED check
-			String jedDir = executableProcessCommandLine.getEnvVar("DUCC_JED_DIR");
-			if (jedDir != null) {
-			  standardInfo.setExperimentDirectory(jedDir);
-			}
 		}
 		// process_initialization_failures_cap
 		// ?? These are not set for APs or SPs ??

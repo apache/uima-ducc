@@ -30,7 +30,7 @@ import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 
 /**
- * Submit a DUCC Managed Reservation. A Managed Reservation is a single arbitray process running in a non-preemptable share.
+ * Submit a DUCC Managed Reservation that runs JED
  */
 
 public class DuccJedSubmit extends CliBase {
@@ -44,7 +44,6 @@ public class DuccJedSubmit extends CliBase {
       UiOption.Description, 
       UiOption.WorkingDirectory, // Must precede LogDirecory
       UiOption.LogDirectory,     // Must precede Environment
-      UiOption.OutputDirectory,  // JED output directory
       UiOption.Environment, 
       UiOption.ProcessExecutableArgsRequired, 
       UiOption.ProcessMemorySize, 
@@ -163,13 +162,12 @@ public class DuccJedSubmit extends CliBase {
             ducc_home + "/lib/uima-ducc-cli.jar " + 
             "com.ibm.watsonx.framework.jed.Driver ";
     String userArgs = serviceRequestProperties.getProperty(UiOption.ProcessExecutableArgsRequired.pname());
-    String outputDir = serviceRequestProperties.getProperty(UiOption.OutputDirectory.pname());
-    String args = jedArgs + userArgs + " --outputBaseDirectory=" + outputDir;
+    String args = jedArgs + userArgs;
     serviceRequestProperties.setProperty(UiOption.ProcessExecutableArgsRequired.pname(), args);
     
     // Add the environment variable that tells the OR this is a JED AP
     // Also add DUCC_HOME so the JED properties can reference it
-    String jedEnv = "DUCC_HOME="+ducc_home + " DUCC_JED_DIR="+outputDir + " ";
+    String jedEnv = "DUCC_HOME="+ducc_home + " ";
     String userEnv = serviceRequestProperties.getProperty(UiOption.Environment.pname());
     if (userEnv != null) {
       jedEnv += userEnv;
@@ -179,7 +177,7 @@ public class DuccJedSubmit extends CliBase {
     // Create a description if none provided
     String desc = serviceRequestProperties.getProperty(UiOption.Description.pname());
     if (desc == null || desc.equals(UiOption.Description.deflt())) {
-      serviceRequestProperties.setProperty(UiOption.Description.pname(), "JED -- " + outputDir);
+      serviceRequestProperties.setProperty(UiOption.Description.pname(), "JED: " + userArgs);
     }
 
     // Keep list of user provided properties for WS display: user vs. system

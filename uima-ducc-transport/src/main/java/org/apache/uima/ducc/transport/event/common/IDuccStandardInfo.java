@@ -64,9 +64,6 @@ public interface IDuccStandardInfo extends Serializable {
 	public String getWorkingDirectory();
 	public void setWorkingDirectory(String workingDirectory);
 	
-  public String getExperimentDirectory();
-  public void setExperimentDirectory(String experimentDirectory);
-
 	public String[] getNotifications();
 	public void setNotifications(String[] notifications);
 

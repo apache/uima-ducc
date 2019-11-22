@@ -472,7 +472,7 @@ class StopDucc(DuccUtil):
     # Note - If this is called after submitting the stop request the autostart cron job may see
     # that the daemon is down before the DB is updated and restart it!
     def acct_stop(self,node,component):
-        print 'db_acct: Recording '+component+'@'+node+' in DB as Stopped'
+        print 'db_acct: Marking '+component+'@'+node+' as Stopped'
         self.db_acct_stop(node,component)
         
     # target=kill

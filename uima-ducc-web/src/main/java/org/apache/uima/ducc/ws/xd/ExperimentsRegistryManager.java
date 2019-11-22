@@ -34,7 +34,9 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 import org.apache.uima.ducc.ws.log.WsLog;
 
 import com.google.gson.Gson;
@@ -66,28 +68,20 @@ public class ExperimentsRegistryManager {
     return experimentsByDir.get(directory);
   }
   
-  // Called by DuccPlugins with work restored from the DB when web-server boots
-  public void initialize(IDuccWork dw) {
-    //String mName = "initialize";
-    IDuccStandardInfo stdInfo = dw.getStandardInfo();
-    if (stdInfo != null) {
-      String experimentDirectory = stdInfo.getExperimentDirectory();
-      if (experimentDirectory != null) {
-        // Is a JED AP so check that we have the duccId of the latest AP even if not the first seen
-        seenDirs.add(experimentDirectory);
-        update(stdInfo.getUser(), experimentDirectory, dw);
-      } else {
-        // May be one of the tasks from a local or ducc-launched JED so process only the first
-        String logDirectory = stdInfo.getLogDirectory();
-        String parent = new File(logDirectory).getParent();
-        if (seenDirs.add(parent)) {
-          update(stdInfo.getUser(), parent, null);
-        }
-      }
-    }
+  /*
+   *  Called by DuccPlugins with work restored from the DB when web-server boots
+   */
+  public void initialize(IDuccWorkJob job) {
+    update(job);
   }
 
-  // Called by DuccPlugins for each OR publication
+  public void initialize(IDuccWorkService service) {
+    update(service);
+  }
+  
+  /*
+   * Called by DuccPlugins for each OR publication
+   */
   public void update(IDuccWorkMap dwm) {
     String mName = "update";
     if (dwm == null) {
@@ -98,41 +92,17 @@ public class ExperimentsRegistryManager {
     try {
       // Inspect all jobs
       for (DuccId duccId : dwm.getJobKeySet()) {
-        IDuccWork job = dwm.findDuccWork(duccId);
+        IDuccWorkJob job = (IDuccWorkJob) dwm.findDuccWork(duccId);
         if (job != null) {
-          IDuccStandardInfo stdInfo = job.getStandardInfo();
-          if (stdInfo != null) {
-            String user = stdInfo.getUser();
-            String logDirectory = stdInfo.getLogDirectory();
-            String parent = new File(logDirectory).getParent();
-            if (seenDirs.add(parent)) {  // Process the first job with this parent dir
-              update(user, parent, null);
-            }
-          }
+          update(job);
         }
       }
 
-      // Inspect managed reservations ... check if a JED AP
+      // Inspect managed reservations ... internally are called services
       for (DuccId duccId : dwm.getManagedReservationKeySet()) {
-        IDuccWork work = dwm.findDuccWork(duccId);
-        if (work != null) {
-          IDuccStandardInfo stdInfo = work.getStandardInfo();
-          if (stdInfo != null) {
-            String user = stdInfo.getUser();
-            String experimentDirectory = stdInfo.getExperimentDirectory();
-            if (experimentDirectory != null) {
-              // Even if have seen this dir earlier we must check that we have the duccId of the latest AP
-              // JED tasks usually have a log dir 1 level below the exp dir
-              seenDirs.add(experimentDirectory);  // This prevents processing of any of its child jobs
-              update(user, experimentDirectory, work);
-            } else {
-              String logDirectory = stdInfo.getLogDirectory();
-              String parent = new File(logDirectory).getParent();
-              if (seenDirs.add(parent)) {    // Process the first AP with this parent dir
-                update(user, parent, null);  // (unless already seen as a JED exp dir)
-              }
-            }
-          }
+        IDuccWorkService service = (IDuccWorkService) dwm.findDuccWork(duccId);
+        if (service != null) {
+          update(service);
         }
       }
       prune();  // if list too large
@@ -141,8 +111,44 @@ public class ExperimentsRegistryManager {
     }
   }
   
+  private void update(IDuccWorkJob job) {
+    IDuccStandardInfo stdInfo = job.getStandardInfo();
+    if (stdInfo != null) {
+      String user = stdInfo.getUser();
+      String logDirectory = stdInfo.getLogDirectory();
+      String parent = new File(logDirectory).getParent();
+      if (seenDirs.add(parent)) {  // Process the first job with this parent dir
+        update(user, parent, null);
+      }
+    }
+  }
+  
+  // Check if the managed reservation is a DUCC-launched AP
+  private void update(IDuccWorkService managedReservation) {
+    IDuccStandardInfo stdInfo = managedReservation.getStandardInfo();
+    if (stdInfo != null) {
+      String user = stdInfo.getUser();
+      String logDirectory = stdInfo.getLogDirectory();
+      File logDir = new File(logDirectory, managedReservation.getId());
+      File link = new File(logDir, "outputDirectoryLink");
+      String experimentDirectory = ExperimentsRegistryUtilities.readLink(user, link);
+      if (experimentDirectory != null) {
+        // Even if have seen this dir earlier we must check that we have the duccId of the latest AP
+        // JED tasks usually have a log dir 1 level below the exp dir
+        seenDirs.add(experimentDirectory); // This prevents processing of any of its child jobs
+        update(user, experimentDirectory, managedReservation);
+      } else {
+        String parent = new File(logDirectory).getParent();
+        if (seenDirs.add(parent)) { // Process the first AP with this parent dir
+          update(user, parent, null); // (unless already seen as a JED exp dir)
+        }
+      }
+    }
+  }
+  
   // Load or refresh the experiment
-  private void update(String user, String directory, IDuccWork work) {
+  // May need to run as the user if DUCC cannot read the user's files
+  private void update(String user, String directory, IDuccWork jedProcess) {
     String mName = "update";
     
     // "normalize" directory name
@@ -156,13 +162,15 @@ public class ExperimentsRegistryManager {
     File stateFile = new File(directory, stateFileName);
     long fileTime = ExperimentsRegistryUtilities.getFileTime(user, stateFile);
     if (fileTime == 0) {
+	  //WsLog.trace(cName, mName, "Failed to find "+stateFile.getAbsolutePath());
       return;           // File not found
     }
     
     // Check if state file is newer than any existing one
     // If newer refresh it, otherwise just update the JED duccId in case it is a newer AP
+    // But if the experiment is running refresh the details as getFileDate may not reflect the latest changes
     Experiment existingExperiment = experimentsByDir.get(directory);
-    if (existingExperiment != null) {
+    if (existingExperiment != null && !existingExperiment.isActive()) {
       // Synchronize the check for a newer state file with the rewrite of the file in Experiment.writeStateFile
       // to ensure that the rewritten file does does not look newer that the in-memory Experiment
       long existingFileTime;
@@ -170,14 +178,14 @@ public class ExperimentsRegistryManager {
         existingFileTime = existingExperiment.getFileDate();
       }
       if (fileTime <= existingFileTime) {    // No need to reload, but update the jED ID if newer
-        if (work != null) {
-          existingExperiment.updateJedId(work.getDuccId().getFriendly());
+        if (jedProcess != null) {
+          existingExperiment.updateJedWork(jedProcess);
         }
         return;
       }
-    }
+    } 
 
-    // Load or reload changed state file
+    // Load or reload changed state file (fileTime could be older than what is read here)
     String contents = ExperimentsRegistryUtilities.readFile(user, stateFile);
     if (contents == null) {
       WsLog.warn(cName, mName, "State file not found " + stateFile.getAbsolutePath());
@@ -193,10 +201,10 @@ public class ExperimentsRegistryManager {
     Type typeOfTaskList = new TypeToken<ArrayList<Task>>(){}.getType();
     try {
       ArrayList<Task> taskArray = gson.fromJson(sr, typeOfTaskList);
-      Experiment experiment = new Experiment(user, directory, fileTime, taskArray, work);
+      Experiment experiment = new Experiment(user, directory, fileTime, taskArray, jedProcess);
       Experiment oldExperiment = experimentsByDir.put(directory, experiment);
       if (oldExperiment != null) {
-        experiment.updateJedId(oldExperiment.getJedId());    // Ensure the new instance has the latest DuccId
+        experiment.updateJedWork(oldExperiment.getJedWork());    // Ensure the new instance has the latest DuccId
       }
     } catch (JsonParseException e) {
       WsLog.warn(cName, mName, "Ignoring " + stateFile + " as has Json syntax error " + e.getMessage());

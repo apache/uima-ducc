@@ -18,6 +18,7 @@ under the License.
 -->
 <div>
 <ul id="accordion">
+<%@ include file="../$experiments.jsp" %>
 <li><a href="jobs.html">Jobs</a></li>
 <ul></ul>
 <li><a href="reservations.html">Reservations</a></li>
@@ -34,6 +35,5 @@ under the License.
 <li><a href="system.machines.html">Machines</a></li>
 </ul>
 <li><a href="viz.html">Viz</a></li>
-<%@ include file="../$experiments.jsp" %>
 </ul>
 </div> 

@@ -119,7 +119,7 @@ public abstract class HandlerExperimentsAbstract extends AbstractHandler {
     try {
       String v2 = dw.getStandardInfo().getDateOfCompletion();
       String v1 = dw.getStandardInfo().getDateOfSubmission();
-      WsLog.trace(cName, mName, "v2:" + v2 + " v1:" + v1);
+      //WsLog.trace(cName, mName, "v2:" + v2 + " v1:" + v1);
       retVal = getDuration(dw.getDuccId(), v2, v1);
     } catch (Exception e) {
       //

@@ -440,8 +440,6 @@ public abstract class CliBase implements IUiOptions {
         workingDir = getWorkingDirectory();
       } else if (uiopt == UiOption.LogDirectory) {
         logDir = getDirectory(uiopt, workingDir);
-      } else if (uiopt == UiOption.OutputDirectory) {
-        getDirectory(uiopt, workingDir);
       } else if (uiopt == UiOption.Environment) {
         // If this request accepts the --environment option may need to augment it by
         // renaming LD_LIBRARY_PATH & propagating some user values

@@ -299,16 +299,6 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 		return true;
 	}
 
-  @Override
-  public String getExperimentDirectory() {
-    return experimentDirectory;
-  }
-
-  @Override
-  public void setExperimentDirectory(String experimentDirectory) {
-    this.experimentDirectory = experimentDirectory;
-  }
-
 	// **********
 
 //
