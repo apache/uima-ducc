@@ -21,25 +21,47 @@ package org.apache.uima.ducc.transport.event;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.TreeMap;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.agent.metrics.memory.NodeMemory;
+import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo.NodeProcess;
 
 
-public class NodeMetricsUpdateDuccEvent extends AbstractDuccEvent{
+public class NodeMetricsUpdateDuccEvent extends AbstractDuccEvent implements INodeBootMetrics {
 
 	private static final long serialVersionUID = -1066240477810440223L;
 	private Node node;
 	private int processCount=0;
 	
-	public NodeMetricsUpdateDuccEvent(Node node, int processCount) {
-		super(EventType.NODE_METRICS);
+	private String bootTime;
+	private String pid;
+	private String nodeIp;
+	private String jconsoleUrl;
+	
+	private void init(Node node, int processCount) {
 		this.node = node;
 		this.processCount = processCount;
+		DuccDaemonRuntimeProperties drp = DuccDaemonRuntimeProperties.getInstance();
+		if(node != null) {
+			String machineName = node.getNodeIdentity().getShortName();
+			Properties properties = drp.getAgent(machineName);
+			if(properties != null) {
+				bootTime = properties.getProperty(DuccDaemonRuntimeProperties.keyBootTime,"");
+				pid = properties.getProperty(DuccDaemonRuntimeProperties.keyPid,"");
+				nodeIp = properties.getProperty(DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
+				jconsoleUrl = properties.getProperty(DuccDaemonRuntimeProperties.keyJmxUrl,"");
+			}
+		}
+	}
+	
+	public NodeMetricsUpdateDuccEvent(Node node, int processCount) {
+		super(EventType.NODE_METRICS);
+		init(node, processCount);
 	}
 	public Node getNode() {
 		return node;
@@ -77,5 +99,21 @@ public class NodeMetricsUpdateDuccEvent extends AbstractDuccEvent{
 	}
 	public boolean getCgroupsCpuReportingEnabled() {
 		return node.getNodeMetrics().isCpuReportingEnabled();
+	}
+	@Override
+	public String getBootTime() {
+		return bootTime;
+	}
+	@Override
+	public String getPid() {
+		return pid;
+	}
+	@Override
+	public String getNodeIp() {
+		return nodeIp;
+	}
+	@Override
+	public String getJconsoleUrl() {
+		return jconsoleUrl;
 	}
 }

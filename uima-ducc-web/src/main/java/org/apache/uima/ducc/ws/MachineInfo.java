@@ -51,10 +51,13 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private String memFree;
 	private String swapInuse;
 	private String swapFree;
+	private String jConsole;
 	private double cpu;
 	private boolean cGroupsEnabled;
 	private boolean cGroupsCpuReportingEnabled;
 	private List<ProcessInfo> alienPids;
+	private long bootTime;
+	private long pid;
 	private long swapDelta;
 	private long heartbeat;
 	private long heartbeatMax;
@@ -71,15 +74,15 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	
 	private NodeId nodeid;
 	
-	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memReserve, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
-		init(MachineStatus.Defined, fileDef, ip, name, memTotal, memReserve, memFree, swapInuse, swapFree, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, heartbeat, pubSize);
+	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memReserve, String memFree, String swapInuse, String swapFree, String jConsole, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long bootTime, long pid, long heartbeat, long pubSize) {
+		init(MachineStatus.Defined, fileDef, ip, name, memTotal, memReserve, memFree, swapInuse, swapFree, jConsole, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, bootTime, pid, heartbeat, pubSize);
 	}
 	
-	public MachineInfo(MachineStatus machineStatus, String fileDef, String ip, String name, String memTotal, String memReserve, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
-		init(machineStatus, fileDef, ip, name, memTotal, memReserve, memFree, swapInuse, swapFree, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, heartbeat, pubSize);
+	public MachineInfo(MachineStatus machineStatus, String fileDef, String ip, String name, String memTotal, String memReserve, String memFree, String swapInuse, String swapFree, String jConsole, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long bootTime, long pid, long heartbeat, long pubSize) {
+		init(machineStatus, fileDef, ip, name, memTotal, memReserve, memFree, swapInuse, swapFree, jConsole, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, bootTime, pid, heartbeat, pubSize);
 	}
 	
-	private void init(MachineStatus machineStatus, String fileDef, String ip, String name, String memTotal, String memReserve, String memFree, String swapInuse, String swapFree, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long heartbeat, long pubSize) {
+	private void init(MachineStatus machineStatus, String fileDef, String ip, String name, String memTotal, String memReserve, String memFree, String swapInuse, String swapFree, String jConsole, double cpu, boolean cGroupsEnabled, boolean cGroupsCpuReportingEnabled, List<ProcessInfo> alienPids, long bootTime, long pid, long heartbeat, long pubSize) {
 		this.machineStatus = machineStatus;
 		this.fileDef = fileDef;
 		this.ip = ip;
@@ -89,6 +92,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		this.memFree = memFree;
 		this.swapInuse = swapInuse;
 		this.swapFree = swapFree;
+		this.jConsole = jConsole;
 		this.cpu = cpu;
 		this.cGroupsEnabled = cGroupsEnabled;
 		this.cGroupsCpuReportingEnabled = cGroupsCpuReportingEnabled;
@@ -96,6 +100,8 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		if(this.alienPids == null) {
 			this.alienPids = new ArrayList<ProcessInfo>();
 		}
+		this.bootTime = bootTime;
+		this.pid = pid;
 		this.swapDelta = 0;
 		this.heartbeat = heartbeat;
 		this.heartbeatMax = 0;
@@ -310,6 +316,10 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		return this.swapFree;
 	}
 	
+	public String getJconsole() {
+		return this.jConsole;
+	}
+	
 	public double getCpu() {
 		return cpu;
 	}
@@ -355,6 +365,22 @@ public class MachineInfo implements Comparable<MachineInfo> {
 			retVal = this.alienPids.size();
 		}
 		return retVal;
+	}
+	
+	public long getBootTime() {
+		return this.bootTime;
+	}
+	
+	public void setBootTime(long value) {
+		this.bootTime = value;
+	}
+	
+	public long getPid() {
+		return this.pid;
+	}
+	
+	public void setPid(long value) {
+		this.pid = value;
 	}
 	
 	public long getSwapDelta() {

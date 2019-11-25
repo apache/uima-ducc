@@ -18,7 +18,9 @@
 */
 package org.apache.uima.ducc.ws;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -284,8 +286,11 @@ public class DuccMachinesData {
 				String memFree = "";
 				String swapInuse = "";
 				String swapFree = "";
+				String jConsole = "";
 				double cpu = 0;
-				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memReserve, memFree, swapInuse, swapFree, cpu, false, false, null, -1, 0);
+				long bootTime = 0;
+				long pid = 0;
+				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memReserve, memFree, swapInuse, swapFree, jConsole, cpu, false, false, null, bootTime, pid, -1, 0);
 				putMachine(machineInfo);
 			}
 			updateSortedMachines();
@@ -386,6 +391,31 @@ public class DuccMachinesData {
 		return cpu;
 	}
 	
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy.mm.dd HH:mm:ss EEE");
+	
+	private long toMillis(String sdate) {
+		long retVal = 0;
+		try {
+			Date d = sdf.parse(sdate);
+			retVal = d.getTime();
+		}
+		catch(Exception e) {
+			
+		}
+		return retVal;
+	}
+	
+	private long toLong(String sdata) {
+		long retVal = 0;
+		try {
+			retVal = Long.parseLong(sdata);
+		}
+		catch(Exception e) {
+			
+		}
+		return retVal;
+	}
+	
 	/**
 	 * 
 	 * @param duccEvent
@@ -440,12 +470,26 @@ public class DuccMachinesData {
 		//String swapFree = ""+lval/*+memUnits*/;
 		msi.swapFree = lvalSwapFree;
 		String swapFree = ""+lvalSwapFree/*+memUnits*/;
+		
+		String jConsole = null;
+		long bootTime = 0;
+		long pid = 0;
+		
+		try {
+			jConsole = nodeMetrics.getJconsoleUrl();
+			bootTime = toMillis(nodeMetrics.getBootTime());
+			pid = toLong(nodeMetrics.getPid());
+		}
+		catch(NoSuchMethodError t) {
+			// legacy Agent
+		}
+		
 		List<ProcessInfo> alienPids = nodeMetrics.getRogueProcessInfoList();
 		Node node = nodeMetrics.getNode();
 		double cpu = getCpuLoadAvg(node);
 		boolean cGroupsEnabled = nodeMetrics.getCgroups();
 		boolean cGroupsCpuReportingEnabled = nodeMetrics.getCgroupsCpuReportingEnabled();
-		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memReserve, memFree, ""+swapInuse, ""+swapFree, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, duccEvent.getMillis(), duccEvent.getEventSize());
+		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memReserve, memFree, ""+swapInuse, ""+swapFree, jConsole, cpu, cGroupsEnabled, cGroupsCpuReportingEnabled, alienPids, bootTime, pid, duccEvent.getMillis(), duccEvent.getEventSize());
 		
 		NodeId key = nodeId;
 		MachineInfo previous = unsortedMachines.get(key);

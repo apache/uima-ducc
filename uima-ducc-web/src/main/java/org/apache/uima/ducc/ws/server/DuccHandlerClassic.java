@@ -1673,12 +1673,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				Iterator<MachineInfo> iterator = machines.keySet().iterator();
 				while(iterator.hasNext()) {
 					MachineInfo machineInfo = iterator.next();
-					DuccDaemonRuntimeProperties drp = DuccDaemonRuntimeProperties.getInstance();
 					String machineName = machineInfo.getShortName();
 					if(machineName.startsWith("=")) {
 						continue;
 					}
-					Properties properties = drp.getAgent(machineName);
 					sb.append(trGet(counter));
 					// Status
 					StringBuffer status = new StringBuffer();
@@ -1711,12 +1709,16 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					sb.append(daemonName);
 					sb.append("</td>");	
 					// Boot Time
-					String bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+					String bootTime = null;
+					long bootTimeLong = machineInfo.getBootTime();
+					if(bootTimeLong > 0) {
+						bootTime = getTimeStamp(DuccCookies.getDateStyle(request),bootTimeLong);
+					}
 					sb.append("<td>");
 					sb.append(toDash(bootTime));
 					sb.append("</td>");
 					// Host IP
-					String hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
+					String hostIP = machineInfo.getIp();
 					sb.append("<td>");
 					sb.append(toDash(hostIP));
 					sb.append("</td>");	
@@ -1726,7 +1728,11 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					sb.append(hostName);
 					sb.append("</td>");
 					// PID
-					String pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
+					String pid = null;
+					long pidLong = machineInfo.getPid();
+					if(pidLong > 0) {
+						pid = ""+pidLong;
+					}
 					sb.append("<td>");
 					sb.append(toDash(pid));
 					sb.append("</td>");
@@ -1768,7 +1774,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					sb.append("</td>");
 					// JConsole URL
 					sb.append("<td>");
-					String jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
+					String jmxUrl = machineInfo.getJconsole();
 					if(jmxUrl != null) {
 						sb.append(buildjConsoleLink(jmxUrl));
 					}

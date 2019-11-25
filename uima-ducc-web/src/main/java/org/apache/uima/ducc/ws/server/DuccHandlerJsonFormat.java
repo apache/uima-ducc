@@ -2486,12 +2486,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				while(iterator.hasNext()) {
 					row = new JsonArray();
 					MachineInfo machineInfo = iterator.next();
-					DuccDaemonRuntimeProperties drp = DuccDaemonRuntimeProperties.getInstance();
 					String machineName = machineInfo.getShortName();
 					if(machineName.startsWith("=")) {
 						continue;
 					}
-					Properties properties = drp.getAgent(machineName);
 					// Status
 					StringBuffer status = new StringBuffer();
 					if(brokerAlive) {
@@ -2518,16 +2516,24 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					String daemonName = "Agent";
 					row.add(new JsonPrimitive(daemonName));
 					// Boot Time
-					String bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+					String bootTime = null;
+					long bootTimeLong = machineInfo.getBootTime();
+					if(bootTimeLong > 0) {
+						bootTime = getTimeStamp(DuccCookies.getDateStyle(request),bootTimeLong);
+					}
 					row.add(new JsonPrimitive(bootTime));
 					// Host IP
-					String hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
+					String hostIP = machineInfo.getIp();
 					row.add(new JsonPrimitive(hostIP));
 					// Host Name
 					String hostName = machineInfo.getName();
 					row.add(new JsonPrimitive(hostName));
 					// PID
-					String pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
+					String pid = null;
+					long pidLong = machineInfo.getPid();
+					if(pidLong > 0) {
+						pid = ""+pidLong;
+					}
 					row.add(new JsonPrimitive(pid));
 					// Publication Size (last)
 					String publicationSizeLast = machineInfo.getPublicationSizeLast();
@@ -2559,7 +2565,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					}
 					row.add(new JsonPrimitive(fmtHeartbeatMaxTOD));
 					// JConsole URL
-					String jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
+					String jmxUrl = machineInfo.getJconsole();
 					String jmxUrlLink = "";
 					if(jmxUrl != null) {
 						jmxUrlLink = buildjConsoleLink(jmxUrl);
