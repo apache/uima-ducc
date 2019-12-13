@@ -391,7 +391,7 @@ public class DuccMachinesData {
 		return cpu;
 	}
 	
-	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy.mm.dd HH:mm:ss EEE");
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss EEE");
 	
 	private long toMillis(String sdate) {
 		long retVal = 0;
