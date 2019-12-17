@@ -33,6 +33,7 @@ public class XStreamUtils {
 	public static String marshall( Object targetToMarshall) throws Exception {
         synchronized(XStreamUtils.class) {
     		XStream xStream = new XStream(new DomDriver());
+    		xStream.ignoreUnknownElements();
     		initXStreanSecurity(xStream);
             return xStream.toXML(targetToMarshall); 
         }
@@ -40,6 +41,7 @@ public class XStreamUtils {
 	public static Object unmarshall( String targetToUnmarshall) throws Exception {
         synchronized(XStreamUtils.class) {
     		XStream xStream = new XStream(new DomDriver());
+    		xStream.ignoreUnknownElements();
     		initXStreanSecurity(xStream);
     		return xStream.fromXML(targetToUnmarshall);
         }
