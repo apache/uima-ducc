@@ -81,6 +81,7 @@ public class AllInOneLauncher extends CliBase {
     private String description = null;
     
     private String scheduling_class = null;
+    private String machine_list = null;
     
     private String specification = null;
     
@@ -385,6 +386,26 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, exit);
     }
     
+    private void examine_machine_list() throws Exception {
+        String mid = "examine_machine_list";
+        mh.frameworkTrace(cid, mid, enter);
+        String pname = UiOption.MachineList.pname();
+        if (jobRequestProperties.containsKey(pname)) {
+          try {
+            machine_list = jobRequestProperties.getProperty(pname);
+            String message = pname + "=" + machine_list + " [original]";
+            if (isLocal()) {
+                message = pname + "=" + machine_list + " not considered";
+                mh.debug(cid, mid, message);
+            }
+            used(pname);
+          } catch (Exception e) {
+              throw new IllegalConfigurationException("Error in DUCC configuration files - see administrator", e);
+          }
+        }
+        mh.frameworkTrace(cid, mid, exit);
+    }
+    
     private void examine_signature() {
         String mid = "examine_signature";
         mh.frameworkTrace(cid, mid, enter);
@@ -662,6 +683,9 @@ public class AllInOneLauncher extends CliBase {
         
         // scheduling_class
         examine_scheduling_class();
+        
+        // machine_list
+        examine_machine_list();
         
         // wait_for_completion & cancel
         examine_wait_for_completion();

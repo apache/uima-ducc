@@ -61,6 +61,7 @@ public class ReservationFactory {
 		DuccSchedulingInfo schedulingInfo = new DuccSchedulingInfo();
 		duccWorkReservation.setSchedulingInfo(schedulingInfo);
 		schedulingInfo.setSchedulingClass(reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_scheduling_class));
+		schedulingInfo.setMachineList(reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_machine_list));
 		String memorySize = reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_memory_size);
 		MemorySpecification memorySpecification = new MemorySpecification(memorySize);
 		schedulingInfo.setMemorySizeRequested(memorySpecification.getSize());

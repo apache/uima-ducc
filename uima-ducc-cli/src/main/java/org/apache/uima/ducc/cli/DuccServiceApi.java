@@ -60,6 +60,7 @@ public class DuccServiceApi
         UiOption.Description,
         UiOption.Administrators,
         UiOption.SchedulingClass,
+        UiOption.MachineList,
         UiOption.WorkingDirectory,   // Must precede LogDirecory
         UiOption.LogDirectory,       // Must precede Environment
         UiOption.Jvm,

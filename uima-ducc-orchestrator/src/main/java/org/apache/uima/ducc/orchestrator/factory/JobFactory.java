@@ -515,6 +515,7 @@ public class JobFactory implements IJobFactory {
 			schedulingInfo.setMemorySizeRequested(""+jpGB);
 		}
 		schedulingInfo.setSchedulingClass(jobRequestProperties.getProperty(JobSpecificationProperties.key_scheduling_class));
+		schedulingInfo.setMachineList(jobRequestProperties.getProperty(JobSpecificationProperties.key_machine_list));
 		schedulingInfo.setSchedulingPriority(jobRequestProperties.getProperty(JobSpecificationProperties.key_scheduling_priority));
 		schedulingInfo.setProcessesMax(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_deployments_max));
 		schedulingInfo.setProcessesMin(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_deployments_min));

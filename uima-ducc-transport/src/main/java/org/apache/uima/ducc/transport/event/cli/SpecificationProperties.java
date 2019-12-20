@@ -43,6 +43,7 @@ public class SpecificationProperties extends DuccProperties implements Serializa
 	
 	public static String key_description = "description";
 	
+	public static String key_machine_list = "machine_list";
 	public static String key_scheduling_class = "scheduling_class";
 	
 	public static String key_specification = "specification";

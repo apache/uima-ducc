@@ -37,6 +37,7 @@ global default_jvm
 global ducc_home
 
 ducc_class = 'fixed'
+ducc_mach_list = None
 java_cmd   = None
 ducc_home  = None       # tbd in a minute
 ducc_mem_size = None
@@ -69,6 +70,10 @@ def usage():
     print ""
     print "   -DDUCC_CLASS=ducc-scheduling-class"
     print "       The default is -DDUCC_CLASS=" + ducc_class
+    print ""
+    print "   -DDUCC_MACHINE_LIST=list-of-machine-names"
+    print "       The default is no machine names.  The machine list string should be"
+    print '       blank-delimeted and quoted, for example: -DDUCC_MACHINE_LIST="machine01 machine02 machine03"'
     print ""
     print "   -DDUCC_ENVIRONMENT=environment-settings"
     print "       The default is no additional environment.  The environment string should be"
@@ -209,6 +214,7 @@ def main():
         usage()
 
     ducc_class = 'fixed'
+    ducc_mach_list = None
     java_cmd   = None
     ducc_env   = ''
     enable_attach = False
@@ -217,6 +223,7 @@ def main():
     # remember to add the '=' at the end if following value
     p_mem_size  = '-DDUCC_MEMORY_SIZE='
     p_class     = '-DDUCC_CLASS='
+    p_mach_list = '-DDUCC_MACHINE_LIST='
     p_jvm_dir   = '-DJAVA_BIN='
     p_ducc_home = '-DDUCC_HOME='
     p_env       = '-DDUCC_ENVIRONMENT='
@@ -245,6 +252,9 @@ def main():
         elif (arg.startswith(p_class) ):
             ducc_class = arg[len(p_class):]
 
+        elif (arg.startswith(p_mach_list) ):
+            ducc_mach_list = '"'+arg[len(p_mach_list):]+'"'
+            
         elif (arg.startswith(p_jvm_dir) ):
             java_cmd = arg[len(p_jvm_dir):] + '/java'
 
@@ -302,6 +312,9 @@ def main():
     CMD = CMD +       ' --wait_for_completion'
     CMD = CMD +       ' --process_memory_size ' + str(ducc_mem_size)
     CMD = CMD +       ' --scheduling_class ' + ducc_class
+    
+    if(ducc_mach_list != None):
+    	CMD = CMD +       ' --machine_list ' + ducc_mach_list
 
     if ducc_desc_set:
         CMD = CMD +       ' --description %r' % ducc_desc

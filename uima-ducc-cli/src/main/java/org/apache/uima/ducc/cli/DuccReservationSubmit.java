@@ -79,6 +79,7 @@ public class DuccReservationSubmit
 
         UiOption.Description,
         UiOption.SchedulingClass,
+        UiOption.MachineList,
         UiOption.Specification,
         UiOption.ReservationMemorySize,
         UiOption.Timestamp,

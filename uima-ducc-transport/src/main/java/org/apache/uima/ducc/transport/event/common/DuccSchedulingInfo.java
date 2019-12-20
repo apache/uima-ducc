@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.transport.event.common;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.jd.files.perf.PerformanceMetricsSummaryMap;
@@ -34,6 +36,7 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	 */
 	private static final long serialVersionUID = 1L;
 	private String schedulingClass = defaultSchedulingClass;
+	private List<String> machineList = defaultMachineList;
 	private String schedulingPriority = defaultSchedulingPriority;
 	@Deprecated
 	private String shareMemorySize = defaultMemorySize;
@@ -81,6 +84,25 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 		}
 	}
 
+	
+	public List<String> getMachineList() {
+		return machineList;
+	}
+
+	
+	public void setMachineList(List<String> machineList) {
+		if(machineList != null) {
+			this.machineList = machineList;
+		}
+	}
+	public void setMachineList(String string) {
+		if(string != null) {
+			String[] array = string.trim().split("\\s+");
+			if(array.length > 0) {
+				setMachineList(Arrays.asList(array));
+			}
+		}
+	}
 	
 	public String getSchedulingPriority() {
 		return schedulingPriority;

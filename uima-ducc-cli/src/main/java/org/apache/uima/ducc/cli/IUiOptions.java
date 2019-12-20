@@ -211,6 +211,13 @@ public interface IUiOptions
             public boolean required()   { return true; }
         },
         
+        MachineList { 
+            public String pname()       { return JobSpecificationProperties.key_machine_list; }
+            public String argname()     { return "list of machines"; }
+            public String description() { return "Blank separated list of one or more machines to use from the associated scheduling class.  If this option is not specified, then any machines associated with the scheduling class are eligible."; }
+            public String example()     { return "machine01 machine02 machine03"; }
+        }, 
+        
         ManagedReservationId { 
             public String pname()       { return JobRequestProperties.key_id; }
             public String argname()     { return "string"; }

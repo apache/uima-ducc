@@ -57,6 +57,7 @@ public class DuccJobSubmit
 
         UiOption.Description,
         UiOption.SchedulingClass,
+        UiOption.MachineList,
 
         UiOption.WorkingDirectory,   // Must precede LogDirecory
         UiOption.LogDirectory,       // Must precede Environment

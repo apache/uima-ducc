@@ -52,6 +52,7 @@ public class DuccManagedReservationSubmit
         UiOption.ProcessExecutableArgs,
         UiOption.ProcessMemorySize,
         UiOption.SchedulingClass,
+        UiOption.MachineList,
         UiOption.Specification,
         UiOption.SuppressConsoleLog,
         UiOption.Timestamp,

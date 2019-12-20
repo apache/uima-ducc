@@ -50,6 +50,7 @@ public class RmJob
     protected String name;                            // user's name for job
     protected String resource_class_name;             // Name of the res class, from incoming job parms
     protected ResourceClass resource_class;           // The actual class, assigned as job is received in scheduler.
+    protected List<String> resource_machine_list;     // List of eligible machine (if any), from incoming job parms
     protected int    user_priority;                   // user "priority", really apportionment 
 
     // @deprecated
@@ -95,6 +96,8 @@ public class RmJob
     Map<Machine, Map<Share, Share>> sharesByMachine = new HashMap<Machine, Map<Share, Share>>();
     Map<Machine, Machine> machineList = new HashMap<Machine, Machine>();
 
+    private int eligibleMachinesCount;                   // during scheduling, how many machines were in users machine set
+    
     // protected int shares_given;                       // during scheduling, how many N-shares we get
     int[] given_by_order;                                // during scheduling, how many N-shares we get
     int[] wanted_by_order;                               // during scheduling, how many N-shares we we want - volatile, changes during countJobsByOrder
@@ -916,6 +919,16 @@ public class RmJob
         return assignedShares.size() + pendingShares.size() - pendingRemoves.size();
     }
 
+    public int getEligibleMachinesCount() {
+    	return eligibleMachinesCount;
+    }
+    public void setEligibleMachinesCount(int value) {
+    	eligibleMachinesCount = value;
+    }
+    public void incEligibleMachinesCount() {
+    	eligibleMachinesCount += 1;
+    }
+    
     public void refuse(String refusal)
     {
         String methodName = "refuse";
@@ -1235,6 +1248,14 @@ public class RmJob
         this.resource_class_name = class_name;
     }
 
+    public List<String> getMachineList() {
+        return resource_machine_list;
+    }
+
+    public void setMachineList(List<String> machine_list) {
+        this.resource_machine_list = machine_list;
+    }
+    
     public int getSchedulingPriority() {
         return resource_class.getPriority();
     }

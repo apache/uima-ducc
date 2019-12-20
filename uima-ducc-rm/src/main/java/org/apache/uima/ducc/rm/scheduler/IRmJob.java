@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.rm.scheduler;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.persistence.rm.IDbJob;
@@ -202,6 +203,13 @@ public interface IRmJob
      * non-zero.  This is an extreme corner case it's best to be safe.
      */
     public int countNShares();
+    
+    /**
+     * Number of eligible machines subject to user machine list
+     */
+    public int getEligibleMachinesCount();
+    public void setEligibleMachinesCount(int value);
+    public void incEligibleMachinesCount();
 
     /**
      * Can't schedudle this nohow.  Here's why.
@@ -251,6 +259,9 @@ public interface IRmJob
 
     // public String getClassName();         UIMA 4577 IDbJob
     public void   setClassName(String n);
+    
+    public void setMachineList(List<String> ms);
+    public List<String> getMachineList();
 
     public int getSchedulingPriority();
 

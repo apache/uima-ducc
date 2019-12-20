@@ -49,6 +49,7 @@ public class DuccServiceSubmit
         UiOption.Administrators,      // ( not used directly here, but is allowed in registration )
 
         UiOption.SchedulingClass,
+        UiOption.MachineList,
         UiOption.WorkingDirectory,   // Must precede LogDirecory
         UiOption.LogDirectory,       // Must precede Environment
         UiOption.Jvm,

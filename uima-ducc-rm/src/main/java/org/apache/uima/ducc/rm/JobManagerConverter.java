@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.Node;
@@ -567,6 +568,15 @@ public class JobManagerConverter
         j.setUserPriority(user_priority);
         j.setNQuestions(total_work, remaining_work, 0.0);
         j.setClassName(className);
+        
+        List<String> machineList = si.getMachineList();
+        j.setMachineList(machineList);
+        if(machineList != null) {
+        	if(!machineList.isEmpty()) {
+        		String message = "machine list: "+String.join(" ", machineList);
+        		logger.info(methodName, job.getDuccId(), message);
+        	}
+        }
 
         switch (si.getMemoryUnits()) {
             case GB:

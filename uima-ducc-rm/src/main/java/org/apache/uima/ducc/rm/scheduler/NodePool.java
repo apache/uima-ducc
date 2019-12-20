@@ -1382,6 +1382,38 @@ class NodePool
         return np.doVaryOn(node);         // must pass to the right nodepool, can't do it "here"
     }
 
+    /*
+     * limit eligible machines to those in the user specified --machines_list
+     */
+    boolean isCompatible(Machine m, IRmJob j)
+    {
+    	String methodName = "isCompatible";
+    	boolean retVal = true;
+    	try {
+    		List<String> mlist = j.getMachineList();
+        	if(!mlist.isEmpty()) {
+        		retVal = false;
+        		NodeIdentity ni = m.getNodeIdentity();
+        		String lname = ni.getCanonicalName();
+        		String sname = ni.getShortName();
+        		for(String mname : mlist) {
+        			if(mname.equals(lname)) {
+        				retVal = true;
+        				break;
+        			}
+        			if(mname.equals(sname)) {
+        				retVal = true;
+        				break;
+        			}
+        		}
+        	}
+    	}
+    	catch(Exception e) {
+    		logger.error(methodName, j.getId(), e);
+    	}
+    	return retVal;
+    }
+    
     boolean isSchedulable(Machine m)
     {
         if ( m.isBlacklisted() )                         return false;
@@ -1513,6 +1545,10 @@ class NodePool
         while ( iter.hasNext() && (given < needed) ) {
             Machine m = iter.next();
             logger.info(methodName, j.getId(), "Examining", m.getId());
+            if ( !isCompatible(m,j) ) {
+                logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is not in user machine list");
+                continue;
+            }
             if ( !isSchedulable(m) ) {
               logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is offline or unresponsive or blacklisted");
               continue;
@@ -1699,7 +1735,7 @@ class NodePool
         //machs = sortedForReservation(machinesByOrder.get(order));
 
         for ( Machine mm : machinesByOrder.get(order).values() ) {
-            if ( isSchedulable(mm) && mm.isFree() ) {
+            if ( isCompatible(mm,job) && isSchedulable(mm) && mm.isFree() ) {
                 Share s = new Share(mm, job, mm.getShareOrder());
                 s.setFixed();
                 connectShare(s, mm, job, mm.getShareOrder());
@@ -1916,6 +1952,8 @@ class NodePool
 
         logger.debug(methodName, j.getId(), "counted", counted, "current", current, "needed", needed, "order", order, "given", given);
 
+        j.setEligibleMachinesCount(0);
+        
         if ( needed > 0 ) {
             whatof: {
                 for ( int i = order; i < getArraySize(); i++ ) {
@@ -1928,6 +1966,8 @@ class NodePool
                     ml.addAll(machs.values());
 
                     for ( Machine m : ml ) {                                // look for space
+                    	if ( !isCompatible(m,j) ) continue;                 // nope
+                    	j.incEligibleMachinesCount();
                         if ( !isSchedulable(m) ) continue;                  // nope
                         if ( (!allowVertical) && (m.hasVerticalConflict(j)) ) continue;  // UIMA-4712
                         int g = Math.min(needed, m.countFreeShares(order)); // adjust by the order supported on the machine
@@ -2011,7 +2051,14 @@ class NodePool
             } else {
                 sb.append("notfound ");
             }
-            if ( j.countNShares() == 0 ) j.setReason("Waiting for preemptions.");
+            if ( j.countNShares() == 0 ) {
+            	j.setReason("Waiting for preemptions.");
+            	if(j.getEligibleMachinesCount() == 0) {
+            		if(j.getMachineList().size() > 0) {
+            			j.setReason("No machines match user specified list.");
+            		}
+            	}
+            }
         }
         logger.info(methodName, null, sb.toString());
         return expansions;

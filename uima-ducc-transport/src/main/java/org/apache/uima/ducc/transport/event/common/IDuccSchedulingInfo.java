@@ -19,6 +19,8 @@
 package org.apache.uima.ducc.transport.event.common;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.jd.files.perf.PerformanceMetricsSummaryMap;
@@ -29,6 +31,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 public interface IDuccSchedulingInfo extends Serializable {
 	
 	public static final String defaultSchedulingClass = "normal";
+	public static final List<String> defaultMachineList = new ArrayList<String>();
 	public static final String defaultSchedulingPriority = "0";
 	public static final String defaultMemorySize = "1";
 	public static final MemoryUnits defaultMemoryUnits = MemoryUnits.GB;
@@ -57,6 +60,9 @@ public interface IDuccSchedulingInfo extends Serializable {
 	
 	public String getSchedulingClass();
 	public void setSchedulingClass(String schedulingClass);
+	
+	public List<String> getMachineList();
+	public void setMachineList(List<String> machineList);
 	
 	public String getSchedulingPriority();
 	public void setSchedulingPriority(String schedulingPriority);

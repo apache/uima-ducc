@@ -1464,7 +1464,14 @@ public class NodepoolScheduler
                 // or defrag.
                 //
                 if ( j.countNShares() == 0 ) {
-                    j.setReason("Waiting for preemptions.");
+                	if ( j.countNShares() == 0 ) {
+                        j.setReason("Waiting for preemptions.");
+                        if(j.getEligibleMachinesCount() == 0) {
+                        	if(j.getMachineList().size() > 0) {
+                        		j.setReason("No machines match user specified list.");
+                        	}
+                        }
+                    }
                 }                
             }
         }
@@ -1644,7 +1651,14 @@ public class NodepoolScheduler
                 // fully allocated. Nothing more to do here.
                 //
                 if ( j.countNShares() == 0 ) {
-                    j.setReason("Waiting for preemptions.");
+                	if ( j.countNShares() == 0 ) {
+                        j.setReason("Waiting for preemptions.");
+                        if(j.getEligibleMachinesCount() == 0) {
+                        	if(j.getMachineList().size() > 0) {
+                        		j.setReason("No machines match user specified list.");
+                        	}
+                        }
+                    }
                 }
             }
         }
