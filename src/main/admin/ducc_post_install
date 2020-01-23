@@ -295,7 +295,7 @@ class PostInstall():
     def set_java_home(self):
         jvm = self.path_to_java
         if ( platform.system() == 'Darwin' ):
-            self.jvm_home = "/Library/Java/Home"
+            self.jvm_home = subprocess.check_output("/usr/libexec/java_home").strip()
         else:
             ndx = jvm.rindex('/')
             ndx = jvm.rindex('/', 0, ndx)

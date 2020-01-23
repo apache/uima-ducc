@@ -75,7 +75,7 @@ class DuccBase:
             return 'JAVA_HOME'   # avoid npe during first-time setup
 
         if ( self.system == 'Darwin' ):
-            self.jvm_home = "/Library/Java/Home"
+            self.jvm_home = subprocess.check_output("/usr/libexec/java_home").strip()
         else:
             ndx = self.jvm.rindex('/')
             ndx = self.jvm.rindex('/', 0, ndx)

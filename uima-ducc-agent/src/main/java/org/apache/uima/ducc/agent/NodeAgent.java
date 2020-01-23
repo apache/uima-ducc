@@ -594,7 +594,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
     } catch (Exception e) {
       logger.info("nodeAgent", null,
-              "------- Agent failed while checking for existence of ducc_ling", e);
+              "------- Agent failed while checking for existence of CGroups", e.getMessage());
     } finally {
       if (br != null) {
         try {

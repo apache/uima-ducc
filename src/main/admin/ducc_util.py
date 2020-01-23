@@ -589,13 +589,16 @@ class DuccUtil(DuccBase):
         ssh_cmd = 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=10'+' '+node+" "+cmd
         resp = self.popen(ssh_cmd)
         lines = resp.readlines()
+        # Response should be just the full nodename so check that the short name matches
+        # Note that error msgs may also contain the node name
         for line in lines:
-            if(node in line):
+            if (line.startswith(node) and len(line.split())==1):
                 return True
         if(verbosity):
             print 'ssh not operational - unexpected results from:', ssh_cmd
             for line in lines:
                 print '>>>>>',line
+            print '?? Has the entry in .ssh/id_rsa.pub been appended to .ssh/authorized_keys ??'
         return False
 
     # like popen, only it spawns via ssh
