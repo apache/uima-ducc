@@ -245,15 +245,21 @@ def validate_target(options):
     global ducc_url_base
     global ducc_url_servlet_system_daemons_data
     global ducc_url_servlet_reservations_data
-    protocol = 'http://'
+    protocol_https = 'https://'
+    protocol_http = 'http://'
+    protocol = protocol_http
     if(options.target == None):
         error('required "target" not specified')
         _exit(1)
     target = options.target
     if(':' not in target):
         target = target+':'+str(port)
-    if(target.startswith(protocol)):
-        target = target.replace(protocol,'',1)
+    if(target.startswith(protocol_https)):
+        target = target.replace(protocol_https,'',1)
+        protocol = protocol_https
+    elif(target.startswith(protocol_http)):
+        target = target.replace(protocol_http,'',1)
+        #protocol = protocol_http
     ducc_url_base = protocol+target
     #
     servlet = '/ducc-servlet/json-format-aaData-daemons'
@@ -299,7 +305,7 @@ def parse_cmdline():
     parser.add_option('-p','--path', action='store', dest='path', default=None,
                                help='path to directory where log and state information are written, default is /tmp'+'/'+get_user())
     parser.add_option('-t','--target', action='store', dest='target', default=None,
-                               help='[REQUIRED] <host> with default port of '+port+' or <host>:<port>')
+                               help='[REQUIRED] <host> with default port of '+port+' or <host>:<port> or http://<host>:<port> or https://<host>:<port>')
     parser.add_option('-v','--verbose', action='store_true', dest='flag_verbose', default=False, 
                                help='do not reduce noise (in log file)')
     
