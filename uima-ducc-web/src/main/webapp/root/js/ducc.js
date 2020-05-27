@@ -3356,6 +3356,8 @@ function ducc_refresh(type) {
         ducc_refresh_stopped(type);
         type = null
     }, 1001);
+    ducc_alerts();
+    ducc_messages();
     ducc_refresh_running(type);
     ducc_console_exit(fname);
 }
@@ -3447,8 +3449,6 @@ function ducc_timed_loop(type) {
     ducc_console_enter(fname);
     try {
     	ducc_cookies();
-    	ducc_alerts();
-    	ducc_messages();
         var refreshmode = ducc_appl("refreshmode");
         var c_value = ducc_get_cookie(refreshmode);
         if (c_value == null) {
