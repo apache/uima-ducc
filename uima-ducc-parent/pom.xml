@@ -179,7 +179,7 @@
 
         <!-- These are all cassandra client -->
         <cassandra.driver.version>3.6.0</cassandra.driver.version>
-        <netty.version>4.0.44.Final</netty.version>
+        <netty.version>4.1.94.Final</netty.version>
         <hdr.version>2.1.4</hdr.version>
         <metrics.version>3.0.2</metrics.version>
         <snappy.version>1.1.1.7</snappy.version>
