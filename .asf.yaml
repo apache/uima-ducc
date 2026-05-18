@@ -1,4 +1,5 @@
 github:
+  description: "[RETIRED 2022-12-21] Apache UIMA DUCC — Distributed UIMA Cluster Computing. No longer maintained."
   rulesets:
     - name: "Default Branch Protection"
       type: branch
